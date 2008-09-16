@@ -1,0 +1,380 @@
+<?xml version="1.0"?>
+
+<project name="jsettlers" default="build">
+
+  <!-- Give user a chance to override without editing this file
+       (and without typing -D each time compiling) -->
+  <property file="build.properties" />
+  <property file="${user.home}/build.properties" />
+  <property environment="env" />
+
+  <property name="debug"       value="true" />
+  <property name="optimize"    value="true" />
+  <property name="deprecation" value="false" />
+
+  <property name="name"      value="jsettlers" />
+  <property name="Name"      value="JSettlers" />
+  <!-- version under development, e.g. 1.1, 1.2-RC2, 2.0-SNAPSHOT -->
+  <property name="version"   value="1.1.05" />
+  <property name="versionnum" value="1105" />
+  <property name="copyright" value="2001-2004 Robb Thomas, portions 2007-2008 Jeremy D Monin" />
+  <property name="url"       value="http://nand.net/jsettlers/devel/" />
+
+  <!-- **** See build.properties for client/server startup arguments **** -->
+  <property name="client.class"   value="soc.client.SOCPlayerClient" />
+  <property name="server.class"   value="soc.server.SOCServer" />
+  <property name="main.class"     value="${client.class}" />
+
+  <!-- directory names -->
+  <!-- These must remain simple values, (relative to basedir) -->
+  <property name="src"            value="src" />
+  <property name="lib"            value="lib" /> <!-- 3rd party libs -->
+  <property name="docs.src"       value="xdocs" />
+  <property name="bin.src"        value="src/bin" />
+  <property name="java.src"       value="src/java" />
+  <property name="test.src"       value="src/test" />
+  <property name="web.src"        value="src/web" />
+
+  <property name="target"         location="target" />
+  <property name="classes"        location="${target}/classes" />
+  <property name="bin.target"     location="${target}/bin" />
+  <property name="lib.target"     location="${target}/lib" />
+  <property name="test.classes"   location="${target}/test-classes" />
+  <property name="test.reports"   location="${target}/test-reports" />
+  <property name="docs.generated" location="${target}/generated-xdocs" />
+  <property name="docs.target"    location="${target}/docs" />
+  <property name="api.target"     location="${docs.target}/api" />
+  <property name="dist"           location="dist" />
+
+  <!-- version file basename relative to ${classes} and ${java.src} -->
+  <property name="version.info" value="resources/version.info" />
+
+  <!-- packaging -->
+  <property name="client.jar" value="${Name}.jar" />
+  <property name="server.jar" value="${Name}Server.jar" />
+  <property name="test.jar"   value="${Name}Test.jar" />
+
+  <property name="dist.name"     value="${name}-${version}" />
+  <property name="dist.src.name" value="${dist.name}-src" />
+
+  <property name="installer.jar" value="${dist}/${dist.name}-installer.jar" />
+  <property name="dist.tgz"      value="${dist}/${dist.name}.tar.gz" />
+  <property name="dist.zip"      value="${dist}/${dist.name}.zip" />
+  <property name="dist.src.tgz"  value="${dist}/${dist.src.name}.tar.gz" />
+  <property name="dist.src.zip"  value="${dist}/${dist.src.name}.zip" />
+
+  <!-- files for the distributions -->
+  <fileset id="readme.files" dir=".">
+    <include name="COPYING.txt" />
+    <include name="README.txt" />
+    <include name="VERSIONS.txt" />
+  </fileset>
+
+  <!-- jar file packages -->
+  <patternset id="server.files">
+    <include name="resources/" />   <!-- for version file -->
+    <include name="soc/" />         <!-- everything... -->
+    <exclude name="soc/client/" />  <!-- ...except these -->
+  </patternset>
+  <patternset id="client.files">
+    <include name="resources/" />   <!-- client may run local server -->
+    <include name="soc/" />         <!-- thus, everything -->
+  </patternset>
+
+  <!-- external libraries -->
+  <fileset id="ext.libs" dir="${lib}" includes="*.jar" />
+
+  <!-- class paths -->
+  <path id="classpath">
+    <pathelement location="${classes}" />
+    <fileset dir="${lib.target}" includes="*.jar" />
+  </path>
+
+  <!-- Not used: For later.... -->
+  <path id="ext.cp">
+    <fileset refid="${ext.libs}" />
+  </path>
+
+  <!-- Not used: For later.... -->
+  <path id="installer.cp">
+    <path refid="classpath" />
+    <pathelement location="${izpack.home}/lib/compiler.jar" />
+  </path>
+
+  <!-- ************************************** -->
+  <!-- Initialization -->
+  <!-- ************************************** -->
+
+  <target name="init">
+      <tstamp />
+  </target>
+
+  <target name="init-libs" depends="init">
+      <mkdir dir="${lib.target}" />
+      <!-- Later: when we use external libraries
+      <copy toDir="${lib.target}">
+        <fileset refid="ext.libs" />
+      </copy> -->
+  </target>
+
+  <target name="resources"
+          description="Copy resources to classes directory">
+      <copy toDir="${classes}">
+        <fileset dir="${java.src}" includes="soc/**/*.gif" />
+      </copy>
+  </target>
+
+
+  <!-- ************************************** -->
+  <!-- Third party dependancy checks -->
+  <!-- ************************************** -->
+
+  <!-- Not used: For later.... -->
+  <target name="check-junit" depends="init">
+     <available property="junit.present"
+                classname="junit.framework.TestCase"
+                classpathref="ext.cp" />
+  </target>
+
+  <!-- Not used: For later.... -->
+  <target name="check-izpack" depends="init">
+      <available property="izpack.present" 
+                 classname="com.izforge.izpack.ant.IzPackTask"
+                 classpathref="installer.cp" />
+      <fail unless="izpack.present">
+
+         The IzPack program is not available.  Download it from
+         http://www.izforge.com/izpack/.  Install it, and set the
+         'izpack.home' property in build.properties.
+      </fail>
+  </target>
+
+  <!-- ************************************** -->
+  <!-- Compilation targets -->
+  <!-- ************************************** -->
+
+  <!-- Compile the java code from ${java.src} into ${classes} so
+       that tests can be done on compiled classes without creating
+       distribution tarballs -->
+  <target name="compile" depends="init-libs,resources"
+          description="Compile class files into 'classes'.">
+      <!-- version updates when info build.xml changes -->
+      <dependset>
+        <srcfilelist dir="${basedir}" files="build.xml" />
+        <targetfilelist dir="${classes}" files="${version.info}" />
+      </dependset>
+      <copy file="${java.src}/${version.info}.in" 
+            tofile="${classes}/${version.info}">
+        <filterset>
+          <filter token="VERSION" value="${version}" />
+          <filter token="VERSIONNUM" value="${versionnum}" />
+          <filter token="COPYRIGHT" value="${copyright}" />
+        </filterset>
+      </copy>
+      
+      <javac srcdir="${java.src}"
+             destdir="${classes}"
+             classpathref="classpath"
+             debug="${debug}" 
+             optimize="${optimize}"
+             deprecation="${deprecation}" />
+  </target>
+ 
+  <!-- Create two jars: client and server (which depends on client) -->
+  <target name="build" depends="compile"
+          description="Create project jar files.">
+      <jar destfile="${target}/${client.jar}" basedir="${classes}">
+        <patternset refid="client.files" />
+        <manifest>
+          <attribute name="Main-Class" value="${client.class}" />
+        </manifest>
+      </jar>
+      <jar destfile="${target}/${server.jar}" basedir="${classes}">
+        <patternset refid="server.files" />
+        <manifest>
+          <attribute name="Main-Class" value="${server.class}" />
+          <attribute name="Class-Path" value="${client.jar} lib/log4j-1.2.15.jar lib/log4j.properties" />
+        </manifest>
+      </jar>
+  </target>
+
+  <!-- ************************************** -->
+  <!-- Testing targets -->
+  <!-- ************************************** -->
+
+  <target name="test" depends="compile-tests">
+      <mkdir dir="${test.reports}" />
+      <junit dir="./" 
+             failureproperty="test.failure" 
+             printSummary="yes" 
+             fork="true" 
+             haltonerror="no">
+        <sysproperty key="basedir" value="." />
+        <formatter type="xml" />
+        <formatter usefile="true" type="plain" />
+        <classpath>
+          <fileset refid="ext.libs" />
+          <pathelement path="${test.classes}" />
+          <pathelement path="${classes}" />
+        </classpath>
+        <batchtest fork="yes" todir="${test.reports}">
+          <fileset dir="${test.classes}">
+            <include name="**/Test*.class"/>
+            <exclude name="**/TestAll.class"/>
+          </fileset>
+        </batchtest>
+      </junit>
+
+      <junitreport>
+        <fileset dir="${test.reports}" includes="TEST-*.xml" />
+        <report format="noframes" />
+      </junitreport>
+
+      <fail if="test.failure" message="There were test failures." />
+  </target>
+
+  <target name="compile-tests" depends="compile">
+      <mkdir dir="${test.classes}" />
+      <javac srcdir="${test.src}"
+             destdir="${test.classes}"
+             classpathref="classpath"
+             debug="${debug}"
+             optimize="${optimize}"
+             deprecation="${deprecation}" />
+  </target>
+
+   
+  <!-- ************************************** -->
+  <!-- Distribution targets -->
+  <!-- ************************************** -->
+
+  <!-- Create installer (requires IzPack) -->
+  <target name="installer" depends="check-izpack,build,docs"
+          description="Create installer (Need IzPack: http://www.izforge.com/izpack)">
+
+      <fail>An installation file has not yet been created.</fail>
+      <mkdir dir="${dist}" />
+      <taskdef name="izpack" classname="com.izforge.izpack.ant.IzPackTask"
+               classpathref="installer.cp" />
+      <izpack input="${src}/installer/install.xml"
+              output="${installer.jar}"
+              installerType="standard"
+              basedir="."
+              izPackDir="${izpack.home}" />
+  </target>
+
+  <!-- Create distribution tarballs -->
+  <target name="dist" depends="build,docs"
+          description="Build distribution tarballs and zips.">
+      <property name="dist.tmp" value="${dist}/${dist.name}" />
+      <delete dir="${dist.tmp}" quiet="true" />
+
+      <copy todir="${dist.tmp}" preservelastmodified="true">
+        <fileset refid="readme.files" />
+        <!-- program and libs -->
+        <fileset dir="${target}">
+          <include name="${client.jar}" />
+          <include name="${server.jar}" />
+          <include name="docs/" />
+          <include name="lib/" />
+        </fileset>
+      </copy>
+      <copy todir="${dist.tmp}/web">
+        <fileset dir="${web.src}" />
+      </copy>
+
+      <tar destfile="${dist.tgz}" compression="gzip"
+           basedir="${dist}" includes="${dist.name}/" />
+      <zip destfile="${dist.zip}"
+           basedir="${dist}" includes="${dist.name}/" />
+
+      <!-- clean up -->
+      <delete dir="${dist.tmp}" quiet="true" />
+  </target>
+
+  <!-- Create a source tarball suitable for building the project -->
+  <target name="src" depends="init"
+          description="Create a tarball of the source tree">
+      <echo>
+        This copies everything in your "src" directory, so be sure
+        to run on a clean repository only!
+      </echo>
+
+      <property name="dist.src.tmp" value="${dist}/${dist.src.name}" />
+      <delete dir="${dist.src.tmp}" quiet="true" />
+
+      <copy todir="${dist.src.tmp}" preservelastmodified="true">
+        <fileset refid="readme.files" />
+        <fileset dir=".">
+          <include name="README.developer" />
+          <include name="build.xml" />
+          <include name="build.properties" />
+          <include name="${src}/" />
+          <include name="${lib}/*.jar" />
+        </fileset>
+      </copy>
+
+      <tar destfile="${dist.src.tgz}" compression="gzip"
+           basedir="${dist}" includes="${dist.src.name}/" />
+
+      <!-- clean up -->
+      <delete dir="${dist.src.tmp}" quiet="true" />
+  </target>
+
+  <!-- clean the distribution directory -->
+  <target name="dist-clean" depends="init">
+      <delete quiet="true" includeEmptyDirs="true">
+        <fileset dir="${dist}/" defaultExcludes="no" />
+      </delete>
+  </target>
+
+
+  <!-- ************************************** -->
+  <!-- Documentation targets -->
+  <!-- ************************************** -->
+
+  <!-- all documentation -->
+  <target name="docs" depends="docs.users,javadoc" />
+
+  <target name="docs.users">
+      <!-- No munging, simply copy -->
+      <copy todir="${docs.target}">
+        <fileset dir="${src}/docs" />
+      </copy>
+  </target>
+
+  <!-- generate javadoc -->
+  <target name="javadoc" depends="init-libs"
+          description="Creates javadoc in 'docs/api'">
+      <mkdir dir="${api.target}" />
+      <javadoc sourcepath="${java.src}"
+               destdir="${api.target}"
+               classpathref="classpath"
+               author="true"
+               version="true"
+               overview="${java.src}/main-overview.html"
+               doctitle="${Name}, v ${version}, API Specification"
+               windowtitle="${Name} v${version} API"
+               access="package"
+               source="1.4" 
+               additionalparam="-breakiterator">
+        <packageset dir="${java.src}" />
+        <header><![CDATA[<b><a target="_blank" href="${url}">${Name} v${version} API</a></b><br><font size="-2">Built ${date}</font>]]></header>
+      </javadoc>
+  </target>
+
+
+  <!-- ************************************** -->
+  <!-- Other targets -->
+  <!-- ************************************** -->
+
+  <!-- Delete all artifacts of the project, i.e. ${target} & ${dist} -->
+  <target name="clean" depends="init" 
+          description="Cleans the project of all generated files">
+      <delete quiet="true" includeEmptyDirs="true">
+        <fileset dir="${target}/" defaultExcludes="no" />
+        <fileset dir="${dist}/" defaultExcludes="no" />
+      </delete>
+  </target>
+
+</project>

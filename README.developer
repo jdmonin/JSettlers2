@@ -1,0 +1,80 @@
+README.developer - Notes and current status of 2008 JSettlers development (version 1.10 at nand.net)
+	http://nand.net/jsettlers/devel/
+
+The main server class is soc.server.SOCServer.
+The client communication is soc.client.SOCPlayerClient, and in-game interface is in soc.client.SOCPlayerInterface.
+Game state is held at the server in soc.game.SOCGame and its fields.  Partial game state is known at clients.
+Communication is described in soc.message.SOCMessage.
+Robots talk with the server like normal human clients.
+
+Coding is done in Java 1.4 for now, but should compile cleanly in newer JDKs.
+The build system is Ant, which is natively understood by Eclipse.  Use any IDE you want, including vi.
+Use spaces, not tabs.  Please try to keep the other conventions of the code already there.
+When submitting patches, please use unified diff (-ur) format.
+
+See VERSIONS.txt for recent changes.
+
+Current partially-done work:
+	- Refactor SOCMessage classes to use templates
+
+Current TODO list: (Work on these items not yet begun)
+	- Keyboard shortcuts for "roll", "done" buttons
+	- User documentation is out of date; unsure if any user ever reads it anyway
+	- Visual reminder to player when they've made an offer
+	- Hovering mouse at center of robber-hex, should be able to see tooltip with the dice #.
+		instead, currently see road of players on either side
+	- Rename SOCGame.isLocal to .isPractice
+	- Show # VP in SOCChoosePlayerDialog
+	- Occasionally an image does not re-scale when board is stretched.
+		Instead of giving up (SOCBoardPanel.scaledHexFail, etc),
+		try re-scaling again, but increase width or height by 1 pixel.
+	- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
+	- If try to start server in JSettlers.jar, but port already in use, currently bombs out
+		should instead show MessagePanel with option to practice, or even just show a message
+	- Easy robot startup command-line option in standalone server, add like in practice server
+		possibly w. way to add robots when needed as server runs, with server active-game count
+	- At board reset, game observers not currently handled properly
+	- Board coordinate-representation for larger board (5,6-player expansion, or seafarers)
+	- Classes and popup for game options or house rules at start (robber returning to desert, no 7's in first x turns, etc.)
+		Maybe combine with notion of "game owner"
+	- Refactor: combine the cli/displayless/robot endturn-like methods
+		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
+	- refactor: resource-type strings consolidate somewhere (Clay, Wheat, etc)
+		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
+	- refactor: name of dev-cards consolidate
+
+[The text below is obsolete, from the sourceforge jsettlers project.]
+
+CVS
+---
+
+HEAD recieves new features and enhancements for next 'minor' release.
+Simple bug fixes are made to the branch.
+
+It is safest to use a separate sandbox for working on a branch,
+checking in simple bug fixes there. Those changes are merged into the
+HEAD as needed, and a "bookmark" tag is placed on the branch after the
+merge.
+
+ ~/ > cvs co -r jsettlers-x-y-branch -d jsettlers-branch jsettlers
+
+Update that sandbox to the tip of the branch, make updates, and commit:
+
+ ~/jsettlers-branch > cvs up -r jsettlers-x-y-branch
+    ...
+ ~/jsettlers-branch > cvs com -m "fixed xyz problems pdq" $files
+
+Then merge the changes into the HEAD, commit, and move the
+jsettlers-x-y-merged tag. This way, the merge into the HEAD will always
+look like the following:
+
+ ~/jsettlers-HEAD > cvs up -j jsettlers-x-y-merged -j jsettlers-x-y-branch $files
+ ~/jsettlers-HEAD > cvs com -m "merged branch x.y into HEAD" $files
+ ~/jsettlers-HEAD > cvs tag -F -r jsettlers-x-y-branch jsettlers-x-y-merged $files
+
+The idea is that the last merge to HEAD is always tagged in the
+branch. This way you can also get an overview of the changes made in
+the branch which have not yet been merged into HEAD:
+
+ ~/jsettlers-branch > cvs diff -u -r jsetters-x-y-merged -r jsettlers-x-y-branch $files
+

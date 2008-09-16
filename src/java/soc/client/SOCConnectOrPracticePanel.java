@@ -1,0 +1,609 @@
+/**
+ * Java Settlers - An online multiplayer version of the game Settlers of Catan
+ * Copyright (C) 2003  Robert S. Thomas
+ * This file copyright (C) 2008 Jeremy D Monin <jeremy@nand.net>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The author of this program can be reached at thomas@infolab.northwestern.edu
+ **/
+package soc.client;
+
+import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Label;
+import java.awt.Panel;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
+
+import soc.util.Version;
+
+
+/**
+ * This is the dialog for standalone client startup (JAR or otherwise)
+ * if no command-line arguments.  Give choice of connect to server, start local server,
+ * or create practice game.  Prompt for parameters for connect or start-server.
+ *
+ * @author Jeremy D Monin <jeremy@nand.net>
+ */
+public class SOCConnectOrPracticePanel extends Panel
+    implements ActionListener, KeyListener
+{
+    private SOCPlayerClient cl;
+
+    /** "Practice" */
+    private Button prac;
+
+    /** "Connect to server" */
+    private Button connserv;
+    /** Contains GUI elements for details in {@link #connserv} */
+    private Panel panel_conn;
+    private TextField conn_servhost, conn_servport, conn_user, conn_pass;
+    private Button conn_connect, conn_cancel;
+
+    /** "Start a server" */
+    private Button runserv;
+    /** Contains GUI elements for details in {@link #runserv}, or null if can't run. */
+    private Panel panel_run;
+    private TextField run_servport;
+    private Button run_startserv, run_cancel;
+
+    /**
+     * Do we have security to run a TCP server?
+     * Determined by calling {@link #checkCanLaunchServer()}.
+     */
+    private boolean canLaunchServer;
+
+    private static final Color HEADER_LABEL_BG = new Color(220,255,220);
+    private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
+
+    /**
+     * Creates a new SOCConnectOrPracticePanel.
+     *
+     * @param cli      Player client interface
+     */
+    public SOCConnectOrPracticePanel(SOCPlayerClient cli)
+    {
+        super(new BorderLayout());
+
+        cl = cli;
+        canLaunchServer = checkCanLaunchServer();
+
+        // same Frame setup as in SOCPlayerClient.main
+        setBackground(new Color(Integer.parseInt("61AF71",16)));
+        setForeground(Color.black);
+
+        addKeyListener(this);
+        initInterfaceElements();
+    }
+
+    /**
+     * Check with the {@link java.lang.SecurityManager} about being a tcp server.
+     * Port {@link SOCPlayerClient#SOC_PORT_DEFAULT} and some subsequent ports are checked (to be above 1024).
+     * @return True if we have perms to start a server and listen on a port
+     */
+    public static boolean checkCanLaunchServer()
+    {
+        try
+        {
+            SecurityManager sm = System.getSecurityManager();
+            if (sm == null)
+                return true;
+            try
+            {
+                sm.checkAccept("localhost", SOCPlayerClient.SOC_PORT_DEFAULT);
+                sm.checkListen(SOCPlayerClient.SOC_PORT_DEFAULT);
+            }
+            catch (SecurityException se)
+            {
+                return false;
+            }
+        }
+        catch (SecurityException se)
+        {
+            // can't read security mgr; check it the hard way
+            int port = SOCPlayerClient.SOC_PORT_DEFAULT;
+            for (int i = 0; i <= 100; ++i)
+            {
+                ServerSocket ss = null;
+                try
+                {
+                    ss = new ServerSocket(i + port);
+                    ss.setReuseAddress(true);
+                    ss.setSoTimeout(11);  // very short (11 ms)
+                    ss.accept();  // will time out soon
+                    ss.close();
+                }
+                catch (SocketTimeoutException ste)
+                {
+                    // Allowed to bind
+                    try
+                    {
+                        ss.close();
+                    }
+                    catch (IOException ie) {}
+                    return true;
+                }
+                catch (IOException ie)
+                {
+                    // maybe already bound: ok, try next port in loop
+                }
+                catch (SecurityException se2)
+                {
+                    return false;  // Not allowed to have a server socket
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Interface setup for constructor.
+     * Most elements are part of a sub-panel occupying most of this Panel, and using FlowLayout.
+     * The exception is a Label at bottom with the version and build number.
+     */
+    private void initInterfaceElements()
+    {
+        GridBagLayout gbl = new GridBagLayout();
+        GridBagConstraints gbc = new GridBagConstraints();
+        Panel bp = new Panel(gbl);  // Actual button panel
+
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+
+        Label L = new Label("Welcome to JSettlers!  Please choose an option.");
+        L.setAlignment(Label.CENTER);
+        gbl.setConstraints(L, gbc);
+        bp.add(L);
+
+        /**
+         * Interface setup: Connect to a Server
+         */
+
+        connserv = new Button("Connect to a Server...");
+        gbl.setConstraints(connserv, gbc);
+        bp.add(connserv);
+        connserv.addActionListener(this);
+
+        /**
+         * Interface setup: Practice
+         */
+        prac = new Button("Practice");
+        gbl.setConstraints(prac, gbc);
+        bp.add(prac);
+        prac.addActionListener(this);
+
+        /**
+         * Interface setup: Start a Server
+         */
+        runserv = new Button("Start a Server...");
+        gbl.setConstraints(runserv, gbc);
+        if (! canLaunchServer)
+            runserv.setEnabled(false);
+        bp.add(runserv);
+
+        /**
+         * Interface setup: sub-panels (not initially visible)
+         */
+        panel_conn = initInterface_conn();  // panel_conn setup
+        panel_conn.setVisible(false);
+        gbl.setConstraints(panel_conn, gbc);
+        bp.add (panel_conn);
+
+        if (canLaunchServer)
+        {
+            runserv.addActionListener(this);
+            panel_run = initInterface_run();  // panel_run setup
+            panel_run.setVisible(false);
+            gbl.setConstraints(panel_run, gbc);
+            bp.add (panel_run);
+        } else {
+            panel_run = null;
+        }
+
+        // Final assembly setup
+        add(bp, BorderLayout.CENTER);
+        Label verl = new Label("JSettlers " + Version.version() + " build " + Version.buildnum());       
+        verl.setAlignment(Label.CENTER);
+        verl.setForeground(new Color(252, 251, 243)); // off-white
+        add(verl, BorderLayout.SOUTH);
+    }
+
+    /** panel_conn setup */
+    private Panel initInterface_conn()
+    {
+        Panel pconn = new Panel();
+        Label L;
+
+        GridBagLayout gbl = new GridBagLayout();
+        GridBagConstraints gbc = new GridBagConstraints();
+        pconn.setLayout(gbl);
+        gbc.fill = GridBagConstraints.BOTH;
+
+        // heading row
+        L = new Label("Connect to Server");
+        L.setAlignment(Label.CENTER);
+        L.setBackground(HEADER_LABEL_BG);
+        L.setForeground(HEADER_LABEL_FG);
+        gbc.gridwidth = 4;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        L = new Label(" ");  // Spacing for rest of form's rows
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+
+        // blank row
+        L = new Label();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+
+        L = new Label("Server");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        conn_servhost = new TextField(20);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(conn_servhost, gbc);
+        pconn.add(conn_servhost);        
+
+        L = new Label("Port");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        conn_servport = new TextField(20);
+        {
+            String svp = Integer.toString(cl.port);
+            conn_servport.setText(svp);
+            conn_servport.setSelectionStart(0);
+            conn_servport.setSelectionEnd(svp.length());
+        }
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(conn_servport, gbc);
+        pconn.add(conn_servport);
+
+        L = new Label("Nickname");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        conn_user = new TextField(20);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(conn_user, gbc);
+        pconn.add(conn_user);
+
+        L = new Label("Password");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        conn_pass = new TextField(20);
+        conn_pass.setEchoChar('*');
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(conn_pass, gbc);
+        pconn.add(conn_pass);
+
+        L = new Label(" ");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        pconn.add(L);
+        conn_connect = new Button("Connect...");
+        conn_connect.addActionListener(this);
+        conn_connect.addKeyListener(this);  // for win32 keyboard-focus
+        gbl.setConstraints(conn_connect, gbc);
+        pconn.add(conn_connect);
+
+        conn_cancel = new Button("Cancel");
+        conn_cancel.addActionListener(this);
+        conn_cancel.addKeyListener(this);
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(conn_cancel, gbc);
+        pconn.add(conn_cancel);
+        
+        return pconn;
+    }
+
+    /** panel_run setup */
+    private Panel initInterface_run()
+    {
+        Panel prun = new Panel();
+        Label L;
+
+        GridBagLayout gbl = new GridBagLayout();
+        GridBagConstraints gbc = new GridBagConstraints();
+        prun.setLayout(gbl);
+        gbc.fill = GridBagConstraints.BOTH;
+
+        // heading row
+        L = new Label("Start a Server");
+        L.setAlignment(Label.CENTER);
+        L.setBackground(HEADER_LABEL_BG);
+        L.setForeground(HEADER_LABEL_FG);
+        gbc.gridwidth = 4;
+        gbl.setConstraints(L, gbc);
+        prun.add(L);
+        L = new Label(" ");  // Spacing for rest of form's rows
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        prun.add(L);
+
+        // blank row
+        L = new Label();
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        prun.add(L);
+
+
+        L = new Label("Port");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        prun.add(L);
+        run_servport = new TextField(15);
+        {
+            String svp = Integer.toString(cl.port);
+            run_servport.setText(svp);
+            run_servport.setSelectionStart(0);
+            run_servport.setSelectionEnd(svp.length());
+        }
+        gbc.gridwidth = 2;
+        gbl.setConstraints(run_servport, gbc);
+        prun.add(run_servport);
+        L = new Label(" ");  // Spacing for rest of form's rows
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(L, gbc);
+        prun.add(L);
+
+        L = new Label(" ");
+        gbc.gridwidth = 1;
+        gbl.setConstraints(L, gbc);
+        prun.add(L);
+        run_startserv = new Button(" Start ");
+        run_startserv.addActionListener(this);
+        run_startserv.addKeyListener(this);  // for win32 keyboard-focus
+        gbl.setConstraints(run_startserv, gbc);
+        prun.add(run_startserv);
+
+        run_cancel = new Button("Cancel");
+        run_cancel.addActionListener(this);
+        run_cancel.addKeyListener(this);
+        gbl.setConstraints(run_cancel, gbc);
+        prun.add(run_cancel);
+        
+        return prun;
+    }
+
+    /**
+     * A local server has been started; disable other options ("Connect", etc) but
+     * not Practice.  Called from client, once the server is started in
+     * {@link SOCPlayerClient#startLocalTCPServer(int)}.
+     */
+    public void startedLocalServer()
+    {
+        connserv.setEnabled(false);
+        conn_connect.setEnabled(false);
+        run_startserv.setEnabled(false);
+        run_cancel.setEnabled(false);
+    }
+
+    /** React to button clicks */
+    public void actionPerformed(ActionEvent ae)
+    {
+        try {
+            
+        Object src = ae.getSource();
+        if (src == prac)
+        {
+            // Ask client to set up and start a practice game
+            cl.clickPracticeButton();
+            return;
+        }
+        
+        if (src == connserv)
+        {
+            // Show fields to get details to connect to server later
+            panel_conn.setVisible(true);
+            if ((panel_run != null) && panel_run.isVisible())
+            {
+                panel_run.setVisible(false);
+                runserv.setVisible(true);
+            }
+            connserv.setVisible(false);
+            conn_servhost.requestFocus();
+            validate();
+            return;
+        }
+
+        if (src == conn_connect)
+        {
+            // After clicking connserv, actually connect to server
+            clickConnConnect();
+            return;
+        }
+
+        if (src == conn_cancel)
+        {
+            // Hide fields used to connect to server
+            clickConnCancel();
+            return;
+        }
+
+        if (src == runserv)
+        {
+            // Show fields to get details to start a TCP server
+            panel_run.setVisible(true);
+            if ((panel_conn != null) && panel_conn.isVisible())
+            {
+                panel_conn.setVisible(false);
+                connserv.setVisible(true);
+            }
+            runserv.setVisible(false);
+            run_servport.requestFocus();
+            {
+                // Convenience: type-to-replace port value
+                String svpText = run_servport.getText();
+                if ((svpText != null) && (svpText.trim().length() > 0))
+                {
+                    run_servport.setSelectionStart(0);
+                    run_servport.setSelectionEnd(svpText.length());
+                }
+            }
+            validate();
+            return;
+        }
+        
+        if (src == run_startserv)
+        {
+            // After clicking runserv, actually start a server
+            clickRunStartserv();
+            return;
+        }
+
+        if (src == run_cancel)
+        {
+            // Hide fields used to start a server
+            clickRunCancel();
+            return;
+        }
+
+        }  // try
+        catch(Throwable thr)
+        {
+            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
+            thr.printStackTrace();
+            while (thr.getCause() != null)
+            {
+                thr = thr.getCause();
+                System.err.println(" --> Cause: " + thr + " --");
+                thr.printStackTrace();
+            }
+            System.err.println("-- Error stack trace end --");
+            System.err.println();
+        }
+
+    }
+
+    /** "Connect..." from connect setup; check fields, etc */
+    private void clickConnConnect()
+    {
+        // TODO Check contents of fields
+        String cserv = conn_servhost.getText().trim();
+        if (cserv.length() == 0)
+            cserv = null;  // localhost
+        int cport = 0;
+        try {
+            cport = Integer.parseInt(conn_servport.getText());
+        }
+        catch (NumberFormatException e)
+        {
+            // TODO show error?
+            return;
+        }
+
+        // Copy fields, show MAIN_PANEL, and connect in client
+        cl.connect(cserv, cport, conn_user.getText(), conn_pass.getText());
+    }
+
+    /** Hide fields used to connect to server */
+    private void clickConnCancel()
+    {
+        panel_conn.setVisible(false);
+        connserv.setVisible(true);
+        validate();
+    }
+
+    /** Actually start a server, on port from {@link #conn_servport} */
+    private void clickRunStartserv()
+    {
+        // After clicking runserv, actually start a server
+        int cport = 0;
+        try {
+            cport = Integer.parseInt(conn_servport.getText());
+        }
+        catch (NumberFormatException e)
+        {
+            // TODO show error?
+            return;
+        }
+        cl.startLocalTCPServer(cport);        
+    }
+
+    /** Hide fields used to start a server */
+    private void clickRunCancel()
+    {
+        panel_run.setVisible(false);
+        runserv.setVisible(true);
+        validate();
+    }
+
+    /** Handle Enter or Esc key */
+    public void keyPressed(KeyEvent e)
+    {
+        if (e.isConsumed())
+            return;
+
+        try {
+
+        boolean panelConnShowing = (panel_conn != null) && (panel_conn.isVisible());
+        boolean panelRunShowing  = (panel_run != null)  && (panel_run.isVisible());
+
+        switch (e.getKeyCode())
+        {
+        case KeyEvent.VK_ENTER:
+            if (panelConnShowing)
+                clickConnConnect();
+            else if (panelRunShowing)
+                clickRunStartserv();
+            break;
+
+        case KeyEvent.VK_CANCEL:
+        case KeyEvent.VK_ESCAPE:
+            if (panelConnShowing)
+                clickConnCancel();
+            else if (panelRunShowing)
+                clickRunCancel();
+            break;
+        }  // switch(e)
+
+        }  // try
+        catch(Throwable thr)
+        {
+            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
+            thr.printStackTrace();
+            while (thr.getCause() != null)
+            {
+                thr = thr.getCause();
+                System.err.println(" --> Cause: " + thr + " --");
+                thr.printStackTrace();
+            }
+            System.err.println("-- Error stack trace end --");
+            System.err.println();
+        }
+    }
+
+    /** Stub required by KeyListener */
+    public void keyReleased(KeyEvent arg0) { }
+
+    /** Stub required by KeyListener */
+    public void keyTyped(KeyEvent arg0) { }
+
+}
