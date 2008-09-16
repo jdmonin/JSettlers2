@@ -187,6 +187,7 @@
         <patternset refid="client.files" />
         <manifest>
           <attribute name="Main-Class" value="${client.class}" />
+          <attribute name="Class-Path" value="lib/log4j-1.2.15.jar lib/log4j.properties" />
         </manifest>
       </jar>
       <jar destfile="${target}/${server.jar}" basedir="${classes}">
