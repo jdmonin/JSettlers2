@@ -10,6 +10,8 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
+import org.apache.log4j.Logger;
+
 /**
  * Testing for cross-platform context-click (right-click); standalone class.
  * @author Jeremy D Monin <jeremy@nand.net>
@@ -17,6 +19,9 @@ import java.awt.event.MouseListener;
  */
 public class AWTClickTester extends java.awt.Canvas implements MouseListener
 {
+	/** debug logging */
+    private transient Logger log = Logger.getLogger(this.getClass().getName());
+
     int lastX, lastY;
     int wid, ht;
     Dimension sz;
@@ -96,7 +101,7 @@ public class AWTClickTester extends java.awt.Canvas implements MouseListener
             popclick = " isPopupTrigger";
         else
             popclick = "";
-        System.out.println
+        log.info
             (etype + " (" + x + ", " + y + ") at "
             + e.getWhen() + " button=0x"
             + Integer.toHexString(e.getButton())
@@ -108,16 +113,16 @@ public class AWTClickTester extends java.awt.Canvas implements MouseListener
     
     public void printButtonsMods()
     {
-        System.out.println("BUTTON:");
-        System.out.println("  1:  0x" + Integer.toHexString(MouseEvent.BUTTON1) + " mask 0x" + Integer.toHexString(MouseEvent.BUTTON1_MASK));
-        System.out.println("  2:  0x" + Integer.toHexString(MouseEvent.BUTTON2) + " mask 0x" + Integer.toHexString(MouseEvent.BUTTON2_MASK));
-        System.out.println("  3:  0x" + Integer.toHexString(MouseEvent.BUTTON3) + " mask 0x" + Integer.toHexString(MouseEvent.BUTTON3_MASK));
-        System.out.println("MODS:");
-        System.out.println("  Shift: 0x" + Integer.toHexString(MouseEvent.SHIFT_MASK));
-        System.out.println("  Ctrl:  0x" + Integer.toHexString(MouseEvent.CTRL_MASK));
-        System.out.println("  Alt:   0x" + Integer.toHexString(MouseEvent.ALT_MASK));
-        System.out.println("  Meta:  0x" + Integer.toHexString(MouseEvent.META_MASK));
-        System.out.println();
+        log.info("BUTTON:");
+        log.info("  1:  0x" + Integer.toHexString(MouseEvent.BUTTON1) + " mask 0x" + Integer.toHexString(MouseEvent.BUTTON1_MASK));
+        log.info("  2:  0x" + Integer.toHexString(MouseEvent.BUTTON2) + " mask 0x" + Integer.toHexString(MouseEvent.BUTTON2_MASK));
+        log.info("  3:  0x" + Integer.toHexString(MouseEvent.BUTTON3) + " mask 0x" + Integer.toHexString(MouseEvent.BUTTON3_MASK));
+        log.info("MODS:");
+        log.info("  Shift: 0x" + Integer.toHexString(MouseEvent.SHIFT_MASK));
+        log.info("  Ctrl:  0x" + Integer.toHexString(MouseEvent.CTRL_MASK));
+        log.info("  Alt:   0x" + Integer.toHexString(MouseEvent.ALT_MASK));
+        log.info("  Meta:  0x" + Integer.toHexString(MouseEvent.META_MASK));
+        log.info("");
     }
 
     /**

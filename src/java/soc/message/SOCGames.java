@@ -24,6 +24,8 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 
 /**
  * This message lists all the soc games on a server
@@ -32,6 +34,9 @@ import java.util.Vector;
  */
 public class SOCGames extends SOCMessage
 {
+	/** static method debug logging */
+    private static Logger staticLog = Logger.getLogger("soc.message.SOCGames");
+    
     /**
      * List of games
      */
@@ -111,7 +116,7 @@ public class SOCGames extends SOCMessage
         }
         catch (Exception e)
         {
-            System.err.println("SOCGames parseDataStr ERROR - " + e);
+        	staticLog.error("SOCGames parseDataStr ERROR - " + e);
 
             return null;
         }

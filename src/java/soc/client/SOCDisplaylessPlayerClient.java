@@ -243,7 +243,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         }
         catch (InterruptedIOException x)
         {
-            System.err.println("Socket timeout in run: " + x);
+            log.error("Socket timeout in run: " + x);
         }
         catch (IOException e)
         {
@@ -256,7 +256,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (! ((e instanceof java.io.EOFException)
                   && (this instanceof SOCRobotClient)))
             {
-                System.err.println("could not read from the net: " + ex);
+                log.error("could not read from the net: " + ex);
                 /**
                  * Robots are periodically disconnected from server;
                  * they will try to reconnect.  Any error message
@@ -301,12 +301,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
         }
         catch (InterruptedIOException x)
         {
-            System.err.println("Socket timeout in put: " + x);
+            log.error("Socket timeout in put: " + x);
         }
         catch (IOException e)
         {
             ex = e;
-            System.err.println("could not write to the net: " + ex);
+            log.error("could not write to the net: " + ex);
             destroy();
 
             return false;
@@ -730,7 +730,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         }
         catch (Exception e)
         {
-            System.out.println("SOCDisplaylessPlayerClient treat ERROR - " + e.getMessage());
+            log.info("SOCDisplaylessPlayerClient treat ERROR - " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -928,7 +928,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             catch (Exception e)
             {
                 ga.releaseMonitor();
-                System.out.println("Exception caught - " + e);
+                log.info("Exception caught - " + e);
                 e.printStackTrace();
             }
 
@@ -1556,7 +1556,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleREJECTCONNECTION(SOCRejectConnection mes)
     {
         rejected = true;
-        System.err.println("Rejected by server: " + mes.getText());
+        log.error("Rejected by server: " + mes.getText());
         disconnect();
     }
 

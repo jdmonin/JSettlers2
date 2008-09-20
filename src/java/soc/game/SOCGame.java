@@ -477,7 +477,7 @@ public class SOCGame implements Serializable, Cloneable
             }
             catch (InterruptedException e)
             {
-                System.out.println("EXCEPTION IN takeMonitor() -- " + e);
+                log.info("EXCEPTION IN takeMonitor() -- " + e);
             }
         }
 
@@ -1860,7 +1860,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         Vector tempHand = new Vector(16);
 
-        // System.err.println("resources="+ourPlayerData.getResources());
+        // log.error("resources="+ourPlayerData.getResources());
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
         {
@@ -1869,7 +1869,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 tempHand.addElement(new Integer(rsrcType));
 
-                // System.err.println("rsrcType="+rsrcType);
+                // log.error("rsrcType="+rsrcType);
             }
         }
 
@@ -1878,10 +1878,10 @@ public class SOCGame implements Serializable, Cloneable
          */
         for (; numDiscards > 0; numDiscards--)
         {
-            // System.err.println("numDiscards="+numDiscards+"|hand.size="+hand.size());
+            // log.error("numDiscards="+numDiscards+"|hand.size="+hand.size());
             int idx = Math.abs(rand.nextInt() % tempHand.size());
 
-            // System.err.println("idx="+idx);
+            // log.error("idx="+idx);
             discards.add(1, ((Integer) tempHand.elementAt(idx)).intValue());
             tempHand.removeElementAt(idx);
         }
@@ -3331,21 +3331,22 @@ public class SOCGame implements Serializable, Cloneable
         {
             gameState = OVER;
             playerWithWin = pn;
-            System.err.println("DEBUG: Set playerWithWin = " + pn
+            log.error("DEBUG: Set playerWithWin = " + pn
                 + " -- in thread: " + Thread.currentThread().getName() + " --");
             // force a stack trace
-            {
-                int x = 10;
-                int y = 0;
-                try {
-                    gameState = x / y;
-                }
-                catch (Throwable th)
-                {
-                    th.printStackTrace();
-                    System.err.println("-- end playerWithWin locator stacktrace --");
-                }
-            }
+            // I can't allow something like this to happen ...
+//            {
+//                int x = 10;
+//                int y = 0;
+//                try {
+//                    gameState = x / y;
+//                }
+//                catch (Throwable th)
+//                {
+//                    th.printStackTrace();
+//                    log.error("-- end playerWithWin locator stacktrace --");
+//                }
+//            }
         }
     }
 

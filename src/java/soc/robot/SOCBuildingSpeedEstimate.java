@@ -537,10 +537,10 @@ public class SOCBuildingSpeedEstimate
 
                         if (ourResources.getAmount(giveResource) < tradeRatio)
                         {
-                            System.err.println("@@@ rsrcs=" + ourResources);
-                            System.err.println("@@@ tradeRatio=" + tradeRatio);
-                            System.err.println("@@@ giveResource=" + giveResource);
-                            System.err.println("@@@ target=" + targetResources);
+                            log.error("@@@ rsrcs=" + ourResources);
+                            log.error("@@@ tradeRatio=" + tradeRatio);
+                            log.error("@@@ giveResource=" + giveResource);
+                            log.error("@@@ target=" + targetResources);
                         }
 
                         ourResources.subtract(tradeRatio, giveResource);
@@ -667,10 +667,10 @@ public class SOCBuildingSpeedEstimate
 
                             if (ourResources.getAmount(giveResource) < tradeRatio)
                             {
-                                System.err.println("@@@ rsrcs=" + ourResources);
-                                System.err.println("@@@ tradeRatio=" + tradeRatio);
-                                System.err.println("@@@ giveResource=" + giveResource);
-                                System.err.println("@@@ target=" + targetResources);
+                                log.error("@@@ rsrcs=" + ourResources);
+                                log.error("@@@ tradeRatio=" + tradeRatio);
+                                log.error("@@@ giveResource=" + giveResource);
+                                log.error("@@@ target=" + targetResources);
                             }
 
                             ourResources.subtract(tradeRatio, giveResource);
@@ -863,10 +863,10 @@ public class SOCBuildingSpeedEstimate
 
                                         if (newResources.getAmount(giveResource) < tradeRatio)
                                         {
-                                            System.err.println("@@@ rsrcs=" + newResources);
-                                            System.err.println("@@@ tradeRatio=" + tradeRatio);
-                                            System.err.println("@@@ giveResource=" + giveResource);
-                                            System.err.println("@@@ target=" + targetResources);
+                                            log.error("@@@ rsrcs=" + newResources);
+                                            log.error("@@@ tradeRatio=" + tradeRatio);
+                                            log.error("@@@ giveResource=" + giveResource);
+                                            log.error("@@@ target=" + targetResources);
                                         }
 
                                         newResources.subtract(tradeRatio, giveResource);

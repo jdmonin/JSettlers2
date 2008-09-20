@@ -2203,7 +2203,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
         //Date stopTime = new Date();
         //long elapsed = stopTime.getTime() - startTime.getTime();
-        //System.out.println("LONGEST FOR "+name+" IS "+longest+" TIME = "+elapsed+"ms");
+        //log.info("LONGEST FOR "+name+" IS "+longest+" TIME = "+elapsed+"ms");
         return longest;
     }
 

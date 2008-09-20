@@ -67,7 +67,7 @@ public class SOCChannelList
             }
             catch (InterruptedException e)
             {
-                System.out.println("EXCEPTION IN takeMonitor() -- " + e);
+                log.info("EXCEPTION IN takeMonitor() -- " + e);
             }
         }
 
@@ -122,7 +122,7 @@ public class SOCChannelList
                     }
                     catch (InterruptedException e)
                     {
-                        System.out.println("EXCEPTION IN takeMonitor() -- " + e);
+                        log.info("EXCEPTION IN takeMonitor() -- " + e);
                     }
                 }
                 else

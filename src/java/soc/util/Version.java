@@ -3,6 +3,8 @@ package soc.util;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 
 /**
  * Package level version file used to keep packaging and codebase in sync. The
@@ -16,6 +18,10 @@ import java.util.Properties;
  */
 public class Version {
 
+	/** static method debug logging */
+    private static Logger staticLog = Logger.getLogger("soc.util.Version");
+
+    
   public static String VERSION   = "project.version";
   public static String VERSNUM   = "project.versionnum";
   public static String COPYRIGHT = "project.copyright";
@@ -50,7 +56,7 @@ public class Version {
       in.close ();
 
     } catch (Exception io) {
-      System.err.println ("Unable to load version information.");
+    	staticLog.error ("Unable to load version information.");
       io.printStackTrace ();
     }
 
@@ -103,7 +109,7 @@ public class Version {
         jreMinEdit  = Integer.parseInt(edit);
         
       } catch(Exception x) { // NPE or NumberFormat uses default values
-        System.err.println("Error retrieving Version info: ");
+    	  staticLog.error("Error retrieving Version info: ");
         x.printStackTrace();
       }
 

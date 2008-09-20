@@ -648,7 +648,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 {
                     int z = Color.BLACK.getRed();
                     int dz = 15 / z;  // Trigger divide-by-zero, to force an exception
-                    System.out.print(dz);
+                    log.info(dz);
                 }
                 catch (Throwable th)
                 {

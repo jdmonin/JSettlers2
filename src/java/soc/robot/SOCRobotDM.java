@@ -416,7 +416,7 @@ public class SOCRobotDM {
       } 
     } 
     //long endTime = System.currentTimeMillis();
-    //System.out.println("plan time: "+(endTime-startTime));
+    //log.info("plan time: "+(endTime-startTime));
   }
   
   /**

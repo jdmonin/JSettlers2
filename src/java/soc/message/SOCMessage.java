@@ -25,6 +25,8 @@ import java.io.Serializable;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
+import org.apache.log4j.Logger;
+
 import soc.server.genericServer.StringConnection;
 
 
@@ -81,6 +83,9 @@ import soc.server.genericServer.StringConnection;
  */
 public abstract class SOCMessage implements Serializable, Cloneable
 {
+	/** static method debug logging */
+    private static Logger staticLog = Logger.getLogger("soc.message.SOCMessage");
+    
     /**
      * message type IDs
      */
@@ -563,13 +568,13 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 return SOCVersion.parseDataStr(data);
 
             default:
-                System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
+            	staticLog.error("Unhandled message type in SOCMessage.toMsg: " + msgId);
                 return null;
             }
         }
         catch (Exception e)
         {
-            System.err.println("toMsg ERROR - " + e);
+        	staticLog.error("toMsg ERROR - " + e);
             e.printStackTrace();
 
             return null;

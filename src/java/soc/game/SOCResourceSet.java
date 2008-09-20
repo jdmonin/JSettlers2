@@ -23,6 +23,8 @@ package soc.game;
 
 import java.io.Serializable;
 
+import org.apache.log4j.Logger;
+
 
 /**
  * This represents a collection of
@@ -39,6 +41,9 @@ public class SOCResourceSet implements Serializable, Cloneable
      * the number of resources
      */
     private int[] resources;
+
+    /** debug logging */
+    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * Make an empty resource set
@@ -164,7 +169,7 @@ public class SOCResourceSet implements Serializable, Cloneable
 
         if (resources[SOCResourceConstants.UNKNOWN] < 0)
         {
-            System.err.println("RESOURCE < 0 : RESOURCE TYPE=" + rtype);
+        	log.error("RESOURCE < 0 : RESOURCE TYPE=" + rtype);
         }
     }
 

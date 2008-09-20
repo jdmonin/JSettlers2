@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 
+import org.apache.log4j.Logger;
+
 import soc.util.Version;
 
 
@@ -78,6 +80,9 @@ public class SOCConnectOrPracticePanel extends Panel
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
 
+    /** static method debug logging */
+    private transient Logger log = Logger.getLogger(this.getClass().getName());
+    
     /**
      * Creates a new SOCConnectOrPracticePanel.
      *
@@ -488,16 +493,16 @@ public class SOCConnectOrPracticePanel extends Panel
         }  // try
         catch(Throwable thr)
         {
-            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
+            log.error("-- Error caught in AWT event thread: " + thr + " --");
             thr.printStackTrace();
             while (thr.getCause() != null)
             {
                 thr = thr.getCause();
-                System.err.println(" --> Cause: " + thr + " --");
+                log.error(" --> Cause: " + thr + " --");
                 thr.printStackTrace();
             }
-            System.err.println("-- Error stack trace end --");
-            System.err.println();
+            log.error("-- Error stack trace end --");
+            log.error("");
         }
 
     }
@@ -587,16 +592,16 @@ public class SOCConnectOrPracticePanel extends Panel
         }  // try
         catch(Throwable thr)
         {
-            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
+            log.error("-- Error caught in AWT event thread: " + thr + " --");
             thr.printStackTrace();
             while (thr.getCause() != null)
             {
                 thr = thr.getCause();
-                System.err.println(" --> Cause: " + thr + " --");
+                log.error(" --> Cause: " + thr + " --");
                 thr.printStackTrace();
             }
-            System.err.println("-- Error stack trace end --");
-            System.err.println();
+            log.error("-- Error stack trace end --");
+            log.error("");
         }
     }
 

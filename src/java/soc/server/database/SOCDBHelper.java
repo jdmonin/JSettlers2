@@ -29,6 +29,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 
+import org.apache.log4j.Logger;
+
 import soc.util.SOCRobotParameters;
 
 
@@ -53,6 +55,9 @@ import soc.util.SOCRobotParameters;
  */
 public class SOCDBHelper
 {
+	/** static method debug logging */
+    private static Logger log = Logger.getLogger("soc.server.database.SOCDBHelper");
+
     private static Connection connection = null;
 
     /**
@@ -516,51 +521,56 @@ public class SOCDBHelper
     //-------------------------------------------------------------------
     private static void dispResultSet(ResultSet rs) throws SQLException
     {
-        System.out.println("dispResultSet()");
+    	if(log.isInfoEnabled()){
+    		log.info("dispResultSet()");
 
-        int i;
+            int i;
 
-        // used for the column headings
-        ResultSetMetaData rsmd = rs.getMetaData();
+            // used for the column headings
+            ResultSetMetaData rsmd = rs.getMetaData();
 
-        // Get the number of columns in the result set
-        int numCols = rsmd.getColumnCount();
+            // Get the number of columns in the result set
+            int numCols = rsmd.getColumnCount();
 
-        // Display column headings
-        for (i = 1; i <= numCols; i++)
-        {
-            if (i > 1)
-            {
-                System.out.print(",");
-            }
-
-            System.out.print(rsmd.getColumnLabel(i));
-        }
-
-        System.out.println("");
-
-        // Display data, fetching until end of the result set
-
-        boolean more = rs.next();
-
-        while (more)
-        {
-            // Loop through each column, getting the
-            // column data and displaying
-            for (i = 1; i <= numCols; i++)
-            {
-                if (i > 1)
+            	StringBuilder sb = new StringBuilder();
+            	// Display column headings
+                for (i = 1; i <= numCols; i++)
                 {
-                    System.out.print(",");
+                    if (i > 1)
+                    {
+                        sb.append(",");
+                    }
+
+                    sb.append(rsmd.getColumnLabel(i));
                 }
 
-                System.out.print(rs.getString(i));
+                log.info(sb.toString());
+
+            // Display data, fetching until end of the result set
+
+            boolean more = rs.next();
+
+            sb = new StringBuilder();
+            
+            while (more)
+            {
+                // Loop through each column, getting the
+                // column data and displaying
+                for (i = 1; i <= numCols; i++)
+                {
+                    if (i > 1)
+                    {
+                    	sb.append(",");
+                    }
+
+                    sb.append(rs.getString(i));
+                }
+
+                log.info(sb.toString());
+
+                // Fetch the next result set row
+                more = rs.next();
             }
-
-            System.out.println("");
-
-            // Fetch the next result set row
-            more = rs.next();
-        }
+    	}
     }
 }

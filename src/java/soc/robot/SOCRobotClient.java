@@ -101,6 +101,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     public static final String CURRENT_PLANS = "CURRENT_PLANS";
     public static final String CURRENT_RESOURCES = "RESOURCES";
 
+    /** static method debug logging */
+    private static Logger staticLog = Logger.getLogger("soc.robot.SOCRobotClient");
+    
     /**
      * the thread the reads incomming messages
      */
@@ -224,7 +227,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         catch (Exception e)
         {
             ex = e;
-            System.err.println("Could not connect to the server: " + ex);
+            log.error("Could not connect to the server: " + ex);
         }
     }
 
@@ -264,7 +267,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         catch (Exception e)
         {
             ex = e;
-            System.err.println("disconnectReconnect error: " + ex);
+            log.error("disconnectReconnect error: " + ex);
         }
     }
 
@@ -601,15 +604,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         }
         catch (Throwable e)
         {
-            System.err.println("SOCRobotClient treat ERROR - " + e + " " + e.getMessage());
+            log.error("SOCRobotClient treat ERROR - " + e + " " + e.getMessage());
             e.printStackTrace();
             while (e.getCause() != null)
             {
                 e = e.getCause();
-                System.err.println(" -> nested: " + e.getClass());
+                log.error(" -> nested: " + e.getClass());
                 e.printStackTrace();
             }
-            System.err.println("-- end stacktrace --");
+            log.error("-- end stacktrace --");
         }
     }
 
@@ -700,7 +703,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
-        System.err.println("Robot " + getNickname() + ": Status from server: " + mes.getStatus());
+        log.error("Robot " + getNickname() + ": Status from server: " + mes.getStatus());
     }
 
     /**
@@ -1804,7 +1807,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         put(leaveAllMes.toCmd());
         disconnectReconnect();
         if (ex != null)
-            System.err.println("Reconnect to server failed: " + ex);
+            log.error("Reconnect to server failed: " + ex);
     }
 
     /**
@@ -1814,7 +1817,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     {
 		if (args.length < 4)
 		{
-			System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
+			staticLog.error("usage: java soc.robot.SOCRobotClient host port_number userid password");
 
 			return;
 		}

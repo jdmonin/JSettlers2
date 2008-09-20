@@ -378,7 +378,7 @@ public class SOCPlayerTracker
            try {
            wait();
            } catch (InterruptedException e) {
-           System.out.println("EXCEPTION IN takeMonitor() -- "+e);
+           log.info("EXCEPTION IN takeMonitor() -- "+e);
            }
            }
            inUse = true;
@@ -1352,7 +1352,7 @@ public class SOCPlayerTracker
 
                 if (nr.isEmpty())
                 {
-                    System.out.println("ERROR in removeDependents - empty nr list for " + newPos);
+                    log.info("ERROR in removeDependents - empty nr list for " + newPos);
                 }
                 else
                 {
@@ -1394,7 +1394,7 @@ public class SOCPlayerTracker
 
                 if (nr.isEmpty())
                 {
-                    System.out.println("ERROR in removeDependents - empty nr list for " + newPos);
+                    log.info("ERROR in removeDependents - empty nr list for " + newPos);
                 }
                 else
                 {
@@ -2687,12 +2687,12 @@ public class SOCPlayerTracker
                     //
                     // This is for < 9 vp (not about to win with VP_WINNER points)
                     //
-                    //System.out.println("Old Player Numbers = "+tempPlayerNumbers);
+                    //log.info("Old Player Numbers = "+tempPlayerNumbers);
                     //System.out.print("Old Ports = ");
                     //for (int i = 0; i <= SOCBoard.WOOD_PORT; i++) {
                     //  System.out.print(tempPortFlags[i]+",");
                     //}
-                    //System.out.println();
+                    //log.info();
                     fastestETA = 500;
 
                     SOCPossibleSettlement[] chosenSet = new SOCPossibleSettlement[2];
@@ -2864,12 +2864,12 @@ public class SOCPlayerTracker
                                         //	      //
                                         //	      // output the player number data 
                                         //	      //
-                                        //	      System.out.println("New Player Numbers = "+tempPlayerNumbers);
+                                        //	      log.info("New Player Numbers = "+tempPlayerNumbers);
                                         //	      System.out.print("New Ports = ");
                                         //	      for (int k = 0; k <= SOCBoard.WOOD_PORT; k++) {
                                         //		System.out.print(veryTempPortFlags[k]+",");
                                         //	      }
-                                        //	      System.out.println();
+                                        //	      log.info();
                                         //	    }
                                         tempPlayerNumbers.undoUpdateNumbers(posSet.getCoordinates(), player.getGame().getBoard());
 
@@ -3034,12 +3034,12 @@ public class SOCPlayerTracker
                                 //		  //
                                 //		  // output the player number data 
                                 //		  //
-                                //		  System.out.println("New Player Numbers = "+tempPlayerNumbers);
+                                //		  log.info("New Player Numbers = "+tempPlayerNumbers);
                                 //		  System.out.print("New Ports = ");
                                 //		  for (int i = 0; i <= SOCBoard.WOOD_PORT; i++) {
                                 //		    System.out.print(tempPortFlags[i]+",");
                                 //		  }
-                                //		  System.out.println();
+                                //		  log.info();
                                 //		}
                                 tempPlayerNumbers.undoUpdateNumbers(posCity0.getCoordinates(), player.getGame().getBoard());
 
@@ -3154,12 +3154,12 @@ public class SOCPlayerTracker
                                     //		    //
                                     //		    // output the player number data 
                                     //		    //
-                                    //		    System.out.println("New Player Numbers = "+tempPlayerNumbers);
+                                    //		    log.info("New Player Numbers = "+tempPlayerNumbers);
                                     //		    System.out.print("New Ports = ");
                                     //		    for (int i = 0; i <= SOCBoard.WOOD_PORT; i++) {
                                     //		      System.out.print(tempPortFlags[i]+",");
                                     //		    }
-                                    //		    System.out.println();
+                                    //		    log.info();
                                     //		  }
                                     tempPlayerNumbers.undoUpdateNumbers(posSet.getCoordinates(), player.getGame().getBoard());
 
@@ -3536,12 +3536,12 @@ public class SOCPlayerTracker
                             //	//
                             //	// output the player number data 
                             //	//
-                            //	System.out.println("New Player Numbers = "+tempPlayerNumbers);
+                            //	log.info("New Player Numbers = "+tempPlayerNumbers);
                             //	System.out.print("New Ports = ");
                             //	for (int i = 0; i <= SOCBoard.WOOD_PORT; i++) {
                             //	  System.out.print(tempPortFlags[i]+",");
                             //	}
-                            //	System.out.println();
+                            //	log.info();
                             //      }
                             tempPlayerNumbers.undoUpdateNumbers(posCity1.getCoordinates(), player.getGame().getBoard());
                             log.debug("tempPlayerNumbers = " + tempPlayerNumbers);
@@ -3556,7 +3556,7 @@ public class SOCPlayerTracker
 
                         if (chosenCity[1] == null)
                         {
-                            System.out.println("OOPS!!!");
+                            log.info("OOPS!!!");
                         }
                         else
                         {
@@ -3617,12 +3617,12 @@ public class SOCPlayerTracker
         catch (Exception e)
         {
             winGameETA = oldWGETA;
-            System.out.println("Exception in recalcWinGameETA - " + e);
+            log.info("Exception in recalcWinGameETA - " + e);
             e.printStackTrace();
         }
 
-        //System.out.println("good = "+good+" bad = "+bad);
-        //System.out.println();
+        //log.info("good = "+good+" bad = "+bad);
+        //log.info();
     }
 
     /**
@@ -3876,7 +3876,7 @@ public class SOCPlayerTracker
             }
             catch (NullPointerException e)
             {
-                System.out.println("Null Pointer Exception calculating winGameETA");
+                staticLog.info("Null Pointer Exception calculating winGameETA");
                 e.printStackTrace();
             }
         }

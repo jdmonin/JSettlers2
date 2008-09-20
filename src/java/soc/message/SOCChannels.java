@@ -24,6 +24,8 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
+
 
 /**
  * This message lists all the chat channels on a server
@@ -32,6 +34,9 @@ import java.util.Vector;
  */
 public class SOCChannels extends SOCMessage
 {
+	/** static method debug logging */
+    private static Logger staticLog = Logger.getLogger("soc.message.SOCChannels");
+    
     /**
      * List of channels
      */
@@ -111,7 +116,7 @@ public class SOCChannels extends SOCMessage
         }
         catch (Exception e)
         {
-            System.err.println("SOCChannels parseDataStr ERROR - " + e);
+        	staticLog.error("SOCChannels parseDataStr ERROR - " + e);
 
             return null;
         }

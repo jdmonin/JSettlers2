@@ -102,6 +102,9 @@ public class SOCServer extends Server
      */
     public static String PRACTICE_STRINGPORT = "SOCPRACTICE"; 
 
+    /** static method debug logging */
+    private static Logger staticLog = Logger.getLogger("soc.server.SOCServer");
+    
     /**
      * So we can get random numbers.
      */
@@ -257,27 +260,27 @@ public class SOCServer extends Server
      */
     private void initSocServer(String databaseUserName, String databasePassword)
     {
-        System.err.println("Java Settlers Server " + Version.version() +
+        log.error("Java Settlers Server " + Version.version() +
                            ", build " + Version.buildnum() + ", " + Version.copyright());
-        System.err.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+        log.error("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
         
         /* Check for problems during super setup (such as port already in use) */
         if (error != null)
         {
-            System.err.println("* Exiting due to network setup problem: " + error.toString());
+            log.error("* Exiting due to network setup problem: " + error.toString());
             System.exit (1);
         }
 
         try
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword);
-            System.err.println("User database initialized.");
+            log.error("User database initialized.");
         }
         catch (SQLException x) // just a warning
         {
-            System.err.println("No user database available: " +
+            log.error("No user database available: " +
                                x.getMessage());
-            System.err.println("Users will not be authenticated.");
+            log.error("Users will not be authenticated.");
         }
 
         startTime = System.currentTimeMillis();
@@ -2341,7 +2344,7 @@ public class SOCServer extends Server
                 + " (" + CLI_VERSION_MIN_DISPLAY + ") or above is required.";
             c.put(new SOCRejectConnection(rejectMsg).toCmd());
             c.disconnectSoft();
-            System.out.println("Rejected client: Version " + cvers + " too old");
+            log.info("Rejected client: Version " + cvers + " too old");
             return false;
         }
         return true;
@@ -2521,7 +2524,7 @@ public class SOCServer extends Server
                     + Integer.toString(srvVers) + " is required.";
                 c.put(new SOCRejectConnection(rejectMsg).toCmd());
                 c.disconnectSoft();
-                System.out.println("Rejected robot " + mes.getNickname() + ": Version " + cliVers + " does not match server version");
+                log.info("Rejected robot " + mes.getNickname() + ": Version " + cliVers + " does not match server version");
                 return;  // <--- Early return: Robot client too old ---
             }
 
@@ -2533,7 +2536,7 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd(MSG_NICKNAME_ALREADY_IN_USE));
                 SOCRejectConnection rcCommand = new SOCRejectConnection(MSG_NICKNAME_ALREADY_IN_USE);
                 c.put(rcCommand.toCmd());
-                System.err.println("Robot login attempt, name already in use: " + mes.getNickname());
+                log.error("Robot login attempt, name already in use: " + mes.getNickname());
                 // c.disconnect();
                 c.disconnectSoft();
 
@@ -2551,7 +2554,7 @@ public class SOCServer extends Server
             }
             catch (SQLException sqle)
             {
-                System.err.println("Error retrieving robot parameters from db: Using defaults.");
+                log.error("Error retrieving robot parameters from db: Using defaults.");
             }
 
             if (params == null)
@@ -4991,7 +4994,7 @@ public class SOCServer extends Server
         }
         catch (SQLException sqle)
         {
-            System.err.println("Error creating account in db.");
+            log.error("Error creating account in db.");
         }
 
         if (success)
@@ -6441,7 +6444,7 @@ public class SOCServer extends Server
                 }
                 catch (SQLException sqle)
                 {
-                    System.err.println("Error saving game scores in db.");
+                    log.error("Error saving game scores in db.");
                 }
             }
         }
@@ -6685,7 +6688,7 @@ public class SOCServer extends Server
 
         if (args.length < 4)
         {
-            System.err.println("usage: java soc.server.SOCServer port_number max_connections dbUser dbPass");
+            staticLog.error("usage: java soc.server.SOCServer port_number max_connections dbUser dbPass");
 
             return;
         }
@@ -6697,7 +6700,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            System.err.println("usage: java soc.server.SOCServer port_number max_connections dbUser dbPass");
+            staticLog.error("usage: java soc.server.SOCServer port_number max_connections dbUser dbPass");
 
             return;
         }

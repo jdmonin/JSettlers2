@@ -89,7 +89,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
         catch (IOException e)
         {
-            System.err.println("Could not listen to port " + port + ": " + e);
+            log.error("Could not listen to port " + port + ": " + e);
             error = e;
         }
         
@@ -177,7 +177,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 error = e;
                 log.debug("Exception " + e + " during accept");
 
-                //System.out.println("STOPPING SERVER");
+                //log.info("STOPPING SERVER");
                 //stopServer();
             }
 
@@ -191,7 +191,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             }
             catch (IOException e)
             {
-                System.err.println("Could not listen to port " + port + ": " + e);
+                log.error("Could not listen to port " + port + ": " + e);
                 up = false;
                 error = e;
             }
@@ -459,7 +459,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 }
                 catch (Exception e)
                 {
-                    System.out.println("Exception in treater (processCommand) - " + e);
+                    log.info("Exception in treater (processCommand) - " + e);
                 }
 
                 yield();

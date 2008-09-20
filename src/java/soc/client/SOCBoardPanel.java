@@ -39,6 +39,8 @@ import java.awt.event.MouseMotionListener;
 import java.util.Enumeration;
 import java.util.Timer;
 
+import org.apache.log4j.Logger;
+
 import soc.game.SOCBoard;
 import soc.game.SOCCity;
 import soc.game.SOCGame;
@@ -66,6 +68,9 @@ import soc.game.SOCSettlement;
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
     private static String IMAGEDIR = "/soc/client/images";
+
+    /** debug logging */
+    private static Logger staticLog = Logger.getLogger("soc.client.SOCBoardPanel");
 
     /**
      * size of the whole panel, internal-pixels "scale";
@@ -440,6 +445,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *  @see #drawRobber(Graphics, int, boolean)
      */
     protected Color[] robberGhostFill, robberGhostOutline;
+    
+    /** debug logging */
+    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * create a new board panel in an applet
@@ -606,7 +614,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             default:
-                System.out.println("initEdgeMap error");
+                log.info("initEdgeMap error");
 
                 return;
             }
@@ -657,7 +665,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     break;
 
                 default:
-                    System.out.println("initEdgeMap error");
+                    log.info("initEdgeMap error");
 
                     return;
                 }
@@ -738,7 +746,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             default:
-                System.out.println("initNodeMap error");
+                log.info("initNodeMap error");
 
                 return;
             }
@@ -819,7 +827,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     break;
 
                 default:
-                    System.out.println("initNodeMap error");
+                    log.info("initNodeMap error");
 
                     return;
                 }
@@ -1467,7 +1475,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hy = scaleToActualY(hy);
         }
 
-        // System.out.println("NODEID = "+Integer.toHexString(nodeNum)+" | HEXNUM = "+hexNum);
+        // log.info("NODEID = "+Integer.toHexString(nodeNum)+" | HEXNUM = "+hexNum);
         if (isHilight)
             g.setColor(playerInterface.getPlayerColor(pn, true));
         else
@@ -2643,7 +2651,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         //int sector = (x / 18) + ((y / 10) * 15);
         int sector = (x / 27) + ((y / 15) * 15);
 
-        // System.out.println("SECTOR = "+sector+" | EDGE = "+edgeMap[sector]);
+        // log.info("SECTOR = "+sector+" | EDGE = "+edgeMap[sector]);
         if ((sector >= 0) && (sector < edgeMap.length))
             return edgeMap[sector];
         else
@@ -2665,7 +2673,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         //int sector = ((x + 9) / 18) + (((y + 5) / 10) * 15);
         int sector = ((x + 13) / 27) + (((y + 7) / 15) * 15);
 
-        // System.out.println("SECTOR = "+sector+" | NODE = "+nodeMap[sector]);
+        // log.info("SECTOR = "+sector+" | NODE = "+nodeMap[sector]);
         if ((sector >= 0) && (sector < nodeMap.length))
             return nodeMap[sector];
         else
@@ -2687,7 +2695,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         //int sector = (x / 18) + ((y / 10) * 15);
         int sector = (x / 27) + ((y / 15) * 15);
 
-        // System.out.println("SECTOR = "+sector+" | HEX = "+hexMap[sector]);
+        // log.info("SECTOR = "+sector+" | HEX = "+hexMap[sector]);
         if ((sector >= 0) && (sector < hexMap.length))
             return hexMap[sector];
         else
@@ -2791,7 +2799,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (tracker.isErrorID(0))
             {
-                System.out.println("Error loading board images");
+                staticLog.info("Error loading board images");
             }
         }
     }

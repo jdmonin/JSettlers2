@@ -407,7 +407,6 @@ public class SOCRobotBrain extends Thread
      */
     protected MonopolyStrategy monopolyStrategy;
     
-
     /** debug logging */
     private transient Logger log = Logger.getLogger(this.getClass().getName());
 
@@ -1071,7 +1070,7 @@ public class SOCRobotBrain extends Thread
                 if (alive && ((game == null) || (game.getGameState() != SOCGame.RESET_OLD)))
                 {
                     log.debug("*** Robot caught an exception - " + e);
-                    System.out.println("*** Robot caught an exception - " + e);
+                    log.info("*** Robot caught an exception - " + e);
                     e.printStackTrace();
                 }
             }
@@ -2708,7 +2707,7 @@ public class SOCRobotBrain extends Thread
                 tracker.releaseMonitor();
                 if (alive)
                 {
-                    System.out.println("Exception caught - " + e);
+                    log.info("Exception caught - " + e);
                     e.printStackTrace();
                 }
             }
@@ -2744,7 +2743,7 @@ public class SOCRobotBrain extends Thread
                 tracker.releaseMonitor();
                 if (alive)
                 {
-                    System.out.println("Exception caught - " + e);
+                    log.info("Exception caught - " + e);
                     e.printStackTrace();
                 }
             }
@@ -2778,7 +2777,7 @@ public class SOCRobotBrain extends Thread
                 tracker.releaseMonitor();
                 if (alive)
                 {
-                    System.out.println("Exception caught - " + e);
+                    log.info("Exception caught - " + e);
                     e.printStackTrace();
                 }
             }
