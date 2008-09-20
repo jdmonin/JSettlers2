@@ -1602,7 +1602,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw Dice result number
          */
-        if ((diceResult >= 2) && (game.getGameState() != SOCGame.PLAY))
+        if ((diceResult >= 2) && (game.getGameState() != SOCGame.ROLL_OR_SOLDIER))
         {
             if (isScaled)
             {
@@ -1921,7 +1921,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     break;
 
-                case SOCGame.PLAY:
+                case SOCGame.ROLL_OR_SOLDIER:
                     mode = TURN_STARTING;
 
                     break;
@@ -3499,7 +3499,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   break;
               
               default:
-                  if (gs < SOCGame.PLAY1)
+                  if (gs < SOCGame.BUILD_PHASE)
                       menuPlayerIsCurrent = false;  // Not in a state to place items
               }
           }
@@ -3754,7 +3754,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 int numNeeded = tradeFromTypes[i].getResourceCost(); 
                 tradeFromTypes[i].setEnabledIfCanTrade(itemsOnly);
                 tradeFromTypes[i].setEnabledIfCanTrade
-                    ((gs == SOCGame.PLAY1)
+                    ((gs == SOCGame.BUILD_PHASE)
                      && (numNeeded <= hpan.getPlayer().getResources().getAmount(i+1)));                    
             }
         }

@@ -38,7 +38,7 @@ public class SOCTradeTree
 {
     SOCResourceSet resourceSet;
     SOCTradeTree parent;
-    Vector children;
+    Vector<SOCTradeTree> children;
     boolean needsToBeExpanded;
 
     /**
@@ -51,7 +51,7 @@ public class SOCTradeTree
     {
         resourceSet = set;
         needsToBeExpanded = true;
-        children = new Vector();
+        children = new Vector<SOCTradeTree>();
 
         if (par != null)
         {
@@ -73,7 +73,7 @@ public class SOCTradeTree
         resourceSet = set;
         parent = null;
         needsToBeExpanded = false;
-        children = new Vector();
+        children = new Vector<SOCTradeTree>();
     }
 
     /**
@@ -103,7 +103,7 @@ public class SOCTradeTree
     /**
      * @return the list of children
      */
-    public Vector getChildren()
+    public Vector<SOCTradeTree> getChildren()
     {
         return children;
     }

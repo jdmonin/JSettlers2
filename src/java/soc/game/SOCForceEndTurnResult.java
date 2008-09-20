@@ -57,7 +57,7 @@ public class SOCForceEndTurnResult
      */
     public static final int FORCE_ENDTURN_MIN               = 1;  // Lowest possible
 
-    /** Since state is already {@link SOCGame#PLAY1}, already OK to end turn. No action was taken by forceEndTurn. */
+    /** Since state is already {@link SOCGame#BUILD_PHASE}, already OK to end turn. No action was taken by forceEndTurn. */
     public static final int FORCE_ENDTURN_NONE              = 1;
 
     /** Skip an initial road or settlement; current player has advanced forward, state changes to {@link SOCGame#START1A}. */
@@ -66,7 +66,7 @@ public class SOCForceEndTurnResult
     /** Skip an initial road or settlement; current player has advanced backward, state changes to {@link SOCGame#START2A}. */
     public static final int FORCE_ENDTURN_SKIP_START_ADVBACK = 3;
 
-    /** Skip an initial road or settlement; state changes to {@link SOCGame#PLAY1}, and {@link SOCGame#endTurn()} should be called. */
+    /** Skip an initial road or settlement; state changes to {@link SOCGame#BUILD_PHASE}, and {@link SOCGame#endTurn()} should be called. */
     public static final int FORCE_ENDTURN_SKIP_START_TURN   = 4;
 
     /** Sent both for placement of bought pieces, and for "free" pieces from road-building cards */

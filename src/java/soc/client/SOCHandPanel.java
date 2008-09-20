@@ -615,7 +615,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         else if (target == CLEAR)
         {
             clearOffer(true);    // Zero the square panel numbers, unless board-reset vote in progress
-            if (game.getGameState() == SOCGame.PLAY1)
+            if (game.getGameState() == SOCGame.BUILD_PHASE)
             {
                 client.clearOffer(game);
             }
@@ -623,7 +623,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         else if (target == BANK)
         {
             int gstate = game.getGameState(); 
-            if (gstate == SOCGame.PLAY1)
+            if (gstate == SOCGame.BUILD_PHASE)
             {
                 int[] give = new int[5];
                 int[] get = new int[5];
@@ -660,7 +660,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
         else if (target == SEND)
         {
-            if (game.getGameState() == SOCGame.PLAY1)
+            if (game.getGameState() == SOCGame.BUILD_PHASE)
             {
                 int[] give = new int[5];
                 int[] get = new int[5];
@@ -1279,7 +1279,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         if (playerIsClient)
         {
             int gs = game.getGameState();
-            boolean normalTurnStarting = (gs == SOCGame.PLAY || gs == SOCGame.PLAY1);
+            boolean normalTurnStarting = (gs == SOCGame.ROLL_OR_SOLDIER || gs == SOCGame.BUILD_PHASE);
             clearOffer(normalTurnStarting);  // Zero the square panel numbers, etc. (TODO) better descr.
                 // at any player's turn, not just when playerIsCurrent.
             if (doneButIsRestart && normalTurnStarting)
@@ -1326,7 +1326,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         if (playerIsCurrent)
         {
             updateRollButton();
-            bankBut.setEnabled(game.getGameState() == SOCGame.PLAY1);
+            bankBut.setEnabled(game.getGameState() == SOCGame.BUILD_PHASE);
         }
         else
         {
@@ -1358,7 +1358,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         int gs = game.getGameState();
         clearBut.setEnabled(notAllZero);
-        boolean enaSendBut = notAllZero && ((gs == SOCGame.PLAY) || (gs == SOCGame.PLAY1));
+        boolean enaSendBut = notAllZero && ((gs == SOCGame.ROLL_OR_SOLDIER) || (gs == SOCGame.BUILD_PHASE));
         sendBut.setEnabled(enaSendBut);
         if (sendButTip != null)
         {
@@ -1764,7 +1764,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public void updateRollButton()
     {
-        rollBut.setEnabled(game.getGameState() == SOCGame.PLAY);
+        rollBut.setEnabled(game.getGameState() == SOCGame.ROLL_OR_SOLDIER);
     }
 
     /**
@@ -2371,7 +2371,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             // Code like actionPerformed for BANK button
             SOCGame game = hp.getGame(); 
-            if (game.getGameState() != SOCGame.PLAY1)
+            if (game.getGameState() != SOCGame.BUILD_PHASE)
             {
                 hp.getPlayerInterface().print("* You cannot trade at this time.\n");
                 return;
@@ -2542,7 +2542,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         public void setEnabledIfCanTrade(boolean itemsOnly)
         {
             SOCPlayer p = hpan.getPlayer();
-            boolean canTrade = (hpan.getGame().getGameState() == SOCGame.PLAY1)
+            boolean canTrade = (hpan.getGame().getGameState() == SOCGame.BUILD_PHASE)
                 && (hpan.getGame().getCurrentPlayerNumber() == p.getPlayerNumber())
                 && (costFrom <= p.getResources().getAmount(resTypeFrom));
             if (itemsOnly)

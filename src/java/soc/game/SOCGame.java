@@ -64,10 +64,10 @@ public class SOCGame implements Serializable, Cloneable
      * General assumptions for states and their numeric values:
      * <UL>
      * <LI> Active game states are >= {@link #START1A} and < {@link #OVER}
-     * <LI> Initial placement ends after {@link #START2B}, going directly to {@link #PLAY}
-     * <LI> A Normal turn's "main phase" is {@link #PLAY1}, after dice-roll/card-play in {@link #PLAY}
+     * <LI> Initial placement ends after {@link #START2B}, going directly to {@link #ROLL_OR_SOLDIER}
+     * <LI> A Normal turn's "main phase" is {@link #BUILD_PHASE}, after dice-roll/card-play in {@link #ROLL_OR_SOLDIER}
      * <LI> When the game is waiting for a player to react to something,
-     *      state is > {@link #PLAY1}, < {@link #OVER}; state name starts with
+     *      state is > {@link #BUILD_PHASE}, < {@link #OVER}; state name starts with
      *      PLACING_ or WAITING_
      * </UL>
      *<P>
@@ -126,22 +126,22 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Players place second road.  Next state is {@link #START2A} to place previous
      * player's 2nd settlement (player changes in reverse order), or if all have placed
-     * settlements, {@link #PLAY} to begin first player's turn.
+     * settlements, {@link #ROLL_OR_SOLDIER} to begin first player's turn.
      */
     public static final int START2B = 11; // Players place 2nd road
 
     /**
      * Start of a normal turn.  Time to roll or play a card.
-     * Next state depends on card or roll, but usually is {@link #PLAY1}.
+     * Next state depends on card or roll, but usually is {@link #BUILD_PHASE}.
      */
-    public static final int PLAY = 15; // Play continues normally; time to roll or play card
+    public static final int ROLL_OR_SOLDIER = 15; // Play continues normally; time to roll or play card
 
     /**
      * Done rolling (or moving robber on 7).  Time for other turn actions,
      * such as building or buying or trading, or playing a card if not already done.
-     * Next state depends on what's done, but usually is the next player's {@link #PLAY}.
+     * Next state depends on what's done, but usually is the next player's {@link #ROLL_OR_SOLDIER}.
      */
-    public static final int PLAY1 = 20; // Done rolling
+    public static final int BUILD_PHASE = 20; // Done rolling
 
     public static final int PLACING_ROAD = 30;
     public static final int PLACING_SETTLEMENT = 31;
@@ -1219,7 +1219,7 @@ public class SOCGame implements Serializable, Cloneable
                     // Begin play.
                     // Player number is unchanged; "virtual" endTurn here.
                     // Don't clear forcingEndTurn flag, if it's set.
-                    gameState = PLAY;
+                    gameState = ROLL_OR_SOLDIER;
                 }
                 else
                 {
@@ -1233,7 +1233,7 @@ public class SOCGame implements Serializable, Cloneable
         case PLACING_ROAD:
         case PLACING_SETTLEMENT:
         case PLACING_CITY:
-            gameState = PLAY1;
+            gameState = BUILD_PHASE;
 
             break;
 
@@ -1558,7 +1558,7 @@ public class SOCGame implements Serializable, Cloneable
      * 
      * @param pn  player number of the player who wants to end the turn
      * @return true if ok for this player to end the turn
-     *    (They are current player, game state is {@link #PLAY1})
+     *    (They are current player, game state is {@link #BUILD_PHASE})
      *
      * @see #endTurn()
      * @see #forceEndTurn()
@@ -1569,7 +1569,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             return false;
         }
-        else if (gameState != PLAY1)
+        else if (gameState != BUILD_PHASE)
         {
             return false;
         }
@@ -1595,7 +1595,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void endTurn()
     {
-        gameState = PLAY;
+        gameState = ROLL_OR_SOLDIER;
         currentDice = 0;
         advanceTurn();
         players[currentPlayerNumber].setPlayedDevCard(false);
@@ -1608,14 +1608,14 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * In an active game, force current turn to be able to be ended.
      * Takes whatever action needed to force current player to end their turn,
-     * and if possible, sets state to {@link #PLAY1}, but does not call {@link #endTurn()}.
+     * and if possible, sets state to {@link #BUILD_PHASE}, but does not call {@link #endTurn()}.
      * May be used if player loses connection, or robot does not respond.
      *<P>
      * Since only the server calls {@link #endTurn()}, this method does not do so.
      * This method also does not check if a board-reset vote is in progress,
      * because endTurn will unconditionally cancel such a vote.
      *<P>
-     * After calling forceEndTurn, usually the gameState will be {@link #PLAY1},  
+     * After calling forceEndTurn, usually the gameState will be {@link #BUILD_PHASE},  
      * and the caller should call {@link #endTurn()}.  The {@link #isForcingEndTurn()}
      * flag is also set.
      * Exceptions (caller should not call endTurn) are these return types:
@@ -1681,12 +1681,12 @@ public class SOCGame implements Serializable, Cloneable
                 // FORCE_ENDTURN_UNPLACE_START_ADVBACK
                 // or FORCE_ENDTURN_UNPLACE_START_TURN
 
-        case PLAY:
-            gameState = PLAY1;
+        case ROLL_OR_SOLDIER:
+            gameState = BUILD_PHASE;
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);
 
-        case PLAY1:
+        case BUILD_PHASE:
             // already can end it
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);
@@ -1709,7 +1709,7 @@ public class SOCGame implements Serializable, Cloneable
         case PLACING_ROBBER:
             {
                 boolean isFromDevCard = placingRobberForKnightCard;
-                gameState = PLAY1;
+                gameState = BUILD_PHASE;
                 if (isFromDevCard)
                 {
                     placingRobberForKnightCard = false;
@@ -1722,7 +1722,7 @@ public class SOCGame implements Serializable, Cloneable
 
         case PLACING_FREE_ROAD1:
         case PLACING_FREE_ROAD2:
-            gameState = PLAY1;
+            gameState = BUILD_PHASE;
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE);
 
@@ -1730,19 +1730,19 @@ public class SOCGame implements Serializable, Cloneable
             return forceEndTurnChkDiscards(currentPlayerNumber);  // sets gameState, discards randomly
 
         case WAITING_FOR_CHOICE:
-            gameState = PLAY1;
+            gameState = BUILD_PHASE;
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE);
 
         case WAITING_FOR_DISCOVERY:
-            gameState = PLAY1;
+            gameState = BUILD_PHASE;
             players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
                  SOCDevCardConstants.DISC);
 
         case WAITING_FOR_MONOPOLY:
-            gameState = PLAY1;
+            gameState = BUILD_PHASE;
             players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
@@ -1799,7 +1799,7 @@ public class SOCGame implements Serializable, Cloneable
             } else {
                 // Was second placement; begin normal gameplay.
                 // Set resType to tell caller to call endTurn().
-                gameState = PLAY1;
+                gameState = BUILD_PHASE;
                 cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
             }
         } else {
@@ -1817,7 +1817,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Randomly discard from this player's hand, by calling {@link #discard(int, SOCResourceSet)}.
      * Then look at other players' hand size. If no one else must discard,
-     * ready to end turn, set state {@link #PLAY1}.
+     * ready to end turn, set state {@link #BUILD_PHASE}.
      * Otherwise, must wait for them; if so,
      * set game state to {@link #WAITING_FOR_DISCARDS}.
      * When called, assumes {@link #isForcingEndTurn()} flag is already set.
@@ -1894,7 +1894,7 @@ public class SOCGame implements Serializable, Cloneable
      * On return, gameState will be:
      *<UL>
      * <LI> {@link #WAITING_FOR_DISCARDS} if other players still must discard
-     * <LI> {@link #PLAY1} if everyone has discarded, and {@link #isForcingEndTurn()} is set
+     * <LI> {@link #BUILD_PHASE} if everyone has discarded, and {@link #isForcingEndTurn()} is set
      * <LI> {@link #PLACING_ROBBER} if everyone has discarded, and {@link #isForcingEndTurn()} is not set
      *</UL>
      *
@@ -1931,7 +1931,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             return false;
         }
-        else if (gameState != PLAY)
+        else if (gameState != ROLL_OR_SOLDIER)
         {
             return false;
         }
@@ -1976,7 +1976,7 @@ public class SOCGame implements Serializable, Cloneable
             if (gameState != WAITING_FOR_DISCARDS)
             {
                 placingRobberForKnightCard = false;
-                oldGameState = PLAY1;
+                oldGameState = BUILD_PHASE;
                 gameState = PLACING_ROBBER;
             }
         }
@@ -1994,7 +1994,7 @@ public class SOCGame implements Serializable, Cloneable
                 }
             }
 
-            gameState = PLAY1;
+            gameState = BUILD_PHASE;
         }
 
         return new IntPair(die1, die2);
@@ -2149,7 +2149,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Special case:
      * If {@link #isForcingEndTurn()}, and no one else needs to discard,
-     * gameState becomes {@link #PLAY1} but the caller must call
+     * gameState becomes {@link #BUILD_PHASE} but the caller must call
      * {@link #endTurn()} as soon as possible.
      *
      * @param pn   the number of the player
@@ -2182,11 +2182,11 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (gameState != WAITING_FOR_DISCARDS)
         {
-            oldGameState = PLAY1;
+            oldGameState = BUILD_PHASE;
             if (! forcingEndTurn)
                 gameState = PLACING_ROBBER;
             else
-                gameState = PLAY1;
+                gameState = BUILD_PHASE;
         }
     }
 
@@ -2600,7 +2600,7 @@ public class SOCGame implements Serializable, Cloneable
         log.debug("*** offering = " + offering);
         log.debug("*** accepting = " + accepting);
 
-        if (gameState != PLAY1)
+        if (gameState != BUILD_PHASE)
         {
             return false;
         }
@@ -2672,7 +2672,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canMakeBankTrade(SOCResourceSet give, SOCResourceSet get)
     {
-        if (gameState != PLAY1)
+        if (gameState != BUILD_PHASE)
         {
             return false;
         }
@@ -2902,7 +2902,7 @@ public class SOCGame implements Serializable, Cloneable
         SOCResourceSet resources = players[pn].getResources();
         resources.add(1, SOCResourceConstants.CLAY);
         resources.add(1, SOCResourceConstants.WOOD);
-        gameState = PLAY1;
+        gameState = BUILD_PHASE;
     }
 
     /**
@@ -2917,7 +2917,7 @@ public class SOCGame implements Serializable, Cloneable
         resources.add(1, SOCResourceConstants.SHEEP);
         resources.add(1, SOCResourceConstants.WHEAT);
         resources.add(1, SOCResourceConstants.WOOD);
-        gameState = PLAY1;
+        gameState = BUILD_PHASE;
     }
 
     /**
@@ -2930,7 +2930,7 @@ public class SOCGame implements Serializable, Cloneable
         SOCResourceSet resources = players[pn].getResources();
         resources.add(3, SOCResourceConstants.ORE);
         resources.add(2, SOCResourceConstants.WHEAT);
-        gameState = PLAY1;
+        gameState = BUILD_PHASE;
     }
 
     /**
@@ -2960,7 +2960,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canPlayKnight(int pn)
     {
-        if (!((gameState == PLAY) || (gameState == PLAY1)))
+        if (!((gameState == ROLL_OR_SOLDIER) || (gameState == BUILD_PHASE)))
         {
             return false;
         }
@@ -2993,7 +2993,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canPlayRoadBuilding(int pn)
     {
-        if (!((gameState == PLAY) || (gameState == PLAY1)))
+        if (!((gameState == ROLL_OR_SOLDIER) || (gameState == BUILD_PHASE)))
         {
             return false;
         }
@@ -3023,7 +3023,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canPlayDiscovery(int pn)
     {
-        if (!((gameState == PLAY) || (gameState == PLAY1)))
+        if (!((gameState == ROLL_OR_SOLDIER) || (gameState == BUILD_PHASE)))
         {
             return false;
         }
@@ -3048,7 +3048,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canPlayMonopoly(int pn)
     {
-        if (!((gameState == PLAY) || (gameState == PLAY1)))
+        if (!((gameState == ROLL_OR_SOLDIER) || (gameState == BUILD_PHASE)))
         {
             return false;
         }
@@ -3462,7 +3462,7 @@ public class SOCGame implements Serializable, Cloneable
              boardResetVotesWaiting = numVoters;
         }
 
-        if (gameState >= PLAY)
+        if (gameState >= ROLL_OR_SOLDIER)
         {
             players[reqPN].setAskedBoardReset(true);
             // During game setup (START1A..START2B), normal end-of-turn flags aren't

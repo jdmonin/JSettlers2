@@ -450,7 +450,7 @@ public class TradeOfferPanel extends Panel
                 SOCGame game = hp.getGame();
                 SOCPlayer player = game.getPlayer(pi.getClient().getNickname());
 
-                if (game.getGameState() == SOCGame.PLAY1)
+                if (game.getGameState() == SOCGame.BUILD_PHASE)
                 {
                     // slot for each resource, plus one for 'unknown' (remains 0)
                     int[] give = new int[5];

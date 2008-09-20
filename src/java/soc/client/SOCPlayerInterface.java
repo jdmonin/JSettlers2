@@ -187,7 +187,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     /**
      * Flag to ensure interface is updated, when the first actual
      * turn begins (state changes from {@link SOCGame#START2B}
-     * to {@link SOCGame#PLAY}).
+     * to {@link SOCGame#ROLL_OR_SOLDIER}).
      * Initially set in {@link #startGame()}.
      * Checked/cleared in {@link #updateAtGameState()};
      */
@@ -1214,7 +1214,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         // Update our interface at start of first turn;
         // The server won't send a TURN message after the
         // final road is placed (state START2 -> PLAY).
-        if (gameIsStarting && (gs >= SOCGame.PLAY))
+        if (gameIsStarting && (gs >= SOCGame.ROLL_OR_SOLDIER))
         {
             gameIsStarting = false;
             if (clientHand != null)
@@ -1228,7 +1228,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             // Set timer.  If still waiting for discards after 2 seconds,
             // show balloons on-screen. (hands[i].setDiscardMsg)
             discardTimerSet();
-        } else if ((gs == SOCGame.PLAY1) && showingPlayerDiscards)
+        } else if ((gs == SOCGame.BUILD_PHASE) && showingPlayerDiscards)
         {
             // If not all players' discard status balloons were cleared by
             // PLAYERELEMENT messages, clean up now.
@@ -1249,7 +1249,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 {
                     showMonopolyDialog();
                 }
-                else if (gs == SOCGame.PLAY1)
+                else if (gs == SOCGame.BUILD_PHASE)
                 {
                     updateAtPlay1();
                 }

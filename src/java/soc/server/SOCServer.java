@@ -3553,7 +3553,7 @@ public class SOCServer extends Server
                         /**
                          * send the new state, or end turn if was marked earlier as forced
                          */
-                        if ((ga.getGameState() != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
+                        if ((ga.getGameState() != SOCGame.BUILD_PHASE) || ! ga.isForcingEndTurn())
                         {
                             sendGameState(ga);
                         } else {
@@ -4110,7 +4110,7 @@ public class SOCServer extends Server
                 {
                     if (checkTurn(c, ga))
                     {
-                        if (ga.getGameState() == SOCGame.PLAY1)
+                        if (ga.getGameState() == SOCGame.BUILD_PHASE)
                         {
                             SOCPlayer player = ga.getPlayer((String) c.getData());
 
@@ -4322,7 +4322,7 @@ public class SOCServer extends Server
                     {
                         SOCPlayer player = ga.getPlayer((String) c.getData());
 
-                        if ((ga.getGameState() == SOCGame.PLAY1) && (ga.couldBuyDevCard(player.getPlayerNumber())))
+                        if ((ga.getGameState() == SOCGame.BUILD_PHASE) && (ga.couldBuyDevCard(player.getPlayerNumber())))
                         {
                             int card = ga.buyDevCard();
                             gameList.takeMonitorForGame(gaName);
@@ -5586,7 +5586,7 @@ public class SOCServer extends Server
 
             break;
 
-        case SOCGame.PLAY:
+        case SOCGame.ROLL_OR_SOLDIER:
             messageToGame(gname, new SOCGameTextMsg(gname, SERVERNAME, "It's " + player.getName() + "'s turn to roll the dice."));
             promptedRoll = true;
             if (sendRollPrompt)

@@ -264,7 +264,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * roads on the board; Vector of SOCPlayingPiece
      */
-    private Vector roads;
+    private Vector<SOCRoad> roads;
 
     /**
      * settlements on the board; Vector of SOCPlayingPiece
@@ -284,7 +284,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * a list of nodes on the board; key is node's Integer coordinate, value is Boolean
      */
-    protected Hashtable nodesOnBoard;
+    protected Hashtable<Integer, Boolean> nodesOnBoard;
 
     /**
      * Create a new Settlers of Catan Board
@@ -335,7 +335,7 @@ public class SOCBoard implements Serializable, Cloneable
         initHexIDtoNumAux(0x51, 0xD9, 28);
         initHexIDtoNumAux(0x71, 0xD7, 33);
 
-        nodesOnBoard = new Hashtable();
+        nodesOnBoard = new Hashtable<Integer, Boolean>();
 
         /**
          * initialize the list of nodes on the board
@@ -738,7 +738,7 @@ public class SOCBoard implements Serializable, Cloneable
         switch (pp.getType())
         {
         case SOCPlayingPiece.ROAD:
-            roads.addElement(pp);
+            roads.addElement((SOCRoad)pp);
 
             break;
 
@@ -803,7 +803,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * get the list of roads
      */
-    public Vector getRoads()
+    public Vector<SOCRoad> getRoads()
     {
         return roads;
     }
@@ -827,9 +827,9 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the nodes that touch this edge
      */
-    public static Vector getAdjacentNodesToEdge(int coord)
+    public static Vector<Integer> getAdjacentNodesToEdge(int coord)
     {
-        Vector nodes = new Vector(2);
+        Vector<Integer> nodes = new Vector<Integer>(2);
         int tmp;
 
         /**
@@ -876,9 +876,9 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the adjacent edges to this edge
      */
-    public static Vector getAdjacentEdgesToEdge(int coord)
+    public static Vector<Integer> getAdjacentEdgesToEdge(int coord)
     {
-        Vector edges = new Vector(4);
+        Vector<Integer> edges = new Vector<Integer>(4);
         int tmp;
 
         /**
@@ -991,9 +991,9 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the coordinates (Integers) of the 1 to 3 hexes touching this node
      */
-    public static Vector getAdjacentHexesToNode(int coord)
+    public static Vector<Integer> getAdjacentHexesToNode(int coord)
     {
-        Vector hexes = new Vector(3);
+        Vector<Integer> hexes = new Vector<Integer>(3);
         int tmp;
 
         /**
@@ -1057,9 +1057,9 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the edges touching this node
      */
-    public static Vector getAdjacentEdgesToNode(int coord)
+    public static Vector<Integer> getAdjacentEdgesToNode(int coord)
     {
-        Vector edges = new Vector(3);
+        Vector<Integer> edges = new Vector<Integer>(3);
         int tmp;
 
         /**
@@ -1123,9 +1123,9 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the EDGEs adjacent to this node
      */
-    public static Vector getAdjacentNodesToNode(int coord)
+    public static Vector<Integer> getAdjacentNodesToNode(int coord)
     {
-        Vector nodes = new Vector(3);
+        Vector<Integer> nodes = new Vector<Integer>(3);
         int tmp;
 
         tmp = coord - 0x11;

@@ -1315,7 +1315,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                     //
                     // if it's the beginning of the game, make it potental
                     //
-                    if (game.getGameState() < SOCGame.PLAY)
+                    if (game.getGameState() < SOCGame.ROLL_OR_SOLDIER)
                     {
                         potentialSettlements[settlementNode] = true;
 
