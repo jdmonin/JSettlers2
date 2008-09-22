@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
  */
+@SuppressWarnings("serial")
 public class SOCRollDicePrompt extends SOCMessage
 {
     /**

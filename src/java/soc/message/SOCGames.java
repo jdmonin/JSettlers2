@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
  *
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public class SOCGames extends SOCMessage
 {
 	/** static method debug logging */
@@ -40,14 +41,14 @@ public class SOCGames extends SOCMessage
     /**
      * List of games
      */
-    private Vector games;
+    private Vector<String> games;
 
     /**
      * Create a Games Message.
      *
      * @param ga  list of games
      */
-    public SOCGames(Vector ga)
+    public SOCGames(Vector<String> ga)
     {
         messageType = GAMES;
         games = ga;
@@ -56,7 +57,7 @@ public class SOCGames extends SOCMessage
     /**
      * @return the list of games
      */
-    public Vector getGames()
+    public Vector<String> getGames()
     {
         return games;
     }
@@ -77,18 +78,18 @@ public class SOCGames extends SOCMessage
      * @param ga  the list of games
      * @return    the command string
      */
-    public static String toCmd(Vector ga)
+    public static String toCmd(Vector<String> ga)
     {
         String cmd = GAMES + sep;
 
         try
         {
-            Enumeration gaEnum = ga.elements();
-            cmd += (String) gaEnum.nextElement();
+            Enumeration<String> gaEnum = ga.elements();
+            cmd += gaEnum.nextElement();
 
             while (gaEnum.hasMoreElements())
             {
-                cmd += (sep2 + (String) gaEnum.nextElement());
+                cmd += (sep2 + gaEnum.nextElement());
             }
         }
         catch (Exception e) {}
@@ -104,7 +105,7 @@ public class SOCGames extends SOCMessage
      */
     public static SOCGames parseDataStr(String s)
     {
-        Vector ga = new Vector();
+        Vector<String> ga = new Vector<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -121,7 +122,7 @@ public class SOCGames extends SOCMessage
             return null;
         }
 
-        return new SOCGames((Vector) ga);
+        return new SOCGames((Vector<String>) ga);
     }
 
     /**
@@ -133,12 +134,12 @@ public class SOCGames extends SOCMessage
 
         try
         {
-            Enumeration gaEnum = games.elements();
-            s += (String) gaEnum.nextElement();
+            Enumeration<String> gaEnum = games.elements();
+            s += gaEnum.nextElement();
 
             while (gaEnum.hasMoreElements())
             {
-                s += ("," + (String) gaEnum.nextElement());
+                s += ("," + gaEnum.nextElement());
             }
         }
         catch (Exception e) {}

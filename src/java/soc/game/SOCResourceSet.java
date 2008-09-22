@@ -32,6 +32,7 @@ import org.apache.log4j.Logger;
  * Unknown resources are also tracked here.
  * Although it's possible to store negative amounts of resources, it's discouraged.
  */
+@SuppressWarnings("serial")
 public class SOCResourceSet implements Serializable, Cloneable
 {
     /** Resource set with zero of each resource type */

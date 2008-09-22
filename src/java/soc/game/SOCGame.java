@@ -52,6 +52,7 @@ import soc.util.IntPair;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCGame implements Serializable, Cloneable
 {
     /**
@@ -398,7 +399,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * used to restore the LR player
      */
-    Stack oldPlayerWithLongestRoad;
+    Stack<SOCOldLRStats> oldPlayerWithLongestRoad;
 
     /**
      * when this game was created
@@ -458,7 +459,7 @@ public class SOCGame implements Serializable, Cloneable
         gameState = NEW;
         forcingEndTurn = false;
         placingRobberForKnightCard = false;
-        oldPlayerWithLongestRoad = new Stack();
+        oldPlayerWithLongestRoad = new Stack<SOCOldLRStats>();
         if (active)
             startTime = new Date();
     }
@@ -1018,11 +1019,11 @@ public class SOCGame implements Serializable, Cloneable
         if ((gameState == START2A) && (pp.getType() == SOCPlayingPiece.SETTLEMENT))
         {
             SOCResourceSet resources = new SOCResourceSet();
-            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(pp.getCoordinates()).elements();
+            Enumeration<Integer> hexes = SOCBoard.getAdjacentHexesToNode(pp.getCoordinates()).elements();
 
             while (hexes.hasMoreElements())
             {
-                Integer hex = (Integer) hexes.nextElement();
+                Integer hex = hexes.nextElement();
 
                 switch (board.getHexTypeFromCoord(hex.intValue()))
                 {
@@ -1085,20 +1086,20 @@ public class SOCGame implements Serializable, Cloneable
                     roads[i] = 0;
                 }
 
-                Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
+                Enumeration<Integer> adjEdgeEnum = SOCBoard.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
 
                 while (adjEdgeEnum.hasMoreElements())
                 {
-                    Integer adjEdge = (Integer) adjEdgeEnum.nextElement();
+                    Integer adjEdge = adjEdgeEnum.nextElement();
 
                     /**
                      * look for other player's roads adjacent to this node
                      */
-                    Enumeration allRoadsEnum = board.getRoads().elements();
+                    Enumeration<SOCRoad> allRoadsEnum = board.getRoads().elements();
 
                     while (allRoadsEnum.hasMoreElements())
                     {
-                        SOCRoad road = (SOCRoad) allRoadsEnum.nextElement();
+                        SOCRoad road = allRoadsEnum.nextElement();
 
                         if (adjEdge.intValue() == road.getCoordinates())
                         {
@@ -1315,20 +1316,20 @@ public class SOCGame implements Serializable, Cloneable
                     roads[i] = 0;
                 }
 
-                Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
+                Enumeration<Integer> adjEdgeEnum = SOCBoard.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
 
                 while (adjEdgeEnum.hasMoreElements())
                 {
-                    Integer adjEdge = (Integer) adjEdgeEnum.nextElement();
+                    Integer adjEdge = adjEdgeEnum.nextElement();
 
                     /**
                      * look for other player's roads adjacent to this node
                      */
-                    Enumeration allRoadsEnum = board.getRoads().elements();
+                    Enumeration<SOCRoad> allRoadsEnum = board.getRoads().elements();
 
                     while (allRoadsEnum.hasMoreElements())
                     {
-                        SOCRoad road = (SOCRoad) allRoadsEnum.nextElement();
+                        SOCRoad road = allRoadsEnum.nextElement();
 
                         if (adjEdge.intValue() == road.getCoordinates())
                         {
@@ -1407,7 +1408,7 @@ public class SOCGame implements Serializable, Cloneable
         //
         // update which player has longest road
         //
-        SOCOldLRStats oldLRStats = (SOCOldLRStats) oldPlayerWithLongestRoad.pop();
+        SOCOldLRStats oldLRStats = oldPlayerWithLongestRoad.pop();
         oldLRStats.restoreOldStats(this);
     }
 
@@ -1858,7 +1859,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public static void discardPickRandom(SOCResourceSet fromHand, int numDiscards, SOCResourceSet discards, Random rand)
     {
-        Vector tempHand = new Vector(16);
+        Vector<Integer> tempHand = new Vector<Integer>(16);
 
         // log.error("resources="+ourPlayerData.getResources());
         for (int rsrcType = SOCResourceConstants.CLAY;
@@ -1882,7 +1883,7 @@ public class SOCGame implements Serializable, Cloneable
             int idx = Math.abs(rand.nextInt() % tempHand.size());
 
             // log.error("idx="+idx);
-            discards.add(1, ((Integer) tempHand.elementAt(idx)).intValue());
+            discards.add(1, tempHand.elementAt(idx).intValue());
             tempHand.removeElementAt(idx);
         }
     }
@@ -2015,16 +2016,16 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * check the hexes touching settlements
          */
-        Enumeration sEnum = player.getSettlements().elements();
+        Enumeration<SOCSettlement> sEnum = player.getSettlements().elements();
 
         while (sEnum.hasMoreElements())
         {
-            SOCSettlement se = (SOCSettlement) sEnum.nextElement();
-            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(se.getCoordinates()).elements();
+            SOCSettlement se = sEnum.nextElement();
+            Enumeration<Integer> hexes = SOCBoard.getAdjacentHexesToNode(se.getCoordinates()).elements();
 
             while (hexes.hasMoreElements())
             {
-                Integer hex = (Integer) hexes.nextElement();
+                Integer hex = hexes.nextElement();
 
                 if ((board.getNumberOnHexFromCoord(hex.intValue()) == roll) && (hex.intValue() != board.getRobberHex()))
                 {
@@ -2062,16 +2063,16 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * check the settlements touching cities
          */
-        Enumeration cEnum = player.getCities().elements();
+        Enumeration<SOCCity> cEnum = player.getCities().elements();
 
         while (cEnum.hasMoreElements())
         {
-            SOCCity ci = (SOCCity) cEnum.nextElement();
-            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(ci.getCoordinates()).elements();
+            SOCCity ci = cEnum.nextElement();
+            Enumeration<Integer> hexes = SOCBoard.getAdjacentHexesToNode(ci.getCoordinates()).elements();
 
             while (hexes.hasMoreElements())
             {
-                Integer hex = (Integer) hexes.nextElement();
+                Integer hex = hexes.nextElement();
 
                 if ((board.getNumberOnHexFromCoord(hex.intValue()) == roll) && (hex.intValue() != board.getRobberHex()))
                 {
@@ -2246,7 +2247,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * do the robbing thing
          */
-        Vector victims = getPossibleVictims();
+        Vector<SOCPlayer> victims = getPossibleVictims();
 
         if (victims.isEmpty())
         {
@@ -2254,7 +2255,7 @@ public class SOCGame implements Serializable, Cloneable
         }
         else if (victims.size() == 1)
         {
-            SOCPlayer victim = (SOCPlayer) victims.firstElement();
+            SOCPlayer victim = victims.firstElement();
             int loot = stealFromPlayer(victim.getPlayerNumber());
             result.setLoot(loot);
         }
@@ -2283,11 +2284,11 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        Enumeration plEnum = getPossibleVictims().elements();
+        Enumeration<SOCPlayer> plEnum = getPossibleVictims().elements();
 
         while (plEnum.hasMoreElements())
         {
-            SOCPlayer pl = (SOCPlayer) plEnum.nextElement();
+            SOCPlayer pl = plEnum.nextElement();
 
             if (pl.getPlayerNumber() == pn)
             {
@@ -2303,16 +2304,16 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param hex  the coordinates of the hex
      */
-    public Vector getPlayersOnHex(int hex)
+    public Vector<SOCPlayer> getPlayersOnHex(int hex)
     {
-        Vector playerList = new Vector(MAXPLAYERS);
+        Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(MAXPLAYERS);
 
         for (int i = 0; i < MAXPLAYERS; i++)
         {
-            Vector settlements = players[i].getSettlements();
-            Vector cities = players[i].getCities();
-            Enumeration seEnum;
-            Enumeration ciEnum;
+            Vector<SOCSettlement> settlements = players[i].getSettlements();
+            Vector<SOCCity> cities = players[i].getCities();
+            Enumeration<SOCSettlement> seEnum;
+            Enumeration<SOCCity> ciEnum;
             int node;
             boolean touching = false;
 
@@ -2321,7 +2322,7 @@ public class SOCGame implements Serializable, Cloneable
 
             while (seEnum.hasMoreElements())
             {
-                SOCSettlement se = (SOCSettlement) seEnum.nextElement();
+                SOCSettlement se = seEnum.nextElement();
 
                 if (se.getCoordinates() == node)
                 {
@@ -2337,7 +2338,7 @@ public class SOCGame implements Serializable, Cloneable
 
                 while (ciEnum.hasMoreElements())
                 {
-                    SOCCity ci = (SOCCity) ciEnum.nextElement();
+                    SOCCity ci = ciEnum.nextElement();
 
                     if (ci.getCoordinates() == node)
                     {
@@ -2354,7 +2355,7 @@ public class SOCGame implements Serializable, Cloneable
 
                     while (seEnum.hasMoreElements())
                     {
-                        SOCSettlement se = (SOCSettlement) seEnum.nextElement();
+                        SOCSettlement se = seEnum.nextElement();
 
                         if (se.getCoordinates() == node)
                         {
@@ -2370,7 +2371,7 @@ public class SOCGame implements Serializable, Cloneable
 
                         while (ciEnum.hasMoreElements())
                         {
-                            SOCCity ci = (SOCCity) ciEnum.nextElement();
+                            SOCCity ci = ciEnum.nextElement();
 
                             if (ci.getCoordinates() == node)
                             {
@@ -2387,7 +2388,7 @@ public class SOCGame implements Serializable, Cloneable
 
                             while (seEnum.hasMoreElements())
                             {
-                                SOCSettlement se = (SOCSettlement) seEnum.nextElement();
+                                SOCSettlement se = seEnum.nextElement();
 
                                 if (se.getCoordinates() == node)
                                 {
@@ -2403,7 +2404,7 @@ public class SOCGame implements Serializable, Cloneable
 
                                 while (ciEnum.hasMoreElements())
                                 {
-                                    SOCCity ci = (SOCCity) ciEnum.nextElement();
+                                    SOCCity ci = ciEnum.nextElement();
 
                                     if (ci.getCoordinates() == node)
                                     {
@@ -2418,7 +2419,7 @@ public class SOCGame implements Serializable, Cloneable
 
                                 while (seEnum.hasMoreElements())
                                 {
-                                    SOCSettlement se = (SOCSettlement) seEnum.nextElement();
+                                    SOCSettlement se = seEnum.nextElement();
 
                                     if (se.getCoordinates() == node)
                                     {
@@ -2434,7 +2435,7 @@ public class SOCGame implements Serializable, Cloneable
 
                                     while (ciEnum.hasMoreElements())
                                     {
-                                        SOCCity ci = (SOCCity) ciEnum.nextElement();
+                                        SOCCity ci = ciEnum.nextElement();
 
                                         if (ci.getCoordinates() == node)
                                         {
@@ -2449,7 +2450,7 @@ public class SOCGame implements Serializable, Cloneable
 
                                     while (seEnum.hasMoreElements())
                                     {
-                                        SOCSettlement se = (SOCSettlement) seEnum.nextElement();
+                                        SOCSettlement se = seEnum.nextElement();
 
                                         if (se.getCoordinates() == node)
                                         {
@@ -2465,7 +2466,7 @@ public class SOCGame implements Serializable, Cloneable
 
                                         while (ciEnum.hasMoreElements())
                                         {
-                                            SOCCity ci = (SOCCity) ciEnum.nextElement();
+                                            SOCCity ci = ciEnum.nextElement();
 
                                             if (ci.getCoordinates() == node)
                                             {
@@ -2480,7 +2481,7 @@ public class SOCGame implements Serializable, Cloneable
 
                                         while (seEnum.hasMoreElements())
                                         {
-                                            SOCSettlement se = (SOCSettlement) seEnum.nextElement();
+                                            SOCSettlement se = seEnum.nextElement();
 
                                             if (se.getCoordinates() == node)
                                             {
@@ -2496,7 +2497,7 @@ public class SOCGame implements Serializable, Cloneable
 
                                             while (ciEnum.hasMoreElements())
                                             {
-                                                SOCCity ci = (SOCCity) ciEnum.nextElement();
+                                                SOCCity ci = ciEnum.nextElement();
 
                                                 if (ci.getCoordinates() == node)
                                                 {
@@ -2526,14 +2527,14 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * @return a list of possible players to rob
      */
-    public Vector getPossibleVictims()
+    public Vector<SOCPlayer> getPossibleVictims()
     {
-        Vector victims = new Vector();
-        Enumeration plEnum = getPlayersOnHex(getBoard().getRobberHex()).elements();
+        Vector<SOCPlayer> victims = new Vector<SOCPlayer>();
+        Enumeration<SOCPlayer> plEnum = getPlayersOnHex(getBoard().getRobberHex()).elements();
 
         while (plEnum.hasMoreElements())
         {
-            SOCPlayer pl = (SOCPlayer) plEnum.nextElement();
+            SOCPlayer pl = plEnum.nextElement();
             int pn = pl.getPlayerNumber(); 
 
             if ((pn != currentPlayerNumber) && (! isSeatVacant(pn)) && (pl.getResources().getTotal() > 0))

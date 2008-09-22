@@ -26,6 +26,7 @@ import java.io.Serializable;
 /**
  * Playing pieces for Settlers of Catan
  */
+@SuppressWarnings("serial")
 public abstract class SOCPlayingPiece implements Serializable, Cloneable
 {
     /**

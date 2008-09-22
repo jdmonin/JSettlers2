@@ -52,6 +52,7 @@ import java.util.Vector;
  *<P>
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public class SOCBoard implements Serializable, Cloneable
 {
     //
@@ -192,7 +193,7 @@ public class SOCBoard implements Serializable, Cloneable
      *     8 : 11
      *     9 : 12
      */
-    private int[] boardNum2Num = { -1, -1, 0, 1, 2, 3, 4, -1, 5, 6, 7, 8, 9 };
+//    private int[] boardNum2Num = { -1, -1, 0, 1, 2, 3, 4, -1, 5, 6, 7, 8, 9 };
     private int[] num2BoardNum = { 2, 3, 4, 5, 6, 8, 9, 10, 11, 12 };
 
     /*
@@ -238,12 +239,12 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * offset to add to hex coord to get all node coords
      */
-    private int[] hexNodes = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
+//    private int[] hexNodes = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
 
     /**
      *  offset of all hexes adjacent to a node
      */
-    private int[] nodeToHex = { -0x21, 0x01, -0x01, -0x10, 0x10, -0x12 };
+//    private int[] nodeToHex = { -0x21, 0x01, -0x01, -0x10, 0x10, -0x12 };
 
     /**
      * the hex coordinate that the robber is in; placed on desert in constructor
@@ -254,12 +255,12 @@ public class SOCBoard implements Serializable, Cloneable
      * where the ports are; coordinates per port type.
      * Indexes are port types, {@link #MISC_PORT} to {@link #WOOD_PORT}.
      */
-    private Vector[] ports;
+    private Vector<Integer>[] ports;
 
     /**
      * pieces on the board; Vector of SOCPlayingPiece
      */
-    private Vector pieces;
+    private Vector<SOCPlayingPiece> pieces;
 
     /**
      * roads on the board; Vector of SOCPlayingPiece
@@ -269,12 +270,12 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * settlements on the board; Vector of SOCPlayingPiece
      */
-    private Vector settlements;
+    private Vector<SOCSettlement> settlements;
 
     /**
      * cities on the board; Vector of SOCPlayingPiece
      */
-    private Vector cities;
+    private Vector<SOCCity> cities;
 
     /**
      * random number generator
@@ -301,20 +302,20 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * initialize the pieces vectors
          */
-        pieces = new Vector(96);
-        roads = new Vector(60);
-        settlements = new Vector(20);
-        cities = new Vector(16);
+        pieces = new Vector<SOCPlayingPiece>(96);
+        roads = new Vector<SOCRoad>(60);
+        settlements = new Vector<SOCSettlement>(20);
+        cities = new Vector<SOCCity>(16);
 
         /**
          * initialize the port vector
          */
         ports = new Vector[6];
-        ports[MISC_PORT] = new Vector(8);
+        ports[MISC_PORT] = new Vector<Integer>(8);
 
         for (i = CLAY_PORT; i <= WOOD_PORT; i++)
         {
-            ports[i] = new Vector(2);
+            ports[i] = new Vector<Integer>(2);
         }
 
         /**
@@ -630,7 +631,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param portType  the type of port;
      *        in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      */
-    public Vector getPortCoordinates(int portType)
+    public Vector<Integer> getPortCoordinates(int portType)
     {
         return ports[portType];
     }
@@ -743,12 +744,12 @@ public class SOCBoard implements Serializable, Cloneable
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-            settlements.addElement(pp);
+            settlements.addElement((SOCSettlement)pp);
 
             break;
 
         case SOCPlayingPiece.CITY:
-            cities.addElement(pp);
+            cities.addElement((SOCCity)pp);
 
             break;
         }
@@ -759,11 +760,11 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public void removePiece(SOCPlayingPiece piece)
     {
-        Enumeration pEnum = pieces.elements();
+        Enumeration<SOCPlayingPiece> pEnum = pieces.elements();
 
         while (pEnum.hasMoreElements())
         {
-            SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+            SOCPlayingPiece p = pEnum.nextElement();
 
             if ((piece.getType() == p.getType()) && (piece.getCoordinates() == p.getCoordinates()))
             {
@@ -795,7 +796,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * get the list of pieces on the board
      */
-    public Vector getPieces()
+    public Vector<SOCPlayingPiece> getPieces()
     {
         return pieces;
     }
@@ -811,7 +812,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * get the list of settlements
      */
-    public Vector getSettlements()
+    public Vector<SOCSettlement> getSettlements()
     {
         return settlements;
     }
@@ -819,7 +820,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * get the list of cities
      */
-    public Vector getCities()
+    public Vector<SOCCity> getCities()
     {
         return cities;
     }
@@ -1180,11 +1181,11 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public SOCPlayingPiece settlementAtNode(int nodeCoord)
     {
-        Enumeration pEnum = pieces.elements();
+        Enumeration<SOCPlayingPiece> pEnum = pieces.elements();
 
         while (pEnum.hasMoreElements())
         {
-            SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+            SOCPlayingPiece p = pEnum.nextElement();
             int typ = p.getType(); 
 
             if ((nodeCoord == p.getCoordinates()) &&
@@ -1205,11 +1206,11 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public SOCPlayingPiece roadAtEdge(int edgeCoord)
     {
-        Enumeration pEnum = roads.elements();
+        Enumeration<SOCRoad> pEnum = roads.elements();
 
         while (pEnum.hasMoreElements())
         {
-            SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+            SOCPlayingPiece p = pEnum.nextElement();
             if (edgeCoord == p.getCoordinates())
             {
                 return p;  // <-- Early return: Found it ---
@@ -1234,8 +1235,8 @@ public class SOCBoard implements Serializable, Cloneable
     public String nodeCoordToString(int node)
     {
         String str;
-        Enumeration hexes = getAdjacentHexesToNode(node).elements();
-        Integer hex = (Integer) hexes.nextElement();
+        Enumeration<Integer> hexes = getAdjacentHexesToNode(node).elements();
+        Integer hex = hexes.nextElement();
         int number = getNumberOnHexFromCoord(hex.intValue());
 
         if (number == 0)
@@ -1249,7 +1250,7 @@ public class SOCBoard implements Serializable, Cloneable
 
         while (hexes.hasMoreElements())
         {
-            hex = (Integer) hexes.nextElement();
+            hex = hexes.nextElement();
             number = getNumberOnHexFromCoord(hex.intValue());
 
             if (number == 0)

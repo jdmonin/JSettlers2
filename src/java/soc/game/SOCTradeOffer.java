@@ -26,6 +26,7 @@ import java.io.Serializable;
 /**
  * This class represents a trade offer in Settlers of Catan
  */
+@SuppressWarnings("serial")
 public class SOCTradeOffer implements Serializable, Cloneable
 {
     String game;

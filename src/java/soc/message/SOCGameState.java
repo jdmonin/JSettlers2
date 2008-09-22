@@ -31,6 +31,7 @@ import soc.game.SOCGame;  // for javadoc's use
  * @author Robert S Thomas
  * @see SOCGame#getGameState()
  */
+@SuppressWarnings("serial")
 public class SOCGameState extends SOCMessage
 {
     /**

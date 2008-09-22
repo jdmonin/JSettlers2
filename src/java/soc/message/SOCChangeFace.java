@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCChangeFace extends SOCMessage
 {
     /**

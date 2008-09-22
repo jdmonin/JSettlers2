@@ -53,6 +53,7 @@ package soc.message;
  * @see SOCMessageTemplateMs
  * @author Jeremy D Monin <jeremy@nand.net>
  */
+@SuppressWarnings("serial")
 public abstract class SOCMessageMulti extends SOCMessage
 {
     // @see SOCMessageTemplateMi, SOCMessageTemplateMs

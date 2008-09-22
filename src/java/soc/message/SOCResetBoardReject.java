@@ -30,6 +30,7 @@ package soc.message;
  * @author Jeremy D. Monin <jeremy@nand.net>
  *
  */
+@SuppressWarnings("serial")
 public class SOCResetBoardReject extends SOCMessageTemplate0
 {
     /**

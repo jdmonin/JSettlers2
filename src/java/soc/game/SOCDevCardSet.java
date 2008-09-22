@@ -27,6 +27,7 @@ import java.io.Serializable;
 /**
  * This represents a collection of development cards
  */
+@SuppressWarnings("serial")
 public class SOCDevCardSet implements Serializable, Cloneable
 {
     /**

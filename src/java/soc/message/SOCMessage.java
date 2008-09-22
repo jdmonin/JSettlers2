@@ -81,6 +81,7 @@ import soc.server.genericServer.StringConnection;
  *
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public abstract class SOCMessage implements Serializable, Cloneable
 {
 	/** static method debug logging */

@@ -34,8 +34,8 @@ import soc.game.SOCPlayer;
  */
 public class SOCPossibleSettlement extends SOCPossiblePiece
 {
-    protected Vector necessaryRoads;
-    protected Vector conflicts;
+    protected Vector<SOCPossibleRoad> necessaryRoads;
+    protected Vector<SOCPossibleSettlement> conflicts;
     protected int[] speedup = { 0, 0, 0, 0 };
     protected int numberOfNecessaryRoads;
     protected Stack roadPath;
@@ -47,7 +47,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      * @param co  coordinates;
      * @param nr  necessaryRoads;
      */
-    public SOCPossibleSettlement(SOCPlayer pl, int co, Vector nr)
+    public SOCPossibleSettlement(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
     {
         pieceType = SOCPossiblePiece.SETTLEMENT;
         player = pl;
@@ -56,7 +56,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
         eta = 0;
         threats = new Vector();
         biggestThreats = new Vector();
-        conflicts = new Vector();
+        conflicts = new Vector<SOCPossibleSettlement>();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
         numberOfNecessaryRoads = -1;
@@ -78,11 +78,11 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
         pieceType = SOCPossiblePiece.SETTLEMENT;
         player = ps.getPlayer();
         coord = ps.getCoordinates();
-        necessaryRoads = new Vector(ps.getNecessaryRoads().size());
+        necessaryRoads = new Vector<SOCPossibleRoad>(ps.getNecessaryRoads().size());
         eta = ps.getETA();
         threats = new Vector();
         biggestThreats = new Vector();
-        conflicts = new Vector(ps.getConflicts().size());
+        conflicts = new Vector<SOCPossibleSettlement>(ps.getConflicts().size());
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
 
@@ -126,7 +126,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     /**
      * @return the list of necessary roads
      */
-    public Vector getNecessaryRoads()
+    public Vector<SOCPossibleRoad> getNecessaryRoads()
     {
         return necessaryRoads;
     }
@@ -202,7 +202,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     /**
      * @return the list of conflicting settlements
      */
-    public Vector getConflicts()
+    public Vector<SOCPossibleSettlement> getConflicts()
     {
         return conflicts;
     }

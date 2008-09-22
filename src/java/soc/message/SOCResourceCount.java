@@ -28,6 +28,7 @@ import java.util.StringTokenizer;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCResourceCount extends SOCMessage
 {
     /**

@@ -31,6 +31,7 @@ import soc.util.SOCRobotParameters;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCUpdateRobotParams extends SOCMessage
 {
     private SOCRobotParameters params;

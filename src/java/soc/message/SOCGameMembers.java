@@ -32,12 +32,13 @@ import soc.server.genericServer.StringConnection;
  *
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public class SOCGameMembers extends SOCMessage
 {
     /**
      * List of members
      */
-    private Vector members;
+    private Vector<String> members;
 
     /**
      * Name of game
@@ -50,7 +51,7 @@ public class SOCGameMembers extends SOCMessage
      * @param ga  name of game
      * @param ml  list of members
      */
-    public SOCGameMembers(String ga, Vector ml)
+    public SOCGameMembers(String ga, Vector<String> ml)
     {
         messageType = GAMEMEMBERS;
         members = ml;
@@ -60,7 +61,7 @@ public class SOCGameMembers extends SOCMessage
     /**
      * @return the list of members
      */
-    public Vector getMembers()
+    public Vector<String> getMembers()
     {
         return members;
     }
@@ -90,13 +91,14 @@ public class SOCGameMembers extends SOCMessage
      * @param ml  the list of members
      * @return    the command string
      */
-    public static String toCmd(String ga, Vector ml)
+    public static String toCmd(String ga, Vector<String> ml)
     {
         String cmd = GAMEMEMBERS + sep + ga;
 
         try
         {
-            Enumeration mlEnum = ml.elements();
+            //TODO I'm not sure what this string connection is doing but I think we should change it to just a string and use the generics.
+        	Enumeration mlEnum = ml.elements();
 
             while (mlEnum.hasMoreElements())
             {
@@ -118,7 +120,7 @@ public class SOCGameMembers extends SOCMessage
     public static SOCGameMembers parseDataStr(String s)
     {
         String ga;
-        Vector ml = new Vector();
+        Vector<String> ml = new Vector<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -147,12 +149,12 @@ public class SOCGameMembers extends SOCMessage
 
         try
         {
-            Enumeration mlEnum = members.elements();
-            s += (String) mlEnum.nextElement();
+            Enumeration<String> mlEnum = members.elements();
+            s += mlEnum.nextElement();
 
             while (mlEnum.hasMoreElements())
             {
-                s += ("," + (String) mlEnum.nextElement());
+                s += ("," + mlEnum.nextElement());
             }
         }
         catch (Exception e) {}

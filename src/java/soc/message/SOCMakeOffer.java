@@ -33,6 +33,7 @@ import soc.game.SOCTradeOffer;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCMakeOffer extends SOCMessage
 {
     /**

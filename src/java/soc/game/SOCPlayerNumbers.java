@@ -132,11 +132,11 @@ public class SOCPlayerNumbers
      */
     public void updateNumbers(SOCPlayingPiece piece, SOCBoard board)
     {
-        Enumeration hexes = SOCBoard.getAdjacentHexesToNode(piece.getCoordinates()).elements();
+        Enumeration<Integer> hexes = SOCBoard.getAdjacentHexesToNode(piece.getCoordinates()).elements();
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = (Integer) hexes.nextElement();
+            Integer hex = hexes.nextElement();
             int number = board.getNumberOnHexFromCoord(hex.intValue());
             int resource = board.getHexTypeFromCoord(hex.intValue());
             addNumberForResource(number, resource, hex.intValue());
@@ -153,11 +153,11 @@ public class SOCPlayerNumbers
      */
     public void updateNumbers(int coord, SOCBoard board)
     {
-        Enumeration hexes = SOCBoard.getAdjacentHexesToNode(coord).elements();
+        Enumeration<Integer> hexes = SOCBoard.getAdjacentHexesToNode(coord).elements();
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = (Integer) hexes.nextElement();
+            Integer hex = hexes.nextElement();
             int number = board.getNumberOnHexFromCoord(hex.intValue());
             int resource = board.getHexTypeFromCoord(hex.intValue());
             addNumberForResource(number, resource, hex.intValue());
@@ -200,9 +200,9 @@ public class SOCPlayerNumbers
      * @param resource  the resource
      * @param robberHex the robber hex
      */
-    public Vector getNumbersForResource(int resource, int robberHex)
+    public Vector<Integer> getNumbersForResource(int resource, int robberHex)
     {
-        Vector numbers = new Vector();
+        Vector<Integer> numbers = new Vector<Integer>();
 
         for (int i = 0; i < 19; i++)
         {
@@ -231,9 +231,9 @@ public class SOCPlayerNumbers
      * @param number  the resource
      * @param robberHex the robber hex
      */
-    public Vector getResourcesForNumber(int number, int robberHex)
+    public Vector<Integer> getResourcesForNumber(int number, int robberHex)
     {
-        Vector resources = new Vector();
+        Vector<Integer> resources = new Vector<Integer>();
 
         for (int i = 0; i < 19; i++)
         {
@@ -289,11 +289,11 @@ public class SOCPlayerNumbers
      */
     public void undoUpdateNumbers(SOCPlayingPiece piece, SOCBoard board)
     {
-        Enumeration hexes = SOCBoard.getAdjacentHexesToNode(piece.getCoordinates()).elements();
+        Enumeration<Integer> hexes = SOCBoard.getAdjacentHexesToNode(piece.getCoordinates()).elements();
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = (Integer) hexes.nextElement();
+            Integer hex = hexes.nextElement();
             int number = board.getNumberOnHexFromCoord(hex.intValue());
             int resource = board.getHexTypeFromCoord(hex.intValue());
             undoAddNumberForResource(number, resource, hex.intValue());
@@ -310,11 +310,11 @@ public class SOCPlayerNumbers
      */
     public void undoUpdateNumbers(int coord, SOCBoard board)
     {
-        Enumeration hexes = SOCBoard.getAdjacentHexesToNode(coord).elements();
+        Enumeration<Integer> hexes = SOCBoard.getAdjacentHexesToNode(coord).elements();
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = (Integer) hexes.nextElement();
+            Integer hex = hexes.nextElement();
             int number = board.getNumberOnHexFromCoord(hex.intValue());
             int resource = board.getHexTypeFromCoord(hex.intValue());
             undoAddNumberForResource(number, resource, hex.intValue());

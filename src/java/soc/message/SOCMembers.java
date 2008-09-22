@@ -32,12 +32,13 @@ import soc.server.genericServer.StringConnection;
  *
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public class SOCMembers extends SOCMessage
 {
     /**
      * List of members
      */
-    private Vector members;
+    private Vector<String> members;
 
     /**
      * Name of channel
@@ -50,7 +51,7 @@ public class SOCMembers extends SOCMessage
      * @param ch  name of chat channel
      * @param ml  list of members
      */
-    public SOCMembers(String ch, Vector ml)
+    public SOCMembers(String ch, Vector<String> ml)
     {
         messageType = MEMBERS;
         members = ml;
@@ -60,7 +61,7 @@ public class SOCMembers extends SOCMessage
     /**
      * @return the list of members
      */
-    public Vector getMembers()
+    public Vector<String> getMembers()
     {
         return members;
     }
@@ -90,13 +91,14 @@ public class SOCMembers extends SOCMessage
      * @param ml  the list of members
      * @return    the command string
      */
-    public static String toCmd(String ch, Vector ml)
+    public static String toCmd(String ch, Vector<String> ml)
     {
         String cmd = MEMBERS + sep + ch;
 
         try
         {
-            Enumeration mlEnum = ml.elements();
+        	//TODO I'm not sure what this string connection is doing but I think we should change it to just a string and use the generics.
+        	Enumeration mlEnum = ml.elements();
 
             while (mlEnum.hasMoreElements())
             {
@@ -118,7 +120,7 @@ public class SOCMembers extends SOCMessage
     public static SOCMembers parseDataStr(String s)
     {
         String ch;
-        Vector ml = new Vector();
+        Vector<String> ml = new Vector<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -147,12 +149,12 @@ public class SOCMembers extends SOCMessage
 
         try
         {
-            Enumeration mlEnum = members.elements();
-            s += (String) mlEnum.nextElement();
+            Enumeration<String> mlEnum = members.elements();
+            s += mlEnum.nextElement();
 
             while (mlEnum.hasMoreElements())
             {
-                s += ("," + (String) mlEnum.nextElement());
+                s += ("," + mlEnum.nextElement());
             }
         }
         catch (Exception e) {}

@@ -31,6 +31,7 @@ import soc.game.SOCResourceSet;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCBankTrade extends SOCMessage
 {
     /**

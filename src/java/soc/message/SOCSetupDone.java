@@ -27,6 +27,7 @@ package soc.message;
  *
  * @author Robert S. Thomas
  */
+@SuppressWarnings("serial")
 public class SOCSetupDone extends SOCMessage
 {
     /**

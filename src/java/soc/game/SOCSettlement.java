@@ -26,6 +26,7 @@ import java.util.Vector;
 /**
  * A settlement playing piece
  */
+@SuppressWarnings("serial")
 public class SOCSettlement extends SOCPlayingPiece
 {
     /**
@@ -44,7 +45,7 @@ public class SOCSettlement extends SOCPlayingPiece
     /**
      * @return the hexes touching this settlement
      */
-    public Vector getAdjacentHexes()
+    public Vector<Integer> getAdjacentHexes()
     {
         return SOCBoard.getAdjacentHexesToNode(coord);
     }
@@ -52,7 +53,7 @@ public class SOCSettlement extends SOCPlayingPiece
     /**
      * @return edges touching this settlement
      */
-    public Vector getAdjacentEdges()
+    public Vector<Integer> getAdjacentEdges()
     {
         return SOCBoard.getAdjacentEdgesToNode(coord);
     }

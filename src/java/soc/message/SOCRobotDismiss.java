@@ -27,6 +27,7 @@ package soc.message;
  *
  * @author Robert S Thomas
  */
+@SuppressWarnings("serial")
 public class SOCRobotDismiss extends SOCMessage
 {
     /**
