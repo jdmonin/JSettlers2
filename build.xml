@@ -111,10 +111,10 @@
 
   <target name="init-libs" depends="init">
       <mkdir dir="${lib.target}" />
-      <!-- Later: when we use external libraries
       <copy toDir="${lib.target}">
-        <fileset refid="ext.libs" />
-      </copy> -->
+      	<fileset dir="${lib}" includes="*.jar" />
+      	<fileset dir="${lib}" includes="*.properties" />
+      </copy>
   </target>
 
   <target name="resources"
