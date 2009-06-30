@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007,2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -261,6 +261,17 @@ public class SOCGame implements Serializable, Cloneable
     public int clientVersionLowest, clientVersionHighest;
 
     /**
+     * For use at server; lowest version of client which can connect to
+     * this game (based on game features added in a given version),
+     * or -1 if unknown.
+     * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
+     *<P>
+     *<b>Reminder:</b> If you add new game features, please be sure that the
+     *   robot is also capable of understanding/using them.
+     */
+    private int clientVersionMinRequired;
+
+    /**
      * true if the game came from a board reset
      */
     private boolean isFromBoardReset;
@@ -372,6 +383,11 @@ public class SOCGame implements Serializable, Cloneable
     private int playerWithLongestRoad;
 
     /**
+     * used to restore the LR player
+     */
+    Stack oldPlayerWithLongestRoad;
+
+    /**
      * the player declared winner, if gamestate == OVER; otherwise -1
      */
     private int playerWithWin;
@@ -395,11 +411,6 @@ public class SOCGame implements Serializable, Cloneable
      * used to track if there were any player subs
      */
     boolean allOriginalPlayers;
-
-    /**
-     * used to restore the LR player
-     */
-    Stack oldPlayerWithLongestRoad;
 
     /**
      * when this game was created
@@ -429,6 +440,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     public SOCGame(String n, boolean a)
     {
+        // For places to initialize fields, see also resetAsCopy().
+
         active = a;
         inUse = false;
         name = n;
@@ -457,6 +470,10 @@ public class SOCGame implements Serializable, Cloneable
         forcingEndTurn = false;
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack();
+        clientVersionMinRequired = -1;
+              // ** Reminder:** If you add new game features, please be sure that the
+              //    robot is also capable of understanding/using them.
+
         if (active)
             startTime = new Date();
     }
@@ -637,6 +654,22 @@ public class SOCGame implements Serializable, Cloneable
     public String getName()
     {
         return name;
+    }
+
+    /**
+     * For use at server; lowest version of client which can connect to
+     * this game (based on game features added in a given version),
+     * or -1 if unknown.
+     *<P>
+     *<b>Reminder:</b> If you add new game features, please be sure that the
+     *   robot is also capable of understanding/using them.
+     *
+     * @return game version, in same integer format as {@link soc.util.Version#versionNumber()}.
+     * @since 1.1.06
+     */
+    public int getClientVersionMinRequired()
+    {
+        return clientVersionMinRequired;
     }
 
     /**
@@ -842,7 +875,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the player with the longest road
+     * @return the player with the longest road, or null if none
      */
     public SOCPlayer getPlayerWithLongestRoad()
     {
@@ -859,7 +892,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * set the player with the longest road
      *
-     * @param pl  the player
+     * @param pl  the player, or null to clear
      */
     public void setPlayerWithLongestRoad(SOCPlayer pl)
     {
@@ -3178,25 +3211,39 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * perform the Monopoly card action
+     * perform the Monopoly card action.
+     * Resources are taken from players that have it.
+     * Game state becomes oldGameState (returns to state before monopoly pick).
      *
-     * @param pick  the type of resource to monopolize
+     * @param rtype  the type of resource to monopolize
+     * @return array (1 elem per player) of resource count taken from
+     *        each player. 0 for players with nothing taken.
+     *        0 for the current player (playing the monopoly card).
      */
-    public void doMonopolyAction(int pick)
+    public int[] doMonopolyAction(final int rtype)
     {
         int sum = 0;
+        int[] monoResult = new int[MAXPLAYERS];
 
         for (int i = 0; i < MAXPLAYERS; i++)
         {
-            if (! isSeatVacant(i))
+            if ((i != currentPlayerNumber) && ! isSeatVacant(i))
             {
-                sum += players[i].getResources().getAmount(pick);
-                players[i].getResources().setAmount(0, pick);
+                int playerHas = players[i].getResources().getAmount(rtype);
+                if (playerHas > 0)
+                {
+                    sum += playerHas;
+                    players[i].getResources().setAmount(0, rtype);
+                }
+                monoResult[i] = playerHas;
+            } else {
+                monoResult[i] = 0;
             }
         }
 
-        players[currentPlayerNumber].getResources().setAmount(sum, pick);
+        players[currentPlayerNumber].getResources().add(sum, rtype);
         gameState = oldGameState;
+        return monoResult;
     }
 
     /**
@@ -3243,11 +3290,17 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * update which player has longest road longer
-     * than 4
+     * than 4.
      *
-     * this version only calculates the longest road for
+     * this version recalculates the longest road only for
      * the player who is affected by the most recently
-     * placed piece
+     * placed piece, by calling their {@link SOCPlayer#calcLongestRoad2()}.
+     * Assumes all other players' longest road has been updated already.
+     * All players' {@link SOCPlayer#getLongestRoadLength()} is called here.
+     *<P>
+     * if there is a tie, the last player to have LR keeps it.
+     * if two or more players are tied for LR and none of them
+     * used to have LR, then no one has LR.
      *
      * @param pn  the number of the player who is affected
      */
@@ -3259,7 +3312,7 @@ public class SOCGame implements Serializable, Cloneable
         int tmpPlayerWithLR = -1;
 
         players[pn].calcLongestRoad2();
-        longestLength = 4;
+        longestLength = 0;
 
         for (int i = 0; i < MAXPLAYERS; i++)
         {
@@ -3273,7 +3326,7 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
-        if (longestLength == 4)
+        if (longestLength < 5)  // Minimum length is 5 for the bonus
         {
             playerWithLongestRoad = -1;
         }
@@ -3317,6 +3370,9 @@ public class SOCGame implements Serializable, Cloneable
      * not their turn, there is not yet a winner. This could happen if,
      * for example, the longest road is broken by a new settlement, and
      * the next-longest road is not the current player's road.
+     *<P>
+     * The win is determined not by who has the highest point total, but
+     * solely by reaching 10 victory points (VP_WINNER) during your own turn.
      *
      * @see #getGameState()
      * @see #getPlayerWithWin()
@@ -3331,19 +3387,9 @@ public class SOCGame implements Serializable, Cloneable
             playerWithWin = pn;
             System.err.println("DEBUG: Set playerWithWin = " + pn
                 + " -- in thread: " + Thread.currentThread().getName() + " --");
-            // force a stack trace
-            {
-                int x = 10;
-                int y = 0;
-                try {
-                    gameState = x / y;
-                }
-                catch (Throwable th)
-                {
-                    th.printStackTrace();
-                    System.err.println("-- end playerWithWin locator stacktrace --");
-                }
-            }
+
+            // JM temp; will turn that debug-print off later.
+            //    Also displayed a locator stacktrace, from 2008-06-15 until 1.1.06 (removed 2009-05-29).
         }
     }
 
@@ -3387,10 +3433,18 @@ public class SOCGame implements Serializable, Cloneable
     public SOCGame resetAsCopy()
     {
         SOCGame cp = new SOCGame(name, active);
+
         cp.isFromBoardReset = true;
         oldGameState = gameState;  // for getResetOldGameState()
         active = false;
         gameState = RESET_OLD;
+
+        // Most fields are NOT copied since this is a "reset", not an identical-state game.
+
+        // Game features
+        cp.clientVersionMinRequired = clientVersionMinRequired;
+
+        // Per-player state
         for (int i = 0; i < MAXPLAYERS; i++)
         {
             boolean wasRobot = false;
@@ -3414,6 +3468,7 @@ public class SOCGame implements Serializable, Cloneable
                     cp.seatLocks[i] = true;
             }
         }
+
         return cp;
     }
 

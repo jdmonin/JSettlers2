@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,21 +27,46 @@ import java.util.Vector;
 
 
 /**
- * This message lists all the soc games on a server
+ * This message lists all the soc games currently on a server.
+ * It's constructed for each connecting client.
+ *<P>
+ * Version 1.1.06 - Add marker for a game that the client can't join
  *
  * @author Robert S Thomas
  */
 public class SOCGames extends SOCMessage
 {
     /**
-     * List of games
+     * If this is the first character of a game name,
+     * the client is too limited to be able to play that game,
+     * due to properties of the game (large board, expansion rules, etc.)
+     * which may require a newer client.
+     *<P>
+     * This marker is not used in other message types, such as {@link SOCDeleteGame}.
+     * The game name appears 'un-marked' in those other types.
+     *
+     * @since 1.1.06
+     */
+    public static final char MARKER_THIS_GAME_UNJOINABLE = '\077';  // 0x7F
+
+    /**
+     * Minimum version (1.1.06) of client/server which recognize
+     * and send {@link #MARKER_THIS_GAME_UNJOINABLE}.
+     *
+     * @since 1.1.06
+     */
+    public static final int VERSION_FOR_UNJOINABLE = 1106;
+
+
+    /**
+     * List of games (Strings)
      */
     private Vector games;
 
     /**
      * Create a Games Message.
      *
-     * @param ga  list of games
+     * @param ga  list of game names (Strings)
      */
     public SOCGames(Vector ga)
     {
@@ -49,7 +75,7 @@ public class SOCGames extends SOCMessage
     }
 
     /**
-     * @return the list of games
+     * @return the list of games, a vector of Strings
      */
     public Vector getGames()
     {
@@ -59,7 +85,7 @@ public class SOCGames extends SOCMessage
     /**
      * GAMES sep games
      *
-     * @return the command String
+     * @return the command string
      */
     public String toCmd()
     {
@@ -69,7 +95,7 @@ public class SOCGames extends SOCMessage
     /**
      * GAMES sep games
      *
-     * @param ga  the list of games
+     * @param ga  the list of games, as a vector of Strings
      * @return    the command string
      */
     public static String toCmd(Vector ga)

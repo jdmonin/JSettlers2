@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -107,7 +107,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     public static final String CURRENT_RESOURCES = "RESOURCES";
 
     /**
-     * the thread the reads incomming messages
+     * the thread the reads incoming messages
      */
     private Thread reader;
 
@@ -117,7 +117,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     private SOCRobotParameters currentRobotParameters;
 
     /**
-     * the robot's "brains" for diferent games
+     * the robot's "brains" for different games
      */
     private Hashtable robotBrains = new Hashtable();
 
@@ -160,6 +160,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * used to maintain connection
      */
     SOCRobotResetThread resetThread;
+
+    /**
+     * Have we printed the initial welcome msg from server?
+     * Suppress further ones (disconnect-reconnect).
+     * @since 1.1.06
+     */
+    boolean printedInitialWelcome = false;
 
     /**
      * Constructor for connecting to the specified host, on the specified port
@@ -697,12 +704,21 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * handle the "status message" message by printing it to System.err
+     * handle the "status message" message by printing it to System.err;
+     * messages with status value 0 are ignored (no problem is being reported)
+     * once the initial welcome message has been printed.
      * @param mes  the message
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
-        System.err.println("Robot " + getNickname() + ": Status from server: " + mes.getStatus());
+        final int sv = mes.getStatusValue();
+        if ((sv != 0) || ! printedInitialWelcome)
+        {
+            System.err.println("Robot " + getNickname() + ": Status "
+                + sv + " from server: " + mes.getStatus());
+            if (sv == 0)
+                printedInitialWelcome = true;
+        }
     }
 
     /**
@@ -1814,12 +1830,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     public static void main(String[] args)
     {
-		if (args.length < 4)
-		{
-			System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
+        if (args.length < 4)
+        {
+            System.err.println("Java Settlers robotclient " + Version.version() +
+                    ", build " + Version.buildnum());
+            System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
 
-			return;
-		}
+            return;
+        }
     	
         SOCRobotClient ex1 = new SOCRobotClient(args[0], Integer.parseInt(args[1]), args[2], args[3]);
         ex1.init();

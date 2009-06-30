@@ -18,6 +18,7 @@ Current partially-done work:
 	- Refactor SOCMessage classes to use templates
 
 Current TODO list: (Work on these items not yet begun)
+	You can also search the source for TODO for ideas.
 	- Keyboard shortcuts for "roll", "done" buttons
 	- User documentation is out of date; unsure if any user ever reads it anyway
 	- Visual reminder to player when they've made an offer

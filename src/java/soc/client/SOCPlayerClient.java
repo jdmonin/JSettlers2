@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -114,6 +114,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
     /** connect-or-practice panel (if jar launch), in cardlayout */
     protected static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
 
+    /** text prefix to show games this client cannot join. "(cannot join) "
+     * @since 1.1.06
+     */
+    protected static final String GAMENAME_PREFIX_CANNOT_JOIN = "(cannot join) ";
+
     /** Default tcp port number 8880 to listen, and to connect to remote server */
     public static final int SOC_PORT_DEFAULT = 8880;
 
@@ -130,7 +135,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
     protected Button pg;  // practice game (local)
     protected Label messageLabel;  // error message for messagepanel
     protected Label messageLabel_top;   // secondary message
-    protected Label localTCPPortLabel;   // shows port number in mainpanel, if running localTCPServer
+    protected Label versionOrlocalTCPPortLabel;   // shows port number in mainpanel, if running localTCPServer;
+                                         // shows remote version# when connected to a remote server
     protected Button pgm;  // practice game on messagepanel
     protected AppletContext ac;
 
@@ -214,7 +220,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      * @see #NEED_NICKNAME_BEFORE_JOIN
      */
     public static String NEED_NICKNAME_BEFORE_JOIN_2 = "You must enter a nickname before you can join a channel or game.";
-    
+
+    /**
+     * Status text to indicate client cannot join a game.
+     * @since 1.1.06
+     */
+    public static String STATUS_CANNOT_JOIN_THIS_GAME = "Cannot join, this client is incompatible with features of this game.";
+
     /**
      * the nickname
      */
@@ -236,14 +248,31 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
     protected int lastFaceChange;
 
     /**
-     * the channels
+     * the channels we've joined
      */
     protected Hashtable channels = new Hashtable();
 
     /**
-     * the games
+     * the games we're currently playing
      */
     protected Hashtable games = new Hashtable();
+
+    /**
+     * the game names on this server which we can't join due to limitations of
+     * the client.
+     * Both key and value are the game name, without the UNJOINABLE prefix.
+     * @since 1.1.06
+     */
+    protected Hashtable gamesUnjoinable = new Hashtable();
+
+    /**
+     * the game names from {@link #gamesUnjoinable} that player has asked to join,
+     * and been told they can't.  If they click again, try to connect.
+     * (This is a failsafe against bugs in server or client version-recognition.)
+     * Both key and value are the game name, without the UNJOINABLE prefix.
+     * @since 1.1.06
+     */
+    protected Hashtable gamesUnjoinableOverride = new Hashtable();
 
     /**
      * the player interfaces for the games
@@ -463,12 +492,12 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         gbl.setConstraints(l, c);
         mainPane.add(l);
 
-        // Row 5
+        // Row 5 (version/port# label, join channel btn, practice btn, join game btn)
 
-        localTCPPortLabel = new Label();
+        versionOrlocalTCPPortLabel = new Label();
         c.gridwidth = 1;
-        gbl.setConstraints(localTCPPortLabel, c);
-        mainPane.add(localTCPPortLabel);
+        gbl.setConstraints(versionOrlocalTCPPortLabel, c);
+        mainPane.add(versionOrlocalTCPPortLabel);
 
         c.gridwidth = 1;
         gbl.setConstraints(jc, c);
@@ -643,6 +672,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
 
     /**
      * Connect and give feedback by showing MESSAGE_PANEL.
+     * For more details, see {@link #connect()}.
      * @param chost Hostname to connect to, or null for localhost
      * @param cport Port number to connect to
      * @param cuser User nickname
@@ -661,9 +691,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
     /**
      * Attempts to connect to the server. See {@link #connected} for success or
      * failure. Once connected, starts a {@link #reader} thread.
-     * The first message over the connection is the server's response:
+     * The first message over the connection is our version,
+     * and the second is the server's response:
      * Either {@link SOCRejectConnection}, or the lists of
      * channels and games ({@link SOCChannels}, {@link SOCGames}).
+     *<P>
+     * Before 1.1.06, the server's response was first,
+     * and version was sent in reply to server's version.
      *
      * @throws IllegalStateException if already connected
      * @see soc.server.SOCServer#newConnection1(StringConnection)
@@ -687,6 +721,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             out = new DataOutputStream(s.getOutputStream());
             connected = true;
             (reader = new Thread(this)).start();
+            // send VERSION right away (1.1.06 and later)
+            putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
         }
         catch (Exception e)
         {
@@ -757,271 +793,25 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      */
     private void guardedActionPerform(Object target)
     {
+        boolean showPopupCannotJoin = false;
+
         if ((target == jc) || (target == channel) || (target == chlist)) // Join channel stuff
         {
-            String ch;
-
-            if (target == jc) // "Join Channel" Button
-            {
-                ch = channel.getText().trim();
-
-                if (ch.length() == 0)
-                {
-                    try
-                    {
-                        ch = chlist.getSelectedItem().trim();
-                    }
-                    catch (NullPointerException ex)
-                    {
-                        return;
-                    }
-                }
-            }
-            else if (target == channel)
-            {
-                ch = channel.getText().trim();
-            }
-            else
-            {
-                try
-                {
-                    ch = chlist.getSelectedItem().trim();
-                }
-                catch (NullPointerException ex)
-                {
-                    return;
-                }
-            }
-
-            if (ch.length() == 0)
-            {
-                return;
-            }
-
-            ChannelFrame cf = (ChannelFrame) channels.get(ch);
-
-            if (cf == null)
-            {
-                if (channels.isEmpty())
-                {
-                    String n = nick.getText().trim();
-
-                    if (n.length() == 0)
-                    {
-                        if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
-                            // Send stronger hint message
-                            status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
-                        else
-                            // Send first hint message (or re-send first if they've seen _2)
-                            status.setText(NEED_NICKNAME_BEFORE_JOIN);
-                        return;
-                    }
-
-                    if (n.length() > 20)
-                    {
-                        nickname = n.substring(1, 20);
-                    }
-                    else
-                    {
-                        nickname = n;
-                    }
-
-                    if (!gotPassword)
-                    {
-                        String p = pass.getText().trim();
-
-                        if (p.length() > 20)
-                        {
-                            password = p.substring(1, 20);
-                        }
-                        else
-                        {
-                            password = p;
-                        }
-                    }
-                }
-
-                status.setText("Talking to server...");
-                putNet(SOCJoin.toCmd(nickname, password, host, ch));
-            }
-            else
-            {
-                cf.show();
-            }
-
-            channel.setText("");
-
-            return;
+            showPopupCannotJoin = ! guardedActionPerform_channels(target);
         }
 
         if ((target == jg) || (target == game) || (target == gmlist) || (target == pg) || (target == pgm)) // Join game stuff
         {
-            String gm;
+            showPopupCannotJoin = ! guardedActionPerform_games(target);
+        }
 
-            if ((target == pg) || (target == pgm)) // "Practice Game" Buttons
-            {
-                // If blank, fill in game and player names
-
-                gm = game.getText().trim();
-                if (gm.length() == 0)
-                {
-                    gm = DEFAULT_PRACTICE_GAMENAME;
-                    game.setText(gm);
-                }
-
-                if (0 == nick.getText().trim().length())
-                {
-                    nick.setText(DEFAULT_PLAYER_NAME);
-                }
-            }
-            else if (target == jg) // "Join Game" Button
-            {
-                gm = game.getText().trim();
-
-                if (gm.length() == 0)
-                {
-                    try
-                    {
-                        gm = gmlist.getSelectedItem().trim();
-                    }
-                    catch (NullPointerException ex)
-                    {
-                        return;
-                    }
-                }
-            }
-            else if (target == game)
-            {
-                gm = game.getText().trim();
-            }
-            else
-            {
-                try
-                {
-                    gm = gmlist.getSelectedItem().trim();
-                }
-                catch (NullPointerException ex)
-                {
-                    return;
-                }
-            }
-
-            // System.out.println("GM = |"+gm+"|");
-            if (gm.length() == 0)
-            {
-                return;
-            }
-
-            // Are we already in a game with that name?
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gm);
-
-            if ((pi == null)
-                && ((target == pg) || (target == pgm))
-                && (practiceServer != null)
-                && (gm.equalsIgnoreCase(DEFAULT_PRACTICE_GAMENAME)))
-            {
-                // Practice game requested, no game named "Practice" already exists.
-                // Check for other active practice games. (Could be "Practice 2")
-                pi = findAnyActiveGame(true);
-            }
-
-            if ((pi != null) && ((target == pg) || (target == pgm)))
-            {
-                // Practice game requested, already exists.
-                //
-                // Ask the player if they want to join, or start a new game.
-                // If we're from the error panel (pgm), there's no way to
-                // enter a game name; make a name up if needed.
-                // If we already have a game going, our nickname is not empty.
-                // So, it's OK to not check that here or in the dialog.
-
-                // Is the game over yet?
-                if (pi.getGame().getGameState() == SOCGame.OVER)
-                {
-                    // No point joining, just start a new one.
-                    startPracticeGame();
-                }
-                else
-                {
-                    new SOCPracticeAskDialog(this, pi).show();
-                }
-
-                return;
-            }
-
-            if (pi == null)
-            {
-                if (games.isEmpty())
-                {
-                    String n = nick.getText().trim();
-
-                    if (n.length() == 0)
-                    {
-                        if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
-                            // Send stronger hint message
-                            status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
-                        else
-                            // Send first hint message (or re-send first if they've seen _2)
-                            status.setText(NEED_NICKNAME_BEFORE_JOIN);
-                        return;
-                    }
-
-                    if (n.length() > 20)
-                    {
-                        nickname = n.substring(1, 20);
-                    }
-                    else
-                    {
-                        nickname = n;
-                    }
-
-                    if (!gotPassword)
-                    {
-                        String p = pass.getText().trim();
-
-                        if (p.length() > 20)
-                        {
-                            password = p.substring(1, 20);
-                        }
-                        else
-                        {
-                            password = p;
-                        }
-                    }
-                }
-
-                int endOfName = gm.indexOf(STATSPREFEX);
-
-                if (endOfName > 0)
-                {
-                    gm = gm.substring(0, endOfName);
-                }
-
-                if (((target == pg) || (target == pgm)) && (null == ex_L))
-                {
-                    if (target == pg)
-                    {
-                        status.setText("Starting practice game setup...");
-                    }
-                    startPracticeGame(gm, true);  // Also sets WAIT_CURSOR
-                }
-                else
-                {
-                    status.setText("Talking to server...");
-                    putNet(SOCJoinGame.toCmd(nickname, password, host, gm));
-
-                    // May take a while for server to start game.
-                    // The new-game window will clear this cursor
-                    // (SOCPlayerInterface constructor)
-                    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                }
-            }
-            else
-            {
-                pi.show();
-            }
-
-            game.setText("");
+        if (showPopupCannotJoin)
+        {
+            status.setText(STATUS_CANNOT_JOIN_THIS_GAME);
+            // popup
+            NotifyDialog.createAndShow(this, (SOCPlayerInterface) null,
+                STATUS_CANNOT_JOIN_THIS_GAME,
+                "Cancel", true);
 
             return;
         }
@@ -1032,6 +822,310 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         }
 
         return;
+    }
+
+    /**
+     * GuardedActionPerform when a channels-related button or field is clicked
+     * @param target Target as in actionPerformed
+     * @return True if OK, false if caller needs to show popup "cannot join"
+     * @since 1.1.06
+     */
+    private boolean guardedActionPerform_channels(Object target)
+    {
+        String ch;
+
+        if (target == jc) // "Join Channel" Button
+        {
+            ch = channel.getText().trim();
+
+            if (ch.length() == 0)
+            {
+                try
+                {
+                    ch = chlist.getSelectedItem().trim();
+                }
+                catch (NullPointerException ex)
+                {
+                    return true;
+                }
+            }
+        }
+        else if (target == channel)
+        {
+            ch = channel.getText().trim();
+        }
+        else
+        {
+            try
+            {
+                ch = chlist.getSelectedItem().trim();
+            }
+            catch (NullPointerException ex)
+            {
+                return true;
+            }
+        }
+
+        if (ch.length() == 0)
+        {
+            return true;
+        }
+
+        if (ch.startsWith(GAMENAME_PREFIX_CANNOT_JOIN))
+        {
+            return false;
+        }
+
+        ChannelFrame cf = (ChannelFrame) channels.get(ch);
+
+        if (cf == null)
+        {
+            if (channels.isEmpty())
+            {
+                String n = nick.getText().trim();
+
+                if (n.length() == 0)
+                {
+                    if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
+                        // Send stronger hint message
+                        status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
+                    else
+                        // Send first hint message (or re-send first if they've seen _2)
+                        status.setText(NEED_NICKNAME_BEFORE_JOIN);
+                    return true;
+                }
+
+                if (n.length() > 20)
+                {
+                    nickname = n.substring(1, 20);
+                }
+                else
+                {
+                    nickname = n;
+                }
+
+                if (!gotPassword)
+                {
+                    String p = pass.getText().trim();
+
+                    if (p.length() > 20)
+                    {
+                        password = p.substring(1, 20);
+                    }
+                    else
+                    {
+                        password = p;
+                    }
+                }
+            }
+
+            status.setText("Talking to server...");
+            putNet(SOCJoin.toCmd(nickname, password, host, ch));
+        }
+        else
+        {
+            cf.show();
+        }
+
+        channel.setText("");
+        return true;
+    }
+
+    /**
+     * GuardedActionPerform when a games-related button or field is clicked
+     * @param target Target as in actionPerformed
+     * @return True if OK, false if caller needs to show popup "cannot join"
+     * @since 1.1.06
+     */
+    private boolean guardedActionPerform_games(Object target)
+    {
+        String gm;
+
+        if ((target == pg) || (target == pgm)) // "Practice Game" Buttons
+        {
+            // If blank, fill in game and player names
+
+            gm = game.getText().trim();
+            if (gm.length() == 0)
+            {
+                gm = DEFAULT_PRACTICE_GAMENAME;
+                game.setText(gm);
+            }
+
+            if (0 == nick.getText().trim().length())
+            {
+                nick.setText(DEFAULT_PLAYER_NAME);
+            }
+        }
+        else if (target == jg) // "Join Game" Button
+        {
+            gm = game.getText().trim();
+
+            if (gm.length() == 0)
+            {
+                try
+                {
+                    gm = gmlist.getSelectedItem().trim();
+                }
+                catch (NullPointerException ex)
+                {
+                    return true;
+                }
+            }
+        }
+        else if (target == game)
+        {
+            gm = game.getText().trim();
+        }
+        else
+        {
+            // game list
+            try
+            {
+                gm = gmlist.getSelectedItem().trim();
+            }
+            catch (NullPointerException ex)
+            {
+                return true;
+            }
+        }
+
+        final boolean unjoinablePrefix = gm.startsWith(GAMENAME_PREFIX_CANNOT_JOIN);
+        if (unjoinablePrefix)
+        {
+            // Game is marked as un-joinable by this client. Remember that,
+            // then continue to process the game name, without prefix.
+
+            gm = gm.substring(GAMENAME_PREFIX_CANNOT_JOIN.length());
+        }
+
+        // System.out.println("GM = |"+gm+"|");
+        if (gm.length() == 0)
+        {
+            return true;
+        }
+
+        // Can we not join that game?
+        if (unjoinablePrefix || gamesUnjoinable.containsKey(gm))
+        {
+            if (! gamesUnjoinableOverride.containsKey(gm))
+            {
+                gamesUnjoinableOverride.put(gm, gm);  // Next click will try override
+                return false;
+            }
+        }
+
+        // Are we already in a game with that name?
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gm);
+
+        if ((pi == null)
+                && ((target == pg) || (target == pgm))
+                && (practiceServer != null)
+                && (gm.equalsIgnoreCase(DEFAULT_PRACTICE_GAMENAME)))
+        {
+            // Practice game requested, no game named "Practice" already exists.
+            // Check for other active practice games. (Could be "Practice 2")
+            pi = findAnyActiveGame(true);
+        }
+
+        if ((pi != null) && ((target == pg) || (target == pgm)))
+        {
+            // Practice game requested, already exists.
+            //
+            // Ask the player if they want to join, or start a new game.
+            // If we're from the error panel (pgm), there's no way to
+            // enter a game name; make a name up if needed.
+            // If we already have a game going, our nickname is not empty.
+            // So, it's OK to not check that here or in the dialog.
+
+            // Is the game over yet?
+            if (pi.getGame().getGameState() == SOCGame.OVER)
+            {
+                // No point joining, just start a new one.
+                startPracticeGame();
+            }
+            else
+            {
+                new SOCPracticeAskDialog(this, pi).show();
+            }
+
+            return true;
+        }
+
+        if (pi == null)
+        {
+            if (games.isEmpty())
+            {
+                String n = nick.getText().trim();
+
+                if (n.length() == 0)
+                {
+                    if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
+                        // Send stronger hint message
+                        status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
+                    else
+                        // Send first hint message (or re-send first if they've seen _2)
+                        status.setText(NEED_NICKNAME_BEFORE_JOIN);
+                    return true;
+                }
+
+                if (n.length() > 20)
+                {
+                    nickname = n.substring(1, 20);
+                }
+                else
+                {
+                    nickname = n;
+                }
+
+                if (!gotPassword)
+                {
+                    String p = pass.getText().trim();
+
+                    if (p.length() > 20)
+                    {
+                        password = p.substring(1, 20);
+                    }
+                    else
+                    {
+                        password = p;
+                    }
+                }
+            }
+
+            int endOfName = gm.indexOf(STATSPREFEX);
+
+            if (endOfName > 0)
+            {
+                gm = gm.substring(0, endOfName);
+            }
+
+            if (((target == pg) || (target == pgm)) && (null == ex_L))
+            {
+                if (target == pg)
+                {
+                    status.setText("Starting practice game setup...");
+                }
+                startPracticeGame(gm, true);  // Also sets WAIT_CURSOR
+            }
+            else
+            {
+                status.setText("Talking to server...");
+                putNet(SOCJoinGame.toCmd(nickname, password, host, gm));
+
+                // May take a while for server to start game.
+                // The new-game window will clear this cursor
+                // (SOCPlayerInterface constructor)
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            }
+        }
+        else
+        {
+            pi.show();
+        }
+
+        game.setText("");
+        return true;
     }
 
     /**
@@ -1691,7 +1785,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
     /**
      * Handle the "version" message, server's version report.
      * Reply with client's version.
-     * If remote, store the server's version for {@link #getServerVersion(SOCGame)}.
+     * If remote, store the server's version for {@link #getServerVersion(SOCGame)}
+     * and display the version on the main panel.
      * (Local server's version is always {@link Version#versionNumber()}.)
      *
      * @param isLocal Is the server local, or remote?  Client can be connected
@@ -1703,13 +1798,27 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         D.ebugPrintln("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
         if (! isLocal)
+        {
             sVersion = vers;
+
+            // Display the version on main panel, unless we're running a server.
+            // (If so, want to display its listening port# instead)
+            if (null == localTCPServer)
+            {
+                versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
+                versionOrlocalTCPPortLabel.setText("v " + mes.getVersionString());
+                new AWTToolTip ("Server version is " + mes.getVersionString()
+                                + " build " + mes.getBuild()
+                                + "; client is " + Version.version()
+                                + " bld " + Version.buildnum(),
+                                versionOrlocalTCPPortLabel);
+            }
+        }
 
         // If we ever require a minimum server version, would check that here.
 
         // Reply with our client version.
-        put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()),
-            isLocal);
+        // (This is sent in connect() in 1.1.06 and later)
     }
 
     /**
@@ -1981,7 +2090,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      */
     protected void handleDELETEGAME(SOCDeleteGame mes)
     {
-        deleteFromGameList(mes.getGame());
+        if (! deleteFromGameList(mes.getGame()))
+            deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + mes.getGame());
     }
 
     /**
@@ -2104,7 +2214,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             }
 
             /**
-             * update the hand panel
+             * update the hand panel's displayed values
              */
             final SOCHandPanel hp = pi.getPlayerHandPanel(mesPN);
             hp.updateValue(SOCHandPanel.ROADS);
@@ -3005,13 +3115,22 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
     }
 
     /**
-     * add a new game to the initial window's list of games
+     * add a new game to the initial window's list of games.
+     * If client can't join, also add to {@link #gamesUnjoinable}.
      *
      * @param gameName  the game name to add to the list
      */
     public void addToGameList(String gameName)
     {
         // String gameName = thing + STATSPREFEX + "-- -- -- --]";
+
+        if (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+        {
+            // "(cannot join) "     TODO color would be nice
+            gameName = gameName.substring(1);
+            gamesUnjoinable.put(gameName, gameName);
+            gameName = GAMENAME_PREFIX_CANNOT_JOIN + gameName;
+        }
 
         if ((gmlist.countItems() > 0) && (gmlist.getItem(0).equals(" ")))
         {
@@ -3136,11 +3255,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
     }
 
     /**
-     * delete a game from the list
+     * delete a game from the list.
+     * If it's on the list, also remove from {@link #gamesUnjoinable}.
      *
      * @param gameName   the game to remove
+     * @return true if deleted, false if not found in list
      */
-    public void deleteFromGameList(String gameName)
+    public boolean deleteFromGameList(String gameName)
     {
         //String testString = gameName + STATSPREFEX;
         String testString = gameName;
@@ -3151,16 +3272,21 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             {
                 gmlist.replaceItem(" ", 0);
                 gmlist.deselect(0);
+                gamesUnjoinable.remove(gameName);  // may not be in there
+                return true;
             }
 
-            return;
+            return false;
         }
+
+        boolean found = false;
 
         for (int i = gmlist.getItemCount() - 1; i >= 0; i--)
         {
             if (gmlist.getItem(i).startsWith(testString))
             {
                 gmlist.remove(i);
+                found = true;
             }
         }
 
@@ -3168,6 +3294,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         {
             gmlist.select(gmlist.getItemCount() - 1);
         }
+
+        if (found)
+        {
+            gamesUnjoinable.remove(gameName);  // may not be in there
+        }
+
+        return found;
     }
 
     /**
@@ -3857,8 +3990,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             try
             {
                 prCli = LocalStringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
-                new SOCPlayerLocalStringReader((LocalStringConnection)prCli);
-                // Reader will start its own thread
+                new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
+                // Reader will start its own thread.
+                // Send VERSION right away (1.1.06 and later)
+                putLocal(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
             }
             catch (ConnectException e)
             {
@@ -3879,7 +4014,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      * Setup for locally hosting a TCP server.
      * If needed, a local server and robots are started, and client connects to it.
      * If parent is a Frame, set titlebar to show "server" and port#.
-     * Show port number in {@link #localTCPPortLabel}. 
+     * Show port number in {@link #versionOrlocalTCPPortLabel}. 
      * If the {@link #localTCPServer} is already created, does nothing.
      * If {@link #connected} already, does nothing.
      *
@@ -3915,8 +4050,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         setupLocalRobots(tport);
 
         // Set label
-        localTCPPortLabel.setText("Port: " + tport);
-        new AWTToolTip ("You are running a server on TCP port " + tport + ".", localTCPPortLabel);
+        versionOrlocalTCPPortLabel.setText("Port: " + tport);
+        new AWTToolTip ("You are running a server on TCP port " + tport + ".", versionOrlocalTCPPortLabel);
 
         // Set titlebar, if present
         {

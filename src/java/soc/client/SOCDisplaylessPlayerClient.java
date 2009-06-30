@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -184,7 +184,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Constructor for connecting to the specified host, on the specified port
+     * Constructor for connecting to the specified host, on the specified port.
+     * Does not actually connect; subclass must connect, such as {@link soc.robot.SOCRobotClient#init()}
      *
      * @param h  host
      * @param p  port
@@ -200,6 +201,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Constructor for connecting to a local game (practice) on a local stringport.
+     * Does not actually connect; subclass must connect, such as {@link soc.robot.SOCRobotClient#init()}
      *
      * @param s    the stringport that the server listens on
      * @param visual  true if this client is visual

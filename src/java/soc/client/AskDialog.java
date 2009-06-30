@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2008 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@ package soc.client;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -41,7 +42,8 @@ import java.awt.event.WindowListener;
 
 
 /**
- * This is the generic dialog to ask players a two- or three-choice question.
+ * This is the generic dialog to ask players a two- or three-choice question;
+ * to present a one-button message, see {@link NotifyDialog}. 
  *<P>
  * To react to button presses, override the abstract methods
  * {@link #button1Chosen()}, {@link #button2Chosen()}, 
@@ -71,7 +73,7 @@ public abstract class AskDialog extends Dialog
      */
     protected final Button choice1But;
 
-    /** Button for second choice.
+    /** Button for second choice, or null.
      *
      * @see #button2Chosen()
      */
@@ -99,7 +101,9 @@ public abstract class AskDialog extends Dialog
      * Creates a new AskDialog with two buttons, about a specific game.
      *
      * @param cli      Player client interface
-     * @param gamePI   Current game's player interface
+     * @param gamePI   Current game's player interface;
+     *                 Cannot be null, use the other constructor if not asking
+     *                 about a specific game.
      * @param titlebar Title bar text
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
@@ -122,6 +126,25 @@ public abstract class AskDialog extends Dialog
             pi = gamePI;
         else
             throw new IllegalArgumentException("gamePI cannot be null");
+    }
+
+    /**
+     * Creates a new AskDialog with one button, not about a specific game.
+     * For use by {@link NotifyDialog}.
+     * parentFr cannot be null; use {@link #getParentFrame(Component)} to find it.
+     * @since 1.1.06
+     */
+    protected AskDialog(SOCPlayerClient cli, Frame parentFr,
+        String titlebar, String prompt, String btnText,
+        boolean hasDefault)
+        throws IllegalArgumentException
+    {
+        this (cli,
+              parentFr,
+              titlebar, prompt,
+              btnText, null, null,
+              (hasDefault ? 1 : 0)
+              );
     }
 
     /**
@@ -184,16 +207,16 @@ public abstract class AskDialog extends Dialog
     }
 
     /**
-     * Creates a new AskDialog with three buttons, not about a specific game.
-     * Also can create with two.
+     * Creates a new AskDialog with one, two, or three buttons, not about
+     * a specific game.
      *
      * @param cli      Player client interface
      * @param parentFr SOCPlayerClient or other parent frame
      * @param titlebar Title bar text
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
-     * @param choice2  Second choice button text
-     * @param choice3  Third choice button text, or null if 2 buttons
+     * @param choice2  Second choice button text, or null if 1 button
+     * @param choice3  Third choice button text, or null if 1 or 2 buttons
      * @param defaultChoice  Default button (1, 2, 3, or 0 for none)
      *
      * @throws IllegalArgumentException If defaultChoice out of range 0..3,
@@ -211,14 +234,14 @@ public abstract class AskDialog extends Dialog
             throw new IllegalArgumentException("cli cannot be null");
         if (parentFr == null)
             throw new IllegalArgumentException("parentFr cannot be null");
-    	if (choice1 == null)
+        if (choice1 == null)
             throw new IllegalArgumentException("choice1 cannot be null");
-    	if (choice2 == null)
-            throw new IllegalArgumentException("choice2 cannot be null");
-        if ((defaultChoice < 0) || (defaultChoice > 3)) 
+        if ((defaultChoice < 0) || (defaultChoice > 3))
             throw new IllegalArgumentException("defaultChoice out of range: " + defaultChoice);
         if ((choice3 == null) && (defaultChoice == 3))
             throw new IllegalArgumentException("defaultChoice cannot be 3 when choice3 null");
+        if ((choice2 == null) && (defaultChoice > 1))
+            throw new IllegalArgumentException("defaultChoice must be 1 when choice2 null");
 
         pcli = cli;
         pi = null;
@@ -227,9 +250,17 @@ public abstract class AskDialog extends Dialog
         setFont(new Font("Dialog", Font.PLAIN, 12));
 
         choice1But = new Button(choice1);
-        choice2But = new Button(choice2);
-        if (choice3 != null)
-            choice3But = new Button(choice3);
+        if (choice2 != null)
+        {
+            choice2But = new Button(choice2);
+            if (choice3 != null)
+                choice3But = new Button(choice3);
+            else
+                choice3But = null;
+        } else {
+            choice2But = null;
+            choice3But = null;
+        }
         choiceDefault = defaultChoice;
         setLayout (new BorderLayout());
 
@@ -253,13 +284,16 @@ public abstract class AskDialog extends Dialog
         pBtns.add(choice1But);
         choice1But.addActionListener(this);
 
-        pBtns.add(choice2But);
-        choice2But.addActionListener(this);
-
-        if (choice3But != null)
+        if (choice2But != null)
         {
-            pBtns.add(choice3But);
-            choice3But.addActionListener(this);            
+            pBtns.add(choice2But);
+            choice2But.addActionListener(this);
+
+            if (choice3But != null)
+            {
+                pBtns.add(choice3But);
+                choice3But.addActionListener(this);            
+            }
         }
 
         add(pBtns, BorderLayout.CENTER);
@@ -285,9 +319,12 @@ public abstract class AskDialog extends Dialog
         addMouseListener(this);   // for mouseEntered size-check
         addKeyListener(this);     // To handle Enter, Esc keys.
         choice1But.addKeyListener(this);  // (win32: Keyboard focus will be on these buttons)
-        choice2But.addKeyListener(this);
-        if (choice3But != null)
-            choice3But.addKeyListener(this);
+        if (choice2But != null)
+        {
+            choice2But.addKeyListener(this);
+            if (choice3But != null)
+                choice3But.addKeyListener(this);
+        }
     }
 
     /**
@@ -511,5 +548,34 @@ public abstract class AskDialog extends Dialog
 
     /** Stub required by MouseListener */
     public void mouseReleased(MouseEvent e) {}
+
+    /**
+     * Gets the top-level frame of c.
+     * All windows and applets should have one.
+     * @param c The Component.
+     * @return The parent-frame
+     * @since 1.1.06
+     * @throws IllegalStateException if we find a null parent
+     *         before a Frame, or if any parent == itself
+     */
+    public static Frame getParentFrame(Component c)
+        throws IllegalStateException
+    {
+        String throwMsg = null;
+        Component last;
+        while (! (c instanceof Frame))
+        {
+            last = c;
+            c = c.getParent();
+            if (c == null)
+                throwMsg = "Assert failed, parent should not be null; last: ";
+            else if (c == last)
+                throwMsg = "Assert failed, parent == itself: ";
+            if (throwMsg != null)
+                throw new IllegalStateException
+                    (throwMsg + last.getClass().getName() + " " + last);
+        }
+        return (Frame) c;
+    }
 
 }

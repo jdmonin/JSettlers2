@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,8 @@ import java.util.Vector;
 
 /**
  * This is a representation of the board in Settlers of Catan.
+ * Board initialization is done in {@link #makeNewBoard()}; that method
+ * has some internal comments on structures, coordinates, layout and values.
  *<P>
  * Other methods to examine the board: {@link SOCGame#getPlayersOnHex(int)},
  * {@link SOCGame#putPiece(SOCPlayingPiece)}, etc.
@@ -46,10 +48,12 @@ import java.util.Vector;
  * Having six sides, hexes run in a straight line west to east, separated by vertical edges;
  * both coordinates increase along a west-to-east line.
  *<P>
+ * Current coordinate encoding: ({@link #BOARD_ENCODING_ORIGINAL})
+ *<BR>
  * All coordinates are encoded as two-digit hex integers, one digit per axis (thus 00 to FF).
- * Unfortunately this means the board can't be expanded without changing this
- * encoding.
- * The center hex is encoded as 77; see the dissertation appendix PDF for diagrams.
+ * The center hex is encoded as 77; see the dissertation PDF's appendix for diagrams.
+ * Unfortunately this format means the board can't be expanded without changing its
+ * encoding, which is used across the network.
  *<P>
  * @author Robert S Thomas
  */
@@ -94,43 +98,90 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAX_ROBBER_HEX = WOOD_HEX;
 
     /**
-     * largest coordinate value for a hex
+     * Board Encoding fields begin here
+     * ------------------------------------------------------------------------------------
+     */
+
+    /**
+     * Original format (1) for {@link #getBoardEncodingFormat()}:
+     * Hexadecimal 0x00 to 0xFF along 2 diagonal axes.
+     * Coordinate range on each axis is 0 to 15 decimal. In hex:<pre>
+     *   Hexes: 11 to DD
+     *   Nodes: 01 or 10, to FE or EF
+     *   Edges: 00 to EE </pre>
+     *<P>
+     * See the Dissertation PDF for details.
+     * @since 1.1.06
+     */
+    public static final int BOARD_ENCODING_ORIGINAL = 1;
+
+    /**
+     * Size of board in coordinates (not in number of hexes across).
+     * Default size per BOARD_ENCODING_ORIGINAL is: <pre>
+     *   Hexes: 11 to DD
+     *   Nodes: 01 or 10, to FE or EF
+     *   Edges: 00 to EE </pre>
+     * @since 1.1.06
+     */
+    private int boardWidth, boardHeight;
+
+    /**
+     * The encoding format of board coordinates,
+     * or {@link #BOARD_ENCODING_ORIGINAL} (default, original).
+     * The board size determines the required encoding format.
+     *<UL>
+     *<LI> 1 - Original format: hexadecimal 0x00 to 0xFF.
+     *       Coordinate range is 0 to 15 (in decimal).
+     *</UL>
+     * @since 1.1.06
+     */
+    private int boardEncodingFormat;
+
+    /**
+     * Board Encoding fields end here
+     * ------------------------------------------------------------------------------------
+     */
+
+    /**
+     * largest coordinate value for a hex, in the current encoding
      */
     public static final int MAXHEX = 0xDD;
 
     /**
-     * smallest coordinate value for a hex
+     * smallest coordinate value for a hex, in the current encoding
      */
     public static final int MINHEX = 0x11;
 
     /**
-     * largest coordinate value for an edge
+     * largest coordinate value for an edge, in the current encoding
      */
     public static final int MAXEDGE = 0xCC;
 
     /**
-     * smallest coordinate value for an edge
+     * smallest coordinate value for an edge, in the current encoding
      */
     public static final int MINEDGE = 0x22;
 
     /**
-     * largest coordinate value for a node
+     * largest coordinate value for a node, in the current encoding
      */
     public static final int MAXNODE = 0xDC;
 
     /**
-     * smallest coordinate value for a node
+     * smallest coordinate value for a node, in the current encoding
      */
     public static final int MINNODE = 0x23;
 
     /**
-     * largest coordinate value for a node plus one
+     * largest coordinate value for a node plus one, in the current encoding
      */
     public static final int MAXNODEPLUSONE = MAXNODE + 1;
 
     /***************************************
-     * Each element's value encodes port facing and hex type.
+     * Each element's value encodes hex type and (if a
+     * port) facing. (Facing is defined just below).
        Key to the hexes[] values:
+       <pre>
        0 : desert
        1 : clay
        2 : ore
@@ -144,16 +195,20 @@ public class SOCBoard implements Serializable, Cloneable
        10 : misc port facing 4
        11 : misc port facing 5
        12 : misc port facing 6
+       </pre>
         ports are represented in binary like this:<pre>
         (port facing)           (kind of port)
               \--> [0 0 0][0 0 0 0] <--/       </pre>
-        kind of port:
+        kind of port:<pre>
         1 : clay   {@link #CLAY_PORT}
         2 : ore    {@link #ORE_PORT}
         3 : sheep  {@link #SHEEP_PORT}
         4 : wheat  {@link #WHEAT_PORT}
         5 : wood   {@link #WOOD_PORT}
-        port facing: <pre>
+        </pre>
+        <em>port facing</em> is the edge of the port's hex
+        that contains 2 nodes where player can build a
+        port settlement/city. <pre>
         6___    ___1
             \/\/
             /  \
@@ -164,16 +219,6 @@ public class SOCBoard implements Serializable, Cloneable
 
          @see #getHexTypeFromNumber(int)
      **************************************************/
-
-    /*
-       private int hexLayout[] = { 51, 6, 10, 6,
-       6, 5, 3, 4, 68,
-       8, 1, 2, 1, 3, 6,
-       6, 0, 5, 4, 5, 4, 85,
-       8, 1, 3, 3, 2, 6,
-       6, 2, 4, 5, 12,
-       18, 6, 97, 6 };
-     */
     private int[] hexLayout = 
     {
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
@@ -181,19 +226,24 @@ public class SOCBoard implements Serializable, Cloneable
     };
 
     /**
-     * Key to the numbers[] :
+     * Map of dice rolls to values in {@link #numberLayout}
+     */
+    private int[] boardNum2Num = { -1, -1, 0, 1, 2, 3, 4, -1, 5, 6, 7, 8, 9 };
+ 
+    /**
+     * Map of values in {@link #numberLayout} to dice rolls:<pre>
+     *    -1 : robber
      *     0 : 2
      *     1 : 3
      *     2 : 4
      *     3 : 5
      *     4 : 6
-     *     5 : 8
+     *     5 : 8 (7 is skipped)
      *     6 : 9
      *     7 : 10
      *     8 : 11
-     *     9 : 12
+     *     9 : 12 </pre>
      */
-    private int[] boardNum2Num = { -1, -1, 0, 1, 2, 3, 4, -1, 5, 6, 7, 8, 9 };
     private int[] num2BoardNum = { 2, 3, 4, 5, 6, 8, 9, 10, 11, 12 };
 
     /*
@@ -205,7 +255,10 @@ public class SOCBoard implements Serializable, Cloneable
        -1, 3, 0, 4, -1,
        -1, -1, -1, -1 };
      */
-    /** Dice number from hex numbers; @see #numToHexID */
+    /** Dice number from hex numbers.
+     *  For number value mapping, see {@link #num2BoardNum}.
+     *  For coord mapping, see {@link #numToHexID}
+     */
     private int[] numberLayout = 
     {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -213,7 +266,10 @@ public class SOCBoard implements Serializable, Cloneable
         -1
     };
 
-    /** Hex coordinates from hex numbers */
+    /** Hex coordinates from hex numbers
+     * @see #hexIDtoNum
+     * @see #nodesOnBoard
+     */
     private int[] numToHexID = 
     {
         0x17, 0x39, 0x5B, 0x7D,
@@ -233,18 +289,21 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * translate hex ID to an array index
+     * @see #numToHexID
      */
     private int[] hexIDtoNum;
 
     /**
      * offset to add to hex coord to get all node coords
+     * -- see getAdjacent* methods instead
+     * private int[] hexNodes = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
      */
-    private int[] hexNodes = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
 
     /**
-     *  offset of all hexes adjacent to a node
+     * offset of all hexes adjacent to a node
+     * -- @see #getAdjacentHexesToNode(int) instead
+     * private int[] nodeToHex = { -0x21, 0x01, -0x01, -0x10, 0x10, -0x12 };
      */
-    private int[] nodeToHex = { -0x21, 0x01, -0x01, -0x10, 0x10, -0x12 };
 
     /**
      * the hex coordinate that the robber is in; placed on desert in constructor
@@ -283,7 +342,9 @@ public class SOCBoard implements Serializable, Cloneable
     private Random rand = new Random();
 
     /**
-     * a list of nodes on the board; key is node's Integer coordinate, value is Boolean
+     * a list of nodes on the board; key is node's Integer coordinate, value is Boolean.
+     * nodes on outer edges of surrounding water/ports are not on the board.
+     * See dissertation figure A.2.
      */
     protected Hashtable nodesOnBoard;
 
@@ -292,6 +353,10 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public SOCBoard()
     {
+        boardWidth = 0x10;
+        boardHeight = 0x10;
+        boardEncodingFormat = BOARD_ENCODING_ORIGINAL;  // See javadoc of boardEncodingFormat
+
         robberHex = -1;  // Soon placed on desert
 
         /**
@@ -319,7 +384,8 @@ public class SOCBoard implements Serializable, Cloneable
         }
 
         /**
-         * initialize the hexIDtoNum array
+         * initialize the hexIDtoNum array;
+         * see dissertation figure A.1 for coordinates
          */
         hexIDtoNum = new int[0xEE];
 
@@ -328,56 +394,60 @@ public class SOCBoard implements Serializable, Cloneable
             hexIDtoNum[i] = 0;
         }
 
-        initHexIDtoNumAux(0x17, 0x7D, 0);
-        initHexIDtoNumAux(0x15, 0x9D, 4);
-        initHexIDtoNumAux(0x13, 0xBD, 9);
-        initHexIDtoNumAux(0x11, 0xDD, 15);
-        initHexIDtoNumAux(0x31, 0xDB, 22);
-        initHexIDtoNumAux(0x51, 0xD9, 28);
-        initHexIDtoNumAux(0x71, 0xD7, 33);
+        initHexIDtoNumAux(0x17, 0x7D, 0);  // Top horizontal row: 4 hexes across
+        initHexIDtoNumAux(0x15, 0x9D, 4);  // Next horiz row: 5 hexes
+        initHexIDtoNumAux(0x13, 0xBD, 9);  // Next: 6
+        initHexIDtoNumAux(0x11, 0xDD, 15); // Middle horizontal row: 7
+        initHexIDtoNumAux(0x31, 0xDB, 22); // Next: 6
+        initHexIDtoNumAux(0x51, 0xD9, 28); // Next: 5
+        initHexIDtoNumAux(0x71, 0xD7, 33); // Bottom horizontal row: 4 hexes across
 
         nodesOnBoard = new Hashtable();
 
         /**
-         * initialize the list of nodes on the board
+         * initialize the list of nodes on the board;
+         * nodes on outer edges of surrounding water/ports are not on the board.
+         * See dissertation figure A.2.
          */
         Boolean t = new Boolean(true);
 
-        for (i = 0x27; i <= 0x8D; i += 0x11)
+        for (i = 0x27; i <= 0x8D; i += 0x11)  //  Top horizontal row: each top corner across 3 hexes
         {
             nodesOnBoard.put(new Integer(i), t);
         }
 
-        for (i = 0x25; i <= 0xAD; i += 0x11)
+        for (i = 0x25; i <= 0xAD; i += 0x11)  // Next: each top corner of row of 4 / bottom corner of the top 3 hexes
         {
             nodesOnBoard.put(new Integer(i), t);
         }
 
-        for (i = 0x23; i <= 0xCD; i += 0x11)
+        for (i = 0x23; i <= 0xCD; i += 0x11)  // Next: top corners of middle row of 5 hexes
         {
             nodesOnBoard.put(new Integer(i), t);
         }
 
-        for (i = 0x32; i <= 0xDC; i += 0x11)
+        for (i = 0x32; i <= 0xDC; i += 0x11) // Next: bottom corners of middle row of 5 hexes
         {
             nodesOnBoard.put(new Integer(i), t);
         }
 
-        for (i = 0x52; i <= 0xDA; i += 0x11)
+        for (i = 0x52; i <= 0xDA; i += 0x11)  // Bottom corners of row of 4 / top corners of the bottom 3 hexes
         {
             nodesOnBoard.put(new Integer(i), t);
         }
 
-        for (i = 0x72; i <= 0xD8; i += 0x11)
+        for (i = 0x72; i <= 0xD8; i += 0x11)  // Last horizontal row: each bottom corner across 3 hexes
         {
             nodesOnBoard.put(new Integer(i), t);
         }
     }
 
     /**
-     * Auxiliary method for initializing part of the hexIDtoNum array
+     * Auxiliary method for initializing part of the hexIDtoNum array.
+     * Between begin and end, increment coord by 0x22, which moves 1 hex to the right.
+     * See dissertation figure A.1.
      * @param begin Beginning of coordinate range
-     * @param end   Ending coordinate
+     * @param end   Ending coordinate - same horizontal row as begin
      * @param num   Number to assign to {@link #hexIDtoNum}[] within this coordinate range
      */
     private final void initHexIDtoNumAux(int begin, int end, int num)
@@ -452,51 +522,57 @@ public class SOCBoard implements Serializable, Cloneable
             }
         }
 
-        // place the ports
-        placePort(portHex[0], 0, 3);
-        placePort(portHex[1], 2, 4);
-        placePort(portHex[2], 8, 4);
-        placePort(portHex[3], 9, 2);
-        placePort(portHex[4], 21, 5);
-        placePort(portHex[5], 22, 2);
-        placePort(portHex[6], 32, 6);
-        placePort(portHex[7], 33, 1);
-        placePort(portHex[8], 35, 6);
+        // place the ports (hex numbers and facing);
+        // for their corresponding node coordinates,
+        // see comments just below.
 
-        // fill out the ports[] vectors
-        ports[portHex[0]].addElement(new Integer(0x27));
-        ports[portHex[0]].addElement(new Integer(0x38));
+        placePort(portHex[0], 0, 3);  // Facing 3 is SE: see hexLayout's javadoc.
+                                      //   0 is hex number (index within hexLayout)
+        placePort(portHex[1], 2, 4);  // Facing 4 is SW, at hex number 2
+        placePort(portHex[2], 8, 4);  // SW
+        placePort(portHex[3], 9, 2);  // E
+        placePort(portHex[4], 21, 5); // W
+        placePort(portHex[5], 22, 2); // E
+        placePort(portHex[6], 32, 6); // NW
+        placePort(portHex[7], 33, 1); // NE
+        placePort(portHex[8], 35, 6); // NW
 
-        ports[portHex[1]].addElement(new Integer(0x5A));
-        ports[portHex[1]].addElement(new Integer(0x6B));
+        // fill out the ports[] vectors with node coordinates
+        // where a trade port can be placed
 
-        ports[portHex[2]].addElement(new Integer(0x9C));
+        ports[portHex[0]].addElement(new Integer(0x27));  // Port touches the upper-left land hex, port facing SE
+        ports[portHex[0]].addElement(new Integer(0x38));  // [port's hex is NW of the upper-left land hex]
+
+        ports[portHex[1]].addElement(new Integer(0x5A));  // Touches middle land hex of top row, port facing SW
+        ports[portHex[1]].addElement(new Integer(0x6B));  // [The port hex itself is 2 to right of prev port hex.]
+
+        ports[portHex[2]].addElement(new Integer(0x9C));  // Touches rightmost land hex of row above middle, SW
         ports[portHex[2]].addElement(new Integer(0xAD));
 
-        ports[portHex[3]].addElement(new Integer(0x25));
+        ports[portHex[3]].addElement(new Integer(0x25));  // Leftmost land hex above middle, facing E
         ports[portHex[3]].addElement(new Integer(0x34));
 
-        ports[portHex[4]].addElement(new Integer(0xCD));
+        ports[portHex[4]].addElement(new Integer(0xCD));  // Rightmost of middle-row land hex, W
         ports[portHex[4]].addElement(new Integer(0xDC));
 
-        ports[portHex[5]].addElement(new Integer(0x43));
+        ports[portHex[5]].addElement(new Integer(0x43));  // Leftmost land hex of row below middle, E
         ports[portHex[5]].addElement(new Integer(0x52));
 
-        ports[portHex[6]].addElement(new Integer(0xC9));
+        ports[portHex[6]].addElement(new Integer(0xC9));  // Rightmost land hex below middle, NW
         ports[portHex[6]].addElement(new Integer(0xDA));
 
-        ports[portHex[7]].addElement(new Integer(0x72));
+        ports[portHex[7]].addElement(new Integer(0x72));  // Leftmost of bottom row, NE
         ports[portHex[7]].addElement(new Integer(0x83));
 
-        ports[portHex[8]].addElement(new Integer(0xA5));
-        ports[portHex[8]].addElement(new Integer(0xB6));
+        ports[portHex[8]].addElement(new Integer(0xA5));  // Port touches middle hex of bottom row, facing NW
+        ports[portHex[8]].addElement(new Integer(0xB6));  // [The port hex itself is 2 to right of prev port hex.]
     }
 
     /**
      * Auxiliary method for placing the port hexes
      * @param port Port type; in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
-     * @param hex  Hex coordinate
-     * @param face Facing of port; 1 to 6
+     * @param hex  Hex coordinate within {@link #hexLayout}
+     * @param face Facing of port; 1 to 6; for facing direction, see {@link #hexLayout}
      */
     private final void placePort(int port, int hex, int face)
     {
@@ -641,11 +717,14 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @param hex  the coordinates for a hex
      *
-     * @return the number on that hex
+     * @return the number on that hex, or 0 if not a hex coordinate
      */
     public int getNumberOnHexFromCoord(int hex)
     {
-        return getNumberOnHexFromNumber(hexIDtoNum[hex]);
+        if ((hex >= 0) && (hex < hexIDtoNum.length))
+            return getNumberOnHexFromNumber(hexIDtoNum[hex]);
+        else
+            return 0;
     }
 
     /**
@@ -826,7 +905,38 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return the nodes that touch this edge
+     * Width of this board in coordinates (not in number of hexes across.)
+     * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
+     * @since 1.1.06
+     */
+    public int getBoardWidth()
+    {
+        return boardWidth;
+    }
+
+    /**
+     * Height of this board in coordinates (not in number of hexes across.)
+     * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
+     * @since 1.1.06
+     */
+    public int getBoardHeight()
+    {
+        return boardHeight;
+    }
+
+    /**
+     * Get the encoding format of this board (for coordinates, etc).
+     * See the encoding constants' javadocs for more documentation.
+     * @return board coordinate-encoding format, such as {@link #BOARD_ENCODING_ORIGINAL}
+     * @since 1.1.06
+     */
+    public int getBoardEncodingFormat()
+    {
+        return boardEncodingFormat;
+     }
+
+    /**
+     * @return the nodes that touch this edge, as a Vector of Integer coordinates
      */
     public static Vector getAdjacentNodesToEdge(int coord)
     {
@@ -875,7 +985,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return the adjacent edges to this edge
+     * @return the adjacent edges to this edge, as a Vector of Integer coordinates
      */
     public static Vector getAdjacentEdgesToEdge(int coord)
     {
@@ -1056,7 +1166,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return the edges touching this node
+     * @return the edges touching this node, as a Vector of Integer coordinates
      */
     public static Vector getAdjacentEdgesToNode(int coord)
     {
@@ -1122,7 +1232,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return the EDGEs adjacent to this node
+     * @return the nodes adjacent to this node, as a Vector of Integer coordinates
      */
     public static Vector getAdjacentNodesToNode(int coord)
     {
@@ -1245,7 +1355,7 @@ public class SOCBoard implements Serializable, Cloneable
         }
         else
         {
-            str = "" + number;
+            str = Integer.toString(number);
         }
 
         while (hexes.hasMoreElements())

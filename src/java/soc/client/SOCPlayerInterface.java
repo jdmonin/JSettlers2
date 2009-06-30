@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -75,6 +75,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      * @see SOCBoardPanel#isScaled()
      */
     protected boolean boardIsScaled;
+
+    /**
+     * For perf/display-bugs during component layout (OSX firefox),
+     * show only background color in {@link #update(Graphics)} when true.
+     * @since 1.1.06
+     */
+    private boolean layoutNotReadyYet;
 
     /**
      * where the player types in text
@@ -283,6 +290,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         super(TITLEBAR_GAME + title +
               (ga.isLocal ? "" : " [" + cl.getNickname() + "]"));
         setResizable(true);
+        layoutNotReadyYet = true;
 
         client = cl;
         game = ga;
@@ -318,14 +326,20 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         setFont(new Font("Geneva", Font.PLAIN, 10));
 
         /**
-         * setup interface elements
-         */
-        initInterfaceElements(true);
-
-        /**
          * we're doing our own layout management
          */
         setLayout(null);
+
+        /**
+         * setup interface elements.
+         * PERF: hide window while doing so (osx firefox)
+         */
+        final boolean didHideTemp = isShowing();
+        if (didHideTemp)
+        {
+            setVisible(false);
+        }
+        initInterfaceElements(true);
 
         /**
          * more initialization stuff
@@ -333,6 +347,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         setLocation(50, 50);
         setSize(840, 730);
         validate();
+        
+        if (didHideTemp)
+        {
+            setVisible(true);
+        }
+        layoutNotReadyYet = false;
+        repaint();
 
         /**
          * complete - reset mouse cursor from hourglass to normal
@@ -357,9 +378,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener
 
         for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
         {
-            hands[i] = new SOCHandPanel(this, game.getPlayer(i));
-            hands[i].setSize(180, 180);
-            add(hands[i]);
+            SOCHandPanel hp = new SOCHandPanel(this, game.getPlayer(i));
+            hands[i] = hp;
+            hp.setSize(180, 180);
+            add(hp);
+            ColorSquare blank = hp.getBlankStandIn();
+            blank.setSize(180, 180);
+            add(blank);
         }
 
         /**
@@ -426,10 +451,16 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     /**
      * Overriden so the peer isn't painted, which clears background. Don't call
      * this directly, use {@link #repaint()} instead.
+     * For performance and display-bug avoidance, checks {@link #layoutNotReadyYet} flag.
      */
     public void update(Graphics g)
     {
-        paint(g);
+        if (! layoutNotReadyYet)
+        {
+            paint(g);
+        } else {
+            g.clearRect(0, 0, getWidth(), getHeight());
+        }
     }
 
     /**
@@ -819,7 +850,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     }
 
     /**
-     * print text in the text window
+     * print text in the text window.
+     * For dice-roll message, combine lines to reduce clutter.
      *
      * @param s  the text
      */
@@ -833,9 +865,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener
              * change the textDisplay contents (if matching):
              *   replace: * It's Player's turn to roll the dice. \n * Player rolled a 4 and a 5.
              *   with:    * It's Player's turn to roll. Rolled a 9.
+             * 
+             * JM 2009-05-21: Don't edit existing text on Mac OS X 10.5; it can lead to a GUI hang/race condition.
+             *   Instead just print the total rolled.
              */
 
-            if ((s.startsWith("* ")) && (s.indexOf(" rolled a ") > 0))
+            if (s.startsWith("* ") && (s.indexOf(" rolled a ") > 0))
             {
                 String currentText = textDisplay.getText();
                 int L = currentText.length();
@@ -844,13 +879,19 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                                                 //  9 chars: length of " the dice"
                 if ((i > 0) && (30 > (L - i)))
                 {
-                    String rollText = ". Rolled a " + textDisplayRollExpected;
-                    currentText = currentText.substring(0, i+15)
-                        + rollText + currentText.substring(i+15+9);
-                    textDisplay.setText(currentText);
-                    //textDisplay.replaceRange(rollText, i+15, i+15+9);
-                    //textDisplay.replaceRange(rollText, i+5, i+5+9);                    
-                    //textDisplay.insert(rollText, 10); // i+5); // +15);
+                    if (! SnippingTextArea.isJavaOnOSX105)
+                    {
+                        String rollText = ". Rolled a " + textDisplayRollExpected;
+                        currentText = currentText.substring(0, i+15)
+                            + rollText + currentText.substring(i+15+9);
+                        textDisplay.setText(currentText);
+                        //textDisplay.replaceRange(rollText, i+15, i+15+9);
+                        //textDisplay.replaceRange(rollText, i+5, i+5+9);                    
+                        //textDisplay.insert(rollText, 10); // i+5); // +15);
+                    } else {
+                        String rollText = "* Rolled a " + textDisplayRollExpected + ".\n";
+                        textDisplay.append(rollText);
+                    }
                     textDisplayRollExpected = 0;
 
                     return;  // <--- Early return ---
@@ -1514,7 +1555,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
 
         buildingPanel.setBounds(i.left + hw + 8, i.top + tah + tfh + bh + 12, kw, kh);
 
-        hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
+        hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);  // hp.setBounds also sets its blankStandIn's bounds
 
         if (SOCGame.MAXPLAYERS > 1)
         {

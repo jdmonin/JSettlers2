@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,6 +42,11 @@ public class SOCGameBoardReset
     /** The new game, created from an old game by {@link soc.game.SOCGame#resetAsCopy()} */ 
     public SOCGame newGame;
 
+    /** gamestate of old game at reset time
+     * @since 1.1.06
+     */
+    final public int oldGameState;
+
     /** Were there robots in the old game? */
     public boolean hadRobots;
 
@@ -67,6 +72,7 @@ public class SOCGameBoardReset
      */
     public SOCGameBoardReset (SOCGame oldGame, Vector memberConns)
     {
+        oldGameState = oldGame.getGameState();
         hadRobots = false;
         wasRobot = new boolean[SOCGame.MAXPLAYERS];
         for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)

@@ -2,6 +2,25 @@
 
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 
+    > 1.1.06 (build 2009-06-01)
+- Based on 1.1.04's code
+- Monopoly reports (privately) number of resources stolen to each victim
+- Reset practice game, at end of game: New randomly-selected robots, instead of same robots each time
+- STATUSMESSAGE can now carry an integer status value
+- Track and understand client version starting from connect time, not just from joingame time.
+- Can deny entry to individual games based on client's version (ex. client too old to understand a recent game feature, like 6 players)
+- Fewer debug messages from robots during idle hours
+- Many javadocs added
+- Bugfix: Hangs on mac osx 10.5 after a few minutes (SnippingTextArea)
+- Bugfix: After disconnect/rejoin, trade offer panel overlays your controls
+- Bugfix: "Start a local server" ignored port-number textfield, was always default port
+- Bugfix: harmless NullPointerException in SOCBoardPanel.setHoverText for getFontMetrics
+
+    > 1.1.05 (backed out)
+JSettlers 1.1.05 had been under development (build 2008-09-13) but its direction is being re-considered.
+Further development is based on 1.1.04.
+- Use Log4j 1.2
+
     > 1.1.04 (build 2008-09-06)
 - Bugfix: Cancelling 2nd initial settlement, other players lost resources (SOCPlayer)
 - Bugfix: Don't disable "play card" button after buying or playing a card (SOCHandPanel)

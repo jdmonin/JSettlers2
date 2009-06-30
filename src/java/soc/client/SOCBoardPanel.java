@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007,2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -215,8 +216,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * hex size, in unscaled internal-pixels
      */
-    private final int HEXWIDTH = 55;
-    private final int HEXHEIGHT = 64;
+    private final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
      * actual size on-screen, not internal-pixels size
@@ -279,10 +279,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * number pix (for hexes), original resolution.
      */
     private static Image[] numbers;
+
     /**
      * number pix (for hexes), current scaled resolution
      */
     private Image[] scaledNumbers;
+
     /**
      * If an element is true, scaling that number's image previously failed.
      * Don't re-try scaling to same size, instead use {@link #numbers}[i].
@@ -327,8 +329,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Old pointer coords for interface
      */
-    private int ptrOldX;
-    private int ptrOldY;
+    private int ptrOldX, ptrOldY;
     
     /**
      * (tooltip) Hover text.  Its mode uses boardpanel mode
@@ -2855,27 +2856,40 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         
         /** Text to hover-display, or null if nothing to show */
         private String hoverText;
-        /** Uses board mode constants: Will be NONE, PLACE_ROAD, PLACE_SETTLEMENT,
+
+        /** Uses board mode constants: Will be {@link SOCBoardPanel#NONE NONE},
+         *  {@link SOCBoardPanel#PLACE_ROAD PLACE_ROAD}, PLACE_SETTLEMENT,
          *  PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
          */
         private int hoverMode;
-        /** "ID" coord as returned by findNode, findEdge, findHex */
+
+        /** "ID" of coord as returned by {@link SOCBoardPanel#findNode(int, int) findNode}, findEdge, findHex */
         private int hoverID;
+
         /** Object last pointed at; null for hexes and ports */
         private SOCPlayingPiece hoverPiece;
+
         /** hover road ID, or 0. Readonly please from outside this inner class. Drawn in {@link #paint(Graphics)}. */
         int hoverRoadID;
+
         /** hover settlement or city node ID, or 0. Readonly please from outside this inner class. Drawn in {@link #paint(Graphics)}. */
         int hoverSettlementID, hoverCityID;
+
         /** is hover a port at coordinate hoverID? */
         boolean hoverIsPort;
+
         /** Mouse position */
         private int mouseX, mouseY;
+
         /** Our position (upper-left of tooltip box) */
         private int boxX, boxY;
+
         /** Requested X-offset from mouse pointer (used for robber placement) */
         private int offsetX;
-        /** Our size */
+
+        /** Our size.
+         *  If boxw == 0, also indicates need fontmetrics - see setHoverText, paint.
+         */
         private int boxW, boxH;
         
         private final int TEXT_INSET = 3;
@@ -2895,6 +2909,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             mouseX = 0;
             mouseY = 0;
             offsetX = 0;
+            boxW = 0;
         }
         
         /** Currently displayed text.
@@ -2947,7 +2962,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             offsetX = ofsX;
         }
-        
+
+        /**
+         * Set the hover text (tooltip) based on where the mouse is now,
+         * and repaint the board.
+         * @param t Hover text contents, or null to clear that text (but
+         *          not hovering pieces) and repaint
+         * @see #hideHoverAndPieces()
+         */
         public void setHoverText(String t)
         {
             hoverText = t;
@@ -2957,9 +2979,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 return;
             }
 
-            FontMetrics fm = getFontMetrics(bpanel.getFont());           
-            boxW = fm.stringWidth(hoverText) + PADDING_HORIZ;
-            boxH = fm.getHeight();
+            final Font bpf = bpanel.getFont();
+            if (bpf == null)
+            {
+                boxW = 0;  // Paint method will look it up
+            } else {
+                final FontMetrics fm = getFontMetrics(bpf);
+                if (fm == null)
+                {
+                    boxW = 0;
+                } else {
+                    boxW = fm.stringWidth(hoverText) + PADDING_HORIZ;
+                    boxH = fm.getHeight();
+                }
+            }
             positionToMouse(mouseX, mouseY);  // Also calls repaint
         }
         
@@ -2994,7 +3027,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             String ht = hoverText;  // cache against last-minute change in another thread
             if (ht == null)
                 return;
-            
+
+            if (boxW == 0)
+            {
+                // Deferred fontmetrics lookup from earlier setHoverText
+                final Font bpf = bpanel.getFont();
+                if (bpf == null)
+                    return;
+                final FontMetrics fm = getFontMetrics(bpf);
+                if (fm == null)
+                    return;
+                boxW = fm.stringWidth(hoverText) + PADDING_HORIZ;
+                boxH = fm.getHeight();
+            }
             g.setColor(Color.WHITE);
             g.fillRect(boxX, boxY, boxW - 1, boxH - 1);
             g.setColor(Color.BLACK);

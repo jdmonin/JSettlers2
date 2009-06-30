@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2008 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,7 +37,9 @@ import java.util.Vector;
 
 
 /**
- * A class for creating and tracking the games
+ * A class for creating and tracking the games;
+ * contains each game's name, {@link #SOCGame} object,
+ * and clients ({@link #StringConnection}s).
  *
  * @author Robert S. Thomas
  */
@@ -186,11 +188,22 @@ public class SOCGameList
     }
 
     /**
-     * @return an enumeration of game names
+     * @return an enumeration of game names (Strings)
+     * @see #getGameObjects()
      */
     public Enumeration getGames()
     {
         return gameMembers.keys();
+    }
+
+    /**
+     * @return an enumeration of game data (SOCGames)
+     * @see #getGames()
+     * @since 1.1.06
+     */
+    public Enumeration getGamesData()
+    {
+        return gameData.elements();
     }
 
     /**
@@ -335,29 +348,30 @@ public class SOCGameList
     }
 
     /**
-     * create a new game, and add to the list; game will expire in GAME_EXPIRE_MINUTES.
+     * create a new game, and add to the list; game will expire in {@link #GAME_EXPIRE_MINUTES} minutes.
      * If a game already exists (per {@link #isGame(String)}), do nothing.
      *
      * @param gaName  the name of the game
-     *
-     * @see #GAME_EXPIRE_MINUTES
+     * @return new game object, or null if it already existed
      */
-    public synchronized void createGame(String gaName)
+    public synchronized SOCGame createGame(String gaName)
     {
-        if (!isGame(gaName))
-        {
-            MutexFlag mutex = new MutexFlag();
-            gameMutexes.put(gaName, mutex);
+        if (isGame(gaName))
+            return null;
 
-            Vector members = new Vector();
-            gameMembers.put(gaName, members);
+        MutexFlag mutex = new MutexFlag();
+        gameMutexes.put(gaName, mutex);
 
-            SOCGame game = new SOCGame(gaName);
+        Vector members = new Vector();
+        gameMembers.put(gaName, members);
 
-            // set the expiration to 90 min. from now
-            game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
-            gameData.put(gaName, game);
-        }
+        SOCGame game = new SOCGame(gaName);
+
+        // set the expiration to 90 min. from now
+        game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
+        gameData.put(gaName, game);
+
+        return game;
     }
 
     /**

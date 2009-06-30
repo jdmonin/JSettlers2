@@ -1571,8 +1571,6 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         int tmp;
         boolean ours;
         boolean blocked;
-        int i;
-        Integer coord;
         int id = piece.getCoordinates();
         Vector allPieces = game.getBoard().getPieces();
 
@@ -1934,7 +1932,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * Calculates the longest road for a player
      *
-     * @return                         the length of the longest road for that player
+     * @return the length of the longest road for that player
      */
     public int calcLongestRoad2()
     {
@@ -1957,8 +1955,6 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         {
             Integer roadNode = (Integer) e.nextElement();
             int pathStartCoord = roadNode.intValue();
-            int pathEndCoord;
-            int pathLength = 0;
             pending.push(new NodeLenVis(pathStartCoord, 0, new Vector()));
 
             while (!pending.isEmpty())

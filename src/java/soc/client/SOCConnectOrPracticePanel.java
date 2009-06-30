@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -536,20 +536,20 @@ public class SOCConnectOrPracticePanel extends Panel
         validate();
     }
 
-    /** Actually start a server, on port from {@link #conn_servport} */
+    /** Actually start a server, on port from {@link #run_servport} */
     private void clickRunStartserv()
     {
         // After clicking runserv, actually start a server
-        int cport = 0;
+        int srport = 0;
         try {
-            cport = Integer.parseInt(conn_servport.getText());
+            srport = Integer.parseInt(run_servport.getText());
         }
         catch (NumberFormatException e)
         {
             // TODO show error?
             return;
         }
-        cl.startLocalTCPServer(cport);        
+        cl.startLocalTCPServer(srport);        
     }
 
     /** Hide fields used to start a server */

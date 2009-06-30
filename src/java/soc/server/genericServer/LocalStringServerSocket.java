@@ -1,6 +1,6 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.4.
- * Copyright (C) 2007-2008 Jeremy D Monin <jeremy@nand.net>.
+ * Local (StringConnection) network system.  Version 1.0.5.
+ * Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,14 +32,16 @@ import java.util.Vector;
  * 
  * Clients who want to connect, call connectTo and are queued. (Thread.wait is used internally)
  * Server-side calls accept to retrieve them.
- * 
- * @author Jeremy D. Monin <jeremy@nand.net>
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release
  *  1.0.3 - 2008-08-08 - add change history; no other changes in this file since 1.0.0
  *  1.0.4 - 2008-09-04 - no change in this file
+ *  1.0.5 - 2009-05-31 - no change in this file
  *</PRE>
+ * 
+ * @author Jeremy D. Monin <jeremy@nand.net>
+ * @version 1.0.5
  */
 public class LocalStringServerSocket implements StringServerSocket
 {

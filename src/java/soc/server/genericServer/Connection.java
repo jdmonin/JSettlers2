@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,11 +34,16 @@ import java.util.Date;
 import java.util.Vector;
 
 
-/** A server connection.
- *  @version 1.0
+/** A client's connection at a server.
+ *  @version 1.1.06
  *  @author <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A>
  *  Reads from the net, writes atomically to the net and
  *  holds the connection data
+ *<P>
+ * As used within JSettlers, the structure of this class has much in common
+ * with {@link LocalStringConnection}, as they both implement the {@link StringConnection}
+ * interface.  If you add something to one class (or to StringConnection),
+ * you should probably add it to the other.
  */
 public final class Connection extends Thread implements Runnable, Serializable, Cloneable, StringConnection
 {
@@ -65,6 +70,10 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     public Thread reader;
     protected String hst;
     protected int remoteVersion;
+    protected boolean remoteVersionKnown;
+    protected boolean remoteVersionTrack;
+    protected boolean hideTimeoutMessage = false;
+
     protected Exception error = null;
     protected Date connectTime = new Date();
     protected boolean connected = false;
@@ -82,6 +91,8 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         reader = null;
         data = null;
         remoteVersion = 0;
+        remoteVersionKnown = false;
+        remoteVersionTrack = false;
         
         /* Thread name for debugging */
         if (hst != null)
@@ -138,6 +149,43 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         return true;
     }
 
+    /**
+     * Is input available now, without blocking?
+     * Same idea as {@link java.io.DataInputStream#available()}.
+     */
+    public boolean isInputAvailable()
+    {
+        try
+        {
+            return inputConnected && (0 < in.available());
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    /**
+     * If client connection times out at server, should the server not print a message to console?
+     * This would be desired, for instance, in automated clients, which would reconnect
+     * if they become disconnected.
+     * @see setHideTimeoutMessage(boolean)
+     */
+    public boolean wantsHideTimeoutMessage()
+    {
+        return hideTimeoutMessage;
+    }
+
+    /**
+     * If client connection times out at server, should the server not print a message to console?
+     * This would be desired, for instance, in automated clients, which would reconnect
+     * if they become disconnected.
+     * @param wantsHide true to hide, false to print, the log message on idle-disconnect
+     * @see wantsHideTimeoutMessage()
+     */
+    public void setHideTimeoutMessage(boolean wantsHide)
+    {
+        hideTimeoutMessage = wantsHide;
+    }
+ 
     /** continuously read from the net */
     public void run()
     {
@@ -145,6 +193,13 @@ public final class Connection extends Thread implements Runnable, Serializable, 
 
         try
         {
+            if (inputConnected)
+            {
+                String firstMsg = in.readUTF();
+                if (! sv.processFirstCommand(firstMsg, this))
+                    sv.treat(firstMsg, this);
+            }
+
             while (inputConnected)
             {
                 // readUTF max message size is 65535 chars, modified utf-8 format
@@ -291,8 +346,11 @@ public final class Connection extends Thread implements Runnable, Serializable, 
      *
      * This is anything your application wants to associate with the connection.
      * The StringConnection system uses this data to name the connection,
-     * so once set, it should not change.  After setting, call
-     * {@link Server#nameConnection(StringConnection)}.
+     * so it should not change once set.
+     *<P>
+     * If you call setData after {@link #newConnection1(StringConnection)},
+     * please call {@link Server#nameConnection(StringConnection)} afterwards
+     * to ensure the name is tracked properly at the server.
      *
      * @param data The new key data, or null
      * @see #setAppData(Object)
@@ -333,7 +391,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         return connectTime;
     }
 
-    /** close the socket, stop the reader */
+    /** close the socket, stop the reader; called after conn is removed from server structures */
     public void disconnect()
     {
         if (! connected)
@@ -402,11 +460,63 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     /**
      * Set the version number of the remote end of this connection.
      * The meaning of this number is application-defined.
+     *<P>
+     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
+     *  caller should synchronize on {@link Server#unnamedConns}.
+     *
      * @param version Version number, or 0 if unknown.
+     *                If version is greater than 0, future calls to {@link #isVersionKnown()}
+     *                should return true.
      */
     public void setVersion(int version)
     {
+        setVersion(version, version > 0);
+    }
+
+    /**
+     * Set the version number of the remote end of this connection.
+     * The meaning of this number is application-defined.
+     *<P>
+     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
+     *  caller should synchronize on {@link Server#unnamedConns}.
+     *
+     * @param version Version number, or 0 if unknown.
+     * @param isKnown Should this version be considered confirmed/known by {@link #isVersionKnown()}?
+     */
+    public void setVersion(int version, boolean isKnown)
+    {
+        final int prevVers = remoteVersion;
         remoteVersion = version;
+        remoteVersionKnown = isKnown;
+        if (remoteVersionTrack && (sv != null) && (prevVers != version))
+        {
+            sv.clientVersionRem(prevVers);
+            sv.clientVersionAdd(version);
+        }
+ }
+
+    /**
+     * Is the version known of the remote end of this connection?
+     * We may have just assumed it, or taken a default.
+     * @return True if we've confirmed the version, false if it's assumed or default.
+     */
+    public boolean isVersionKnown()
+    {
+        return remoteVersionKnown;
+    }
+
+    /**
+     * For server-side use, should we notify the server when our version
+     * is changed by setVersion calls?
+     * @param doTracking true if we should notify server, false otherwise.
+     *        If true, please call both setVersion and
+     *        {@link Server#clientVersionAdd(int)} before calling setVersionTracking.
+     *        If false, please call {@link Server#clientVersionRem(int)} before
+     *        calling setVersionTracking.
+     */
+    public void setVersionTracking(boolean doTracking)
+    {
+        remoteVersionTrack = doTracking;
     }
 
     class Putter extends Thread
@@ -446,7 +556,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
 
                 if (c != null)
                 {
-                    boolean rv = con.putForReal(c);
+                    /* boolean rv = */ con.putForReal(c);
 
                     // rv ignored because handled by putForReal
                 }

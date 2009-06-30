@@ -1,6 +1,6 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.4.
- * Copyright (C) 2007-2008 Jeremy D Monin <jeremy@nand.net>.
+ * Local (StringConnection) network system.  Version 1.0.5.
+ * Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,11 +31,14 @@ import soc.disableDebug.D;
 /**
  * Symmetric buffered connection sending strings between two local peers.
  * Uses vectors and thread synchronization, no actual network traffic.
- *
+ *<P>
  * This class has a run method, but you must start the thread yourself.
  * Constructors will not create or start a thread.
- *
- * @author Jeremy D. Monin <jeremy@nand.net>
+ *<P>
+ * As used within JSettlers, the structure of this class has much in common
+ * with {@link Connection}, as they both implement the {@link StringConnection}
+ * interface.  If you add something to one class (or to StringConnection),
+ * you should probably add it to the other.
  *
  *<PRE>
  *  1.0.0 - 2007-11-18 - initial release
@@ -43,7 +46,14 @@ import soc.disableDebug.D;
  *  1.0.2 - 2008-07-30 - check if s already null in disconnect
  *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion
  *  1.0.4 - 2008-09-04 - add appData
+ *  1.0.5 - 2009-05-31 - add isVersionKnown, setVersion(int,bool), setVersionTracking,
+ *                       isInputAvailable, callback to processFirstCommand,
+ *                       wantsHideTimeoutMessage, setHideTimeoutMessage;
+ *                       common constructor code moved to init().
  *</PRE>
+ *
+ * @author Jeremy D. Monin <jeremy@nand.net>
+ * @version 1.0.5
  */
 public class LocalStringConnection
     implements StringConnection, Runnable
@@ -57,10 +67,13 @@ public class LocalStringConnection
     protected boolean accepted;
     private LocalStringConnection ourPeer;
 
-    protected Server ourServer;  // Optional. Notifies at EOF (calls removeConnection).
+    protected Server ourServer;  // Is set if server-side. Notifies at EOF (calls removeConnection).
     protected Exception error;
     protected Date connectTime;
     protected int  remoteVersion;
+    protected boolean remoteVersionKnown;
+    protected boolean remoteVersionTrack;
+    protected boolean hideTimeoutMessage = false;
 
     /**
      * the arbitrary key data associated with this connection.
@@ -87,13 +100,7 @@ public class LocalStringConnection
     {
         in = new Vector();
         out = new Vector();
-        in_reachedEOF = false;
-        out_setEOF = false;
-        accepted = false;
-        data = null;
-        ourServer = null;
-        error = null;
-        connectTime = new Date();
+        init();
     }
 
     /**
@@ -119,15 +126,27 @@ public class LocalStringConnection
 
         in = peer.out;
         out = peer.in;
+        peer.ourPeer = this;
+        this.ourPeer = peer;
+        init();
+    }
+
+    /**
+     * Constructor common-fields initialization
+     */
+    private void init()
+    {
         in_reachedEOF = false;
         out_setEOF = false;
         accepted = false;
         data = null;
         ourServer = null;
-        peer.ourPeer = this;
-        this.ourPeer = peer;
         error = null;
         connectTime = new Date();
+        appData = null;
+        remoteVersion = 0;
+        remoteVersionKnown = false;
+        remoteVersionTrack = false;
     }
 
     /**
@@ -213,7 +232,10 @@ public class LocalStringConnection
         }
     }
 
-    /** close the socket, discard pending buffered data, set EOF. */
+    /**
+     * close the socket, discard pending buffered data, set EOF.
+     * Called after conn is removed from server structures.
+     */
     public void disconnect()
     {
         if (! accepted)
@@ -383,8 +405,11 @@ public class LocalStringConnection
      *
      * This is anything your application wants to associate with the connection.
      * The StringConnection system uses this data to name the connection,
-     * so once set, it should not change.  After setting, call
-     * {@link Server#nameConnection(StringConnection)}.
+     * so it should not change once set.
+     *<P>
+     * If you call setData after {@link #newConnection1(StringConnection)},
+     * please call {@link Server#nameConnection(StringConnection)} afterwards
+     * to ensure the name is tracked properly at the server.
      *
      * @param data The new key data, or null
      * @see #setAppData(Object)
@@ -421,10 +446,13 @@ public class LocalStringConnection
 
     /**
      * Server-side: Set the generic server for this connection.
-     * If a server is set, its removeConnection method is called if our input reaches EOF.
+     * This is how the code knows it's on the server (not client) side.
+     * If a server is set, its removeConnection method is called if our input reaches EOF,
+     * and it's notified if our version changes.
      * Call this before calling run().
      * 
      * @param srv The new server, or null
+     * @see #setVersionTracking(boolean)
      */
     public void setServer(Server srv)
     {
@@ -489,11 +517,100 @@ public class LocalStringConnection
     /**
      * Set the version number of the remote end of this connection.
      * The meaning of this number is application-defined.
+     *<P>
+     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
+     *  caller should synchronize on {@link Server#unnamedConns}.
+     *
      * @param version Version number, or 0 if unknown.
+     *                If version is greater than 0, future calls to {@link #isVersionKnown()}
+     *                should return true.
      */
     public void setVersion(int version)
     {
+        setVersion(version, version > 0);
+    }
+
+    /**
+     * Set the version number of the remote end of this connection.
+     * The meaning of this number is application-defined.
+     *<P>
+     * <b>Locking:</b> If we're on server side, and {@link #setVersionTracking(boolean)} is true,
+     *  caller should synchronize on {@link Server#unnamedConns}.
+     *
+     * @param version Version number, or 0 if unknown.
+     * @param isKnown Should this version be considered confirmed/known by {@link #isVersionKnown()}?
+     */
+    public void setVersion(int version, boolean isKnown)
+    {
+        final int prevVers = remoteVersion;
         remoteVersion = version;
+        remoteVersionKnown = isKnown;
+        if (remoteVersionTrack && (ourServer != null) && (prevVers != version))
+        {
+            ourServer.clientVersionRem(prevVers);
+            ourServer.clientVersionAdd(version);
+        }
+    }
+
+    /**
+     * Is the version known of the remote end of this connection?
+     * We may have just assumed it, or taken a default.
+     * @return True if we've confirmed the version, false if it's assumed or default.
+     * @since 1.0.5
+     */
+    public boolean isVersionKnown()
+    {
+        return remoteVersionKnown;
+    }
+
+    /**
+     * For server-side use, should we notify the server when our version
+     * is changed by setVersion calls?
+     * @param doTracking true if we should notify server, false otherwise.
+     *        If true, please call both setVersion and
+     *        {@link Server#clientVersionAdd(int)} before calling setVersionTracking.
+     *        If false, please call {@link Server#clientVersionRem(int)} before
+     *        calling setVersionTracking.
+     * @since 1.0.5
+     */
+    public void setVersionTracking(boolean doTracking)
+    {
+        remoteVersionTrack = doTracking;
+    }
+
+    /**
+     * Is input available now, without blocking?
+     * Same idea as {@link java.io.DataInputStream#available()}.
+     * @since 1.0.5
+     */
+    public boolean isInputAvailable()
+    {
+        return (! in_reachedEOF) && (0 < in.size());
+    }
+
+    /**
+     * If client connection times out at server, should the server not print a message to console?
+     * This would be desired, for instance, in automated clients, which would reconnect
+     * if they become disconnected.
+     * @see setHideTimeoutMessage(boolean)
+     * @since 1.0.5
+     */
+    public boolean wantsHideTimeoutMessage()
+    {
+        return hideTimeoutMessage;
+    }
+
+    /**
+     * If client connection times out at server, should the server not print a message to console?
+     * This would be desired, for instance, in automated clients, which would reconnect
+     * if they become disconnected.
+     * @param wantsHide true to hide, false to print, the log message on idle-disconnect
+     * @see wantsHideTimeoutMessage()
+     * @since 1.0.5
+     */
+    public void setHideTimeoutMessage(boolean wantsHide)
+    {
+        hideTimeoutMessage = wantsHide;
     }
 
     /**
@@ -512,6 +629,13 @@ public class LocalStringConnection
 
         try
         {
+            if (! in_reachedEOF)
+            {
+                String firstMsg = readNext();
+                if (! ourServer.processFirstCommand(firstMsg, this))
+                    ourServer.treat(firstMsg, this);
+            }
+
             while (! in_reachedEOF)
             {
                 ourServer.treat(readNext(), this);
