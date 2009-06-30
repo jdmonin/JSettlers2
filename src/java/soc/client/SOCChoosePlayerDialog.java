@@ -21,6 +21,9 @@
  **/
 package soc.client;
 
+import soc.game.SOCGame;
+import soc.game.SOCPlayer;
+
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dialog;
@@ -28,9 +31,6 @@ import java.awt.Font;
 import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import soc.game.SOCGame;
-import soc.game.SOCPlayer;
 
 
 /**

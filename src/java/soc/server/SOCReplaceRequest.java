@@ -21,6 +21,7 @@
 package soc.server;
 
 import soc.message.SOCSitDown;
+
 import soc.server.genericServer.StringConnection;
 
 

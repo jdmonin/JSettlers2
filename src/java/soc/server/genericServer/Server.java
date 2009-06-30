@@ -21,17 +21,19 @@
  **/
 package soc.server.genericServer;
 
+import soc.debug.D; // JM
+
 import java.io.IOException;
 import java.io.Serializable;
+
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-
-import org.apache.log4j.Logger;
 
 
 /** a general purpose server.
@@ -73,9 +75,6 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /** in process of connecting */
     public Vector inQueue = new Vector();
 
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
-
     /** start listening to the given port */
     public Server(int port)
     {
@@ -89,7 +88,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
         catch (IOException e)
         {
-            log.error("Could not listen to port " + port + ": " + e);
+            System.err.println("Could not listen to port " + port + ": " + e);
             error = e;
         }
         
@@ -175,9 +174,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             catch (IOException e)
             {
                 error = e;
-                log.debug("Exception " + e + " during accept");
+                D.ebugPrintln("Exception " + e + " during accept");
 
-                //log.info("STOPPING SERVER");
+                //System.out.println("STOPPING SERVER");
                 //stopServer();
             }
 
@@ -191,7 +190,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             }
             catch (IOException e)
             {
-                log.error("Could not listen to port " + port + ": " + e);
+                System.err.println("Could not listen to port " + port + ": " + e);
                 up = false;
                 error = e;
             }
@@ -201,7 +200,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /** treat a request from the given connection */
     public void treat(String s, StringConnection c)
     {
-        // log.debug("IN got: " + s);
+        // D.ebugPrintln("IN got: " + s);
         synchronized (inQueue)
         {
             inQueue.addElement(new Command(s, c));
@@ -307,7 +306,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         c.disconnect();
         leaveConnection(c);
-        log.debug(c.host() + " left (" + connectionCount() + ")  " + (new Date()).toString() + ((c.getError() != null) ? (": " + c.getError().toString()) : ""));
+        D.ebugPrintln(c.host() + " left (" + connectionCount() + ")  " + (new Date()).toString() + ((c.getError() != null) ? (": " + c.getError().toString()) : ""));
     }
 
     /** do cleanup after a remove connection */
@@ -357,10 +356,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         if (connAccepted)
         {
             numberOfConnections++;
-            log.debug(c.host() + " came (" + connectionCount() + ")  " + (new Date()).toString());
+            D.ebugPrintln(c.host() + " came (" + connectionCount() + ")  " + (new Date()).toString());
             newConnection2(c);
         } else {
-            log.debug(c.host() + " came but rejected (" + connectionCount() + ")  " + (new Date()).toString());
+            D.ebugPrintln(c.host() + " came but rejected (" + connectionCount() + ")  " + (new Date()).toString());
         }
     }
 
@@ -437,14 +436,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             while (svr.isUp())
             {
-                //log.debug("treater server is up");
+                //D.ebugPrintln("treater server is up");
                 Command c = null;
 
                 synchronized (inQueue)
                 {
                     if (inQueue.size() > 0)
                     {
-                        //log.debug("treater getting command");
+                        //D.ebugPrintln("treater getting command");
                         c = (Command) inQueue.elementAt(0);
                         inQueue.removeElementAt(0);
                     }
@@ -459,7 +458,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 }
                 catch (Exception e)
                 {
-                    log.info("Exception in treater (processCommand) - " + e);
+                    System.out.println("Exception in treater (processCommand) - " + e);
                 }
 
                 yield();
@@ -470,7 +469,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     {
                         try
                         {
-                            //log.debug("treater waiting");
+                            //D.ebugPrintln("treater waiting");
                             inQueue.wait(1000);
                         }
                         catch (Exception ex)
@@ -481,7 +480,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 }
             }
 
-            // log.debug("treater returning; server not up");
+            // D.ebugPrintln("treater returning; server not up");
         }
     }
 

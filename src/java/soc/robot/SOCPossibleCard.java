@@ -20,9 +20,9 @@
  **/
 package soc.robot;
 
-import java.util.Vector;
-
 import soc.game.SOCPlayer;
+
+import java.util.Vector;
 
 
 /**
@@ -58,7 +58,7 @@ public class SOCPossibleCard extends SOCPossiblePiece
      */
     public SOCPossibleCard(SOCPossibleCard pc)
     {
-        //log.debug(">>>> Copying possible card: "+pc);
+        //D.ebugPrintln(">>>> Copying possible card: "+pc);
         pieceType = SOCPossiblePiece.CARD;
         player = pc.getPlayer();
         coord = 0;

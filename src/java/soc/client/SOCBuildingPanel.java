@@ -21,6 +21,10 @@
  **/
 package soc.client;
 
+import soc.game.SOCGame;
+import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -30,10 +34,6 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import soc.game.SOCGame;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
 
 
 /**
@@ -343,7 +343,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         
         if (target == ROAD)
         {
-            if ((game.getGameState() == SOCGame.BUILD_PHASE) && (roadBut.getLabel().equals("Buy")))
+            if ((game.getGameState() == SOCGame.PLAY1) && (roadBut.getLabel().equals("Buy")))
             {
                 client.buildRequest(game, SOCPlayingPiece.ROAD);
             }
@@ -354,7 +354,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == STLMT)
         {
-            if ((game.getGameState() == SOCGame.BUILD_PHASE) && (settlementBut.getLabel().equals("Buy")))
+            if ((game.getGameState() == SOCGame.PLAY1) && (settlementBut.getLabel().equals("Buy")))
             {
                 client.buildRequest(game, SOCPlayingPiece.SETTLEMENT);
             }
@@ -365,7 +365,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == CITY)
         {
-            if ((game.getGameState() == SOCGame.BUILD_PHASE) && (cityBut.getLabel().equals("Buy")))
+            if ((game.getGameState() == SOCGame.PLAY1) && (cityBut.getLabel().equals("Buy")))
             {
                 client.buildRequest(game, SOCPlayingPiece.CITY);
             }
@@ -376,7 +376,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == CARD)
         {
-            if ((game.getGameState() == SOCGame.BUILD_PHASE) && (cardBut.getLabel().equals("Buy")))
+            if ((game.getGameState() == SOCGame.PLAY1) && (cardBut.getLabel().equals("Buy")))
             {
                 client.buyDevCard(game);
             }
@@ -395,7 +395,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             int pnum = player.getPlayerNumber();
             boolean isCurrent = (game.getCurrentPlayerNumber() == pnum);
             int gstate = game.getGameState();
-            boolean currentCanBuy = isCurrent && (gstate == SOCGame.BUILD_PHASE);
+            boolean currentCanBuy = isCurrent && (gstate == SOCGame.PLAY1);
 
             if (isCurrent && (gstate == SOCGame.PLACING_ROAD))
             {

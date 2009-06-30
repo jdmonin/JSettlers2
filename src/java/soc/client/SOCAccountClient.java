@@ -20,8 +20,19 @@
  **/
 package soc.client;
 
+import soc.disableDebug.D;
+
+import soc.message.SOCChannels;
+import soc.message.SOCCreateAccount;
+import soc.message.SOCMessage;
+import soc.message.SOCRejectConnection;
+import soc.message.SOCStatusMessage;
+
+import soc.util.Version;
+
 import java.applet.Applet;
 import java.applet.AppletContext;
+
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.CardLayout;
@@ -37,19 +48,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+
 import java.net.Socket;
-
-import org.apache.log4j.Logger;
-
-import soc.message.SOCChannels;
-import soc.message.SOCCreateAccount;
-import soc.message.SOCMessage;
-import soc.message.SOCRejectConnection;
-import soc.message.SOCStatusMessage;
-import soc.util.Version;
 
 
 /**
@@ -65,8 +69,6 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
 {
     private static final String MAIN_PANEL = "main";
     private static final String MESSAGE_PANEL = "message";
-    /** debug logging for static methods */
-    private static Logger staticLog = Logger.getLogger("soc.client.SOCAccountClient");
 
     protected TextField nick;
     protected TextField pass;
@@ -108,9 +110,6 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      * the email address
      */
     protected String emailAddress = null;
-
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * Create a SOCAccountClient connecting to localhost port 8880
@@ -271,7 +270,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         }
         catch (Exception e)
         {
-            log.error("Invalid " + name + ": " + value);
+            System.err.println("Invalid " + name + ": " + value);
         }
         return iValue;
     }
@@ -281,9 +280,9 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      */
     public synchronized void init()
     {
-        log.info("Java Settlers Account Client " + Version.version() +
+        System.out.println("Java Settlers Account Client " + Version.version() +
                            ", " + Version.copyright());
-        log.info("Network layer based on code by Cristian Bogdan.");
+        System.out.println("Network layer based on code by Cristian Bogdan.");
 
         String param = null;
         int intValue;
@@ -298,7 +297,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
 
         initVisualElements(); // after the background is set
 
-        log.info("Getting host...");
+        System.out.println("Getting host...");
         host = getCodeBase().getHost();
         if (host.equals(""))
             host = null;  // localhost
@@ -309,7 +308,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
                 port = Integer.parseInt(param);
         }
         catch (Exception e) {
-            log.error("Invalid port: " + param);
+            System.err.println("Invalid port: " + param);
         }
 
         connect();
@@ -328,7 +327,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             throw new IllegalStateException("Already connected to " +
                                             hostString);
         }
-        log.info("Connecting to " + hostString);
+        System.out.println("Connecting to " + hostString);
         messageLabel.setText("Connecting to server...");
 
         try
@@ -343,7 +342,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         {
             ex = e;
             String msg = "Could not connect to the server: " + ex;
-            log.error(msg);
+            System.err.println(msg);
             messageLabel.setText(msg);
         }
     }
@@ -438,7 +437,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             if (connected)
             {
                 ex = e;
-                log.info("could not read from the net: " + ex);
+                System.out.println("could not read from the net: " + ex);
                 destroy();
             }
         }
@@ -452,7 +451,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      */
     public synchronized boolean put(String s)
     {
-        log.debug("OUT - " + s);
+        D.ebugPrintln("OUT - " + s);
 
         if ((ex != null) || !connected)
         {
@@ -466,7 +465,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         catch (IOException e)
         {
             ex = e;
-            log.error("could not write to the net: " + ex);
+            System.err.println("could not write to the net: " + ex);
             destroy();
 
             return false;
@@ -485,7 +484,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         if (mes == null)
             return;  // Msg parsing error
 
-        log.debug(mes.toString());
+        D.ebugPrintln(mes.toString());
 
         try
         {
@@ -518,7 +517,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         }
         catch (Exception e)
         {
-            log.info("SOCAccountClient treat ERROR - " + e.getMessage());
+            System.out.println("SOCAccountClient treat ERROR - " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -604,7 +603,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      */
     public static void usage()
     {
-        staticLog.error("usage: java soc.client.SOCAccountClient <host> <port>");
+        System.err.println("usage: java soc.client.SOCAccountClient <host> <port>");
     }
 
     /**
@@ -625,7 +624,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             client.port = Integer.parseInt(args[1]);
         } catch (NumberFormatException x) {
             usage();
-            staticLog.error("Invalid port: " + args[1]);
+            System.err.println("Invalid port: " + args[1]);
             System.exit(1);
         }
 

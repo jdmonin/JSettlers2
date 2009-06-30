@@ -20,11 +20,11 @@
  **/
 package soc.message;
 
+import soc.server.genericServer.StringConnection;
+
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
-
-import soc.server.genericServer.StringConnection;
 
 
 /**
@@ -32,13 +32,12 @@ import soc.server.genericServer.StringConnection;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCGameMembers extends SOCMessage
 {
     /**
      * List of members
      */
-    private Vector<String> members;
+    private Vector members;
 
     /**
      * Name of game
@@ -51,7 +50,7 @@ public class SOCGameMembers extends SOCMessage
      * @param ga  name of game
      * @param ml  list of members
      */
-    public SOCGameMembers(String ga, Vector<String> ml)
+    public SOCGameMembers(String ga, Vector ml)
     {
         messageType = GAMEMEMBERS;
         members = ml;
@@ -61,7 +60,7 @@ public class SOCGameMembers extends SOCMessage
     /**
      * @return the list of members
      */
-    public Vector<String> getMembers()
+    public Vector getMembers()
     {
         return members;
     }
@@ -91,14 +90,13 @@ public class SOCGameMembers extends SOCMessage
      * @param ml  the list of members
      * @return    the command string
      */
-    public static String toCmd(String ga, Vector<String> ml)
+    public static String toCmd(String ga, Vector ml)
     {
         String cmd = GAMEMEMBERS + sep + ga;
 
         try
         {
-            //TODO I'm not sure what this string connection is doing but I think we should change it to just a string and use the generics.
-        	Enumeration mlEnum = ml.elements();
+            Enumeration mlEnum = ml.elements();
 
             while (mlEnum.hasMoreElements())
             {
@@ -120,7 +118,7 @@ public class SOCGameMembers extends SOCMessage
     public static SOCGameMembers parseDataStr(String s)
     {
         String ga;
-        Vector<String> ml = new Vector<String>();
+        Vector ml = new Vector();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -149,12 +147,12 @@ public class SOCGameMembers extends SOCMessage
 
         try
         {
-            Enumeration<String> mlEnum = members.elements();
-            s += mlEnum.nextElement();
+            Enumeration mlEnum = members.elements();
+            s += (String) mlEnum.nextElement();
 
             while (mlEnum.hasMoreElements())
             {
-                s += ("," + mlEnum.nextElement());
+                s += ("," + (String) mlEnum.nextElement());
             }
         }
         catch (Exception e) {}

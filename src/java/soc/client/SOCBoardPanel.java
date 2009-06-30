@@ -21,6 +21,14 @@
  **/
 package soc.client;
 
+import soc.game.SOCBoard;
+import soc.game.SOCCity;
+import soc.game.SOCGame;
+import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+import soc.game.SOCRoad;
+import soc.game.SOCSettlement;
+
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
@@ -36,18 +44,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+
 import java.util.Enumeration;
 import java.util.Timer;
-
-import org.apache.log4j.Logger;
-
-import soc.game.SOCBoard;
-import soc.game.SOCCity;
-import soc.game.SOCGame;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
-import soc.game.SOCRoad;
-import soc.game.SOCSettlement;
 
 
 /**
@@ -68,9 +67,6 @@ import soc.game.SOCSettlement;
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
     private static String IMAGEDIR = "/soc/client/images";
-
-    /** debug logging */
-    private static Logger staticLog = Logger.getLogger("soc.client.SOCBoardPanel");
 
     /**
      * size of the whole panel, internal-pixels "scale";
@@ -445,9 +441,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *  @see #drawRobber(Graphics, int, boolean)
      */
     protected Color[] robberGhostFill, robberGhostOutline;
-    
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * create a new board panel in an applet
@@ -614,7 +607,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             default:
-                log.info("initEdgeMap error");
+                System.out.println("initEdgeMap error");
 
                 return;
             }
@@ -665,7 +658,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     break;
 
                 default:
-                    log.info("initEdgeMap error");
+                    System.out.println("initEdgeMap error");
 
                     return;
                 }
@@ -746,7 +739,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             default:
-                log.info("initNodeMap error");
+                System.out.println("initNodeMap error");
 
                 return;
             }
@@ -827,7 +820,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     break;
 
                 default:
-                    log.info("initNodeMap error");
+                    System.out.println("initNodeMap error");
 
                     return;
                 }
@@ -1475,7 +1468,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hy = scaleToActualY(hy);
         }
 
-        // log.info("NODEID = "+Integer.toHexString(nodeNum)+" | HEXNUM = "+hexNum);
+        // System.out.println("NODEID = "+Integer.toHexString(nodeNum)+" | HEXNUM = "+hexNum);
         if (isHilight)
             g.setColor(playerInterface.getPlayerColor(pn, true));
         else
@@ -1610,7 +1603,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw Dice result number
          */
-        if ((diceResult >= 2) && (game.getGameState() != SOCGame.ROLL_OR_SOLDIER))
+        if ((diceResult >= 2) && (game.getGameState() != SOCGame.PLAY))
         {
             if (isScaled)
             {
@@ -1929,7 +1922,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     break;
 
-                case SOCGame.ROLL_OR_SOLDIER:
+                case SOCGame.PLAY:
                     mode = TURN_STARTING;
 
                     break;
@@ -2651,7 +2644,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         //int sector = (x / 18) + ((y / 10) * 15);
         int sector = (x / 27) + ((y / 15) * 15);
 
-        // log.info("SECTOR = "+sector+" | EDGE = "+edgeMap[sector]);
+        // System.out.println("SECTOR = "+sector+" | EDGE = "+edgeMap[sector]);
         if ((sector >= 0) && (sector < edgeMap.length))
             return edgeMap[sector];
         else
@@ -2673,7 +2666,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         //int sector = ((x + 9) / 18) + (((y + 5) / 10) * 15);
         int sector = ((x + 13) / 27) + (((y + 7) / 15) * 15);
 
-        // log.info("SECTOR = "+sector+" | NODE = "+nodeMap[sector]);
+        // System.out.println("SECTOR = "+sector+" | NODE = "+nodeMap[sector]);
         if ((sector >= 0) && (sector < nodeMap.length))
             return nodeMap[sector];
         else
@@ -2695,7 +2688,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         //int sector = (x / 18) + ((y / 10) * 15);
         int sector = (x / 27) + ((y / 15) * 15);
 
-        // log.info("SECTOR = "+sector+" | HEX = "+hexMap[sector]);
+        // System.out.println("SECTOR = "+sector+" | HEX = "+hexMap[sector]);
         if ((sector >= 0) && (sector < hexMap.length))
             return hexMap[sector];
         else
@@ -2799,7 +2792,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (tracker.isErrorID(0))
             {
-                staticLog.info("Error loading board images");
+                System.out.println("Error loading board images");
             }
         }
     }
@@ -3507,7 +3500,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   break;
               
               default:
-                  if (gs < SOCGame.BUILD_PHASE)
+                  if (gs < SOCGame.PLAY1)
                       menuPlayerIsCurrent = false;  // Not in a state to place items
               }
           }
@@ -3762,7 +3755,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 int numNeeded = tradeFromTypes[i].getResourceCost(); 
                 tradeFromTypes[i].setEnabledIfCanTrade(itemsOnly);
                 tradeFromTypes[i].setEnabledIfCanTrade
-                    ((gs == SOCGame.BUILD_PHASE)
+                    ((gs == SOCGame.PLAY1)
                      && (numNeeded <= hpan.getPlayer().getResources().getAmount(i+1)));                    
             }
         }

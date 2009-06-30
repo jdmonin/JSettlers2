@@ -20,7 +20,7 @@
  **/
 package soc.game;
 
-import org.apache.log4j.Logger;
+import soc.disableDebug.D;
 
 
 /***
@@ -33,9 +33,6 @@ public class SOCOldLRStats
     int[] lrLengths;
     SOCPlayer playerWithLR;
 
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
-
     /**
      * constructor
      *
@@ -43,24 +40,24 @@ public class SOCOldLRStats
      */
     public SOCOldLRStats(SOCGame ga)
     {
-        log.debug("&&&& SOCOldLRStats constructor");
+        D.ebugPrintln("&&&& SOCOldLRStats constructor");
         lrLengths = new int[SOCGame.MAXPLAYERS];
 
         for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
         {
             lrLengths[i] = ga.getPlayer(i).getLongestRoadLength();
-            log.debug("&&& lrLengths[" + i + "] = " + lrLengths[i]);
+            D.ebugPrintln("&&& lrLengths[" + i + "] = " + lrLengths[i]);
         }
 
         playerWithLR = ga.getPlayerWithLongestRoad();
 
         if (playerWithLR == null)
         {
-            log.debug("&&& playerWithLR = -1");
+            D.ebugPrintln("&&& playerWithLR = -1");
         }
         else
         {
-            log.debug("&&& playerWithLR = " + playerWithLR.getPlayerNumber());
+            D.ebugPrintln("&&& playerWithLR = " + playerWithLR.getPlayerNumber());
         }
     }
 
@@ -71,23 +68,23 @@ public class SOCOldLRStats
      */
     public void restoreOldStats(SOCGame ga)
     {
-        log.debug("&&&& restoreOldStats");
+        D.ebugPrintln("&&&& restoreOldStats");
 
         for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
         {
             ga.getPlayer(i).setLongestRoadLength(lrLengths[i]);
-            log.debug("&&& lrLengths[" + i + "] = " + lrLengths[i]);
+            D.ebugPrintln("&&& lrLengths[" + i + "] = " + lrLengths[i]);
         }
 
         ga.setPlayerWithLongestRoad(playerWithLR);
 
         if (playerWithLR == null)
         {
-            log.debug("&&& playerWithLR = -1");
+            D.ebugPrintln("&&& playerWithLR = -1");
         }
         else
         {
-            log.debug("&&& playerWithLR = " + playerWithLR.getPlayerNumber());
+            D.ebugPrintln("&&& playerWithLR = " + playerWithLR.getPlayerNumber());
         }
     }
 }

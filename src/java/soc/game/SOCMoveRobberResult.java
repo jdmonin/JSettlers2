@@ -31,7 +31,7 @@ import java.util.Vector;
 public class SOCMoveRobberResult
 {
     /** Victim, or possible victims, or empty or null; content type {@link SOCPlayer} */ 
-    Vector<SOCPlayer> victims;
+    Vector victims;
     /** Resource type of loot stolen, as in {@link SOCResourceConstants}, or -1 */
     int loot;
 
@@ -49,7 +49,7 @@ public class SOCMoveRobberResult
      *
      * @param v Victim or possible victims, may be empty or null; Vector of {@link SOCPlayer}
      */
-    public void setVictims(Vector<SOCPlayer> v)
+    public void setVictims(Vector v)
     {
         victims = v;
     }
@@ -59,7 +59,7 @@ public class SOCMoveRobberResult
      *
      * @return Victim or possible victims, may be empty or null; Vector of {@link SOCPlayer}
      */
-    public Vector<SOCPlayer> getVictims()
+    public Vector getVictims()
     {
         return victims;
     }

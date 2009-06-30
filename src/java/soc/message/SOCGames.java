@@ -24,31 +24,25 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
-
 
 /**
  * This message lists all the soc games on a server
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCGames extends SOCMessage
 {
-	/** static method debug logging */
-    private static Logger staticLog = Logger.getLogger("soc.message.SOCGames");
-    
     /**
      * List of games
      */
-    private Vector<String> games;
+    private Vector games;
 
     /**
      * Create a Games Message.
      *
      * @param ga  list of games
      */
-    public SOCGames(Vector<String> ga)
+    public SOCGames(Vector ga)
     {
         messageType = GAMES;
         games = ga;
@@ -57,7 +51,7 @@ public class SOCGames extends SOCMessage
     /**
      * @return the list of games
      */
-    public Vector<String> getGames()
+    public Vector getGames()
     {
         return games;
     }
@@ -78,18 +72,18 @@ public class SOCGames extends SOCMessage
      * @param ga  the list of games
      * @return    the command string
      */
-    public static String toCmd(Vector<String> ga)
+    public static String toCmd(Vector ga)
     {
         String cmd = GAMES + sep;
 
         try
         {
-            Enumeration<String> gaEnum = ga.elements();
-            cmd += gaEnum.nextElement();
+            Enumeration gaEnum = ga.elements();
+            cmd += (String) gaEnum.nextElement();
 
             while (gaEnum.hasMoreElements())
             {
-                cmd += (sep2 + gaEnum.nextElement());
+                cmd += (sep2 + (String) gaEnum.nextElement());
             }
         }
         catch (Exception e) {}
@@ -105,7 +99,7 @@ public class SOCGames extends SOCMessage
      */
     public static SOCGames parseDataStr(String s)
     {
-        Vector<String> ga = new Vector<String>();
+        Vector ga = new Vector();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -117,12 +111,12 @@ public class SOCGames extends SOCMessage
         }
         catch (Exception e)
         {
-        	staticLog.error("SOCGames parseDataStr ERROR - " + e);
+            System.err.println("SOCGames parseDataStr ERROR - " + e);
 
             return null;
         }
 
-        return new SOCGames((Vector<String>) ga);
+        return new SOCGames((Vector) ga);
     }
 
     /**
@@ -134,12 +128,12 @@ public class SOCGames extends SOCMessage
 
         try
         {
-            Enumeration<String> gaEnum = games.elements();
-            s += gaEnum.nextElement();
+            Enumeration gaEnum = games.elements();
+            s += (String) gaEnum.nextElement();
 
             while (gaEnum.hasMoreElements())
             {
-                s += ("," + gaEnum.nextElement());
+                s += ("," + (String) gaEnum.nextElement());
             }
         }
         catch (Exception e) {}

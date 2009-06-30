@@ -26,7 +26,6 @@ import java.util.Vector;
 /**
  * A city playing piece
  */
-@SuppressWarnings("serial")
 public class SOCCity extends SOCPlayingPiece
 {
     /**
@@ -45,7 +44,7 @@ public class SOCCity extends SOCPlayingPiece
     /**
      * @return the hexes touching this city
      */
-    public Vector<Integer> getAdjacentHexes()
+    public Vector getAdjacentHexes()
     {
         return SOCBoard.getAdjacentHexesToNode(coord);
     }
@@ -53,7 +52,7 @@ public class SOCCity extends SOCPlayingPiece
     /**
      * @return edges touching this city
      */
-    public Vector<Integer> getAdjacentEdges()
+    public Vector getAdjacentEdges()
     {
         return SOCBoard.getAdjacentEdgesToNode(coord);
     }

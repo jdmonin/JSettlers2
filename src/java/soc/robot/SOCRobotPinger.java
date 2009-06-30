@@ -21,6 +21,7 @@
 package soc.robot;
 
 import soc.message.SOCGameTextMsg;
+
 import soc.util.CappedQueue;
 import soc.util.CutoffExceededException;
 

@@ -20,9 +20,9 @@
  **/
 package soc.robot;
 
-import java.util.Vector;
-
 import soc.game.SOCPlayer;
+
+import java.util.Vector;
 
 
 /**
@@ -72,7 +72,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
      */
     public SOCPossibleRoad(SOCPossibleRoad pr)
     {
-        //log.debug(">>>> Copying possible road: "+pr);
+        //D.ebugPrintln(">>>> Copying possible road: "+pr);
         pieceType = SOCPossiblePiece.ROAD;
         player = pr.getPlayer();
         coord = pr.getCoordinates();

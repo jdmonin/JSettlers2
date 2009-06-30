@@ -30,7 +30,6 @@ import java.util.Vector;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCPotentialSettlements extends SOCMessage
 {
     /**
@@ -46,7 +45,7 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * List of potential settlements
      */
-    private Vector<Integer> psList;
+    private Vector psList;
 
     /**
      * Create a SOCPotentialSettlements message.
@@ -55,7 +54,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * @param pn  the player number
      * @param ps  the list of potential settlements
      */
-    public SOCPotentialSettlements(String ga, int pn, Vector<Integer> ps)
+    public SOCPotentialSettlements(String ga, int pn, Vector ps)
     {
         messageType = POTENTIALSETTLEMENTS;
         game = ga;
@@ -82,7 +81,7 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * @return the list of potential settlements
      */
-    public Vector<Integer> getPotentialSettlements()
+    public Vector getPotentialSettlements()
     {
         return psList;
     }
@@ -105,14 +104,14 @@ public class SOCPotentialSettlements extends SOCMessage
      * @param ps  the list of potential settlements
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn, Vector<Integer> ps)
+    public static String toCmd(String ga, int pn, Vector ps)
     {
         String cmd = POTENTIALSETTLEMENTS + sep + ga + sep2 + pn;
-        Enumeration<Integer> senum = ps.elements();
+        Enumeration senum = ps.elements();
 
         while (senum.hasMoreElements())
         {
-            Integer number = senum.nextElement();
+            Integer number = (Integer) senum.nextElement();
             cmd += (sep2 + number);
         }
 
@@ -129,7 +128,7 @@ public class SOCPotentialSettlements extends SOCMessage
     {
         String ga;
         int pn;
-        Vector<Integer> ps = new Vector<Integer>();
+        Vector ps = new Vector();
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -157,11 +156,11 @@ public class SOCPotentialSettlements extends SOCMessage
     public String toString()
     {
         String s = "SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=";
-        Enumeration<Integer> senum = psList.elements();
+        Enumeration senum = psList.elements();
 
         while (senum.hasMoreElements())
         {
-            Integer number = senum.nextElement();
+            Integer number = (Integer) senum.nextElement();
             s += (Integer.toHexString(number.intValue()) + " ");
         }
 

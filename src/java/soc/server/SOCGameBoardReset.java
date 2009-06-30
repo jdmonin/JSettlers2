@@ -23,8 +23,7 @@ package soc.server;
 import java.util.Enumeration;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
-
+import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.server.genericServer.StringConnection;
@@ -40,9 +39,6 @@ import soc.server.genericServer.StringConnection;
  */
 public class SOCGameBoardReset
 {
-    /** debug logging */
-    private transient static Logger staticLog = Logger.getLogger(SOCGameBoardReset.class.getName());
-
     /** The new game, created from an old game by {@link soc.game.SOCGame#resetAsCopy()} */ 
     public SOCGame newGame;
 
@@ -166,7 +162,7 @@ public class SOCGameBoardReset
                         robotConns[pn] = pCon;
                     else
                         // should not happen
-                        staticLog.debug("findPlayerConnections assert failed: human player not copied: " + pn);
+                        D.ebugPrintln("findPlayerConnections assert failed: human player not copied: " + pn);
                 }
             }
         }
@@ -177,13 +173,13 @@ public class SOCGameBoardReset
             if (! newGame.isSeatVacant(pn))
             {
                 if ((humanConns[pn] == null) && (robotConns[pn] == null))
-                    staticLog.debug("findPlayerConnections assert failed: did not find player " + pn);
+                    D.ebugPrintln("findPlayerConnections assert failed: did not find player " + pn);
             }
             else
             {
                 if ((humanConns[pn] != null) ||
                     ((robotConns[pn] != null) && ((oldGame == null) || oldGame.isSeatVacant(pn))))
-                    staticLog.debug("findPlayerConnections assert failed: memberlist had vacant player " + pn);
+                    D.ebugPrintln("findPlayerConnections assert failed: memberlist had vacant player " + pn);
             }
         }
 

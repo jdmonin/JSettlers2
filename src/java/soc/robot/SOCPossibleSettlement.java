@@ -20,10 +20,10 @@
  **/
 package soc.robot;
 
+import soc.game.SOCPlayer;
+
 import java.util.Stack;
 import java.util.Vector;
-
-import soc.game.SOCPlayer;
 
 
 /**
@@ -34,8 +34,8 @@ import soc.game.SOCPlayer;
  */
 public class SOCPossibleSettlement extends SOCPossiblePiece
 {
-    protected Vector<SOCPossibleRoad> necessaryRoads;
-    protected Vector<SOCPossibleSettlement> conflicts;
+    protected Vector necessaryRoads;
+    protected Vector conflicts;
     protected int[] speedup = { 0, 0, 0, 0 };
     protected int numberOfNecessaryRoads;
     protected Stack roadPath;
@@ -47,7 +47,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      * @param co  coordinates;
      * @param nr  necessaryRoads;
      */
-    public SOCPossibleSettlement(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
+    public SOCPossibleSettlement(SOCPlayer pl, int co, Vector nr)
     {
         pieceType = SOCPossiblePiece.SETTLEMENT;
         player = pl;
@@ -56,7 +56,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
         eta = 0;
         threats = new Vector();
         biggestThreats = new Vector();
-        conflicts = new Vector<SOCPossibleSettlement>();
+        conflicts = new Vector();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
         numberOfNecessaryRoads = -1;
@@ -74,15 +74,15 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      */
     public SOCPossibleSettlement(SOCPossibleSettlement ps)
     {
-        //log.debug(">>>> Copying possible settlement: "+ps);
+        //D.ebugPrintln(">>>> Copying possible settlement: "+ps);
         pieceType = SOCPossiblePiece.SETTLEMENT;
         player = ps.getPlayer();
         coord = ps.getCoordinates();
-        necessaryRoads = new Vector<SOCPossibleRoad>(ps.getNecessaryRoads().size());
+        necessaryRoads = new Vector(ps.getNecessaryRoads().size());
         eta = ps.getETA();
         threats = new Vector();
         biggestThreats = new Vector();
-        conflicts = new Vector<SOCPossibleSettlement>(ps.getConflicts().size());
+        conflicts = new Vector(ps.getConflicts().size());
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
 
@@ -126,7 +126,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     /**
      * @return the list of necessary roads
      */
-    public Vector<SOCPossibleRoad> getNecessaryRoads()
+    public Vector getNecessaryRoads()
     {
         return necessaryRoads;
     }
@@ -155,16 +155,16 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     public void updateSpeedup()
     {
         /*
-           log.debug("****************************** (SETTLEMENT) updateSpeedup at "+Integer.toHexString(coord));
-           log.debug("SOCPN:"+player.getNumbers());
+           D.ebugPrintln("****************************** (SETTLEMENT) updateSpeedup at "+Integer.toHexString(coord));
+           D.ebugPrintln("SOCPN:"+player.getNumbers());
            D.ebugPrint("PFLAGS:");
            boolean portFlags[] = player.getPortFlags();
-           if (log.isDebugEnabled()) {
+           if (D.ebugOn) {
              for (int port = SOCBoard.MISC_PORT; port <= SOCBoard.WOOD_PORT; port++) {
                D.ebugPrint(portFlags[port]+",");
              }
            }
-           log.debug();
+           D.ebugPrintln();
            SOCBuildingSpeedEstimate bse1 = new SOCBuildingSpeedEstimate(player.getNumbers());
            int ourBuildingSpeed[] = bse1.getEstimatesFromNothingFast(player.getPortFlags());
            //
@@ -172,8 +172,8 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
            //
            SOCPlayerNumbers newNumbers = new SOCPlayerNumbers(player.getNumbers());
            newNumbers.updateNumbers(coord, player.getGame().getBoard());
-           log.debug("----- new numbers and ports -----");
-           log.debug("SOCPN:"+newNumbers);
+           D.ebugPrintln("----- new numbers and ports -----");
+           D.ebugPrintln("SOCPN:"+newNumbers);
            D.ebugPrint("PFLAGS:");
            //
            //  get new ports
@@ -187,13 +187,13 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
              }
              D.ebugPrint(portFlags[port]+",");
            }
-           log.debug();
+           D.ebugPrintln();
            SOCBuildingSpeedEstimate bse2 = new SOCBuildingSpeedEstimate(newNumbers);
            int speed[] = bse2.getEstimatesFromNothingFast(newPortFlags);
            for (int buildingType = SOCBuildingSpeedEstimate.MIN;
                 buildingType < SOCBuildingSpeedEstimate.MAXPLUSONE;
                 buildingType++) {
-             log.debug("!@#$% ourBuildingSpeed["+buildingType+"]="+ourBuildingSpeed[buildingType]+" speed["+buildingType+"]="+speed[buildingType]);
+             D.ebugPrintln("!@#$% ourBuildingSpeed["+buildingType+"]="+ourBuildingSpeed[buildingType]+" speed["+buildingType+"]="+speed[buildingType]);
              speedup[buildingType] = ourBuildingSpeed[buildingType] - speed[buildingType];
            }
          */
@@ -202,7 +202,7 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     /**
      * @return the list of conflicting settlements
      */
-    public Vector<SOCPossibleSettlement> getConflicts()
+    public Vector getConflicts()
     {
         return conflicts;
     }

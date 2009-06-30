@@ -20,9 +20,9 @@
  **/
 package soc.robot;
 
-import java.util.Vector;
-
 import soc.game.SOCResourceSet;
+
+import java.util.Vector;
 
 
 /**
@@ -38,7 +38,7 @@ public class SOCTradeTree
 {
     SOCResourceSet resourceSet;
     SOCTradeTree parent;
-    Vector<SOCTradeTree> children;
+    Vector children;
     boolean needsToBeExpanded;
 
     /**
@@ -51,7 +51,7 @@ public class SOCTradeTree
     {
         resourceSet = set;
         needsToBeExpanded = true;
-        children = new Vector<SOCTradeTree>();
+        children = new Vector();
 
         if (par != null)
         {
@@ -73,7 +73,7 @@ public class SOCTradeTree
         resourceSet = set;
         parent = null;
         needsToBeExpanded = false;
-        children = new Vector<SOCTradeTree>();
+        children = new Vector();
     }
 
     /**
@@ -103,7 +103,7 @@ public class SOCTradeTree
     /**
      * @return the list of children
      */
-    public Vector<SOCTradeTree> getChildren()
+    public Vector getChildren()
     {
         return children;
     }

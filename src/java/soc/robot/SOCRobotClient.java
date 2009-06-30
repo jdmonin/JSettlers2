@@ -21,19 +21,14 @@
  **/
 package soc.robot;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.Socket;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
-
-import org.apache.log4j.Logger;
-
 import soc.client.SOCDisplaylessPlayerClient;
+
+import soc.disableDebug.D;
+
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+
 import soc.message.SOCAcceptOffer;
 import soc.message.SOCAdminPing;
 import soc.message.SOCAdminReset;
@@ -80,12 +75,22 @@ import soc.message.SOCStatusMessage;
 import soc.message.SOCTurn;
 import soc.message.SOCUpdateRobotParams;
 import soc.message.SOCVersion;
-import soc.server.SOCGameBoardReset;
+
 import soc.server.genericServer.LocalStringServerSocket;
+
 import soc.util.CappedQueue;
 import soc.util.CutoffExceededException;
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
+import java.net.Socket;
+
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
 
 /**
@@ -101,9 +106,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     public static final String CURRENT_PLANS = "CURRENT_PLANS";
     public static final String CURRENT_RESOURCES = "RESOURCES";
 
-    /** static method debug logging */
-    private static Logger staticLog = Logger.getLogger("soc.robot.SOCRobotClient");
-    
     /**
      * the thread the reads incomming messages
      */
@@ -158,9 +160,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * used to maintain connection
      */
     SOCRobotResetThread resetThread;
-
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * Constructor for connecting to the specified host, on the specified port
@@ -227,7 +226,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         catch (Exception e)
         {
             ex = e;
-            log.error("Could not connect to the server: " + ex);
+            System.err.println("Could not connect to the server: " + ex);
         }
     }
 
@@ -237,7 +236,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     public void disconnectReconnect()
     {
-        log.debug("(*)(*)(*)(*)(*)(*)(*) disconnectReconnect()");
+        D.ebugPrintln("(*)(*)(*)(*)(*)(*)(*) disconnectReconnect()");
         ex = null;
 
         try
@@ -267,7 +266,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         catch (Exception e)
         {
             ex = e;
-            log.error("disconnectReconnect error: " + ex);
+            System.err.println("disconnectReconnect error: " + ex);
         }
     }
 
@@ -282,7 +281,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         if (mes == null)
             return;  // Message syntax error or unknown type
 
-        log.debug("IN - " + mes);
+        D.ebugPrintln("IN - " + mes);
 
         try
         {
@@ -604,15 +603,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         }
         catch (Throwable e)
         {
-            log.error("SOCRobotClient treat ERROR - " + e + " " + e.getMessage());
+            System.err.println("SOCRobotClient treat ERROR - " + e + " " + e.getMessage());
             e.printStackTrace();
             while (e.getCause() != null)
             {
                 e = e.getCause();
-                log.error(" -> nested: " + e.getClass());
+                System.err.println(" -> nested: " + e.getClass());
                 e.printStackTrace();
             }
-            log.error("-- end stacktrace --");
+            System.err.println("-- end stacktrace --");
         }
     }
 
@@ -623,9 +622,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleSERVERPING(SOCServerPing mes)
     {
         /*
-           log.debug("(*)(*) ServerPing message = "+mes);
-           log.debug("(*)(*) ServerPing sleepTime = "+mes.getSleepTime());
-           log.debug("(*)(*) resetThread = "+resetThread);
+           D.ebugPrintln("(*)(*) ServerPing message = "+mes);
+           D.ebugPrintln("(*)(*) ServerPing sleepTime = "+mes.getSleepTime());
+           D.ebugPrintln("(*)(*) resetThread = "+resetThread);
            resetThread.sleepMore();
          */
     }
@@ -636,7 +635,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleADMINPING(SOCAdminPing mes)
     {
-        log.debug("*** Admin Ping message = " + mes);
+        D.ebugPrintln("*** Admin Ping message = " + mes);
 
         SOCGame ga = (SOCGame) games.get(mes.getGame());
 
@@ -665,7 +664,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleADMINRESET(SOCAdminReset mes)
     {
-        log.debug("*** Admin Reset message = " + mes);
+        D.ebugPrintln("*** Admin Reset message = " + mes);
         disconnectReconnect();
     }
 
@@ -676,7 +675,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleUPDATEROBOTPARAMS(SOCUpdateRobotParams mes)
     {
         currentRobotParameters = new SOCRobotParameters(mes.getRobotParameters());
-        log.debug("*** current robot parameters = " + currentRobotParameters);
+        D.ebugPrintln("*** current robot parameters = " + currentRobotParameters);
     }
 
     /**
@@ -688,12 +687,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleJOINGAMEREQUEST(SOCJoinGameRequest mes)
     {
-        log.debug("**** handleJOINGAMEREQUEST ****");
+        D.ebugPrintln("**** handleJOINGAMEREQUEST ****");
         seatRequests.put(mes.getGame(), new Integer(mes.getPlayerNumber()));
 
         if (put(SOCJoinGame.toCmd(nickname, password, host, mes.getGame())))
         {
-            log.debug("**** sent SOCJoinGame ****");
+            D.ebugPrintln("**** sent SOCJoinGame ****");
         }
     }
 
@@ -703,7 +702,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
-        log.error("Robot " + getNickname() + ": Status from server: " + mes.getStatus());
+        System.err.println("Robot " + getNickname() + ": Status from server: " + mes.getStatus());
     }
 
     /**
@@ -765,7 +764,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
-        //log.debug(mes.getNickname()+": "+mes.getText());
+        //D.ebugPrintln(mes.getNickname()+": "+mes.getText());
         if (mes.getText().startsWith(nickname + ":debug-off"))
         {
             SOCGame ga = (SOCGame) games.get(mes.getGame());
@@ -1040,7 +1039,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1185,7 +1184,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 }
                 catch (CutoffExceededException exc)
                 {
-                    log.debug("CutoffExceededException" + exc);
+                    D.ebugPrintln("CutoffExceededException" + exc);
                 }
             }
         }
@@ -1207,7 +1206,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1228,7 +1227,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1249,7 +1248,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1270,7 +1269,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1291,7 +1290,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1312,7 +1311,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1333,7 +1332,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
 
             SOCGame ga = (SOCGame) games.get(mes.getGame());
@@ -1384,7 +1383,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1405,7 +1404,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1426,7 +1425,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1447,7 +1446,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1468,7 +1467,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1489,7 +1488,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1510,7 +1509,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1531,7 +1530,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1558,7 +1557,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1579,7 +1578,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1600,7 +1599,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1622,7 +1621,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
 
             /**
@@ -1654,7 +1653,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
             catch (CutoffExceededException exc)
             {
-                log.debug("CutoffExceededException" + exc);
+                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
@@ -1731,7 +1730,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
-        log.debug("**** handleRESETBOARDAUTH ****");
+        D.ebugPrintln("**** handleRESETBOARDAUTH ****");
 
         String gname = mes.getGame();
         SOCGame ga = (SOCGame) games.get(gname);
@@ -1753,7 +1752,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         if (put(SOCJoinGame.toCmd(nickname, password, host, gname)))
         {
-            log.debug("**** sent SOCJoinGame ****");
+            D.ebugPrintln("**** sent SOCJoinGame ****");
         }
     }
 
@@ -1807,7 +1806,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         put(leaveAllMes.toCmd());
         disconnectReconnect();
         if (ex != null)
-            log.error("Reconnect to server failed: " + ex);
+            System.err.println("Reconnect to server failed: " + ex);
     }
 
     /**
@@ -1817,7 +1816,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     {
 		if (args.length < 4)
 		{
-			staticLog.error("usage: java soc.robot.SOCRobotClient host port_number userid password");
+			System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
 
 			return;
 		}

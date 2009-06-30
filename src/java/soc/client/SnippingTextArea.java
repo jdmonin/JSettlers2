@@ -188,7 +188,7 @@ public class SnippingTextArea extends TextArea
      */
     public void snipText()
     {
-        // //log.debug("LINES = "+lines);
+        // //D.ebugPrintln("LINES = "+lines);
         while (lines > maximumLines)
         {
             String s = getText();

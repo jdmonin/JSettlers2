@@ -20,9 +20,9 @@
  **/
 package soc.message;
 
-import java.util.StringTokenizer;
-
 import soc.game.SOCGame;
+
+import java.util.StringTokenizer;
 
 
 /**
@@ -32,7 +32,6 @@ import soc.game.SOCGame;
  *
  * @author Robert S. Thomas
  */
-@SuppressWarnings("serial")
 public class SOCGameStats extends SOCMessage
 {
     /**

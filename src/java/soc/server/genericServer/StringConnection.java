@@ -1,5 +1,5 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.5.
+ * Local (StringConnection) network system.  Version 1.0.4.
  * Copyright (C) 2007-2008 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
@@ -20,6 +20,7 @@
  **/
 package soc.server.genericServer;
 
+import java.io.EOFException;
 import java.util.Date;
 
 /**
@@ -34,7 +35,6 @@ import java.util.Date;
  *  1.0.2 - 2008-07-30 - no change in this file
  *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion
  *  1.0.4 - 2008-09-04 - add appData
- *  1.0.5 - 2008-09-13 - cosmetic: remove unused import
  *</PRE>
  */
 public interface StringConnection

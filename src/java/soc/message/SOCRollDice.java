@@ -27,7 +27,6 @@ package soc.message;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCRollDice extends SOCMessage
 {
     /**

@@ -21,6 +21,11 @@
  **/
 package soc.client;
 
+import soc.debug.D;  // JM
+
+import soc.game.SOCGame;
+import soc.game.SOCPlayer;
+
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -41,16 +46,13 @@ import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.log4j.Logger;
-
-import soc.game.SOCGame;
-import soc.game.SOCPlayer;
+import java.io.PrintWriter;  // For chatPrintStackTrace
+import java.io.StringWriter;
 
 /**
  * Window with interface for a player in one game of Settlers of Catan.
@@ -187,7 +189,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     /**
      * Flag to ensure interface is updated, when the first actual
      * turn begins (state changes from {@link SOCGame#START2B}
-     * to {@link SOCGame#ROLL_OR_SOLDIER}).
+     * to {@link SOCGame#PLAY}).
      * Initially set in {@link #startGame()}.
      * Checked/cleared in {@link #updateAtGameState()};
      */
@@ -268,9 +270,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      * the dialog for choosing a resource to monopolize
      */
     protected SOCMonopolyDialog monopolyDialog;
-
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * create a new player interface
@@ -789,7 +788,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         }
         catch (RuntimeException re)
         {
-            log.debug("resetBoardAskVote: Cannot: " + re);
+            D.ebugPrintln("resetBoardAskVote: Cannot: " + re);
             return;
         }
         boardResetRequester = hands[pnRequester];
@@ -978,7 +977,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         {
             for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
             {
-                log.debug("game.getPlayer(" + i + ").isRobot() = " + game.getPlayer(i).isRobot());
+                D.ebugPrintln("game.getPlayer(" + i + ").isRobot() = " + game.getPlayer(i).isRobot());
 
                 if (game.getPlayer(i).isRobot())
                 {
@@ -1214,7 +1213,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         // Update our interface at start of first turn;
         // The server won't send a TURN message after the
         // final road is placed (state START2 -> PLAY).
-        if (gameIsStarting && (gs >= SOCGame.ROLL_OR_SOLDIER))
+        if (gameIsStarting && (gs >= SOCGame.PLAY))
         {
             gameIsStarting = false;
             if (clientHand != null)
@@ -1228,7 +1227,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             // Set timer.  If still waiting for discards after 2 seconds,
             // show balloons on-screen. (hands[i].setDiscardMsg)
             discardTimerSet();
-        } else if ((gs == SOCGame.BUILD_PHASE) && showingPlayerDiscards)
+        } else if ((gs == SOCGame.PLAY1) && showingPlayerDiscards)
         {
             // If not all players' discard status balloons were cleared by
             // PLAYERELEMENT messages, clean up now.
@@ -1249,7 +1248,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 {
                     showMonopolyDialog();
                 }
-                else if (gs == SOCGame.BUILD_PHASE)
+                else if (gs == SOCGame.PLAY1)
                 {
                     updateAtPlay1();
                 }
@@ -1365,7 +1364,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      */
     public void chatPrintDebug(String debugMsg)
     {
-        if (! log.isDebugEnabled())
+        if (! D.ebugIsEnabled())
             return;
         chatPrint(debugMsg + "\n");
     }
@@ -1382,7 +1381,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     
     private void chatPrintStackTrace(Throwable th, boolean isNested)
     {
-        if (! log.isDebugEnabled())
+        if (! D.ebugIsEnabled())
             return;
         String excepName = th.getClass().getName();
         if (! isNested)

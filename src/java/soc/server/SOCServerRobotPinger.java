@@ -20,13 +20,14 @@
  **/
 package soc.server;
 
-import java.util.Enumeration;
-import java.util.Vector;
-
-import org.apache.log4j.Logger;
+import soc.disableDebug.D;
 
 import soc.message.SOCServerPing;
+
 import soc.server.genericServer.StringConnection;
+
+import java.util.Enumeration;
+import java.util.Vector;
 
 
 /**
@@ -41,7 +42,6 @@ public class SOCServerRobotPinger extends Thread
     int sleepTime = 150000;
     SOCServerPing ping;
     boolean alive;
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * Create a server robot pinger
@@ -70,7 +70,7 @@ public class SOCServerRobotPinger extends Thread
                 while (robotConnectionsEnum.hasMoreElements())
                 {
                     StringConnection robotConnection = (StringConnection) robotConnectionsEnum.nextElement();
-                    log.debug("(*)(*)(*)(*) PINGING " + robotConnection.getData());
+                    D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
                     robotConnection.put(ping.toCmd());
                 }
             }

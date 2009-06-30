@@ -20,11 +20,11 @@
  **/
 package soc.robot;
 
-import java.util.Vector;
-
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+
+import java.util.Vector;
 
 
 /**

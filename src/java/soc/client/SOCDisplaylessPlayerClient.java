@@ -21,14 +21,7 @@
  **/
 package soc.client;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.net.Socket;
-import java.util.Hashtable;
-
-import org.apache.log4j.Logger;
+import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
 import soc.game.SOCCity;
@@ -41,6 +34,7 @@ import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
+
 import soc.message.SOCAcceptOffer;
 import soc.message.SOCBCastTextMsg;
 import soc.message.SOCBankTrade;
@@ -105,7 +99,17 @@ import soc.message.SOCTurn;
 import soc.message.SOCVersion;
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.LocalStringConnection;
+import soc.server.genericServer.StringConnection;
 import soc.util.Version;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+
+import java.net.Socket;
+
+import java.util.Hashtable;
 
 
 /**
@@ -166,9 +170,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * the games
      */
     protected Hashtable games = new Hashtable();
-
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * Create a SOCDisplaylessPlayerClient
@@ -243,7 +244,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         }
         catch (InterruptedIOException x)
         {
-            log.error("Socket timeout in run: " + x);
+            System.err.println("Socket timeout in run: " + x);
         }
         catch (IOException e)
         {
@@ -256,7 +257,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if (! ((e instanceof java.io.EOFException)
                   && (this instanceof SOCRobotClient)))
             {
-                log.error("could not read from the net: " + ex);
+                System.err.println("could not read from the net: " + ex);
                 /**
                  * Robots are periodically disconnected from server;
                  * they will try to reconnect.  Any error message
@@ -286,7 +287,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         lastMessage = s;
 
-        log.debug("OUT - " + s);
+        D.ebugPrintln("OUT - " + s);
+
         if ((ex != null) || !connected)
         {
             return false;
@@ -301,12 +303,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
         }
         catch (InterruptedIOException x)
         {
-            log.error("Socket timeout in put: " + x);
+            System.err.println("Socket timeout in put: " + x);
         }
         catch (IOException e)
         {
             ex = e;
-            log.error("could not write to the net: " + ex);
+            System.err.println("could not write to the net: " + ex);
             destroy();
 
             return false;
@@ -326,7 +328,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (mes == null)
             return;  // Msg parsing error
 
-        log.debug(mes.toString());
+        D.ebugPrintln(mes.toString());
 
         try
         {
@@ -730,7 +732,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         }
         catch (Exception e)
         {
-            log.info("SOCDisplaylessPlayerClient treat ERROR - " + e.getMessage());
+            System.out.println("SOCDisplaylessPlayerClient treat ERROR - " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -760,7 +762,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     private void handleVERSION(boolean isLocal, SOCVersion mes)
     {
-        log.debug("handleVERSION: " + mes);
+        D.ebugPrintln("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
         if (isLocal)
             sLocalVersion = vers;
@@ -928,7 +930,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             catch (Exception e)
             {
                 ga.releaseMonitor();
-                log.info("Exception caught - " + e);
+                System.out.println("Exception caught - " + e);
                 e.printStackTrace();
             }
 
@@ -1249,7 +1251,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             {
                 SOCResourceSet rsrcs = pl.getResources();
 
-                if (log.isDebugEnabled())
+                if (D.ebugOn)
                 {
                     //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
                 }
@@ -1556,7 +1558,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleREJECTCONNECTION(SOCRejectConnection mes)
     {
         rejected = true;
-        log.error("Rejected by server: " + mes.getText());
+        System.err.println("Rejected by server: " + mes.getText());
         disconnect();
     }
 

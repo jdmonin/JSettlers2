@@ -20,13 +20,7 @@
  **/
 package soc.robot;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Stack;
-import java.util.Vector;
-
-import org.apache.log4j.Logger;
+import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
@@ -34,7 +28,14 @@ import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
+
 import soc.util.CutoffExceededException;
+
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Stack;
+import java.util.Vector;
 
 
 /**
@@ -62,8 +63,6 @@ public class SOCRobotNegotiator
     protected boolean[][] wantsAnotherOffer;
     protected Vector offersMade;
     protected SOCPossiblePiece[] targetPieces;
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * constructor
@@ -98,7 +97,7 @@ public class SOCRobotNegotiator
      */
     public void resetTargetPieces()
     {
-        log.debug("*** resetTargetPieces ***");
+        D.ebugPrintln("*** resetTargetPieces ***");
 
         for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
         {
@@ -144,7 +143,7 @@ public class SOCRobotNegotiator
      */
     public void resetIsSelling()
     {
-        log.debug("*** resetIsSelling (true for every resource the player has) ***");
+        D.ebugPrintln("*** resetIsSelling (true for every resource the player has) ***");
 
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
@@ -165,7 +164,7 @@ public class SOCRobotNegotiator
      */
     public void resetWantsAnotherOffer()
     {
-        log.debug("*** resetWantsAnotherOffer (all false) ***");
+        D.ebugPrintln("*** resetWantsAnotherOffer (all false) ***");
 
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
@@ -185,7 +184,7 @@ public class SOCRobotNegotiator
      */
     public void markAsNotSelling(int pn, int rsrcType)
     {
-        log.debug("*** markAsNotSelling pn=" + pn + " rsrcType=" + rsrcType);
+        D.ebugPrintln("*** markAsNotSelling pn=" + pn + " rsrcType=" + rsrcType);
         isSellingResource[pn][rsrcType] = false;
     }
 
@@ -197,7 +196,7 @@ public class SOCRobotNegotiator
      */
     public void markAsSelling(int pn, int rsrcType)
     {
-        log.debug("*** markAsSelling pn=" + pn + " rsrcType=" + rsrcType);
+        D.ebugPrintln("*** markAsSelling pn=" + pn + " rsrcType=" + rsrcType);
         isSellingResource[pn][rsrcType] = true;
     }
 
@@ -209,7 +208,7 @@ public class SOCRobotNegotiator
      */
     public void markAsNotWantingAnotherOffer(int pn, int rsrcType)
     {
-        log.debug("*** markAsNotWantingAnotherOffer pn=" + pn + " rsrcType=" + rsrcType);
+        D.ebugPrintln("*** markAsNotWantingAnotherOffer pn=" + pn + " rsrcType=" + rsrcType);
         wantsAnotherOffer[pn][rsrcType] = false;
     }
 
@@ -221,7 +220,7 @@ public class SOCRobotNegotiator
      */
     public void markAsWantsAnotherOffer(int pn, int rsrcType)
     {
-        log.debug("*** markAsWantsAnotherOffer pn=" + pn + " rsrcType=" + rsrcType);
+        D.ebugPrintln("*** markAsWantsAnotherOffer pn=" + pn + " rsrcType=" + rsrcType);
         wantsAnotherOffer[pn][rsrcType] = true;
     }
 
@@ -244,7 +243,7 @@ public class SOCRobotNegotiator
      */
     public SOCTradeOffer makeOffer(SOCPossiblePiece targetPiece)
     {
-        log.debug("***** MAKE OFFER *****");
+        D.ebugPrintln("***** MAKE OFFER *****");
 
         if (targetPiece == null)
         {
@@ -280,8 +279,8 @@ public class SOCRobotNegotiator
 
         SOCResourceSet ourResources = ourPlayerData.getResources();
 
-        log.debug("*** targetResources = " + targetResources);
-        log.debug("*** ourResources = " + ourResources);
+        D.ebugPrintln("*** targetResources = " + targetResources);
+        D.ebugPrintln("*** ourResources = " + ourResources);
 
         if (ourResources.contains(targetResources))
         {
@@ -290,13 +289,13 @@ public class SOCRobotNegotiator
 
         if (ourResources.getAmount(SOCResourceConstants.UNKNOWN) > 0)
         {
-            log.debug("AGG WE HAVE UNKNOWN RESOURCES !!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+            D.ebugPrintln("AGG WE HAVE UNKNOWN RESOURCES !!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
             return offer;
         }
 
         SOCTradeOffer batna = getOfferToBank(targetResources);
-        log.debug("*** BATNA = " + batna);
+        D.ebugPrintln("*** BATNA = " + batna);
 
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
 
@@ -305,14 +304,14 @@ public class SOCRobotNegotiator
 
         int batnaBuildingTime = getETAToTargetResources(ourPlayerData, targetResources, giveResourceSet, getResourceSet, estimate);
 
-        log.debug("*** batnaBuildingTime = " + batnaBuildingTime);
+        D.ebugPrintln("*** batnaBuildingTime = " + batnaBuildingTime);
 
         if (batna != null)
         {
             batnaBuildingTime = getETAToTargetResources(ourPlayerData, targetResources, batna.getGiveSet(), batna.getGetSet(), estimate);
         }
 
-        log.debug("*** batnaBuildingTime = " + batnaBuildingTime);
+        D.ebugPrintln("*** batnaBuildingTime = " + batnaBuildingTime);
 
         ///
         /// Seperate resource types into needed and not-needed.  Sort
@@ -344,11 +343,11 @@ public class SOCRobotNegotiator
         {
             for (int i = 0; i < j; i++)
             {
-                //log.debug("j="+j+" i="+i);
-                //log.debug("neededRsrc[i]="+neededRsrc[i]+" "+rollsPerResource[neededRsrc[i]]);
+                //D.ebugPrintln("j="+j+" i="+i);
+                //D.ebugPrintln("neededRsrc[i]="+neededRsrc[i]+" "+rollsPerResource[neededRsrc[i]]);
                 if (rollsPerResource[neededRsrc[i]] > rollsPerResource[neededRsrc[i + 1]])
                 {
-                    //log.debug("swap with "+neededRsrc[i+1]+" "+rollsPerResource[neededRsrc[i+1]]);
+                    //D.ebugPrintln("swap with "+neededRsrc[i+1]+" "+rollsPerResource[neededRsrc[i+1]]);
                     int tmp = neededRsrc[i];
                     neededRsrc[i] = neededRsrc[i + 1];
                     neededRsrc[i + 1] = tmp;
@@ -356,11 +355,11 @@ public class SOCRobotNegotiator
             }
         }
 
-        if (log.isDebugEnabled())
+        if (D.ebugOn)
         {
             for (int i = 0; i < neededRsrcCount; i++)
             {
-                log.debug("NEEDED RSRC: " + neededRsrc[i] + " : " + rollsPerResource[neededRsrc[i]]);
+                D.ebugPrintln("NEEDED RSRC: " + neededRsrc[i] + " : " + rollsPerResource[neededRsrc[i]]);
             }
         }
 
@@ -368,11 +367,11 @@ public class SOCRobotNegotiator
         {
             for (int i = 0; i < j; i++)
             {
-                //log.debug("j="+j+" i="+i);
-                //log.debug("notNeededRsrc[i]="+notNeededRsrc[i]+" "+rollsPerResource[notNeededRsrc[i]]);
+                //D.ebugPrintln("j="+j+" i="+i);
+                //D.ebugPrintln("notNeededRsrc[i]="+notNeededRsrc[i]+" "+rollsPerResource[notNeededRsrc[i]]);
                 if (rollsPerResource[notNeededRsrc[i]] > rollsPerResource[notNeededRsrc[i + 1]])
                 {
-                    //log.debug("swap with "+notNeededRsrc[i+1]+" "+rollsPerResource[notNeededRsrc[i+1]]);
+                    //D.ebugPrintln("swap with "+notNeededRsrc[i+1]+" "+rollsPerResource[notNeededRsrc[i+1]]);
                     int tmp = notNeededRsrc[i];
                     notNeededRsrc[i] = notNeededRsrc[i + 1];
                     notNeededRsrc[i + 1] = tmp;
@@ -380,11 +379,11 @@ public class SOCRobotNegotiator
             }
         }
 
-        if (log.isDebugEnabled())
+        if (D.ebugOn)
         {
             for (int i = 0; i < notNeededRsrcCount; i++)
             {
-                log.debug("NOT-NEEDED RSRC: " + notNeededRsrc[i] + " : " + rollsPerResource[notNeededRsrc[i]]);
+                D.ebugPrintln("NOT-NEEDED RSRC: " + notNeededRsrc[i] + " : " + rollsPerResource[notNeededRsrc[i]]);
             }
         }
 
@@ -403,7 +402,7 @@ public class SOCRobotNegotiator
                 if ((pn != ourPlayerData.getPlayerNumber()) && (isSellingResource[pn][rsrcType]))
                 {
                     someoneIsSellingResource[rsrcType] = true;
-                    log.debug("*** player " + pn + " is selling " + rsrcType);
+                    D.ebugPrintln("*** player " + pn + " is selling " + rsrcType);
 
                     break;
                 }
@@ -427,11 +426,11 @@ public class SOCRobotNegotiator
         ///
         if (getRsrcIdx >= 0)
         {
-            log.debug("*** getRsrc = " + neededRsrc[getRsrcIdx]);
+            D.ebugPrintln("*** getRsrc = " + neededRsrc[getRsrcIdx]);
 
             getResourceSet.add(1, neededRsrc[getRsrcIdx]);
 
-            log.debug("*** offer should be null : offer = " + offer);
+            D.ebugPrintln("*** offer should be null : offer = " + offer);
 
             ///
             /// consider offers where we give one unneeded for one needed
@@ -440,23 +439,23 @@ public class SOCRobotNegotiator
 
             while ((giveRsrcIdx < notNeededRsrcCount) && (offer == null))
             {
-                log.debug("*** ourResources.getAmount(" + notNeededRsrc[giveRsrcIdx] + ") = " + ourResources.getAmount(notNeededRsrc[giveRsrcIdx]));
+                D.ebugPrintln("*** ourResources.getAmount(" + notNeededRsrc[giveRsrcIdx] + ") = " + ourResources.getAmount(notNeededRsrc[giveRsrcIdx]));
 
                 if (ourResources.getAmount(notNeededRsrc[giveRsrcIdx]) > 0)
                 {
                     giveResourceSet.clear();
                     giveResourceSet.add(1, notNeededRsrc[giveRsrcIdx]);
                     offer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                    log.debug("*** offer = " + offer);
+                    D.ebugPrintln("*** offer = " + offer);
 
                     int offerBuildingTime = getETAToTargetResources(ourPlayerData, targetResources, giveResourceSet, getResourceSet, estimate);
-                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                 }
 
                 giveRsrcIdx++;
             }
 
-            log.debug("*** ourResources = " + ourResources);
+            D.ebugPrintln("*** ourResources = " + ourResources);
 
             ///
             /// consider offers where we give one needed for one needed
@@ -467,8 +466,8 @@ public class SOCRobotNegotiator
 
                 while ((giveRsrcIdx1 < neededRsrcCount) && (offer == null))
                 {
-                    log.debug("*** ourResources.getAmount(" + neededRsrc[giveRsrcIdx1] + ") = " + ourResources.getAmount(neededRsrc[giveRsrcIdx1]));
-                    log.debug("*** targetResources.getAmount(" + neededRsrc[giveRsrcIdx1] + ") = " + targetResources.getAmount(neededRsrc[giveRsrcIdx1]));
+                    D.ebugPrintln("*** ourResources.getAmount(" + neededRsrc[giveRsrcIdx1] + ") = " + ourResources.getAmount(neededRsrc[giveRsrcIdx1]));
+                    D.ebugPrintln("*** targetResources.getAmount(" + neededRsrc[giveRsrcIdx1] + ") = " + targetResources.getAmount(neededRsrc[giveRsrcIdx1]));
 
                     if ((ourResources.getAmount(neededRsrc[giveRsrcIdx1]) > targetResources.getAmount(neededRsrc[giveRsrcIdx1])) && (neededRsrc[giveRsrcIdx1] != neededRsrc[getRsrcIdx]))
                     {
@@ -483,8 +482,8 @@ public class SOCRobotNegotiator
                         if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                         {
                             offer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                            log.debug("*** offer = " + offer);
-                            log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                            D.ebugPrintln("*** offer = " + offer);
+                            D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                         }
                     }
 
@@ -492,12 +491,12 @@ public class SOCRobotNegotiator
                 }
             }
 
-            log.debug("*** ourResources = " + ourResources);
+            D.ebugPrintln("*** ourResources = " + ourResources);
 
             SOCResourceSet leftovers = ourResources.copy();
             leftovers.subtract(targetResources);
 
-            log.debug("*** leftovers = " + leftovers);
+            D.ebugPrintln("*** leftovers = " + leftovers);
 
             ///
             /// consider offers where we give two for one needed
@@ -527,8 +526,8 @@ public class SOCRobotNegotiator
                                 if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                                 {
                                     offer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                                    log.debug("*** offer = " + offer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** offer = " + offer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -555,8 +554,8 @@ public class SOCRobotNegotiator
                                     if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                                     {
                                         offer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                                        log.debug("*** offer = " + offer);
-                                        log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                        D.ebugPrintln("*** offer = " + offer);
+                                        D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                     }
                                 }
                             }
@@ -591,8 +590,8 @@ public class SOCRobotNegotiator
                                 if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                                 {
                                     offer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                                    log.debug("*** offer = " + offer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** offer = " + offer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -619,8 +618,8 @@ public class SOCRobotNegotiator
                                     if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                                     {
                                         offer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                                        log.debug("*** offer = " + offer);
-                                        log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                        D.ebugPrintln("*** offer = " + offer);
+                                        D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                     }
                                 }
                             }
@@ -643,7 +642,7 @@ public class SOCRobotNegotiator
             SOCResourceSet leftovers = ourResources.copy();
             leftovers.subtract(targetResources);
 
-            log.debug("*** leftovers = " + leftovers);
+            D.ebugPrintln("*** leftovers = " + leftovers);
 
             int getRsrcIdx2 = notNeededRsrcCount - 1;
 
@@ -684,8 +683,8 @@ public class SOCRobotNegotiator
                                 if (offerBuildingTime < batnaBuildingTime)
                                 {
                                     offer = makeOfferAux(giveResourceSet, getResourceSet, notNeededRsrc[getRsrcIdx2]);
-                                    log.debug("*** offer = " + offer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** offer = " + offer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -722,8 +721,8 @@ public class SOCRobotNegotiator
                                 if (offerBuildingTime < batnaBuildingTime)
                                 {
                                     offer = makeOfferAux(giveResourceSet, getResourceSet, notNeededRsrc[getRsrcIdx2]);
-                                    log.debug("*** offer = " + offer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** offer = " + offer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -747,9 +746,9 @@ public class SOCRobotNegotiator
      */
     protected SOCTradeOffer makeOfferAux(SOCResourceSet giveResourceSet, SOCResourceSet getResourceSet, int neededResource)
     {
-        log.debug("**** makeOfferAux ****");
-        log.debug("giveResourceSet = " + giveResourceSet);
-        log.debug("getResourceSet = " + getResourceSet);
+        D.ebugPrintln("**** makeOfferAux ****");
+        D.ebugPrintln("giveResourceSet = " + giveResourceSet);
+        D.ebugPrintln("getResourceSet = " + getResourceSet);
 
         SOCTradeOffer offer = null;
 
@@ -791,14 +790,14 @@ public class SOCRobotNegotiator
             }
         }
 
-        log.debug("*** match = " + match);
+        D.ebugPrintln("*** match = " + match);
 
         if (!match)
         {
             ///
             /// this is a new offer
             ///
-            log.debug("* this is a new offer");
+            D.ebugPrintln("* this is a new offer");
 
             int numOfferedTo = 0;
             boolean[] offeredTo = new boolean[SOCGame.MAXPLAYERS];
@@ -815,7 +814,7 @@ public class SOCRobotNegotiator
                 ///
                 for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
                 {
-                    log.debug("** isSellingResource[" + i + "][" + neededResource + "] = " + isSellingResource[i][neededResource]);
+                    D.ebugPrintln("** isSellingResource[" + i + "][" + neededResource + "] = " + isSellingResource[i][neededResource]);
 
                     if ((i != opn) && isSellingResource[i][neededResource] &&
                         (! game.isSeatVacant(i)) &&
@@ -844,7 +843,7 @@ public class SOCRobotNegotiator
 
                 if (isSellingResource[curpn][neededResource] && (game.getPlayer(curpn).getResources().getTotal() >= getResourceSet.getTotal()))
                 {
-                    log.debug("** isSellingResource[" + curpn + "][" + neededResource + "] = " + isSellingResource[curpn][neededResource]);
+                    D.ebugPrintln("** isSellingResource[" + curpn + "][" + neededResource + "] = " + isSellingResource[curpn][neededResource]);
 
                     SOCPlayerTracker tracker = (SOCPlayerTracker) playerTrackers.get(new Integer(curpn));
 
@@ -856,7 +855,7 @@ public class SOCRobotNegotiator
                 }
             }
 
-            log.debug("** numOfferedTo = " + numOfferedTo);
+            D.ebugPrintln("** numOfferedTo = " + numOfferedTo);
 
             if (numOfferedTo > 0)
             {
@@ -875,7 +874,7 @@ public class SOCRobotNegotiator
                     if (offeredTo[pn])
                     {
                         int offerResponse = considerOffer2(offer, pn);
-                        log.debug("* considerOffer2(offer, " + pn + ") = " + offerResponse);
+                        D.ebugPrintln("* considerOffer2(offer, " + pn + ") = " + offerResponse);
 
                         if (offerResponse == ACCEPT_OFFER)
                         {
@@ -910,8 +909,8 @@ public class SOCRobotNegotiator
     protected int getETAToTargetResources(SOCPlayer player, SOCResourceSet targetResources, SOCResourceSet giveSet, SOCResourceSet getSet, SOCBuildingSpeedEstimate estimate)
     {
         SOCResourceSet ourResourcesCopy = player.getResources().copy();
-        log.debug("*** giveSet = " + giveSet);
-        log.debug("*** getSet = " + getSet);
+        D.ebugPrintln("*** giveSet = " + giveSet);
+        D.ebugPrintln("*** getSet = " + getSet);
         ourResourcesCopy.subtract(giveSet);
         ourResourcesCopy.add(getSet);
 
@@ -927,8 +926,8 @@ public class SOCRobotNegotiator
             ;
         }
 
-        log.debug("*** offerBuildingTime = " + offerBuildingTime);
-        log.debug("*** ourResourcesCopy = " + ourResourcesCopy);
+        D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
+        D.ebugPrintln("*** ourResourcesCopy = " + ourResourcesCopy);
 
         return (offerBuildingTime);
     }
@@ -946,7 +945,7 @@ public class SOCRobotNegotiator
         ///
         /// This version should be faster
         ///
-        log.debug("***** CONSIDER OFFER 2 *****");
+        D.ebugPrintln("***** CONSIDER OFFER 2 *****");
 
         int response = REJECT_OFFER;
 
@@ -966,14 +965,14 @@ public class SOCRobotNegotiator
 
         int senderNum = offer.getFrom();
 
-        log.debug("senderNum = " + senderNum);
-        log.debug("receiverNum = " + receiverNum);
-        log.debug("rsrcs from receiver = " + rsrcsOut);
-        log.debug("rsrcs to receiver = " + rsrcsIn);
+        D.ebugPrintln("senderNum = " + senderNum);
+        D.ebugPrintln("receiverNum = " + receiverNum);
+        D.ebugPrintln("rsrcs from receiver = " + rsrcsOut);
+        D.ebugPrintln("rsrcs to receiver = " + rsrcsIn);
 
         SOCPossiblePiece receiverTargetPiece = targetPieces[receiverNum];
 
-        log.debug("targetPieces[" + receiverNum + "] = " + receiverTargetPiece);
+        D.ebugPrintln("targetPieces[" + receiverNum + "] = " + receiverTargetPiece);
 
         SOCPlayerTracker receiverPlayerTracker = (SOCPlayerTracker) playerTrackers.get(new Integer(receiverNum));
 
@@ -1014,11 +1013,11 @@ public class SOCRobotNegotiator
             targetPieces[receiverNum] = receiverTargetPiece;
         }
 
-        log.debug("receiverTargetPiece = " + receiverTargetPiece);
+        D.ebugPrintln("receiverTargetPiece = " + receiverTargetPiece);
 
         SOCPossiblePiece senderTargetPiece = targetPieces[senderNum];
 
-        log.debug("targetPieces[" + senderNum + "] = " + senderTargetPiece);
+        D.ebugPrintln("targetPieces[" + senderNum + "] = " + senderTargetPiece);
 
         SOCPlayer senderPlayerData = game.getPlayer(senderNum);
 
@@ -1045,7 +1044,7 @@ public class SOCRobotNegotiator
             targetPieces[senderNum] = senderTargetPiece;
         }
 
-        log.debug("senderTargetPiece = " + senderTargetPiece);
+        D.ebugPrintln("senderTargetPiece = " + senderTargetPiece);
 
         int senderWGETA = senderPlayerTracker.getWinGameETA();
 
@@ -1074,7 +1073,7 @@ public class SOCRobotNegotiator
 
                 if (inARace)
                 {
-                    log.debug("inARace == true (threat from sender)");
+                    D.ebugPrintln("inARace == true (threat from sender)");
                 }
                 else if (receiverTargetPiece.getType() == SOCPossiblePiece.SETTLEMENT)
                 {
@@ -1094,7 +1093,7 @@ public class SOCRobotNegotiator
 
                     if (inARace)
                     {
-                        log.debug("inARace == true (conflict with sender)");
+                        D.ebugPrintln("inARace == true (conflict with sender)");
                     }
                 }
             }
@@ -1132,15 +1131,15 @@ public class SOCRobotNegotiator
                 SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(receiverPlayerData.getNumbers());
 
                 SOCTradeOffer receiverBatna = getOfferToBank(targetResources);
-                log.debug("*** receiverBatna = " + receiverBatna);
+                D.ebugPrintln("*** receiverBatna = " + receiverBatna);
 
                 int batnaBuildingTime = getETAToTargetResources(receiverPlayerData, targetResources, SOCResourceSet.EMPTY_SET, SOCResourceSet.EMPTY_SET, estimate);
 
-                log.debug("*** batnaBuildingTime = " + batnaBuildingTime);
+                D.ebugPrintln("*** batnaBuildingTime = " + batnaBuildingTime);
 
                 int offerBuildingTime = getETAToTargetResources(receiverPlayerData, targetResources, rsrcsOut, rsrcsIn, estimate);
 
-                log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
 
                 /*
                    if ((offerBuildingTime < batnaBuildingTime) ||
@@ -1178,7 +1177,7 @@ public class SOCRobotNegotiator
 
     /*
        public int considerOffer(SOCTradeOffer offer) {
-       log.debug("***** CONSIDER OFFER *****");
+       D.ebugPrintln("***** CONSIDER OFFER *****");
        int response = REJECT_OFFER;
     
        SOCPlayer offeringPlayer = game.getPlayer(offer.getFrom());
@@ -1247,7 +1246,7 @@ public class SOCRobotNegotiator
     
        Stack ourBuildingPlan = buildingPlan;
        if (ourBuildingPlan.empty()) {
-       log.debug("**** our building plan is empty ****");
+       D.ebugPrintln("**** our building plan is empty ****");
        simulator = new SOCRobotDM(brain.getRobotParameters(),
        playerTrackers,
        ourPlayerTracker,
@@ -1268,22 +1267,22 @@ public class SOCRobotNegotiator
     
        if (theirPlayerTracker != null) {
        theirOriginalWGETA = theirPlayerTracker.getWinGameETA();
-       log.debug("CHECKING OFFER FROM PLAYER "+offer.getFrom());
-       log.debug("they give : "+rsrcsIn);
-       log.debug("they get : "+rsrcsOut);
+       D.ebugPrintln("CHECKING OFFER FROM PLAYER "+offer.getFrom());
+       D.ebugPrintln("they give : "+rsrcsIn);
+       D.ebugPrintln("they get : "+rsrcsOut);
     
-       log.debug("---------< before >-----------");
+       D.ebugPrintln("---------< before >-----------");
        ourOriginalPiece = targetPiece;
        ourOriginalPieceType = targetPiece.getType();
        ourOriginalPieceCoord = targetPiece.getCoordinates();
        ourOriginalPieceETA = targetPiece.getETA();
        ourOriginalPieceScore = targetPiece.getScore();
-       log.debug("ourResources : "+ourResources);
-       log.debug("ourOriginalWGETA = "+ourOriginalWGETA);
-       log.debug("our target piece type : "+targetPiece.getType());
-       log.debug("our target piece coord : "+Integer.toHexString(targetPiece.getCoordinates()));
-       log.debug("our target piece eta : "+targetPiece.getETA());
-       log.debug("our target piece score : "+targetPiece.getScore());
+       D.ebugPrintln("ourResources : "+ourResources);
+       D.ebugPrintln("ourOriginalWGETA = "+ourOriginalWGETA);
+       D.ebugPrintln("our target piece type : "+targetPiece.getType());
+       D.ebugPrintln("our target piece coord : "+Integer.toHexString(targetPiece.getCoordinates()));
+       D.ebugPrintln("our target piece eta : "+targetPiece.getETA());
+       D.ebugPrintln("our target piece score : "+targetPiece.getScore());
     
        if (ourOriginalFavoriteSettlement != null) {
        ourOriginalFavoriteSettlementCoord = ourOriginalFavoriteSettlement.getCoordinates();
@@ -1316,15 +1315,15 @@ public class SOCRobotNegotiator
        theirOriginalPieceCoord = theirOriginalPiece.getCoordinates();
        theirOriginalPieceETA = theirOriginalPiece.getETA();
        theirOriginalPieceScore = theirOriginalPiece.getScore();
-       log.debug("theirResources : "+theirResources);
-       log.debug("theirOriginalWGETA = "+theirOriginalWGETA);
+       D.ebugPrintln("theirResources : "+theirResources);
+       D.ebugPrintln("theirOriginalWGETA = "+theirOriginalWGETA);
        if (theirOriginalPiece != null) {
-       log.debug("their target piece type : "+theirOriginalPiece.getType());
-       log.debug("their target piece coord : "+Integer.toHexString(theirOriginalPiece.getCoordinates()));
-       log.debug("their target piece eta : "+theirOriginalPiece.getETA());
-       log.debug("their target piece score : "+theirOriginalPiece.getScore());
+       D.ebugPrintln("their target piece type : "+theirOriginalPiece.getType());
+       D.ebugPrintln("their target piece coord : "+Integer.toHexString(theirOriginalPiece.getCoordinates()));
+       D.ebugPrintln("their target piece eta : "+theirOriginalPiece.getETA());
+       D.ebugPrintln("their target piece score : "+theirOriginalPiece.getScore());
        } else {
-       log.debug("their target piece == null");
+       D.ebugPrintln("their target piece == null");
        }
     
        theirResources.add(rsrcsOut);
@@ -1332,7 +1331,7 @@ public class SOCRobotNegotiator
        ourResources.add(rsrcsIn);
        ourResources.subtract(rsrcsOut);
     
-       log.debug("---------< after >-----------");
+       D.ebugPrintln("---------< after >-----------");
     
        SOCPlayerTracker.updateWinGameETAs(playerTrackers);
        ourNewWGETA = ourPlayerTracker.getWinGameETA();
@@ -1354,15 +1353,15 @@ public class SOCRobotNegotiator
        ourNewPieceETA = ourNewTargetPiece.getETA();
        ourNewPieceScore = ourNewTargetPiece.getScore();
     
-       log.debug("ourResources : "+ourResources);
-       log.debug("ourNewWGETA = "+ourNewWGETA);
+       D.ebugPrintln("ourResources : "+ourResources);
+       D.ebugPrintln("ourNewWGETA = "+ourNewWGETA);
        if (ourNewTargetPiece != null) {
-       log.debug("our target piece type : "+ourNewTargetPiece.getType());
-       log.debug("our target piece coord : "+Integer.toHexString(ourNewTargetPiece.getCoordinates()));
-       log.debug("our target piece eta : "+ourNewTargetPiece.getETA());
-       log.debug("our target piece score : "+ourNewTargetPiece.getScore());
+       D.ebugPrintln("our target piece type : "+ourNewTargetPiece.getType());
+       D.ebugPrintln("our target piece coord : "+Integer.toHexString(ourNewTargetPiece.getCoordinates()));
+       D.ebugPrintln("our target piece eta : "+ourNewTargetPiece.getETA());
+       D.ebugPrintln("our target piece score : "+ourNewTargetPiece.getScore());
        } else {
-       log.debug("our target piece == null");
+       D.ebugPrintln("our target piece == null");
        }
     
        if (ourNewFavoriteSettlement != null) {
@@ -1397,18 +1396,18 @@ public class SOCRobotNegotiator
        theirNewPieceCoord = theirNewTargetPiece.getCoordinates();
        theirNewPieceETA = theirNewTargetPiece.getETA();
        theirNewPieceScore = theirNewTargetPiece.getScore();
-       log.debug("theirResources : "+theirResources);
-       log.debug("theirNewWGETA = "+theirNewWGETA);
+       D.ebugPrintln("theirResources : "+theirResources);
+       D.ebugPrintln("theirNewWGETA = "+theirNewWGETA);
        if (theirNewTargetPiece != null) {
-       log.debug("their target piece type : "+theirNewTargetPiece.getType());
-       log.debug("their target piece coord : "+Integer.toHexString(theirNewTargetPiece.getCoordinates()));
-       log.debug("their target piece eta : "+theirNewTargetPiece.getETA());
-       log.debug("their target piece score : "+theirNewTargetPiece.getScore());
+       D.ebugPrintln("their target piece type : "+theirNewTargetPiece.getType());
+       D.ebugPrintln("their target piece coord : "+Integer.toHexString(theirNewTargetPiece.getCoordinates()));
+       D.ebugPrintln("their target piece eta : "+theirNewTargetPiece.getETA());
+       D.ebugPrintln("their target piece score : "+theirNewTargetPiece.getScore());
        } else {
-       log.debug("their target piece == null");
+       D.ebugPrintln("their target piece == null");
        }
     
-       log.debug("---------< cleanup >-----------");
+       D.ebugPrintln("---------< cleanup >-----------");
     
        theirResources.subtract(rsrcsOut);
        theirResources.add(rsrcsIn);
@@ -1417,10 +1416,10 @@ public class SOCRobotNegotiator
     
        SOCPlayerTracker.updateWinGameETAs(playerTrackers);
     
-       log.debug("ourResources : "+ourResources);
-       log.debug("theirResources : "+theirResources);
+       D.ebugPrintln("ourResources : "+ourResources);
+       D.ebugPrintln("theirResources : "+theirResources);
     
-       log.debug("---------< done >-----------");
+       D.ebugPrintln("---------< done >-----------");
        }
        //
        //  now that we have the info, decide if taking
@@ -1445,7 +1444,7 @@ public class SOCRobotNegotiator
        }
        }
        if (inARace) {
-       log.debug("inARace == true (threat == their new piece)");
+       D.ebugPrintln("inARace == true (threat == their new piece)");
        //brain.getClient().sendText(game, "No way!  We're racing for the same spot.");
        } else if (ourOriginalPieceType == SOCPossiblePiece.SETTLEMENT) {
        Enumeration conflictsEnum = ((SOCPossibleSettlement)ourOriginalPiece).getConflicts().elements();
@@ -1458,45 +1457,45 @@ public class SOCRobotNegotiator
        }
        }
        if (inARace) {
-       log.debug("inARace == true (conflict == their new piece)");
+       D.ebugPrintln("inARace == true (conflict == their new piece)");
        //brain.getClient().sendText(game, "If you build your settlement, it'll prevent me from building mine.");
        }
        }
        }
        if (!inARace) {
-       log.debug("-- ourOriginalWGETA: "+ourOriginalWGETA);
-       log.debug("--      ourNewWGETA: "+ourNewWGETA);
-       log.debug("-- theirOriginalWGETA: "+theirOriginalWGETA);
-       log.debug("--      theirNewWGETA: "+theirNewWGETA);
-       log.debug("--  ourOriginalPieceType: "+ourOriginalPieceType);
-       log.debug("--       ourNewPieceType: "+ourNewPieceType);
-       log.debug("--   ourOriginalPieceETA: "+ourOriginalPieceETA);
-       log.debug("--        ourNewPieceETA: "+ourNewPieceETA);
-       log.debug("-- ourOriginalPieceScore: "+ourOriginalPieceScore);
-       log.debug("--      ourNewPieceScore: "+ourNewPieceScore);
-       log.debug("-- ourOriginalFavoriteSettlementETA: "+ourOriginalFavoriteSettlementETA);
-       log.debug("--       ourOriginalFavoriteCityETA: "+ourOriginalFavoriteCityETA);
-       log.debug("--       ourOriginalFavoriteRoadETA: "+ourOriginalFavoriteRoadETA);
-       log.debug("--       ourOriginalPossibleCardETA: "+ourOriginalPossibleCardETA);
-       log.debug("--                            total: "+(ourOriginalFavoriteSettlementETA
+       D.ebugPrintln("-- ourOriginalWGETA: "+ourOriginalWGETA);
+       D.ebugPrintln("--      ourNewWGETA: "+ourNewWGETA);
+       D.ebugPrintln("-- theirOriginalWGETA: "+theirOriginalWGETA);
+       D.ebugPrintln("--      theirNewWGETA: "+theirNewWGETA);
+       D.ebugPrintln("--  ourOriginalPieceType: "+ourOriginalPieceType);
+       D.ebugPrintln("--       ourNewPieceType: "+ourNewPieceType);
+       D.ebugPrintln("--   ourOriginalPieceETA: "+ourOriginalPieceETA);
+       D.ebugPrintln("--        ourNewPieceETA: "+ourNewPieceETA);
+       D.ebugPrintln("-- ourOriginalPieceScore: "+ourOriginalPieceScore);
+       D.ebugPrintln("--      ourNewPieceScore: "+ourNewPieceScore);
+       D.ebugPrintln("-- ourOriginalFavoriteSettlementETA: "+ourOriginalFavoriteSettlementETA);
+       D.ebugPrintln("--       ourOriginalFavoriteCityETA: "+ourOriginalFavoriteCityETA);
+       D.ebugPrintln("--       ourOriginalFavoriteRoadETA: "+ourOriginalFavoriteRoadETA);
+       D.ebugPrintln("--       ourOriginalPossibleCardETA: "+ourOriginalPossibleCardETA);
+       D.ebugPrintln("--                            total: "+(ourOriginalFavoriteSettlementETA
        + ourOriginalFavoriteCityETA + ourOriginalFavoriteRoadETA + ourOriginalPossibleCardETA));
-       log.debug("-- ourNewFavoriteSettlementETA: "+ourNewFavoriteSettlementETA);
-       log.debug("--       ourNewFavoriteCityETA: "+ourNewFavoriteCityETA);
-       log.debug("--       ourNewFavoriteRoadETA: "+ourNewFavoriteRoadETA);
-       log.debug("--       ourNewPossibleCardETA: "+ourNewPossibleCardETA);
-       log.debug("--                            total: "+(ourNewFavoriteSettlementETA
+       D.ebugPrintln("-- ourNewFavoriteSettlementETA: "+ourNewFavoriteSettlementETA);
+       D.ebugPrintln("--       ourNewFavoriteCityETA: "+ourNewFavoriteCityETA);
+       D.ebugPrintln("--       ourNewFavoriteRoadETA: "+ourNewFavoriteRoadETA);
+       D.ebugPrintln("--       ourNewPossibleCardETA: "+ourNewPossibleCardETA);
+       D.ebugPrintln("--                            total: "+(ourNewFavoriteSettlementETA
        + ourNewFavoriteCityETA + ourNewFavoriteRoadETA + ourNewPossibleCardETA));
-       log.debug("-- ourOriginalFavoriteSettlementScore: "+ourOriginalFavoriteSettlementScore);
-       log.debug("--       ourOriginalFavoriteCityScore: "+ourOriginalFavoriteCityScore);
-       log.debug("--       ourOriginalFavoriteRoadScore: "+ourOriginalFavoriteRoadScore);
-       log.debug("--       ourOriginalPossibleCardScore: "+ourOriginalPossibleCardScore);
-       log.debug("--                            total: "+(ourOriginalFavoriteSettlementScore
+       D.ebugPrintln("-- ourOriginalFavoriteSettlementScore: "+ourOriginalFavoriteSettlementScore);
+       D.ebugPrintln("--       ourOriginalFavoriteCityScore: "+ourOriginalFavoriteCityScore);
+       D.ebugPrintln("--       ourOriginalFavoriteRoadScore: "+ourOriginalFavoriteRoadScore);
+       D.ebugPrintln("--       ourOriginalPossibleCardScore: "+ourOriginalPossibleCardScore);
+       D.ebugPrintln("--                            total: "+(ourOriginalFavoriteSettlementScore
        + ourOriginalFavoriteCityScore + ourOriginalFavoriteRoadScore + ourOriginalPossibleCardScore));
-       log.debug("-- ourNewFavoriteSettlementScore: "+ourNewFavoriteSettlementScore);
-       log.debug("--       ourNewFavoriteCityScore: "+ourNewFavoriteCityScore);
-       log.debug("--       ourNewFavoriteRoadScore: "+ourNewFavoriteRoadScore);
-       log.debug("--       ourNewPossibleCardScore: "+ourNewPossibleCardScore);
-       log.debug("--                            total: "+(ourNewFavoriteSettlementScore
+       D.ebugPrintln("-- ourNewFavoriteSettlementScore: "+ourNewFavoriteSettlementScore);
+       D.ebugPrintln("--       ourNewFavoriteCityScore: "+ourNewFavoriteCityScore);
+       D.ebugPrintln("--       ourNewFavoriteRoadScore: "+ourNewFavoriteRoadScore);
+       D.ebugPrintln("--       ourNewPossibleCardScore: "+ourNewPossibleCardScore);
+       D.ebugPrintln("--                            total: "+(ourNewFavoriteSettlementScore
        + ourNewFavoriteCityScore + ourNewFavoriteRoadScore + ourNewPossibleCardScore));
     
        //
@@ -1558,7 +1557,7 @@ public class SOCRobotNegotiator
      */
     public SOCTradeOffer makeCounterOffer(SOCTradeOffer originalOffer)
     {
-        log.debug("***** MAKE COUNTER OFFER *****");
+        D.ebugPrintln("***** MAKE COUNTER OFFER *****");
 
         SOCTradeOffer counterOffer = null;
 
@@ -1571,7 +1570,7 @@ public class SOCRobotNegotiator
             if (ourBuildingPlan.empty())
             {
                 SOCRobotDM simulator;
-                log.debug("**** our building plan is empty ****");
+                D.ebugPrintln("**** our building plan is empty ****");
                 simulator = new SOCRobotDM(brain.getRobotParameters(), playerTrackers, ourPlayerTracker, ourPlayerData, ourBuildingPlan);
                 simulator.planStuff(strategyType);
             }
@@ -1612,8 +1611,8 @@ public class SOCRobotNegotiator
 
         SOCResourceSet ourResources = ourPlayerData.getResources();
 
-        log.debug("*** targetResources = " + targetResources);
-        log.debug("*** ourResources = " + ourResources);
+        D.ebugPrintln("*** targetResources = " + targetResources);
+        D.ebugPrintln("*** ourResources = " + ourResources);
 
         if (ourResources.contains(targetResources))
         {
@@ -1622,13 +1621,13 @@ public class SOCRobotNegotiator
 
         if (ourResources.getAmount(SOCResourceConstants.UNKNOWN) > 0)
         {
-            log.debug("AGG WE HAVE UNKNOWN RESOURCES !!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+            D.ebugPrintln("AGG WE HAVE UNKNOWN RESOURCES !!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
             return counterOffer;
         }
 
         SOCTradeOffer batna = getOfferToBank(targetResources);
-        log.debug("*** BATNA = " + batna);
+        D.ebugPrintln("*** BATNA = " + batna);
 
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
 
@@ -1642,7 +1641,7 @@ public class SOCRobotNegotiator
             batnaBuildingTime = getETAToTargetResources(ourPlayerData, targetResources, batna.getGiveSet(), batna.getGetSet(), estimate);
         }
 
-        log.debug("*** batnaBuildingTime = " + batnaBuildingTime);
+        D.ebugPrintln("*** batnaBuildingTime = " + batnaBuildingTime);
 
         ///
         /// Seperate resource types into needed and not-needed.  Sort
@@ -1674,11 +1673,11 @@ public class SOCRobotNegotiator
         {
             for (int i = 0; i < j; i++)
             {
-                //log.debug("j="+j+" i="+i);
-                //log.debug("neededRsrc[i]="+neededRsrc[i]+" "+rollsPerResource[neededRsrc[i]]);
+                //D.ebugPrintln("j="+j+" i="+i);
+                //D.ebugPrintln("neededRsrc[i]="+neededRsrc[i]+" "+rollsPerResource[neededRsrc[i]]);
                 if (rollsPerResource[neededRsrc[i]] > rollsPerResource[neededRsrc[i + 1]])
                 {
-                    //log.debug("swap with "+neededRsrc[i+1]+" "+rollsPerResource[neededRsrc[i+1]]);
+                    //D.ebugPrintln("swap with "+neededRsrc[i+1]+" "+rollsPerResource[neededRsrc[i+1]]);
                     int tmp = neededRsrc[i];
                     neededRsrc[i] = neededRsrc[i + 1];
                     neededRsrc[i + 1] = tmp;
@@ -1686,11 +1685,11 @@ public class SOCRobotNegotiator
             }
         }
 
-        if (log.isDebugEnabled())
+        if (D.ebugOn)
         {
             for (int i = 0; i < neededRsrcCount; i++)
             {
-                log.debug("NEEDED RSRC: " + neededRsrc[i] + " : " + rollsPerResource[neededRsrc[i]]);
+                D.ebugPrintln("NEEDED RSRC: " + neededRsrc[i] + " : " + rollsPerResource[neededRsrc[i]]);
             }
         }
 
@@ -1698,11 +1697,11 @@ public class SOCRobotNegotiator
         {
             for (int i = 0; i < j; i++)
             {
-                //log.debug("j="+j+" i="+i);
-                //log.debug("notNeededRsrc[i]="+notNeededRsrc[i]+" "+rollsPerResource[notNeededRsrc[i]]);
+                //D.ebugPrintln("j="+j+" i="+i);
+                //D.ebugPrintln("notNeededRsrc[i]="+notNeededRsrc[i]+" "+rollsPerResource[notNeededRsrc[i]]);
                 if (rollsPerResource[notNeededRsrc[i]] > rollsPerResource[notNeededRsrc[i + 1]])
                 {
-                    //log.debug("swap with "+notNeededRsrc[i+1]+" "+rollsPerResource[notNeededRsrc[i+1]]);
+                    //D.ebugPrintln("swap with "+notNeededRsrc[i+1]+" "+rollsPerResource[notNeededRsrc[i+1]]);
                     int tmp = notNeededRsrc[i];
                     notNeededRsrc[i] = notNeededRsrc[i + 1];
                     notNeededRsrc[i + 1] = tmp;
@@ -1710,11 +1709,11 @@ public class SOCRobotNegotiator
             }
         }
 
-        if (log.isDebugEnabled())
+        if (D.ebugOn)
         {
             for (int i = 0; i < notNeededRsrcCount; i++)
             {
-                log.debug("NOT-NEEDED RSRC: " + notNeededRsrc[i] + " : " + rollsPerResource[notNeededRsrc[i]]);
+                D.ebugPrintln("NOT-NEEDED RSRC: " + notNeededRsrc[i] + " : " + rollsPerResource[notNeededRsrc[i]]);
             }
         }
 
@@ -1735,11 +1734,11 @@ public class SOCRobotNegotiator
         ///
         if (getRsrcIdx >= 0)
         {
-            log.debug("*** getRsrc = " + neededRsrc[getRsrcIdx]);
+            D.ebugPrintln("*** getRsrc = " + neededRsrc[getRsrcIdx]);
 
             getResourceSet.add(1, neededRsrc[getRsrcIdx]);
 
-            log.debug("*** counterOffer should be null : counterOffer = " + counterOffer);
+            D.ebugPrintln("*** counterOffer should be null : counterOffer = " + counterOffer);
 
             ///
             /// consider offers where we give one unneeded for one needed
@@ -1748,20 +1747,20 @@ public class SOCRobotNegotiator
 
             while ((giveRsrcIdx < notNeededRsrcCount) && (counterOffer == null))
             {
-                log.debug("*** ourResources.getAmount(" + notNeededRsrc[giveRsrcIdx] + ") = " + ourResources.getAmount(notNeededRsrc[giveRsrcIdx]));
+                D.ebugPrintln("*** ourResources.getAmount(" + notNeededRsrc[giveRsrcIdx] + ") = " + ourResources.getAmount(notNeededRsrc[giveRsrcIdx]));
 
                 if (ourResources.getAmount(notNeededRsrc[giveRsrcIdx]) > 0)
                 {
                     giveResourceSet.clear();
                     giveResourceSet.add(1, notNeededRsrc[giveRsrcIdx]);
                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                    log.debug("*** counterOffer = " + counterOffer);
+                    D.ebugPrintln("*** counterOffer = " + counterOffer);
                 }
 
                 giveRsrcIdx++;
             }
 
-            log.debug("*** ourResources = " + ourResources);
+            D.ebugPrintln("*** ourResources = " + ourResources);
 
             ///
             /// consider offers where we give one needed for one needed
@@ -1772,8 +1771,8 @@ public class SOCRobotNegotiator
 
                 while ((giveRsrcIdx1 < neededRsrcCount) && (counterOffer == null))
                 {
-                    log.debug("*** ourResources.getAmount(" + neededRsrc[giveRsrcIdx1] + ") = " + ourResources.getAmount(neededRsrc[giveRsrcIdx1]));
-                    log.debug("*** targetResources.getAmount(" + neededRsrc[giveRsrcIdx1] + ") = " + targetResources.getAmount(neededRsrc[giveRsrcIdx1]));
+                    D.ebugPrintln("*** ourResources.getAmount(" + neededRsrc[giveRsrcIdx1] + ") = " + ourResources.getAmount(neededRsrc[giveRsrcIdx1]));
+                    D.ebugPrintln("*** targetResources.getAmount(" + neededRsrc[giveRsrcIdx1] + ") = " + targetResources.getAmount(neededRsrc[giveRsrcIdx1]));
 
                     if ((ourResources.getAmount(neededRsrc[giveRsrcIdx1]) > targetResources.getAmount(neededRsrc[giveRsrcIdx1])) && (neededRsrc[giveRsrcIdx1] != neededRsrc[getRsrcIdx]))
                     {
@@ -1788,8 +1787,8 @@ public class SOCRobotNegotiator
                         if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                         {
                             counterOffer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                            log.debug("*** counterOffer = " + counterOffer);
-                            log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                            D.ebugPrintln("*** counterOffer = " + counterOffer);
+                            D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                         }
                     }
 
@@ -1797,12 +1796,12 @@ public class SOCRobotNegotiator
                 }
             }
 
-            log.debug("*** ourResources = " + ourResources);
+            D.ebugPrintln("*** ourResources = " + ourResources);
 
             SOCResourceSet leftovers = ourResources.copy();
             leftovers.subtract(targetResources);
 
-            log.debug("*** leftovers = " + leftovers);
+            D.ebugPrintln("*** leftovers = " + leftovers);
 
             ///
             /// consider offers where we give two for one needed
@@ -1832,8 +1831,8 @@ public class SOCRobotNegotiator
                                 if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                                 {
                                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                                    log.debug("*** counterOffer = " + counterOffer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** counterOffer = " + counterOffer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -1860,8 +1859,8 @@ public class SOCRobotNegotiator
                                     if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                                     {
                                         counterOffer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                                        log.debug("*** counterOffer = " + counterOffer);
-                                        log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                        D.ebugPrintln("*** counterOffer = " + counterOffer);
+                                        D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                     }
                                 }
                             }
@@ -1896,8 +1895,8 @@ public class SOCRobotNegotiator
                                 if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                                 {
                                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                                    log.debug("*** counterOffer = " + counterOffer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** counterOffer = " + counterOffer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -1924,8 +1923,8 @@ public class SOCRobotNegotiator
                                     if ((offerBuildingTime < batnaBuildingTime) || ((batna != null) && (offerBuildingTime == batnaBuildingTime) && (giveResourceSet.getTotal() < batna.getGiveSet().getTotal())))
                                     {
                                         counterOffer = makeOfferAux(giveResourceSet, getResourceSet, neededRsrc[getRsrcIdx]);
-                                        log.debug("*** counterOffer = " + counterOffer);
-                                        log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                        D.ebugPrintln("*** counterOffer = " + counterOffer);
+                                        D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                     }
                                 }
                             }
@@ -1948,7 +1947,7 @@ public class SOCRobotNegotiator
             SOCResourceSet leftovers = ourResources.copy();
             leftovers.subtract(targetResources);
 
-            log.debug("*** leftovers = " + leftovers);
+            D.ebugPrintln("*** leftovers = " + leftovers);
 
             int getRsrcIdx2 = notNeededRsrcCount - 1;
 
@@ -1989,8 +1988,8 @@ public class SOCRobotNegotiator
                                 if (offerBuildingTime < batnaBuildingTime)
                                 {
                                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, notNeededRsrc[getRsrcIdx2]);
-                                    log.debug("*** counterOffer = " + counterOffer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** counterOffer = " + counterOffer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -2027,7 +2026,7 @@ public class SOCRobotNegotiator
                                 if (offerBuildingTime < batnaBuildingTime)
                                 {
                                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, notNeededRsrc[getRsrcIdx2]);
-                                    log.debug("*** counterOffer = " + counterOffer);
+                                    D.ebugPrintln("*** counterOffer = " + counterOffer);
                                 }
                             }
 
@@ -2052,7 +2051,7 @@ public class SOCRobotNegotiator
             SOCResourceSet leftovers = ourResources.copy();
             leftovers.subtract(targetResources);
 
-            log.debug("*** leftovers = " + leftovers);
+            D.ebugPrintln("*** leftovers = " + leftovers);
 
             int getRsrcIdx2 = notNeededRsrcCount - 1;
 
@@ -2093,8 +2092,8 @@ public class SOCRobotNegotiator
                                 if (offerBuildingTime < batnaBuildingTime)
                                 {
                                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, notNeededRsrc[getRsrcIdx2]);
-                                    log.debug("*** counterOffer = " + counterOffer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** counterOffer = " + counterOffer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -2131,7 +2130,7 @@ public class SOCRobotNegotiator
                                 if (offerBuildingTime < batnaBuildingTime)
                                 {
                                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, notNeededRsrc[getRsrcIdx2]);
-                                    log.debug("*** counterOffer = " + counterOffer);
+                                    D.ebugPrintln("*** counterOffer = " + counterOffer);
                                 }
                             }
 
@@ -2156,7 +2155,7 @@ public class SOCRobotNegotiator
             SOCResourceSet leftovers = ourResources.copy();
             leftovers.subtract(targetResources);
 
-            log.debug("*** leftovers = " + leftovers);
+            D.ebugPrintln("*** leftovers = " + leftovers);
 
             int getRsrcIdx2 = notNeededRsrcCount - 1;
 
@@ -2197,8 +2196,8 @@ public class SOCRobotNegotiator
                                 if (offerBuildingTime < batnaBuildingTime)
                                 {
                                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, notNeededRsrc[getRsrcIdx2]);
-                                    log.debug("*** counterOffer = " + counterOffer);
-                                    log.debug("*** offerBuildingTime = " + offerBuildingTime);
+                                    D.ebugPrintln("*** counterOffer = " + counterOffer);
+                                    D.ebugPrintln("*** offerBuildingTime = " + offerBuildingTime);
                                 }
                             }
 
@@ -2235,7 +2234,7 @@ public class SOCRobotNegotiator
                                 if (offerBuildingTime < batnaBuildingTime)
                                 {
                                     counterOffer = makeOfferAux(giveResourceSet, getResourceSet, notNeededRsrc[getRsrcIdx2]);
-                                    log.debug("*** counterOffer = " + counterOffer);
+                                    D.ebugPrintln("*** counterOffer = " + counterOffer);
                                 }
                             }
 
@@ -2309,11 +2308,11 @@ public class SOCRobotNegotiator
         {
             for (int i = 0; i < j; i++)
             {
-                //log.debug("j="+j+" i="+i);
-                //log.debug("neededRsrc[i]="+neededRsrc[i]+" "+rollsPerResource[neededRsrc[i]]);
+                //D.ebugPrintln("j="+j+" i="+i);
+                //D.ebugPrintln("neededRsrc[i]="+neededRsrc[i]+" "+rollsPerResource[neededRsrc[i]]);
                 if (rollsPerResource[neededRsrc[i]] > rollsPerResource[neededRsrc[i + 1]])
                 {
-                    //log.debug("swap with "+neededRsrc[i+1]+" "+rollsPerResource[neededRsrc[i+1]]);
+                    //D.ebugPrintln("swap with "+neededRsrc[i+1]+" "+rollsPerResource[neededRsrc[i+1]]);
                     int tmp = neededRsrc[i];
                     neededRsrc[i] = neededRsrc[i + 1];
                     neededRsrc[i + 1] = tmp;
@@ -2323,18 +2322,18 @@ public class SOCRobotNegotiator
 
         /*
            for (int i = 0; i < neededRsrcCount; i++) {
-           //log.debug("NEEDED RSRC: "+neededRsrc[i]+" : "+rollsPerResource[neededRsrc[i]]);
+           //D.ebugPrintln("NEEDED RSRC: "+neededRsrc[i]+" : "+rollsPerResource[neededRsrc[i]]);
            }
          */
         for (int j = notNeededRsrcCount - 1; j >= 0; j--)
         {
             for (int i = 0; i < j; i++)
             {
-                //log.debug("j="+j+" i="+i);
-                //log.debug("notNeededRsrc[i]="+notNeededRsrc[i]+" "+rollsPerResource[notNeededRsrc[i]]);
+                //D.ebugPrintln("j="+j+" i="+i);
+                //D.ebugPrintln("notNeededRsrc[i]="+notNeededRsrc[i]+" "+rollsPerResource[notNeededRsrc[i]]);
                 if (rollsPerResource[notNeededRsrc[i]] > rollsPerResource[notNeededRsrc[i + 1]])
                 {
-                    //log.debug("swap with "+notNeededRsrc[i+1]+" "+rollsPerResource[notNeededRsrc[i+1]]);
+                    //D.ebugPrintln("swap with "+notNeededRsrc[i+1]+" "+rollsPerResource[notNeededRsrc[i+1]]);
                     int tmp = notNeededRsrc[i];
                     notNeededRsrc[i] = notNeededRsrc[i + 1];
                     notNeededRsrc[i + 1] = tmp;
@@ -2344,7 +2343,7 @@ public class SOCRobotNegotiator
 
         /*
            for (int i = 0; i < notNeededRsrcCount; i++) {
-           //log.debug("NOT-NEEDED RSRC: "+notNeededRsrc[i]+" : "+rollsPerResource[notNeededRsrc[i]]);
+           //D.ebugPrintln("NOT-NEEDED RSRC: "+notNeededRsrc[i]+" : "+rollsPerResource[notNeededRsrc[i]]);
            }
          */
 
@@ -2390,10 +2389,10 @@ public class SOCRobotNegotiator
                 give.add(tradeRatio, notNeededRsrc[giveRsrcIdx]);
                 get.add(1, neededRsrc[getRsrcIdx]);
 
-                //log.debug("our resources: "+ourPlayerData.getResources());
-                //log.debug("Making bank trade:");
-                //log.debug("give: "+give);
-                //log.debug("get: "+get);
+                //D.ebugPrintln("our resources: "+ourPlayerData.getResources());
+                //D.ebugPrintln("Making bank trade:");
+                //D.ebugPrintln("give: "+give);
+                //D.ebugPrintln("get: "+get);
                 boolean[] to = new boolean[SOCGame.MAXPLAYERS];
 
                 for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
@@ -2452,10 +2451,10 @@ public class SOCRobotNegotiator
                     give.add(tradeRatio, neededRsrc[giveRsrcIdx]);
                     get.add(1, neededRsrc[getRsrcIdx]);
 
-                    //log.debug("our resources: "+ourPlayerData.getResources());
-                    //log.debug("Making bank trade:");
-                    //log.debug("give: "+give);
-                    //log.debug("get: "+get);
+                    //D.ebugPrintln("our resources: "+ourPlayerData.getResources());
+                    //D.ebugPrintln("Making bank trade:");
+                    //D.ebugPrintln("give: "+give);
+                    //D.ebugPrintln("get: "+get);
                     boolean[] to = new boolean[SOCGame.MAXPLAYERS];
 
                     for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
@@ -2484,10 +2483,10 @@ public class SOCRobotNegotiator
                     give.add(tradeRatio, neededRsrc[giveRsrcIdx]);
                     get.add(1, neededRsrc[getRsrcIdx]);
 
-                    //log.debug("our resources: "+ourPlayerData.getResources());
-                    //log.debug("Making bank trade:");
-                    //log.debug("give: "+give);
-                    //log.debug("get: "+get);
+                    //D.ebugPrintln("our resources: "+ourPlayerData.getResources());
+                    //D.ebugPrintln("Making bank trade:");
+                    //D.ebugPrintln("give: "+give);
+                    //D.ebugPrintln("get: "+get);
                     boolean[] to = new boolean[SOCGame.MAXPLAYERS];
 
                     for (int i = 0; i < SOCGame.MAXPLAYERS; i++)

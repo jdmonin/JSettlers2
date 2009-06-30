@@ -1,5 +1,5 @@
 /**
- * Local (StringConnection) network system.  Version 1.0.5.
+ * Local (StringConnection) network system.  Version 1.0.4.
  * Copyright (C) 2007-2008 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@ import java.net.ConnectException;
 import java.util.Date;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import soc.disableDebug.D;
 
 /**
  * Symmetric buffered connection sending strings between two local peers.
@@ -43,7 +43,6 @@ import org.apache.log4j.Logger;
  *  1.0.2 - 2008-07-30 - check if s already null in disconnect
  *  1.0.3 - 2008-08-08 - add disconnectSoft, getVersion, setVersion
  *  1.0.4 - 2008-09-04 - add appData
- *  1.0.5 - 2008-09-13 - use log4j - Eli McGowan
  *</PRE>
  */
 public class LocalStringConnection
@@ -73,9 +72,6 @@ public class LocalStringConnection
      * Not used or referenced by generic server.
      */
     protected Object appData;
-
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * Create a new, unused LocalStringConnection.
@@ -223,7 +219,7 @@ public class LocalStringConnection
         if (! accepted)
             return;  // <--- Early return: Already disconnected, or never connected ---
 
-        log.debug("DISCONNECTING " + data);
+        D.ebugPrintln("DISCONNECTING " + data);
         accepted = false;
         synchronized (out)
         {
@@ -249,7 +245,7 @@ public class LocalStringConnection
         // Don't check accepted; it'll be false if we're called from
         // disconnect(), and it's OK to do this part twice.
 
-        log.debug("DISCONNECTING(SOFT) " + data);
+        D.ebugPrintln("DISCONNECTING(SOFT) " + data);
         synchronized (in)
         {
             in.clear();
@@ -523,9 +519,9 @@ public class LocalStringConnection
         }
         catch (IOException e)
         {
-            log.debug("IOException in LocalStringConnection.run - " + e);
+            D.ebugPrintln("IOException in LocalStringConnection.run - " + e);
 
-            if (log.isDebugEnabled())
+            if (D.ebugOn)
             {
                 e.printStackTrace(System.out);
             }

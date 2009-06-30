@@ -21,6 +21,9 @@
  **/
 package soc.client;
 
+import soc.game.SOCGame;
+import soc.game.SOCPlayer;
+
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
@@ -35,10 +38,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.URL;
-
-import org.apache.log4j.Logger;
-
-import soc.game.SOCGame;
 
 
 /**
@@ -58,9 +57,6 @@ public class SOCFaceButton extends Canvas
     public static final int DEFAULT_FACE = 1;  // Human face # 1 (face1.gif)
 
     private static final String IMAGEDIR = "/soc/client/images";
-    
-    /** debug logging */
-    private static Logger staticLog = Logger.getLogger("soc.client.SOCBoardPanel");
 
     /**
      * number of /numbered/ face images, /plus 1/ for indexing.
@@ -189,7 +185,7 @@ public class SOCFaceButton extends Canvas
 
             if (tracker.isErrorID(0))
             {
-                staticLog.info("Error loading Face images");
+                System.out.println("Error loading Face images");
             }
         }
     }

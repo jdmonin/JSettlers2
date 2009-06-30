@@ -21,6 +21,11 @@
  **/
 package soc.client;
 
+import soc.game.SOCGame;
+import soc.game.SOCPlayer;
+import soc.game.SOCResourceSet;
+import soc.game.SOCTradeOffer;
+
 import java.awt.Button;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -31,11 +36,6 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import soc.game.SOCGame;
-import soc.game.SOCPlayer;
-import soc.game.SOCResourceSet;
-import soc.game.SOCTradeOffer;
 
 
 /**
@@ -450,7 +450,7 @@ public class TradeOfferPanel extends Panel
                 SOCGame game = hp.getGame();
                 SOCPlayer player = game.getPlayer(pi.getClient().getNickname());
 
-                if (game.getGameState() == SOCGame.BUILD_PHASE)
+                if (game.getGameState() == SOCGame.PLAY1)
                 {
                     // slot for each resource, plus one for 'unknown' (remains 0)
                     int[] give = new int[5];

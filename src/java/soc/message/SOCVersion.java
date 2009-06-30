@@ -31,7 +31,6 @@ import java.util.StringTokenizer;
  * @version 1.10.0  Introduced 2008-08-07 to add client-server versioning
  * @author Jeremy D. Monin <jeremy@nand.net>
  */
-@SuppressWarnings("serial")
 public class SOCVersion extends SOCMessage
 {
     /**

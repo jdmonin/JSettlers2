@@ -31,7 +31,6 @@ import java.util.StringTokenizer;
  * @author Robert S. Thomas
  * @see SOCTurn
  */
-@SuppressWarnings("serial")
 public class SOCSetTurn extends SOCMessageTemplate1i
 {
     /**

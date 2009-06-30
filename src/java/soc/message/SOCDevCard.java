@@ -21,7 +21,6 @@
 package soc.message;
 
 import java.util.StringTokenizer;
-
 import soc.game.SOCDevCardConstants;  // for javadoc's use
 
 
@@ -31,7 +30,6 @@ import soc.game.SOCDevCardConstants;  // for javadoc's use
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCDevCard extends SOCMessage
 {
     /** dev card action DRAW: Add as new to player's hand */

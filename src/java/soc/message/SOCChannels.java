@@ -24,31 +24,25 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
-
 
 /**
  * This message lists all the chat channels on a server
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCChannels extends SOCMessage
 {
-	/** static method debug logging */
-    private static Logger staticLog = Logger.getLogger("soc.message.SOCChannels");
-    
     /**
      * List of channels
      */
-    private Vector<String> channels;
+    private Vector channels;
 
     /**
      * Create a Channels Message.
      *
      * @param cl  list of channels
      */
-    public SOCChannels(Vector<String> cl)
+    public SOCChannels(Vector cl)
     {
         messageType = CHANNELS;
         channels = cl;
@@ -57,7 +51,7 @@ public class SOCChannels extends SOCMessage
     /**
      * @return the list of channels
      */
-    public Vector<String> getChannels()
+    public Vector getChannels()
     {
         return channels;
     }
@@ -78,18 +72,18 @@ public class SOCChannels extends SOCMessage
      * @param cl  the list of channels
      * @return    the command string
      */
-    public static String toCmd(Vector<String> cl)
+    public static String toCmd(Vector cl)
     {
         String cmd = CHANNELS + sep;
 
         try
         {
-            Enumeration<String> clEnum = cl.elements();
-            cmd += clEnum.nextElement();
+            Enumeration clEnum = cl.elements();
+            cmd += (String) clEnum.nextElement();
 
             while (clEnum.hasMoreElements())
             {
-                cmd += (sep2 + clEnum.nextElement());
+                cmd += (sep2 + (String) clEnum.nextElement());
             }
         }
         catch (Exception e) {}
@@ -105,7 +99,7 @@ public class SOCChannels extends SOCMessage
      */
     public static SOCChannels parseDataStr(String s)
     {
-        Vector<String> cl = new Vector<String>();
+        Vector cl = new Vector();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -117,12 +111,12 @@ public class SOCChannels extends SOCMessage
         }
         catch (Exception e)
         {
-        	staticLog.error("SOCChannels parseDataStr ERROR - " + e);
+            System.err.println("SOCChannels parseDataStr ERROR - " + e);
 
             return null;
         }
 
-        return new SOCChannels((Vector<String>) cl);
+        return new SOCChannels((Vector) cl);
     }
 
     /**
@@ -134,12 +128,12 @@ public class SOCChannels extends SOCMessage
 
         try
         {
-            Enumeration<String> clEnum = channels.elements();
-            s += clEnum.nextElement();
+            Enumeration clEnum = channels.elements();
+            s += (String) clEnum.nextElement();
 
             while (clEnum.hasMoreElements())
             {
-                s += ("," + clEnum.nextElement());
+                s += ("," + (String) clEnum.nextElement());
             }
         }
         catch (Exception e) {}

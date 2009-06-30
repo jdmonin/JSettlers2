@@ -30,7 +30,6 @@ import java.util.StringTokenizer;
  * @author Robert S. Thomas
  * @see SOCSetTurn
  */
-@SuppressWarnings("serial")
 public class SOCTurn extends SOCMessage
 {
     /**

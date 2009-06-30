@@ -31,7 +31,6 @@ import java.util.StringTokenizer;
  * @see SOCResetBoardRequest
  * @author Jeremy D. Monin <jeremy@nand.net>
  */
-@SuppressWarnings("serial")
 public class SOCResetBoardVoteRequest extends SOCMessageTemplate1i
 {
     /**

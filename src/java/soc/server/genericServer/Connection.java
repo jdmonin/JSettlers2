@@ -21,15 +21,17 @@
  **/
 package soc.server.genericServer;
 
+import soc.disableDebug.D;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+
 import java.net.Socket;
+
 import java.util.Date;
 import java.util.Vector;
-
-import org.apache.log4j.Logger;
 
 
 /** A server connection.
@@ -69,9 +71,6 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     /** @see #disconnectSoft() */
     protected boolean inputConnected = false;
     public Vector outQueue = new Vector();
-
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /** initialize the connection data */
     Connection(Socket so, Server sve)
@@ -123,9 +122,9 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         }
         catch (Exception e)
         {
-            log.debug("IOException in Connection.connect (" + hst + ") - " + e);
+            D.ebugPrintln("IOException in Connection.connect (" + hst + ") - " + e);
 
-            if (log.isDebugEnabled())
+            if (D.ebugOn)
             {
                 e.printStackTrace(System.out);
             }
@@ -154,9 +153,9 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         }
         catch (IOException e)
         {
-            log.debug("IOException in Connection.run (" + hst + ") - " + e);
+            D.ebugPrintln("IOException in Connection.run (" + hst + ") - " + e);
 
-            if (log.isDebugEnabled())
+            if (D.ebugOn)
             {
                 e.printStackTrace(System.out);
             }
@@ -181,7 +180,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     {
         synchronized (outQueue)
         {
-            log.debug("Adding " + str + " to outQueue for " + data);
+            D.ebugPrintln("Adding " + str + " to outQueue for " + data);
             outQueue.addElement(str);
             outQueue.notify();
         }
@@ -233,14 +232,14 @@ public final class Connection extends Thread implements Runnable, Serializable, 
 
         try
         {
-            //log.debug("trying to put "+str+" to "+data);
+            //D.ebugPrintln("trying to put "+str+" to "+data);
             out.writeUTF(str);
         }
         catch (IOException e)
         {
-            log.debug("IOException in Connection.putAux (" + hst + ") - " + e);
+            D.ebugPrintln("IOException in Connection.putAux (" + hst + ") - " + e);
 
-            if (log.isDebugEnabled())
+            if (D.ebugOn)
             {
                 e.printStackTrace(System.out);
             }
@@ -251,9 +250,9 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         }
         catch (Exception ex)
         {
-            log.debug("generic exception in connection putaux");
+            D.ebugPrintln("generic exception in connection putaux");
 
-            if (log.isDebugEnabled())
+            if (D.ebugOn)
             {
                 ex.printStackTrace(System.out);
             }
@@ -340,7 +339,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         if (! connected)
             return;  // <--- Early return: Already disconnected ---
 
-        log.debug("DISCONNECTING " + data);
+        D.ebugPrintln("DISCONNECTING " + data);
         connected = false;
         inputConnected = false;
 
@@ -353,9 +352,9 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         }
         catch (IOException e)
         {
-            log.debug("IOException in Connection.disconnect (" + hst + ") - " + e);
+            D.ebugPrintln("IOException in Connection.disconnect (" + hst + ") - " + e);
 
-            if (log.isDebugEnabled())
+            if (D.ebugOn)
             {
                 e.printStackTrace(System.out);
             }
@@ -378,7 +377,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         if (! inputConnected)
             return;
 
-        log.debug("DISCONNECTING(SOFT) " + data);
+        D.ebugPrintln("DISCONNECTING(SOFT) " + data);
         inputConnected = false;
     }
 
@@ -418,7 +417,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
         public Putter(Connection c)
         {
             con = c;
-            log.debug("NEW PUTTER CREATED FOR " + data);
+            D.ebugPrintln("NEW PUTTER CREATED FOR " + data);
             
             /* thread name for debug */
             String cn = c.host();
@@ -434,7 +433,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
             {
                 String c = null;
 
-                log.debug("** " + data + " is at the top of the putter loop");
+                D.ebugPrintln("** " + data + " is at the top of the putter loop");
 
                 synchronized (outQueue)
                 {
@@ -458,18 +457,18 @@ public final class Connection extends Thread implements Runnable, Serializable, 
                     {
                         try
                         {
-                            //log.debug("** "+data+" is WAITING for outQueue");
+                            //D.ebugPrintln("** "+data+" is WAITING for outQueue");
                             outQueue.wait(1000);
                         }
                         catch (Exception ex)
                         {
-                            log.debug("Exception while waiting for outQueue in " + data + ". - " + ex);
+                            D.ebugPrintln("Exception while waiting for outQueue in " + data + ". - " + ex);
                         }
                     }
                 }
             }
 
-            log.debug("putter not putting connected==false : " + data);
+            D.ebugPrintln("putter not putting connected==false : " + data);
         }
     }
 }

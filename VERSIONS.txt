@@ -2,10 +2,6 @@
 
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 
-    > 1.1.05 (build 2008-09-13)
-- Upgrade: converted all logging to Log4j (very basic settings)
-- Rearrange import statements
-
     > 1.1.04 (build 2008-09-06)
 - Bugfix: Cancelling 2nd initial settlement, other players lost resources (SOCPlayer)
 - Bugfix: Don't disable "play card" button after buying or playing a card (SOCHandPanel)

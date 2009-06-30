@@ -26,7 +26,6 @@ import java.util.Vector;
 /**
  * A road playing piece
  */
-@SuppressWarnings("serial")
 public class SOCRoad extends SOCPlayingPiece
 {
     /**
@@ -45,7 +44,7 @@ public class SOCRoad extends SOCPlayingPiece
     /**
      * @return the nodes touching this road
      */
-    public Vector<Integer> getAdjacentNodes()
+    public Vector getAdjacentNodes()
     {
         return SOCBoard.getAdjacentNodesToEdge(coord);
     }
@@ -53,7 +52,7 @@ public class SOCRoad extends SOCPlayingPiece
     /**
      * @return edges touching this road
      */
-    public Vector<Integer> getAdjacentEdges()
+    public Vector getAdjacentEdges()
     {
         return SOCBoard.getAdjacentEdgesToEdge(coord);
     }

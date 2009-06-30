@@ -21,8 +21,34 @@
  **/
 package soc.client;
 
+import soc.debug.D;  // JM
+
+import soc.game.SOCBoard;
+import soc.game.SOCCity;
+import soc.game.SOCDevCardSet;
+import soc.game.SOCGame;
+import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
+import soc.game.SOCRoad;
+import soc.game.SOCSettlement;
+import soc.game.SOCTradeOffer;
+
+import soc.message.*;
+
+import soc.robot.SOCRobotClient;
+
+import soc.server.SOCServer;
+import soc.server.genericServer.LocalStringConnection;
+import soc.server.genericServer.LocalStringServerSocket;
+import soc.server.genericServer.StringConnection;
+
+import soc.util.Version;
+
 import java.applet.Applet;
 import java.applet.AppletContext;
+
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.CardLayout;
@@ -40,35 +66,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+
 import java.net.ConnectException;
 import java.net.Socket;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-
-import org.apache.log4j.Logger;
-
-import soc.game.SOCBoard;
-import soc.game.SOCCity;
-import soc.game.SOCDevCardSet;
-import soc.game.SOCGame;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
-import soc.game.SOCRoad;
-import soc.game.SOCSettlement;
-import soc.game.SOCTradeOffer;
-import soc.message.*;
-import soc.robot.SOCRobotClient;
-import soc.server.SOCServer;
-import soc.server.genericServer.LocalStringConnection;
-import soc.server.genericServer.LocalStringServerSocket;
-import soc.server.genericServer.StringConnection;
-import soc.util.Version;
 
 
 /**
@@ -97,9 +105,6 @@ import soc.util.Version;
  */
 public class SOCPlayerClient extends Applet implements Runnable, ActionListener
 {
-	/** debug logging for static methods */
-    private static Logger staticLog = Logger.getLogger("soc.client.SOCPlayerClient");
-    
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
 
@@ -273,9 +278,6 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      * Note that {@link SOCGame#isLocal} is false for localTCPServer's games.
      */
     protected SOCServer localTCPServer = null;
-
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * Create a SOCPlayerClient connecting to localhost port {@link #SOC_PORT_DEFAULT}
@@ -582,7 +584,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         }
         catch (Exception e)
         {
-            log.error("Invalid " + name + ": " + value);
+            System.err.println("Invalid " + name + ": " + value);
         }
         return iValue;
     }
@@ -601,9 +603,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      */
     public synchronized void init()
     {
-        log.info("Java Settlers Client " + Version.version() +
+        System.out.println("Java Settlers Client " + Version.version() +
                            ", build " + Version.buildnum() + ", " + Version.copyright());
-        log.info("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+        System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
 
         String param = null;
         int intValue;
@@ -622,7 +624,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         if (param != null)
             channel.setText(param); // after visuals initialized
 
-        log.info("Getting host...");
+        System.out.println("Getting host...");
         host = getCodeBase().getHost();
         if (host.equals(""))
             host = null;  // localhost
@@ -633,7 +635,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
                 port = Integer.parseInt(param);
         }
         catch (Exception e) {
-            log.error("Invalid port: " + param);
+            System.err.println("Invalid port: " + param);
         }
 
         connect();
@@ -675,7 +677,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
                                             hostString);
         }
                 
-        log.info("Connecting to " + hostString);
+        System.out.println("Connecting to " + hostString);
         messageLabel.setText("Connecting to server...");
         
         try
@@ -690,7 +692,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         {
             ex = e;
             String msg = "Could not connect to the server: " + ex;
-            log.error(msg);
+            System.err.println(msg);
             if (ex_L == null)
             {
                 pgm.setVisible(true);
@@ -727,16 +729,16 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         }
         catch(Throwable thr)
         {
-            log.error("-- Error caught in AWT event thread: " + thr + " --");
+            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
             thr.printStackTrace();
             while (thr.getCause() != null)
             {
                 thr = thr.getCause();
-                log.error(" --> Cause: " + thr + " --");
+                System.err.println(" --> Cause: " + thr + " --");
                 thr.printStackTrace();
             }
-            log.error("-- Error stack trace end --");
-            log.error("");
+            System.err.println("-- Error stack trace end --");
+            System.err.println();
         }
     }
 
@@ -904,7 +906,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
                 }
             }
 
-            // log.info("GM = |"+gm+"|");
+            // System.out.println("GM = |"+gm+"|");
             if (gm.length() == 0)
             {
                 return;
@@ -1130,7 +1132,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             if (connected)
             {
                 ex = e;
-                log.info("could not read from the net: " + ex);
+                System.out.println("could not read from the net: " + ex);
                 destroy();
             }
         }
@@ -1169,8 +1171,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             return false;
         }
 
-        if (log.isDebugEnabled())
-            log.debug("OUT - " + SOCMessage.toMsg(s));
+        if (D.ebugIsEnabled())
+            D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
 
         try
         {
@@ -1179,7 +1181,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         catch (IOException e)
         {
             ex = e;
-            log.error("could not write to the net: " + ex);
+            System.err.println("could not write to the net: " + ex);
             destroy();
 
             return false;
@@ -1206,8 +1208,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             return false;
         }
 
-        if (log.isDebugEnabled())
-            log.debug("OUT L- " + SOCMessage.toMsg(s));
+        if (D.ebugIsEnabled())
+            D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
 
         prCli.put(s);
 
@@ -1244,7 +1246,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         if (mes == null)
             return;  // Parsing error
 
-        log.debug(mes.toString());
+        D.ebugPrintln(mes.toString());
 
         try
         {
@@ -1681,7 +1683,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         }
         catch (Exception e)
         {
-            log.info("SOCPlayerClient treat ERROR - " + e.getMessage());
+            System.out.println("SOCPlayerClient treat ERROR - " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -1698,7 +1700,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      */
     private void handleVERSION(boolean isLocal, SOCVersion mes)
     {
-        log.debug("handleVERSION: " + mes);
+        D.ebugPrintln("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
         if (! isLocal)
             sVersion = vers;
@@ -1989,7 +1991,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
     protected void handleGAMEMEMBERS(SOCGameMembers mes)
     {
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        log.error("got GAMEMEMBERS"); // TODO tracing
+        System.err.println("got GAMEMEMBERS"); // TODO tracing
         pi.began();
     }
 
@@ -2071,7 +2073,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             catch (Exception e)
             {
                 ga.releaseMonitor();
-                log.info("Exception caught - " + e);
+                System.out.println("Exception caught - " + e);
                 e.printStackTrace();
             }
 
@@ -2387,7 +2389,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
             {
                 SOCResourceSet rsrcs = pl.getResources();
 
-                if (log.isDebugEnabled())
+                if (D.ebugOn)
                 {
                     //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
                 }
@@ -3062,7 +3064,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      */
     public void updateGameStats(String gameName, int[] scores, boolean[] robots)
     {
-        //log.debug("UPDATE GAME STATS FOR "+gameName);
+        //D.ebugPrintln("UPDATE GAME STATS FOR "+gameName);
         String testString = gameName + STATSPREFEX;
 
         for (int i = 0; i < gmlist.getItemCount(); i++)
@@ -3661,7 +3663,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      */
     protected boolean onIgnoreList(String name)
     {
-        log.debug("onIgnoreList |" + name + "|");
+        D.ebugPrintln("onIgnoreList |" + name + "|");
 
         boolean result = false;
         Enumeration ienum = ignoreList.elements();
@@ -3669,15 +3671,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
         while (ienum.hasMoreElements())
         {
             String s = (String) ienum.nextElement();
-            if (log.isDebugEnabled())
+            if (D.ebugIsEnabled())
             {
-                log.debug("comparing |" + s + "| to |" + name + "|");
+                D.ebugPrintln("comparing |" + s + "| to |" + name + "|");
             }
 
             if (s.equals(name))
             {
                 result = true;
-                log.debug("match");
+                D.ebugPrintln("match");
 
                 break;
             }
@@ -4129,7 +4131,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
      */
     public static void usage()
     {
-        staticLog.error("usage: java soc.client.SOCPlayerClient <host> <port>");
+        System.err.println("usage: java soc.client.SOCPlayerClient <host> <port>");
     }
 
     /**
@@ -4161,14 +4163,14 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
                 client.port = Integer.parseInt(args[1]);
             } catch (NumberFormatException x) {
                 usage();
-                staticLog.error("Invalid port: " + args[1]);
+                System.err.println("Invalid port: " + args[1]);
                 System.exit(1);
             }
         }
 
-        staticLog.info("Java Settlers Client " + Version.version() +
+        System.out.println("Java Settlers Client " + Version.version() +
                 ", build " + Version.buildnum() + ", " + Version.copyright());
-        staticLog.info("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+        System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
 
         Frame frame = new Frame("JSettlers client " + Version.version());
         frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
@@ -4298,7 +4300,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener
                 if (locl.isConnected())
                 {
                     ex_L = e;
-                    log.info("could not read from string localnet: " + ex_L);
+                    System.out.println("could not read from string localnet: " + ex_L);
                     destroy();
                 }
             }

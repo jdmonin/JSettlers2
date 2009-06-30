@@ -61,7 +61,7 @@ public class CappedQueue
      */
     synchronized public void put(Object o) throws CutoffExceededException
     {
-        //log.debug(">put-> "+o);
+        //D.ebugPrintln(">put-> "+o);
         // Add the element
         vec.addElement(o);
 
@@ -89,7 +89,7 @@ public class CappedQueue
                 // There's an available object!
                 Object o = vec.elementAt(0);
 
-                //log.debug("<-get< "+o); 
+                //D.ebugPrintln("<-get< "+o); 
                 // Remove it from our internal list, so someone else
                 // doesn't get it.
                 vec.removeElementAt(0);

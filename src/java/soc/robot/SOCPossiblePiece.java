@@ -20,9 +20,9 @@
  **/
 package soc.robot;
 
-import java.util.Vector;
-
 import soc.game.SOCPlayer;
+
+import java.util.Vector;
 
 
 /**

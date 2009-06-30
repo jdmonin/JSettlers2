@@ -20,12 +20,12 @@
  **/
 package soc.message;
 
-import java.util.StringTokenizer;
-
 import soc.game.SOCGame;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
+
+import java.util.StringTokenizer;
 
 
 /**
@@ -33,7 +33,6 @@ import soc.game.SOCTradeOffer;
  *
  * @author Robert S. Thomas
  */
-@SuppressWarnings("serial")
 public class SOCMakeOffer extends SOCMessage
 {
     /**

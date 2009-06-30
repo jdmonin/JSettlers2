@@ -72,7 +72,6 @@ public class SOCRobotParameters
      *
      * @param params  the robot parameters
      */
-    //TODO IS THIS A CLONE????
     public SOCRobotParameters(SOCRobotParameters params)
     {
         maxGameLength = params.getMaxGameLength();

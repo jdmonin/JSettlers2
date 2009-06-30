@@ -21,17 +21,19 @@
  **/
 package soc.server;
 
+import soc.disableDebug.D;
+
+import soc.game.SOCGame;
+
+import soc.server.genericServer.StringConnection;
+
+import soc.util.MutexFlag;
+import soc.util.Version;
+
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-
-import org.apache.log4j.Logger;
-
-import soc.game.SOCGame;
-import soc.server.genericServer.StringConnection;
-import soc.util.MutexFlag;
-import soc.util.Version;
 
 
 /**
@@ -61,9 +63,6 @@ public class SOCGameList
     /** used with gamelist's monitor */
     protected boolean inUse;
 
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
-
     /**
      * constructor
      */
@@ -80,7 +79,7 @@ public class SOCGameList
      */
     public synchronized void takeMonitor()
     {
-        log.debug("SOCGameList : TAKE MONITOR");
+        D.ebugPrintln("SOCGameList : TAKE MONITOR");
 
         while (inUse)
         {
@@ -90,7 +89,7 @@ public class SOCGameList
             }
             catch (InterruptedException e)
             {
-                log.info("EXCEPTION IN takeMonitor() -- " + e);
+                System.out.println("EXCEPTION IN takeMonitor() -- " + e);
             }
         }
 
@@ -102,7 +101,7 @@ public class SOCGameList
      */
     public synchronized void releaseMonitor()
     {
-        log.debug("SOCGameList : RELEASE MONITOR");
+        D.ebugPrintln("SOCGameList : RELEASE MONITOR");
         inUse = false;
         this.notify();
     }
@@ -115,7 +114,7 @@ public class SOCGameList
      */
     public boolean takeMonitorForGame(String game)
     {
-        log.debug("SOCGameList : TAKE MONITOR FOR " + game);
+        D.ebugPrintln("SOCGameList : TAKE MONITOR FOR " + game);
 
         MutexFlag mutex = (MutexFlag) gameMutexes.get(game);
 
@@ -145,7 +144,7 @@ public class SOCGameList
                     }
                     catch (InterruptedException e)
                     {
-                        log.info("EXCEPTION IN takeMonitor() -- " + e);
+                        System.out.println("EXCEPTION IN takeMonitor() -- " + e);
                     }
                 }
                 else
@@ -168,7 +167,7 @@ public class SOCGameList
      */
     public boolean releaseMonitorForGame(String game)
     {
-        log.debug("SOCGameList : RELEASE MONITOR FOR " + game);
+        D.ebugPrintln("SOCGameList : RELEASE MONITOR FOR " + game);
 
         MutexFlag mutex = (MutexFlag) gameMutexes.get(game);
 
@@ -407,7 +406,7 @@ public class SOCGameList
      */
     public synchronized void deleteGame(String gaName)
     {
-        log.debug("SOCGameList : deleteGame(" + gaName + ")");
+        D.ebugPrintln("SOCGameList : deleteGame(" + gaName + ")");
 
         SOCGame game = (SOCGame) gameData.get(gaName);
 

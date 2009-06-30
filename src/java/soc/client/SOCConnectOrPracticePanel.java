@@ -24,6 +24,11 @@ package soc.client;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Label;
@@ -36,8 +41,6 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
-
-import org.apache.log4j.Logger;
 
 import soc.util.Version;
 
@@ -80,9 +83,6 @@ public class SOCConnectOrPracticePanel extends Panel
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
 
-    /** static method debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
-    
     /**
      * Creates a new SOCConnectOrPracticePanel.
      *
@@ -493,16 +493,16 @@ public class SOCConnectOrPracticePanel extends Panel
         }  // try
         catch(Throwable thr)
         {
-            log.error("-- Error caught in AWT event thread: " + thr + " --");
+            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
             thr.printStackTrace();
             while (thr.getCause() != null)
             {
                 thr = thr.getCause();
-                log.error(" --> Cause: " + thr + " --");
+                System.err.println(" --> Cause: " + thr + " --");
                 thr.printStackTrace();
             }
-            log.error("-- Error stack trace end --");
-            log.error("");
+            System.err.println("-- Error stack trace end --");
+            System.err.println();
         }
 
     }
@@ -592,16 +592,16 @@ public class SOCConnectOrPracticePanel extends Panel
         }  // try
         catch(Throwable thr)
         {
-            log.error("-- Error caught in AWT event thread: " + thr + " --");
+            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
             thr.printStackTrace();
             while (thr.getCause() != null)
             {
                 thr = thr.getCause();
-                log.error(" --> Cause: " + thr + " --");
+                System.err.println(" --> Cause: " + thr + " --");
                 thr.printStackTrace();
             }
-            log.error("-- Error stack trace end --");
-            log.error("");
+            System.err.println("-- Error stack trace end --");
+            System.err.println();
         }
     }
 

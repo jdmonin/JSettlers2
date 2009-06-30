@@ -39,8 +39,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import org.apache.log4j.Logger;
-
 
 /**
  * This is the generic dialog to ask players a two- or three-choice question.
@@ -97,9 +95,6 @@ public abstract class AskDialog extends Dialog
     /** Have we requested focus yet? */
     protected boolean didReqFocus;
 
-    /** static method debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
-    
     /**
      * Creates a new AskDialog with two buttons, about a specific game.
      *
@@ -387,16 +382,16 @@ public abstract class AskDialog extends Dialog
             {
                 pi.chatPrintStackTrace(thr);
             } else {
-                log.error("-- Exception in AskDialog.actionPerformed: " + thr.toString() + " --");
+                System.err.println("-- Exception in AskDialog.actionPerformed: " + thr.toString() + " --");
                 thr.printStackTrace();
                 while (thr.getCause() != null)
                 {
                     thr = thr.getCause();
-                    log.error(" --> Cause: " + thr + " --");
+                    System.err.println(" --> Cause: " + thr + " --");
                     thr.printStackTrace();
                 }
-                log.error("-- Error stack trace end --");
-                log.error("");
+                System.err.println("-- Error stack trace end --");
+                System.err.println();
             }
         }
     }

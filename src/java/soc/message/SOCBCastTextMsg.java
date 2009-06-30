@@ -26,7 +26,6 @@ package soc.message;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCBCastTextMsg extends SOCMessage
 {
     /**

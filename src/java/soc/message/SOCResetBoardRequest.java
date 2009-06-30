@@ -20,6 +20,11 @@
  **/
 package soc.message;
 
+import java.util.StringTokenizer;
+
+import soc.server.genericServer.StringConnection;
+
+
 /**
  * This message from client to server requests a "reset board" of
  * a game being played. (New game, same name, same players, new layout).
@@ -30,7 +35,6 @@ package soc.message;
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
  */
-@SuppressWarnings("serial")
 public class SOCResetBoardRequest extends SOCMessageTemplate0
 {
     /**

@@ -30,7 +30,6 @@ import java.util.StringTokenizer;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCGameTextMsg extends SOCMessage
 {
     /**

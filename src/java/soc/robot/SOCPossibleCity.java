@@ -20,11 +20,11 @@
  **/
 package soc.robot;
 
-import java.util.Vector;
-
 import soc.game.SOCCity;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
+
+import java.util.Vector;
 
 
 /**
@@ -65,7 +65,7 @@ public class SOCPossibleCity extends SOCPossiblePiece
      */
     public SOCPossibleCity(SOCPossibleCity pc)
     {
-        //log.debug(">>>> Copying possible city: "+pc);
+        //D.ebugPrintln(">>>> Copying possible city: "+pc);
         pieceType = SOCPossiblePiece.CITY;
         player = pc.getPlayer();
         coord = pc.getCoordinates();
@@ -90,7 +90,7 @@ public class SOCPossibleCity extends SOCPossiblePiece
      */
     public void updateSpeedup()
     {
-        //log.debug("****************************** (CITY) updateSpeedup at "+Integer.toHexString(coord));
+        //D.ebugPrintln("****************************** (CITY) updateSpeedup at "+Integer.toHexString(coord));
         SOCBuildingSpeedEstimate bse1 = new SOCBuildingSpeedEstimate(player.getNumbers());
         int[] ourBuildingSpeed = bse1.getEstimatesFromNothingFast(player.getPortFlags());
         SOCPlayerNumbers newNumbers = new SOCPlayerNumbers(player.getNumbers());
@@ -103,7 +103,7 @@ public class SOCPossibleCity extends SOCPossiblePiece
                 buildingType < SOCBuildingSpeedEstimate.MAXPLUSONE;
                 buildingType++)
         {
-            //log.debug("!@#$% ourBuildingSpeed[buildingType]="+ourBuildingSpeed[buildingType]+" speed[buildingType]="+speed[buildingType]);
+            //D.ebugPrintln("!@#$% ourBuildingSpeed[buildingType]="+ourBuildingSpeed[buildingType]+" speed[buildingType]="+speed[buildingType]);
             speedup[buildingType] = ourBuildingSpeed[buildingType] - speed[buildingType];
         }
     }

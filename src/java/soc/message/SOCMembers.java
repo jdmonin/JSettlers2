@@ -20,11 +20,11 @@
  **/
 package soc.message;
 
+import soc.server.genericServer.StringConnection;
+
 import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
-
-import soc.server.genericServer.StringConnection;
 
 
 /**
@@ -32,13 +32,12 @@ import soc.server.genericServer.StringConnection;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCMembers extends SOCMessage
 {
     /**
      * List of members
      */
-    private Vector<String> members;
+    private Vector members;
 
     /**
      * Name of channel
@@ -51,7 +50,7 @@ public class SOCMembers extends SOCMessage
      * @param ch  name of chat channel
      * @param ml  list of members
      */
-    public SOCMembers(String ch, Vector<String> ml)
+    public SOCMembers(String ch, Vector ml)
     {
         messageType = MEMBERS;
         members = ml;
@@ -61,7 +60,7 @@ public class SOCMembers extends SOCMessage
     /**
      * @return the list of members
      */
-    public Vector<String> getMembers()
+    public Vector getMembers()
     {
         return members;
     }
@@ -91,14 +90,13 @@ public class SOCMembers extends SOCMessage
      * @param ml  the list of members
      * @return    the command string
      */
-    public static String toCmd(String ch, Vector<String> ml)
+    public static String toCmd(String ch, Vector ml)
     {
         String cmd = MEMBERS + sep + ch;
 
         try
         {
-        	//TODO I'm not sure what this string connection is doing but I think we should change it to just a string and use the generics.
-        	Enumeration mlEnum = ml.elements();
+            Enumeration mlEnum = ml.elements();
 
             while (mlEnum.hasMoreElements())
             {
@@ -120,7 +118,7 @@ public class SOCMembers extends SOCMessage
     public static SOCMembers parseDataStr(String s)
     {
         String ch;
-        Vector<String> ml = new Vector<String>();
+        Vector ml = new Vector();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -149,12 +147,12 @@ public class SOCMembers extends SOCMessage
 
         try
         {
-            Enumeration<String> mlEnum = members.elements();
-            s += mlEnum.nextElement();
+            Enumeration mlEnum = members.elements();
+            s += (String) mlEnum.nextElement();
 
             while (mlEnum.hasMoreElements())
             {
-                s += ("," + mlEnum.nextElement());
+                s += ("," + (String) mlEnum.nextElement());
             }
         }
         catch (Exception e) {}

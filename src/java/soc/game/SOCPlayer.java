@@ -21,15 +21,16 @@
  **/
 package soc.game;
 
-import java.io.Serializable;
-import java.util.Enumeration;
-import java.util.Stack;
-import java.util.Vector;
-
-import org.apache.log4j.Logger;
+import soc.disableDebug.D;
 
 import soc.util.IntPair;
 import soc.util.NodeLenVis;
+
+import java.io.Serializable;
+
+import java.util.Enumeration;
+import java.util.Stack;
+import java.util.Vector;
 
 
 /**
@@ -38,7 +39,6 @@ import soc.util.NodeLenVis;
  *
  * @author Robert S Thomas
  */
-@SuppressWarnings("serial")
 public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Serializable, Cloneable
 {
     /**
@@ -64,22 +64,22 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * a list of this player's pieces in play
      */
-    private Vector<SOCPlayingPiece> pieces;
+    private Vector pieces;
 
     /**
      * a list of this player's roads in play
      */
-    private Vector<SOCRoad> roads;
+    private Vector roads;
 
     /**
      * a list of this player's settlements in play
      */
-    private Vector<SOCSettlement> settlements;
+    private Vector settlements;
 
     /**
      * a list of this player's cities in play
      */
-    private Vector<SOCCity> cities;
+    private Vector cities;
 
     /**
      * The coordinates of our most recent settlement
@@ -99,7 +99,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * list of longest paths
      */
-    private Vector<SOCLRPathData> lrPaths;
+    private Vector lrPaths;
 
     /**
      * how many of each resource this player has
@@ -138,7 +138,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      * all of the nodes that this player's roads touch
      * this is used to calculate longest road
      */
-    private Vector<Integer> roadNodes;
+    private Vector roadNodes;
 
     /**
      * a graph of what nodes are connected by this
@@ -220,9 +220,6 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
     // private SOCBuildingSpeedEstimate buildingSpeed;
 
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
-
     /**
      * create a copy of the player
      *
@@ -238,12 +235,12 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         numPieces[SOCPlayingPiece.ROAD] = player.numPieces[SOCPlayingPiece.ROAD];
         numPieces[SOCPlayingPiece.SETTLEMENT] = player.numPieces[SOCPlayingPiece.SETTLEMENT];
         numPieces[SOCPlayingPiece.CITY] = player.numPieces[SOCPlayingPiece.CITY];
-        pieces = (Vector<SOCPlayingPiece>) player.pieces.clone();
-        roads = (Vector<SOCRoad>) player.roads.clone();
-        settlements = (Vector<SOCSettlement>) player.settlements.clone();
-        cities = (Vector<SOCCity>) player.cities.clone();
+        pieces = (Vector) player.pieces.clone();
+        roads = (Vector) player.roads.clone();
+        settlements = (Vector) player.settlements.clone();
+        cities = (Vector) player.cities.clone();
         longestRoadLength = player.longestRoadLength;
-        lrPaths = (Vector<SOCLRPathData>) player.lrPaths.clone();
+        lrPaths = (Vector) player.lrPaths.clone();
         resources = player.resources.copy();
         devCards = new SOCDevCardSet(player.devCards);
         numKnights = player.numKnights;
@@ -262,7 +259,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             ports[i] = player.ports[i];
         }
 
-        roadNodes = (Vector<Integer>) player.roadNodes.clone();
+        roadNodes = (Vector) player.roadNodes.clone();
         roadNodeGraph = new boolean[SOCBoard.MAXNODEPLUSONE][SOCBoard.MAXNODEPLUSONE];
 
         for (i = SOCBoard.MINNODE; i < SOCBoard.MAXNODEPLUSONE; i++)
@@ -322,12 +319,12 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         numPieces[SOCPlayingPiece.ROAD] = 15;
         numPieces[SOCPlayingPiece.SETTLEMENT] = 5;
         numPieces[SOCPlayingPiece.CITY] = 4;
-        pieces = new Vector<SOCPlayingPiece>(24);
-        roads = new Vector<SOCRoad>(15);
-        settlements = new Vector<SOCSettlement>(5);
-        cities = new Vector<SOCCity>(4);
+        pieces = new Vector(24);
+        roads = new Vector(15);
+        settlements = new Vector(5);
+        cities = new Vector(4);
         longestRoadLength = 0;
-        lrPaths = new Vector<SOCLRPathData>();
+        lrPaths = new Vector();
         resources = new SOCResourceSet();
         devCards = new SOCDevCardSet();
         numKnights = 0;
@@ -347,7 +344,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             ports[i] = false;
         }
 
-        roadNodes = new Vector<Integer>(20);
+        roadNodes = new Vector(20);
         roadNodeGraph = new boolean[SOCBoard.MAXNODEPLUSONE][SOCBoard.MAXNODEPLUSONE];
 
         for (i = SOCBoard.MINNODE; i < SOCBoard.MAXNODEPLUSONE; i++)
@@ -662,7 +659,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * @return the list of pieces in play
      */
-    public Vector<SOCPlayingPiece> getPieces()
+    public Vector getPieces()
     {
         return pieces;
     }
@@ -670,7 +667,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * @return the list of roads in play
      */
-    public Vector<SOCRoad> getRoads()
+    public Vector getRoads()
     {
         return roads;
     }
@@ -678,7 +675,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * @return the list of settlements in play
      */
-    public Vector<SOCSettlement> getSettlements()
+    public Vector getSettlements()
     {
         return settlements;
     }
@@ -686,7 +683,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * @return the list of cities in play
      */
-    public Vector<SOCCity> getCities()
+    public Vector getCities()
     {
         return cities;
     }
@@ -720,7 +717,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * @return longest road paths
      */
-    public Vector<SOCLRPathData> getLRPaths()
+    public Vector getLRPaths()
     {
         return lrPaths;
     }
@@ -738,7 +735,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         while (pathEnum.hasMoreElements())
         {
             SOCLRPathData pd = (SOCLRPathData) pathEnum.nextElement();
-            log.debug("restoring pd for player " + playerNumber + " :" + pd);
+            D.ebugPrintln("restoring pd for player " + playerNumber + " :" + pd);
             lrPaths.addElement(pd);
         }
     }
@@ -903,7 +900,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * @return the list of nodes that touch the roads in play
      */
-    public Vector<Integer> getRoadNodes()
+    public Vector getRoadNodes()
     {
         return roadNodes;
     }
@@ -935,7 +932,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     public boolean isConnectedByRoad(int node1, int node2)
     {
-        //log.debug("isConnectedByRoad "+Integer.toHexString(node1)+", "+Integer.toHexString(node2)+" = "+roadNodeGraph[node1][node2]);
+        //D.ebugPrintln("isConnectedByRoad "+Integer.toHexString(node1)+", "+Integer.toHexString(node2)+" = "+roadNodeGraph[node1][node2]);
         return roadNodeGraph[node1][node2];
     }
 
@@ -961,21 +958,21 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
              */
             case SOCPlayingPiece.ROAD:
                 numPieces[SOCPlayingPiece.ROAD]--;
-                roads.addElement((SOCRoad)piece);
+                roads.addElement(piece);
                 lastRoadCoord = piece.getCoordinates();
 
                 /**
                  * add the nodes this road touches to the roadNodes list
                  */
-                Enumeration<Integer> nodes = SOCBoard.getAdjacentNodesToEdge(piece.getCoordinates()).elements();
+                Enumeration nodes = SOCBoard.getAdjacentNodesToEdge(piece.getCoordinates()).elements();
                 int[] nodeCoords = new int[2];
                 int i = 0;
 
                 while (nodes.hasMoreElements())
                 {
-                    Integer node = nodes.nextElement();
+                    Integer node = (Integer) nodes.nextElement();
 
-                    //log.debug("^^^ node = "+Integer.toHexString(node.intValue()));
+                    //D.ebugPrintln("^^^ node = "+Integer.toHexString(node.intValue()));
                     nodeCoords[i] = node.intValue();
                     i++;
 
@@ -983,7 +980,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                      * only add nodes that aren't in the list
                      */
 
-                    //log.debug("(roadNodes.contains(node)) = "+(roadNodes.contains(node)));
+                    //D.ebugPrintln("(roadNodes.contains(node)) = "+(roadNodes.contains(node)));
                     if (!(roadNodes.contains(node)))
                     {
                         roadNodes.addElement(node);
@@ -996,8 +993,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 roadNodeGraph[nodeCoords[0]][nodeCoords[1]] = true;
                 roadNodeGraph[nodeCoords[1]][nodeCoords[0]] = true;
 
-                //log.debug("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[0])+"]["+Integer.toHexString(nodeCoords[1])+"] = true");
-                //log.debug("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[1])+"]["+Integer.toHexString(nodeCoords[0])+"] = true");
+                //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[0])+"]["+Integer.toHexString(nodeCoords[1])+"] = true");
+                //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[1])+"]["+Integer.toHexString(nodeCoords[0])+"] = true");
                 break;
 
             /**
@@ -1005,7 +1002,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
              */
             case SOCPlayingPiece.SETTLEMENT:
                 numPieces[SOCPlayingPiece.SETTLEMENT]--;
-                settlements.addElement((SOCSettlement)piece);
+                settlements.addElement(piece);
                 lastSettlementCoord = piece.getCoordinates();
                 buildingVP++;
 
@@ -1041,7 +1038,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                  * place the city
                  */
                 numPieces[SOCPlayingPiece.CITY]--;
-                cities.addElement((SOCCity)piece);
+                cities.addElement(piece);
                 buildingVP += 2;
 
                 /**
@@ -1097,17 +1094,17 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 // on our roads that are adjacent to 
                 // this edge
                 //
-                Vector<Integer> adjEdges = SOCBoard.getAdjacentEdgesToEdge(piece.getCoordinates());
-                Enumeration<SOCRoad> roadEnum = roads.elements();
+                Vector adjEdges = SOCBoard.getAdjacentEdgesToEdge(piece.getCoordinates());
+                Enumeration roadEnum = roads.elements();
 
                 while (roadEnum.hasMoreElements())
                 {
-                    SOCRoad road = roadEnum.nextElement();
-                    Enumeration<Integer> edgeEnum = adjEdges.elements();
+                    SOCRoad road = (SOCRoad) roadEnum.nextElement();
+                    Enumeration edgeEnum = adjEdges.elements();
 
                     while (edgeEnum.hasMoreElements())
                     {
-                        Integer edge = edgeEnum.nextElement();
+                        Integer edge = (Integer) edgeEnum.nextElement();
 
                         if (road.getCoordinates() == edge.intValue())
                         {
@@ -1153,11 +1150,11 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                             // there are muliple 3:1 ports, so we need to check all the settlements
                             //
                             boolean haveMiscPort = false;
-                            Enumeration<SOCSettlement> settlementEnum = settlements.elements();
+                            Enumeration settlementEnum = settlements.elements();
 
                             while (settlementEnum.hasMoreElements())
                             {
-                                SOCSettlement settlement = settlementEnum.nextElement();
+                                SOCSettlement settlement = (SOCSettlement) settlementEnum.nextElement();
 
                                 if (game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT).contains(new Integer(settlement.getCoordinates())))
                                 {
@@ -1169,11 +1166,11 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                             if (!haveMiscPort)
                             {
-                                Enumeration<SOCCity> cityEnum = cities.elements();
+                                Enumeration cityEnum = cities.elements();
 
                                 while (cityEnum.hasMoreElements())
                                 {
-                                    SOCCity city = cityEnum.nextElement();
+                                    SOCCity city = (SOCCity) cityEnum.nextElement();
 
                                     if (game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT).contains(new Integer(city.getCoordinates())))
                                     {
@@ -1198,11 +1195,11 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             //
             // check adjacent nodes
             //
-            Enumeration<Integer> adjNodesEnum = SOCBoard.getAdjacentNodesToNode(piece.getCoordinates()).elements();
+            Enumeration adjNodesEnum = SOCBoard.getAdjacentNodesToNode(piece.getCoordinates()).elements();
 
             while (adjNodesEnum.hasMoreElements())
             {
-                Integer adjNode = adjNodesEnum.nextElement();
+                Integer adjNode = (Integer) adjNodesEnum.nextElement();
                 undoPutPieceAuxSettlement(adjNode.intValue());
             }
 
@@ -1242,28 +1239,28 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     protected void undoPutPieceAuxSettlement(int settlementNode)
     {
-        //log.debug("))))) undoPutPieceAuxSettlement : node = "+Integer.toHexString(settlementNode));
+        //D.ebugPrintln("))))) undoPutPieceAuxSettlement : node = "+Integer.toHexString(settlementNode));
         //
         // if this node doesn't have any neighboring settlements or cities, make it legal
         //
         boolean haveNeighbor = false;
-        Vector<Integer> adjNodes = SOCBoard.getAdjacentNodesToNode(settlementNode);
-        Enumeration<SOCSettlement> settlementsEnum = game.getBoard().getSettlements().elements();
+        Vector adjNodes = SOCBoard.getAdjacentNodesToNode(settlementNode);
+        Enumeration settlementsEnum = game.getBoard().getSettlements().elements();
 
         while (settlementsEnum.hasMoreElements())
         {
-            SOCSettlement settlement = settlementsEnum.nextElement();
-            Enumeration<Integer> adjNodesEnum = adjNodes.elements();
+            SOCSettlement settlement = (SOCSettlement) settlementsEnum.nextElement();
+            Enumeration adjNodesEnum = adjNodes.elements();
 
             while (adjNodesEnum.hasMoreElements())
             {
-                Integer adjNode = adjNodesEnum.nextElement();
+                Integer adjNode = (Integer) adjNodesEnum.nextElement();
 
                 if (adjNode.intValue() == settlement.getCoordinates())
                 {
                     haveNeighbor = true;
 
-                    //log.debug(")))) haveNeighbor = true : node = "+Integer.toHexString(adjNode.intValue()));
+                    //D.ebugPrintln(")))) haveNeighbor = true : node = "+Integer.toHexString(adjNode.intValue()));
                     break;
                 }
             }
@@ -1276,22 +1273,22 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
         if (!haveNeighbor)
         {
-            Enumeration<SOCCity> citiesEnum = game.getBoard().getCities().elements();
+            Enumeration citiesEnum = game.getBoard().getCities().elements();
 
             while (citiesEnum.hasMoreElements())
             {
-                SOCCity city = citiesEnum.nextElement();
-                Enumeration<Integer> adjNodesEnum = adjNodes.elements();
+                SOCCity city = (SOCCity) citiesEnum.nextElement();
+                Enumeration adjNodesEnum = adjNodes.elements();
 
                 while (adjNodesEnum.hasMoreElements())
                 {
-                    Integer adjNode = adjNodesEnum.nextElement();
+                    Integer adjNode = (Integer) adjNodesEnum.nextElement();
 
                     if (adjNode.intValue() == city.getCoordinates())
                     {
                         haveNeighbor = true;
 
-                        //log.debug(")))) haveNeighbor = true : node = "+Integer.toHexString(adjNode.intValue()));
+                        //D.ebugPrintln(")))) haveNeighbor = true : node = "+Integer.toHexString(adjNode.intValue()));
                         break;
                     }
                 }
@@ -1304,7 +1301,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
             if (!haveNeighbor)
             {
-                //log.debug(")))) haveNeighbor = false");
+                //D.ebugPrintln(")))) haveNeighbor = false");
                 //
                 // check to see if this node is on the board
                 //
@@ -1312,38 +1309,38 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 {
                     legalSettlements[settlementNode] = true;
 
-                    //log.debug(")))) legalSettlements["+Integer.toHexString(settlementNode)+"] = true");
+                    //D.ebugPrintln(")))) legalSettlements["+Integer.toHexString(settlementNode)+"] = true");
                     //
                     // if it's the beginning of the game, make it potental
                     //
-                    if (game.getGameState() < SOCGame.ROLL_OR_SOLDIER)
+                    if (game.getGameState() < SOCGame.PLAY)
                     {
                         potentialSettlements[settlementNode] = true;
 
-                        //log.debug(")))) potentialSettlements["+Integer.toHexString(settlementNode)+"] = true");
+                        //D.ebugPrintln(")))) potentialSettlements["+Integer.toHexString(settlementNode)+"] = true");
                     }
                     else
                     {
                         //
                         // if it's legal and we have an adjacent road, make it potential
                         //
-                        //log.debug(")))) checking for adjacent roads");
+                        //D.ebugPrintln(")))) checking for adjacent roads");
                         boolean adjRoad = false;
-                        Vector<Integer> adjEdges = SOCBoard.getAdjacentEdgesToNode(settlementNode);
-                        Enumeration<SOCRoad> roadsEnum = roads.elements();
+                        Vector adjEdges = SOCBoard.getAdjacentEdgesToNode(settlementNode);
+                        Enumeration roadsEnum = roads.elements();
 
                         while (roadsEnum.hasMoreElements())
                         {
-                            SOCRoad road = roadsEnum.nextElement();
-                            Enumeration<Integer> adjEdgesEnum = adjEdges.elements();
+                            SOCRoad road = (SOCRoad) roadsEnum.nextElement();
+                            Enumeration adjEdgesEnum = adjEdges.elements();
 
                             while (adjEdgesEnum.hasMoreElements())
                             {
-                                Integer adjEdge = adjEdgesEnum.nextElement();
+                                Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
 
                                 if (road.getCoordinates() == adjEdge.intValue())
                                 {
-                                    //log.debug("))) found adj road at "+Integer.toHexString(adjEdge.intValue()));
+                                    //D.ebugPrintln("))) found adj road at "+Integer.toHexString(adjEdge.intValue()));
                                     adjRoad = true;
 
                                     break;
@@ -1360,7 +1357,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                         {
                             potentialSettlements[settlementNode] = true;
 
-                            //log.debug(")))) potentialSettlements["+Integer.toHexString(settlementNode)+"] = true");
+                            //D.ebugPrintln(")))) potentialSettlements["+Integer.toHexString(settlementNode)+"] = true");
                         }
                     }
                 }
@@ -1379,13 +1376,13 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     public void removePiece(SOCPlayingPiece piece)
     {
-        log.debug("--- SOCPlayer.removePiece(" + piece + ")");
+        D.ebugPrintln("--- SOCPlayer.removePiece(" + piece + ")");
 
-        Enumeration<SOCPlayingPiece> pEnum = pieces.elements();
+        Enumeration pEnum = pieces.elements();
 
         while (pEnum.hasMoreElements())
         {
-            SOCPlayingPiece p = pEnum.nextElement();
+            SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
 
             if ((piece.getType() == p.getType()) && (piece.getCoordinates() == p.getCoordinates()))
             {
@@ -1400,31 +1397,31 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                     /**
                      * remove the nodes this road touches from the roadNodes list
                      */
-                    Enumeration<Integer> nodes = SOCBoard.getAdjacentNodesToEdge(piece.getCoordinates()).elements();
+                    Enumeration nodes = SOCBoard.getAdjacentNodesToEdge(piece.getCoordinates()).elements();
                     int[] nodeCoords = new int[2];
                     int i = 0;
 
                     while (nodes.hasMoreElements())
                     {
-                        Integer node = nodes.nextElement();
+                        Integer node = (Integer) nodes.nextElement();
                         nodeCoords[i] = node.intValue();
                         i++;
 
                         /**
                          * only remove nodes if none of our roads are touching it
                          */
-                        Enumeration<SOCRoad> roadsEnum = roads.elements();
-                        Vector<Integer> adjEdges = SOCBoard.getAdjacentEdgesToNode(node.intValue());
+                        Enumeration roadsEnum = roads.elements();
+                        Vector adjEdges = SOCBoard.getAdjacentEdgesToNode(node.intValue());
                         boolean match = false;
 
                         while (roadsEnum.hasMoreElements())
                         {
-                            SOCRoad rd = roadsEnum.nextElement();
-                            Enumeration<Integer> adjEdgesEnum = adjEdges.elements();
+                            SOCRoad rd = (SOCRoad) roadsEnum.nextElement();
+                            Enumeration adjEdgesEnum = adjEdges.elements();
 
                             while (adjEdgesEnum.hasMoreElements())
                             {
-                                Integer adjEdge = adjEdgesEnum.nextElement();
+                                Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
 
                                 if (adjEdge.intValue() == rd.getCoordinates())
                                 {
@@ -1467,12 +1464,12 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                      * no roads touching it, then it's no longer a
                      * potential road
                      */
-                    Vector<SOCPlayingPiece> allPieces = game.getBoard().getPieces();
-                    Enumeration<Integer> adjEdgesEnum = SOCBoard.getAdjacentEdgesToEdge(piece.getCoordinates()).elements();
+                    Vector allPieces = game.getBoard().getPieces();
+                    Enumeration adjEdgesEnum = SOCBoard.getAdjacentEdgesToEdge(piece.getCoordinates()).elements();
 
                     while (adjEdgesEnum.hasMoreElements())
                     {
-                        Integer adjEdge = adjEdgesEnum.nextElement();
+                        Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
 
                         if (potentialRoads[adjEdge.intValue()])
                         {
@@ -1482,17 +1479,17 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                              * check each adjacent node for blocking
                              * settlements or cities
                              */
-                            Enumeration<Integer> adjNodesEnum = SOCBoard.getAdjacentNodesToEdge(adjEdge.intValue()).elements();
+                            Enumeration adjNodesEnum = SOCBoard.getAdjacentNodesToEdge(adjEdge.intValue()).elements();
 
                             while ((adjNodesEnum.hasMoreElements()) && (isPotentialRoad == false))
                             {
                                 boolean blocked = false;
-                                Integer adjNode = adjNodesEnum.nextElement();
-                                Enumeration<SOCPlayingPiece> allPiecesEnum = allPieces.elements();
+                                Integer adjNode = (Integer) adjNodesEnum.nextElement();
+                                Enumeration allPiecesEnum = allPieces.elements();
 
                                 while (allPiecesEnum.hasMoreElements())
                                 {
-                                    SOCPlayingPiece aPiece = allPiecesEnum.nextElement();
+                                    SOCPlayingPiece aPiece = (SOCPlayingPiece) allPiecesEnum.nextElement();
 
                                     if ((aPiece.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((aPiece.getType() == SOCPlayingPiece.SETTLEMENT) || (aPiece.getType() == SOCPlayingPiece.CITY)) && (aPiece.getCoordinates() == (adjNode.intValue())))
                                     {
@@ -1507,19 +1504,19 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                                 if (!blocked)
                                 {
-                                    Enumeration<Integer> adjAdjEdgesEnum = SOCBoard.getAdjacentEdgesToNode(adjNode.intValue()).elements();
+                                    Enumeration adjAdjEdgesEnum = SOCBoard.getAdjacentEdgesToNode(adjNode.intValue()).elements();
 
                                     while ((adjAdjEdgesEnum.hasMoreElements()) && (isPotentialRoad == false))
                                     {
-                                        Integer adjAdjEdge = adjAdjEdgesEnum.nextElement();
+                                        Integer adjAdjEdge = (Integer) adjAdjEdgesEnum.nextElement();
 
                                         if (adjAdjEdge.intValue() != adjEdge.intValue())
                                         {
-                                            Enumeration<SOCRoad> ourRoadsEnum = roads.elements();
+                                            Enumeration ourRoadsEnum = roads.elements();
 
                                             while (ourRoadsEnum.hasMoreElements())
                                             {
-                                                SOCRoad ourRoad = ourRoadsEnum.nextElement();
+                                                SOCRoad ourRoad = (SOCRoad) ourRoadsEnum.nextElement();
 
                                                 if (ourRoad.getCoordinates() == adjAdjEdge.intValue())
                                                 {
@@ -1570,14 +1567,14 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     public void updatePotentials(SOCPlayingPiece piece)
     {
-        //log.debug("&&& UPDATING POTENTIALS FOR "+piece);
+        //D.ebugPrintln("&&& UPDATING POTENTIALS FOR "+piece);
         int tmp;
         boolean ours;
         boolean blocked;
-//        int i;
-//        Integer coord;
+        int i;
+        Integer coord;
         int id = piece.getCoordinates();
-        Vector<SOCPlayingPiece> allPieces = game.getBoard().getPieces();
+        Vector allPieces = game.getBoard().getPieces();
 
         /**
          * check if this piece is ours
@@ -1606,22 +1603,22 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             {
                 // only add potentials if it's our piece
                 // add new potentials
-                Enumeration<Integer> nodes = (SOCBoard.getAdjacentNodesToEdge(id)).elements();
+                Enumeration nodes = (SOCBoard.getAdjacentNodesToEdge(id)).elements();
 
                 while (nodes.hasMoreElements())
                 {
-                    Integer node = nodes.nextElement();
+                    Integer node = (Integer) nodes.nextElement();
 
                     /**
                      * check for a foreign settlement or city
                      */
                     blocked = false;
 
-                    Enumeration<SOCPlayingPiece> pEnum = allPieces.elements();
+                    Enumeration pEnum = allPieces.elements();
 
                     while (pEnum.hasMoreElements())
                     {
-                        SOCPlayingPiece p = pEnum.nextElement();
+                        SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
 
                         if ((p.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)) && (p.getCoordinates() == (node.intValue())))
                         {
@@ -1633,11 +1630,11 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                     if (!blocked)
                     {
-                        Enumeration<Integer> edges = SOCBoard.getAdjacentEdgesToNode(node.intValue()).elements();
+                        Enumeration edges = SOCBoard.getAdjacentEdgesToNode(node.intValue()).elements();
 
                         while (edges.hasMoreElements())
                         {
-                            Integer edge = edges.nextElement();
+                            Integer edge = (Integer) edges.nextElement();
 
                             if (legalRoads[edge.intValue()])
                             {
@@ -1700,12 +1697,12 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 else
                 {
                     // see if a road has been cut off
-                    Vector<Integer> ourRoads = new Vector<Integer>();
-                    Enumeration<SOCPlayingPiece> pEnum = (this.pieces).elements();
+                    Vector ourRoads = new Vector();
+                    Enumeration pEnum = (this.pieces).elements();
 
                     while (pEnum.hasMoreElements())
                     {
-                        SOCPlayingPiece p = pEnum.nextElement();
+                        SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
 
                         if (p.getType() == SOCPlayingPiece.ROAD)
                         {
@@ -1772,12 +1769,12 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 else
                 {
                     // see if a road has been cut off
-                    Vector<Integer> ourRoads = new Vector<Integer>();
-                    Enumeration<SOCPlayingPiece> pEnum = (this.pieces).elements();
+                    Vector ourRoads = new Vector();
+                    Enumeration pEnum = (this.pieces).elements();
 
                     while (pEnum.hasMoreElements())
                     {
-                        SOCPlayingPiece p = pEnum.nextElement();
+                        SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
 
                         if (p.getType() == SOCPlayingPiece.ROAD)
                         {
@@ -1837,15 +1834,15 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      *
      * @param psList        the list of potential settlements
      */
-    public void setPotentialSettlements(Vector<Integer> psList)
+    public void setPotentialSettlements(Vector psList)
     {
         clearPotentialSettlements();
 
-        Enumeration<Integer> settlementEnum = psList.elements();
+        Enumeration settlementEnum = psList.elements();
 
         while (settlementEnum.hasMoreElements())
         {
-            Integer number = settlementEnum.nextElement();
+            Integer number = (Integer) settlementEnum.nextElement();
             potentialSettlements[number.intValue()] = true;
         }
     }
@@ -1947,46 +1944,45 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         // representation.  if someone cut our longest path in two
         // we won't catch it unless we clear the vector
         //
-        log.debug("CLEARING PATH DATA");
+        D.ebugPrintln("CLEARING PATH DATA");
         lrPaths.removeAllElements();
 
         /**
          * we're doing a depth first search of all possible road paths
          */
-        Stack<NodeLenVis> pending = new Stack<NodeLenVis>();
+        Stack pending = new Stack();
         int longest = 0;
 
-        for (Enumeration<Integer> e = roadNodes.elements(); e.hasMoreElements();)
+        for (Enumeration e = roadNodes.elements(); e.hasMoreElements();)
         {
-            Integer roadNode = e.nextElement();
+            Integer roadNode = (Integer) e.nextElement();
             int pathStartCoord = roadNode.intValue();
-//            int pathEndCoord;
-//            int pathLength = 0;
-            pending.push(new NodeLenVis(pathStartCoord, 0, new Vector<IntPair>()));
+            int pathEndCoord;
+            int pathLength = 0;
+            pending.push(new NodeLenVis(pathStartCoord, 0, new Vector()));
 
             while (!pending.isEmpty())
             {
-                NodeLenVis curNode = pending.pop();
+                NodeLenVis curNode = (NodeLenVis) pending.pop();
                 int coord = curNode.node;
                 int len = curNode.len;
-                //TODO NOT SURE IF THIS IS RIGHT?? curNode is used with IntPair as well as just Integer
-                Vector<IntPair> visited = curNode.vis;
+                Vector visited = curNode.vis;
                 boolean pathEnd = false;
 
                 /**
                  * check for road blocks
                  */
-                Enumeration<SOCPlayingPiece> pEnum = game.getBoard().getPieces().elements();
+                Enumeration pEnum = game.getBoard().getPieces().elements();
 
                 while (pEnum.hasMoreElements())
                 {
-                    SOCPlayingPiece p = pEnum.nextElement();
+                    SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
 
                     if ((len > 0) && (p.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)) && (p.getCoordinates() == coord))
                     {
                         pathEnd = true;
 
-                        //log.debug("^^^ path end at "+Integer.toHexString(coord));
+                        //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
                         break;
                     }
                 }
@@ -2005,10 +2001,10 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                     if ((j >= SOCBoard.MINNODE) && (j < SOCBoard.MAXNODEPLUSONE) && (isConnectedByRoad(coord, j)))
                     {
-                        for (Enumeration<IntPair> ev = visited.elements();
+                        for (Enumeration ev = visited.elements();
                                 ev.hasMoreElements();)
                         {
-                            IntPair vis = ev.nextElement();
+                            IntPair vis = (IntPair) ev.nextElement();
 
                             if (vis.equals(pair))
                             {
@@ -2020,7 +2016,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                         if (!match)
                         {
-                            Vector<IntPair> newVis = (Vector<IntPair>) visited.clone();
+                            Vector newVis = (Vector) visited.clone();
                             newVis.addElement(pair);
                             pending.push(new NodeLenVis(j, len + 1, newVis));
                             pathEnd = false;
@@ -2033,10 +2029,10 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                     if ((j >= SOCBoard.MINNODE) && (j < SOCBoard.MAXNODEPLUSONE) && (isConnectedByRoad(coord, j)))
                     {
-                        for (Enumeration<IntPair> ev = visited.elements();
+                        for (Enumeration ev = visited.elements();
                                 ev.hasMoreElements();)
                         {
-                            IntPair vis = ev.nextElement();
+                            IntPair vis = (IntPair) ev.nextElement();
 
                             if (vis.equals(pair))
                             {
@@ -2048,7 +2044,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                         if (!match)
                         {
-                            Vector<IntPair> newVis = (Vector<IntPair>) visited.clone();
+                            Vector newVis = (Vector) visited.clone();
                             newVis.addElement(pair);
                             pending.push(new NodeLenVis(j, len + 1, newVis));
                             pathEnd = false;
@@ -2061,10 +2057,10 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                     if ((j >= SOCBoard.MINNODE) && (j < SOCBoard.MAXNODEPLUSONE) && (isConnectedByRoad(coord, j)))
                     {
-                        for (Enumeration<IntPair> ev = visited.elements();
+                        for (Enumeration ev = visited.elements();
                                 ev.hasMoreElements();)
                         {
-                            IntPair vis = ev.nextElement();
+                            IntPair vis = (IntPair) ev.nextElement();
 
                             if (vis.equals(pair))
                             {
@@ -2076,7 +2072,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                         if (!match)
                         {
-                            Vector<IntPair> newVis = (Vector<IntPair>) visited.clone();
+                            Vector newVis = (Vector) visited.clone();
                             newVis.addElement(pair);
                             pending.push(new NodeLenVis(j, len + 1, newVis));
                             pathEnd = false;
@@ -2089,10 +2085,10 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                     if ((j >= SOCBoard.MINNODE) && (j < SOCBoard.MAXNODEPLUSONE) && (isConnectedByRoad(coord, j)))
                     {
-                        for (Enumeration<IntPair> ev = visited.elements();
+                        for (Enumeration ev = visited.elements();
                                 ev.hasMoreElements();)
                         {
-                            IntPair vis = ev.nextElement();
+                            IntPair vis = (IntPair) ev.nextElement();
 
                             if (vis.equals(pair))
                             {
@@ -2104,7 +2100,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                         if (!match)
                         {
-                            Vector<IntPair> newVis = (Vector<IntPair>) visited.clone();
+                            Vector newVis = (Vector) visited.clone();
                             newVis.addElement(pair);
                             pending.push(new NodeLenVis(j, len + 1, newVis));
                             pathEnd = false;
@@ -2125,32 +2121,32 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                     //
                     boolean intersection;
                     boolean addNewPath = true;
-                    Vector<SOCLRPathData> trash = new Vector<SOCLRPathData>();
+                    Vector trash = new Vector();
 
-                    for (Enumeration<SOCLRPathData> pdEnum = lrPaths.elements();
+                    for (Enumeration pdEnum = lrPaths.elements();
                             pdEnum.hasMoreElements();)
                     {
-                        SOCLRPathData oldPathData = pdEnum.nextElement();
-                        log.debug("oldPathData = " + oldPathData);
+                        SOCLRPathData oldPathData = (SOCLRPathData) pdEnum.nextElement();
+                        D.ebugPrintln("oldPathData = " + oldPathData);
 
-                        Vector<IntPair> nodePairs = oldPathData.getNodePairs();
+                        Vector nodePairs = oldPathData.getNodePairs();
                         intersection = false;
 
-                        for (Enumeration<IntPair> ev = visited.elements();
+                        for (Enumeration ev = visited.elements();
                                 ev.hasMoreElements();)
                         {
-                            IntPair vis = ev.nextElement();
-                            log.debug("vis = " + vis);
+                            IntPair vis = (IntPair) ev.nextElement();
+                            D.ebugPrintln("vis = " + vis);
 
-                            for (Enumeration<IntPair> npev = nodePairs.elements();
+                            for (Enumeration npev = nodePairs.elements();
                                     npev.hasMoreElements();)
                             {
-                                IntPair np = npev.nextElement();
-                                log.debug("np = " + np);
+                                IntPair np = (IntPair) npev.nextElement();
+                                D.ebugPrintln("np = " + np);
 
                                 if (np.equals(vis))
                                 {
-                                    log.debug("oldPathData.nodePairs.contains(vis)");
+                                    D.ebugPrintln("oldPathData.nodePairs.contains(vis)");
                                     intersection = true;
 
                                     break;
@@ -2170,23 +2166,23 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                             //
                             if (oldPathData.getLength() < len)
                             {
-                                log.debug("REMOVING OLDPATHDATA");
+                                D.ebugPrintln("REMOVING OLDPATHDATA");
                                 trash.addElement(oldPathData);
                             }
                             else
                             {
                                 addNewPath = false;
-                                log.debug("NOT ADDING NEW PATH");
+                                D.ebugPrintln("NOT ADDING NEW PATH");
                             }
                         }
                     }
 
                     if (!trash.isEmpty())
                     {
-                        for (Enumeration<SOCLRPathData> trashEnum = trash.elements();
+                        for (Enumeration trashEnum = trash.elements();
                                 trashEnum.hasMoreElements();)
                         {
-                            SOCLRPathData oldPathData = trashEnum.nextElement();
+                            SOCLRPathData oldPathData = (SOCLRPathData) trashEnum.nextElement();
                             lrPaths.removeElement(oldPathData);
                         }
                     }
@@ -2194,7 +2190,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                     if (addNewPath)
                     {
                         SOCLRPathData newPathData = new SOCLRPathData(pathStartCoord, coord, len, visited);
-                        log.debug("ADDING PATH: " + newPathData);
+                        D.ebugPrintln("ADDING PATH: " + newPathData);
                         lrPaths.addElement(newPathData);
                     }
                 }
@@ -2205,7 +2201,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
         //Date stopTime = new Date();
         //long elapsed = stopTime.getTime() - startTime.getTime();
-        //log.info("LONGEST FOR "+name+" IS "+longest+" TIME = "+elapsed+"ms");
+        //System.out.println("LONGEST FOR "+name+" IS "+longest+" TIME = "+elapsed+"ms");
         return longest;
     }
 
@@ -2259,11 +2255,11 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         {
             if (pnum != this.getPlayerNumber())
             {
-                Enumeration<SOCPlayingPiece> piecesEnum = game.getPlayer(pnum).getPieces().elements();
+                Enumeration piecesEnum = game.getPlayer(pnum).getPieces().elements();
 
                 while (piecesEnum.hasMoreElements())
                 {
-                    SOCPlayingPiece piece = piecesEnum.nextElement();
+                    SOCPlayingPiece piece = (SOCPlayingPiece) piecesEnum.nextElement();
                     SOCPlayer owner = game.getPlayer(pnum);
 
                     switch (piece.getType())
@@ -2299,11 +2295,11 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             }
             else
             {
-                Enumeration<SOCPlayingPiece> piecesEnum = this.getPieces().elements();
+                Enumeration piecesEnum = this.getPieces().elements();
 
                 while (piecesEnum.hasMoreElements())
                 {
-                    SOCPlayingPiece piece = piecesEnum.nextElement();
+                    SOCPlayingPiece piece = (SOCPlayingPiece) piecesEnum.nextElement();
                     SOCPlayer owner = copy;
 
                     switch (piece.getType())

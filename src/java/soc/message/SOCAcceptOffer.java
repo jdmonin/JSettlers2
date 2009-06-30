@@ -38,7 +38,6 @@ import java.util.StringTokenizer;
  * @author Robert S. Thomas
  * @see SOCRejectOffer
  */
-@SuppressWarnings("serial")
 public class SOCAcceptOffer extends SOCMessage
 {
     /**

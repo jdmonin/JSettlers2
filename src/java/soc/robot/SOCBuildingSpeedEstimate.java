@@ -20,18 +20,19 @@
  **/
 package soc.robot;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
-
-import org.apache.log4j.Logger;
+import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayerNumbers;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+
 import soc.util.CutoffExceededException;
+
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
 
 /**
@@ -52,9 +53,6 @@ public class SOCBuildingSpeedEstimate
     int[] estimatesFromNow;
     int[] rollsPerResource;
     SOCResourceSet[] resourcesForRoll;
-
-    /** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * this is a constructor
@@ -260,8 +258,8 @@ public class SOCBuildingSpeedEstimate
      */
     public void recalculateRollsPerResource(SOCPlayerNumbers numbers)
     {
-        //log.debug("@@@@@@@@ recalculateRollsPerResource");
-        //log.debug("@@@@@@@@ numbers = "+numbers);
+        //D.ebugPrintln("@@@@@@@@ recalculateRollsPerResource");
+        //D.ebugPrintln("@@@@@@@@ numbers = "+numbers);
         recalc = true;
 
         /**
@@ -270,7 +268,7 @@ public class SOCBuildingSpeedEstimate
         for (int resource = SOCResourceConstants.CLAY;
                 resource <= SOCResourceConstants.WOOD; resource++)
         {
-            //log.debug("resource: "+resource);
+            //D.ebugPrintln("resource: "+resource);
             float totalProbability = 0.0f;
 
             Enumeration numbersEnum = numbers.getNumbersForResource(resource).elements();
@@ -281,7 +279,7 @@ public class SOCBuildingSpeedEstimate
                 totalProbability += SOCNumberProbabilities.FLOAT_VALUES[number.intValue()];
             }
 
-            //log.debug("totalProbability: "+totalProbability);
+            //D.ebugPrintln("totalProbability: "+totalProbability);
             if (totalProbability != 0.0f)
             {
                 rollsPerResource[resource] = Math.round(1.0f / totalProbability);
@@ -291,7 +289,7 @@ public class SOCBuildingSpeedEstimate
                 rollsPerResource[resource] = 55555;
             }
 
-            //log.debug("rollsPerResource: "+rollsPerResource[resource]);
+            //D.ebugPrintln("rollsPerResource: "+rollsPerResource[resource]);
         }
     }
 
@@ -303,9 +301,9 @@ public class SOCBuildingSpeedEstimate
      */
     public void recalculateRollsPerResource(SOCPlayerNumbers numbers, int robberHex)
     {
-        log.debug("@@@@@@@@ recalculateRollsPerResource");
-        log.debug("@@@@@@@@ numbers = " + numbers);
-        log.debug("@@@@@@@@ robberHex = " + Integer.toHexString(robberHex));
+        D.ebugPrintln("@@@@@@@@ recalculateRollsPerResource");
+        D.ebugPrintln("@@@@@@@@ numbers = " + numbers);
+        D.ebugPrintln("@@@@@@@@ robberHex = " + Integer.toHexString(robberHex));
         recalc = true;
 
         /**
@@ -314,7 +312,7 @@ public class SOCBuildingSpeedEstimate
         for (int resource = SOCResourceConstants.CLAY;
                 resource <= SOCResourceConstants.WOOD; resource++)
         {
-            log.debug("resource: " + resource);
+            D.ebugPrintln("resource: " + resource);
 
             float totalProbability = 0.0f;
 
@@ -326,7 +324,7 @@ public class SOCBuildingSpeedEstimate
                 totalProbability += SOCNumberProbabilities.FLOAT_VALUES[number.intValue()];
             }
 
-            log.debug("totalProbability: " + totalProbability);
+            D.ebugPrintln("totalProbability: " + totalProbability);
 
             if (totalProbability != 0.0f)
             {
@@ -337,7 +335,7 @@ public class SOCBuildingSpeedEstimate
                 rollsPerResource[resource] = 55555;
             }
 
-            log.debug("rollsPerResource: " + rollsPerResource[resource]);
+            D.ebugPrintln("rollsPerResource: " + rollsPerResource[resource]);
         }
     }
 
@@ -349,8 +347,8 @@ public class SOCBuildingSpeedEstimate
      */
     public void recalculateResourcesForRoll(SOCPlayerNumbers numbers)
     {
-        //log.debug("@@@@@@@@ recalculateResourcesForRoll");
-        //log.debug("@@@@@@@@ numbers = "+numbers);
+        //D.ebugPrintln("@@@@@@@@ recalculateResourcesForRoll");
+        //D.ebugPrintln("@@@@@@@@ numbers = "+numbers);
         recalc = true;
 
         for (int diceResult = 2; diceResult <= 12; diceResult++)
@@ -380,7 +378,7 @@ public class SOCBuildingSpeedEstimate
                     resourceSet.add(1, resourceInt.intValue());
                 }
 
-                //log.debug("### resources for "+diceResult+" = "+resourceSet);
+                //D.ebugPrintln("### resources for "+diceResult+" = "+resourceSet);
             }
         }
     }
@@ -393,9 +391,9 @@ public class SOCBuildingSpeedEstimate
      */
     public void recalculateResourcesForRoll(SOCPlayerNumbers numbers, int robberHex)
     {
-        //log.debug("@@@@@@@@ recalculateResourcesForRoll");
-        //log.debug("@@@@@@@@ numbers = "+numbers);
-        //log.debug("@@@@@@@@ robberHex = "+Integer.toHexString(robberHex));
+        //D.ebugPrintln("@@@@@@@@ recalculateResourcesForRoll");
+        //D.ebugPrintln("@@@@@@@@ numbers = "+numbers);
+        //D.ebugPrintln("@@@@@@@@ robberHex = "+Integer.toHexString(robberHex));
         recalc = true;
 
         for (int diceResult = 2; diceResult <= 12; diceResult++)
@@ -425,7 +423,7 @@ public class SOCBuildingSpeedEstimate
                     resourceSet.add(1, resourceInt.intValue());
                 }
 
-                //log.debug("### resources for "+diceResult+" = "+resourceSet);
+                //D.ebugPrintln("### resources for "+diceResult+" = "+resourceSet);
             }
         }
     }
@@ -452,9 +450,9 @@ public class SOCBuildingSpeedEstimate
      */
     protected SOCResSetBuildTimePair calculateRollsFast(SOCResourceSet startingResources, SOCResourceSet targetResources, int cutoff, boolean[] ports) throws CutoffExceededException
     {
-        //log.debug("calculateRolls");
-        //log.debug("  start: "+startingResources);
-        //log.debug("  target: "+targetResources);
+        //D.ebugPrintln("calculateRolls");
+        //D.ebugPrintln("  start: "+startingResources);
+        //D.ebugPrintln("  target: "+targetResources);
         SOCResourceSet ourResources = startingResources.copy();
         int rolls = 0;
 
@@ -490,12 +488,12 @@ public class SOCBuildingSpeedEstimate
                  */
                 int numTrades = (ourResources.getAmount(giveResource) - targetResources.getAmount(giveResource)) / tradeRatio;
 
-                //log.debug("))) ***");
-                //log.debug("))) giveResource="+giveResource);
-                //log.debug("))) tradeRatio="+tradeRatio);
-                //log.debug("))) ourResources="+ourResources);
-                //log.debug("))) targetResources="+targetResources);
-                //log.debug("))) numTrades="+numTrades);
+                //D.ebugPrintln("))) ***");
+                //D.ebugPrintln("))) giveResource="+giveResource);
+                //D.ebugPrintln("))) tradeRatio="+tradeRatio);
+                //D.ebugPrintln("))) ourResources="+ourResources);
+                //D.ebugPrintln("))) targetResources="+targetResources);
+                //D.ebugPrintln("))) numTrades="+numTrades);
                 for (int trades = 0; trades < numTrades; trades++)
                 {
                     /**
@@ -529,23 +527,23 @@ public class SOCBuildingSpeedEstimate
                      * make the trade
                      */
 
-                    //log.debug("))) want to trade "+tradeRatio+" "+giveResource+" for a "+mostNeededResource);
+                    //D.ebugPrintln("))) want to trade "+tradeRatio+" "+giveResource+" for a "+mostNeededResource);
                     if ((mostNeededResource != -1) && (ourResources.getAmount(giveResource) >= tradeRatio))
                     {
-                        //log.debug("))) trading...");
+                        //D.ebugPrintln("))) trading...");
                         ourResources.add(1, mostNeededResource);
 
                         if (ourResources.getAmount(giveResource) < tradeRatio)
                         {
-                            log.error("@@@ rsrcs=" + ourResources);
-                            log.error("@@@ tradeRatio=" + tradeRatio);
-                            log.error("@@@ giveResource=" + giveResource);
-                            log.error("@@@ target=" + targetResources);
+                            System.err.println("@@@ rsrcs=" + ourResources);
+                            System.err.println("@@@ tradeRatio=" + tradeRatio);
+                            System.err.println("@@@ giveResource=" + giveResource);
+                            System.err.println("@@@ target=" + targetResources);
                         }
 
                         ourResources.subtract(tradeRatio, giveResource);
 
-                        //log.debug("))) ourResources="+ourResources);
+                        //D.ebugPrintln("))) ourResources="+ourResources);
                     }
 
                     if (ourResources.contains(targetResources))
@@ -563,21 +561,21 @@ public class SOCBuildingSpeedEstimate
 
         while (!ourResources.contains(targetResources))
         {
-            //log.debug("roll: "+rolls);
-            //log.debug("resources: "+ourResources);
+            //D.ebugPrintln("roll: "+rolls);
+            //D.ebugPrintln("resources: "+ourResources);
             rolls++;
 
             if (rolls > cutoff)
             {
-                //log.debug("startingResources="+startingResources+"\ntargetResources="+targetResources+"\ncutoff="+cutoff+"\nourResources="+ourResources);
+                //D.ebugPrintln("startingResources="+startingResources+"\ntargetResources="+targetResources+"\ncutoff="+cutoff+"\nourResources="+ourResources);
                 throw new CutoffExceededException();
             }
 
             for (int resource = SOCResourceConstants.CLAY;
                     resource <= SOCResourceConstants.WOOD; resource++)
             {
-                //log.debug("resource: "+resource);
-                //log.debug("rollsPerResource: "+rollsPerResource[resource]);
+                //D.ebugPrintln("resource: "+resource);
+                //D.ebugPrintln("rollsPerResource: "+rollsPerResource[resource]);
 
                 /**
                  * get our resources for the roll
@@ -620,12 +618,12 @@ public class SOCBuildingSpeedEstimate
                      */
                     int numTrades = (ourResources.getAmount(giveResource) - targetResources.getAmount(giveResource)) / tradeRatio;
 
-                    //log.debug("))) ***");
-                    //log.debug("))) giveResource="+giveResource);
-                    //log.debug("))) tradeRatio="+tradeRatio);
-                    //log.debug("))) ourResources="+ourResources);
-                    //log.debug("))) targetResources="+targetResources);
-                    //log.debug("))) numTrades="+numTrades);
+                    //D.ebugPrintln("))) ***");
+                    //D.ebugPrintln("))) giveResource="+giveResource);
+                    //D.ebugPrintln("))) tradeRatio="+tradeRatio);
+                    //D.ebugPrintln("))) ourResources="+ourResources);
+                    //D.ebugPrintln("))) targetResources="+targetResources);
+                    //D.ebugPrintln("))) numTrades="+numTrades);
                     for (int trades = 0; trades < numTrades; trades++)
                     {
                         /**
@@ -659,23 +657,23 @@ public class SOCBuildingSpeedEstimate
                          * make the trade
                          */
 
-                        //log.debug("))) want to trade "+tradeRatio+" "+giveResource+" for a "+mostNeededResource);
+                        //D.ebugPrintln("))) want to trade "+tradeRatio+" "+giveResource+" for a "+mostNeededResource);
                         if ((mostNeededResource != -1) && (ourResources.getAmount(giveResource) >= tradeRatio))
                         {
-                            //log.debug("))) trading...");
+                            //D.ebugPrintln("))) trading...");
                             ourResources.add(1, mostNeededResource);
 
                             if (ourResources.getAmount(giveResource) < tradeRatio)
                             {
-                                log.error("@@@ rsrcs=" + ourResources);
-                                log.error("@@@ tradeRatio=" + tradeRatio);
-                                log.error("@@@ giveResource=" + giveResource);
-                                log.error("@@@ target=" + targetResources);
+                                System.err.println("@@@ rsrcs=" + ourResources);
+                                System.err.println("@@@ tradeRatio=" + tradeRatio);
+                                System.err.println("@@@ giveResource=" + giveResource);
+                                System.err.println("@@@ target=" + targetResources);
                             }
 
                             ourResources.subtract(tradeRatio, giveResource);
 
-                            //log.debug("))) ourResources="+ourResources);
+                            //D.ebugPrintln("))) ourResources="+ourResources);
                         }
 
                         if (ourResources.contains(targetResources))
@@ -709,9 +707,9 @@ public class SOCBuildingSpeedEstimate
      */
     protected SOCResSetBuildTimePair calculateRollsAccurate(SOCResourceSet startingResources, SOCResourceSet targetResources, int cutoff, boolean[] ports) throws CutoffExceededException
     {
-        log.debug("calculateRollsAccurate");
-        log.debug("  start: " + startingResources);
-        log.debug("  target: " + targetResources);
+        D.ebugPrintln("calculateRollsAccurate");
+        D.ebugPrintln("  start: " + startingResources);
+        D.ebugPrintln("  target: " + targetResources);
 
         SOCResourceSet ourResources = startingResources.copy();
         int rolls = 0;
@@ -730,10 +728,10 @@ public class SOCBuildingSpeedEstimate
 
         while (!targetReached)
         {
-            if (log.isDebugEnabled())
+            if (D.ebugOn)
             {
-                log.debug("roll: " + rolls);
-                log.debug("resourcesOnRoll[lastRoll]:");
+                D.ebugPrintln("roll: " + rolls);
+                D.ebugPrintln("resourcesOnRoll[lastRoll]:");
 
                 Enumeration roltEnum = resourcesOnRoll[lastRoll].keys();
 
@@ -741,20 +739,20 @@ public class SOCBuildingSpeedEstimate
                 {
                     SOCResourceSet rs = (SOCResourceSet) roltEnum.nextElement();
                     Float prob = (Float) resourcesOnRoll[lastRoll].get(rs);
-                    log.debug("---- prob:" + prob);
-                    log.debug("---- rsrcs:" + rs);
-                    log.debug("");
+                    D.ebugPrintln("---- prob:" + prob);
+                    D.ebugPrintln("---- rsrcs:" + rs);
+                    D.ebugPrintln();
                 }
 
-                log.debug("targetReachedProb: " + targetReachedProb);
-                log.debug("===================================");
+                D.ebugPrintln("targetReachedProb: " + targetReachedProb);
+                D.ebugPrintln("===================================");
             }
 
             rolls++;
 
             if (rolls > cutoff)
             {
-                log.debug("startingResources=" + startingResources + "\ntargetResources=" + targetResources + "\ncutoff=" + cutoff + "\nourResources=" + ourResources);
+                D.ebugPrintln("startingResources=" + startingResources + "\ntargetResources=" + targetResources + "\ncutoff=" + cutoff + "\nourResources=" + ourResources);
                 throw new CutoffExceededException();
             }
 
@@ -816,12 +814,12 @@ public class SOCBuildingSpeedEstimate
                                 //
                                 int numTrades = (newResources.getAmount(giveResource) - targetResources.getAmount(giveResource)) / tradeRatio;
 
-                                //log.debug("))) ***");
-                                //log.debug("))) giveResource="+giveResource);
-                                //log.debug("))) tradeRatio="+tradeRatio);
-                                //log.debug("))) newResources="+newResources);
-                                //log.debug("))) targetResources="+targetResources);
-                                //log.debug("))) numTrades="+numTrades);
+                                //D.ebugPrintln("))) ***");
+                                //D.ebugPrintln("))) giveResource="+giveResource);
+                                //D.ebugPrintln("))) tradeRatio="+tradeRatio);
+                                //D.ebugPrintln("))) newResources="+newResources);
+                                //D.ebugPrintln("))) targetResources="+targetResources);
+                                //D.ebugPrintln("))) numTrades="+numTrades);
                                 for (int trades = 0; trades < numTrades;
                                         trades++)
                                 {
@@ -855,23 +853,23 @@ public class SOCBuildingSpeedEstimate
                                     //
                                     // make the trade
                                     //
-                                    //log.debug("))) want to trade "+tradeRatio+" "+giveResource+" for a "+mostNeededResource);
+                                    //D.ebugPrintln("))) want to trade "+tradeRatio+" "+giveResource+" for a "+mostNeededResource);
                                     if ((mostNeededResource != -1) && (newResources.getAmount(giveResource) >= tradeRatio))
                                     {
-                                        //log.debug("))) trading...");
+                                        //D.ebugPrintln("))) trading...");
                                         newResources.add(1, mostNeededResource);
 
                                         if (newResources.getAmount(giveResource) < tradeRatio)
                                         {
-                                            log.error("@@@ rsrcs=" + newResources);
-                                            log.error("@@@ tradeRatio=" + tradeRatio);
-                                            log.error("@@@ giveResource=" + giveResource);
-                                            log.error("@@@ target=" + targetResources);
+                                            System.err.println("@@@ rsrcs=" + newResources);
+                                            System.err.println("@@@ tradeRatio=" + tradeRatio);
+                                            System.err.println("@@@ giveResource=" + giveResource);
+                                            System.err.println("@@@ target=" + targetResources);
                                         }
 
                                         newResources.subtract(tradeRatio, giveResource);
 
-                                        //log.debug("))) newResources="+newResources);
+                                        //D.ebugPrintln("))) newResources="+newResources);
                                     }
 
                                     if (newResources.contains(targetResources))
@@ -906,9 +904,9 @@ public class SOCBuildingSpeedEstimate
                     //
                     if (newResources.contains(targetResources))
                     {
-                        log.debug("-----> TARGET HIT *");
-                        log.debug("newResources: " + newResources);
-                        log.debug("newProb: " + newProb);
+                        D.ebugPrintln("-----> TARGET HIT *");
+                        D.ebugPrintln("newResources: " + newResources);
+                        D.ebugPrintln("newProb: " + newProb);
                         targetReachedProb += newProb;
 
                         if (targetReachedResources == null)
@@ -939,14 +937,14 @@ public class SOCBuildingSpeedEstimate
             resourcesOnRoll[thisRoll].clear();
         }
 
-        if (log.isDebugEnabled())
+        if (D.ebugOn)
         {
             float probSum = (float) 0.0;
-            log.debug("**************** TARGET REACHED ************");
-            log.debug("targetReachedResources: " + targetReachedResources);
-            log.debug("targetReachedProb: " + targetReachedProb);
-            log.debug("roll: " + rolls);
-            log.debug("resourcesOnRoll[lastRoll]:");
+            D.ebugPrintln("**************** TARGET REACHED ************");
+            D.ebugPrintln("targetReachedResources: " + targetReachedResources);
+            D.ebugPrintln("targetReachedProb: " + targetReachedProb);
+            D.ebugPrintln("roll: " + rolls);
+            D.ebugPrintln("resourcesOnRoll[lastRoll]:");
 
             Enumeration roltEnum = resourcesOnRoll[lastRoll].keys();
 
@@ -955,13 +953,13 @@ public class SOCBuildingSpeedEstimate
                 SOCResourceSet rs = (SOCResourceSet) roltEnum.nextElement();
                 Float prob = (Float) resourcesOnRoll[lastRoll].get(rs);
                 probSum += prob.floatValue();
-                log.debug("---- prob:" + prob);
-                log.debug("---- rsrcs:" + rs);
-                log.debug("");
+                D.ebugPrintln("---- prob:" + prob);
+                D.ebugPrintln("---- rsrcs:" + rs);
+                D.ebugPrintln();
             }
 
-            log.debug("probSum = " + probSum);
-            log.debug("===================================");
+            D.ebugPrintln("probSum = " + probSum);
+            D.ebugPrintln("===================================");
         }
 
         return (new SOCResSetBuildTimePair(targetReachedResources, rolls));

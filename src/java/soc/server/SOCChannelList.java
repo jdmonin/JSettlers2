@@ -20,14 +20,15 @@
  **/
 package soc.server;
 
+import soc.disableDebug.D;
+
+import soc.server.genericServer.StringConnection;
+
+import soc.util.MutexFlag;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-
-import org.apache.log4j.Logger;
-
-import soc.server.genericServer.StringConnection;
-import soc.util.MutexFlag;
 
 
 /**
@@ -40,7 +41,6 @@ public class SOCChannelList
     protected Hashtable channelMutexes;
     protected Hashtable channelMembers;
     protected boolean inUse;
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     /**
      * constructor
@@ -57,7 +57,7 @@ public class SOCChannelList
      */
     public synchronized void takeMonitor()
     {
-        log.debug("SOCChannelList : TAKE MONITOR");
+        D.ebugPrintln("SOCChannelList : TAKE MONITOR");
 
         while (inUse)
         {
@@ -67,7 +67,7 @@ public class SOCChannelList
             }
             catch (InterruptedException e)
             {
-                log.info("EXCEPTION IN takeMonitor() -- " + e);
+                System.out.println("EXCEPTION IN takeMonitor() -- " + e);
             }
         }
 
@@ -79,7 +79,7 @@ public class SOCChannelList
      */
     public synchronized void releaseMonitor()
     {
-        log.debug("SOCChannelList : RELEASE MONITOR");
+        D.ebugPrintln("SOCChannelList : RELEASE MONITOR");
         inUse = false;
         this.notify();
     }
@@ -92,7 +92,7 @@ public class SOCChannelList
      */
     public boolean takeMonitorForChannel(String channel)
     {
-        log.debug("SOCChannelList : TAKE MONITOR FOR " + channel);
+        D.ebugPrintln("SOCChannelList : TAKE MONITOR FOR " + channel);
 
         MutexFlag mutex = (MutexFlag) channelMutexes.get(channel);
 
@@ -122,7 +122,7 @@ public class SOCChannelList
                     }
                     catch (InterruptedException e)
                     {
-                        log.info("EXCEPTION IN takeMonitor() -- " + e);
+                        System.out.println("EXCEPTION IN takeMonitor() -- " + e);
                     }
                 }
                 else
@@ -145,7 +145,7 @@ public class SOCChannelList
      */
     public boolean releaseMonitorForChannel(String channel)
     {
-        log.debug("SOCChannelList : RELEASE MONITOR FOR " + channel);
+        D.ebugPrintln("SOCChannelList : RELEASE MONITOR FOR " + channel);
 
         MutexFlag mutex = (MutexFlag) channelMutexes.get(channel);
 
@@ -294,7 +294,7 @@ public class SOCChannelList
      */
     public synchronized void deleteChannel(String chName)
     {
-        log.debug("SOCChannelList : deleteChannel(" + chName + ")");
+        D.ebugPrintln("SOCChannelList : deleteChannel(" + chName + ")");
         channelMembers.remove(chName);
 
         MutexFlag mutex = (MutexFlag) channelMutexes.get(chName);

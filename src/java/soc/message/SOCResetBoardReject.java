@@ -20,6 +20,8 @@
  **/
 package soc.message;
 
+import java.util.StringTokenizer;
+
 /**
  * This message from server informs all clients that voting has ended,
  * and the board reset request has been rejected.
@@ -30,7 +32,6 @@ package soc.message;
  * @author Jeremy D. Monin <jeremy@nand.net>
  *
  */
-@SuppressWarnings("serial")
 public class SOCResetBoardReject extends SOCMessageTemplate0
 {
     /**

@@ -20,10 +20,10 @@
  **/
 package soc.message;
 
-import java.util.StringTokenizer;
-
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
+
+import java.util.StringTokenizer;
 
 
 /**
@@ -32,7 +32,6 @@ import soc.game.SOCResourceSet;
  *
  * @author Robert S. Thomas
  */
-@SuppressWarnings("serial")
 public class SOCDiscoveryPick extends SOCMessage
 {
     /**
