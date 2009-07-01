@@ -193,12 +193,23 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected List cardList;
     protected Button playCardBut;
     protected SquaresPanel sqPanel;
-    protected Label giveLab;
-    protected Label getLab;
-    protected Button sendBut;
+
+    // Trading interface
 
     /**
-     * Hint for "Offer" button; non-null only if interactive.
+     * Game option NT: If true, only bank trading is allowed,
+     * trading between players is disabled.
+     * @since 1.1.07
+     */
+    protected boolean playerTradingDisabled;
+
+    protected Label giveLab;
+    protected Label getLab;
+    protected Button sendBut;  // "Offer" button for player trading
+
+    /**
+     * Hint for "Offer" button; non-null only if interactive
+     *   and if playerTradingDisabled == false.
      * @see #SENDBUTTIP_DIS
      * @see #SENDBUTTIP_ENA
      * @see #interactive
@@ -210,6 +221,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Checkboxes to send to the other three players.
      * Enabled/disabled at removeStartBut().
+     * This is null if {@link #playerTradingDisabled}.
      *
      * @see #playerSendMap
      */
@@ -246,6 +258,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /** Three player numbers to send trade offers to.
      *  For i from 0 to 2, playerSendMap[i] is playerNumber for checkbox i.
+     *  This is null if {@link #playerTradingDisabled}.
      *
      * @see #playerSend
      */
@@ -333,7 +346,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         setForeground(COLOR_FOREGROUND);
         setFont(new Font("Helvetica", Font.PLAIN, 10));
 
-        blankStandIn = new ColorSquare(pcolor, "One moment...");
+        blankStandIn = new ColorSquare(ColorSquare.CHECKBOX, false, pcolor);
         blankStandIn.setVisible(false);
         // playerinterface.initInterfaceElements will add blankStandIn to its layout, and set its size/position.
 
@@ -477,6 +490,8 @@ public class SOCHandPanel extends Panel implements ActionListener
         playCardBut.setEnabled(interactive);
         add(playCardBut);
 
+        playerTradingDisabled = game.isGameOptionSet("NT");
+
         giveLab = new Label(GIVE);
         add(giveLab);
 
@@ -487,12 +502,18 @@ public class SOCHandPanel extends Panel implements ActionListener
         add(sqPanel);
         sqPanel.setVisible(false); // else it's visible in all (dunno why?)
 
-        sendBut = new Button(SEND);
-        sendBut.addActionListener(this);
-        sendBut.setEnabled(interactive);
-        add(sendBut);
-        if (interactive)
-            sendButTip = new AWTToolTip(SENDBUTTIP_ENA, sendBut);
+        if (playerTradingDisabled)
+        {
+            sendBut = null;
+            sendButTip = null;
+        } else {
+            sendBut = new Button(SEND);
+            sendBut.addActionListener(this);
+            sendBut.setEnabled(interactive);
+            add(sendBut);
+            if (interactive)
+                sendButTip = new AWTToolTip(SENDBUTTIP_ENA, sendBut);
+        }
 
         clearBut = new Button(CLEAR);
         clearBut.addActionListener(this);
@@ -504,24 +525,30 @@ public class SOCHandPanel extends Panel implements ActionListener
         bankBut.setEnabled(interactive);
         add(bankBut);
 
-        playerSend = new ColorSquare[SOCGame.MAXPLAYERS-1];
-        playerSendMap = new int[SOCGame.MAXPLAYERS-1];
-
-        // set the trade buttons correctly
-        int cnt = 0;
-        for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+        if (playerTradingDisabled)
         {
-            if (pn != player.getPlayerNumber())
+            playerSend = null;
+            playerSendMap = null;
+        } else {
+            playerSend = new ColorSquare[SOCGame.MAXPLAYERS-1];
+            playerSendMap = new int[SOCGame.MAXPLAYERS-1];
+
+            // set the trade buttons correctly
+            int cnt = 0;
+            for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
             {
-                Color color = playerInterface.getPlayerColor(pn);
-                playerSendMap[cnt] = pn;
-                playerSend[cnt] = new ColorSquare(ColorSquare.CHECKBOX, true, color);
-                playerSend[cnt].setColor(playerInterface.getPlayerColor(pn));
-                playerSend[cnt].setBoolValue(true);
-                add(playerSend[cnt]);
-                cnt++;
+                if (pn != player.getPlayerNumber())
+                {
+                    Color color = playerInterface.getPlayerColor(pn);
+                    playerSendMap[cnt] = pn;
+                    playerSend[cnt] = new ColorSquare(ColorSquare.CHECKBOX, true, color);
+                    playerSend[cnt].setColor(playerInterface.getPlayerColor(pn));
+                    playerSend[cnt].setBoolValue(true);
+                    add(playerSend[cnt]);
+                    cnt++;
+                }
             }
-        }
+        }  // if(playerTradingDisabled)
 
         rollPromptCountdownLab = new Label(" ");
         add(rollPromptCountdownLab);
@@ -690,6 +717,9 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
         else if (target == SEND)
         {
+            if (playerTradingDisabled)
+                return;
+
             if (game.getGameState() == SOCGame.PLAY1)
             {
                 int[] give = new int[5];
@@ -1007,7 +1037,8 @@ public class SOCHandPanel extends Panel implements ActionListener
                 sitBut.setLabel(SIT);  // revert from lockout to sit-here
                 sitButIsLock = false;
             }
-            sitBut.setVisible(true);
+            if (game.getAvailableSeatCount() > 0)
+                sitBut.setVisible(true);
         }
 
         /* Hide items in case this was our hand */
@@ -1043,13 +1074,16 @@ public class SOCHandPanel extends Panel implements ActionListener
         giveLab.setVisible(false);
         getLab.setVisible(false);
         sqPanel.setVisible(false);
-        sendBut.setVisible(false);  // also hides sendButTip if created
         clearBut.setVisible(false);
         bankBut.setVisible(false);
 
-        for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+        if (! playerTradingDisabled)
         {
-            playerSend[i].setVisible(false);
+            sendBut.setVisible(false);  // also hides sendButTip if created
+            for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+            {
+                playerSend[i].setVisible(false);
+            }
         }
 
         rollBut.setVisible(false);
@@ -1193,15 +1227,18 @@ public class SOCHandPanel extends Panel implements ActionListener
             getLab.setVisible(true);
             sqPanel.setVisible(true);
 
-            sendBut.setVisible(true);
             clearBut.setVisible(true);
             bankBut.setVisible(true);
 
-            for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+            if (! playerTradingDisabled)
             {
-                playerSend[i].setBoolValue(true);
-                playerSend[i].setEnabled(true);
-                playerSend[i].setVisible(true);
+                sendBut.setVisible(true);
+                for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+                {
+                    playerSend[i].setBoolValue(true);
+                    playerSend[i].setEnabled(true);
+                    playerSend[i].setVisible(true);
+                }
             }
             rollBut.setVisible(true);
             doneButIsRestart = ((game.getGameState() <= SOCGame.START2B)
@@ -1382,9 +1419,12 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
 
         clearBut.disable();  // No trade offer has been set yet
-        sendBut.disable();
-        if (sendButTip != null)
-            sendButTip.setTip(SENDBUTTIP_DIS);
+        if (! playerTradingDisabled)
+        {
+            sendBut.disable();
+            if (sendButTip != null)
+                sendButTip.setTip(SENDBUTTIP_DIS);
+        }
     }
 
     /**
@@ -1403,6 +1443,9 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         int gs = game.getGameState();
         clearBut.setEnabled(notAllZero);
+        if (playerTradingDisabled)
+            return;
+
         boolean enaSendBut = notAllZero && ((gs == SOCGame.PLAY) || (gs == SOCGame.PLAY1));
         sendBut.setEnabled(enaSendBut);
         if (sendButTip != null)
@@ -1588,16 +1631,20 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         startBut.setVisible(false);
 
-        for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+        // Update the player-trading checkboxes
+        if (! playerTradingDisabled)
         {
-            boolean seatTaken = ! game.isSeatVacant(playerSendMap[i]);
-            playerSend[i].setBoolValue(seatTaken);
-            playerSend[i].setEnabled(seatTaken);
-            if (seatTaken)
+            for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
             {
-                String pname = game.getPlayer(playerSendMap[i]).getName();
-                if (pname != null)
-                    playerSend[i].setTooltipText(pname);
+                boolean seatTaken = ! game.isSeatVacant(playerSendMap[i]);
+                playerSend[i].setBoolValue(seatTaken);
+                playerSend[i].setEnabled(seatTaken);
+                if (seatTaken)
+                {
+                    String pname = game.getPlayer(playerSendMap[i]).getName();
+                    if (pname != null)
+                        playerSend[i].setTooltipText(pname);
+                }
             }
         }
     }
@@ -1688,7 +1735,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             sqPanel.setValues(zero, zero);
 
             // reset the send squares (checkboxes)
-            if (updateSendCheckboxes)
+            if (updateSendCheckboxes && ! playerTradingDisabled)
             {
                 int pcurr = game.getCurrentPlayerNumber();  // current player number
                 boolean pIsCurr = (pcurr == player.getPlayerNumber());  // are we current? 
@@ -1707,8 +1754,11 @@ public class SOCHandPanel extends Panel implements ActionListener
             }
 
             clearBut.disable();
-            sendBut.disable();
-            sendButTip.setTip(SENDBUTTIP_DIS);
+            if (! playerTradingDisabled)
+            {
+                sendBut.disable();
+                sendButTip.setTip(SENDBUTTIP_DIS);
+            }
         }
         validate();
         repaint();
@@ -2218,13 +2268,17 @@ public class SOCHandPanel extends Panel implements ActionListener
                 int tbW = ((giveW + sqpDim.width) / 2);
                 int tbX = inset;
                 int tbY = tradeY + sqpDim.height + space;
-                sendBut.setBounds(tbX, tbY, tbW, lineH);
+                if (sendBut != null)
+                    sendBut.setBounds(tbX, tbY, tbW, lineH);
                 clearBut.setBounds(tbX, tbY + lineH + space, tbW, lineH);
                 bankBut.setBounds(tbX + tbW + space, tbY + lineH + space, tbW, lineH);
 
-                playerSend[0].setBounds(tbX + tbW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                playerSend[1].setBounds(tbX + tbW + space + ((tbW - ColorSquare.WIDTH) / 2), tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                playerSend[2].setBounds((tbX + tbW + space + tbW) - ColorSquare.WIDTH, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                if (! playerTradingDisabled)
+                {
+                    playerSend[0].setBounds(tbX + tbW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    playerSend[1].setBounds(tbX + tbW + space + ((tbW - ColorSquare.WIDTH) / 2), tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    playerSend[2].setBounds((tbX + tbW + space + tbW) - ColorSquare.WIDTH, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                }
 
                 knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
                 knightsSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY, ColorSquare.WIDTH, ColorSquare.HEIGHT);

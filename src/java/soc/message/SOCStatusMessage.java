@@ -103,6 +103,30 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_ACCT_NOT_CREATED_ERR = 8;
 
     /**
+     * New game requested with game options, but some are not
+     * recognized by the server = 9
+     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONS
+     * @since 1.1.07
+     */
+    public static final int SV_NEWGAME_OPTION_UNKNOWN = 9;
+
+    /**
+     * New game requested with game options, but this game
+     * already exists = 10
+     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONS
+     * @since 1.1.07
+     */
+    public static final int SV_NEWGAME_ALREADY_EXISTS = 10;
+
+    /**
+     * Text for server or client to present: New game requested,
+     * but this game already exists
+     * @since 1.1.07
+     */
+    public static final String MSG_SV_NEWGAME_ALREADY_EXISTS
+        = "A game with this name already exists, please choose a different name.";
+
+    /**
      * Status message
      */
     private String status;
@@ -114,7 +138,7 @@ public class SOCStatusMessage extends SOCMessage
     private int svalue;
 
     /**
-     * Create a StatusMessage message, with status value 0 {@link #SV_OK}.
+     * Create a StatusMessage message, with status value 0 ({@link #SV_OK}).
      *
      * @param st  the status message text
      */

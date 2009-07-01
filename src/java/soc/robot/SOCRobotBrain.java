@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -80,7 +80,8 @@ import java.util.Vector;
 
 
 /**
- * AI for playing Settlers of Catan
+ * AI for playing Settlers of Catan.
+ * Represents a robot player within 1 game.
  *
  * @author Robert S Thomas
  */
@@ -414,7 +415,11 @@ public class SOCRobotBrain extends Thread
     protected SOCPossiblePiece lastTarget;
 
     /**
-     * Create a robot brain to play a game
+     * Create a robot brain to play a game.
+     *<P>
+     * Depending on {@link SOCGame#getGameOptions() game options},
+     * constructor might copy and alter the robot parameters
+     * (for example, to clear {@link SOCRobotParameters#getTradeFlag()}).
      *
      * @param rc  the robot client
      * @param params  the robot parameters
@@ -424,7 +429,7 @@ public class SOCRobotBrain extends Thread
     public SOCRobotBrain(SOCRobotClient rc, SOCRobotParameters params, SOCGame ga, CappedQueue mq)
     {
         client = rc;
-        robotParameters = params;
+        robotParameters = params.copyIfOptionChanged(ga.getGameOptions());
         game = ga;
         gameEventQ = mq;
         alive = true;
@@ -1076,8 +1081,8 @@ public class SOCRobotBrain extends Thread
                     {
                         //
                         // Note: Don't call ga.moveRobber() because that will call the 
-                        // functions to do the stealing.  We just want to say where 
-                        // the robber moved without seeing if something was stolen.
+                        // functions to do the stealing.  We just want to set where 
+                        // the robber moved, without seeing if something was stolen.
                         //
                         moveRobberOnSeven = false;
                         game.getBoard().setRobberHex(((SOCMoveRobber) mes).getCoordinates());
@@ -3770,8 +3775,6 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     *
-       /**
      * move the robber
      */
     protected void moveRobber()
@@ -3839,14 +3842,18 @@ public class SOCRobotBrain extends Thread
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
         int bestHex = robberHex;
         int worstSpeed = 0;
+        final boolean skipDeserts = game.isGameOptionSet("RD");  // can't move robber to desert
+        SOCBoard gboard = (skipDeserts ? game.getBoard() : null);
 
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < hexes.length; i++)
         {
             /**
              * only check hexes that we're not touching,
-             * and not the robber hex
+             * and not the robber hex, and possibly not desert hexes
              */
-            if ((hexes[i] != robberHex) && (ourPlayerData.getNumbers().getNumberResourcePairsForHex(hexes[i]).isEmpty()))
+            if ((hexes[i] != robberHex)
+                    && ourPlayerData.getNumbers().getNumberResourcePairsForHex(hexes[i]).isEmpty()
+                    && ! (skipDeserts && (gboard.getHexTypeFromCoord(hexes[i]) == SOCBoard.DESERT_HEX )))
             {
                 estimate.recalculateEstimates(victim.getNumbers(), hexes[i]);
 
@@ -3874,12 +3881,26 @@ public class SOCRobotBrain extends Thread
         D.ebugPrintln("%%% bestHex = " + Integer.toHexString(bestHex));
 
         /**
-         * pick a spot at random if we can't decide
+         * pick a spot at random if we can't decide.
+         * Don't pick deserts if the game option is set.
+         * Don't pick one of our hexes if at all possible.
+         * It's not likely we'll need to pick one of our hexes
+         * (we try 30 times to avoid it), so there isn't code here
+         * to pick the 'least bad' one.
+         * (TODO) consider that: it would be late in the game.
+         *       Use similar algorithm as picking for opponent,
+         *       but apply it worst vs best.
          */
-        while ((bestHex == robberHex) && (ourPlayerData.getNumbers().getNumberResourcePairsForHex(hexes[bestHex]).isEmpty()))
+        int numRand = 0;
+        while ((bestHex == robberHex)
+                || (skipDeserts
+                        && (gboard.getHexTypeFromCoord(bestHex) == SOCBoard.DESERT_HEX ))
+                || ((numRand < 30)
+                        && ourPlayerData.getNumbers().getNumberResourcePairsForHex(bestHex).isEmpty()))
         {
-            bestHex = hexes[Math.abs(rand.nextInt() % hexes.length)];
-            D.ebugPrintln("%%% random pick = " + Integer.toHexString(bestHex));
+            bestHex = hexes[Math.abs(rand.nextInt()) % hexes.length];
+            // D.ebugPrintln("%%% random pick = " + Integer.toHexString(bestHex));
+            ++numRand;
         }
 
         D.ebugPrintln("!!! MOVING ROBBER !!!");

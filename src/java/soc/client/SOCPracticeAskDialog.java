@@ -55,7 +55,7 @@ class SOCPracticeAskDialog extends AskDialog
      */
     public void button2Chosen()
     {
-        pcli.startPracticeGame();
+        pcli.gameWithOptionsBeginSetup(true);
     }
 
     /**

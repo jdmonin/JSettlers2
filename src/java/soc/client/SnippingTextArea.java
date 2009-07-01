@@ -56,11 +56,10 @@ public class SnippingTextArea extends TextArea
      * it isn't fixed yet by that version.  - JDM 2009-05-21
      * To identify osx from within java, see technote TN2110:
      * http://developer.apple.com/technotes/tn2002/tn2110.html
-     *
      * @since 1.1.06
      */
     static final boolean isJavaOnOSX105 =
-        (System.getProperty("os.name").toLowerCase().startsWith("mac os x"))
+        SOCPlayerClient.isJavaOnOSX
         && (System.getProperty("os.version").startsWith("10.5.")
             || System.getProperty("os.version").startsWith("10.6."));
 

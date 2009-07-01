@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,6 +39,7 @@ import java.awt.event.ActionListener;
 /**
  * This class is a panel that shows how much it costs
  * to build things, and it allows the player to build.
+ * Sits within a game's {@link SOCPlayerInterface} frame.
  */
 public class SOCBuildingPanel extends Panel implements ActionListener
 {
@@ -51,6 +52,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     Button settlementBut;
     Button cityBut;
     Button cardBut;
+    Button optsBut;  // show SOCGameOptions; @since 1.1.07
     Label roadT;
     Label roadV;
     Label roadC;
@@ -161,6 +163,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         add(cityBut);
         cityBut.setActionCommand(CITY);
         cityBut.addActionListener(this);
+
+        optsBut = new Button("Game Options...");
+        add(optsBut);
+        optsBut.addActionListener(this);
 
         cardT = new Label("Card: ");
         add(cardT);
@@ -302,6 +308,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX -= (ColorSquare.WIDTH + 3);
         // cardCount.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cardCount.setLocation(curX, curY);
+
+        curX = (dim.width / 2) - butW;
+        optsBut.setSize(butW * 2, lineH);
+        optsBut.setLocation(curX, curY);
     }
 
     /**
@@ -314,6 +324,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         try {
         String target = e.getActionCommand();
         SOCGame game = pi.getGame();
+
+        if (e.getSource() == optsBut)
+        {
+            NewGameOptionsFrame.createAndShow(pi.getClient(), game.getName(), game.getGameOptions(), false, true);
+            return;
+        }
 
         if (player != null)
         {
@@ -328,6 +344,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     }
     
     /** Handle a click on a building-panel button.
+     * Assumes client is current player.
      * 
      * @param game   The game, for status
      * @param client The client, for sending build or cancel request

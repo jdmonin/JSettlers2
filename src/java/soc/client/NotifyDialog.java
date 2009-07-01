@@ -21,6 +21,8 @@
  **/
 package soc.client;
 
+import java.awt.Frame;
+
 // TODO consider callback option; ActionListener
 
 /**
@@ -38,15 +40,18 @@ class NotifyDialog extends AskDialog
      * Creates and shows a new NotifyDialog.
      *
      * @param cli      Player client interface
-     * @param gamePI   Current game's player interface, or null
+     * @param gamePI   Current game's player interface, or another Frame for our parent window,
+     *                 or null to look for cli's Frame as parent
      * @param promptText  Prompt text appearing above button
-     * @param btnText  Button text
+     * @param btnText  Button text, or null for "OK"
      * @param hasDefault  Button is default (responds to Enter)
      * @throws IllegalArgumentException If cli, promptText, or btnText is null
      */
-    public static void createAndShow(SOCPlayerClient cli, SOCPlayerInterface gamePI, String promptText, String btnText, boolean hasDefault)
+    public static void createAndShow(SOCPlayerClient cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
         throws IllegalArgumentException
     {
+        if (btnText == null)
+            btnText = "OK";
         NotifyDialog nd = new NotifyDialog
 	    (cli, gamePI, promptText, btnText, hasDefault);
         nd.show();      
@@ -56,18 +61,19 @@ class NotifyDialog extends AskDialog
      * Creates a new NotifyDialog.
      *
      * @param cli      Player client interface
-     * @param gamePI   Current game's player interface, or null
+     * @param gamePI   Current game's player interface, or another Frame for our parent window,
+     *                 or null to look for cli's Frame as parent
      * @param promptText  Prompt text appearing above button
      * @param btnText  Button text
      * @param hasDefault  Button is default (responds to Enter)
      * @throws IllegalArgumentException If cli or btnText is null
      */
-    protected NotifyDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI, String promptText, String btnText, boolean hasDefault)
+    protected NotifyDialog(SOCPlayerClient cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
     {
         super(cli,
        	     ((gamePI != null)
-       		      ? getParentFrame(gamePI)
-       		      : getParentFrame(cli)),
+       	          ? gamePI
+       	          : getParentFrame(cli)),
         	promptText, promptText,
             btnText, hasDefault);
     }

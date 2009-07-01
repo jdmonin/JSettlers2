@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Documentation paragraphs and other portions of this file Copyright (C) 2007-2008 Jeremy D Monin <jeremy@nand.net>
+ * Documentation paragraphs and other portions of this file Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,15 +50,16 @@ import java.util.StringTokenizer;
  *<P>
  * To create a new message type:
  *<UL>
- * <LI> Choose a message type name and ID number.  Aadd to the end of the list in this class.
- *      Add a comment to note the JSettlers version in which it was introduced,
- *      and the date.
+ * <LI> Decide the message type name.  Add to the end of the constant list in this
+ *      class, and give it the next available type ID number.  Add a comment to
+ *      note the JSettlers version in which it was introduced, and the date.
  * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version.
+ *      Do not add if (TODO what instead??) extends SOCMessageTemplateMs or SOCMessageTemplateMi
  * <LI> Extend the SOCMessage class, including the required parseDataStr method.
  *      ({@link SOCDiceResult} and {@link SOCSetTurn} are good example subclasses.)
  *      Template parent-classes can help; the example subclasses extend them.
  *      Be sure to override the minimum version reported in {@link #getMinimumVersion()}.
- * <LI> Add to the switch in either SOCPlayerClient.treat or SOCServer.processCommand.
+ * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServer.processCommand.
  *      Note the JSettlers version with a comment.
  *      <P>
  *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
@@ -81,7 +82,10 @@ import java.util.StringTokenizer;
 public abstract class SOCMessage implements Serializable, Cloneable
 {
     /**
-     * message type IDs
+     * message type IDs.
+     * This list of constants does not provide javadocs, instead please see
+     * the SOCMessage subclass for the message type.
+     * Example: For {@link #DELETEGAME}, see javadocs for {@link SOCDeleteGame}.
      */
     public static final int NULLMESSAGE = 1000;
     public static final int NEWCHANNEL = 1001;
@@ -159,8 +163,29 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int RESETBOARDVOTEREQUEST = 1075; // resetboard, 20080223, sf patch#tbd
     public static final int RESETBOARDVOTE = 1076;     // resetboard, 20080223, sf patch#tbd
     public static final int RESETBOARDREJECT = 1077;   // resetboard, 20080223, sf patch#tbd
+
+    /** @since 1.1.07 */
+    public static final int NEWGAMEWITHOPTIONSREQUEST = 1078;  // gameoptions, 20090601
+
+    /** @since 1.1.07 */
+    public static final int NEWGAMEWITHOPTIONS = 1079;  // gameoptions, 20090601
+
+    /** @since 1.1.07 */
+    public static final int GAMEOPTIONGETDEFAULTS = 1080;  // gameoptions, 20090601
+
+    /** @since 1.1.07 */
+    public static final int GAMEOPTIONGETINFOS = 1081;  // gameoptions, 20090601
+
+    /** @since 1.1.07 */
+    public static final int GAMEOPTIONINFO = 1082;  // gameoptions, 20090601
+
+    /** @since 1.1.07 */
+    public static final int GAMESWITHOPTIONS = 1083;  // gameoptions, 20090601
+
+    /** @since 1.1.00 */
     public static final int VERSION = 9998;   // cli-serv versioning, 20080807, v1.1.00
-    public static final int SERVERPING = 9999;
+
+    public static final int SERVERPING = 9999;  // available in all versions
 
     /**
      * Token seperators. At most one SEP per message; multiple SEP2 are allowed after SEP.
@@ -250,11 +275,11 @@ public abstract class SOCMessage implements Serializable, Cloneable
      */
     public static String[] toSingleElemArray(String s)
     {
-            if (s == null)
-                    return null;
-            String[] sarr = new String[1];
-            sarr[0] = s;
-            return sarr;
+        if (s == null)
+            return null;
+        String[] sarr = new String[1];
+        sarr[0] = s;
+        return sarr;
     }
 
     /**
@@ -560,6 +585,24 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case VERSION:            // cli-serv versioning, 20080807, v1.1.00
                 return SOCVersion.parseDataStr(data);
+
+	    case NEWGAMEWITHOPTIONS:     // per-game options, 20090601, v1.1.07
+		return SOCNewGameWithOptions.parseDataStr(data);
+
+            case NEWGAMEWITHOPTIONSREQUEST:  // per-game options, 20090601, v1.1.07
+                return SOCNewGameWithOptionsRequest.parseDataStr(data);
+
+	    case GAMEOPTIONGETDEFAULTS:  // per-game options, 20090601, v1.1.07
+		return SOCGameOptionGetDefaults.parseDataStr(data);
+
+	    case GAMEOPTIONGETINFOS:     // per-game options, 20090601, v1.1.07
+		return SOCGameOptionGetInfos.parseDataStr(data);
+
+	    case GAMEOPTIONINFO:         // per-game options, 20090601, v1.1.07
+	        return SOCGameOptionInfo.parseDataStr(multiData);
+
+	    case GAMESWITHOPTIONS:       // per-game options, 20090601, v1.1.07
+	        return SOCGamesWithOptions.parseDataStr(multiData);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

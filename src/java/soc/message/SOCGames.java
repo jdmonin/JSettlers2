@@ -25,14 +25,19 @@ import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import soc.game.SOCGame;
+
 
 /**
- * This message lists all the soc games currently on a server.
- * It's constructed for each connecting client.
+ * This message lists all the soc games currently on a server,
+ * without {@link soc.game.SOCGameOption game options}.
+ * It's constructed and sent for each connecting client
+ * which can't understand game options (older than 1.1.07).
  *<P>
  * Version 1.1.06 - Add marker for a game that the client can't join
  *
  * @author Robert S Thomas
+ * @see SOCGamesWithOptions
  */
 public class SOCGames extends SOCMessage
 {
@@ -66,7 +71,9 @@ public class SOCGames extends SOCMessage
     /**
      * Create a Games Message.
      *
-     * @param ga  list of game names (Strings)
+     * @param ga  list of game names (Strings).
+     *         Mark unjoinable games with the prefix
+     *         {@link #MARKER_THIS_GAME_UNJOINABLE}.
      */
     public SOCGames(Vector ga)
     {
@@ -95,7 +102,9 @@ public class SOCGames extends SOCMessage
     /**
      * GAMES sep games
      *
-     * @param ga  the list of games, as a vector of Strings
+     * @param ga  the list of games, as a mixed-content vector of Strings and/or {@link SOCGame}s;
+     *            if a client can't join a game, it should be a String prefixed with
+     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @return    the command string
      */
     public static String toCmd(Vector ga)
@@ -105,11 +114,19 @@ public class SOCGames extends SOCMessage
         try
         {
             Enumeration gaEnum = ga.elements();
-            cmd += (String) gaEnum.nextElement();
+            Object ob = gaEnum.nextElement();
+            if (ob instanceof SOCGame)
+                cmd += ((SOCGame) ob).getName();
+            else
+                cmd += (String) ob;
 
             while (gaEnum.hasMoreElements())
             {
-                cmd += (sep2 + (String) gaEnum.nextElement());
+                ob = gaEnum.nextElement();
+                if (ob instanceof SOCGame)
+                    cmd += sep2 + ((SOCGame) ob).getName();
+                else
+                    cmd += sep2 + (String) ob;
             }
         }
         catch (Exception e) {}

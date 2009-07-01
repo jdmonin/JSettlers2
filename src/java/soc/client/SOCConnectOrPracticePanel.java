@@ -303,7 +303,10 @@ public class SOCConnectOrPracticePanel extends Panel
         gbl.setConstraints(L, gbc);
         pconn.add(L);
         conn_pass = new TextField(20);
-        conn_pass.setEchoChar('*');
+        if (SOCPlayerClient.isJavaOnOSX)
+            conn_pass.setEchoChar('\u2022');  // round bullet (option-8)
+        else
+            conn_pass.setEchoChar('*');
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_pass, gbc);
         pconn.add(conn_pass);

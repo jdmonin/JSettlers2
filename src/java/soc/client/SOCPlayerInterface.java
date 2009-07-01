@@ -56,8 +56,8 @@ import java.io.StringWriter;
 
 /**
  * Window with interface for a player in one game of Settlers of Catan.
- * Contains board, client and other players' hands, chat interface,
- * game message window, and building/buying panel.
+ * Contains {@link SOCBoardPanel board}, client's and other players' {@link SOCHandPanel hands},
+ * chat interface, game message window, and the {@link SOCBuildingPanel building/buying panel}.
  *<P>
  * A separate {@link SOCPlayerClient} window holds the list of current games and channels.
  *
@@ -403,6 +403,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         boardPanel.setSize(SOCBoardPanel.PANELX, SOCBoardPanel.PANELY);
         boardIsScaled = false;
         add(boardPanel);
+        if (game.isGameOptionDefined("PL"))
+        {
+            updatePlayerLimitDisplay(true);
+        }
 
         /**
          * initialize the text input and display and add them to the interface
@@ -597,6 +601,36 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             msgbuf.append('.');
             print(msgbuf.toString());            
         }
+    }
+
+    /**
+     * Show the maximum and available number of player positions,
+     * if game parameter "PL" is less than {@link SOCGame#MAXPLAYERS}.
+     * Also, if show, and gamestate is {@link SOCGame#NEW}, check for game-is-full,
+     * and hide "sit down" buttons if so.
+     * @param show the text, or clear the display (at game start)?
+     * @since 1.1.07
+     */
+    private void updatePlayerLimitDisplay(boolean show)
+    {
+        if (! show)
+        {
+            boardPanel.setSuperimposedText(null, null);
+            return;           
+        }
+        final int maxPl = game.getGameOptionIntValue("PL");
+        if (maxPl == SOCGame.MAXPLAYERS)
+            return;
+        int availPl = game.getAvailableSeatCount();
+        String availTxt = (availPl == 1) ? "1 seat available" : Integer.toString(availPl) + " seats available";
+        boardPanel.setSuperimposedText
+            ("Maximum players: " + maxPl, availTxt);
+        if (( availPl == 0) && (game.getGameState() == SOCGame.NEW)) 
+        {
+            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                hands[i].removeSitBut();
+        }
+            
     }
 
     /**
@@ -1026,7 +1060,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 }
             }
         }
-        
+
+        if (game.isGameOptionDefined("PL"))
+            updatePlayerLimitDisplay(true);
+
         if (game.isBoardReset())
         {
             // Retain face after reset
@@ -1062,6 +1099,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 hands[pn].addSitButton();
             }
         }
+
+        if (game.isGameOptionDefined("PL"))
+            updatePlayerLimitDisplay(true);
     }
 
     /**
@@ -1079,6 +1119,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             // If we're joining a game in progress, keep it (as "sit here").
             hands[i].removeSitLockoutBut();
         }
+        updatePlayerLimitDisplay(false);
         gameIsStarting = true;
     }
 

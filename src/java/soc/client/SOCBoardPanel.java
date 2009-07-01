@@ -54,7 +54,7 @@ import java.util.Timer;
  * This is a component that can display a Settlers of Catan Board.
  * It can be used in an applet or an application.
  * It loads gifs from a directory named "images" in the same
- * directory at the code.
+ * directory as this class.
  *<P>
  * When the mouse is over the game board, a tooltip shows information
  * such as a hex's resource, a piece's owner, a port's ratio, or the
@@ -64,6 +64,10 @@ import java.util.Timer;
  * settlements, cities at locations the player can build.  See: {@link #hilight},
  * {@link SOCBoardPanel.BoardToolTip#hoverRoadID}.
  * Right-click to build, or use the {@link SOCBuildingPanel}'s buttons.
+ *<P>
+ * Before the game begins, the boardpanel is full of water hexes.
+ * You can show a short message text of 1 or 2 lines by calling
+ * {@link #setSuperimposedText(String, String)}.
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
@@ -214,6 +218,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected static int POPUP_MENU_IGNORE_MS = 150;
 
     /**
+     * Pixel spacing around {@link #superText1}, {@link #superText2}
+     * @since 1.1.07
+     */
+    private static final int SUPERTEXT_INSET = 3, SUPERTEXT_PADDING_HORIZ = 2 * SUPERTEXT_INSET + 2;
+
+    /**
      * hex size, in unscaled internal-pixels
      */
     private final int HEXWIDTH = 55, HEXHEIGHT = 64;
@@ -296,7 +306,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static Image[] dice;
 
-    /** Dice number fits in a 25 x 25 square. @see #dice */
+    /** Dice number graphic fits in a 25 x 25 square. @see #dice */
     private static final int DICE_SZ = 25;
 
     /**
@@ -361,6 +371,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * </pre>
      */
     protected BoardPanelSendBuildTask buildReqTimerTask;
+
+    /**
+     * Text to be displayed as 2 lines superimposed over the board graphic (during game setup).
+     * Either supertext2, or both, can be null to display nothing.
+     * @see #setSuperimposedText(String, String)
+     * @since 1.1.07
+     */
+    private String superText1, superText2;
+
+    /**
+     * Width, height of {@link #superText1} and {@link #superText2} if known, or 0.
+     * Calculated in {@link #drawSuperText(Graphics)}.
+     */
+    private int superText1_w, superText_h, superText2_w, superTextBox_x, superTextBox_y, superTextBox_w, superTextBox_h;
 
     /**
      * Edge or node being pointed to. When placing a road/settlement/city,
@@ -545,6 +569,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         popupMenu = new BoardPopupMenu(this);
         add (popupMenu);
         popupMenuSystime = System.currentTimeMillis();  // Set to a reasonable value 
+
+        // Overlay text
+        superText1 = null;
+        superText2 = null;
 
         // load the static images
         loadImages(this);
@@ -932,7 +960,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
      *   such a call is ignored, no rescaling of graphics is done.
      */
-    private void rescaleBoard(int newW, int newH)
+    private void rescaleBoard(final int newW, final int newH)
         throws IllegalArgumentException
     {
         if ((newW == 0) || (newH == 0))
@@ -1002,6 +1030,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledNumbers[i] = numbers[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                 scaledNumberFail[i] = false;
             }
+        }
+
+        if ((superText1 != null) && (superTextBox_w > 0))
+        {
+            superTextBox_x = (newW - superTextBox_w) / 2;
+            superTextBox_y = (newH - superTextBox_h) / 2;
         }
     }
 
@@ -1689,11 +1723,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             drawCity(g, c.getCoordinates(), c.getPlayer().getPlayerNumber(), false);
         }
 
-        if (player == null)
-            return;  // <--- No hilight when null player (before game started) ---
-
+        if (player != null)
+        {
         /**
-         * Draw the hilight when in interactive mode
+         * Draw the hilight when in interactive mode;
+         * No hilight when null player (before game started).
          */
         switch (mode)
         {
@@ -1764,6 +1798,80 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
 
             break;
+        }  // switch
+        }  // if (player != null)
+
+        if (superText1 != null)
+        {
+            drawSuperText(g);
+        }
+    }
+
+    /**
+     * Draw {@link #superText1}, {@link #superText2}; if necessary, calculate {@link #superText1_w} and other fields.
+     * @since 1.1.07
+     */
+    private void drawSuperText(Graphics g)
+    {
+        // Do we need to calculate the metrics?
+
+        if ((superText1_w == 0) || ((superText2 != null) && (superText2_w == 0)))
+        {
+            final Font bpf = getFont();
+            if (bpf == null)
+            {
+                repaint();  // We'll have to try again
+                return;
+            } else {
+                final FontMetrics fm = getFontMetrics(bpf);
+                if (fm == null)
+                {
+                    repaint();
+                    return;  // We'll have to try again
+                } else {
+                    if (superText1_w == 0)
+                    {
+                        superText1_w = fm.stringWidth(superText1);
+                        superText_h = fm.getHeight();
+                    }
+                    if ((superText2 != null) && (superText2_w == 0))
+                    {
+                        superText2_w = fm.stringWidth(superText2);
+                    }
+                    // box size
+                    if (superText2_w > superText1_w)
+                        superTextBox_w = superText2_w;
+                    else
+                        superTextBox_w = superText1_w;
+                    if (superText2 != null)
+                        superTextBox_h = 2 * superText_h;
+                    else
+                        superTextBox_h = superText_h;
+
+                    superTextBox_w += 2 * SUPERTEXT_INSET + 2 * SUPERTEXT_PADDING_HORIZ;
+                    superTextBox_h += SUPERTEXT_INSET + 2 * fm.getDescent();
+
+                    superTextBox_x = (scaledPanelX - superTextBox_w) / 2;
+                    superTextBox_y = (scaledPanelY - superTextBox_h) / 2;
+                }
+            }
+        }
+        // adj from center
+        g.setColor(Color.black);
+        g.fillRoundRect(superTextBox_x, superTextBox_y, superTextBox_w, superTextBox_h, SUPERTEXT_INSET, SUPERTEXT_INSET);
+        g.setColor(Color.white);
+        g.fillRoundRect(superTextBox_x + SUPERTEXT_INSET, superTextBox_y + SUPERTEXT_INSET,
+             superTextBox_w - 2 * SUPERTEXT_INSET, superTextBox_h - 2 * SUPERTEXT_INSET, SUPERTEXT_INSET, SUPERTEXT_INSET);
+        g.setColor(Color.black);
+        // draw text at center
+        int tx = (scaledPanelX - superText1_w) / 2;
+        int ty = superTextBox_y + SUPERTEXT_INSET + superText_h;
+        g.drawString(superText1, tx, ty);
+        if (superText2 != null)
+        {
+            tx -= (superText2_w - superText1_w) / 2;
+            ty += superText_h;
+            g.drawString(superText2, tx, ty);
         }
     }
 
@@ -2251,7 +2359,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ptrOldY = y;
                 hexNum = findHex(xb, yb);
 
-                if (hexNum == board.getRobberHex())
+                if (! game.canMoveRobber(playerNumber, hexNum))
                 {
                     hexNum = 0;
                 }
@@ -2629,6 +2737,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         hoverTip.hideHoverAndPieces();  // Reset hover state
     }
 
+    /**
+     * Text to be displayed as 2 lines superimposed over the board graphic (during game setup).
+     * Either text2, or both, can be null to display nothing.
+     * Keep the text short, because boardPanel may not be very wide ({@link #PANELX} pixels).
+     * Will trigger a repaint.
+     * @param text1 Line 1 (or only line) of text, or null
+     * @param text2 Line 2 of text, or null; must be null if text1 is null
+     * @throws IllegalArgumentException if text1 null, text2 non-null
+     * @since 1.1.07
+     */
+    public void setSuperimposedText(String text1, String text2)
+        throws IllegalArgumentException
+    {
+        if ((superText1 == text1) && (superText2 == text2))
+            return;
+        if ((superText1 == null) && (superText2 != null))
+            throw new IllegalArgumentException("text2 not null, text1 null");
+
+        superText1 = text1;
+        superText2 = text2;
+        superText1_w = 0;
+        superText2_w = 0;
+        superTextBox_w = 0;
+        repaint();
+    }
 
     /**
      * given a pixel on the board, find the edge that contains it
@@ -2846,7 +2979,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 alreadyActive = false;
             }
         }
-    }
+    }  // static class DelayedRepaint
 
 
 

@@ -29,6 +29,7 @@ import java.io.Serializable;
 
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Random;
 import java.util.Stack;
 import java.util.Vector;
@@ -104,6 +105,8 @@ public class SOCGame implements Serializable, Cloneable
 
     public static final int SETOPTIONS_EXCL = 2; // Future use: Game owner setting options, no one can yet connect
     public static final int SETOPTIONS_INCL = 3; // Future use: Game owner setting options, but anyone can connect
+        // These are still unused in 1.1.07, even though we now have options,
+        // because they are set before the SOCGame is created.
 
     /**
      * Players place first settlement.  Proceed in order for each player; next state
@@ -262,11 +265,11 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * For use at server; lowest version of client which can connect to
-     * this game (based on game features added in a given version),
+     * this game (based on game options/features added in a given version),
      * or -1 if unknown.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
      *<P>
-     *<b>Reminder:</b> If you add new game features, please be sure that the
+     *<b>Reminder:</b> If you add new game options, please be sure that the
      *   robot is also capable of understanding/using them.
      */
     private int clientVersionMinRequired;
@@ -305,6 +308,12 @@ public class SOCGame implements Serializable, Cloneable
      * the game board
      */
     private SOCBoard board;
+
+    /**
+     * the game options ({@link SOCGameOption}), or null
+     * @since 1.1.07
+     */
+    private Hashtable opts;
 
     /**
      * the players; never contains a null element, use {@link #isSeatVacant(int)}
@@ -355,8 +364,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * If true, and if state is {@link #PLACING_ROBBER},
      * the robber is being moved because a knight card
-     * has just been played.  This, if {@link #forceEndTurn()}
-     * is called, the knight card should be returned to
+     * has just been played.  Thus, if {@link #forceEndTurn()}
+     * is called, the knight card should then be returned to
      * the player's hand. 
      */
     private boolean placingRobberForKnightCard;
@@ -422,6 +431,21 @@ public class SOCGame implements Serializable, Cloneable
      */
     long expiration;
 
+    // TODO pcli.handleTURN, others: does same things as game.endTurn()
+    //    - should refactor to a common here.
+    //    (search for newToOld, setPlayedDevCard, etc)
+    //    Until that's done, turncount will be accurate only at server.
+    //   cli currently calls setCurrentPlayerNumber which does some of the work.
+
+    /**
+     * The number of normal turns (not initial placements) completed
+     *   // TODO verif that this is == # of dice rolls so far
+     *  for gameoption E7: Roll no 7s during first # turns
+     *  updated in endTurn (TODO just above: move to new refactored)
+     * @since 1.1.07
+     */
+    private int turnCount;
+
     /**
      * create a new, active game
      *
@@ -429,7 +453,26 @@ public class SOCGame implements Serializable, Cloneable
      */
     public SOCGame(String n)
     {
-        this(n, true);
+        this(n, true, null);
+    }
+
+    /**
+     * create a new, active game with options
+     *
+     * @param n  the name of the game
+     * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     *           Will validate options by calling
+     *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)},
+     *           and set game's minimum version by calling
+     *           {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
+     * @throws IllegalArgumentException if op contains unknown options, or any
+     *             object class besides {@link SOCGameOption}
+     * @since 1.1.07
+     */
+    public SOCGame(String n, Hashtable op)
+	throws IllegalArgumentException
+    {
+        this(n, true, op);
     }
 
     /**
@@ -439,6 +482,26 @@ public class SOCGame implements Serializable, Cloneable
      * @param a  true if this is an active game, false for inactive
      */
     public SOCGame(String n, boolean a)
+    {
+	this(n, a, null);
+    }
+
+    /**
+     * create a new game that can be ACTIVE or INACTIVE, and have options
+     *
+     * @param n  the name of the game
+     * @param a  true if this is an active game, false for inactive
+     * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     *           Will validate options by calling
+     *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)},
+     *           and set game's minimum version by calling
+     *           {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
+     * @throws IllegalArgumentException if op contains unknown options, or any
+     *             object class besides {@link SOCGameOption}
+     * @since 1.1.07
+     */
+    public SOCGame(String n, boolean a, Hashtable op)
+	throws IllegalArgumentException
     {
         // For places to initialize fields, see also resetAsCopy().
 
@@ -467,12 +530,27 @@ public class SOCGame implements Serializable, Cloneable
         playerWithWin = -1;
         numDevCards = 25;
         gameState = NEW;
+        turnCount = 0;
         forcingEndTurn = false;
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack();
-        clientVersionMinRequired = -1;
-              // ** Reminder:** If you add new game features, please be sure that the
-              //    robot is also capable of understanding/using them.
+
+	opts = op;
+	if (op == null)
+	{
+	    clientVersionMinRequired = -1;
+	} else {
+	    if (! SOCGameOption.adjustOptionsToKnown(op, null))
+		throw new IllegalArgumentException("op: unknown option");
+
+	    // the adjust method will also throw IllegalArg if a non-SOCGameOption
+	    // object is found within opts.
+
+	    clientVersionMinRequired = SOCGameOption.optionsMinimumVersion(op);
+
+	    // ** Reminder:** If you add new game options/features, please be sure that the
+	    //    robot is also capable of understanding/using them.
+	}
 
         if (active)
             startTime = new Date();
@@ -550,9 +628,19 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param name  the player's name
      * @param pn    the player's number
+     * @throws IllegalStateException if there are no open seats
+     *              (based on seats[] == OCCUPIED, and game option "PL" or MAXPLAYERS)
+     *               via {@link #getAvailableSeatCount()}
      */
-    public void addPlayer(String name, int pn)
+    public void addPlayer(final String name, final int pn)
+	throws IllegalStateException
     {
+        if (seats[pn] == VACANT)
+        {
+	    if (0 == getAvailableSeatCount())
+		throw new IllegalStateException("Game is full");
+        }
+
         players[pn].setName(name);
         seats[pn] = OCCUPIED;
 
@@ -580,10 +668,35 @@ public class SOCGame implements Serializable, Cloneable
      * @return true if the seat is VACANT
      *
      * @param pn the number of the seat
+     * @see #getAvailableSeatCount()
      */
     public boolean isSeatVacant(int pn)
     {
         return (seats[pn] == VACANT);
+    }
+
+    /**
+     * How many seats are vacant and available for players?
+     * Based on {@link #isSeatVacant(int)}, and game
+     * option "PL" (maximum players) or {@link #MAXPLAYERS}.
+     *
+     * @return number of available vacant seats
+     * @see #isSeatVacant(int)
+     * @since 1.1.07
+     */
+    public int getAvailableSeatCount()
+    {
+	int availSeats;
+	if (isGameOptionDefined("PL"))
+	    availSeats = getGameOptionIntValue("PL");
+	else
+	    availSeats = MAXPLAYERS;
+
+	for (int i = 0; i < MAXPLAYERS; ++i)
+	    if (seats[i] == OCCUPIED)
+		--availSeats;
+
+	return availSeats;
     }
 
     /**
@@ -657,12 +770,164 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * @return this game's options ({@link SOCGameOption}), or null
+     * @since 1.1.07
+     * @see #isGameOptionDefined(String)
+     * @see #isGameOptionSet(String)
+     * @see #getGameOptionIntValue(String)
+     */
+    public Hashtable getGameOptions()
+    {
+	return opts;
+    }
+
+    /**
+     * Is this game option contained in the current game's options?
+     * @param optKey Name of a {@link SOCGameOption}
+     * @return True if option is defined in ths game's options, false otherwise
+     * @since 1.1.07
+     * @see #isGameOptionSet(String)
+     * @see #getGameOptionIntValue(String)
+     */
+    public boolean isGameOptionDefined(final String optKey)
+    {
+        if (opts == null)
+            return false;
+        else
+            return opts.containsKey(optKey);
+    }
+
+    /**
+     * Is this boolean game option currently set to true?
+     * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL}
+     *               or {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
+     * @return True if option is set, false if not set or not defined in this game's options
+     * @since 1.1.07
+     * @see #isGameOptionDefined(String)
+     * @see #getGameOptionIntValue(String)
+     * @see #getGameOptionStringValue(String)
+     */
+    public boolean isGameOptionSet(final String optKey)
+    {
+        // OTYPE_* - if a new type is added, update this method's javadoc.
+
+        return isGameOptionSet(opts, optKey);
+    }
+
+    /**
+     * Is this boolean game option currently set to true?
+     * @param opts A hashtable of {@link SOCGameOption}, or null
+     * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL}
+     *               or {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
+     * @return True if option is set, false if not set or not defined in this game's options
+     * @since 1.1.07
+     * @see #isGameOptionDefined(String)
+     * @see #getGameOptionIntValue(String)
+     * @see #getGameOptionStringValue(String)
+     */
+    public static boolean isGameOptionSet(Hashtable opts, final String optKey)
+    {
+        // OTYPE_* - if a new type is added, update this method's javadoc.
+
+        if (opts == null)
+            return false;
+        SOCGameOption op = (SOCGameOption) opts.get(optKey);
+        if (op == null)
+            return false;
+        return op.getBoolValue();        
+    }
+
+    /**
+     * What is this integer game option's current value?
+     * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
+     *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
+     *               or {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
+     * @return Option's current {@link SOCGameOption#getIntValue() intValue}
+     *         or 0 if not defined in this game's options
+     * @since 1.1.07
+     * @see #isGameOptionDefined(String)
+     * @see #isGameOptionSet(String)
+     */
+    public int getGameOptionIntValue(final String optKey)
+    {
+        // OTYPE_* - if a new type is added, update this method's javadoc.
+
+        return getGameOptionIntValue(opts, optKey);
+    }
+
+    /**
+     * What is this integer game option's current value?
+     * @param opts A hashtable of {@link SOCGameOption}, or null
+     * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
+     *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
+     *               or {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
+     * @return Option's current {@link SOCGameOption#getIntValue() intValue}
+     *         or 0 if not defined in this game's options
+     * @since 1.1.07
+     * @see #isGameOptionDefined(String)
+     * @see #isGameOptionSet(String)
+     */
+    public static int getGameOptionIntValue(Hashtable opts, final String optKey)
+    {
+        // OTYPE_* - if a new type is added, update this method's javadoc.
+
+        if (opts == null)
+            return 0;
+        SOCGameOption op = (SOCGameOption) opts.get(optKey);
+        if (op == null)
+            return 0;
+        return op.getIntValue();
+    }
+
+    /**
+     * What is this string game option's current value?
+     * @param optKey A {@link SOCGameOption} of type
+     *               {@link SOCGameOption#OTYPE_STR OTYPE_STR}
+     *               or {@link SOCGameOption#OTYPE_STRHIDE OTYPE_STRHIDE}
+     * @return Option's current {@link SOCGameOption#getStringValue() getStringValue}
+     *         or null if not defined in this game's options
+     * @since 1.1.07
+     * @see #isGameOptionDefined(String)
+     * @see #isGameOptionSet(String)
+     */
+    public String getGameOptionStringValue(final String optKey)
+    {
+        // OTYPE_* - if a new type is added, update this method's javadoc.
+
+        return getGameOptionStringValue(opts, optKey);
+    }
+
+    /**
+     * What is this string game option's current value?
+     * @param opts A hashtable of {@link SOCGameOption}, or null
+     * @param optKey A {@link SOCGameOption} of type
+     *               {@link SOCGameOption#OTYPE_STR OTYPE_STR}
+     *               or {@link SOCGameOption#OTYPE_STRHIDE OTYPE_STRHIDE}
+     * @return Option's current {@link SOCGameOption#getStringValue() getStringValue}
+     *         or null if not defined in this game's options
+     * @since 1.1.07
+     * @see #isGameOptionDefined(String)
+     * @see #isGameOptionSet(String)
+     */
+    public static String getGameOptionStringValue(Hashtable opts, final String optKey)
+    {
+        // OTYPE_* - if a new type is added, update this method's javadoc.
+
+        if (opts == null)
+            return null;
+        SOCGameOption op = (SOCGameOption) opts.get(optKey);
+        if (op == null)
+            return null;
+        return op.getStringValue();
+    }
+
+    /**
      * For use at server; lowest version of client which can connect to
-     * this game (based on game features added in a given version),
+     * this game (based on game options/features added in a given version),
      * or -1 if unknown.
      *<P>
-     *<b>Reminder:</b> If you add new game features, please be sure that the
-     *   robot is also capable of understanding/using them.
+     *<b>Reminder:</b> If you add new game options, please be sure that the
+     *   robot is also capable of understanding them.
      *
      * @return game version, in same integer format as {@link soc.util.Version#versionNumber()}.
      * @since 1.1.06
@@ -1475,7 +1740,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void startGame()
     {
-        board.makeNewBoard();
+        board.makeNewBoard(opts);
 
         /**
          * shuffle the development cards
@@ -1614,12 +1879,11 @@ public class SOCGame implements Serializable, Cloneable
      * end the turn for the current player, and check for winner.
      * Check for gamestate {@link #OVER} after calling endTurn.
      * endTurn() is called only at server - client instead calls
-     * setCurrentPlayerNumber.
+     * {@link #setCurrentPlayerNumber(int)}.
      * The winner check is needed because a player can win only
      * during their own turn; if they reach winning points ({@link #VP_WINNER}
      * or more) during another player's turn, they must wait.
      *
-     * @see #setCurrentPlayerNumber(int)
      * @see #checkForWinner()
      * @see #forceEndTurn()
      * @see #isForcingEndTurn()
@@ -1628,6 +1892,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         gameState = PLAY;
         currentDice = 0;
+        ++turnCount;  // TODO is endTurn called after last placement before first roll?
         advanceTurn();
         players[currentPlayerNumber].setPlayedDevCard(false);
         players[currentPlayerNumber].getDevCards().newToOld();
@@ -1973,14 +2238,23 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * roll the dice
+     * roll the dice.
+     * Checks game option E7: Roll no 7s during first # turns
      */
     public IntPair rollDice()
     {
-        int die1 = Math.abs(rand.nextInt() % 6) + 1;
-        int die2 = Math.abs(rand.nextInt() % 6) + 1;
+        // E7: Roll no 7s during first # turns
+        final boolean okToRoll7 =
+            (! isGameOptionSet("E7")) || (turnCount >= getGameOptionIntValue("E7"));
 
-        currentDice = die1 + die2;
+        int die1, die2;
+        do
+        {
+            die1 = Math.abs(rand.nextInt() % 6) + 1;
+            die2 = Math.abs(rand.nextInt() % 6) + 1;
+
+            currentDice = die1 + die2;
+        } while ((currentDice == 7) && ! okToRoll7);
 
         /**
          * handle the seven case
@@ -2222,6 +2496,12 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can this player currently move the robber to these coordinates?
+     * Must be different from current robber coordinates.
+     * Must not be a desert if {@link SOCGameOption game option} RD is set to true
+     * ("Robber can't return to the desert").
+     * Must be current player.
+     * 
      * @return true if the player can move the robber to the coordinates
      *
      * @param pn  the number of the player that is moving the robber
@@ -2245,6 +2525,9 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         int hexType = board.getHexTypeFromCoord(co);
+
+        if ((hexType == SOCBoard.DESERT_HEX) && isGameOptionSet("RD"))
+            return false;
 
         if ((hexType != SOCBoard.CLAY_HEX) && (hexType != SOCBoard.ORE_HEX) && (hexType != SOCBoard.SHEEP_HEX) && (hexType != SOCBoard.WHEAT_HEX) && (hexType != SOCBoard.WOOD_HEX) && (hexType != SOCBoard.DESERT_HEX))
         {
@@ -2619,11 +2902,16 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can these two players currently trade?
+     * If game option "NT" is set, players can trade only
+     * with the bank, not with other players.
+     *
      * @return true if the two players can make the trade
      *         described in the offering players current offer
      *
      * @param offering  the number of the player making the offer
      * @param accepting the number of the player accepting the offer
+     * @see #canMakeBankTrade(SOCResourceSet, SOCResourceSet)
      */
     public boolean canMakeTrade(int offering, int accepting)
     {
@@ -2635,6 +2923,9 @@ public class SOCGame implements Serializable, Cloneable
         {
             return false;
         }
+
+        if (isGameOptionSet("NT"))
+            return false;
 
         if (players[offering].getCurrentOffer() == null)
         {
@@ -2675,15 +2966,23 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * perform a trade between two players
+     * perform a trade between two players.
      * the trade performed is described in the offering player's
-     * current offer
+     * current offer.
+     *<P>
+     * Assumes {@link #canMakeTrade(int, int)} already was called.
+     * If game option "NT" is set, players can trade only
+     * with the bank, not with other players.
      *
      * @param offering  the number of the player making the offer
      * @param accepting the number of the player accepting the offer
+     * @see #makeBankTrade(SOCResourceSet, SOCResourceSet)
      */
     public void makeTrade(int offering, int accepting)
     {
+        if (isGameOptionSet("NT"))
+            return;
+
         SOCResourceSet offeringPlayerResources = players[offering].getResources();
         SOCResourceSet acceptingPlayerResources = players[accepting].getResources();
         SOCTradeOffer offer = players[offering].getCurrentOffer();
@@ -3441,7 +3740,8 @@ public class SOCGame implements Serializable, Cloneable
 
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
 
-        // Game features
+        // Game options
+        cp.opts = SOCGameOption.cloneOptions(opts);
         cp.clientVersionMinRequired = clientVersionMinRequired;
 
         // Per-player state

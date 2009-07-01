@@ -27,6 +27,7 @@ import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 
 import soc.message.SOCAcceptOffer;
@@ -130,6 +131,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * a table of requests from the server to sit at games
      */
     private Hashtable seatRequests = new Hashtable();
+
+    /**
+     * options for all games on the server we've been asked to join.
+     * Key = game name, Value = hashtable of {@link SOCGameOption}
+     */
+    private Hashtable gameOptions = new Hashtable();
 
     /**
      * number of games this bot has played
@@ -687,6 +694,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * handle the "join game request" message.
+     * Remember the game options, and record in {@link #seatRequests}.
+     * Send a {@link SOCJoinGame JOINGAME} to server in response.
+     * Server will reply with {@link SOCJoinGameAuth JOINGAMEAUTH}.
+     *<P>
      * Board resets are handled similarly.
      * @param mes  the message
      *
@@ -695,9 +706,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleJOINGAMEREQUEST(SOCJoinGameRequest mes)
     {
         D.ebugPrintln("**** handleJOINGAMEREQUEST ****");
-        seatRequests.put(mes.getGame(), new Integer(mes.getPlayerNumber()));
+	final String gaName = mes.getGame();
+	Hashtable gaOpts = mes.getOptions();
+	if (gaOpts != null)
+	    gameOptions.put(gaName, gaOpts);
 
-        if (put(SOCJoinGame.toCmd(nickname, password, host, mes.getGame())))
+        seatRequests.put(gaName, new Integer(mes.getPlayerNumber()));
+        if (put(SOCJoinGame.toCmd(nickname, password, host, gaName)))
         {
             D.ebugPrintln("**** sent SOCJoinGame ****");
         }
@@ -729,14 +744,16 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     {
         gamesPlayed++;
 
-        SOCGame ga = new SOCGame(mes.getGame(), true);
-        games.put(mes.getGame(), ga);
+	final String gaName = mes.getGame();
+
+	SOCGame ga = new SOCGame(gaName, true, (Hashtable) gameOptions.get(gaName));
+        games.put(gaName, ga);
 
         CappedQueue brainQ = new CappedQueue();
-        brainQs.put(mes.getGame(), brainQ);
+        brainQs.put(gaName, brainQ);
 
         SOCRobotBrain rb = new SOCRobotBrain(this, currentRobotParameters, ga, brainQ);
-        robotBrains.put(mes.getGame(), rb);
+        robotBrains.put(gaName, rb);
     }
 
     /**
@@ -1830,14 +1847,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     public static void main(String[] args)
     {
-        if (args.length < 4)
-        {
-            System.err.println("Java Settlers robotclient " + Version.version() +
-                    ", build " + Version.buildnum());
-            System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
+		if (args.length < 4)
+		{
+			System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
 
-            return;
-        }
+			return;
+		}
     	
         SOCRobotClient ex1 = new SOCRobotClient(args[0], Integer.parseInt(args[1]), args[2], args[3]);
         ex1.init();

@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +28,7 @@ import soc.message.SOCCreateAccount;
 import soc.message.SOCMessage;
 import soc.message.SOCRejectConnection;
 import soc.message.SOCStatusMessage;
+import soc.message.SOCVersion;
 
 import soc.util.Version;
 
@@ -137,6 +139,8 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
      */
     protected void initVisualElements()
     {
+        char pwchar = SOCPlayerClient.isJavaOnOSX ? '\u2022' : '*';
+
         setFont(new Font("Monaco", Font.PLAIN, 12));
         
         nick = new TextField(20);
@@ -337,6 +341,8 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
             out = new DataOutputStream(s.getOutputStream());
             connected = true;
             (reader = new Thread(this)).start();
+            // send VERSION right away (1.1.07 and later)
+            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
         }
         catch (Exception e)
         {

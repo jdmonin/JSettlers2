@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +21,11 @@
  **/
 package soc.util;
 
+import java.util.Hashtable;
+
+import soc.game.SOCGame;
+import soc.game.SOCGameOption;
+
 
 /**
  * This is a class to store a list of robot parameters.
@@ -38,7 +44,7 @@ public class SOCRobotParameters
     protected float leaderAdversarialFactor;
     protected float devCardMultiplier;
     protected float threatMultiplier;
-    protected int strategyType;
+    protected int strategyType; // SOCRobotDM.FAST_STRATEGY or SMART_STRATEGY
     protected int tradeFlag;
 
     /**
@@ -51,8 +57,9 @@ public class SOCRobotParameters
      * @param laf  the leader adversarial factor
      * @param dcm  the dev card multiplier
      * @param tm   the threat multiplier
-     * @param st   the strategy type
-     * @param tf   the trade flag
+     * @param st   the strategy type: {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
+     *             or {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
+     * @param tf   the trade flag: Does this robot make/accept trades with players? (1 or 0)
      */
     public SOCRobotParameters(int mgl, int me, float ebf, float af, float laf, float dcm, float tm, int st, int tf)
     {
@@ -68,7 +75,7 @@ public class SOCRobotParameters
     }
 
     /**
-     * constructor
+     * copy constructor
      *
      * @param params  the robot parameters
      */
@@ -83,6 +90,37 @@ public class SOCRobotParameters
         threatMultiplier = params.getThreatMultiplier();
         strategyType = params.getStrategyType();
         tradeFlag = params.getTradeFlag();
+    }
+
+    /**
+     * Examine game options, and if any would change the robot parameters,
+     * make a copy of these parameters with the changed options.
+     * For example, game option "NT" means no trading, so if
+     * our {@link #getTradeFlag()} is 1, copy and set it to 0.
+     *
+     * @param gameOpts A hashtable of {@link SOCGameOption}, or null
+     * @return This object, or a copy with updated parameters.
+     */
+    public SOCRobotParameters copyIfOptionChanged(Hashtable gameOpts)
+    {
+        if (gameOpts == null)
+            return this;
+
+        boolean copied = false;
+        SOCRobotParameters params = this;
+
+        if (SOCGame.isGameOptionSet(gameOpts, "NT")
+            && (1 == params.tradeFlag))
+        {
+            if (! copied)
+            {
+                copied = true;
+                params = new SOCRobotParameters(params);
+            }
+            params.tradeFlag = 0;
+        }
+
+        return params;
     }
 
     /**
@@ -142,7 +180,8 @@ public class SOCRobotParameters
     }
 
     /**
-     * @return strategyType
+     * @return strategyType: {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
+     *         or {@link soc.robot.SOCRobotDM#SMART_STRATEGY}
      */
     public int getStrategyType()
     {
@@ -150,7 +189,8 @@ public class SOCRobotParameters
     }
 
     /**
-     * @return tradeFlag
+     * Does this robot make/accept trades with other players?
+     * @return tradeFlag: 1 if accepts, 0 if not
      */
     public int getTradeFlag()
     {

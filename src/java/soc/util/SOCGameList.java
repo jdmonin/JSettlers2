@@ -19,18 +19,15 @@
  *
  * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
-package soc.server;
+package soc.util;
 
 import soc.disableDebug.D;
-
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 
-import soc.server.genericServer.StringConnection;
 
-import soc.util.MutexFlag;
-import soc.util.Version;
+import soc.message.SOCGames;
 
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -38,28 +35,22 @@ import java.util.Vector;
 
 /**
  * A class for creating and tracking the games;
- * contains each game's name, {@link #SOCGame} object,
- * and clients ({@link #StringConnection}s).
+ * contains each game's name, {@link SOCGameOption game options},
+ * {@link SOCGame} object, and clients ({@link #StringConnection}s).
+ *<P>
+ * In 1.1.07, moved from soc.server to soc.util package for client's use.
+ * Some methods moved to new subclass {@link soc.server.SOCGameListAtServer}.
  *
  * @author Robert S. Thomas
  */
 public class SOCGameList
 {
-    /**
-     * Number of minutes after which a game (created on the list) is expired.
-     * Default is 90.
-     *
-     * @see #createGame(String)
+    /** key = String, value = {@link GameInfo}; includes mutexes to synchronize game state access,
+     *  and other per-game data
      */
-    public static int GAME_EXPIRE_MINUTES = 90;
+    protected Hashtable gameInfo;
 
-    /** mutexes to synchronize game state access */
-    protected Hashtable gameMutexes;
-
-    /** map of game names to Vector of game members */
-    protected Hashtable gameMembers;
-
-    /** map of game names to SOCGame objects */
+    /** map of game names to {@link SOCGame} objects */
     protected Hashtable gameData;
 
     /** used with gamelist's monitor */
@@ -70,18 +61,17 @@ public class SOCGameList
      */
     public SOCGameList()
     {
-        gameMutexes = new Hashtable();
-        gameMembers = new Hashtable();
+        gameInfo = new Hashtable();
         gameData = new Hashtable();
         inUse = false;
     }
 
     /**
-     * take the monitor for this game list
+     * take the monitor for this game list; if we must wait, sleep up to 1000 ms between attempts.
      */
     public synchronized void takeMonitor()
     {
-        D.ebugPrintln("SOCGameList : TAKE MONITOR");
+        // D.ebugPrintln("SOCGameList : TAKE MONITOR");
 
         while (inUse)
         {
@@ -103,7 +93,7 @@ public class SOCGameList
      */
     public synchronized void releaseMonitor()
     {
-        D.ebugPrintln("SOCGameList : RELEASE MONITOR");
+        // D.ebugPrintln("SOCGameList : RELEASE MONITOR");
         inUse = false;
         this.notify();
     }
@@ -116,9 +106,10 @@ public class SOCGameList
      */
     public boolean takeMonitorForGame(String game)
     {
-        D.ebugPrintln("SOCGameList : TAKE MONITOR FOR " + game);
+        // D.ebugPrintln("SOCGameList : TAKE MONITOR FOR " + game);
 
-        MutexFlag mutex = (MutexFlag) gameMutexes.get(game);
+        GameInfo info = (GameInfo) gameInfo.get(game);
+        MutexFlag mutex = info.mutex;
 
         if (mutex == null)
         {
@@ -129,8 +120,6 @@ public class SOCGameList
 
         while (!done)
         {
-            mutex = (MutexFlag) gameMutexes.get(game);
-
             if (mutex == null)
             {
                 return false;
@@ -169,9 +158,12 @@ public class SOCGameList
      */
     public boolean releaseMonitorForGame(String game)
     {
-        D.ebugPrintln("SOCGameList : RELEASE MONITOR FOR " + game);
+        // D.ebugPrintln("SOCGameList : RELEASE MONITOR FOR " + game);
 
-        MutexFlag mutex = (MutexFlag) gameMutexes.get(game);
+        GameInfo info = (GameInfo) gameInfo.get(game);
+        if (info == null)
+            return false;
+        MutexFlag mutex = info.mutex;
 
         if (mutex == null)
         {
@@ -188,15 +180,19 @@ public class SOCGameList
     }
 
     /**
+     * Get the names of every game we know about, even those with no {@link SOCGame} object.
      * @return an enumeration of game names (Strings)
      * @see #getGameObjects()
      */
     public Enumeration getGames()
     {
-        return gameMembers.keys();
+        return gameInfo.keys();
     }
 
     /**
+     * Get all the {@link SOCGame} data available; some games in {@link #getGames()}
+     * may not have associated SOCGame data, so this enumeration may have fewer
+     * elements than getGames, or even 0 elements.
      * @return an enumeration of game data (SOCGames)
      * @see #getGames()
      * @since 1.1.06
@@ -207,35 +203,12 @@ public class SOCGameList
     }
 
     /**
-     * @param   gaName  the name of the game
-     * @return true if the channel exists and has an empty member list
+     * @return the number of games in our list
+     * @since 1.1.07
      */
-    public synchronized boolean isGameEmpty(String gaName)
+    public int size()
     {
-        boolean result;
-        Vector members;
-
-        members = (Vector) gameMembers.get(gaName);
-
-        if ((members != null) && (members.isEmpty()))
-        {
-            result = true;
-        }
-        else
-        {
-            result = false;
-        }
-
-        return result;
-    }
-
-    /**
-     * @param   gaName  game name
-     * @return  list of members: a Vector of StringConnections
-     */
-    public synchronized Vector getMembers(String gaName)
-    {
-        return (Vector) gameMembers.get(gaName);
+        return gameInfo.size();
     }
 
     /**
@@ -248,94 +221,17 @@ public class SOCGameList
     }
 
     /**
-     * @param  gaName   the name of the game
-     * @param  conn     the member's connection
-     * @return true if memName is a member of the game
+     * @param   gaName  game name
+     * @return the game options (hashtable of {@link SOCGameOption}), or null if none
+     * @since 1.1.07
      */
-    public synchronized boolean isMember(StringConnection conn, String gaName)
+    public Hashtable getGameOptions(String gaName)
     {
-        Vector members = getMembers(gaName);
-
-        if ((members != null) && (members.contains(conn)))
-        {
-            return true;
-        }
+        GameInfo info = (GameInfo) gameInfo.get(gaName);
+        if (info == null)
+            return null;
         else
-        {
-            return false;
-        }
-    }
-
-    /**
-     * add a member to the game.
-     * Also checks client's version against game's current range of client versions.
-     * Please call {@link #takeMonitorForGame(String)} before calling this.
-     *
-     * @param  gaName   the name of the game
-     * @param  conn     the member's connection; version should already be set
-     */
-    public synchronized void addMember(StringConnection conn, String gaName)
-    {
-        Vector members = getMembers(gaName);
-
-        if ((members != null) && (!members.contains(conn)))
-        {
-            members.addElement(conn);
-
-            // Check version range
-            SOCGame ga = getGameData(gaName);
-            int cliLowestAlready  = ga.clientVersionLowest;
-            int cliHighestAlready = ga.clientVersionHighest;
-            final int cliVers = conn.getVersion();
-            if (cliVers < cliLowestAlready)
-            {
-                ga.clientVersionLowest = cliVers;
-                ga.hasOldClients = true;
-            }
-            if (cliVers > cliHighestAlready)
-            {
-                ga.clientVersionHighest = cliVers;
-            }
-        }
-    }
-
-    /**
-     * remove member from the game.
-     * Also updates game's client version range, with remaining connected members.
-     * Please call {@link #takeMonitorForGame(String)} before calling this.
-     *
-     * @param  gaName   the name of the game
-     * @param  conn     the member's connection
-     */
-    public synchronized void removeMember(StringConnection conn, String gaName)
-    {
-        Vector members = getMembers(gaName);
-
-        if ((members != null))
-        {
-            members.removeElement(conn);
-
-            // Check version of remaining members
-            if (! members.isEmpty())
-            {
-                StringConnection c = (StringConnection) members.firstElement();
-                int lowVers = c.getVersion();
-                int highVers = lowVers;
-                for (int i = members.size() - 1; i > 1; --i)
-                {
-                    c = (StringConnection) members.elementAt(i);
-                    int v = c.getVersion();
-                    if (v < lowVers)
-                        lowVers = v;
-                    if (v > highVers)
-                        highVers = v;
-                }
-                SOCGame ga = getGameData(gaName);
-                ga.clientVersionLowest  = lowVers;
-                ga.clientVersionHighest = highVers;
-                ga.hasOldClients = (lowVers < Version.versionNumber());
-            }
-        }
+            return info.opts;
     }
 
     /**
@@ -344,81 +240,129 @@ public class SOCGameList
      */
     public boolean isGame(String gaName)
     {
-        return (gameMembers.get(gaName) != null);
+        return (gameInfo.get(gaName) != null);
     }
 
     /**
-     * create a new game, and add to the list; game will expire in {@link #GAME_EXPIRE_MINUTES} minutes.
+     * @param   gaName  the name of the game;  may be marked with the prefix
+     *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @return true if the game is in our list marked as not joinable,
+     *        or has the prefix
+     * @since 1.1.07
+     */
+    public boolean isUnjoinableGame(String gaName)
+    {
+        if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+            return true;
+        GameInfo gi = (GameInfo) gameInfo.get(gaName);
+        if (gi == null)
+            return false;
+        return ! gi.canJoin;
+    }
+
+    /**
+     * Client-side - Add this game name, with game options.
      * If a game already exists (per {@link #isGame(String)}), do nothing.
      *
-     * @param gaName  the name of the game
-     * @return new game object, or null if it already existed
+     * @param gaName Name of added game; may be marked with the prefix
+     *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @param gaOpts Hashtable of {@link SOCGameOption game options} of added game, or null 
+     * @param cannotJoin This game is unjoinable, even if its name doesn't
+     *         start with the unjoinable prefix.
+     *         gaName will be checked for the prefix regardless of cannotJoin's value.
+     * @since 1.1.07
      */
-    public synchronized SOCGame createGame(String gaName)
+    public synchronized void addGame(String gaName, Hashtable gaOpts, boolean cannotJoin)
     {
+        if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+        {
+            cannotJoin = true;
+            gaName = gaName.substring(1);
+        }
+
         if (isGame(gaName))
-            return null;
+            return;
 
-        MutexFlag mutex = new MutexFlag();
-        gameMutexes.put(gaName, mutex);
-
-        Vector members = new Vector();
-        gameMembers.put(gaName, members);
-
-        SOCGame game = new SOCGame(gaName);
-
-        // set the expiration to 90 min. from now
-        game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
-        gameData.put(gaName, game);
-
-        return game;
+        gameInfo.put(gaName, new GameInfo(! cannotJoin, gaOpts));
     }
 
     /**
-     * Reset the board of this game, create a new game of same name,
-     * same players, new layout.  The new "reset" board takes the place
-     * of the old game in the game list.  Robots are not copied and
-     * must re-join the game. (They're removed from the list of game members.)
-     * Takes game monitor.
-     * Destroys old game.
-     * YOU MUST RELEASE the game monitor after returning.
-     *
-     * @param gaName Name of game - If not found, do nothing. No monitor is taken.
-     * @return New game if gaName was found and copied; null if no game called gaName
-     * @see soc.game.SOCGame#resetAsCopy()
-     * @see #releaseMonitorForGame(String)
+     * Add the contents of another GameList to this GameList.
+     * Calls addGame for each one.
+     * gl's {@link SOCGame}s will be added first, followed by games for which we only know
+     * the name and options.
+     * @param gl Another SOCGameList from which to copy game data.
+     *          If gl is null, nothing happens.
+     *          If any game already exists here (per this.{@link #isGame(String)}), don't overwrite it.
+     * @param ourVersion Version to check to see if we can join,
+     *          same format as {@link soc.util.Version#versionNumber()}.
+     *          For each SOCGame in gl, {@link SOCGame#getClientVersionMinRequired()}
+     *          will be called.
+     * @since 1.1.07
      */
-    public SOCGameBoardReset resetBoard(String gaName)
+    public synchronized void addGames(SOCGameList gl, final int ourVersion)
     {
-        SOCGame oldGame = (SOCGame) gameData.get(gaName);
-        if (oldGame == null)
-            return null;
+        if ((gl == null) || (gl.gameInfo == null))
+            return;
+        if (gl.gameData != null)
+            addGames(gl.gameData.elements(), ourVersion);
+        if (gl.gameInfo != null)
+        {
+            for (Enumeration gnEnum = gl.gameInfo.keys(); gnEnum.hasMoreElements(); )
+            {
+                String gaName = (String) gnEnum.nextElement();
+                GameInfo gi = (GameInfo) gl.gameInfo.get(gaName);
+                addGame(gaName, gi.opts, ! gi.canJoin);
+            }
+        }
+    }
 
-        takeMonitorForGame(gaName);
+    /**
+     * Add several games to this GameList.
+     * Calls {@link #addGame(String, Hashtable, boolean)} for each one.
+     * @param gamelist Enumeration of Strings and/or {@link SOCGame}s (mix and match);
+     *          game names may be marked with the prefix
+     *          {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     *          If gamelist is null, nothing happens.
+     *          If any game already exists (per {@link #isGame(String)}), don't overwrite it.
+     * @param ourVersion Version to check to see if we can join,
+     *          same format as {@link soc.util.Version#versionNumber()}.
+     *          For each SOCGame in gameList, {@link SOCGame#getClientVersionMinRequired()}
+     *          will be called.
+     * @since 1.1.07
+     */
+    public synchronized void addGames(Enumeration gamelist, final int ourVersion)
+    {
+        if (gamelist == null)
+            return;
 
-        // Create reset-copy of game;
-        // also removes robots from game and its member list.
-        SOCGameBoardReset reset = new SOCGameBoardReset(oldGame, getMembers(gaName));
-        SOCGame rgame = reset.newGame;
+        while (gamelist.hasMoreElements())
+        {
+            Object ob = gamelist.nextElement();
+            String gaName;
+            Hashtable gaOpts;
+            boolean cannotJoin;
+            if (ob instanceof SOCGame)
+            {
+                gaName = ((SOCGame) ob).getName();
+                gaOpts = ((SOCGame) ob).getGameOptions();
+                cannotJoin = (ourVersion >= ((SOCGame) ob).getClientVersionMinRequired());
+            } else {
+                gaName = (String) ob;
+                gaOpts = null;
+                cannotJoin = false;
+            }
 
-        // As in createGame, set expiration timer to 90 min. from now
-        rgame.setExpiration(new Date().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
-
-        // Adjust game-list
-        gameData.remove(gaName);
-        gameData.put(gaName, rgame);
-
-        // Done.
-        oldGame.destroyGame();
-        return reset;
+            addGame (gaName, gaOpts, cannotJoin);
+        }    
     }
 
     /**
      * remove the game from the list
      *
-     * @param gaName  the name of the game
+     * @param gaName  the name of the game; should not be marked with any prefix.
      */
-    public synchronized void deleteGame(String gaName)
+    public synchronized void deleteGame(final String gaName)
     {
         D.ebugPrintln("SOCGameList : deleteGame(" + gaName + ")");
 
@@ -427,25 +371,62 @@ public class SOCGameList
         if (game != null)
         {
             game.destroyGame();
+            gameData.remove(gaName);
         }
 
-        Vector members = (Vector) gameMembers.get(gaName);
-
-        if (members != null)
+        GameInfo info = (GameInfo) gameInfo.get(gaName);
+        gameInfo.remove(gaName);
+        synchronized (info.mutex)
         {
-            members.removeAllElements();
+            info.mutex.notifyAll();
+        }
+        info.finalize();
+    }
+
+    /**
+     * Holds most information on one game, except its SOCGame object, which is kept separately.
+     * Includes mutexes to synchronize game state access.
+     * Kept within {@link #gameInfo} hashtable.
+     * @author Jeremy D Monin <jeremy@nand.net>
+     * @since 1.1.07
+     */
+    protected static class GameInfo
+    {
+        public MutexFlag mutex;
+        public Hashtable opts;  // or null
+        public String optsStr;  // or null
+        public boolean canJoin;
+
+        /**
+         * Constructor: gameOpts is null or contains game option objects
+         * @param canJoinGame can we join this game?
+         * @param gameOpts Hashtable of {@link SOCGameOption}s, or null
+         */
+        public GameInfo (boolean canJoinGame, Hashtable gameOpts)
+        {
+            mutex = new MutexFlag();
+            opts = gameOpts;
+            canJoin = canJoinGame;
         }
 
-        MutexFlag mutex = (MutexFlag) gameMutexes.get(gaName);
-        gameMutexes.remove(gaName);
-        gameMembers.remove(gaName);
-        gameData.remove(gaName);
-
-        if (mutex != null)
+        /**
+         * Constructor: gameOptsStr is null or unparsed game options
+         * @param canJoinGame can we join this game?
+         * @param gameOptsStr set of {@link SOCGameOption}s as packed by {@link SOCGameOption#packOptionsToString(Hashtable)}, or null
+         */
+        public GameInfo (boolean canJoinGame, String gameOptsStr)
         {
-            synchronized (mutex)
+            mutex = new MutexFlag();
+            optsStr = gameOptsStr;
+            canJoin = canJoinGame;
+        }
+
+        public void finalize()
+        {
+            if (opts != null)
             {
-                mutex.notifyAll();
+                opts.clear();
+                opts = null;
             }
         }
     }

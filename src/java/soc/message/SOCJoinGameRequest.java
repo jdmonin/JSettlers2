@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,14 +21,23 @@
  **/
 package soc.message;
 
+import java.util.Hashtable;
 import java.util.StringTokenizer;
+
+import soc.game.SOCGameOption;
 
 
 /**
- * This message means that the server has authorized
- * this client to join a game
+ * This message means that the server is asking
+ * this robot client to join a game.
+ *<P>
+ * In 1.1.07, added optional parameter: game options.
+ * Because this is sent only to robots, and robots' versions always
+ * match the server version, we don't need to worry about backwards
+ * compatability.
  *
  * @author Robert S Thomas
+ * @see SOCJoinGameAuth
  */
 public class SOCJoinGameRequest extends SOCMessage
 {
@@ -42,16 +52,24 @@ public class SOCJoinGameRequest extends SOCMessage
     private int playerNumber;
 
     /**
+     * Game options, or null
+     * @since 1.1.07
+     */
+    private Hashtable opts = null;
+
+    /**
      * Create a JoinGameRequest message.
      *
      * @param ga  name of game
      * @param pn  the seat number
+     * @param opts {@link SOCGameOption game options}, or null
      */
-    public SOCJoinGameRequest(String ga, int pn)
+    public SOCJoinGameRequest(String ga, int pn, Hashtable opts)
     {
         messageType = JOINGAMEREQUEST;
         game = ga;
         playerNumber = pn;
+	this.opts = opts;
     }
 
     /**
@@ -71,24 +89,34 @@ public class SOCJoinGameRequest extends SOCMessage
     }
 
     /**
+     * @return game options, or null
+     * @since 1.1.07
+     */
+    public Hashtable getOptions()
+    {
+	return opts;
+    }
+
+    /**
      * JOINGAMEREQUEST sep game sep2 playerNumber
      *
      * @return the command String
      */
     public String toCmd()
     {
-        return toCmd(game, playerNumber);
+        return toCmd(game, playerNumber, opts);
     }
 
     /**
-     * JOINGAMEREQUEST sep game sep2 playerNumber
+     * JOINGAMEREQUEST sep game sep2 playerNumber sep2 optionstring
      *
      * @param ga  the game name
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn)
+    public static String toCmd(String ga, int pn, Hashtable opts)
     {
-        return JOINGAMEREQUEST + sep + ga + sep2 + pn;
+        return JOINGAMEREQUEST + sep + ga + sep2 + pn + sep2 
+            + SOCGameOption.packOptionsToString(opts);
     }
 
     /**
@@ -101,6 +129,7 @@ public class SOCJoinGameRequest extends SOCMessage
     {
         String ga; // the game name
         int pn; // the seat number
+	String optstr;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -108,13 +137,15 @@ public class SOCJoinGameRequest extends SOCMessage
         {
             ga = st.nextToken();
             pn = Integer.parseInt(st.nextToken());
+	    optstr = st.nextToken(sep);  // NOT sep2: options may contain ","
         }
         catch (Exception e)
         {
             return null;
         }
 
-        return new SOCJoinGameRequest(ga, pn);
+	Hashtable opts = SOCGameOption.parseOptionsToHash(optstr);
+        return new SOCJoinGameRequest(ga, pn, opts);
     }
 
     /**

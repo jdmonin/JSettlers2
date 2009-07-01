@@ -27,12 +27,13 @@ import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.server.genericServer.StringConnection;
+import soc.util.SOCGameList;
 
 /**
  * This class holds data the server needs, related to a
  * "board reset" of a game being played.
  *
- * @see soc.server.SOCGameList#resetBoard(String)
+ * @see soc.util.SOCGameList#resetBoard(String)
  * @see soc.game.SOCGame#resetAsCopy()
  *
  * @author Jeremy D. Monin <jeremy@nand.net>

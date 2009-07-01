@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,33 +29,8 @@ import java.util.StringTokenizer;
  *
  * @author Robert S Thomas
  */
-public class SOCJoinGame extends SOCMessage
+public class SOCJoinGame extends SOCMessageTemplateJoinGame
 {
-    /**
-     * symbol to represent a null password
-     */
-    private static String NULLPASS = "\t";
-
-    /**
-     * Nickname of the joining member
-     */
-    private String nickname;
-
-    /**
-     * Optional password
-     */
-    private String password;
-
-    /**
-     * Name of game
-     */
-    private String game;
-
-    /**
-     * Host name
-     */
-    private String host;
-
     /**
      * Create a Join message.
      *
@@ -65,43 +41,7 @@ public class SOCJoinGame extends SOCMessage
      */
     public SOCJoinGame(String nn, String pw, String hn, String ga)
     {
-        messageType = JOINGAME;
-        nickname = nn;
-        password = pw;
-        game = ga;
-        host = hn;
-    }
-
-    /**
-     * @return the nickname
-     */
-    public String getNickname()
-    {
-        return nickname;
-    }
-
-    /**
-     * @return the password
-     */
-    public String getPassword()
-    {
-        return password;
-    }
-
-    /**
-     * @return the host name
-     */
-    public String getHost()
-    {
-        return host;
-    }
-
-    /**
-     * @return the game name
-     */
-    public String getGame()
-    {
-        return game;
+        super(nn, pw, hn, ga);  // will set messagetype=JOINGAME
     }
 
     /**
@@ -175,8 +115,6 @@ public class SOCJoinGame extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCJoinGame:nickname=" + nickname + "|password=" + password + "|host=" + host + "|game=" + game;
-
-        return s;
+        return super.toString("SOCJoinGame");
     }
 }

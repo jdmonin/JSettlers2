@@ -22,6 +22,7 @@ package soc.server;
 import java.util.TimerTask;
 
 import soc.server.genericServer.StringConnection;
+import soc.util.SOCGameList;
 
 /**
  * The server's place to track client-specific information across games.
@@ -178,12 +179,13 @@ public class SOCClientData
          */
         public void run()
         {
+            cliData.cliVersionTask = null;  // Clear reference to this soon-to-expire obj
             if (! cliConn.isVersionKnown())
             {
-                cliConn.setVersion(SOCServer.CLI_VERSION_ASSUMED_GUESS, false);
+                srv.setClientVersionOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, false);
+		// will also send game list.
+		// if cli vers already known, it's already sent the list.
             }
-            cliData.cliVersionTask = null;  // Clear reference to this soon-to-expire obj
-            srv.sendGameList(cliConn, cliConn.getVersion());
         }
 
     }  // SOCCDCliVersionTask

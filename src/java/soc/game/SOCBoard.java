@@ -68,8 +68,11 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int ORE_HEX = 2;
     public static final int SHEEP_HEX = 3;
     public static final int WHEAT_HEX = 4;
-    /** Wood; highest-numbered land hex type (also MAX_ROBBER_HEX) */
-    public static final int WOOD_HEX = 5;  // Also MAX_ROBBER_HEX
+    /** Wood; highest-numbered land hex type (also MAX_LAND_HEX, MAX_ROBBER_HEX) */
+    public static final int WOOD_HEX = 5;
+    /** Highest-numbered land hex type (currently wood; also currently MAX_ROBBER_HEX)  @since 1.1.07 */
+    public static final int MAX_LAND_HEX = 5;  // Also MAX_ROBBER_HEX
+
     /** Water hex; higher-numbered than all land hex types */
     public static final int WATER_HEX = 6;
     /** Misc (3-for-1) port type; lowest-numbered port-hextype integer */
@@ -82,7 +85,7 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int WOOD_PORT_HEX = 12;  // Must be last port-hextype integer
 
     /** Misc (3-for-1) port; lowest-numbered port-type integer */
-    public static final int MISC_PORT = 0;  // Must be first port-type integer
+    public static final int MISC_PORT = 0;  // Must be first port-type integer; must be 0 (hardcoded in places here)
     /** Clay port type */
     public static final int CLAY_PORT = 1;
     /** Ore port type */
@@ -94,8 +97,8 @@ public class SOCBoard implements Serializable, Cloneable
     /** Wood port type; highest-numbered port-type integer */
     public static final int WOOD_PORT = 5;  // Must be last port-type integer
     
-    /** Highest-numbered hex type which may hold a robber: {@link #WOOD_HEX}. */ 
-    public static final int MAX_ROBBER_HEX = WOOD_HEX;
+    /** Highest-numbered hex type which may hold a robber: highest land: {@link #MAX_LAND_HEX}. */
+    public static final int MAX_ROBBER_HEX = MAX_LAND_HEX;
 
     /**
      * Board Encoding fields begin here
@@ -178,25 +181,27 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAXNODEPLUSONE = MAXNODE + 1;
 
     /***************************************
+     * Hex data array, one element per water or land (or port, which is special water) hex.
      * Each element's value encodes hex type and (if a
      * port) facing. (Facing is defined just below).
        Key to the hexes[] values:
        <pre>
-       0 : desert
-       1 : clay
-       2 : ore
-       3 : sheep
-       4 : wheat
-       5 : wood
-       6 : water
-       7 : misc port facing 1
+       0 : desert  {@link #DESERT_HEX}
+       1 : clay    {@link #CLAY_HEX}
+       2 : ore     {@link #ORE_HEX}
+       3 : sheep   {@link #SHEEP_HEX}
+       4 : wheat   {@link #WHEAT_HEX}
+       5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
+       6 : water   {@link #WATER_HEX}
+       7 : misc port ("3:1") facing 1
        8 : misc port facing 2
        9 : misc port facing 3
        10 : misc port facing 4
        11 : misc port facing 5
        12 : misc port facing 6
+       16+: non-misc ("2:1") encoded port
        </pre>
-        ports are represented in binary like this:<pre>
+        non-misc ports are encoded here in binary like this:<pre>
         (port facing)           (kind of port)
               \--> [0 0 0][0 0 0 0] <--/       </pre>
         kind of port:<pre>
@@ -208,7 +213,7 @@ public class SOCBoard implements Serializable, Cloneable
         </pre>
         <em>port facing</em> is the edge of the port's hex
         that contains 2 nodes where player can build a
-        port settlement/city. <pre>
+        port settlement/city; facing is a number 1-6. <pre>
         6___    ___1
             \/\/
             /  \
@@ -266,7 +271,9 @@ public class SOCBoard implements Serializable, Cloneable
         -1
     };
 
-    /** Hex coordinates from hex numbers
+    /** Hex coordinates ("IDs") of each hex number (number is index within
+     *  {@link #hexLayout}).  The hexes in here are the board's land hexes and also
+     *  the surrounding ring of water/port hexes.
      * @see #hexIDtoNum
      * @see #nodesOnBoard
      */
@@ -288,7 +295,9 @@ public class SOCBoard implements Serializable, Cloneable
     };
 
     /**
-     * translate hex ID to an array index
+     * translate hex ID (hex coordinate) to an array index within {@link #hexLayout}.
+     * The non-zero values in here are the board's land hexes and also the surrounding
+     * ring of water/port hexes.  Initialized in constructor.
      * @see #numToHexID
      */
     private int[] hexIDtoNum;
@@ -394,6 +403,8 @@ public class SOCBoard implements Serializable, Cloneable
             hexIDtoNum[i] = 0;
         }
 
+        // Sets up the board as land hexes with surrounding ring of water/port hexes.
+
         initHexIDtoNumAux(0x17, 0x7D, 0);  // Top horizontal row: 4 hexes across
         initHexIDtoNumAux(0x15, 0x9D, 4);  // Next horiz row: 5 hexes
         initHexIDtoNumAux(0x13, 0xBD, 9);  // Next: 6
@@ -463,64 +474,26 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Shuffle the hex tiles and layout a board
+     * @param opts {@link SOCGameOption Game options}, which may affect board layout, or null
      */
-    public void makeNewBoard()
+    public void makeNewBoard(Hashtable opts)
     {
         int[] landHex = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
         int[] portHex = { 0, 0, 0, 0, 1, 2, 3, 4, 5 };
         int[] number = { 3, 0, 4, 1, 5, 7, 6, 9, 8, 2, 5, 7, 6, 2, 3, 4, 1, 8 };
         int[] numPath = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
-        int i;
-        int j;
-        int idx;
-        int tmp;
 
-        // shuffle the land hexes
-        for (j = 0; j < 10; j++)
-        {
-            for (i = 0; i < landHex.length; i++)
-            {
-                // Swap a random card below the ith card with the ith card
-                idx = Math.abs(rand.nextInt() % (landHex.length - i));
-                tmp = landHex[idx];
-                landHex[idx] = landHex[i];
-                landHex[i] = tmp;
-            }
-        }
+        SOCGameOption opt_breakClumps = (opts != null ? (SOCGameOption)opts.get("BC") : null);
 
-        int cnt = 0;
+        // shuffle and place the land hexes, numbers, and robber:
+        // sets robberHex, contents of hexLayout[] and numberLayout[].
+        // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
+        makeNewBoard_placeHexes
+            (landHex, numPath, number, opt_breakClumps);
 
-        for (i = 0; i < landHex.length; i++)
-        {
-            // place the land hexes
-            hexLayout[numPath[i]] = landHex[i];
-
-            // place the robber on the desert
-            if (landHex[i] == 0)
-            {
-                robberHex = numToHexID[numPath[i]];
-                numberLayout[numPath[i]] = -1;
-            }
-            else
-            {
-                // place the numbers
-                numberLayout[numPath[i]] = number[cnt];
-                cnt++;
-            }
-        }
-
-        // shuffle the ports
-        for (j = 0; j < 10; j++)
-        {
-            for (i = 1; i < portHex.length; i++) // don't swap 0 with 0!
-            {
-                // Swap a random card below the ith card with the ith card
-                idx = Math.abs(rand.nextInt() % (portHex.length - i));
-                tmp = portHex[idx];
-                portHex[idx] = portHex[i];
-                portHex[i] = tmp;
-            }
-        }
+        // shuffle the ports, and check vs game option BC
+        makeNewBoard_shufflePorts
+            (portHex, opt_breakClumps);
 
         // place the ports (hex numbers and facing);
         // for their corresponding node coordinates,
@@ -530,12 +503,12 @@ public class SOCBoard implements Serializable, Cloneable
                                       //   0 is hex number (index within hexLayout)
         placePort(portHex[1], 2, 4);  // Facing 4 is SW, at hex number 2
         placePort(portHex[2], 8, 4);  // SW
-        placePort(portHex[3], 9, 2);  // E
-        placePort(portHex[4], 21, 5); // W
-        placePort(portHex[5], 22, 2); // E
-        placePort(portHex[6], 32, 6); // NW
-        placePort(portHex[7], 33, 1); // NE
-        placePort(portHex[8], 35, 6); // NW
+        placePort(portHex[3], 21, 5); // W
+        placePort(portHex[4], 32, 6); // NW
+        placePort(portHex[5], 35, 6); // NW
+        placePort(portHex[6], 33, 1); // NE
+        placePort(portHex[7], 22, 2); // E
+        placePort(portHex[8], 9, 2);  // E
 
         // fill out the ports[] vectors with node coordinates
         // where a trade port can be placed
@@ -549,23 +522,310 @@ public class SOCBoard implements Serializable, Cloneable
         ports[portHex[2]].addElement(new Integer(0x9C));  // Touches rightmost land hex of row above middle, SW
         ports[portHex[2]].addElement(new Integer(0xAD));
 
-        ports[portHex[3]].addElement(new Integer(0x25));  // Leftmost land hex above middle, facing E
-        ports[portHex[3]].addElement(new Integer(0x34));
+        ports[portHex[3]].addElement(new Integer(0xCD));  // Rightmost of middle-row land hex, W
+        ports[portHex[3]].addElement(new Integer(0xDC));
 
-        ports[portHex[4]].addElement(new Integer(0xCD));  // Rightmost of middle-row land hex, W
-        ports[portHex[4]].addElement(new Integer(0xDC));
+        ports[portHex[4]].addElement(new Integer(0xC9));  // Rightmost land hex below middle, NW
+        ports[portHex[4]].addElement(new Integer(0xDA));
 
-        ports[portHex[5]].addElement(new Integer(0x43));  // Leftmost land hex of row below middle, E
-        ports[portHex[5]].addElement(new Integer(0x52));
+        ports[portHex[5]].addElement(new Integer(0xA5));  // Port touches middle hex of bottom row, facing NW
+        ports[portHex[5]].addElement(new Integer(0xB6));  // [The port hex itself is 2 to right of next port hex.]
 
-        ports[portHex[6]].addElement(new Integer(0xC9));  // Rightmost land hex below middle, NW
-        ports[portHex[6]].addElement(new Integer(0xDA));
+        ports[portHex[6]].addElement(new Integer(0x72));  // Leftmost of bottom row, NE
+        ports[portHex[6]].addElement(new Integer(0x83));
 
-        ports[portHex[7]].addElement(new Integer(0x72));  // Leftmost of bottom row, NE
-        ports[portHex[7]].addElement(new Integer(0x83));
+        ports[portHex[7]].addElement(new Integer(0x43));  // Leftmost land hex of row below middle, E
+        ports[portHex[7]].addElement(new Integer(0x52));
 
-        ports[portHex[8]].addElement(new Integer(0xA5));  // Port touches middle hex of bottom row, facing NW
-        ports[portHex[8]].addElement(new Integer(0xB6));  // [The port hex itself is 2 to right of prev port hex.]
+        ports[portHex[8]].addElement(new Integer(0x25));  // Leftmost land hex above middle, facing E
+        ports[portHex[8]].addElement(new Integer(0x34));
+
+    }
+
+    /**
+     * For makeNewBoard, place the land hexes, number, and robber,
+     * after shuffling landHex[].
+     * Sets robberHex, contents of hexLayout[] and numberLayout[].
+     * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
+     * (for land hex resource types).
+     */
+    private final void makeNewBoard_placeHexes
+        (int[] landHex, final int[] numPath, final int[] number, SOCGameOption optBC)
+    {
+        final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
+        final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
+        boolean clumpsNotOK = checkClumps;
+
+        do   // will re-do placement until clumpsNotOK is false
+        {
+            // shuffle the land hexes 10x
+            for (int j = 0; j < 10; j++)
+            {
+                int idx, tmp;
+                for (int i = 0; i < landHex.length; i++)
+                {
+                    // Swap a random card below the ith card with the ith card
+                    idx = Math.abs(rand.nextInt() % (landHex.length - i));
+                    tmp = landHex[idx];
+                    landHex[idx] = landHex[i];
+                    landHex[i] = tmp;
+                }
+            }
+
+            int cnt = 0;
+            for (int i = 0; i < landHex.length; i++)
+            {
+                // place the land hexes
+                hexLayout[numPath[i]] = landHex[i];
+
+                // place the robber on the desert
+                if (landHex[i] == 0)
+                {
+                    robberHex = numToHexID[numPath[i]];
+                    numberLayout[numPath[i]] = -1;
+                }
+                else
+                {
+                    // place the numbers
+                    numberLayout[numPath[i]] = number[cnt];
+                    cnt++;
+                }
+            }  // for(i in landHex)
+
+            if (checkClumps)
+            {
+                /**
+                 * Depth-first search to check land hexes for resource clumps.
+                 *
+                 * Start with the set of all land hexes, and consider them 'unvisited'.
+                 * Look at each hex in the set, marking them as visited and moving
+                 * them into new subsets ("clumps") composed of adjacent hexes of the
+                 * same resource type. Build clumps by immediately visiting those adjacent
+                 * hexes, and their unvisited same-type adjacents, etc.
+                 * Once we've visited each hex, check if any clump subset's
+                 * size is larger than the allowed size.
+                 *
+                 * Pseudocode:
+                // Using vectors to represent sets.
+                //   Sets will contain each hex's index within hexLayout.
+                //
+                // - clumps := new empty set (will be a vector of vectors)
+                //     At end of search, each element of this set will be
+                //       a subset (a vector) of adjacent hexes
+                // - clumpsNotOK := false
+                // - unvisited-set := new set (vector) of all land hexes
+                // - iterate through unvisited-set; for each hex:
+                //     - remove this from unvisited-set
+                //     - look at its adjacent hexes of same type
+                //          assertion: they are all unvisited, because this hex was unvisited
+                //                     and this is the top-level loop
+                //     - if none, done looking at this hex
+                //     - remove all adj-of-same-type from unvisited-set
+                //     - build a new clump-vector of this + all adj of same type
+                //     - iterate through each hex in clump-vector (skip its first hex,
+                //       because we already have its adjacent hexes)
+                //          precondition: each hex already in the clump set, is not in unvisited-vec
+                //          - look at its adjacent unvisited hexes of same type
+                //          - if none, done looking at this hex
+                //          - remove same-type adjacents from unvisited-set
+                //          - insert them into clump-vector (will continue the iteration with them)
+                //     - add clump-vector to set-of-all-clumps
+                //          OR, immediately check its size vs clumpSize
+                //   postcondition: have visited each hex
+                // - iterate through set-of-all-clumps
+                //      if size >= clumpSize then clumpsNotOK := true. Stop.
+                // - read clumpsNotOK.
+                 */
+
+                // Actual code along with pseudocode:
+
+                // Using vectors to represent sets.
+                //   Sets will contain each hex's index within hexLayout.
+                //   We're operating on Integer instances, which is okay because
+                //   vector methods such as contains() and remove() test obj.equals()
+                //   to determine if the Integer is a member.
+                //   (getAdjacent() returns new Integer objs with the same value
+                //    as unvisited's members.)
+
+                // - unvisited-set := new set (vector) of all land hexes
+                clumpsNotOK = false;    // will set true in while-loop body
+                Vector unvisited = new Vector();
+                for (int i = 0; i < landHex.length; ++i)
+                {
+                    unvisited.addElement(new Integer(numPath[i]));
+                }
+
+                // - iterate through unvisited-set
+
+                while (unvisited.size() > 0)
+                {
+                    //   for each hex:
+
+                    //     - remove this from unvisited-set
+                    Integer hexIdxObj = (Integer) unvisited.elementAt(0);
+                    int hexIdx = hexIdxObj.intValue();
+                    int resource = hexLayout[hexIdx];
+                    unvisited.removeElementAt(0);
+
+                    //     - look at its adjacent hexes of same type
+                    //          assertion: they are all unvisited, because this hex was unvisited
+                    //                     and this is the top-level loop
+                    //     - if none, done looking at this hex
+                    //     - build a new clump-vector of this + all adj of same type
+                    //     - remove all adj-of-same-type from unvisited-set
+
+                    // set of adjacent will become the clump, or be emptied completely
+                    Vector adjacent = getAdjacentHexesToHex(numToHexID[hexIdx], false);
+                    if (adjacent == null)
+                        continue;
+                    Vector clump = null;
+                    for (int i = 0; i < adjacent.size(); ++i)
+                    {
+                        Integer adjCoordObj = (Integer) adjacent.elementAt(i);
+                        int adjIdx = hexIDtoNum[adjCoordObj.intValue()];
+                        if (resource == hexLayout[adjIdx])
+                        {
+                            // keep this one
+                            if (clump == null)
+                                clump = new Vector();
+                            Integer adjIdxObj = new Integer(adjIdx);
+                            clump.addElement(adjIdxObj);
+                            unvisited.remove(adjIdxObj);
+                        }
+                    }
+                    if (clump == null)
+                        continue;
+                    clump.insertElementAt(hexIdxObj, 0);  // put the first hex into clump
+
+                    //     - iterate through each hex in clump-vector (skip its first hex,
+                    //       because we already have its adjacent hexes)
+                    for (int ic = 1; ic < clump.size(); ++ic)
+                    {
+                        // precondition: each hex already in clump set, is not in unvisited-vec
+                        Integer chexIdxObj = (Integer) clump.elementAt(ic);
+                        int chexIdx = chexIdxObj.intValue();
+
+                        //  - look at its adjacent unvisited hexes of same type
+                        //  - if none, done looking at this hex
+                        //  - remove same-type adjacents from unvisited-set
+                        //  - insert them into clump-vector
+                        //    (will continue the iteration with them)
+
+                        Vector adjacent2 = getAdjacentHexesToHex(numToHexID[chexIdx], false);
+                        if (adjacent2 == null)
+                            continue;
+                        for (int ia = 0; ia < adjacent2.size(); ++ia)
+                        {
+                            Integer adjCoordObj = (Integer) adjacent2.elementAt(ia);
+                            int adjIdx = hexIDtoNum[adjCoordObj.intValue()];
+                            Integer adjIdxObj = new Integer(adjIdx);
+                            if ((resource == hexLayout[adjIdx])
+                                && unvisited.contains(adjIdxObj))
+                            {
+                                // keep this one
+                                clump.insertElementAt(adjIdxObj, ic);
+                                unvisited.remove(adjIdxObj);
+                            }
+                        }
+
+                    }  // for each in clump
+
+                    //     - immediately check clump's size vs clumpSize
+                    if (clump.size() >= clumpSize)
+                    {
+                        clumpsNotOK = true;
+                        break;
+                    }
+
+                }  // for each in unvisited
+
+            }  // if (checkClumps)
+
+        } while (clumpsNotOK);
+
+    }  // makeNewBoard_placeHexes
+
+    /**
+     * For makeNewBoard, shuffle portHex[].
+     * Sets no fields, only rearranges the contents of that array.
+     * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
+     * (for ports, the types here are: 3-for-1, or 2-for-1).
+     * @param portHex Contains port types, 1 per port, as they will appear in clockwise
+     *            order around the edge of the board. Must not all be the same type.
+     *            {@link #MISC_PORT} is the 3-for-1 port type value.
+     * @param opt_breakClumps Game option "BC", or null
+     * @throws IllegalStateException if opt_breakClumps is set, and all portHex[] elements have the same value
+     */
+    private void makeNewBoard_shufflePorts(int[] portHex, SOCGameOption opt_breakClumps)
+        throws IllegalStateException
+    {
+        boolean portsOK = true;
+        do
+        {
+            int count, i;
+            for (count = 0; count < 10; count++)
+            {
+                int idx, tmp;
+                for (i = 1; i < portHex.length; i++) // don't swap 0 with 0!
+                {
+                    // Swap a random card below the ith card with the ith card
+                    idx = Math.abs(rand.nextInt() % (portHex.length - i));
+                    tmp = portHex[idx];
+                    portHex[idx] = portHex[i];
+                    portHex[i] = tmp;
+                }
+            }
+
+            if ((opt_breakClumps != null) && opt_breakClumps.getBoolValue())
+            {
+                // Start with port 0, and go around the circle; after that,
+                // check type of highest-index vs 0, for wrap-around.
+
+                portsOK = true;
+                int clumpsize = opt_breakClumps.getIntValue();
+                boolean ptype = (0 == portHex[0]);
+                count = 1;  // # in a row
+                for (i = 1; i < portHex.length; ++i)
+                {
+                    if (ptype != (0 == portHex[i]))
+                    {
+                        ptype = (0 == portHex[i]);
+                        count = 1;
+                    } else {
+                        ++count;
+                        if (count >= clumpsize)
+                            portsOK = false;
+                            // don't break: need to check them all,
+                            // in case all portHex[i] are same value
+                    }
+                }  // for(i)
+
+                if (ptype == (0 == portHex[0]))
+                {
+                    // check wrap-around
+                    if (count == portHex.length)
+                        throw new IllegalStateException("portHex types all same");
+                    if (! portsOK)
+                        continue;
+                    for (i = 0; i < portHex.length; ++i)
+                    {
+                        if (ptype != (0 == portHex[i]))
+                        {
+                            break;
+                        } else {
+                            ++count;
+                            if (count >= clumpsize)
+                            {
+                                portsOK = false;
+                                break;
+                            }
+                        }                        
+                    }
+                }
+            }  // if opt("BC")
+
+        } while (! portsOK);
+
     }
 
     /**
@@ -576,7 +836,7 @@ public class SOCBoard implements Serializable, Cloneable
      */
     private final void placePort(int port, int hex, int face)
     {
-        if (port == 0)
+        if (port == MISC_PORT)
         {
             // generic port == 6 + facing
             hexLayout[hex] = face + 6;
@@ -662,7 +922,8 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the type of port given a hex type;
      *         in range {@link #MISC_PORT} to {@link #WOOD_PORT}
-     * @param hex  the hex type, as in {@link #hexLayout}  
+     * @param hex  the hex type, as in {@link #hexLayout}
+     * @see #getHexTypeFromCoord(int)
      */
     public int getPortTypeFromHex(int hex)
     {
@@ -751,11 +1012,12 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Given a hex coordinate, return the type of hex
      *
-     * @param hex  the coordinates for a hex
-     *
+     * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
-     *         Land in range {@link #CLAY_PORT_HEX} to {@link #WOOD_PORT_HEX},
+     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
      *         {@link #DESERT_HEX}, or {@link #MISC_PORT_HEX} for any port.
+     *
+     * @see #getPortTypeFromHex(int)
      */
     public int getHexTypeFromCoord(int hex)
     {
@@ -765,12 +1027,12 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Given a hex number, return the type of hex
      *
-     * @param hex  the number of a hex (not its coordinate)
-     *
+     * @param hex  the number of a hex (its index in {@link #hexLayout}, not its coordinate)
      * @return the type of hex:
-     *         Land in range {@link #CLAY_PORT_HEX} to {@link #WOOD_PORT_HEX},
+     *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
      *         {@link #DESERT_HEX}, or {@link #MISC_PORT_HEX} for any port.
      *
+     * @see #getPortTypeFromHex(int)
      */
     public int getHexTypeFromNumber(int hex)
     {
@@ -1283,6 +1545,58 @@ public class SOCBoard implements Serializable, Cloneable
         return nodes;
     }
     
+    /**
+     * Make a list of all valid hex coordinates (or only land) adjacent to this hex.
+     * @param hexCoord Coordinate ("ID") of this hex
+     * @param includeWater Should water hexes be returned (not only land ones)?
+     * @return the hexes that touch this hex, as a Vector of Integer coordinates,
+     *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
+     * @since 1.1.07
+     */
+    public Vector getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
+    {
+        // TODO TODO TODO - need to chk vs edges of board / landHex stuff;
+	//      v2 layout won't allow water beyond edge
+        //      -> Options:
+        //       - new array of all on-land coords (useful elsewhere too)
+        //       - new hexLayout[] value to indicate a hex which is invalid in logical-layout as it appears to the user
+
+	/**
+	 * From Dissertation figure A.4 - adjacent hexes to hex
+	 *    (-2,0)   (0,+2)
+	 *
+	 * (-2,-2)   x    (+2,+2)
+	 *
+	 *    (0,-2)   (+2,0)
+	 */
+	Vector hexes = new Vector();
+
+	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x20);  // NW (northwest)
+	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x02);  // NE
+	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x22);  // W
+	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x22);  // E
+	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x02);  // SW
+	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x20);  // SE
+
+	if (hexes.size() > 0)
+	    return hexes;
+	else
+	    return null;
+    }
+
+    /**
+     * Check one coordinate for getAdjacentHexesToHex.
+     * @since 1.1.07
+     */
+    private void getAdjacentHexes_AddIfOK
+        (Vector addTo, final boolean includeWater, final int hexCoord)
+    {
+        if ((hexCoord >= MINHEX) && (hexCoord <= MAXHEX)
+            && (includeWater
+                || hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX))
+            addTo.addElement(new Integer(hexCoord));
+    }
+
     /**
      * If there's a settlement or city at this node, find it.
      * 

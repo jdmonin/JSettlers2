@@ -235,7 +235,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     {
         synchronized (outQueue)
         {
-            D.ebugPrintln("Adding " + str + " to outQueue for " + data);
+            // D.ebugPrintln("Adding " + str + " to outQueue for " + data);
             outQueue.addElement(str);
             outQueue.notify();
         }
