@@ -2,6 +2,15 @@
 
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 
+    > 1.1.07 (build tbd)
+- Per-game options framework, including these options:
+	- PL  Maximum # players
+	- RD  Robber can't return to the desert
+	- E7  Roll no 7s during first # turns
+	- BC  Break up clumps of # or more same-type ports/hexes
+	- NT  No trading allowed
+- GameList kept at server/client
+
     > 1.1.06 (build 2009-06-01)
 - Based on 1.1.04's code
 - Monopoly reports (privately) number of resources stolen to each victim
@@ -19,7 +28,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
     > 1.1.05 (backed out)
 JSettlers 1.1.05 had been under development (build 2008-09-13) but its direction is being re-considered.
 Further development is based on 1.1.04.
-- Use Log4j 1.2
+- Use Log4j 1.2, vs previous homegrown soc.debug/disableDebug
 
     > 1.1.04 (build 2008-09-06)
 - Bugfix: Cancelling 2nd initial settlement, other players lost resources (SOCPlayer)
