@@ -64,8 +64,8 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     }
 
     /**
-     * Get the list of games (and options).
-     * Will parse them from the option strings sent from server, via
+     * Parse the list of games (and options).
+     * Uses the option strings sent from server, via
      * {@link SOCGameOption#parseOptionsToHash(String)}.
      * @return list of games contained in this message, or an empty SOCGameList
      */

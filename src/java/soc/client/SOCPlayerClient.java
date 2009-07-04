@@ -3471,7 +3471,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     private void handleGAMESWITHOPTIONS(SOCGamesWithOptions mes, boolean isLocal)
     {
-        SOCGameList msgGames = mes.getParsedList();
+        SOCGameList msgGames = mes.parseGameList();
         if (msgGames == null)
             return;
         if (! isLocal)
