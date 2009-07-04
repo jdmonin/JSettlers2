@@ -1001,7 +1001,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     }
 
     /**
-     * an error occured, stop editing
+     * an error occurred, stop playing
      *
      * @param s  an error message
      */

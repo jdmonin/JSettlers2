@@ -284,7 +284,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /**
      * Convert a string into a SOCMessage.
-     * The string is in the form of "<ID> sep <message name> sep <message data>".
+     * The string is in the form of "id SEP messagename {SEP2 messagedata}*".
      * If the message type id is unknown, this is printed to System.err.
      *
      * @param s  String to convert
