@@ -997,7 +997,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Set the number of the current player, and check for winner.
-     * Call {@link #updateAtTurn()} afterwards.
+     * If you want to update other game status, call {@link #updateAtTurn()} afterwards.
      * Called only at client - server instead calls {@link #endTurn()}
      * or {@link #advanceTurn()}.
      * Check for gamestate {@link #OVER} after calling setCurrentPlayerNumber.
