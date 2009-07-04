@@ -2265,7 +2265,14 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             if (serverGames == null)
                 serverGames = new SOCGameList();
             serverGames.addGames(gameNamesEnum, Version.versionNumber());
+
+            // No more game-option info will be received,
+            // because that's always sent before game names.
+            tcpServGameOpts.noMoreOptions();
+        } else {
+            practiceServGameOpts.noMoreOptions();
         }
+
         while (gameNamesEnum.hasMoreElements())
         {
             addToGameList((String) gameNamesEnum.nextElement(), null, false);
@@ -3464,7 +3471,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     private void handleGAMESWITHOPTIONS(SOCGamesWithOptions mes, boolean isLocal)
     {
-        SOCGameList msgGames = mes.getList();
+        SOCGameList msgGames = mes.getParsedList();
         if (msgGames == null)
             return;
         if (! isLocal)
@@ -3476,12 +3483,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
             // TODO is this rcv'd before or after GAMEOPTIONGETDEFAULTS?
 
-            // if not-null, ask server for those opts;
-            //   similar to at getdefaultopts;
-            Hashtable unknowns = mes.getUnknownOptions(false);
-            if (unknowns != null)
-                put(SOCGameOptionGetInfos.toCmd(unknowns.keys()), isLocal);
+            // No more game-option info will be received,
+            // because that's always sent before game names.
+            tcpServGameOpts.noMoreOptions();
+        } else {
+            practiceServGameOpts.noMoreOptions();
         }
+
         Enumeration gamesEnum = msgGames.getGames();
         while (gamesEnum.hasMoreElements())
         {
