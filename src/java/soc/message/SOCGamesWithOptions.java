@@ -69,7 +69,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * {@link SOCGameOption#parseOptionsToHash(String)}.
      * @return list of games contained in this message, or an empty SOCGameList
      */
-    public SOCGameList getParsedList()
+    public SOCGameList parseGameList()
     {
         SOCGameList gamelist = new SOCGameList();
         for (int ii = 0; ii < pa.length; )
