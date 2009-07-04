@@ -2638,7 +2638,7 @@ public class SOCServer extends Server
         {
             // Indicates a db problem: don't authenticate empty password
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_PROBLEM_WITH_DB,
+                    (SOCStatusMessage.SV_PROBLEM_WITH_DB, c.getVersion(),
                     "Problem connecting to database, please try again later."));
             return false;
         }
@@ -2648,7 +2648,7 @@ public class SOCServer extends Server
             if (!userPassword.equals(password))
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_PW_WRONG,
+                        (SOCStatusMessage.SV_PW_WRONG, c.getVersion(),
                          "Incorrect password for '" + userName + "'."));
 
                 return false;
@@ -2657,7 +2657,7 @@ public class SOCServer extends Server
         else if (!password.equals(""))
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NAME_NOT_FOUND,
+                    (SOCStatusMessage.SV_NAME_NOT_FOUND, c.getVersion(),
                      "No user with the nickname '" + userName + "' is registered with the system."));
 
             return false;
@@ -2779,13 +2779,16 @@ public class SOCServer extends Server
         {
             D.ebugPrintln("handleJOIN: " + mes);
 
+            int cliVers = c.getVersion();
+
             /**
              * Check the reported version; if none, assume 1000 (1.0.00)
              */
-            if (c.getVersion() == -1)
+            if (cliVers == -1)
             {
                 if (! setClientVersionOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
                     return;  // <--- Discon and Early return: Client too old ---
+                cliVers = c.getVersion();
             }
 
             /**
@@ -2794,7 +2797,7 @@ public class SOCServer extends Server
             if ((c.getData() == null) && (!checkNickname(mes.getNickname())))
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NAME_IN_USE,
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          MSG_NICKNAME_ALREADY_IN_USE));
 
                 return;
@@ -2953,7 +2956,7 @@ public class SOCServer extends Server
             if ((c.getData() == null) && (!checkNickname(mes.getNickname())))
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NAME_IN_USE,
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                          MSG_NICKNAME_ALREADY_IN_USE));
                 SOCRejectConnection rcCommand = new SOCRejectConnection(MSG_NICKNAME_ALREADY_IN_USE);
                 c.put(rcCommand.toCmd());
@@ -3070,7 +3073,7 @@ public class SOCServer extends Server
             if ((c.getData() == null) && (!checkNickname(msgUser)))
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NAME_IN_USE,
+                        (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
                          MSG_NICKNAME_ALREADY_IN_USE));
 
                 return;
@@ -3110,7 +3113,7 @@ public class SOCServer extends Server
 		if (gameList.isGame(gameName))
 		{
 		    c.put(SOCStatusMessage.toCmd
-			  (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS,
+			  (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, c.getVersion(),
 			   SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
 		    // "A game with this name already exists, please choose a different name."
 
@@ -3120,7 +3123,7 @@ public class SOCServer extends Server
 		if (! SOCGameOption.adjustOptionsToKnown(gameOpts, null))
 		{
 		    c.put(SOCStatusMessage.toCmd
-			  (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN,
+			  (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, c.getVersion(),
 			   "Unknown game option(s) were requested, cannot create this game."));
 
 		    return;  // <---- Early return ----
@@ -3154,7 +3157,7 @@ public class SOCServer extends Server
                 SOCGame gameData = gameList.getGameData(gameName);
 
                 c.put(SOCStatusMessage.toCmd
-                      (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION,
+                      (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, c.getVersion(),
                         "Cannot join game, requires version "
                         + Integer.toString(gameData.getClientVersionMinRequired())
                         + ": " + gameName));
@@ -5560,6 +5563,8 @@ public class SOCServer extends Server
      */
     private void handleCREATEACCOUNT(StringConnection c, SOCCreateAccount mes)
     {
+        final int cliVers = c.getVersion();
+
         //
         // check to see if there is an account with
         // the requested nickname
@@ -5574,7 +5579,7 @@ public class SOCServer extends Server
         {
             // Indicates a db problem: don't continue
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_PROBLEM_WITH_DB,
+                    (SOCStatusMessage.SV_PROBLEM_WITH_DB, cliVers,
                      "Problem connecting to database, please try again later."));
             return;
         }
@@ -5582,7 +5587,7 @@ public class SOCServer extends Server
         if (userPassword != null)
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_NAME_IN_USE,
+                    (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                      "The nickname '" + mes.getNickname() + "' is already in use."));
 
             return;
@@ -5607,13 +5612,13 @@ public class SOCServer extends Server
         if (success)
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_ACCT_CREATED_OK,
+                    (SOCStatusMessage.SV_ACCT_CREATED_OK, cliVers,
                      "Account created for '" + mes.getNickname() + "'."));
         }
         else
         {
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR,
+                    (SOCStatusMessage.SV_ACCT_NOT_CREATED_ERR, cliVers,
                      "Account not created due to error."));
         }
     }

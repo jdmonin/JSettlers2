@@ -118,6 +118,9 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_NEWGAME_ALREADY_EXISTS = 10;
 
+    // IF YOU ADD A STATUS VALUE:
+    // Be sure to update statusValidAtVersion().
+
     /**
      * Text for server or client to present: New game requested,
      * but this game already exists
@@ -207,6 +210,58 @@ public class SOCStatusMessage extends SOCMessage
         }
         sb.append(st);
         return sb.toString();
+    }
+
+    /**
+     * STATUSMESSAGE sep [svalue sep2] status
+     *
+     * @param sv  the status value; if 0 or less, is not output.
+     *            Should be a constant such as {@link #SV_OK}.
+     * @param cliVers Client's version, same format as {@link soc.util.Version#versionNumber()};
+     *            if sv isn't recognized in that version, use {@link #SV_NOT_OK_GENERIC} instead.
+     *            Calls {@link #statusValidAtVersion(int, int)}.
+     * @param st  the status
+     * @return the command string
+     * @since 1.1.07
+     */
+    public static String toCmd(int sv, final int cliVers, final String st)
+    {
+        if (! statusValidAtVersion(sv, cliVers))
+        {
+            if (cliVers >= 1106)
+                sv = SV_NOT_OK_GENERIC;
+            else
+                sv = SV_OK;
+        }
+        return toCmd(sv, st);
+    }
+
+    /**
+     * Is this status value defined in this version?  If not, {@link #SV_NOT_OK_GENERIC} should be sent instead.
+     *
+     * @param statusValue  status value (from constants defined here, such as {@link #SV_OK})
+     * @param cliVersion Client's version, same format as {@link soc.util.Version#versionNumber()};
+     *                   below 1.1.06, only 0 ({@link #SV_OK}) is allowed.
+     *                   If cliVersion > ourVersion, will act as if cliVersion == ourVersion. 
+     * @since 1.1.07
+     */
+    public static boolean statusValidAtVersion(int statusValue, int cliVersion)
+    {
+        switch (cliVersion)
+        {
+        case 1106:
+            return (statusValue <= SV_ACCT_NOT_CREATED_ERR);
+        case 1107:
+            return (statusValue <= SV_NEWGAME_ALREADY_EXISTS);
+        default:
+            {
+            if (cliVersion < 1106)
+                return (statusValue == 0);
+            else
+                // newer; check vs highest constant that we know
+                return (statusValue <= SV_NEWGAME_ALREADY_EXISTS);
+            }
+        }
     }
 
     /**
