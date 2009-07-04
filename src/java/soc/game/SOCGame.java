@@ -347,7 +347,7 @@ public class SOCGame implements Serializable, Cloneable
     private int lastPlayerNumber;
 
     /**
-     * the current dice result
+     * the current dice result. -1 at start of game, 0 during player's turn before roll (state {@link #PLAY}).
      */
     private int currentDice;
 
@@ -371,7 +371,7 @@ public class SOCGame implements Serializable, Cloneable
     private boolean placingRobberForKnightCard;
 
     /**
-     * If true, this turn is being ended. Controller of game should call {@link #endTurn()}
+     * If true, this turn is being ended. Controller of game (server) should call {@link #endTurn()}
      * whenever possible.  Usually set when we have called {@link #forceEndTurn()}, and
      * forced the current player to discard randomly, and are waiting for other players
      * to discard in gamestate {@link #WAITING_FOR_DISCARDS}.  Once all players have
@@ -431,24 +431,21 @@ public class SOCGame implements Serializable, Cloneable
      */
     long expiration;
 
-    // TODO pcli.handleTURN, others: does same things as game.endTurn()
-    //    - should refactor to a common here.
-    //    (search for newToOld, setPlayedDevCard, etc)
-    //    Until that's done, turncount will be accurate only at server.
-    //   cli currently calls setCurrentPlayerNumber which does some of the work.
-
     /**
-     * The number of normal turns (not rounds, not initial placements) completed.
-     *  This is == (# of dice rolls so far) - 1.
-     *  updated in endTurn (TODO just above: move to new refactored)
+     * The number of normal turns (not rounds, not initial placements), including this turn.
+     *  This is 0 during initial piece placement, and 1 when the first player is about to
+     *  roll dice for the first time.
+     *  updated in {@link #updateAtTurn()}.
      * @since 1.1.07
      */
     private int turnCount;
 
     /**
-     * The number of normal rounds (each player has 1 turn per round, after initial placements) completed.
+     * The number of normal rounds (each player has 1 turn per round, after initial placements), including this round.
      *  for gameoption E7: Roll no 7s during first # rounds.
-     *  updated in advanceTurn (TODO just above: move to new refactored)
+     *  This is 0 during initial piece placement, and 1 when the first player is about to
+     *  roll dice for the first time.  It becomes 2 when that first player's turn begins again.
+     *  updated in {@link #updateAtTurn()}.
      * @since 1.1.07
      */
     private int roundCount;
@@ -1000,15 +997,16 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Set the number of the current player, and check for winner.
-     * Called only at client - server instead calls endTurn()
-     * or advanceTurn().
-     * Check for gamestate {@link SOCGame#OVER} after calling
-     * setCurrentPlayerNumber.
+     * Call {@link #updateAtTurn()} afterwards.
+     * Called only at client - server instead calls {@link #endTurn()}
+     * or {@link #advanceTurn()}.
+     * Check for gamestate {@link #OVER} after calling setCurrentPlayerNumber.
      * This is needed because a player can win only during their own turn;
-     * if they reach winning points (VP_WINNER or more) during another
-     * player's turn, they must wait.
+     * if they reach winning points ({@link #VP_WINNER} or more) during another
+     * player's turn, they don't win immediately.  When it later becomes their turn,
+     * and setCurrentPlayerNumber is called, gamestate may become {@link #OVER}.
      *
-     * @param pn  the player number
+     * @param pn  the player number, or -1 permitted in state {@link #OVER}
      * @see #endTurn()
      * @see #checkForWinner()
      */
@@ -1233,7 +1231,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * advance the turn to the previous player,
-     * used during initial placement
+     * used during initial placement. Does not change any other game state.
      */
     protected void advanceTurnBackwards()
     {
@@ -1257,8 +1255,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * advance the turn to the next player. Do not change game state.
-     * If game state is {@link #PLAY}, increment roundCount if necessary.
+     * advance the turn to the next player. Does not change any other game state.
      */
     protected void advanceTurn()
     {
@@ -1279,8 +1276,6 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         forcingEndTurn = false;
-        if ((currentPlayerNumber == firstPlayerNumber) && (gameState == PLAY))
-            ++roundCount;
     }
 
     /**
@@ -1506,7 +1501,8 @@ public class SOCGame implements Serializable, Cloneable
         case START2B:
             {
                 int tmpCPN = currentPlayerNumber - 1;
-    
+
+                // who places next? same algorithm as advanceTurnBackwards.
                 if (tmpCPN < 0)
                 {
                     tmpCPN = MAXPLAYERS - 1;
@@ -1527,6 +1523,7 @@ public class SOCGame implements Serializable, Cloneable
                     // Player number is unchanged; "virtual" endTurn here.
                     // Don't clear forcingEndTurn flag, if it's set.
                     gameState = PLAY;
+                    updateAtTurn();
                 }
                 else
                 {
@@ -1748,6 +1745,8 @@ public class SOCGame implements Serializable, Cloneable
      * make a board,
      * choose first player.
      * gameState becomes {@link #START1A}.
+     *<P>
+     * Called only at server, not client.
      */
     public void startGame()
     {
@@ -1892,6 +1891,7 @@ public class SOCGame implements Serializable, Cloneable
      * endTurn() is called only at server - client instead calls
      * {@link #setCurrentPlayerNumber(int)}.
      * endTurn() is not called before the first dice roll.
+     * endTurn() will call {@link #updateAtTurn()}.
      *<P>
      * The winner check is needed because a player can win only
      * during their own turn; if they reach winning points ({@link #VP_WINNER}
@@ -1904,14 +1904,41 @@ public class SOCGame implements Serializable, Cloneable
     public void endTurn()
     {
         gameState = PLAY;
-        currentDice = 0;
-        ++turnCount;
         advanceTurn();
-        players[currentPlayerNumber].setPlayedDevCard(false);
-        players[currentPlayerNumber].getDevCards().newToOld();
-        resetVoteClear();
+        updateAtTurn();
+        players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
         if (players[currentPlayerNumber].getTotalVP() >= VP_WINNER)
             checkForWinner();
+    }
+
+    /**
+     * Update game state as needed when a player begins their turn (before dice are rolled).
+     * Call this after {@link #setCurrentPlayerNumber(int)}.
+     * May be called during initial placement.
+     *<UL>
+     *<LI> Set first player and last player, if they're currently -1
+     *<LI> Set current dice to 0
+     *<LI> Mark current player's new dev cards as old
+     *<LI> Clear any votes to reset the board
+     *<LI> If game state is {@link #PLAY}, increment turnCount (and roundCount if necessary).
+     *</UL>
+     * Called by server and client.
+     * @since 1.1.07
+     */
+    public void updateAtTurn()
+    {
+        if (firstPlayerNumber == -1)
+            setFirstPlayer(currentPlayerNumber);  // also sets lastPlayerNumber
+
+        currentDice = 0;
+        players[currentPlayerNumber].getDevCards().newToOld();
+        resetVoteClear();
+        if (gameState == PLAY)
+        {
+            ++turnCount;
+            if (currentPlayerNumber == firstPlayerNumber)
+                ++roundCount;
+        }
     }
 
     /**
@@ -2256,9 +2283,10 @@ public class SOCGame implements Serializable, Cloneable
      */
     public IntPair rollDice()
     {
-        // E7: Roll no 7s during first # rounds
+        // E7: Roll no 7s during first # rounds.
+        //     Use > not >= because roundCount includes current round
         final boolean okToRoll7 =
-            (! isGameOptionSet("E7")) || (roundCount >= getGameOptionIntValue("E7"));
+            (! isGameOptionSet("E7")) || (roundCount > getGameOptionIntValue("E7"));
 
         int die1, die2;
         do

@@ -1015,18 +1015,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         if (ga != null)
         {
-            /**
-             * check if this is the first player
-             */
-            if (ga.getFirstPlayer() == -1)
-            {
-                ga.setFirstPlayer(mes.getPlayerNumber());
-            }
-
-            ga.setCurrentDice(0);
             ga.setCurrentPlayerNumber(mes.getPlayerNumber());
-            ga.getPlayer(mes.getPlayerNumber()).getDevCards().newToOld();
-            ga.resetVoteClear();
+            ga.updateAtTurn();
         }
     }
 

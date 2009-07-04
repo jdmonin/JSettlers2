@@ -797,17 +797,8 @@ public class SOCRobotBrain extends Thread
 
                     else if (mesType == SOCMessage.TURN)
                     {
-                        //
-                        // check if this is the first player
-                        ///
-                        if (game.getFirstPlayer() == -1)
-                        {
-                            game.setFirstPlayer(((SOCTurn) mes).getPlayerNumber());
-                        }
-
                         game.setCurrentPlayerNumber(((SOCTurn) mes).getPlayerNumber());
-                        game.getPlayer(((SOCTurn) mes).getPlayerNumber()).getDevCards().newToOld();
-                        game.resetVoteClear();
+                        game.updateAtTurn();
 
                         //
                         // remove any expected states
