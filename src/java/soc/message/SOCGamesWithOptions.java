@@ -21,9 +21,6 @@
  **/
 package soc.message;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import soc.game.SOCGame;
@@ -49,10 +46,6 @@ import soc.util.SOCGameList;
  */
 public class SOCGamesWithOptions extends SOCMessageTemplateMs
 {
-    private Hashtable unknownOpts = null;
-    private boolean unknownOptsChecked = false;
-    private SOCGameList gamelist = null; // TODO used at client-side only: decide how to store this for later use. If null, not yet parsed from pa[].
-
     /**
      * Constructor for client to parse server's list of games.
      * Creates opt with the proper type, even if unknown locally.
@@ -71,64 +64,14 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     }
 
     /**
-     * Search all these games' options for unknown options,
-     * checking against {@link soc.game.SOCGameOption#getOption(String)}.
-     *
-     * @param recheck Check again, even if we've previously called this method
-     * @return Hashtable(String) of unknown parameter keynames, or null if all are known
-     * @see #getList()
+     * Get the list of games (and options).
+     * Will parse them from the option strings sent from server, via
+     * {@link SOCGameOption#parseOptionsToHash(String)}.
+     * @return list of games contained in this message, or an empty SOCGameList
      */
-    public Hashtable getUnknownOptions(boolean recheck)
+    public SOCGameList getParsedList()
     {
-        if (unknownOptsChecked && ! recheck)
-            return unknownOpts;
-
-        boolean hadAny = false;
-        unknownOpts = new Hashtable();
-        if ((gamelist == null) || recheck)
-            parseGameOptions(recheck);
-
-        Enumeration gaEnum = gamelist.getGames();
-        while (gaEnum.hasMoreElements())
-        {
-            Hashtable opts = gamelist.getGameOptions((String) gaEnum.nextElement());
-            if (opts == null)
-                continue;
-            for (Enumeration e = opts.keys(); e.hasMoreElements(); )
-            {
-                SOCGameOption op = (SOCGameOption) opts.get((String) e.nextElement());
-                if ((op.optType == SOCGameOption.OTYPE_UNKNOWN)
-                    && ! unknownOpts.containsKey(op.optKey))
-                {
-                    if (! hadAny)
-                        hadAny = true;
-                    unknownOpts.put(op.optKey, op);
-                }
-            }
-        }
-
-        if (! hadAny)
-            unknownOpts = null;
-        unknownOptsChecked = true;
-        return unknownOpts;
-    }
-
-    /**
-     * Build gamelist by parsing pa[] via {@link SOCGameOption#parseOptionsToHash(String)}.
-     * If any game's options are malformed, it gets null for options.
-     *
-     * @param recheck Re-parse, even if gamelist is already built;
-     *         this is useful if you have called
-     *         {@link SOCGameOption#addNewKnownOption(SOCGameOption)}
-     *         since calling parseGameOptions.
-     * @see #getUnknownOptions(boolean)
-     */
-    public void parseGameOptions(boolean recheck)
-    {
-        if ((gamelist != null) && ! recheck)
-            return;
-
-        gamelist = new SOCGameList();
+        SOCGameList gamelist = new SOCGameList();
         for (int ii = 0; ii < pa.length; )
         {
             final String gaName = pa[ii];
@@ -136,17 +79,6 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             gamelist.addGame(gaName, SOCGameOption.parseOptionsToHash(pa[ii]), false);
             ++ii;
         }
-    }
-
-    /**
-     * Get the list of games (and options).
-     * If necessary, will parse them by calling {@link #parseGameOptions(boolean) parseGameOptions(false)}.
-     * @return list of games contained in this message
-     * @see #getUnknownOptions(boolean)
-     */
-    public SOCGameList getList()
-    {
-        parseGameOptions(false);
         return gamelist;
     }
 
