@@ -438,13 +438,20 @@ public class SOCGame implements Serializable, Cloneable
     //   cli currently calls setCurrentPlayerNumber which does some of the work.
 
     /**
-     * The number of normal turns (not initial placements) completed
-     *   // TODO verif that this is == # of dice rolls so far
-     *  for gameoption E7: Roll no 7s during first # turns
+     * The number of normal turns (not rounds, not initial placements) completed.
+     *  This is == (# of dice rolls so far) - 1.
      *  updated in endTurn (TODO just above: move to new refactored)
      * @since 1.1.07
      */
     private int turnCount;
+
+    /**
+     * The number of normal rounds (each player has 1 turn per round, after initial placements) completed.
+     *  for gameoption E7: Roll no 7s during first # rounds.
+     *  updated in advanceTurn (TODO just above: move to new refactored)
+     * @since 1.1.07
+     */
+    private int roundCount;
 
     /**
      * create a new, active game
@@ -531,6 +538,7 @@ public class SOCGame implements Serializable, Cloneable
         numDevCards = 25;
         gameState = NEW;
         turnCount = 0;
+        roundCount = 0;
         forcingEndTurn = false;
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack();
@@ -1249,7 +1257,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * advance the turn to the next player
+     * advance the turn to the next player. Do not change game state.
+     * If game state is {@link #PLAY}, increment roundCount if necessary.
      */
     protected void advanceTurn()
     {
@@ -1270,6 +1279,8 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         forcingEndTurn = false;
+        if ((currentPlayerNumber == firstPlayerNumber) && (gameState == PLAY))
+            ++roundCount;
     }
 
     /**
@@ -1880,6 +1891,8 @@ public class SOCGame implements Serializable, Cloneable
      * Check for gamestate {@link #OVER} after calling endTurn.
      * endTurn() is called only at server - client instead calls
      * {@link #setCurrentPlayerNumber(int)}.
+     * endTurn() is not called before the first dice roll.
+     *<P>
      * The winner check is needed because a player can win only
      * during their own turn; if they reach winning points ({@link #VP_WINNER}
      * or more) during another player's turn, they must wait.
@@ -1892,7 +1905,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         gameState = PLAY;
         currentDice = 0;
-        ++turnCount;  // TODO is endTurn called after last placement before first roll?
+        ++turnCount;
         advanceTurn();
         players[currentPlayerNumber].setPlayedDevCard(false);
         players[currentPlayerNumber].getDevCards().newToOld();
@@ -2239,13 +2252,13 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * roll the dice.
-     * Checks game option E7: Roll no 7s during first # turns
+     * Checks game option E7: Roll no 7s during first # rounds
      */
     public IntPair rollDice()
     {
-        // E7: Roll no 7s during first # turns
+        // E7: Roll no 7s during first # rounds
         final boolean okToRoll7 =
-            (! isGameOptionSet("E7")) || (turnCount >= getGameOptionIntValue("E7"));
+            (! isGameOptionSet("E7")) || (roundCount >= getGameOptionIntValue("E7"));
 
         int die1, die2;
         do

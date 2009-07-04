@@ -6,7 +6,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 - Per-game options framework, including these options:
 	- PL  Maximum # players
 	- RD  Robber can't return to the desert
-	- E7  Roll no 7s during first # turns
+	- E7  Roll no 7s during first # rounds
 	- BC  Break up clumps of # or more same-type ports/hexes
 	- NT  No trading allowed
 - GameList kept at server/client

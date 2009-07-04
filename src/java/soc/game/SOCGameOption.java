@@ -24,7 +24,6 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -70,7 +69,7 @@ public class SOCGameOption implements Cloneable
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("E7", new SOCGameOption
-                ("E7", -1, 1107, false, 7, 1, 999, false, "Roll no 7s during first # turns"));
+                ("E7", -1, 1107, false, 7, 1, 999, false, "Roll no 7s during first # rounds"));
         opt.put("BC", new SOCGameOption
                 ("BC", -1, 1107, true, 3, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
