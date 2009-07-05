@@ -182,7 +182,7 @@ public class SOCClientData
             cliData.cliVersionTask = null;  // Clear reference to this soon-to-expire obj
             if (! cliConn.isVersionKnown())
             {
-                srv.setClientVersionOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, false);
+                srv.setClientVersSendGamesOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, false);
 		// will also send game list.
 		// if cli vers already known, it's already sent the list.
             }

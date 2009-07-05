@@ -89,14 +89,14 @@ public class SOCServer extends Server
      * Minimum required client version, to connect and play a game.
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Currently there is no enforced minimum (0000).
-     * @see #setClientVersionOrReject(StringConnection, int, boolean)
+     * @see #setClientVersSendGamesOrReject(StringConnection, int, boolean)
      */
     public static final int CLI_VERSION_MIN = 0000;
 
     /**
      * Minimum required client version, in "display" form, like "1.0.00".
      * Currently there is no minimum.
-     * @see #setClientVersionOrReject(StringConnection, int, boolean)
+     * @see #setClientVersSendGamesOrReject(StringConnection, int, boolean)
      */
     public static final String CLI_VERSION_MIN_DISPLAY = "0.0.00";
 
@@ -2679,8 +2679,12 @@ public class SOCServer extends Server
     /**
      * Handle the "version" message, client's version report.
      * May ask to disconnect, if version is too old.
+     * Otherwise send the game list.
      * If we've already sent the game list, send changes based on true version.
      * If they send another VERSION later, with a different version, disconnect the client.
+     *<P>
+     * Along with the game list, the client will need to know the game option info.
+     * This is sent when the client asks (after VERSION) for {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -2690,7 +2694,7 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        setClientVersionOrReject(c, mes.getVersionNumber(), true);
+        setClientVersSendGamesOrReject(c, mes.getVersionNumber(), true);
     }
 
     /**
@@ -2698,6 +2702,11 @@ public class SOCServer extends Server
      * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}.
      * If we haven't yet sent the game list, send now.
      * If we've already sent the game list, send changes based on true version.
+     *<P>
+     * Along with the game list, the client will need to know the game option info.
+     * This is sent when the client asks (after VERSION) for {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
+     * Because game options aren't sent before client version is known, we won't ever need to
+     * send a "delta" of game options based on client version.
      *<P>
      *<b>Locks:</b> To set the version, will synchronize briefly on {@link Server#unnamedConns unnamedConns}.
      * If {@link StringConnection#getVersion() c.getVersion()} is already == cvers,
@@ -2709,7 +2718,7 @@ public class SOCServer extends Server
      * @param cvers Version reported by client, or assumed version if no report
      * @return True if OK, false if rejected
      */
-    boolean setClientVersionOrReject(StringConnection c, final int cvers, final boolean isKnown)
+    boolean setClientVersSendGamesOrReject(StringConnection c, final int cvers, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
@@ -2786,7 +2795,7 @@ public class SOCServer extends Server
              */
             if (cliVers == -1)
             {
-                if (! setClientVersionOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
+                if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
                     return;  // <--- Discon and Early return: Client too old ---
                 cliVers = c.getVersion();
             }
@@ -3021,7 +3030,7 @@ public class SOCServer extends Server
              */
             if (c.getVersion() == -1)
             {
-                if (! setClientVersionOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
+                if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
                     return;  // <--- Early return: Client too old ---
             }
 

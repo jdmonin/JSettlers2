@@ -2029,7 +2029,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     /**
      * Handle the "version" message, server's version report.
-     * Reply with client's version.
+     * Ask server for game-option info if client's version differs.
      * If remote, store the server's version for {@link #getServerVersion(SOCGame)}
      * and display the version on the main panel.
      * (Local server's version is always {@link Version#versionNumber()}.)
@@ -2063,7 +2063,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         // If we ever require a minimum server version, would check that here.
 
         // Reply with our client version.
-        // (This is sent in connect() in 1.1.06 and later)
+        // (This was sent already in connect(), in 1.1.06 and later)
 
 	// Check known options vs server's version. (added in 1.1.07)
 	final int cliVersion = Version.versionNumber();
