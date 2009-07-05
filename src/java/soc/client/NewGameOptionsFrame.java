@@ -28,6 +28,7 @@ import java.awt.Choice;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -330,6 +331,14 @@ public class NewGameOptionsFrame extends Frame
 
                 final int placeholderIdx = op.optDesc.indexOf('#');
                 Panel optp = new Panel();  // with FlowLayout
+                try
+                {
+                    FlowLayout fl = (FlowLayout) (optp.getLayout());
+                    fl.setAlignment(FlowLayout.LEFT);
+                    fl.setVgap(0);
+                    fl.setHgap(0);
+                }
+                catch (Throwable fle) {}
 
                 if (placeholderIdx > 0)
                 {
