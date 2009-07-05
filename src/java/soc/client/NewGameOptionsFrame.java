@@ -272,48 +272,25 @@ public class NewGameOptionsFrame extends Frame
 
         // TODO sort options
 
-        gbc.anchor = gbc.WEST;
+        gbc.anchor = GridBagConstraints.WEST;
         for (Enumeration e = opts.keys(); e.hasMoreElements(); )
         {
             SOCGameOption op = (SOCGameOption) opts.get(e.nextElement());
             if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
                 continue;  // <-- Must skip this one --
 
-            // TODO refactor common, esp now that we have initoption_int, initoption_enum
-
             switch (op.optType)  // OTYPE_*
             {
             case SOCGameOption.OTYPE_BOOL:
                 Checkbox cb = new Checkbox();
-                optsControls.put(cb, op);
                 cb.setState(op.getBoolValue());
-                cb.setEnabled(! readOnly);
                 // cb.addActionListener(this);
-                gbc.gridwidth = 1;
-                gbl.setConstraints(cb, gbc);
-                bp.add(cb);
-
-                gbc.gridwidth = GridBagConstraints.REMAINDER;
-                L = new Label(op.optDesc);
-                L.setForeground(LABEL_TXT_COLOR);
-                gbl.setConstraints(L, gbc);
-                bp.add(L);
+                initInterface_Opt1(op, cb, bp, gbl, gbc);
                 break;
 
             case SOCGameOption.OTYPE_INT:
-                Component intc = initOption_int(op); // IntTextField or Choice (popup menu)
-                optsControls.put(intc, op);
-                intc.setEnabled(! readOnly);
-                // tf.addActionListener(this);
-                gbc.gridwidth = 1;
-                gbl.setConstraints(intc, gbc);
-                bp.add(intc);
-
-                gbc.gridwidth = GridBagConstraints.REMAINDER;
-                L = new Label(op.optDesc);
-                L.setForeground(LABEL_TXT_COLOR);
-                gbl.setConstraints(L, gbc);
-                bp.add(L);
+                // IntTextField or Choice (popup menu)
+                initInterface_Opt1(op, initOption_int(op), bp, gbl, gbc);
                 break;
 
             case SOCGameOption.OTYPE_INTBOOL:
@@ -366,19 +343,8 @@ public class NewGameOptionsFrame extends Frame
                 break;
 
             case SOCGameOption.OTYPE_ENUM:
-                    // TODO refactor, see above; same as OTYPE_INT but for initOpt_*
-                Choice ec = initOption_enum(op); // IntTextField or Choice (popup menu)
-                optsControls.put(ec, op);
-                ec.setEnabled(! readOnly);
-                gbc.gridwidth = 1;
-                gbl.setConstraints(ec, gbc);
-                bp.add(ec);
-
-                gbc.gridwidth = GridBagConstraints.REMAINDER;
-                L = new Label(op.optDesc);
-                L.setForeground(LABEL_TXT_COLOR);
-                gbl.setConstraints(L, gbc);
-                bp.add(L);
+                // Choice (popup menu)
+                initInterface_Opt1(op, initOption_enum(op), bp, gbl, gbc);
                 break;
 
             case SOCGameOption.OTYPE_STR:
@@ -416,6 +382,30 @@ public class NewGameOptionsFrame extends Frame
             }
 
         }  // for(opts)
+    }
+
+    /**
+     * Add one GridBagLayout row with this game option (component and label).
+     * @param op  Option data
+     * @param oc  Component with option choices (popup menu, textfield, etc)
+     * @param bp  Add to this panel
+     * @param gbl Use this layout
+     * @param gbc Use these constraints; gridwidth will be set to 1 and then REMAINDER
+     */
+    private void initInterface_Opt1(SOCGameOption op, Component oc,
+            Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
+    {
+        optsControls.put(oc, op);
+        oc.setEnabled(! readOnly);
+        gbc.gridwidth = 1;
+        gbl.setConstraints(oc, gbc);
+        bp.add(oc);
+
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        Label L = new Label(op.optDesc);
+        L.setForeground(LABEL_TXT_COLOR);
+        gbl.setConstraints(L, gbc);
+        bp.add(L);
     }
 
     /**
