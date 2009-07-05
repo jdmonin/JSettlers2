@@ -39,6 +39,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.util.Enumeration;
@@ -55,7 +57,7 @@ import soc.message.SOCStatusMessage;
  * @since 1.1.07
  */
 public class NewGameOptionsFrame extends Frame
-    implements ActionListener, KeyListener, TextListener
+    implements ActionListener, KeyListener, TextListener, MouseListener
 {
     /**
      * Maximum range (min-max value) for integer-type options
@@ -79,7 +81,12 @@ public class NewGameOptionsFrame extends Frame
     private Hashtable opts;
 
     /** Key = AWT control; value = {@link SOCGameOption}. Empty if opts is null.  */
-    private Hashtable optsControls;
+    private Hashtable controlsOpts;
+
+    /** Key = {@link SOCGameOption#optKey}; value = {@link Checkbox} if bool/intbool option.
+      * Empty if none, null if readOnly.
+      */
+    private Hashtable boolOptCheckboxes;
 
     /** create is null if readOnly */
     private Button create;
@@ -123,7 +130,9 @@ public class NewGameOptionsFrame extends Frame
         this.opts = opts;
         this.forPractice = forPractice;
         this.readOnly = readOnly;
-        optsControls = new Hashtable();
+        controlsOpts = new Hashtable();
+        if (! readOnly)
+            boolOptCheckboxes = new Hashtable();
         if ((gaName == null) && forPractice)
         {
             if (cli.numPracticeGames == 0)
@@ -298,7 +307,7 @@ public class NewGameOptionsFrame extends Frame
                 // "#" as a placeholder for where textfield goes
 
                 Checkbox cb2 = new Checkbox();
-                optsControls.put(cb2, op);
+                controlsOpts.put(cb2, op);
                 cb2.setState(op.getBoolValue());
                 cb2.setEnabled(! readOnly);
                 // cb2.addActionListener(this);
@@ -322,10 +331,16 @@ public class NewGameOptionsFrame extends Frame
                     L = new Label(op.optDesc.substring(0, placeholderIdx - 1).trim());
                     L.setForeground(LABEL_TXT_COLOR);
                     optp.add(L);
+                    if (! readOnly)
+                    {
+                        controlsOpts.put(L, op);
+                        boolOptCheckboxes.put(op.optKey, cb2);
+                        L.addMouseListener(this);
+                    }
                 }
 
                 Component intbc = initOption_int(op);
-                optsControls.put(intbc, op);
+                controlsOpts.put(intbc, op);
                 intbc.setEnabled(! readOnly);
                 optp.add(intbc);
 
@@ -334,6 +349,12 @@ public class NewGameOptionsFrame extends Frame
                     L = new Label(op.optDesc.substring(placeholderIdx + 1).trim());
                     L.setForeground(LABEL_TXT_COLOR);
                     optp.add(L);
+                    if (! readOnly)
+                    {
+                        controlsOpts.put(L, op);
+                        boolOptCheckboxes.put(op.optKey, cb2);
+                        L.addMouseListener(this);
+                    }
                 }
 
                 gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -363,7 +384,7 @@ public class NewGameOptionsFrame extends Frame
                         else
                             txtc.setEchoChar('*');
                     }
-                    optsControls.put(txtc, op);
+                    controlsOpts.put(txtc, op);
                     txtc.setEnabled(! readOnly);
                     // tf.addActionListener(this);
                     gbc.gridwidth = 1;
@@ -395,7 +416,7 @@ public class NewGameOptionsFrame extends Frame
     private void initInterface_Opt1(SOCGameOption op, Component oc,
             Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
-        optsControls.put(oc, op);
+        controlsOpts.put(oc, op);
         oc.setEnabled(! readOnly);
         gbc.gridwidth = 1;
         gbl.setConstraints(oc, gbc);
@@ -406,6 +427,13 @@ public class NewGameOptionsFrame extends Frame
         L.setForeground(LABEL_TXT_COLOR);
         gbl.setConstraints(L, gbc);
         bp.add(L);
+
+        if ((! readOnly) && (oc instanceof Checkbox))
+        {
+            controlsOpts.put(L, op);
+            boolOptCheckboxes.put(op.optKey, oc);
+            L.addMouseListener(this);
+        }
     }
 
     /**
@@ -546,10 +574,10 @@ public class NewGameOptionsFrame extends Frame
         if (readOnly)
             return false;  // shouldn't be called in the first place
         boolean allOK = true;
-        for (Enumeration e = optsControls.keys(); e.hasMoreElements(); )
+        for (Enumeration e = controlsOpts.keys(); e.hasMoreElements(); )
         {
             Object ctrl = e.nextElement();
-            SOCGameOption op = (SOCGameOption) optsControls.get(ctrl);
+            SOCGameOption op = (SOCGameOption) controlsOpts.get(ctrl);
             
             // OTYPE_* - new option types may have new AWT control objects, or
             //           may use the same controls with different contents as these.
@@ -695,5 +723,29 @@ public class NewGameOptionsFrame extends Frame
         }
 
     }  // public static class IntTextField
+
+    /** when an option with a boolValue's label is clicked, toggle its checkbox */
+    public void mouseClicked(MouseEvent e)
+    {
+        SOCGameOption opt = (SOCGameOption) controlsOpts.get(e.getSource());
+        if (opt == null)
+            return;
+        Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
+        if (cb == null)
+            return;
+        cb.setState(! cb.getState());
+    }
+
+    /** required stub for MouseListener */
+    public void mouseEntered(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mouseExited(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mousePressed(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mouseReleased(MouseEvent e) {}
 
 }  // public class NewGameOptionsFrame
