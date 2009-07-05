@@ -204,7 +204,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     /**
      * Track the game options available at the remote server, at the practice server.
-     * Initialized by {@link #gameWithOptionsBeginSetup(String, boolean)}.
+     * Initialized by {@link #gameWithOptionsBeginSetup(String, boolean)}
+     * and/or {@link #handleVERSION(boolean, SOCVersion)}.
      * @since 1.1.07
      */
     protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
@@ -1263,7 +1264,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             if (forPracticeServer)
             {
                 opts = practiceServGameOpts;
-                if (! opts.askedAlready)
+                if (! opts.allOptionsReceived)
                 {
                     // We know what the practice options will be,
                     // because they're in our own JAR file.
@@ -1274,7 +1275,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 }
             } else {
                 opts = tcpServGameOpts;
-                if ((! opts.askedAlready) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                if ((! opts.allOptionsReceived) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
                 {
                     // Server doesn't support them.  Don't ask it.
                     setKnown = true;
@@ -1285,7 +1286,6 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             if (setKnown)
             {
                 opts.allOptionsReceived = true;
-                opts.askedAlready = true;        
             }
         }
 
@@ -1293,7 +1293,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         boolean optsAllKnown, askedAlready;
         synchronized (opts)
         {
-            askedAlready = opts.askedAlready;
+            askedAlready = opts.askedDefaultsAlready;
             optsAllKnown = opts.allOptionsReceived;
         }
 
@@ -1320,7 +1320,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         status.setText("Talking to server...");
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        opts.askedAlready = true;
+        opts.askedDefaultsAlready = true;
 	opts.newGameWaitingForOpts = true;
         put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
 
@@ -2081,8 +2081,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 		// server is too old to understand options. Can't happen with local practice srv,
 		// because that's our version (it runs from our own JAR file).
 		if (! isLocal)
-		    tcpServGameOpts.noMoreOptions();
+		    tcpServGameOpts.noMoreOptions(true);
 	    }
+	} else {
+	    // sVersion == cliVersion, so we know the options already
+	    GameOptionServerSet opts = (isLocal ? practiceServGameOpts : tcpServGameOpts);
+	    opts.optionSet = SOCGameOption.getAllKnownOptions();
+	    opts.noMoreOptions(isLocal);  // defaults not known unless it's local practice
 	}
     }
 
@@ -2264,17 +2269,17 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     protected void handleGAMES(SOCGames mes, boolean isLocal)
     {
         Enumeration gameNamesEnum = mes.getGames().elements();
-        if (! isLocal)
+        if (! isLocal)  // local's gameoption data is set up in handleVERSION
         {
             if (serverGames == null)
                 serverGames = new SOCGameList();
             serverGames.addGames(gameNamesEnum, Version.versionNumber());
 
             // No more game-option info will be received,
-            // because that's always sent before game names.
-            tcpServGameOpts.noMoreOptions();
-        } else {
-            practiceServGameOpts.noMoreOptions();
+            // because that's always sent before game names are sent.
+            // We may still ask for GAMEOPTIONGETDEFAULTS if asking to create a game,
+            // but that will happen when user clicks that button, not yet.
+            tcpServGameOpts.noMoreOptions(false);
         }
 
         while (gameNamesEnum.hasMoreElements())
@@ -3467,20 +3472,18 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         SOCGameList msgGames = mes.parseGameList();
         if (msgGames == null)
             return;
-        if (! isLocal)
+        if (! isLocal)  // local's gameoption data is set up in handleVERSION
         {
             if (serverGames == null)
                 serverGames = msgGames;
             else
                 serverGames.addGames(msgGames, Version.versionNumber());
 
-            // TODO is this rcv'd before or after GAMEOPTIONGETDEFAULTS?
-
             // No more game-option info will be received,
-            // because that's always sent before game names.
-            tcpServGameOpts.noMoreOptions();
-        } else {
-            practiceServGameOpts.noMoreOptions();
+            // because that's always sent before game names are sent.
+            // We may still ask for GAMEOPTIONGETDEFAULTS if asking to create a game,
+            // but that will happen when user clicks that button, not yet.
+            tcpServGameOpts.noMoreOptions(false);
         }
 
         Enumeration gamesEnum = msgGames.getGames();
@@ -4903,7 +4906,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
          * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
          */
 	public Hashtable optionSet = null;
-	public boolean   askedAlready = false;
+        public boolean   askedDefaultsAlready = false;
 
 	public GameOptionServerSet() {}
 
@@ -4911,11 +4914,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	 * The server doesn't have any more options to send (or none at all, from its version).
 	 * Set fields as if we've already received the complete set of options, and aren't waiting
 	 * for any more.
+	 * @param askedDefaults Should we also set the askedDefaultsAlready flag? It not, leave it unchanged.
 	 */
-	public void noMoreOptions()
+	public void noMoreOptions(boolean askedDefaults)
 	{
-	    askedAlready = true;
 	    allOptionsReceived = true;
+            if (askedDefaults)
+                askedDefaultsAlready = true;
 	}
 
 	/**
@@ -4951,7 +4956,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	    {
 		// end-of-list marker: no more options from server.
 		// That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
-		noMoreOptions();
+		noMoreOptions(false);
 		return true;
 	    } else {
 		// remove old, replace with new from server (if any)
