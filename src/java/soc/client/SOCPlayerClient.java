@@ -852,7 +852,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         if (wasSel != jg.isEnabled())
         {
             jg.setEnabled(wasSel);
-            so.setEnabled(wasSel);
+            so.setEnabled(wasSel && ((practiceServer != null)
+                || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
         }
     }
 
@@ -2058,6 +2059,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                                 + " bld " + Version.buildnum(),
                                 versionOrlocalTCPPortLabel);
             }
+
+            if ((practiceServer == null) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                    && (so != null))
+                so.setEnabled(false);  // server too old for options, so don't use that button
         }
 
         // If we ever require a minimum server version, would check that here.
@@ -3548,7 +3553,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             gmlist.replaceItem(gameName, 0);
             gmlist.select(0);
             jg.setEnabled(true);
-            so.setEnabled(true);
+            so.setEnabled((practiceServer != null)
+                || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS));
         }
         else
         {
@@ -4413,6 +4419,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 // Reader will start its own thread.
                 // Send VERSION right away (1.1.06 and later)
                 putLocal(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+
+                // local server will support per-game options
+                if (so != null)
+                    so.setEnabled(true);
             }
             catch (ConnectException e)
             {
