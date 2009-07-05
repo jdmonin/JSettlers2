@@ -27,10 +27,10 @@ import soc.game.SOCGameOption;
 
 /**
  * This message means that client wants to create a new game, with options;
- * needs same username/password options as JOINGAME.
+ * needs same username/password options as {@link SOCJoinGame JOINGAME}.
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
- * before sending this message.
+ * before sending this message.  Older servers should be given {@link SOCJoinGame JOINGAME} instead.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.

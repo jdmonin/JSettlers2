@@ -1347,8 +1347,12 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         {
             startPracticeGame(gmName, opts, true);  // Also sets WAIT_CURSOR
         } else {
-            putNet(SOCNewGameWithOptionsRequest.toCmd
-                   (nickname, password, host, gmName, opts));
+            String askMsg =
+                (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                ? SOCNewGameWithOptionsRequest.toCmd
+                        (nickname, password, host, gmName, opts)
+                : SOCJoinGame.toCmd(nickname, password, host, gmName);
+            putNet(askMsg);
         }
     }
 
