@@ -167,7 +167,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected Hashtable channels = new Hashtable();
 
     /**
-     * the games
+     * the games we're playing
      */
     protected Hashtable games = new Hashtable();
 
@@ -757,6 +757,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Handle the "version" message, server's version report.
      * Reply with client's version.
+     *<P>
+     * Because SOCDisplaylessPlayerClient is used only for the
+     * robot, and the robot should always be the same version as
+     * the server, don't ask server for info about
+     * {@link soc.game.SOCGameOption game option} deltas between
+     * the two versions.
      *
      * @param isLocal Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
@@ -775,6 +781,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         // Reply with our own version.
         put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+
+        // Don't check for game options different at version, unlike SOCPlayerClient.handleVERSION.
     }
 
     /**

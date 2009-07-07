@@ -725,7 +725,7 @@ public class SOCGameOption implements Cloneable
      * @return Vector of the unknown {@link SOCGameOption}s, or null
      *     if all are known and unchanged since vers
      */
-    public static Vector optionsUnknownAtVersion(int vers)
+    public static Vector optionsNewerThanVersion(int vers)
     {
 	Vector uopt = null;
 	for (Enumeration e = allOptions.elements(); e.hasMoreElements(); )

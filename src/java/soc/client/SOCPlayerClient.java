@@ -1081,11 +1081,34 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             return true;
         }
 
-        if (target == so)  // show game opts
+        if (target == so)  // show game options
         {
+            // This game is either from remote server, or local practice server,
+            // both servers' games are in the same GUI list.
             Hashtable opts = serverGames.getGameOptions(gm);
-            if ((opts == null) && (practiceServer != null))
+            if ((opts == null) && (serverGames.getGameOptionsString(gm) != null))
+            {
+                // If necessary, parse game options from string before displaying.
+                // (Parsed options are cached, they won't be re-parsed)
+
+                if (tcpServGameOpts.allOptionsReceived)
+                {
+                    opts = serverGames.parseGameOptions(gm);
+                } else {
+                    // not yet received; remember game name.
+                    // when all are received, will show it,
+                    // and will also clear WAIT_CURSOR.
+                    // (see handleGAMEOPTIONINFO)
+
+                    tcpServGameOpts.gameInfoWaitingForOpts = gm;
+                    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    return true;  // <---- early return: not yet ready to show ----
+                }
+            }
+            else if ((opts == null) && (practiceServer != null))
+            {
                 opts = practiceServer.getGameOptions(gm);
+            }
             NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
             return true;
         }
@@ -2070,7 +2093,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         // Reply with our client version.
         // (This was sent already in connect(), in 1.1.06 and later)
 
-	// Check known options vs server's version. (added in 1.1.07)
+        // Check known game options vs server's version. (added in 1.1.07)
+        // Server's responses will add, remove or change our "known options".
 	final int cliVersion = Version.versionNumber();
 	if (sVersion > cliVersion)
 	{
@@ -2079,7 +2103,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	{
 	    if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
 	    {
-		Vector tooNewOpts = SOCGameOption.optionsUnknownAtVersion(sVersion);
+	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion);
 		if (tooNewOpts != null)
 		    put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isLocal);
 	    } else {
@@ -2319,10 +2343,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         Hashtable gameOpts;
         if (isLocal)
         {
-            gameOpts = practiceServGameOpts.optionSet;
+            gameOpts = practiceServGameOpts.optionSet;  // holds most recent settings by user
         } else {
             if (serverGames != null)
-                gameOpts = serverGames.getGameOptions(gaName);
+                gameOpts = serverGames.parseGameOptions(gaName);
             else
                 gameOpts = null;
         }
@@ -3431,7 +3455,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     /**
      * process the "game option info" message
-     * by calling {@link GameOptionServerSet#receiveInfo(SOCGameOptionInfo)}
+     * by calling {@link GameOptionServerSet#receiveInfo(SOCGameOptionInfo)}.
+     * If all are now received, possibly show options window for new game or existing game.
      * @since 1.1.07
      */
     private void handleGAMEOPTIONINFO(SOCGameOptionInfo mes, boolean isLocal)
@@ -3443,16 +3468,27 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	    opts = tcpServGameOpts;
 
 	boolean hasAllNow, newGameWaiting;
+        String gameInfoWaiting;
 	synchronized(opts)
 	{
 	    hasAllNow = opts.receiveInfo(mes);
 	    newGameWaiting = opts.newGameWaitingForOpts;
+            gameInfoWaiting = opts.gameInfoWaitingForOpts;
 	}
 
-	if (hasAllNow && newGameWaiting)
+	if (hasAllNow)
 	{
-	    NewGameOptionsFrame.createAndShow
-		(this, (String) null, opts.optionSet, isLocal, false);
+            if (newGameWaiting)
+            {
+                NewGameOptionsFrame.createAndShow
+                    (this, (String) null, opts.optionSet, isLocal, false);
+            }
+            if (gameInfoWaiting != null)
+            {
+                Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
+                NewGameOptionsFrame.createAndShow
+                    (this, gameInfoWaiting, gameOpts, isLocal, true);
+            }
 	}
     }
 
@@ -3463,22 +3499,22 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, boolean isLocal)
     {
 	String gname = mes.getGame();
-        Hashtable opts = mes.getOptions();
+        String opts = mes.getOptionsString();
 	boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
 	addToGameList(! canJoin, gname, opts, ! isLocal);
     }
 
     /**
-     * handle the "list of games" message
+     * handle the "list of games with options" message
      * @since 1.1.07
      */
     private void handleGAMESWITHOPTIONS(SOCGamesWithOptions mes, boolean isLocal)
     {
-        SOCGameList msgGames = mes.parseGameList();
+        SOCGameList msgGames = mes.getGameList();
         if (msgGames == null)
             return;
-        if (! isLocal)  // local's gameoption data is set up in handleVERSION
-        {
+        if (! isLocal)  // local's gameoption data is set up in handleVERSION;
+        {               // local's gamelist is reached through practiceServer obj.
             if (serverGames == null)
                 serverGames = msgGames;
             else
@@ -3495,28 +3531,28 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         while (gamesEnum.hasMoreElements())
         {
             String gaName = (String) gamesEnum.nextElement();
-            addToGameList(gaName, msgGames.getGameOptions(gaName), false);
+            addToGameList(gaName, msgGames.getGameOptionsString(gaName), false);
         }
     }
 
     /**
-     * add a new game to the initial window's list of games, with no options.
+     * add a new game to the initial window's list of games.
      * If client can't join, also add to {@link #gamesUnjoinable}.
      *
      * @param gameName the game name to add to the list;
      *                 may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
-     * @param gameOpts Set of {@link SOCGameOption game options} to use, or null
+     * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
      * @param addToSrvList Should this game be added to the list of remote-server games?
      *                 Local practice games should not be added.
      */
-    public void addToGameList(String gameName, Hashtable gameOpts, final boolean addToSrvList)
+    public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)
     {
-	boolean hasUnjoinMarker = (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE);
-	if (hasUnjoinMarker)
+        boolean hasUnjoinMarker = (gameName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+        if (hasUnjoinMarker)
         {
             gameName = gameName.substring(1);
         }
-	addToGameList(hasUnjoinMarker, gameName, gameOpts, addToSrvList);
+        addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
     }
 
     /**
@@ -3526,17 +3562,17 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * @param cannotJoin Can we not join this game?
      * @param gameName the game name to add to the list;
      *                 must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param gameOpts Set of {@link SOCGameOption game options} to use, or null
+     * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
      * @param addToSrvList Should this game be added to the list of remote-server games?
      *                 Local practice games should not be added.
      */
-    public void addToGameList(final boolean cannotJoin, String gameName, Hashtable gameOpts, final boolean addToSrvList)
+    public void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList)
     {
         if (addToSrvList)
         {
             if (serverGames == null)
                 serverGames = new SOCGameList();
-            serverGames.addGame(gameName, gameOpts, cannotJoin);
+            serverGames.addGame(gameName, gameOptsStr, cannotJoin);
         }
 
         if (cannotJoin)
@@ -4910,6 +4946,14 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	 * we should create and show a NewGameOptionsFrame.
 	 */
         public boolean   newGameWaitingForOpts = false;
+
+        /**
+         * If non-null, we're waiting to hear about options because
+         * user has clicked 'show options' on a game.  When all are
+         * received, we should create and show a NewGameOptionsFrame
+         * with that game's options.
+         */
+        public String    gameInfoWaitingForOpts = null;
 
         /**
          * Options will be null if {@link SOCPlayerClient#sVersion}

@@ -5502,13 +5502,13 @@ public class SOCServer extends Server
 	boolean vecIsOptObjs = false;
 	Vector okeys = mes.getOptionKeys();
 
-	if (okeys == null)
-	{
-	    // received "-", look for newer options (cli is older than us).
-	    // This will be null if nothing is new.
-	    okeys = SOCGameOption.optionsUnknownAtVersion(c.getVersion());
-	    vecIsOptObjs = true;
-	}
+        if (okeys == null)
+        {
+            // received "-", look for newer options (cli is older than us).
+            // This will be null if nothing is new.
+            okeys = SOCGameOption.optionsNewerThanVersion(c.getVersion());
+            vecIsOptObjs = true;
+        }
 
 	if (okeys != null)
 	{

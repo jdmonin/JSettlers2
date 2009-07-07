@@ -60,23 +60,24 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      */
     protected SOCGamesWithOptions(String[] gla)
     {
-	super(GAMESWITHOPTIONS, "-", gla);
+        super(GAMESWITHOPTIONS, "-", gla);
     }
 
     /**
-     * Parse the list of games (and options).
-     * Uses the option strings sent from server, via
-     * {@link SOCGameOption#parseOptionsToHash(String)}.
+     * Get the list of games (and option strings).
+     * List contains each game's option strings sent from server, as packed by
+     * {@link soc.game.SOCGameOption#packOptionsToString(java.util.Hashtable)}.
      * @return list of games contained in this message, or an empty SOCGameList
+     * @see SOCGameList#parseGameOptions(String)
      */
-    public SOCGameList parseGameList()
+    public SOCGameList getGameList()
     {
         SOCGameList gamelist = new SOCGameList();
         for (int ii = 0; ii < pa.length; )
         {
             final String gaName = pa[ii];
             ++ii;
-            gamelist.addGame(gaName, SOCGameOption.parseOptionsToHash(pa[ii]), false);
+            gamelist.addGame(gaName, pa[ii], false);
             ++ii;
         }
         return gamelist;

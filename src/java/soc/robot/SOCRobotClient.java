@@ -134,7 +134,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
     /**
      * options for all games on the server we've been asked to join.
-     * Key = game name, Value = hashtable of {@link SOCGameOption}
+     * Some games may have no options, so will have no entry here,
+     * although they will have an entry in {@link #games} once joined.
+     * Key = game name, Value = hashtable of {@link SOCGameOption}.
+     * Entries are added in {@link #handleJOINGAMEREQUEST(SOCJoinGameRequest)}.
+     * Since the robot and server are the same version, the
+     * set of "known options" will always be in sync.
      */
     private Hashtable gameOptions = new Hashtable();
 

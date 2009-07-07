@@ -34,7 +34,7 @@ import soc.game.SOCGameOption;
  * In 1.1.07, added optional parameter: game options.
  * Because this is sent only to robots, and robots' versions always
  * match the server version, we don't need to worry about backwards
- * compatability.
+ * compatibility.
  *
  * @author Robert S Thomas
  * @see SOCJoinGameAuth
@@ -52,7 +52,7 @@ public class SOCJoinGameRequest extends SOCMessage
     private int playerNumber;
 
     /**
-     * Game options, or null
+     * {@link SOCGameOption Game options}, or null
      * @since 1.1.07
      */
     private Hashtable opts = null;

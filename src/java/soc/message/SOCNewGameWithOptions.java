@@ -107,17 +107,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     }
 
     /**
-     * @return the options for the new game, a Hashtable of {@link SOCGameOption},
-     *         or null if no options
-     */
-    public Hashtable getOptions()
-    {
-	if (opts == null)
-	    opts = SOCGameOption.parseOptionsToHash(p2); // p2 == optstr
-	return opts;
-    }
-
-    /**
      * @return the game's minimum required client version, or -1.
      *         This is when sending from server to all clients.
      */
