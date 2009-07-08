@@ -589,7 +589,7 @@ public class SOCGameOption implements Cloneable
      *
      * @throws ClassCastException if hashtable contains anything other
      *         than SOCGameOptions
-     * @see #parseOptionNameValue(String)
+     * @see #parseOptionNameValue(String, boolean)
      * @see #packValue(StringBuffer)
      */
     public static String packOptionsToString(Hashtable ohash)
@@ -620,7 +620,7 @@ public class SOCGameOption implements Cloneable
     /**
      * Pack current value of this option into a string.
      * This is used in {@link #packOptionsToString(Hashtable)} and
-     * read in {@link #parseOptionNameValue(String) and {@link #parseOptionsToHash(String)}.
+     * read in {@link #parseOptionNameValue(String, boolean)} and {@link #parseOptionsToHash(String)}.
      * See {@link #packOptionsToString(Hashtable)} for the string's format.
      *
      * @param sb Pack into (append to) this buffer
@@ -665,7 +665,7 @@ public class SOCGameOption implements Cloneable
      * @return hashtable of SOCGameOptions, or null if ostr==null or empty ("-")
      *         or if ostr is malformed.  Any unrecognized options
      *         will be in the hashtable as type {@link #OTYPE_UNKNOWN}.
-     * @see #parseOptionNameValue(String)
+     * @see #parseOptionNameValue(String, boolean)
      */
     public static Hashtable parseOptionsToHash(String ostr)
     {
@@ -679,7 +679,7 @@ public class SOCGameOption implements Cloneable
 	while (st.hasMoreTokens())
 	{
 	    nvpair = st.nextToken();  // skips any leading commas or doubled commas
-            SOCGameOption copyOpt = parseOptionNameValue(nvpair);
+            SOCGameOption copyOpt = parseOptionNameValue(nvpair, false);
             if (copyOpt == null)
                 return null;  // parse error
             ohash.put(copyOpt.optKey, copyOpt);
@@ -696,12 +696,15 @@ public class SOCGameOption implements Cloneable
      *
      * @param nvpair Name-value pair string, as created by
      *               {@link #packOptionsToString(Hashtable)}.
+     *               'T' or 't' is always allowed for bool value, regardless of forceNameUpcase.
+     * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
+     *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @see #parseOptionsToHash(String)
      * @see #packValue(StringBuffer)
      */
-    public static SOCGameOption parseOptionNameValue(final String nvpair)
+    public static SOCGameOption parseOptionNameValue(final String nvpair, final boolean forceNameUpcase)
     {
         int i = nvpair.indexOf('=');  // don't just tokenize for this (efficiency, and param value may contain a "=")
         if ((i < 1) || (i == (nvpair.length() - 1)))
@@ -709,6 +712,8 @@ public class SOCGameOption implements Cloneable
 
         String optkey = nvpair.substring(0, i);
         String optval = nvpair.substring(i+1);
+        if (forceNameUpcase)
+            optkey = optkey.toUpperCase();
         SOCGameOption knownOpt = (SOCGameOption) allOptions.get(optkey);
         SOCGameOption copyOpt;
         if (knownOpt == null)
@@ -728,7 +733,7 @@ public class SOCGameOption implements Cloneable
             switch (copyOpt.optType)  // OTYPE_* - update this switch, must match format produced
             {                         //           in packValue / packOptionsToString
             case OTYPE_BOOL:
-                copyOpt.setBoolValue(optval.equals("t"));
+                copyOpt.setBoolValue(optval.equals("t") || optval.equals("T"));
                 break;
 
             case OTYPE_INT:
@@ -743,9 +748,10 @@ public class SOCGameOption implements Cloneable
                 break;
 
             case OTYPE_INTBOOL:
-                copyOpt.setBoolValue(optval.charAt(0) == 't');
                 try
                 {
+                    final char ch0 = optval.charAt(0);
+                    copyOpt.setBoolValue((ch0 == 't') || (ch0 == 'T'));
                     copyOpt.setIntValue(Integer.parseInt(optval.substring(1)));
                 } catch (NumberFormatException e)
                 { 

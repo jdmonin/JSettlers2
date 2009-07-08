@@ -7331,13 +7331,13 @@ public class SOCServer extends Server
     /**
      * Quick-and-dirty command line parsing of game options
      * @param optNameValue Game option name+value, of form expected by
-     *                     {@link SOCGameOption#parseOptionNameValue(String)}
+     *                     {@link SOCGameOption#parseOptionNameValue(String, boolean)}
      * @return true if OK, false if bad name or value
      * @since 1.1.07
      */
     public static boolean parseCmdline_GameOption(final String optNameValue)
     {
-        SOCGameOption op = SOCGameOption.parseOptionNameValue(optNameValue);
+        SOCGameOption op = SOCGameOption.parseOptionNameValue(optNameValue, true);
         if (op == null) 
         {
             System.err.println("Unknown or malformed game option: " + optNameValue);
