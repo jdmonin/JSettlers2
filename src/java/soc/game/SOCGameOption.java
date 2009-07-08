@@ -907,8 +907,9 @@ public class SOCGameOption implements Cloneable
 
     /**
      * For user output, the string name of the option type's constant.
+     * The prefix "OTYPE_" is omitted.
      * @param optType An option's {@link #optType} value
-     * @return String for this otype constant, such as "OTYPE_INTBOOL" or "OTYPE_UNKNOWN",
+     * @return String for this otype constant, such as "INTBOOL" or "UNKNOWN",
      *         or null if optType is outside the known type value range.
      */
     public static String optionTypeName(final int optType)
@@ -917,25 +918,25 @@ public class SOCGameOption implements Cloneable
         switch (optType)  // OTYPE_*
         {
         case OTYPE_UNKNOWN:
-            otname = "OTYPE_UNKNOWN";  break;
+            otname = "UNKNOWN";  break;
 
         case OTYPE_BOOL:
-            otname = "OTYPE_BOOL";  break; 
+            otname = "BOOL";  break; 
 
         case OTYPE_INT:
-            otname = "OTYPE_INT";  break;
+            otname = "INT";  break;
 
         case OTYPE_INTBOOL:
-            otname = "OTYPE_INTBOOL";  break;
+            otname = "INTBOOL";  break;
 
         case OTYPE_ENUM:
-            otname = "OTYPE_ENUM";  break;
+            otname = "ENUM";  break;
 
         case OTYPE_STR:
-            otname = "OTYPE_STR";  break;
+            otname = "STR";  break;
 
         case OTYPE_STRHIDE:
-            otname = "OTYPE_STRHIDE"; break;
+            otname = "STRHIDE"; break;
 
         default:
             otname = null;
