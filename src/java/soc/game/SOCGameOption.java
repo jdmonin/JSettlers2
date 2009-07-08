@@ -704,14 +704,11 @@ public class SOCGameOption implements Cloneable
     public static SOCGameOption parseOptionNameValue(final String nvpair)
     {
         int i = nvpair.indexOf('=');  // don't just tokenize for this (efficiency, and param value may contain a "=")
-        if (i == -1)
+        if ((i < 1) || (i == (nvpair.length() - 1)))
             return null;  // malformed
 
         String optkey = nvpair.substring(0, i);
         String optval = nvpair.substring(i+1);
-        if ((i < 1) || (i == (nvpair.length() - 1)))
-            return null;  // malformed
-
         SOCGameOption knownOpt = (SOCGameOption) allOptions.get(optkey);
         SOCGameOption copyOpt;
         if (knownOpt == null)
