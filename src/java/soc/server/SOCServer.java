@@ -178,7 +178,13 @@ public class SOCServer extends Server
      */
     public static SOCRobotParameters ROBOT_PARAMS_SMARTER
         = new SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 0, 1);
-    
+
+    /**
+     * Did the command line include --option / -o to set {@link SOCGameOption game option} values?
+     * @since 1.1.07
+     */
+    public static boolean hasSetGameOptions = false;
+
     /** Status Message to send, nickname already logged into the system */
     public static final String MSG_NICKNAME_ALREADY_IN_USE
         = "Someone with that nickname is already logged into the system.";
@@ -287,9 +293,7 @@ public class SOCServer extends Server
      */
     private void initSocServer(String databaseUserName, String databasePassword)
     {
-        System.err.println("Java Settlers Server " + Version.version() +
-                           ", build " + Version.buildnum() + ", " + Version.copyright());
-        System.err.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+        printVersionText();
         
         /* Check for problems during super setup (such as port already in use) */
         if (error != null)
@@ -320,6 +324,17 @@ public class SOCServer extends Server
         gameTimeoutChecker.start();
         this.databaseUserName = databaseUserName;
         this.databasePassword = databasePassword;
+    }
+
+    /**
+     * Print the version and attribution text. Formerly inside constructors.
+     * @since 1.1.07
+     */
+    public static void printVersionText()
+    {
+        System.err.println("Java Settlers Server " + Version.version() +
+                ", build " + Version.buildnum() + ", " + Version.copyright());
+        System.err.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
     }
 
     /**
@@ -7314,19 +7329,170 @@ public class SOCServer extends Server
     }
 
     /**
+     * Quick-and-dirty command line parsing of game options
+     * @param optNameValue Game option name+value, of form expected by
+     *                     {@link SOCGameOption#parseOptionNameValue(String)}
+     * @return true if OK, false if bad name or value
+     * @since 1.1.07
+     */
+    public static boolean parseCmdline_GameOption(final String optNameValue)
+    {
+        SOCGameOption op = SOCGameOption.parseOptionNameValue(optNameValue);
+        if (op == null) 
+        {
+            System.err.println("Unknown or malformed game option: " + optNameValue);
+            return false;
+        }
+        if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
+        {
+            System.err.println("Unknown game option: " + op.optKey);
+            return false;
+        }
+
+        try
+        {
+            SOCGameOption.setKnownOptionCurrentValue(op);
+            return true;
+        } catch (Throwable t)
+        {
+            System.err.println("Bad value, cannot set game option: " + op.optKey);
+            return false;
+        }
+    }
+
+    /**
+     * Quick-and-dirty parsing of command-line arguments with dashes.
+     * @param args args as passed to main
+     * @return args with any dashed arguments removed, or null for argument error.
+     * @since 1.1.07
+     */
+    public static String[] parseCmdline_DashedArgs(String[] args)
+    {
+        int aidx = 0;
+        while ((aidx < args.length) && (args[aidx].startsWith("-")))
+        {
+            String arg = args[aidx];
+
+            if (arg.equals("-V") || arg.equalsIgnoreCase("--version"))
+            {
+                printVersionText();
+            }
+            else if (arg.equalsIgnoreCase("-h") || arg.equals("?") || arg.equalsIgnoreCase("--help"))
+            {
+                printUsage(true);
+            }
+            else if (arg.startsWith("-o") || arg.equalsIgnoreCase("--option"))
+            {
+                hasSetGameOptions = true;
+                String argValue;
+                if (arg.startsWith("-o") && (arg.length() > 2))
+                {
+                    argValue = arg.substring(2);
+                } else {
+                    ++aidx;
+                    if (aidx < args.length)
+                        argValue = args[aidx];
+                    else 
+                        argValue = null;
+                }
+                if (argValue != null)
+                {
+                    if (! parseCmdline_GameOption(argValue))
+                        argValue = null;
+                }
+                if (argValue == null)
+                {
+                    System.err.println("Missing required option name/value after " + arg);
+                    printGameOptions();
+                    return null;
+                }
+            } else {
+                System.err.println("Unknown argument: " + arg);
+            }
+            ++aidx;
+        }
+
+        // Done parsing.  Return the remaining args.
+        if (aidx == 0)
+        {
+            return args;
+        } else {
+            final int numargs = args.length - aidx;
+            String[] newargs = new String[numargs];
+            System.arraycopy(args, aidx, newargs, 0, numargs);
+            return newargs;
+        }
+    }
+
+    /**
+     * Print command line parameter information, including options ("--" / "-").
+     * Long format gives details and also calls {@link #printVersionText()} beforehand.
+     * @since 1.1.07
+     */
+    public static void printUsage(final boolean longFormat)
+    {
+        if (longFormat)
+        {
+            printVersionText();
+        }
+        System.err.println("usage: java soc.server.SOCServer [option...] port_number max_connections dbUser dbPass");
+        if (longFormat)
+        {
+            System.err.println("usage: recognized options:");
+            System.err.println("       -V or --version    : print version information");
+            System.err.println("       -h or --help or -? : print this screen");
+            System.err.println("       -o or --option name=value : set per-game options' default values");
+            printGameOptions();
+        }
+    }
+
+    /**
+     * Print out the list of possible game options, and current values.
+     * @since 1.1.07
+     */
+    public static void printGameOptions()
+    {
+        Hashtable allopts = SOCGameOption.getAllKnownOptions();
+        System.err.println("-- Current game options: --");
+        for (Enumeration e = allopts.keys(); e.hasMoreElements(); )
+        {
+            String okey = (String) e.nextElement();
+            SOCGameOption opt = (SOCGameOption) allopts.get(okey);
+            StringBuffer sb = new StringBuffer("  ");
+            sb.append(okey);
+            sb.append(" (");
+            sb.append(SOCGameOption.optionTypeName(opt.optType));
+            sb.append(") ");
+            opt.packValue(sb);
+            sb.append("  ");
+            sb.append(opt.optDesc);
+            System.err.println(sb.toString());
+        }
+    }
+
+    /**
      * Starting the server from the command line
      *
-     * @param args  arguments: port number
+     * @param args  arguments: port number, etc
      */
     static public void main(String[] args)
     {
         int port;
         int mc;
 
+        if ((args.length >=1) && (args[0].startsWith("-")))
+        {
+            args = parseCmdline_DashedArgs(args);
+            if (args == null)
+            {
+                printUsage(false);
+                return;
+            }
+        }
+
         if (args.length < 4)
         {
-            System.err.println("usage: java soc.server.SOCServer port_number max_connections dbUser dbPass");
-
+            printUsage(false);
             return;
         }
 
@@ -7337,13 +7503,19 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            System.err.println("usage: java soc.server.SOCServer port_number max_connections dbUser dbPass");
-
+            printUsage(false);
             return;
         }
 
         SOCServer server = new SOCServer(port, mc, args[2], args[3]);
         server.setPriority(5);
         server.start();
+        if (hasSetGameOptions)
+        {
+            Thread.yield();  // wait for other output to appear first
+            try { Thread.sleep(200); } catch (InterruptedException ie) {} 
+
+            printGameOptions();
+        }
     }
 }

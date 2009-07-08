@@ -10,6 +10,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 	- BC  Break up clumps of # or more same-type ports/hexes
 	- NT  No trading allowed
 - GameList kept at server/client
+- Framework for parsing "-" / "--" options at server commandline
 - Refactor per-turn resets from many places to new game.updateAtTurn()
 
     > 1.1.06 (build 2009-06-01)

@@ -110,7 +110,7 @@ public class SOCGameOption implements Cloneable
     // If you create a new option type,
     // please update parseOptionsToHash(), packOptionsToString(),
     // adjustOptionsToKnown(), and soc.message.SOCGameOptionGetInfo,
-    // and possibly other places.
+    // and other places.
     // (Search *.java for "// OTYPE_*" to find all locations)
 
     /** Option type.
@@ -469,6 +469,45 @@ public class SOCGameOption implements Cloneable
     }
 
     /**
+     * Set the current value of a known option, based on the current value of
+     * another object with the same {@link #optKey}.
+     * If there is no known option with oCurr.{@link #optKey}, it is ignored and nothing is set.
+     * @param ocurr Option with the requested current value
+     * @throws  IllegalArgumentException if value is not permitted; note that
+     *            intValues outside of range are silently clipped, and will not
+     *            throw this exception.
+     */
+    public static void setKnownOptionCurrentValue(SOCGameOption ocurr)
+        throws IllegalArgumentException
+    {
+        final String oKey = ocurr.optKey;
+        SOCGameOption oKnown = (SOCGameOption) allOptions.get(oKey);
+        if (oKnown == null)
+            return;
+        switch (oKnown.optType)  // OTYPE_*
+        {
+        case OTYPE_BOOL:
+            oKnown.boolValue = ocurr.boolValue;
+            break;
+
+        case OTYPE_INT:
+        case OTYPE_ENUM:
+            oKnown.setIntValue(ocurr.intValue);
+            break;
+
+        case OTYPE_INTBOOL:
+            oKnown.boolValue = ocurr.boolValue;
+            oKnown.setIntValue(ocurr.intValue);
+            break;
+
+        case OTYPE_STR:
+        case OTYPE_STRHIDE:
+            oKnown.setStringValue(ocurr.strValue);
+            break;
+        }
+    }
+
+    /**
      * @param opts  a hashtable of SOCGameOptions, or null
      * @return a deep copy of all option objects within opts, or null if opts is null
      */
@@ -534,14 +573,24 @@ public class SOCGameOption implements Cloneable
 
     /**
      * Utility - build a string of option name-value pairs.
+     * This can be unpacked with {@link #parseOptionsToHash(String)}.
      *
      * @param ohash Hashtable of SOCGameOptions, or null
      * @return string of name-value pairs, or "-" for an empty or null ohash;
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
-     *         part of the string. Format: k1=t,k2=f,k3=10,k4=t7,k5=f7
+     *         part of the string. Format: k1=t,k2=f,k3=10,k4=t7,k5=f7.
+     * The format for each value depends on its type:
+     *<UL>
+     *<LI>OTYPE_BOOL: t or f
+     *<LI>OTYPE_ENUM: int in range 1-n
+     *<LI>OTYPE_INTBOOL: t or f followed immediately by int value, as in: t7 or f9
+     *<LI>All other optTypes: int value or string value, as appropriate
+     *</UL>
+     *
      * @throws ClassCastException if hashtable contains anything other
      *         than SOCGameOptions
-     * @see #parseOptionsToHash(String)
+     * @see #parseOptionNameValue(String)
+     * @see #packValue(StringBuffer)
      */
     public static String packOptionsToString(Hashtable ohash)
 	throws ClassCastException
@@ -563,33 +612,46 @@ public class SOCGameOption implements Cloneable
 		hadAny = true;
 	    sb.append(op.optKey);
 	    sb.append('=');
-	    switch (op.optType)  // OTYPE_*
-	    {
-	    case OTYPE_BOOL:
-		sb.append(op.boolValue ? 't' : 'f');
-		break;
-
-	    case OTYPE_INT:
-	    case OTYPE_ENUM:
-		sb.append(op.intValue);
-		break;
-
-	    case OTYPE_INTBOOL:
-		sb.append(op.boolValue ? 't' : 'f');
-		sb.append(op.intValue);
-		break;
-
-	    case OTYPE_STR:
-	    case OTYPE_STRHIDE:
-		if (op.strValue != null)
-		    sb.append(op.strValue);  // value is checked in setter vs SEP, SEP2
-		break;
-
-	    default:
-		sb.append ('?');  // Shouldn't happen
-	    }
+            op.packValue(sb);
 	}
 	return sb.toString();
+    }
+
+    /**
+     * Pack current value of this option into a string.
+     * This is used in {@link #packOptionsToString(Hashtable)} and
+     * read in {@link #parseOptionNameValue(String) and {@link #parseOptionsToHash(String)}.
+     * See {@link #packOptionsToString(Hashtable)} for the string's format.
+     *
+     * @param sb Pack into (append to) this buffer
+     */
+    public void packValue(StringBuffer sb)
+    {
+        switch (optType)  // OTYPE_* - update this switch, and javadoc of packOptionsToString and of parseOptionNameValue.
+        {                 //           The format produced must match that expected in parseOptionNameValue.
+        case OTYPE_BOOL:
+            sb.append(boolValue ? 't' : 'f');
+            break;
+
+        case OTYPE_INT:
+        case OTYPE_ENUM:
+            sb.append(intValue);
+            break;
+
+        case OTYPE_INTBOOL:
+            sb.append(boolValue ? 't' : 'f');
+            sb.append(intValue);
+            break;
+
+        case OTYPE_STR:
+        case OTYPE_STRHIDE:
+            if (strValue != null)
+                sb.append(strValue);  // value is checked in setter vs SEP, SEP2
+            break;
+
+        default:
+            sb.append ('?');  // Shouldn't happen
+        }
     }
 
     /**
@@ -600,9 +662,10 @@ public class SOCGameOption implements Cloneable
      *             A leading comma is OK (possible artifact of StringTokenizer
      *             coming from over the network).
      *             If ostr=="-", hashtable will be null.
-     * @return hashtable of SOCGameOptions, or null if ostr==null
+     * @return hashtable of SOCGameOptions, or null if ostr==null or empty ("-")
      *         or if ostr is malformed.  Any unrecognized options
      *         will be in the hashtable as type {@link #OTYPE_UNKNOWN}.
+     * @see #parseOptionNameValue(String)
      */
     public static Hashtable parseOptionsToHash(String ostr)
     {
@@ -615,74 +678,94 @@ public class SOCGameOption implements Cloneable
 	String nvpair;
 	while (st.hasMoreTokens())
 	{
-	    nvpair = st.nextToken();  // skips any leading comma
-	    int i = nvpair.indexOf('=');  // don't just tokenize for this (efficiency, and param value may contain a "=")
-	    if (i == -1)
-		return null;  // malformed
-
-	    String optkey = nvpair.substring(0, i);
-	    String optval = nvpair.substring(i+1);
-	    if ((optkey.length() == 0) || (optval.length() == 0))
-		return null;  // malformed
-
-	    SOCGameOption knownOpt = (SOCGameOption) allOptions.get(optkey);
-	    if (knownOpt == null)
-	    {
-		ohash.put(optkey, new SOCGameOption(optkey));  // OTYPE_UNKNOWN
-	    }
-	    else
-	    {
-		SOCGameOption copyOpt;
-		try
-		{
-		    copyOpt = (SOCGameOption) knownOpt.clone();
-		} catch (CloneNotSupportedException ce)
-		{
-		    return null;
-		}
-
-		switch (copyOpt.optType)  // OTYPE_*
-		{
-		case OTYPE_BOOL:
-		    copyOpt.setBoolValue(optval.equals("t"));
-		    break;
-
-		case OTYPE_INT:
-		case OTYPE_ENUM:
-		    try
-		    {
-			copyOpt.setIntValue(Integer.parseInt(optval));
-		    } catch (NumberFormatException e)
-		    { 
-			return null;  // malformed
-		    }
-		    break;
-
-		case OTYPE_INTBOOL:
-		    copyOpt.setBoolValue(optval.charAt(0) == 't');
-		    try
-		    {
-			copyOpt.setIntValue(Integer.parseInt(optval.substring(1)));
-		    } catch (NumberFormatException e)
-		    { 
-			return null;  // malformed
-		    }
-		    break;
-
-		case OTYPE_STR:
-		case OTYPE_STRHIDE:
-		    copyOpt.setStringValue(optval);
-		    break;
-
-		default:
-		    ohash.put(optkey, new SOCGameOption(optkey));
-		}
-
-		ohash.put(optkey, copyOpt);
-	    }
+	    nvpair = st.nextToken();  // skips any leading commas or doubled commas
+            SOCGameOption copyOpt = parseOptionNameValue(nvpair);
+            if (copyOpt == null)
+                return null;  // parse error
+            ohash.put(copyOpt.optKey, copyOpt);
 	}  // while (moreTokens)
 
 	return ohash;
+    }
+
+    /**
+     * Utility - parse a single name-value pair produced by packOptionsToString.
+     * Expected format of nvpair: "optname=optvalue".
+     * Expected format of optvalue depends on its type.
+     * See {@link #packOptionsToString(Hashtable)} for the format.
+     *
+     * @param nvpair Name-value pair string, as created by
+     *               {@link #packOptionsToString(Hashtable)}.
+     * @return Parsed option, or null if parse error;
+     *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
+     * @see #parseOptionsToHash(String)
+     * @see #packValue(StringBuffer)
+     */
+    public static SOCGameOption parseOptionNameValue(final String nvpair)
+    {
+        int i = nvpair.indexOf('=');  // don't just tokenize for this (efficiency, and param value may contain a "=")
+        if (i == -1)
+            return null;  // malformed
+
+        String optkey = nvpair.substring(0, i);
+        String optval = nvpair.substring(i+1);
+        if ((i < 1) || (i == (nvpair.length() - 1)))
+            return null;  // malformed
+
+        SOCGameOption knownOpt = (SOCGameOption) allOptions.get(optkey);
+        SOCGameOption copyOpt;
+        if (knownOpt == null)
+        {
+            copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN
+        }
+        else
+        {
+            try
+            {
+                copyOpt = (SOCGameOption) knownOpt.clone();
+            } catch (CloneNotSupportedException ce)
+            {
+                return null;
+            }
+
+            switch (copyOpt.optType)  // OTYPE_* - update this switch, must match format produced
+            {                         //           in packValue / packOptionsToString
+            case OTYPE_BOOL:
+                copyOpt.setBoolValue(optval.equals("t"));
+                break;
+
+            case OTYPE_INT:
+            case OTYPE_ENUM:
+                try
+                {
+                    copyOpt.setIntValue(Integer.parseInt(optval));
+                } catch (NumberFormatException e)
+                { 
+                    return null;  // malformed
+                }
+                break;
+
+            case OTYPE_INTBOOL:
+                copyOpt.setBoolValue(optval.charAt(0) == 't');
+                try
+                {
+                    copyOpt.setIntValue(Integer.parseInt(optval.substring(1)));
+                } catch (NumberFormatException e)
+                { 
+                    return null;  // malformed
+                }
+                break;
+
+            case OTYPE_STR:
+            case OTYPE_STRHIDE:
+                copyOpt.setStringValue(optval);
+                break;
+
+            default:
+                copyOpt = new SOCGameOption(optkey);  // OTYPE_UNKNOWN
+            }
+        }
+        return copyOpt;
     }
 
     /**
@@ -825,4 +908,41 @@ public class SOCGameOption implements Cloneable
 	return allKnown;
     }
 
+    /**
+     * For user output, the string name of the option type's constant.
+     * @param optType An option's {@link #optType} value
+     * @return String for this otype constant, such as "OTYPE_INTBOOL" or "OTYPE_UNKNOWN",
+     *         or null if optType is outside the known type value range.
+     */
+    public static String optionTypeName(final int optType)
+    {
+        String otname;
+        switch (optType)  // OTYPE_*
+        {
+        case OTYPE_UNKNOWN:
+            otname = "OTYPE_UNKNOWN";  break;
+
+        case OTYPE_BOOL:
+            otname = "OTYPE_BOOL";  break; 
+
+        case OTYPE_INT:
+            otname = "OTYPE_INT";  break;
+
+        case OTYPE_INTBOOL:
+            otname = "OTYPE_INTBOOL";  break;
+
+        case OTYPE_ENUM:
+            otname = "OTYPE_ENUM";  break;
+
+        case OTYPE_STR:
+            otname = "OTYPE_STR";  break;
+
+        case OTYPE_STRHIDE:
+            otname = "OTYPE_STRHIDE"; break;
+
+        default:
+            otname = null;
+        }
+        return otname;
+    }
 }

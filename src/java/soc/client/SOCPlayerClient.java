@@ -149,7 +149,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     /**
      * "New Game..." button, brings up {@link NewGameOptionsFrame} window
-     * @since 1.1.7
+     * @since 1.1.07
      */
     protected Button ng;  // new game
 
@@ -1314,20 +1314,21 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         }
 
         // Do we already have info on all options?
-        boolean optsAllKnown, askedAlready;
+        boolean askedAlready, optsAllKnown, knowDefaults;
         synchronized (opts)
         {
             askedAlready = opts.askedDefaultsAlready;
             optsAllKnown = opts.allOptionsReceived;
+            knowDefaults = opts.defaultsReceived;
         }
 
-        if (askedAlready && ! optsAllKnown)
+        if (askedAlready && ! (optsAllKnown && knowDefaults))
         {
             return;  // <--- Early return: Already waiting for an answer ----
             // TODO if asking-time is > 5 sec ago, assume we'll never know the unknown ones, and present gui.
         }
 
-        if (optsAllKnown)
+        if (optsAllKnown && knowDefaults)
         {
             // All done, present the options window frame
             NewGameOptionsFrame.createAndShow
@@ -4961,6 +4962,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
          */
 	public Hashtable optionSet = null;
         public boolean   askedDefaultsAlready = false;
+        public boolean   defaultsReceived = false;
 
 	public GameOptionServerSet() {}
 
@@ -4974,7 +4976,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	{
 	    allOptionsReceived = true;
             if (askedDefaults)
+            {
                 askedDefaultsAlready = true;
+                defaultsReceived = true;
+            }
 	}
 
 	/**
@@ -4990,6 +4995,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	    optionSet = servOpts;
 	    Vector unknowns = SOCGameOption.findUnknowns(servOpts);
 	    allOptionsReceived = (unknowns == null);
+	    defaultsReceived = true;
 	    return unknowns;
 	}
 
