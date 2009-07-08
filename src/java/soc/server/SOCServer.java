@@ -7458,15 +7458,35 @@ public class SOCServer extends Server
         {
             String okey = (String) e.nextElement();
             SOCGameOption opt = (SOCGameOption) allopts.get(okey);
+            boolean quotes = (opt.optType == SOCGameOption.OTYPE_STR) || (opt.optType == SOCGameOption.OTYPE_STRHIDE);
+            // OTYPE_* - consider any type-specific output in this method.
+
             StringBuffer sb = new StringBuffer("  ");
             sb.append(okey);
             sb.append(" (");
             sb.append(SOCGameOption.optionTypeName(opt.optType));
             sb.append(") ");
+            if (quotes)
+                sb.append('"');
             opt.packValue(sb);
+            if (quotes)
+                sb.append('"');
             sb.append("  ");
             sb.append(opt.optDesc);
             System.err.println(sb.toString());
+            if (opt.optType == SOCGameOption.OTYPE_ENUM)
+            {
+                sb = new StringBuffer("    value strings: ");
+                for (int i = 1; i <= opt.maxIntValue; ++i)
+                {
+                    sb.append(' ');
+                    sb.append(i);
+                    sb.append(' ');
+                    sb.append(opt.enumVals[i-1]);
+                    sb.append(' ');
+                }
+                System.err.println(sb.toString());
+            }
         }
     }
 

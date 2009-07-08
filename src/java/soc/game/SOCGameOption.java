@@ -75,6 +75,16 @@ public class SOCGameOption implements Cloneable
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, true, "No Trading allowed"));
 
+        /*
+        opt.put("DEBUG_ENUM", new SOCGameOption
+                ("DEBUG_ENUM", 1107, 1107, 
+                 3, new String[]{ "First", "Second", "Third", "Fourth"}, false, "Test option enum"));
+        opt.put("DEBUG_STR", new SOCGameOption
+                ("DEBUG_STR", 1107, 1107, 20, false, false, "Test option str"));
+        opt.put("DEBUG_STRHIDE", new SOCGameOption
+                ("DEBUG_STRHIDE", 1107, 1107, 20, true, false, "Test option strhide"));
+        */
+
         return opt;
     }
 
@@ -426,18 +436,21 @@ public class SOCGameOption implements Cloneable
     public void setStringValue(String v)
 	throws IllegalArgumentException
     {
-	if (v != null)
-	{
-	    final int vl = v.length();
-	    if (vl == 0)
-		v = null;
-	    else if (vl > maxIntValue)
-		v = v.substring(0, maxIntValue);
-	    if ((-1 != v.indexOf(SOCMessage.sep_char))
-		|| (-1 != v.indexOf(SOCMessage.sep2_char)))
-		throw new IllegalArgumentException("new value contains msg separator char");
-	}
-	strValue = v;
+        if (v != null)
+        {
+            final int vl = v.length();
+            if (vl == 0)
+            {
+                v = null;
+            } else {
+                if (vl > maxIntValue)
+                    v = v.substring(0, maxIntValue);
+                if ((-1 != v.indexOf(SOCMessage.sep_char))
+                      || (-1 != v.indexOf(SOCMessage.sep2_char)))
+                    throw new IllegalArgumentException("new value contains msg separator char");
+            }
+        }
+        strValue = v;
     }
 
     /**
@@ -707,7 +720,7 @@ public class SOCGameOption implements Cloneable
     public static SOCGameOption parseOptionNameValue(final String nvpair, final boolean forceNameUpcase)
     {
         int i = nvpair.indexOf('=');  // don't just tokenize for this (efficiency, and param value may contain a "=")
-        if ((i < 1) || (i == (nvpair.length() - 1)))
+        if (i < 1)
             return null;  // malformed
 
         String optkey = nvpair.substring(0, i);
@@ -722,6 +735,12 @@ public class SOCGameOption implements Cloneable
         }
         else
         {
+            if ((optval.length() == 0)
+                    && (knownOpt.optType != OTYPE_STR)  // OTYPE_* - if string-type, add here
+                    && (knownOpt.optType != OTYPE_STRHIDE))
+            {
+                return null;  // malformed: no value
+            }
             try
             {
                 copyOpt = (SOCGameOption) knownOpt.clone();
