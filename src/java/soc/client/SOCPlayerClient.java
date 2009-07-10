@@ -82,6 +82,8 @@ import java.net.Socket;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.Vector;
 
 
@@ -210,6 +212,21 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
 	practiceServGameOpts = new GameOptionServerSet();
+
+    /**
+     * Task for timeout when asking remote server for {@link SOCGameOptionInfo game options info}.
+     * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
+     * @see #gameOptionsSetTimeoutTask()
+     * @since 1.1.07
+     */
+    protected GameOptionsTimeoutTask gameOptsTask = null;
+
+    /**
+     * Utility for time-driven events in the client.
+     * TODO: Combine with playerinterface
+     * @since 1.1.07
+     */
+    public Timer eventTimer = new Timer(true);  // use daemon thread
 
     /**
      * Once true, disable "nick" textfield, etc.
@@ -2098,15 +2115,21 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         // Server's responses will add, remove or change our "known options".
 	final int cliVersion = Version.versionNumber();
 	if (sVersion > cliVersion)
-	{
-	    put(SOCGameOptionGetInfos.toCmd(null), isLocal);  // sends "-"
+        {
+            if (! isLocal)
+                gameOptionsSetTimeoutTask();
+            put(SOCGameOptionGetInfos.toCmd(null), isLocal);  // sends "-"
 	} else if (sVersion < cliVersion)
 	{
 	    if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
 	    {
 	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion);
 		if (tooNewOpts != null)
-		    put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isLocal);
+                {
+                    if (! isLocal)
+                        gameOptionsSetTimeoutTask();
+                    put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isLocal);
+		}
 	    } else {
 		// server is too old to understand options. Can't happen with local practice srv,
 		// because that's our version (it runs from our own JAR file).
@@ -3447,6 +3470,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
 	if (unknowns != null)
 	{
+            if (! isLocal)
+                gameOptionsSetTimeoutTask();
 	    put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isLocal);
 	} else {
 	    NewGameOptionsFrame.createAndShow
@@ -3476,6 +3501,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	    newGameWaiting = opts.newGameWaitingForOpts;
             gameInfoWaiting = opts.gameInfoWaitingForOpts;
 	}
+
+	if ((! isLocal) && mes.getOptionNameKey().equals("-"))
+	    gameOptionsCancelTimeoutTask();
 
 	if (hasAllNow)
 	{
@@ -4407,6 +4435,34 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
+     * Start the game-options info timeout
+     * ({@link GameOptionsTimeoutTask}) at 5 seconds.
+     * @see #gameOptionsCancelTimeoutTask()
+     * @since 1.1.07
+     */
+    private void gameOptionsSetTimeoutTask()
+    {
+        if (gameOptsTask != null)
+            gameOptsTask.cancel();
+        gameOptsTask = new GameOptionsTimeoutTask(this, tcpServGameOpts);
+        eventTimer.schedule(gameOptsTask, 5000 /* ms */ );
+    }
+ 
+    /**
+     * Cancel the game-options info timeout.
+     * @see #gameOptionsSetTimeoutTask()
+     * @since 1.1.07
+     */
+    private void gameOptionsCancelTimeoutTask()
+    {
+        if (gameOptsTask != null)
+        {
+            gameOptsTask.cancel();
+            gameOptsTask = null;
+        }
+    }
+
+    /**
      * Create a game name, and start a practice game.
      * Assumes {@link #MAIN_PANEL} is initialized.
      */
@@ -4927,6 +4983,42 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         }
     }
 
+
+    /**
+     * TimerTask used soon after client connect, to prevent waiting forever for
+     * {@link SOCGameOptionInfo game options info}
+     * (assume slow connection or server bug).
+     * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
+     *<P>
+     * When timer fires, assume no more options will be received.
+     * Call {@link SOCPlayerClient#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
+     * to trigger end-of-list behavior at client.
+     * @since 1.1.07
+     */
+    private static class GameOptionsTimeoutTask extends TimerTask
+    {
+        public SOCPlayerClient pcli;
+        public GameOptionServerSet srvOpts;
+
+        public GameOptionsTimeoutTask (SOCPlayerClient c, GameOptionServerSet opts)
+        {
+            pcli = c;
+            srvOpts = opts;
+        }
+
+        /**
+         * Called when timer fires. See class description for action taken.
+         */
+        public void run()
+        {
+            pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
+            srvOpts.noMoreOptions(false);
+            pcli.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
+        }
+
+    }  // GameOptionsTimeoutTask
+
+
     /**
      * Track the server's valid game option set.
      * One instance for remote tcp server, one for practice server.
@@ -4964,7 +5056,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         public boolean   askedDefaultsAlready = false;
         public boolean   defaultsReceived = false;
 
-	public GameOptionServerSet() {}
+        public GameOptionServerSet()
+        {
+            optionSet = SOCGameOption.getAllKnownOptions();
+        }
 
 	/**
 	 * The server doesn't have any more options to send (or none at all, from its version).
