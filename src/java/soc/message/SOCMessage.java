@@ -313,7 +313,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
              * If only one param is seen, this will be null;
              * use {@link #toSingleElemArray(String)} to build it.
              * Note that if you passed a non-null gamename to the
-             * {@link SOCMessageTemplateMs} constructor,
+             * {@link SOCMessageTemplateMs} or SOCMessageTemplateMi constructor,
              * then multiData[0] here will be gamename,
              * and multiData[1] == param[0] as passed to that constructor.
              *<code>

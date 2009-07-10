@@ -48,6 +48,10 @@ package soc.message;
  *             multiData = toSingleElemArray(data);
  *         return SOCPotentialSettlements.parseDataStr(multiData);
  *</code>
+ *<P>
+ * Note that if you passed a non-null gamename to the {@link SOCMessageTemplateMs}
+ * or SOCMessageTemplateMi constructor,
+ * then multiData[0] here will be gamename, and multiData[1] == param[0] as passed to that constructor.
  *
  * @see SOCMessageTemplateMi
  * @see SOCMessageTemplateMs
