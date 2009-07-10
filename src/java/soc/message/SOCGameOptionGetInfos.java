@@ -175,7 +175,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
      */
     public String toString()
     {
-	StringBuffer sb = new StringBuffer("SOCGetInfos:options=");
+        StringBuffer sb = new StringBuffer("SOCGameOptionGetInfos:options=");
 
 	if (optkeys == null)
 	    sb.append("-");

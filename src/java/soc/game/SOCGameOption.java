@@ -80,9 +80,9 @@ public class SOCGameOption implements Cloneable
                 ("DEBUG_ENUM", 1107, 1107, 
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, false, "Test option enum"));
         opt.put("DEBUG_STR", new SOCGameOption
-                ("DEBUG_STR", 1107, 1107, 20, false, false, "Test option str"));
+                ("DEBUG_STR", 1107, 1107, 20, false, true, "Test option str"));
         opt.put("DEBUG_STRHIDE", new SOCGameOption
-                ("DEBUG_STRHIDE", 1107, 1107, 20, true, false, "Test option strhide"));
+                ("DEBUG_STRHIDE", 1107, 1107, 20, true, true, "Test option strhide"));
         */
 
         return opt;

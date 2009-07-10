@@ -199,7 +199,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     public int getMinimumVersion() { return 1107; }
 
     /**
-     * @return the name (key) of the option
+     * @return the name (key) of the option, or "-" for the end-of-list marker.
      */
     public String getOptionNameKey()
     {
