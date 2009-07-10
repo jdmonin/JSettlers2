@@ -59,7 +59,8 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         = new SOCGameOptionInfo(new SOCGameOption("-"));
 
     /**
-     * symbol to represent a null or empty string value
+     * symbol to represent a null or empty string value,
+     * because empty pa[] elements can't be parsed
      */
     protected static final String EMPTYSTR  = "\t";
 
@@ -87,7 +88,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         {
             String sv = op.getStringValue();
             if (sv.length() == 0)
-                sv = EMPTYSTR;
+                sv = EMPTYSTR;  // can't parse a null or 0-length pa[9]
             pa[9] = sv;
         } else {
             pa[9] = Integer.toString(op.getIntValue());
