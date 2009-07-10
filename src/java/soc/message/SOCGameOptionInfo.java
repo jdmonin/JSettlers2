@@ -58,6 +58,11 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     public static final SOCGameOptionInfo OPTINFO_NO_MORE_OPTS
         = new SOCGameOptionInfo(new SOCGameOption("-"));
 
+    /**
+     * symbol to represent a null or empty string value
+     */
+    protected static final String EMPTYSTR  = "\t";
+
     protected SOCGameOption opt = null;
 
     /** Constructor for server to tell client about a game option */
@@ -79,9 +84,14 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         pa[7] = Integer.toString(op.maxIntValue);
         pa[8] = (op.getBoolValue() ? "t" : "f");
         if ((op.optType == SOCGameOption.OTYPE_STR) || (op.optType == SOCGameOption.OTYPE_STRHIDE))
-            pa[9] = op.getStringValue();
-        else
+        {
+            String sv = op.getStringValue();
+            if (sv.length() == 0)
+                sv = EMPTYSTR;
+            pa[9] = sv;
+        } else {
             pa[9] = Integer.toString(op.getIntValue());
+        }
         pa[10] = (op.skipIfDefault ? "t" : "f");
         pa[11] = op.optDesc;
 
@@ -133,11 +143,13 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	final int ival_max = Integer.parseInt(pa[7]);
 	final boolean bval_cur = (pa[8].equals("t"));
 	final int ival_cur;
-	final String sval_cur;
+	String sval_cur;
 	if ((otyp == SOCGameOption.OTYPE_STR) || (otyp == SOCGameOption.OTYPE_STRHIDE))
 	{
 	    ival_cur = 0;
 	    sval_cur = pa[9];
+	    if (sval_cur.equals(EMPTYSTR))
+	        sval_cur = null;
 	} else {
 	    ival_cur = Integer.parseInt(pa[9]);
 	    sval_cur = null;
