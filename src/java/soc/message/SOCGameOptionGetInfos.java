@@ -107,26 +107,30 @@ public class SOCGameOptionGetInfos extends SOCMessage
 	StringBuffer cmd = new StringBuffer(Integer.toString(GAMEOPTIONGETINFOS));
 	cmd.append(sep);
 
-	if (opts == null)
-	    cmd.append("-");
-	else
-	{
-        try
+        if (opts == null)
         {
-            cmd.append((String) opts.nextElement());
-
-            while (opts.hasMoreElements())
+            cmd.append("-");
+        } else {
+            try
             {
-		cmd.append(sep2);
-		Object o = opts.nextElement();
-		if (o instanceof SOCGameOption)
+                Object o = opts.nextElement();
+                if (o instanceof SOCGameOption)
                     cmd.append(((SOCGameOption) o).optKey);
-		else
+                else
                     cmd.append((String) o);
+
+                while (opts.hasMoreElements())
+                {
+                    cmd.append(sep2);
+                    o = opts.nextElement();
+                    if (o instanceof SOCGameOption)
+                        cmd.append(((SOCGameOption) o).optKey);
+                    else
+                        cmd.append((String) o);
+                }
             }
+            catch (Exception e) { }
         }
-        catch (Exception e) {}
-	}
 
         return cmd.toString();
     }
