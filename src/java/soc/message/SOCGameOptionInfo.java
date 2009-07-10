@@ -64,7 +64,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     public SOCGameOptionInfo(SOCGameOption op)
     {
         // OTYPE_*
-        super(GAMEOPTIONINFO, op.optKey,
+        super(GAMEOPTIONINFO, null,
             new String[12 + ((op.optType != SOCGameOption.OTYPE_ENUM)
                     ? 0
                     : op.maxIntValue)]);
@@ -116,7 +116,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     protected SOCGameOptionInfo(String[] pa)
         throws IllegalArgumentException, NumberFormatException
     {
-	super(GAMEOPTIONINFO, pa[0], pa);
+	super(GAMEOPTIONINFO, null, pa);
 	if (pa.length < 12)
 	    throw new IllegalArgumentException("pa.length");
 
@@ -203,7 +203,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      */
     public String getOptionNameKey()
     {
-        return game;
+        return pa[0];
     }
 
     /**
