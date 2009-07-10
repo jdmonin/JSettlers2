@@ -52,6 +52,10 @@ import soc.message.SOCMessage;
  */
 public class SOCGameOption implements Cloneable
 {
+    /**
+     * Set of "known options".
+     * allOptions must never be null, because other places assume it is filled.
+     */
     private static Hashtable allOptions = initAllOptions();
 
     /**
