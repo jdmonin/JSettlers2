@@ -312,6 +312,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
              * multiple parameters with sub-fields.
              * If only one param is seen, this will be null;
              * use {@link #toSingleElemArray(String)} to build it.
+             * Note that if you passed a non-null gamename to the
+             * {@link SOCMessageTemplateMs} constructor,
+             * then multiData[0] here will be gamename,
+             * and multiData[1] == param[0] as passed to that constructor.
              *<code>
              *     case POTENTIALSETTLEMENTS:
              *         if (multiData == null)
@@ -328,7 +332,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 {
                         // SOCMessageMulti
 
-                        int n = st.countTokens();  // remaining (will == number of parameters after "data")
+                        int n = st.countTokens();  // remaining (== number of parameters after "data")
                         multiData = new String[n+1];
                         multiData[0] = data;
                         for (int i = 1; st.hasMoreTokens(); ++i)

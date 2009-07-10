@@ -25,7 +25,7 @@ package soc.message;
 
 
 /**
- * Template for per-game message types with variable number of string parameters.
+ * Template for message types with variable number of string parameters.
  * You will have to write parseDataStr, because of its return
  * type and because it's static.
  *<P>
@@ -55,7 +55,7 @@ package soc.message;
 public abstract class SOCMessageTemplateMs extends SOCMessageMulti
 {
     /**
-     * Name of the game.
+     * Name of the game, or null if none.
      */
     protected String game;
 
@@ -68,7 +68,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
      * Create a new multi-message with string parameters.
      *
      * @param id  Message type ID
-     * @param ga  Name of game this message is for
+     * @param ga  Name of game this message is for, or null
      * @param parr   Parameters, or null if none
      */
     protected SOCMessageTemplateMs(int id, String ga, String[] parr)
@@ -79,7 +79,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     }
 
     /**
-     * @return the name of the game
+     * @return the name of the game, or null if none
      */
     public String getGame()
     {
@@ -95,7 +95,7 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     }
 
     /**
-     * MESSAGETYPE sep game sep2 param
+     * MESSAGETYPE [sep game] sep param1 sep param2 sep ...
      *
      * @return the command String
      */
@@ -105,10 +105,10 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     }
 
     /**
-     * MESSAGETYPE sep game sep param1 sep param2 sep ...
+     * MESSAGETYPE [sep game] sep param1 sep param2 sep ...
      *
      * @param messageType The message type id
-     * @param ga  the game name
+     * @param ga  the game name, or null
      * @param parr The parameter array, or null if no additional parameters;
      *             elements of parr can be null.
      * @return    the command string
@@ -116,8 +116,11 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     public static String toCmd(int messageType, String ga, String[] parr)
     {
         StringBuffer sb = new StringBuffer(Integer.toString(messageType));
-        sb.append(sep);
-        sb.append(ga);
+        if (ga != null)
+        {
+            sb.append(sep);
+            sb.append(ga);
+        }
         if (parr != null)
         {
             for (int i = 0; i < parr.length; ++i)
@@ -158,8 +161,11 @@ public abstract class SOCMessageTemplateMs extends SOCMessageMulti
     public String toString()
     {
         StringBuffer sb = new StringBuffer(getClassNameShort());
-        sb.append (":game=");
-        sb.append (game);
+        if (game != null)
+        {
+            sb.append (":game=");
+            sb.append (game);
+        }
         if (pa != null)
         {
             for (int i = 0; i < pa.length; ++i)
