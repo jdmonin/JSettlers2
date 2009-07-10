@@ -117,18 +117,18 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[8] = boolValue ('t' or 'f'; current, not default)
      * pa[9] = intValue (current, not default) or stringvalue
      * pa[10] = skipIfDefault ( 't' or 'f')
-     * pa[11] = optDesc (displayed text)
+     * pa[11] = optDesc (displayed text) if present; required for all but OTYPE_UNKNOWN
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *
-     * @throws IllegalArgumentException if pa.length < 12, or type is not a valid {@link SOCGameOption.optType};
-     *      if type isn't {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}, pa.length must == 12.
+     * @throws IllegalArgumentException if pa.length < 11, or type is not a valid {@link SOCGameOption.optType};
+     *      if type isn't {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}, pa.length must == 12 (or 11 for OTYPE_UNKNOWN).
      * @throws NumberFormatException    if pa integer-field contents are incorrectly formatted.
      */
     protected SOCGameOptionInfo(String[] pa)
         throws IllegalArgumentException, NumberFormatException
     {
 	super(GAMEOPTIONINFO, null, pa);
-	if (pa.length < 12)
+	if (pa.length < 11)
 	    throw new IllegalArgumentException("pa.length");
 
 	// OTYPE_*
@@ -157,7 +157,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	}
         final boolean skip_def = (pa[10].equals("t"));
 
-	if ((otyp != SOCGameOption.OTYPE_ENUM) && (pa.length != 12))
+	if ((otyp != SOCGameOption.OTYPE_ENUM) && (pa.length != 11) && (pa.length != 12))
 	    throw new IllegalArgumentException("pa.length");
 
 	switch (otyp)  // OTYPE_*
@@ -241,7 +241,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[8] = boolValue ('t' or 'f'; current, not default)
      * pa[9] = intValue (current, not default) or stringvalue
      * pa[10] = skipIfDefault ( 't' or 'f')
-     * pa[11] = optDesc (displayed text)
+     * pa[11] = optDesc (displayed text) if present; required for all but OTYPE_UNKNOWN
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *
      * @param pa   the String parameters
@@ -249,7 +249,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      */
     public static SOCGameOptionInfo parseDataStr(String[] pa)
     {
-        if ((pa == null) || (pa.length < 12))
+        if ((pa == null) || (pa.length < 11))
             return null;
         try
         {
