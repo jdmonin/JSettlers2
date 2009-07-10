@@ -5512,16 +5512,17 @@ public class SOCServer extends Server
      */
     private void handleGAMEOPTIONGETINFOS(StringConnection c, SOCGameOptionGetInfos mes)
     {
-	if (c == null)
-	    return;
-	boolean vecIsOptObjs = false;
-	Vector okeys = mes.getOptionKeys();
+        if (c == null)
+            return;
+        final int cliVers = c.getVersion();
+        boolean vecIsOptObjs = false;
+        Vector okeys = mes.getOptionKeys();
 
         if (okeys == null)
         {
             // received "-", look for newer options (cli is older than us).
-            // This will be null if nothing is new.
-            okeys = SOCGameOption.optionsNewerThanVersion(c.getVersion());
+            // okeys will be null if nothing is new.
+            okeys = SOCGameOption.optionsNewerThanVersion(cliVers);
             vecIsOptObjs = true;
         }
 
@@ -5532,12 +5533,14 @@ public class SOCServer extends Server
 		SOCGameOption opt;
 		if (vecIsOptObjs)
 		{
-		    opt = (SOCGameOption) okeys.elementAt(i);
-		} else {
-		    String okey = (String) okeys.elementAt(i);
-		    opt = SOCGameOption.getOption(okey);
-		    if (opt == null)
-			opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
+                    opt = (SOCGameOption) okeys.elementAt(i);
+                    if (opt.minVersion > cliVers)
+                        opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN
+                } else {
+                    String okey = (String) okeys.elementAt(i);
+                    opt = SOCGameOption.getOption(okey);
+                    if ((opt == null) || (opt.minVersion > cliVers))
+                        opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
 		}
 		c.put(new SOCGameOptionInfo(opt).toCmd());
 	    }
