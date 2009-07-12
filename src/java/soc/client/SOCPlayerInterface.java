@@ -253,12 +253,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     protected int textDisplayRollExpected;
     
     /**
-     * Utility for time-driven events in the interface.
-     * See {@link #getEventTimer()} for some users.
-     */
-    protected Timer eventTimer;
-
-    /**
      * the dialog for getting what resources the player wants to discard
      */
     protected SOCDiscardDialog discardDialog;
@@ -316,7 +310,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         {
             playerColorsGhost[i] = makeGhostColor(playerColors[i]);
         }
-        eventTimer = new Timer(true);  // use daemon thread
 
         /**
          * initialize the font and the forground, and background colors
@@ -532,7 +525,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      */
     public Timer getEventTimer()
     {
-        return eventTimer;
+        return client.getEventTimer();
     }
 
     /**
@@ -1354,7 +1347,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             showingPlayerDiscardsTask = new SOCPIDiscardMsgTask(this);
 
             // Run once, after a brief delay in case only robots must discard.
-            eventTimer.schedule(showingPlayerDiscardsTask, 1000 /* ms */ );
+            client.getEventTimer().schedule(showingPlayerDiscardsTask, 1000 /* ms */ );
         }
     }
 

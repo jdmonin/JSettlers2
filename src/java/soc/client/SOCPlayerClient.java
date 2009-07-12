@@ -223,10 +223,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     /**
      * Utility for time-driven events in the client.
-     * TODO: Combine with playerinterface
+     * For users, search for where-used of this field
+     * and of {@link #getEventTimer()}.
      * @since 1.1.07
      */
-    public Timer eventTimer = new Timer(true);  // use daemon thread
+    protected Timer eventTimer = new Timer(true);  // use daemon thread
 
     /**
      * Once true, disable "nick" textfield, etc.
@@ -1285,6 +1286,17 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
 	password = p;
 	return p;
+    }
+
+    /**
+     * Utility for time-driven events in the client.
+     * For some users, see where-used of this and of {@link SOCPlayerInterface#getEventTimer()}.
+     * @return the timer
+     * @since 1.1.07
+     */
+    public Timer getEventTimer()
+    {
+        return eventTimer;
     }
 
     /**
