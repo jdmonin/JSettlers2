@@ -626,6 +626,10 @@ public class SOCGameOption implements Cloneable
 	    SOCGameOption op = (SOCGameOption) ohash.get(e.nextElement());
 	    if (op.optType == OTYPE_UNKNOWN)
 		continue;  // <-- Skip this one --
+	    if (hideEmptyStringOpts
+	        && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
+	        && op.getStringValue().length() == 0)
+                continue;  // <-- Skip this one --       
 
 	    if (hadAny)
 		sb.append(SOCMessage.sep2_char);
