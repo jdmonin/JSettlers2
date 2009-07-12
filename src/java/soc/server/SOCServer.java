@@ -1090,6 +1090,7 @@ public class SOCServer extends Server
      *
      * @param gm Game name
      * @return Game's state, or -1 if no game with that name on this server
+     * @since 1.1.00
      */
     public int getGameState(String gm)
     {
