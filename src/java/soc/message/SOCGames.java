@@ -34,7 +34,9 @@ import soc.game.SOCGame;
  * It's constructed and sent for each connecting client
  * which can't understand game options (older than 1.1.07).
  *<P>
- * Version 1.1.06 - Add marker for a game that the client can't join
+ * Version 1.1.06 and later:
+ * Any game's name within the list may start with the "unjoinable"
+ * marker prefix {@link #MARKER_THIS_GAME_UNJOINABLE}.
  *
  * @author Robert S Thomas
  * @see SOCGamesWithOptions
@@ -47,7 +49,9 @@ public class SOCGames extends SOCMessage
      * due to properties of the game (large board, expansion rules, etc.)
      * which may require a newer client.
      *<P>
-     * This marker is not used in other message types, such as {@link SOCDeleteGame}.
+     * This marker may be used in other message types which may introduce a new game,
+     * such as {@link SOCNewGame} and {@link SOCNewGameWithOptions}.
+     * Besides those, this marker is not used in any other message types, such as {@link SOCDeleteGame}.
      * The game name appears 'un-marked' in those other types.
      *
      * @since 1.1.06

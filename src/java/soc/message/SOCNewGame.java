@@ -26,6 +26,12 @@ package soc.message;
  * This message to all clients means that a new game has been created.
  * If the client is requesting the game, NEWGAME will be followed
  * by JOINGAMEAUTH.
+ *<P>
+ * Version 1.1.06 and later:
+ * Game name may include a marker prefix if the client can't join;
+ * see {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+ * This marker will be retained within the game name returned by
+ * {@link #getGame()}.
  *
  * @author Robert S Thomas
  */
@@ -39,7 +45,8 @@ public class SOCNewGame extends SOCMessage
     /**
      * Create a NewGame message.
      *
-     * @param ga  name of new game
+     * @param ga  the name of the game; may have
+     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      */
     public SOCNewGame(String ga)
     {
@@ -48,7 +55,8 @@ public class SOCNewGame extends SOCMessage
     }
 
     /**
-     * @return the name of the game
+     * @return the name of the game; may have
+     *         the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      */
     public String getGame()
     {
@@ -68,7 +76,8 @@ public class SOCNewGame extends SOCMessage
     /**
      * NEWGAME sep game
      *
-     * @param ga  the new game name
+     * @param ga  the name of the new game; may have
+     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @return    the command string
      */
     public static String toCmd(String ga)

@@ -536,22 +536,22 @@ public class SOCServer extends Server
 				(SOCNewGameWithOptions.toCmd(gaName, gaOpts, gvers));
 			} else {
 			    // Only some can understand msg with version/options included;
-			    // if no options, no need to send that msg out along with other messages.
+			    // send at most 1 to each connected client, split by client version.
 
 			    final int cversMax = getMaxConnectedCliVersion();
-			    int newgameMaxVers;
+			    int newgameMaxCliVers;
 			    if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
 			    {
 				broadcastToVers
 				    (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gvers),
 				     SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
-				newgameMaxVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
+				newgameMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
 			    } else {
-				newgameMaxVers = Integer.MAX_VALUE;
+				newgameMaxCliVers = Integer.MAX_VALUE;
 			    }
 
 			    // To older clients who can join, announce game without its options/version
-			    broadcastToVers(SOCNewGame.toCmd(gaName), gvers, newgameMaxVers);
+			    broadcastToVers(SOCNewGame.toCmd(gaName), gvers, newgameMaxCliVers);
 
 			    // To older clients who can't join, announce game with cant-join prefix
 			    StringBuffer sb = new StringBuffer();

@@ -2321,7 +2321,12 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     protected void handleGAMES(SOCGames mes, boolean isLocal)
     {
+        // Any game's name in this msg may start with the "unjoinable" prefix
+        // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
+        // We'll recognize and remove it in methods called from here.
+
         Enumeration gameNamesEnum = mes.getGames().elements();
+
         if (! isLocal)  // local's gameoption data is set up in handleVERSION
         {
             if (serverGames == null)
@@ -3530,6 +3535,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	String gname = mes.getGame();
         String opts = mes.getOptionsString();
 	boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
+        if (gname.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
+        {
+            gname = gname.substring(1);
+            canJoin = false;
+        }
 	addToGameList(! canJoin, gname, opts, ! isLocal);
     }
 
@@ -3539,6 +3549,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     private void handleGAMESWITHOPTIONS(SOCGamesWithOptions mes, boolean isLocal)
     {
+        // Any game's name in this msg may start with the "unjoinable" prefix
+        // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
+        // We'll recognize and remove it in methods called from here.
+
         SOCGameList msgGames = mes.getGameList();
         if (msgGames == null)
             return;

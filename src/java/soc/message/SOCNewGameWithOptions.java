@@ -36,6 +36,11 @@ import soc.game.SOCGameOption;
  * Introduced in 1.1.07; check server version against {@link #VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.
  *<P>
+ * Game name may include a prefix marker if the client can't join;
+ * see {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+ * This marker will be retained within the game name returned by
+ * {@link #getGame()}.
+ *<P>
  * Just like {@link SOCNewGame NEWGAME}, robot clients don't need to
  * know about or handle this message type.
  *
@@ -58,10 +63,9 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     /**
      * Create a SOCNewGameWithOptions message.
      *
-     * @param ga  the name of the game; unlike {@link SOCNewGame NEWGAME}
-     *            or {@link SOCGames GAMES}, the game name will never have
-     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     *            minVers designates if the game is joinable.
+     * @param ga  the name of the game; may have the
+     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
+     *            minVers also designates if the game is joinable.
      * @param optstr Requested game options, in the format returned by
      *            {@link soc.game.SOCGameOption#packOptionsToString(Hashtable) SOCGameOption.packOptionsToString()},
      *            or null
@@ -79,10 +83,9 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     /**
      * Create a SOCNewGameWithOptions message.
      *
-     * @param ga  the name of the game; unlike {@link SOCNewGame NEWGAME}
-     *            or {@link SOCGames GAMES}, the game name will never have
-     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
-     *            minVers designates if the game is joinable.
+     * @param ga  the name of the game; may have the
+     *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
+     *            minVers also designates if the game is joinable.
      * @param opts Hashtable of {@link SOCGameOption game options}, or null
      * @param minVers Minimum client version for this game, or -1.
      *                Ignored if sent from client to server. Calculated at
@@ -118,7 +121,8 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     /**
      * NEWGAMEWITHOPTIONS sep game sep2 minVers sep2 optionstring
      *
-     * @param ga  the name of the game
+     * @param ga  the name of the game; the game name may have
+     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @param optstr Requested game options, in the format returned by
      *            {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, int) SOCGameOption.packOptionsToString()},
      *            or null
@@ -134,7 +138,8 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     /**
      * NEWGAMEWITHOPTIONS sep game sep2 minVers sep2 optionstring
      *
-     * @param ga  the name of the game
+     * @param ga  the name of the game; the game name may have
+     *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @param opts Requested game options, as a hashtable of {@link soc.game.SOCGameOption}
      * @param minVers Minimum client version required, or -1     
      * @return the command string

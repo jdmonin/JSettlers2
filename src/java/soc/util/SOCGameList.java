@@ -39,6 +39,14 @@ import java.util.Hashtable;
  *<P>
  * In 1.1.07, moved from soc.server to soc.util package for client's use.
  * Some methods moved to new subclass {@link soc.server.SOCGameListAtServer}.
+ *<P>
+ * The client-side addGame methods allow game names to have a prefix which marks them
+ * as unjoinable by the client ({@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}).
+ * If the game name has this prefix, its {@link GameInfo#canJoin} flag is set to false,
+ * as queried by {@link #isUnjoinableGame(String)}.  The prefix is stripped within addGame,
+ * and not stored as part of the game name in this list.
+ * Besides addGame, never supply this prefix to a SOCGameList method taking a game name;
+ * supply the game name without the prefix.
  *
  * @author Robert S. Thomas
  */
@@ -279,6 +287,9 @@ public class SOCGameList
     /**
      * @param   gaName  the name of the game;  may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     *         Remember that the prefix is not stored as part of the game name in this list,
+     *         so it's not necessary to add the prefix when calling this method
+     *         about a game already in our list.
      * @return true if the game is in our list marked as not joinable,
      *        or has the prefix
      * @since 1.1.07
@@ -295,7 +306,7 @@ public class SOCGameList
 
     /**
      * Client-side - Add this game name, with game options.
-     * If a game already exists (per {@link #isGame(String)}), do nothing.
+     * If a game already exists (per {@link #isGame(String)}), at most clear its canJoin flag.
      *<P>
      * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, Hashtable)}.
      *
@@ -310,21 +321,13 @@ public class SOCGameList
      */
     public synchronized void addGame(String gaName, String gaOptsStr, boolean cannotJoin)
     {
-        if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
-        {
-            cannotJoin = true;
-            gaName = gaName.substring(1);
-        }
-
-        if (isGame(gaName))
-            return;
-
-        gameInfo.put(gaName, new GameInfo(! cannotJoin, gaOptsStr));
+        addGame(gaName, null, gaOptsStr, cannotJoin);
     }
 
     /**
-     * Add this game name, with game options.
-     * If a game already exists (per {@link #isGame(String)}), do nothing.
+     * Internal use - Add this game name, with game options.
+     * If a game already exists (per {@link #isGame(String)}), at most clear its canJoin flag.
+     * Supply gaOpts or gaOptsStr, not both.
      *<P>
      * Client should instead call {@link #addGame(String, String, boolean)} because game options should
      * remain unparsed as late as possible.
@@ -333,6 +336,8 @@ public class SOCGameList
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @param gaOpts Hashtable of {@link SOCGameOption game options} of added game, or null 
+     * @param gaOptsStr set of {@link SOCGameOption}s as packed by {@link SOCGameOption#packOptionsToString(Hashtable)}, or null.
+     *         Game options should remain unparsed as late as possible.
      * @param cannotJoin This game is unjoinable, even if its name doesn't
      *         start with the unjoinable prefix.
      *         gaName will be checked for the prefix regardless of cannotJoin's value.
@@ -340,7 +345,7 @@ public class SOCGameList
      * @see #addGames(Enumeration, int)
      * @since 1.1.07
      */
-    protected synchronized void addGame(String gaName, Hashtable gaOpts, boolean cannotJoin)
+    protected synchronized void addGame(String gaName, Hashtable gaOpts, String gaOptsStr, boolean cannotJoin)
     {
         if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
         {
@@ -349,9 +354,20 @@ public class SOCGameList
         }
 
         if (isGame(gaName))
+        {
+            if (cannotJoin)
+            {
+                GameInfo gi = (GameInfo) gameInfo.get(gaName);
+                if (gi.canJoin)
+                    gi.canJoin = false;
+            }
             return;
+        }
 
-        gameInfo.put(gaName, new GameInfo(! cannotJoin, gaOpts));
+        if (gaOpts != null)
+            gameInfo.put(gaName, new GameInfo(! cannotJoin, gaOpts));
+        else
+            gameInfo.put(gaName, new GameInfo(! cannotJoin, gaOptsStr));
     }
 
     /**
@@ -376,26 +392,28 @@ public class SOCGameList
             addGames(gl.gameData.elements(), ourVersion);
         if (gl.gameInfo != null)
         {
+            // add games, and/or update canJoin flag of games added via gameData.
             for (Enumeration gnEnum = gl.gameInfo.keys(); gnEnum.hasMoreElements(); )
             {
                 String gaName = (String) gnEnum.nextElement();
                 GameInfo gi = (GameInfo) gl.gameInfo.get(gaName);
                 if (gi.opts != null)
-                    addGame(gaName, gi.opts, ! gi.canJoin);
+                    addGame(gaName, gi.opts, null, ! gi.canJoin);
                 else
-                    addGame(gaName, gi.optsStr, ! gi.canJoin);
+                    addGame(gaName, null, gi.optsStr, ! gi.canJoin);
             }
         }
     }
 
     /**
      * Add several games to this GameList.
-     * Calls {@link #addGame(String, Hashtable, boolean)} for each one.
+     * Calls {@link #addGame(String, Hashtable, String, boolean)} for each one.
      * @param gamelist Enumeration of Strings and/or {@link SOCGame}s (mix and match);
      *          game names may be marked with the prefix
      *          {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      *          If gamelist is null, nothing happens.
-     *          If any game already exists (per {@link #isGame(String)}), don't overwrite it.
+     *          If any game already exists (per {@link #isGame(String)}), don't overwrite it;
+     *          at most, clear its canJoin flag.
      * @param ourVersion Version to check to see if we can join,
      *          same format as {@link soc.util.Version#versionNumber()}.
      *          For each SOCGame in gameList, {@link SOCGame#getClientVersionMinRequired()}
@@ -417,14 +435,14 @@ public class SOCGameList
             {
                 gaName = ((SOCGame) ob).getName();
                 gaOpts = ((SOCGame) ob).getGameOptions();
-                cannotJoin = (ourVersion >= ((SOCGame) ob).getClientVersionMinRequired());
+                cannotJoin = (ourVersion < ((SOCGame) ob).getClientVersionMinRequired());
             } else {
                 gaName = (String) ob;
                 gaOpts = null;
                 cannotJoin = false;
             }
 
-            addGame (gaName, gaOpts, cannotJoin);
+            addGame(gaName, gaOpts, null, cannotJoin);
         }    
     }
 
