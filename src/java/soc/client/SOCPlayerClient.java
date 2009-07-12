@@ -4715,11 +4715,14 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * applet info
+     * applet info, of the form similar to that seen at server startup:
+     * SOCPlayerClient (Java Settlers Client) 1.1.07, build JM20090712, 2001-2004 Robb Thomas, portions 2007-2009 Jeremy D Monin.
+     * Version and copyright info is from the {@link Version} utility class.
      */
     public String getAppletInfo()
     {
-        return "SOCPlayerClient 0.9 by Robert S. Thomas.";
+        return "SOCPlayerClient (Java Settlers Client) " + Version.version() +
+        ", build " + Version.buildnum() + ", " + Version.copyright();
     }
 
     /**
