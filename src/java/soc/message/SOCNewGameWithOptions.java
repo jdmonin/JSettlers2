@@ -67,7 +67,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      *            minVers also designates if the game is joinable.
      * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Hashtable) SOCGameOption.packOptionsToString()},
+     *            {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, boolean) SOCGameOption.packOptionsToString(opts, false)},
      *            or null
      * @param minVers Minimum client version required for this game, or -1.
      */
@@ -93,7 +93,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      */
     public SOCNewGameWithOptions(String ga, Hashtable opts, int minVers)
     {
-	this(ga, SOCGameOption.packOptionsToString(opts), minVers);
+	this(ga, SOCGameOption.packOptionsToString(opts, false), minVers);
 	this.opts = opts;
 	// p1 = minVers
 	// p2 = optstr
@@ -101,7 +101,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
 
     /**
      * @return the options for the new game, in the format returned by
-     *         {@link soc.game.SOCGameOption#packOptionsToString(Hashtable) SOCGameOption.packOptionsToString()},
+     *         {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, boolean) SOCGameOption.packOptionsToString(opts, false)},
      *         or null if no options
      */
     public String getOptionsString()
@@ -124,7 +124,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @param optstr Requested game options, in the format returned by
-     *            {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, int) SOCGameOption.packOptionsToString()},
+     *            {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, boolean)},
      *            or null
      * @param minVers Minimum client version required, or -1
      * @return the command string
@@ -146,8 +146,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      */
     public static String toCmd(String ga, Hashtable opts, int minVers)
     {
-        // TODO // int minVers = SOCGameOption.optionsMinimumVersion(opts);
-	return toCmd(ga, SOCGameOption.packOptionsToString(opts), minVers);
+	return toCmd(ga, SOCGameOption.packOptionsToString(opts, false), minVers);
     }
 
     /**
@@ -161,7 +160,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     public static String toCmd(SOCGame ga)
     {
         return toCmd(ga.getName(),
-                SOCGameOption.packOptionsToString(ga.getGameOptions()),
+                SOCGameOption.packOptionsToString(ga.getGameOptions(), false),
                 ga.getClientVersionMinRequired());
     }
 

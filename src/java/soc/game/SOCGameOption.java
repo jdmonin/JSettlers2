@@ -578,14 +578,16 @@ public class SOCGameOption implements Cloneable
      * Utility - build a string of option name-value pairs from the
      *           {@link #getAllKnownOptions() known options}.
      *
+     * @param hideEmptyStringOpts omit string-valued options which are empty?
+     *            Suitable only for sending defaults.
      * @return string of name-value pairs;
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string.
      * @see #parseOptionsToHash(String)
      */
-    public static String packKnownOptionsToString()
+    public static String packKnownOptionsToString(boolean hideEmptyStringOpts)
     {
-	return packOptionsToString(allOptions);
+	return packOptionsToString(allOptions, hideEmptyStringOpts);
     }
 
     /**
@@ -593,6 +595,8 @@ public class SOCGameOption implements Cloneable
      * This can be unpacked with {@link #parseOptionsToHash(String)}.
      *
      * @param ohash Hashtable of SOCGameOptions, or null
+     * @param hideEmptyStringOpts omit string-valued options which are empty?
+     *            Suitable only for sending defaults.
      * @return string of name-value pairs, or "-" for an empty or null ohash;
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string. Format: k1=t,k2=f,k3=10,k4=t7,k5=f7.
@@ -609,7 +613,7 @@ public class SOCGameOption implements Cloneable
      * @see #parseOptionNameValue(String, boolean)
      * @see #packValue(StringBuffer)
      */
-    public static String packOptionsToString(Hashtable ohash)
+    public static String packOptionsToString(Hashtable ohash, boolean hideEmptyStringOpts)
 	throws ClassCastException
     {
 	if ((ohash == null) || ohash.size() == 0)
@@ -636,9 +640,9 @@ public class SOCGameOption implements Cloneable
 
     /**
      * Pack current value of this option into a string.
-     * This is used in {@link #packOptionsToString(Hashtable)} and
+     * This is used in {@link #packOptionsToString(Hashtable, boolean)} and
      * read in {@link #parseOptionNameValue(String, boolean)} and {@link #parseOptionsToHash(String)}.
-     * See {@link #packOptionsToString(Hashtable)} for the string's format.
+     * See {@link #packOptionsToString(Hashtable, boolean)} for the string's format.
      *
      * @param sb Pack into (append to) this buffer
      */
@@ -675,7 +679,7 @@ public class SOCGameOption implements Cloneable
      * Utility - build a hashtable by parsing a list of option name-value pairs.
      *
      * @param ostr string of name-value pairs, as created by
-     *             {@link #packOptionsToString(Hashtable)}.
+     *             {@link #packOptionsToString(Hashtable, boolean)}.
      *             A leading comma is OK (possible artifact of StringTokenizer
      *             coming from over the network).
      *             If ostr=="-", hashtable will be null.
@@ -709,10 +713,10 @@ public class SOCGameOption implements Cloneable
      * Utility - parse a single name-value pair produced by packOptionsToString.
      * Expected format of nvpair: "optname=optvalue".
      * Expected format of optvalue depends on its type.
-     * See {@link #packOptionsToString(Hashtable)} for the format.
+     * See {@link #packOptionsToString(Hashtable, boolean)} for the format.
      *
      * @param nvpair Name-value pair string, as created by
-     *               {@link #packOptionsToString(Hashtable)}.
+     *               {@link #packOptionsToString(Hashtable, boolean)}.
      *               'T' or 't' is always allowed for bool value, regardless of forceNameUpcase.
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.

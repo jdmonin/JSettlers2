@@ -47,7 +47,7 @@ public class SOCGameOptionGetDefaults extends SOCMessage
      *
      * @param opts  the options string, or null if none (client to server).
      *              To create the string, call
-     *              {@link soc.game.SOCGameOption#packOptionsToString(Hashtable) SOCGameOption.packOptionsToString()}.
+     *              {@link soc.game.SOCGameOption#packOptionsToString(Hashtable, boolean) SOCGameOption.packOptionsToString(opts, true)}.
      */
     public SOCGameOptionGetDefaults(String opts)
     {

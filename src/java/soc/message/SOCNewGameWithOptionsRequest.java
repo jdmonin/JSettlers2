@@ -57,7 +57,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
 	super(nn, pw, hn, ga);
         messageType = NEWGAMEWITHOPTIONSREQUEST;
 	this.opts = opts;
-	optsStr = SOCGameOption.packOptionsToString(opts);
+	optsStr = SOCGameOption.packOptionsToString(opts, false);
     }
 
     /**
@@ -68,7 +68,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * @param hn  host name
      * @param ga  name of the game
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link #packOptionsToString(Hashtable)}.
+     *             {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      */
     public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, String optstr)
     {
@@ -104,7 +104,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * @param hn  the host name
      * @param ga  the game name
      * @param optstr the game options as a string name-value pairs, as created by
-     *             {@link #packOptionsToString(Hashtable)}.
+     *             {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @return    the command string
      */
     public static String toCmd(String nn, String pw, String hn, String ga, String optstr)
@@ -123,7 +123,7 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      */
     public static String toCmd(String nn, String pw, String hn, String ga, Hashtable opts)
     {
-	return toCmd(nn, pw, hn, ga, SOCGameOption.packOptionsToString(opts));
+	return toCmd(nn, pw, hn, ga, SOCGameOption.packOptionsToString(opts, false));
     }
 
     /**

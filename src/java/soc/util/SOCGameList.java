@@ -312,7 +312,8 @@ public class SOCGameList
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param gaOptsStr set of {@link SOCGameOption}s as packed by {@link SOCGameOption#packOptionsToString(Hashtable)}, or null.
+     * @param gaOptsStr set of {@link SOCGameOption}s as packed by
+     *         {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}, or null.
      *         Game options should remain unparsed as late as possible.
      * @param cannotJoin This game is unjoinable, even if its name doesn't
      *         start with the unjoinable prefix.
@@ -336,7 +337,8 @@ public class SOCGameList
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @param gaOpts Hashtable of {@link SOCGameOption game options} of added game, or null 
-     * @param gaOptsStr set of {@link SOCGameOption}s as packed by {@link SOCGameOption#packOptionsToString(Hashtable)}, or null.
+     * @param gaOptsStr set of {@link SOCGameOption}s as packed by
+     *         {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}, or null.
      *         Game options should remain unparsed as late as possible.
      * @param cannotJoin This game is unjoinable, even if its name doesn't
      *         start with the unjoinable prefix.
@@ -501,7 +503,8 @@ public class SOCGameList
         /**
          * Constructor: gameOptsStr is null or unparsed game options
          * @param canJoinGame can we join this game?
-         * @param gameOptsStr set of {@link SOCGameOption}s as packed by {@link SOCGameOption#packOptionsToString(Hashtable)}, or null
+         * @param gameOptsStr set of {@link SOCGameOption}s as packed by
+         *            {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}, or null
          */
         public GameInfo (boolean canJoinGame, String gameOptsStr)
         {

@@ -5496,7 +5496,7 @@ public class SOCServer extends Server
 	if (c == null)
 	    return;
 	c.put(SOCGameOptionGetDefaults.toCmd
-	      (SOCGameOption.packKnownOptionsToString()));
+	      (SOCGameOption.packKnownOptionsToString(true)));
     }
 
 

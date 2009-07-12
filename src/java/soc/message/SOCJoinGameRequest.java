@@ -116,7 +116,7 @@ public class SOCJoinGameRequest extends SOCMessage
     public static String toCmd(String ga, int pn, Hashtable opts)
     {
         return JOINGAMEREQUEST + sep + ga + sep2 + pn + sep2 
-            + SOCGameOption.packOptionsToString(opts);
+            + SOCGameOption.packOptionsToString(opts, false);
     }
 
     /**

@@ -66,7 +66,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
     /**
      * Get the list of games (and option strings).
      * List contains each game's option strings sent from server, as packed by
-     * {@link soc.game.SOCGameOption#packOptionsToString(java.util.Hashtable)}.
+     * {@link soc.game.SOCGameOption#packOptionsToString(java.util.Hashtable, boolean)}.
      * @return list of games contained in this message, or an empty SOCGameList
      * @see SOCGameList#parseGameOptions(String)
      */
@@ -124,7 +124,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             {
                 sb.append(((SOCGame) ob).getName());
                 sb.append(sep);
-                sb.append(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions()));
+                sb.append(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false));
             } else {
                 sb.append((String) ob);
                 sb.append(sep);
