@@ -23,7 +23,9 @@
 package soc.message;
 
 /**
- * Information on current defaults for new games' {@link SOCGameOption game options}.
+ * Information on current defaults for new games' {@link soc.game.SOCGameOption game options}.
+ * Based on server's current values ({@link soc.game.SOCGameOption#getIntValue() .getIntValue()},
+ * not {@link soc.game.SOCGameOption#defaultIntValue .defaultIntValue} field).
  *
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}

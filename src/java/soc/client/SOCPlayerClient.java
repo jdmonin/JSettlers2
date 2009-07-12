@@ -5115,6 +5115,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
          */
         public Vector receiveDefaults(Hashtable servOpts)
         {
+            // Although javadoc says "update the values", replacing the option objects does the
+            // same thing; we already have parsed servOpts for all obj fields, including current value.
+            // Option objects are always accessed by key name, so replacement is OK.
+
             if ((optionSet == null) || optionSet.isEmpty())
             {
                 optionSet = servOpts;
