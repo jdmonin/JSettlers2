@@ -5103,22 +5103,37 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             }
 	}
 
-	/**
-	 * Set of options has been received from the server, examine them.
-	 * Sets allOptionsReceived, optionSet.
-	 * @param servOpts The allowable {@link SOCGameOption} received from the server.
-	 *                 Assumes has been parsed already against the locally known opts,
-	 *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
-	 * @return null if all are known, or a Vector of key names for unknown options.
-	 */
-	public Vector receiveDefaults(Hashtable servOpts)
-	{
-	    optionSet = servOpts;
-	    Vector unknowns = SOCGameOption.findUnknowns(servOpts);
-	    allOptionsReceived = (unknowns == null);
-	    defaultsReceived = true;
-	    return unknowns;
-	}
+        /**
+         * Set of default options has been received from the server, examine them.
+         * Sets allOptionsReceived, optionSet.  If we already have non-null optionSet,
+         * merge (update the values) instead of replacing the entire set with servOpts.
+         *
+         * @param servOpts The allowable {@link SOCGameOption} received from the server.
+         *                 Assumes has been parsed already against the locally known opts,
+         *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
+         * @return null if all are known, or a Vector of key names for unknown options.
+         */
+        public Vector receiveDefaults(Hashtable servOpts)
+        {
+            if ((optionSet == null) || optionSet.isEmpty())
+            {
+                optionSet = servOpts;
+            } else {
+                for (Enumeration e = servOpts.keys(); e.hasMoreElements(); )
+                {
+                    final String oKey = (String) e.nextElement();
+                    SOCGameOption op = (SOCGameOption) servOpts.get(oKey);
+                    SOCGameOption oldcopy = (SOCGameOption) optionSet.get(oKey);
+                    if (oldcopy != null)
+                        optionSet.remove(oKey);
+                    optionSet.put(oKey, op);  // Even OTYPE_UNKNOWN are added
+                }
+            }
+            Vector unknowns = SOCGameOption.findUnknowns(servOpts);
+            allOptionsReceived = (unknowns == null);
+            defaultsReceived = true;
+            return unknowns;
+        }
 
 	/**
 	 * After calling receiveDefaults, call this as each GAMEOPTIONGETINFO is received.
