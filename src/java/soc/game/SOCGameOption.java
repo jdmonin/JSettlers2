@@ -576,7 +576,7 @@ public class SOCGameOption implements Cloneable
 
     /**
      * Utility - build a string of option name-value pairs from the
-     *           {@link #getAllKnownOptions() known options}.
+     *           {@link #getAllKnownOptions() known options}' current values.
      *
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
