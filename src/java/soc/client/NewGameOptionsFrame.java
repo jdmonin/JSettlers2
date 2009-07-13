@@ -680,6 +680,31 @@ public class NewGameOptionsFrame extends Frame
         }
     }
 
+    /** when an option with a boolValue's label is clicked, toggle its checkbox */
+    public void mouseClicked(MouseEvent e)
+    {
+        SOCGameOption opt = (SOCGameOption) controlsOpts.get(e.getSource());
+        if (opt == null)
+            return;
+        Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
+        if (cb == null)
+            return;
+        cb.setState(! cb.getState());
+    }
+
+    /** required stub for MouseListener */
+    public void mouseEntered(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mouseExited(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mousePressed(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mouseReleased(MouseEvent e) {}
+
+
     /**
      * A textfield that accepts only nonnegative-integer characters.
      * @author Jeremy D Monin <jeremy@nand.net>
@@ -745,29 +770,5 @@ public class NewGameOptionsFrame extends Frame
         }
 
     }  // public inner class IntTextField
-
-    /** when an option with a boolValue's label is clicked, toggle its checkbox */
-    public void mouseClicked(MouseEvent e)
-    {
-        SOCGameOption opt = (SOCGameOption) controlsOpts.get(e.getSource());
-        if (opt == null)
-            return;
-        Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
-        if (cb == null)
-            return;
-        cb.setState(! cb.getState());
-    }
-
-    /** required stub for MouseListener */
-    public void mouseEntered(MouseEvent e) {}
-
-    /** required stub for MouseListener */
-    public void mouseExited(MouseEvent e) {}
-
-    /** required stub for MouseListener */
-    public void mousePressed(MouseEvent e) {}
-
-    /** required stub for MouseListener */
-    public void mouseReleased(MouseEvent e) {}
 
 }  // public class NewGameOptionsFrame
