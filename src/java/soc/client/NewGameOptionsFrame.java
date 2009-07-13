@@ -209,9 +209,12 @@ public class NewGameOptionsFrame extends Frame
         if (gaName != null)
             gameName.setText(gaName);
         if (readOnly)
+        {
             gameName.setEnabled(false);
-        else
+        } else {
             gameName.addTextListener(this);    // Will enable buttons when field is not empty
+            gameName.addKeyListener(this);     // for ESC/ENTER
+        }
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(gameName, gbc);
         bp.add(gameName);
@@ -386,6 +389,8 @@ public class NewGameOptionsFrame extends Frame
                     }
                     controlsOpts.put(txtc, op);
                     txtc.setEnabled(! readOnly);
+                    if (! readOnly)
+                        txtc.addKeyListener(this);  // for ESC/ENTER
                     // tf.addActionListener(this);
                     gbc.gridwidth = 1;
                     gbl.setConstraints(txtc, gbc);
@@ -630,7 +635,8 @@ public class NewGameOptionsFrame extends Frame
             {
             case KeyEvent.VK_ENTER:
                 clickCreate();
-    
+                break;
+
             case KeyEvent.VK_CANCEL:
             case KeyEvent.VK_ESCAPE:
                 clickCancel();
@@ -678,7 +684,7 @@ public class NewGameOptionsFrame extends Frame
      * A textfield that accepts only nonnegative-integer characters.
      * @author Jeremy D Monin <jeremy@nand.net>
      */
-    public static class IntTextField extends TextField implements KeyListener
+    public class IntTextField extends TextField implements KeyListener
     {
         IntTextField(int initVal, int width)
         {
@@ -715,14 +721,30 @@ public class NewGameOptionsFrame extends Frame
         public void keyTyped(KeyEvent e)
         {
             // TODO this is not working
-            final char c = e.getKeyChar();
-            if (c == KeyEvent.CHAR_UNDEFINED)  // ctrl characters, arrows, etc
-                return;
-            if (! Character.isDigit(c))
-                e.consume();  // ignore non-digits
+
+            switch (e.getKeyCode())
+            {
+            case KeyEvent.VK_ENTER:
+                clickCreate();
+                break;
+
+            case KeyEvent.VK_CANCEL:
+            case KeyEvent.VK_ESCAPE:
+                clickCancel();
+                break;
+
+            default:
+                {
+                final char c = e.getKeyChar();
+                if (c == KeyEvent.CHAR_UNDEFINED)  // ctrl characters, arrows, etc
+                    return;
+                if (! Character.isDigit(c))
+                    e.consume();  // ignore non-digits
+                }
+            }  // switch(e)
         }
 
-    }  // public static class IntTextField
+    }  // public inner class IntTextField
 
     /** when an option with a boolValue's label is clicked, toggle its checkbox */
     public void mouseClicked(MouseEvent e)
