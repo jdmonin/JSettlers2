@@ -107,7 +107,9 @@ public class SOCGameOption implements Cloneable
     /** Option type: integer + boolean */
     public static final int OTYPE_INTBOOL = 3;
 
-    /** Option type: enumeration (1 of several possible int values, described with text strings) */
+    /** Option type: enumeration (1 of several possible choices, described with text strings,
+     *  stored here as intVal).  Choices' strings are stored in {@link #enumVals}.
+     */
     public static final int OTYPE_ENUM = 4;
 
     /** Option type: text string (max string length is {@link #maxIntValue}, default value is "") */
@@ -148,7 +150,8 @@ public class SOCGameOption implements Cloneable
     /**
      * Minimum game version supporting this option, or -1;
      * same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
-     * Public direct usage of this is discouraged; use {@link #optionsMinimumVersion(Hashtable)} instead,
+     * Public direct usage of this is discouraged;
+     * use {@link #optionsMinimumVersion(Hashtable)} or {@link #getMinVersion()} instead,
      * because the current value of an option can change its minimum version.
      * For example, a 5- or 6-player game will need a newer client than 4 players,
      * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
@@ -157,7 +160,7 @@ public class SOCGameOption implements Cloneable
 
     /**
      * Most recent game version in which this option changed, or if not modified, the version which added it.
-     * changes would include different min/max values, new options for {@link #OTYPE_ENUM}, etc.
+     * changes would include different min/max values, new choices for an {@link #OTYPE_ENUM}, etc.
      * Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      */
     public final int lastModVersion;
@@ -198,6 +201,7 @@ public class SOCGameOption implements Cloneable
      * otherwise null.  If a value is added or changed in a later version, the option's
      * {@link #lastModVersion} field must be updated, so server/client will know
      * to ask for the proper version with all available options.
+     * Although the option's intVals are in the range 1 to n, this array is indexed 0 to n-1.
      */
     public final String[] enumVals;
 
@@ -296,13 +300,13 @@ public class SOCGameOption implements Cloneable
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
-     * @param enumVals text to display for each possible value
+     * @param enumVals text to display for each possible choice of this option
      * @param skipIfDefault If this option's value is the default, should we not add it to game options
      *           or send over the network (to reduce overhead)?
      *           Only recommended if game behavior without the option is well-established
      *           (for example, maxplayers == 4 unless option PL is present).
      * @param desc Descriptive brief text, to appear in the options dialog; may
-     *             contain a placeholder character '#' where the enum value goes.
+     *             contain a placeholder character '#' where the enum's popup-menu goes.
      *             If no placeholder is found, the value field appears at left,
      *             like boolean options.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue
@@ -357,7 +361,7 @@ public class SOCGameOption implements Cloneable
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
      * @param skipIfDefault If this option's value is the default, should we not add it to game options?
-     * @param enumVals Possible choices for enum text, or null
+     * @param enumVals Possible choice texts for {@link #OTYPE_ENUM}, or null
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue
@@ -455,6 +459,25 @@ public class SOCGameOption implements Cloneable
             }
         }
         strValue = v;
+    }
+
+    /**
+     * Minimum game version supporting this option, given the option's current value.
+     * The current value of an option can change its minimum version.
+     * For example, a 5- or 6-player game will need a newer client than 4 players,
+     * but option "PL"'s {@link #minVersion} is -1, to allow 2- or 3-player games with any client.
+     *
+     * @return minimum version, or -1;
+     *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
+     * @see #optionsMinimumVersion(Hashtable)
+     */
+    public int getMinVersion()
+    {
+        // NEW_OPTION:
+        // Any option value checking for minVers is done here.
+        // None of the current options change minVers based on their value.
+
+        return minVersion;
     }
 
     /**
@@ -815,7 +838,8 @@ public class SOCGameOption implements Cloneable
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *
      * @return the highest 'minimum version' among these options, or -1
-     * @throws ClassCastException if values contain a non-SOCGameOption
+     * @throws ClassCastException if values contain a non-{@link SOCGameOption}
+     * @see #getMinVersion()
      */
     public static int optionsMinimumVersion(Hashtable opts)
 	throws ClassCastException
@@ -824,27 +848,44 @@ public class SOCGameOption implements Cloneable
 	for (Enumeration e = opts.keys(); e.hasMoreElements(); )
 	{
 	    SOCGameOption op = (SOCGameOption) opts.get(e.nextElement());
-	    if (op.minVersion > minVers)
-		minVers = op.minVersion;
-
-	    // Any option value checking for minVers is done here.
-	    // None of the current options change minVers based on their value.
+            int opMin = op.getMinVersion();  // includes any option value checking for minVers
+	    if (opMin > minVers)
+		minVers = opMin;
 	}
 	return minVers;
     }
 
     /**
-     * Compare all known options against the specified version.
-     * Make a list of all which are new or changed since that version
-     * (using field {@link #lastModVersion}).
+     * Compare a set of options against the specified version.
+     * Make a list of all which are new or changed since that version.
      *
-     * @param vers Version to compare known options against
+     * @param vers  Version to compare known options against
+     * @param checkValues  Check options' current values,
+     *              not just their {@link #lastModVersion}?
+     *              An option's minimum version can increase based
+     *              on its value; see {@link #getMinVersion()}.
      * @return Vector of the unknown {@link SOCGameOption}s, or null
-     *     if all are known and unchanged since vers
+     *     if all are known and unchanged since vers.
+     *     If checkValues, any options whose version is based on current value
+     *     will appear first in the vector.  When looking for these,
+     *     look for getMinVersion() > vers.
      */
-    public static Vector optionsNewerThanVersion(int vers)
+    public static Vector optionsNewerThanVersion(final int vers, final boolean checkValues)
     {
 	Vector uopt = null;
+        if (checkValues)
+        {
+            for (Enumeration e = allOptions.elements(); e.hasMoreElements(); )
+            {
+                SOCGameOption opt = (SOCGameOption) e.nextElement();
+                if (opt.getMinVersion() > vers)
+                {
+                    if (uopt == null)
+                        uopt = new Vector();
+                    uopt.addElement(opt);
+                }
+            }
+        }
 	for (Enumeration e = allOptions.elements(); e.hasMoreElements(); )
 	{
 	    SOCGameOption opt = (SOCGameOption) e.nextElement();
@@ -852,7 +893,8 @@ public class SOCGameOption implements Cloneable
 	    {
 		if (uopt == null)
 		    uopt = new Vector();
-		uopt.addElement(opt);
+                else if (! (checkValues && uopt.contains(opt)))
+                    uopt.addElement(opt);
 	    }
 	}
 	return uopt;

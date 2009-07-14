@@ -105,18 +105,26 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * New game requested with game options, but some are not
      * recognized by the server = 9
-     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONS
+     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONSREQUEST
      * @since 1.1.07
      */
     public static final int SV_NEWGAME_OPTION_UNKNOWN = 9;
 
     /**
-     * New game requested with game options, but this game
-     * already exists = 10
-     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONS
+     * New game requested with game options, but this option or value
+     * is too new for the client to handle = 10
+     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONSREQUEST
      * @since 1.1.07
      */
-    public static final int SV_NEWGAME_ALREADY_EXISTS = 10;
+    public static final int SV_NEWGAME_OPTION_VALUE_TOONEW = 10;
+
+    /**
+     * New game requested with game options, but this game
+     * already exists = 11
+     * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONSREQUEST
+     * @since 1.1.07
+     */
+    public static final int SV_NEWGAME_ALREADY_EXISTS = 11;
 
     // IF YOU ADD A STATUS VALUE:
     // Be sure to update statusValidAtVersion().

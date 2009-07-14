@@ -23,22 +23,7 @@ package soc.server;
 
 import soc.debug.D;  // JM
 
-import soc.game.SOCBoard;
-import soc.game.SOCCity;
-import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
-import soc.game.SOCForceEndTurnResult;
-import soc.game.SOCGame;
-import soc.game.SOCGameOption;
-import soc.game.SOCMoveRobberResult;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
-import soc.game.SOCRoad;
-import soc.game.SOCSettlement;
-import soc.game.SOCTradeOffer;
-
+import soc.game.*;
 import soc.message.*;
 
 import soc.server.database.SOCDBHelper;
@@ -430,24 +415,27 @@ public class SOCServer extends Server
      *
      * @param c    the Connection to be added; its name and version should already be set.
      * @param gaName  the name of the game
-     * @param gaOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param gaOpts  if creating a game with options, hashtable of {@link SOCGameOption}; otherwise null.
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
      *
      * @return     true if c was not a member of ch before,
      *             false if c was already in this game
      *
-     * @throws IllegalArgumentException if client's version is too low to join
-     *        (this exception was added in 1.1.06).
+     * @throws SOCGameOptionVersionException if client's version is too low to join because
+     *           of a requested game option in gaOpts. (this exception was added in 1.1.07)
+     * @throws IllegalArgumentException if client's version is too low to join for any
+     *           other reason. (this exception was added in 1.1.06)
      * @see #handleSTARTGAME(StringConnection, SOCStartGame)
      */
     public boolean connectToGame(StringConnection c, final String gaName, Hashtable gaOpts)
-        throws IllegalArgumentException
+        throws SOCGameOptionVersionException, IllegalArgumentException
     {
         boolean result = false;
 
         if (c != null)
         {
+            final int cliVers = c.getVersion();
             boolean gameExists = false;
             gameList.takeMonitor();
 
@@ -475,7 +463,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        if (ga.getClientVersionMinRequired() <= c.getVersion())
+                        if (ga.getClientVersionMinRequired() <= cliVers)
                         {
                             gameList.addMember(c, gaName);
                             result = true;
@@ -509,6 +497,26 @@ public class SOCServer extends Server
                 {
                     // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
                     SOCGame ng = gameList.createGame(gaName, gaOpts); 
+
+                    if (ng.getClientVersionMinRequired() > cliVers)
+                    {
+                        // Can't join its own game: find out why, and get rid of the game.
+                        Vector optsValuesTooNew = null;
+                        Exception problem;
+                        if (gaOpts != null)
+                            optsValuesTooNew =
+                                SOCGameOption.optionsNewerThanVersion(cliVers, true);
+                        if (optsValuesTooNew == null)
+                            problem = new IllegalArgumentException("Client version");
+                        else
+                            problem = new SOCGameOptionVersionException(cliVers, optsValuesTooNew);
+
+                        destroyGame(gaName);
+                        gameList.releaseMonitor();
+                        throw problem;   // <--- Exception: Early return ---
+                    }
+
+                    // Add this (creating) player to the game
                     gameList.addMember(c, gaName);
 
                     // must release monitor before we broadcast
@@ -3073,7 +3081,8 @@ public class SOCServer extends Server
      *      STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
      *      Comparison is done by {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
      *  <LI> if ok: create new game with params;
-     *      socgame will calc game's minCliVersion
+     *      socgame will calc game's minCliVersion,
+     *      and this method will check that against cli's version.
      *  <LI> announce to all players using NEWGAMEWITHOPTIONS;
      *       older clients get NEWGAME, won't see the options
      *  <LI> send JOINGAMEAUTH to requesting client
@@ -3131,7 +3140,7 @@ public class SOCServer extends Server
 
             /**
 	     * If we have game options, validate them and ensure
-	     * the game doeesn't already exist.
+	     * the game doesn't already exist.
 	     */
 	    if (gameOpts != null)
 	    {
@@ -3181,11 +3190,23 @@ public class SOCServer extends Server
                 // Let them know they can't join; include the game's version.
                 SOCGame gameData = gameList.getGameData(gameName);
 
-                c.put(SOCStatusMessage.toCmd
+		if (gameOpts != null)
+		{
+		    // cli asked to created it, otherwise gameOpts would be null
+		    // (TODO) better msg with new status SV_NEWGAME_OPTION_VALUE_TOONEW
+                    c.put(SOCStatusMessage.toCmd
+                      (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, c.getVersion(),
+                        "Cannot create game with these options, requires version "
+                        + Integer.toString(gameData.getClientVersionMinRequired())
+                        + ": " + gameName));
+		} else {
+                    // can't join existing game
+                    c.put(SOCStatusMessage.toCmd
                       (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, c.getVersion(),
                         "Cannot join game, requires version "
                         + Integer.toString(gameData.getClientVersionMinRequired())
                         + ": " + gameName));
+                }
             }
 
     }  //  createOrJoinGameIfUserOK
@@ -5523,7 +5544,7 @@ public class SOCServer extends Server
         {
             // received "-", look for newer options (cli is older than us).
             // okeys will be null if nothing is new.
-            okeys = SOCGameOption.optionsNewerThanVersion(cliVers);
+            okeys = SOCGameOption.optionsNewerThanVersion(cliVers, false);
             vecIsOptObjs = true;
         }
 
@@ -7480,7 +7501,7 @@ public class SOCServer extends Server
             System.err.println(sb.toString());
             if (opt.optType == SOCGameOption.OTYPE_ENUM)
             {
-                sb = new StringBuffer("    value strings: ");
+                sb = new StringBuffer("    option choices (1-n): ");
                 for (int i = 1; i <= opt.maxIntValue; ++i)
                 {
                     sb.append(' ');

@@ -847,8 +847,9 @@ public class SOCGame implements Serializable, Cloneable
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
      *               or {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
-     * @return Option's current {@link SOCGameOption#getIntValue() intValue}
-     *         or 0 if not defined in this game's options
+     * @return Option's current {@link SOCGameOption#getIntValue() intValue},
+     *         or 0 if not defined in this game's options;
+     *         OTYPE_ENUM's choices give an intVal in range 1 to n.
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
@@ -866,8 +867,9 @@ public class SOCGame implements Serializable, Cloneable
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
      *               or {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
-     * @return Option's current {@link SOCGameOption#getIntValue() intValue}
-     *         or 0 if not defined in this game's options
+     * @return Option's current {@link SOCGameOption#getIntValue() intValue},
+     *         or 0 if not defined in this game's options;
+     *         OTYPE_ENUM's choices give an intVal in range 1 to n.
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)

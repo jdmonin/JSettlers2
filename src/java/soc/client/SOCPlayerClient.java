@@ -254,6 +254,12 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     protected SOCConnectOrPracticePanel connectOrPracticePane;
 
     /**
+     * The currently showing new-game options frame, or null
+     * @since 1.1.07
+     */
+    public NewGameOptionsFrame newGameOptsFrame = null;
+
+    /**
      * For local practice games, default player name.
      */
     public static String DEFAULT_PLAYER_NAME = "Player";
@@ -1127,6 +1133,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             {
                 opts = practiceServer.getGameOptions(gm);
             }
+	    // don't overwrite newGameOptsFrame; this one is to show an existing game.
             NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
             return true;
         }
@@ -1303,12 +1310,20 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * Want to start a new game, on a server which supports options.
      * Do we know the valid options already?  If so, bring up the options window.
      * If not, ask the server for them.
-     * Updates tcpServGameOpts, practiceServGameOpts.
+     * Updates tcpServGameOpts, practiceServGameOpts, newGameOptsFrame.
+     * If a {@link NewGameOptionsFrame} is already showing, give it focus
+     * instead of creating a new one.
      * @param forPracticeServer  Ask {@link #practiceServer}, instead of remote tcp server?
      * @since 1.1.07
      */
     protected void gameWithOptionsBeginSetup(final boolean forPracticeServer)
     {
+        if (newGameOptsFrame != null)
+        {
+            newGameOptsFrame.show();
+            return;
+        }
+
         GameOptionServerSet opts;
 
         // What server are we going against? Do we need to ask it for options?
@@ -1360,7 +1375,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         if (optsAllKnown && knowDefaults)
         {
             // All done, present the options window frame
-            NewGameOptionsFrame.createAndShow
+            newGameOptsFrame = NewGameOptionsFrame.createAndShow
                 (this, null, opts.optionSet, forPracticeServer, false);
             return;  // <--- Early return: Show options to user ----
         }
@@ -2135,7 +2150,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	{
 	    if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
 	    {
-	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion);
+	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false);
 		if (tooNewOpts != null)
                 {
                     if (! isLocal)
@@ -3491,7 +3506,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 gameOptionsSetTimeoutTask();
 	    put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isLocal);
 	} else {
-	    NewGameOptionsFrame.createAndShow
+            newGameOptsFrame = NewGameOptionsFrame.createAndShow
 		(this, (String) null, opts.optionSet, isLocal, false);
 	}
     }
@@ -3524,16 +3539,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
 	if (hasAllNow)
 	{
-            if (newGameWaiting)
-            {
-                NewGameOptionsFrame.createAndShow
-                    (this, (String) null, opts.optionSet, isLocal, false);
-            }
             if (gameInfoWaiting != null)
             {
                 Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
-                NewGameOptionsFrame.createAndShow
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow
                     (this, gameInfoWaiting, gameOpts, isLocal, true);
+            } else if (newGameWaiting)
+            {
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow
+                    (this, (String) null, opts.optionSet, isLocal, false);
             }
 	}
     }
