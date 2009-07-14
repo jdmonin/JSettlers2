@@ -3185,28 +3185,25 @@ public class SOCServer extends Server
                         joinGame(gameData, c, false);
                     }
                 }
+            } catch (SOCGameOptionVersionException e)
+            {
+                // Let them know they can't join; include the game's version.
+                // cli asked to created it, otherwise gameOpts would be null
+                // (TODO) better msg with new status SV_NEWGAME_OPTION_VALUE_TOONEW
+                c.put(SOCStatusMessage.toCmd
+                  (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, c.getVersion(),
+                    "Cannot create game with these options, requires version "
+                    + Integer.toString(e.cliVersion)
+                    + ": " + gameName));
             } catch (IllegalArgumentException e)
             {
                 // Let them know they can't join; include the game's version.
-                SOCGame gameData = gameList.getGameData(gameName);
 
-		if (gameOpts != null)
-		{
-		    // cli asked to created it, otherwise gameOpts would be null
-		    // (TODO) better msg with new status SV_NEWGAME_OPTION_VALUE_TOONEW
-                    c.put(SOCStatusMessage.toCmd
-                      (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, c.getVersion(),
-                        "Cannot create game with these options, requires version "
-                        + Integer.toString(gameData.getClientVersionMinRequired())
-                        + ": " + gameName));
-		} else {
-                    // can't join existing game
-                    c.put(SOCStatusMessage.toCmd
-                      (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, c.getVersion(),
-                        "Cannot join game, requires version "
-                        + Integer.toString(gameData.getClientVersionMinRequired())
-                        + ": " + gameName));
-                }
+                c.put(SOCStatusMessage.toCmd
+                  (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, c.getVersion(),
+                    "Cannot join game, requires version "
+                    + Integer.toString(gameList.getGameData(gameName).getClientVersionMinRequired())
+                    + ": " + gameName));
             }
 
     }  //  createOrJoinGameIfUserOK
