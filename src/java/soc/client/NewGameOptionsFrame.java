@@ -160,13 +160,15 @@ public class NewGameOptionsFrame extends Frame
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
      * See constructor for parameters.
+     * @return the new frame
      */
-    public static void createAndShow
+    public static NewGameOptionsFrame createAndShow
         (SOCPlayerClient cli, String gaName, Hashtable opts, boolean forPractice, boolean readOnly)
     {
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
         ngof.pack();
         ngof.show();
+        return ngof;
     }
     
     /**
@@ -508,6 +510,7 @@ public class NewGameOptionsFrame extends Frame
             {
                 // Ask client to set up and start a practice game
                 clickCreate();
+                return;
             }
 
             if (src == cancel)
@@ -564,10 +567,20 @@ public class NewGameOptionsFrame extends Frame
         dispose();
     }
 
-    /** Dismiss the panel */
+    /** Dismiss the frame */
     private void clickCancel()
     {
         dispose();
+    }
+
+    /** Dismiss the frame, and clear client's {@link SOCPlayerClient#newGameOptsFrame}
+     *  ref to this frame
+     */
+    public void dispose()
+    {
+        if (this == cl.newGameOptsFrame)
+            cl.newGameOptsFrame = null;
+        super.dispose();
     }
 
     /**
