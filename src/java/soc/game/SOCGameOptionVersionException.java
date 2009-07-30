@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009 Jeremy Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,19 +28,37 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 /**
- * This exception indicates a game option too new for a client.
+ * This exception indicates game option(s) too new for a client.
  * @see SOCGameOption#optionsMinimumVersion(Hashtable)
+ * @see SOCGameOption#optionsNewerThanVersion(int, boolean, Hashtable)
  *
- * @author Jeremy D. Monin <jeremy@nand.net>
+ * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.07
  */
 public class SOCGameOptionVersionException extends IllegalArgumentException
 {
+    /** Minimum client version required by game options */
+    public final int gameOptsVersion;
+
+    /** Requesting client's version */
     public final int cliVersion;
+
+    /**
+     * The {@link SOCGameOption}(s) which are too new,
+     *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, Hashtable)}
+     */
     public Vector problemOptionsTooNew;
-    public SOCGameOptionVersionException(int cliVers, Vector optsValuesTooNew)
+
+    /**
+     * @param optVers Minimum client version required by game options
+     * @param cliVers Requesting client's version
+     * @param optsValuesTooNew The {@link SOCGameOption}(s) which are too new,
+     *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, Hashtable)}
+     */
+    public SOCGameOptionVersionException(int optVers, int cliVers, Vector optsValuesTooNew)
     {
         super("Client version vs game options");
+        gameOptsVersion = optVers;
         cliVersion = cliVers;
         problemOptionsTooNew = optsValuesTooNew;
     }
