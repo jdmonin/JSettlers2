@@ -498,18 +498,19 @@ public class SOCServer extends Server
                     // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
                     SOCGame ng = gameList.createGame(gaName, gaOpts); 
 
-                    if (ng.getClientVersionMinRequired() > cliVers)
+                    final int gVers = ng.getClientVersionMinRequired();
+                    if (gVers > cliVers)
                     {
                         // Can't join its own game: find out why, and get rid of the game.
                         Vector optsValuesTooNew = null;
                         Exception problem;
                         if (gaOpts != null)
                             optsValuesTooNew =
-                                SOCGameOption.optionsNewerThanVersion(cliVers, true);
+                                SOCGameOption.optionsNewerThanVersion(cliVers, true, gaOpts);
                         if (optsValuesTooNew == null)
                             problem = new IllegalArgumentException("Client version");
                         else
-                            problem = new SOCGameOptionVersionException(cliVers, optsValuesTooNew);
+                            problem = new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
 
                         destroyGame(gaName);
                         gameList.releaseMonitor();
@@ -525,10 +526,9 @@ public class SOCServer extends Server
                     result = true;
 
                     // check version before we broadcast
-                    final int gvers = ng.getClientVersionMinRequired();
                     final int cversMin = getMinConnectedCliVersion();
 
-                    if ((gvers <= cversMin) && (gaOpts == null))
+                    if ((gVers <= cversMin) && (gaOpts == null))
                     {
 			// All clients can join it, and no game options: use simplest message
                         broadcast(SOCNewGame.toCmd(gaName));
@@ -541,7 +541,7 @@ public class SOCServer extends Server
 			{
 			    // All cli can understand msg with version/options included
 			    broadcast
-				(SOCNewGameWithOptions.toCmd(gaName, gaOpts, gvers));
+				(SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers));
 			} else {
 			    // Only some can understand msg with version/options included;
 			    // send at most 1 to each connected client, split by client version.
@@ -551,7 +551,7 @@ public class SOCServer extends Server
 			    if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
 			    {
 				broadcastToVers
-				    (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gvers),
+				    (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers),
 				     SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
 				newgameMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
 			    } else {
@@ -559,16 +559,24 @@ public class SOCServer extends Server
 			    }
 
 			    // To older clients who can join, announce game without its options/version
-			    broadcastToVers(SOCNewGame.toCmd(gaName), gvers, newgameMaxCliVers);
+			    broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameMaxCliVers);
 
 			    // To older clients who can't join, announce game with cant-join prefix
 			    StringBuffer sb = new StringBuffer();
 			    sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
 			    sb.append(gaName);
 			    broadcastToVers
-				(SOCNewGame.toCmd(sb.toString()), SOCGames.VERSION_FOR_UNJOINABLE, gvers-1);
+				(SOCNewGame.toCmd(sb.toString()), SOCGames.VERSION_FOR_UNJOINABLE, gVers-1);
 			}
                     }
+                }
+                catch (SOCGameOptionVersionException e)
+                {
+                    throw e;  // caller handles it
+                }
+                catch (IllegalArgumentException e)
+                {
+                    throw e;  // caller handles it
                 }
                 catch (Exception e)
                 {
@@ -3193,7 +3201,7 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                   (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, c.getVersion(),
                     "Cannot create game with these options, requires version "
-                    + Integer.toString(e.cliVersion)
+                    + Integer.toString(e.gameOptsVersion)
                     + ": " + gameName));
             } catch (IllegalArgumentException e)
             {
@@ -5541,7 +5549,7 @@ public class SOCServer extends Server
         {
             // received "-", look for newer options (cli is older than us).
             // okeys will be null if nothing is new.
-            okeys = SOCGameOption.optionsNewerThanVersion(cliVers, false);
+            okeys = SOCGameOption.optionsNewerThanVersion(cliVers, false, null);
             vecIsOptObjs = true;
         }
 
@@ -7475,7 +7483,7 @@ public class SOCServer extends Server
     public static void printGameOptions()
     {
         Hashtable allopts = SOCGameOption.getAllKnownOptions();
-        System.err.println("-- Current game options: --");
+        System.err.println("-- Current default game options: --");
         for (Enumeration e = allopts.keys(); e.hasMoreElements(); )
         {
             String okey = (String) e.nextElement();
@@ -7509,6 +7517,16 @@ public class SOCServer extends Server
                 }
                 System.err.println(sb.toString());
             }
+        }
+
+        int optsVers = SOCGameOption.optionsMinimumVersion(allopts);
+        if (optsVers > -1)
+        {
+            System.err.println
+                ("*** Note: Client version " + optsVers
+                 + " or higher is required for these game options. ***");
+            System.err.println
+                ("          Games created with different options may not have this restriction.");
         }
     }
 
