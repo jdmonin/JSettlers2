@@ -2150,7 +2150,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	{
 	    if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
 	    {
-	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false);
+	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, null);
 		if (tooNewOpts != null)
                 {
                     if (! isLocal)

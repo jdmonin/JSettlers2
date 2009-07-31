@@ -33,10 +33,17 @@ import soc.message.SOCMessage;
  * Game-specific options, configurable at game creation.
  * This class has two purposes:
  *<UL>
- * <LI> Static dictionary of known options
  * <LI> Per-game values of options
+ * <LI> Static dictionary of known options;
+ *    see {@link #initAllOptions()} for the current list.
  *</UL>
- * If a new option changes previously expected behavior, it should default here to
+ * All in-game code uses 2-letter key strings to query and change
+ * game option settings; only a very few places use SOCGameOption
+ * objects.
+ *<P>
+ * The "known options" are initialized via {@link #initAllOptions()}.  See that
+ * method's description for more details on adding an option.
+ * If a new option changes previously expected behavior, it should default to
  * the old behavior; its default value on your server can be changed at runtime.
  *<P>
  * Introduced in 1.1.07; check server, client versions against
@@ -45,7 +52,8 @@ import soc.message.SOCMessage;
  * with new versions of JSettlers.  Since games run on the server, the server is
  * authoritative about game options:  If the client is newer, it must defer to the
  * server's older set of known options.  At client connect, the client compares its
- * version to server's, and asks for any changes to options if their versions differ.
+ * JSettlers version number to the server's, and asks for any changes to options if
+ * their versions differ.
  *<P>
  * @author Jeremy D. Monin <jeremy@nand.net>
  * @since 1.1.07
@@ -59,15 +67,92 @@ public class SOCGameOption implements Cloneable
     private static Hashtable allOptions = initAllOptions();
 
     /**
-     * If you add an option (TODO) descr here...
-     *   possibly update {@link soc.util.SOCRobotParameters#copyIfOptionChanged(Hashtable)}.
+     * Create a set of the known options.
+     *
+     * <h3>Current known options:</h3>
+     *<UL>
+     *<LI> PL  Maximum # players (2-4)
+     *<LI> RD  Robber can't return to the desert
+     *<LI> E7  Roll no 7s during first # rounds
+     *<LI> BC  Break up clumps of # or more same-type ports/hexes
+     *<LI> NT  No trading allowed
+     *</UL>
+     *
+     * <h3>If you want to add a game option:</h3>
+     *<UL>
+     *<LI> Choose an unused 2-character key name: for example, "PL" for "max players".
+     *   All in-game code uses these key strings to query and change
+     *   game option settings; only a very few places use SOCGameOption
+     *   objects, and you won't need to adjust those places.
+     *   The list of already-used key names is here within initAllOptions.
+     *<LI> Decide which {@link #optType option type} your option will be
+     *   (boolean, enumerated, int+bool, etc.), and its default value.
+     *   Typically the default will let the game behave as it did before
+     *   the option existed (for example, the "max players" default is 4).
+     *   Its default value on your own server can be changed at runtime.
+     *<LI> Decide if all client versions can use your option.  Typically, if the option
+     *   requires server changes but not any client changes, all clients can use it.
+     *   (For example, "E7" for "roll no 7s early in the game" is strictly server-side.)
+     *   If only <em>some values</em> of the option will require client changes,
+     *   also update {@link #getMinVersion()}.  (For example, if "PL"'s value is 5 or 6,
+     *   a new client would be needed to display that many players at once, but 2 - 4
+     *   can use any client version.)
+     *<LI> Create the option by calling opt.put here in initAllOptions.
+     *   Use the current version for the "last modified" field.
+     *<LI> Within {@link SOCGame}, don't add any object fields due to the new option;
+     *   instead call {@link SOCGame#isGameOptionDefined(String)},
+     *   {@link SOCGame#getGameOptionIntValue(String)}, etc.
+     *   Look for game methods where game behavior changes with the new option,
+     *   and adjust those.
+     *<LI> Check the server and clients for places which must check for the new option.
+     *   Typically these will be the places which call the game methods affected.
+     *   <UL>
+     *   <LI> {@link soc.server.SOCServer} is the server class
+     *   <LI> {@link soc.client.SOCPlayerClient} is the graphical client
+     *   <LI> {@link soc.client.SOCRobotClient} and {@link soc.robot.SOCRobotBrain#run()}
+     *           together handle the robot client messages
+     *   <LI> {@link soc.client.SOCDisplaylessClient} is the foundation for the robot client,
+     *           and handles some of its messages
+     *   </UL>
+     *   Some options don't need any changes to the robot; for example, the robot doesn't
+     *   care about the maximum number of players in a game, because it doesn't decide when
+     *   to join a game; the server tells it that.
+     *<LI> To find other places which may possibly need an update from your new option,
+     *   search the source for this marker: <code> // NEW_OPTION </code>
+     *   <br>
+     *   This would include places like
+     *   {@link soc.util.SOCRobotParameters#copyIfOptionChanged(Hashtable)}
+     *   which ignore most, but not all, game options.
+     *</UL>
+     *
+     * <h3>If you want to change a game option:</h3>
+     *
+     *   Typical changes to a game option would be:
+     *<UL>
+     *<LI> Add new values to an {@link #OTYPE_ENUM enumerated} option
+     *<LI> Change the maximum or minimum permitted values for an
+     *   {@link #OTYPE_INT integer} option
+     *<LI> Change the default value, although this can also be done
+     *   at runtime on the command line
+     *</UL>
+     *   <b>To make the change:</b>
+     *<UL>
+     *<LI> Change the option here in initAllOptions; change the "last modified" field to
+     *   the current game version. Otherwise the server can't tell the client what has
+     *   changed about the option.
+     *<LI> Search the source for its key name, to find places which may need an update.
+     *<LI> Consider if any other places listed above (for add) need adjustment.
+     *</UL>
+     *
      *<P>
-     * This method creates a Hashtable but does not set {@link #allOptions} field.
-     * @return the default options
+     * This method creates and returns a Hashtable, but does not set the static {@link #allOptions} field.
+     *
+     * @return a fresh copy of the "known" options, with their hardcoded default values
      */
     private static Hashtable initAllOptions()
     {
         Hashtable opt = new Hashtable();
+
         opt.put("PL", new SOCGameOption
                 ("PL", -1, 1107, 4, 2, 4, true, "Maximum # players"));
         opt.put("RD", new SOCGameOption
@@ -78,6 +163,9 @@ public class SOCGameOption implements Cloneable
                 ("BC", -1, 1107, true, 3, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, true, "No Trading allowed"));
+
+        // NEW_OPTION - Add opt.put here at end of list, and update the
+        //       list of "current known options" in javadoc just above.
 
         /*
         opt.put("DEBUG_ENUM", new SOCGameOption
@@ -214,8 +302,11 @@ public class SOCGameOption implements Cloneable
      * Minimum version will be {@link Integer#MAX_VALUE}.
      * Value will be false/0. optDesc will be an empty string.
      * @param key   Alphanumeric 2-character code for this option
+     * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
+     *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key)
+        throws IllegalArgumentException
     {
         this(OTYPE_UNKNOWN, key, Integer.MAX_VALUE, Integer.MAX_VALUE, false, 0, 0, 0, false, null, "");
     }
@@ -232,9 +323,12 @@ public class SOCGameOption implements Cloneable
      *           Only recommended if game behavior without the option is well-established
      *           (for example, maxplayers == 4 unless option PL is present).
      * @param desc    Descriptive brief text, to appear in the options dialog
+     * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
+     *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
         boolean defaultValue, boolean skipIfDefault, String desc)
+        throws IllegalArgumentException
     {
 	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, skipIfDefault, null, desc);
     }
@@ -256,7 +350,9 @@ public class SOCGameOption implements Cloneable
      *             contain a placeholder character '#' where the int value goes.
      *             If no placeholder is found, the value text field appears at left,
      *             like boolean options.
-     * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue
+     * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
+     *        or if key length is > 3 or not alphanumeric,
+     *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
         int defaultValue, int minValue, int maxValue, boolean skipIfDefault, String desc)
@@ -283,7 +379,9 @@ public class SOCGameOption implements Cloneable
      *           For type OTYPE_INTBOOL, the integer value is checkd, not the boolean value.
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
-     * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue
+     * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
+     *        or if key length is > 3 or not alphanumeric,
+     *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers, boolean defaultBoolValue, int defaultIntValue,
         int minValue, int maxValue, boolean skipIfDefault, String desc)
@@ -309,7 +407,9 @@ public class SOCGameOption implements Cloneable
      *             contain a placeholder character '#' where the enum's popup-menu goes.
      *             If no placeholder is found, the value field appears at left,
      *             like boolean options.
-     * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue
+     * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
+     *        or if key length is > 3 or not alphanumeric,
+     *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
         int defaultValue, String[] enumVals, boolean skipIfDefault, String desc)
@@ -335,7 +435,9 @@ public class SOCGameOption implements Cloneable
      *             contain a placeholder character '#' where the text value goes.
      *             If no placeholder is found, the value text field appears at left,
      *             like boolean options.
-     * @throws IllegalArgumentException if maxLength > 255
+     * @throws IllegalArgumentException if maxLength > 255,
+     *        or if key length is > 3 or not alphanumeric,
+     *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
 	int maxLength, boolean hideTyping, boolean skipIfDefault, String desc)
@@ -364,7 +466,9 @@ public class SOCGameOption implements Cloneable
      * @param enumVals Possible choice texts for {@link #OTYPE_ENUM}, or null
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
-     * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue
+     * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
+     *        or if key length is > 3 or not alphanumeric,
+     *        or if minVers or lastModVers is under 1000 but not -1
      */
     protected SOCGameOption(int otype, String key, int minVers, int lastModVers,
         boolean defaultBoolValue, int defaultIntValue,
@@ -372,11 +476,22 @@ public class SOCGameOption implements Cloneable
         String[] enumVals, String desc)
         throws IllegalArgumentException
     {
-	// properties
-	optKey = key;  // TODO validate length and characters
+	// validate & set option properties:
+
+        if (key.length() > 3)
+            throw new IllegalArgumentException("Key length: " + key);
+        // TODO alphanumeric-only? due to unicode, use char ranges and not char.isLetter etc
+        if (false)
+            throw new IllegalArgumentException("Key not alphanumeric: " + key);
+        if ((minVers < 1000) && (minVers != -1))
+            throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
+        if ((lastModVers < 1000) && (lastModVers != -1))
+            throw new IllegalArgumentException("lastModVers " + lastModVers + " for key " + key);
+
+	optKey = key;
 	optType = otype;
-	minVersion = minVers;  // TODO -1 or >= 1000
-	lastModVersion = lastModVers;  // TODO -1 or >= 1000
+	minVersion = minVers;
+	lastModVersion = lastModVers;
 	this.defaultBoolValue = defaultBoolValue;
 	this.defaultIntValue = defaultIntValue;
 	minIntValue = minValue;
@@ -466,6 +581,8 @@ public class SOCGameOption implements Cloneable
      * The current value of an option can change its minimum version.
      * For example, a 5- or 6-player game will need a newer client than 4 players,
      * but option "PL"'s {@link #minVersion} is -1, to allow 2- or 3-player games with any client.
+     * For option types {@link #OTYPE_BOOL} and {@link #OTYPE_INTBOOL}, the minimum
+     * value is -1 unless {@link #getBoolValue()} is true (that is, unless the option is set).
      *
      * @return minimum version, or -1;
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
@@ -473,9 +590,27 @@ public class SOCGameOption implements Cloneable
      */
     public int getMinVersion()
     {
+        if ((optType == OTYPE_BOOL) || (optType == OTYPE_INTBOOL))  // OTYPE_*: check here if boolean-valued
+        {
+            if (! boolValue)
+                return -1;  // Option not set: any client version is OK
+        }
+
         // NEW_OPTION:
         // Any option value checking for minVers is done here.
         // None of the current options change minVers based on their value.
+        // If your option changes the minVers based on its current value,
+        // check the optKey and current value, and return the appropriate version,
+        // instead of just returning minVersion.
+
+        // SAMPLE CODE:
+        /*
+        if (optKey.equals("E7") && (intValue == 42))
+        {
+            return 1108;
+        }
+        */
+        // END OF SAMPLE CODE.
 
         return minVersion;
     }
@@ -864,18 +999,22 @@ public class SOCGameOption implements Cloneable
      *              not just their {@link #lastModVersion}?
      *              An option's minimum version can increase based
      *              on its value; see {@link #getMinVersion()}.
+     * @param opts  Set of {@link SOCGameOption}s to check current values;
+     *              if null, use the "known option" set
      * @return Vector of the unknown {@link SOCGameOption}s, or null
      *     if all are known and unchanged since vers.
      *     If checkValues, any options whose version is based on current value
      *     will appear first in the vector.  When looking for these,
      *     look for getMinVersion() > vers.
      */
-    public static Vector optionsNewerThanVersion(final int vers, final boolean checkValues)
+    public static Vector optionsNewerThanVersion(final int vers, final boolean checkValues, Hashtable opts)
     {
-	Vector uopt = null;
+        if (opts == null)
+            opts = allOptions;
+        Vector uopt = null;  // add problems to uopt
         if (checkValues)
         {
-            for (Enumeration e = allOptions.elements(); e.hasMoreElements(); )
+            for (Enumeration e = opts.elements(); e.hasMoreElements(); )
             {
                 SOCGameOption opt = (SOCGameOption) e.nextElement();
                 if (opt.getMinVersion() > vers)
@@ -886,7 +1025,7 @@ public class SOCGameOption implements Cloneable
                 }
             }
         }
-	for (Enumeration e = allOptions.elements(); e.hasMoreElements(); )
+	for (Enumeration e = opts.elements(); e.hasMoreElements(); )
 	{
 	    SOCGameOption opt = (SOCGameOption) e.nextElement();
 	    if (opt.lastModVersion > vers)
@@ -917,7 +1056,7 @@ public class SOCGameOption implements Cloneable
      *            or if opt's {@link #lastModVersion} differs from in knownOpts.
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
-    public static boolean adjustOptionsToKnown (Hashtable newOpts, Hashtable knownOpts)
+    public static boolean adjustOptionsToKnown(Hashtable newOpts, Hashtable knownOpts)
 	throws IllegalArgumentException
     {
 	if (knownOpts == null)
@@ -936,7 +1075,7 @@ public class SOCGameOption implements Cloneable
 	    }
 	    catch (ClassCastException ce)
 	    {
-                throw new IllegalArgumentException("wrong class, expected gameoption");	        
+                throw new IllegalArgumentException("wrong class, expected gameoption");
 	    }
 	    SOCGameOption knownOp = (SOCGameOption) knownOpts.get(op.optKey);
 	    if ((knownOp == null) || (knownOp.optType != op.optType))
