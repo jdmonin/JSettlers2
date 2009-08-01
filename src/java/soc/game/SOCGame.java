@@ -159,7 +159,8 @@ public class SOCGame implements Serializable, Cloneable
     public static final int WAITING_FOR_MONOPOLY = 53; // Waiting for player to choose a resource
 
     /**
-     * The game is over.  A player has accumulated 10 ({@link #VP_WINNER}) victory points.
+     * The game is over.  A player has accumulated 10 ({@link #VP_WINNER}) victory points,
+     * or all players have left the game.
      */
     public static final int OVER = 1000; // The game is over
 
@@ -1489,7 +1490,8 @@ public class SOCGame implements Serializable, Cloneable
                 else
                 {
                     advanceTurn();
-                    gameState = START1A;
+                    if (gameState < OVER)
+                        gameState = START1A;
                 }
             }
     
@@ -1889,7 +1891,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * end the turn for the current player, and check for winner.
-     * Check for gamestate {@link #OVER} after calling endTurn.
+     * Check for gamestate >= {@link #OVER} after calling endTurn.
      * endTurn() is called only at server - client instead calls
      * {@link #setCurrentPlayerNumber(int)}.
      * endTurn() is not called before the first dice roll.
@@ -1907,10 +1909,13 @@ public class SOCGame implements Serializable, Cloneable
     {
         gameState = PLAY;
         advanceTurn();
-        updateAtTurn();
-        players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
-        if (players[currentPlayerNumber].getTotalVP() >= VP_WINNER)
-            checkForWinner();
+        if (gameState < OVER)
+        {
+            updateAtTurn();
+            players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
+            if (players[currentPlayerNumber].getTotalVP() >= VP_WINNER)
+                checkForWinner();
+        }
     }
 
     /**
