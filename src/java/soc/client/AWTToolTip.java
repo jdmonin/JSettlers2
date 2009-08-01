@@ -450,6 +450,9 @@ public class AWTToolTip
 
 /*
  * $Log$
+ * Revision 1.4  2009/07/01 03:35:03  jdmonin
+ * latest devel code, to become 1.1.07
+ *
  * Revision 1.1.1.1  2001/02/07 15:23:49  rtfm
  * initial
  *
