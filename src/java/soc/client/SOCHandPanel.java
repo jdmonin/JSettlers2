@@ -963,19 +963,28 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * Add the "Sit Here" button. If this button has been used as
-     * a "lock" button to keep out a robot, revert the label to "Sit Here".
+     * a "lock" button to keep out a robot, revert the label to "Sit Here"
+     * unless clientHasSatAlready.
+     *<P>
+     * <b>Note:</b> Does not check if the seat is vacant (in case we're
+     * removing a player, and game state is not yet updated);
+     * please call {@link SOCGame#isSeatVacant(int)} before calling this.
+     *
+     * @param clientHasSatAlready Is the client seated in this game?
+     *   If so, button label should be "lock"/"unlock" (about robots).
+     *   (Added in 1.1.07)
      */
-    public void addSitButton()
+    public void addSitButton(boolean clientHasSatAlready)
     {
-        if (player.getName() == null)
+        if (sitButIsLock && ! clientHasSatAlready)
         {
-            if (sitButIsLock)
-            {
-                sitBut.setLabel(SIT);
-                sitButIsLock = false;
-            }
-            sitBut.setVisible(true);
+            sitBut.setLabel(SIT);
+            sitButIsLock = false;
+        } else if (clientHasSatAlready && ! sitButIsLock)
+        {
+            renameSitButLock();
         }
+        sitBut.setVisible(true);
     }
 
     /**
@@ -1034,17 +1043,11 @@ public class SOCHandPanel extends Panel implements ActionListener
             if (playerInterface.getClientHand() == this)
                 playerInterface.setClientHand(null);
             playerIsClient = false;
-        }
-
-        if (game.getPlayer(client.getNickname()) == null &&
-            game.getGameState() == SOCGame.NEW)
+        } else if (game.getGameState() == SOCGame.NEW)
         {
-            if (sitButIsLock)
-            {
-                sitBut.setLabel(SIT);  // revert from lockout to sit-here
-                sitButIsLock = false;
-            }
-            sitBut.setVisible(true);
+            // Un-hide "Sit Here" or "Lock" button
+            boolean clientAlreadySitting = (playerInterface.getClientHand() != null);
+            addSitButton(clientAlreadySitting);
         }
 
         /* Hide items in case this was our hand */

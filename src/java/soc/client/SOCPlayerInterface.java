@@ -600,7 +600,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      * Show the maximum and available number of player positions,
      * if game parameter "PL" is less than {@link SOCGame#MAXPLAYERS}.
      * Also, if show, and gamestate is {@link SOCGame#NEW}, check for game-is-full,
-     * and hide "sit down" buttons if so.
+     * and hide or show "sit down" buttons if necessary.
+     * If the game has already started, and the client is playing in this game,
+     * will not show this display (it overlays the board, which is in use).
      * @param show show the text, or clear the display (at game start)?
      * @param leaving Is a player leaving the game? If so, subtract 1 from the
      *            value returned by {@link SOCGame#getAvailableSeatCount()}.
@@ -608,7 +610,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      */
     private void updatePlayerLimitDisplay(final boolean show, final boolean leaving)
     {
-        if (! show)
+        final int gstate = game.getGameState();
+        if ((! show) ||
+            ((gstate >= SOCGame.START1A) && (clientHand != null)))
         {
             boardPanel.setSuperimposedText(null, null);
             return;           
@@ -622,17 +626,25 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         String availTxt = (availPl == 1) ? "1 seat available" : Integer.toString(availPl) + " seats available";
         boardPanel.setSuperimposedText
             ("Maximum players: " + maxPl, availTxt);
-        if (( availPl == 0) && (game.getGameState() == SOCGame.NEW)) 
+        if (gstate == SOCGame.NEW)
         {
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
-                hands[i].removeSitBut();
+            if ((availPl == 0) && (clientHand == null))
+            {
+                // No seats remain; remove all "sit here" buttons.
+                // (If client has already sat, leave them
+                //  visible as robot "lock" buttons.)
+                for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                    hands[i].removeSitBut();
+            }
+            else if (leaving && (availPl == 1))
+            {
+                // Now there's a vacant seat again, re-add all,
+                // either as "sit here" or "lock" as appropriate.
+                for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                    if (game.isSeatVacant(i))
+                        hands[i].addSitButton(clientHand != null);
+            }
         }
-        else if (leaving && (availPl == 1))
-        {
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
-                hands[i].addSitButton();
-        }
-            
     }
 
     /**
@@ -1035,7 +1047,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         {
             for (int i = 0; i < 4; i++)
             {
-                hands[i].addSitButton();
+                if (game.isSeatVacant(i))
+                    hands[i].addSitButton(false);
             }
         }
     }
@@ -1082,26 +1095,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      */
     public void removePlayer(int pn)
     {
-        hands[pn].removePlayer();
+        hands[pn].removePlayer();  // May also clear clientHand
 
         if (game.getGameState() <= SOCGame.READY)
         {
-            boolean match = false;
+            boolean clientSittingInGame = (clientHand != null);  // Is the client player already sitting down at this game?
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
-            {
-                if ((game.getPlayer(i).getName() != null) && (!game.isSeatVacant(i)) && (game.getPlayer(i).getName().equals(client.getNickname())))
-                {
-                    match = true;
-
-                    break;
-                }
-            }
-
-            if (!match)
-            {
-                hands[pn].addSitButton();
-            }
+            hands[pn].addSitButton(clientSittingInGame);
         }
 
         if (game.isGameOptionDefined("PL"))

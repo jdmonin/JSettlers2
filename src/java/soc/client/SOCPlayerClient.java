@@ -216,10 +216,20 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     /**
      * Task for timeout when asking remote server for {@link SOCGameOptionInfo game options info}.
      * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
+     * In case of slow connection or server bug.
      * @see #gameOptionsSetTimeoutTask()
      * @since 1.1.07
      */
     protected GameOptionsTimeoutTask gameOptsTask = null;
+
+    /**
+     * Task for timeout when asking remote server for {@link SOCGameOption game options defaults}.
+     * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
+     * In case of slow connection or server bug.
+     * @see #gameWithOptionsBeginSetup(boolean)
+     * @since 1.1.07
+     */
+    protected GameOptionDefaultsTimeoutTask gameOptsDefsTask = null;
 
     /**
      * Utility for time-driven events in the client.
@@ -1372,8 +1382,21 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         if (askedAlready && ! (optsAllKnown && knowDefaults))
         {
-            return;  // <--- Early return: Already waiting for an answer ----
-            // TODO if asking-time is > 5 sec ago, assume we'll never know the unknown ones, and present gui.
+            // If we're only waiting on defaults, how long ago did we ask for them?
+            // If > 5 seconds ago, assume we'll never know the unknown ones, and present gui frame.
+            if (optsAllKnown && (5000 < Math.abs(System.currentTimeMillis() - opts.askedDefaultsTime))) 
+            {
+                knowDefaults = true;
+                opts.defaultsReceived = true;
+                if (gameOptsDefsTask != null)
+                {
+                    gameOptsDefsTask.cancel();
+                    gameOptsDefsTask = null;
+                }
+                // since optsAllKnown, will present frame below.
+            } else {
+                return;  // <--- Early return: Already waiting for an answer ----
+            }
         }
 
         if (optsAllKnown && knowDefaults)
@@ -1394,9 +1417,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         status.setText("Talking to server...");
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        opts.newGameWaitingForOpts = true;
         opts.askedDefaultsAlready = true;
-	opts.newGameWaitingForOpts = true;
+        opts.askedDefaultsTime = System.currentTimeMillis();
         put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
+
+        if (gameOptsDefsTask != null)
+            gameOptsDefsTask.cancel();
+        gameOptsDefsTask = new GameOptionDefaultsTimeoutTask(this, tcpServGameOpts, forPracticeServer);
+        eventTimer.schedule(gameOptsDefsTask, 5000 /* ms */ );
 
         // Once options are received, handlers will
         // create and show NewGameOptionsFrame.
@@ -3512,9 +3541,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 gameOptionsSetTimeoutTask();
 	    put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isLocal);
 	} else {
+            if (gameOptsDefsTask != null)
+            {
+                gameOptsDefsTask.cancel();
+                gameOptsDefsTask = null;
+            }
+
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-		(this, (String) null, opts.optionSet, isLocal, false);
-	}
+                (this, (String) null, opts.optionSet, isLocal, false);
+        }
     }
 
     /**
@@ -5069,6 +5104,44 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
 
     /**
+     * TimerTask used when new game is asked for, to prevent waiting forever for
+     * {@link SOCGameOption game option defaults}.
+     * (in case of slow connection or server bug).
+     * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}
+     * in {@link SOCPlayerClient#gameWithOptionsBeginSetup(boolean)}.
+     *<P>
+     * When timer fires, assume no defaults will be received.
+     * Display the new-game dialog.
+     * @since 1.1.07
+     */
+    private static class GameOptionDefaultsTimeoutTask extends TimerTask
+    {
+        public SOCPlayerClient pcli;
+        public GameOptionServerSet srvOpts;
+        public boolean forPracticeServer;
+
+        public GameOptionDefaultsTimeoutTask (SOCPlayerClient c, GameOptionServerSet opts, boolean forPractice)
+        {
+            pcli = c;
+            srvOpts = opts;
+            forPracticeServer = forPractice;
+        }
+
+        /**
+         * Called when timer fires. See class description for action taken.
+         */
+        public void run()
+        {
+            pcli.gameOptsDefsTask = null;  // Clear reference to this soon-to-expire obj
+            srvOpts.noMoreOptions(true);
+            if (srvOpts.newGameWaitingForOpts)
+                pcli.gameWithOptionsBeginSetup(forPracticeServer);
+        }
+
+    }  // GameOptionDefaultsTimeoutTask
+
+
+    /**
      * Track the server's valid game option set.
      * One instance for remote tcp server, one for practice server.
      * Not doing getters/setters - Synchronize on the object to set/read its fields.
@@ -5102,8 +5175,18 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
          * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
          */
 	public Hashtable optionSet = null;
+
+	/** Have we asked the server for default values? */
         public boolean   askedDefaultsAlready = false;
+
+        /** Has the server told us defaults? */
         public boolean   defaultsReceived = false;
+
+        /**
+         * If {@link #askedDefaultsAlready}, the time it was asked,
+         * as returned by {@link System#currentTimeMillis()}.
+         */
+        public long askedDefaultsTime;
 
         public GameOptionServerSet()
         {
@@ -5121,8 +5204,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	    allOptionsReceived = true;
             if (askedDefaults)
             {
-                askedDefaultsAlready = true;
                 defaultsReceived = true;
+                askedDefaultsAlready = true;
+                askedDefaultsTime = System.currentTimeMillis();
             }
 	}
 
