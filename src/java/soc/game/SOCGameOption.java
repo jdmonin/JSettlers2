@@ -105,9 +105,10 @@ public class SOCGameOption implements Cloneable
      *   Look for game methods where game behavior changes with the new option,
      *   and adjust those.
      *<LI> Check the server and clients for places which must check for the new option.
-     *   Typically these will be the places which call the game methods affected.
+     *   Typically these will be the <strong>places which call the game methods</strong> affected.
      *   <UL>
-     *   <LI> {@link soc.server.SOCServer} is the server class
+     *   <LI> {@link soc.server.SOCServer} is the server class,
+     *           see its "handle" methods for network messages
      *   <LI> {@link soc.client.SOCPlayerClient} is the graphical client
      *   <LI> {@link soc.client.SOCRobotClient} and {@link soc.robot.SOCRobotBrain#run()}
      *           together handle the robot client messages

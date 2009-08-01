@@ -120,6 +120,8 @@ public class SOCRobotParameters
             params.tradeFlag = 0;
         }
 
+        // NEW_OPTION : If your option affects RobotParameters, look for it here.
+
         return params;
     }
 
