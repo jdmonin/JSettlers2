@@ -1338,6 +1338,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                     // because they're in our own JAR file.
                     // Also, the practice server isn't started yet,
                     // so we can't ask it for the options.
+                    // The practice server will be started when the player clicks
+                    // "Create Game" in the NewGameOptionsFrame, causing the new
+                    // game to be requested from askStartGameWithOptions.
                     setKnown = true;
                     opts.optionSet = SOCGameOption.getAllKnownOptions();
                 }
@@ -1354,6 +1357,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             if (setKnown)
             {
                 opts.allOptionsReceived = true;
+                opts.defaultsReceived = true;
             }
         }
 
@@ -1382,6 +1386,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         // OK, we need the options.
         // Ask the server by sending GAMEOPTIONGETDEFAULTS.
+        // (This will never happen for local practice games, see above.)
 
         // May take a while for server to send our info.
         // The new-game-options window will clear this cursor
@@ -4512,8 +4517,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * Setup for local practice game (local server).
-     * If needed, a local server, client, and robots are started.
+     * Setup for local practice game (local non-tcp server).
+     * If needed, a (stringport, not tcp) server, client, and robots are started.
      *
      * @param practiceGameName Unique name to give practice game; if name unknown, call
      *         {@link #startPracticeGame()} instead
