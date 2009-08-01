@@ -3197,7 +3197,6 @@ public class SOCServer extends Server
             {
                 // Let them know they can't join; include the game's version.
                 // cli asked to created it, otherwise gameOpts would be null
-                // (TODO) better msg with new status SV_NEWGAME_OPTION_VALUE_TOONEW
                 c.put(SOCStatusMessage.toCmd
                   (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, c.getVersion(),
                     "Cannot create game with these options, requires version "
