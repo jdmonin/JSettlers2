@@ -398,7 +398,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         add(boardPanel);
         if (game.isGameOptionDefined("PL"))
         {
-            updatePlayerLimitDisplay(true);
+            updatePlayerLimitDisplay(true, false);
         }
 
         /**
@@ -601,10 +601,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      * if game parameter "PL" is less than {@link SOCGame#MAXPLAYERS}.
      * Also, if show, and gamestate is {@link SOCGame#NEW}, check for game-is-full,
      * and hide "sit down" buttons if so.
-     * @param show the text, or clear the display (at game start)?
+     * @param show show the text, or clear the display (at game start)?
+     * @param leaving Is a player leaving the game? If so, subtract 1 from the
+     *            value returned by {@link SOCGame#getAvailableSeatCount()}.
      * @since 1.1.07
      */
-    private void updatePlayerLimitDisplay(boolean show)
+    private void updatePlayerLimitDisplay(final boolean show, final boolean leaving)
     {
         if (! show)
         {
@@ -615,6 +617,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         if (maxPl == SOCGame.MAXPLAYERS)
             return;
         int availPl = game.getAvailableSeatCount();
+        if (leaving)
+            ++availPl;
         String availTxt = (availPl == 1) ? "1 seat available" : Integer.toString(availPl) + " seats available";
         boardPanel.setSuperimposedText
             ("Maximum players: " + maxPl, availTxt);
@@ -622,6 +626,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         {
             for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
                 hands[i].removeSitBut();
+        }
+        else if (leaving && (availPl == 1))
+        {
+            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                hands[i].addSitButton();
         }
             
     }
@@ -1039,7 +1048,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      */
     public void addPlayer(String n, int pn)
     {
-        hands[pn].addPlayer(n);
+        hands[pn].addPlayer(n);  // This will also update all other hands' buttons ("sit here" -> "lock", etc)
 
         if (n.equals(client.getNickname()))
         {
@@ -1049,13 +1058,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener
 
                 if (game.getPlayer(i).isRobot())
                 {
-                    hands[i].addSeatLockBut();
+                    hands[i].addSittingRobotLockBut();
                 }
             }
         }
 
         if (game.isGameOptionDefined("PL"))
-            updatePlayerLimitDisplay(true);
+            updatePlayerLimitDisplay(true, false);
 
         if (game.isBoardReset())
         {
@@ -1065,7 +1074,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     }
 
     /**
-     * remove a player from the game
+     * remove a player from the game.
+     * To prevent inconsistencies, call this <em>before</em> calling
+     * {@link SOCGame#removePlayer(String)}.
      *
      * @param pn the number of the player
      */
@@ -1094,7 +1105,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         }
 
         if (game.isGameOptionDefined("PL"))
-            updatePlayerLimitDisplay(true);
+            updatePlayerLimitDisplay(true, true);
     }
 
     /**
@@ -1112,7 +1123,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             // If we're joining a game in progress, keep it (as "sit here").
             hands[i].removeSitLockoutBut();
         }
-        updatePlayerLimitDisplay(false);
+        updatePlayerLimitDisplay(false, false);
         gameIsStarting = true;
     }
 

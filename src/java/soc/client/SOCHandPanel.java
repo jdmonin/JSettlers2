@@ -134,14 +134,19 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected Button takeOverBut;
 
     /** Seat lock/unlock shown in robot handpanels during game play,
-     *  to prevent/allow humans to join and take over a robot's seat
+     *  to prevent/allow humans to join and take over a robot's seat.
+     *  Used during different game states than {@link #sitBut}.
      */
-    protected Button seatLockBut;
+    protected Button sittingRobotLockBut;
 
     /** When true, the game is still forming, player has chosen a seat;
      *  "Sit Here" button is labeled as "Lock".  Humans can use this to
      *  lock robots out of that seat, so as to start a game with fewer
      *  players and some vacant seats.
+     *  Set by {@link #renameSitButLock()}, cleared elsewhere.
+     *  This affects {@link #sitBut} and not {@link #sittingRobotLockBut}.
+     *  @see #addPlayer(String)
+     *  @see #updateSeatLockButton()
      */
     protected boolean sitButIsLock;
     protected SOCFaceButton faceImg;
@@ -464,10 +469,10 @@ public class SOCHandPanel extends Panel implements ActionListener
         add(developmentSq);
         developmentSq.setTooltipText("Amount in hand");
 
-        seatLockBut = new Button(UNLOCKSEAT);
-        seatLockBut.addActionListener(this);
-        seatLockBut.setEnabled(interactive);
-        add(seatLockBut);
+        sittingRobotLockBut = new Button(UNLOCKSEAT);
+        sittingRobotLockBut.addActionListener(this);
+        sittingRobotLockBut.setEnabled(interactive);
+        add(sittingRobotLockBut);
 
         takeOverBut = new Button(TAKEOVER);
         takeOverBut.addActionListener(this);
@@ -929,21 +934,21 @@ public class SOCHandPanel extends Panel implements ActionListener
      * game is forming, which prevents a robot from sitting down. That button
      * is actually sitBut with a different label.
      */
-    public void addSeatLockBut()
+    public void addSittingRobotLockBut()
     {
         D.ebugPrintln("*** addSeatLockBut() ***");
-        D.ebugPrintln("seatLockBut = " + seatLockBut);
+        D.ebugPrintln("seatLockBut = " + sittingRobotLockBut);
 
             if (game.isSeatLocked(player.getPlayerNumber()))
             {
-                seatLockBut.setLabel(UNLOCKSEAT);
+                sittingRobotLockBut.setLabel(UNLOCKSEAT);
             }
             else
             {
-                seatLockBut.setLabel(UNLOCKSEAT);
+                sittingRobotLockBut.setLabel(UNLOCKSEAT);
             }
 
-            seatLockBut.setVisible(true);
+            sittingRobotLockBut.setVisible(true);
 
             //seatLockBut.repaint();
     }
@@ -993,7 +998,9 @@ public class SOCHandPanel extends Panel implements ActionListener
 
 
     /**
-     * remove this player
+     * remove this player.
+     * To prevent inconsistencies, call this <em>before</em> calling
+     * {@link SOCGame#removePlayer(String)}.
      */
     public void removePlayer()
     {
@@ -1037,8 +1044,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 sitBut.setLabel(SIT);  // revert from lockout to sit-here
                 sitButIsLock = false;
             }
-            if (game.getAvailableSeatCount() > 0)
-                sitBut.setVisible(true);
+            sitBut.setVisible(true);
         }
 
         /* Hide items in case this was our hand */
@@ -1105,7 +1111,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         faceImg.removeFacePopupMenu();  // Also disables left-click to change
 
         removeTakeOverBut();
-        removeSeatLockBut();
+        removeSittingRobotLockBut();
 
         inPlay = false;
 
@@ -1127,9 +1133,13 @@ public class SOCHandPanel extends Panel implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
+     * Add a player (human or robot) at this currently-vacant seat position.
+     * Update controls at this handpanel.
+     * Also update ALL OTHER handpanels in our {@link #playerInterface} this way:
+     * Remove all of the sit and take over buttons.
+     * If game still forming, can lock seats (for fewer players/robots).
      *
-     * @param name DOCUMENT ME!
+     * @param name Name of player to add
      */
     public void addPlayer(String name)
     {
@@ -1284,11 +1294,11 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             if (player.isRobot() && (game.getPlayer(client.getNickname()) != null))
             {
-                addSeatLockBut();
+                addSittingRobotLockBut();
             }
             else
             {
-                removeSeatLockBut();
+                removeSittingRobotLockBut();
             }
 
             vpLab.setVisible(true);
@@ -1536,11 +1546,13 @@ public class SOCHandPanel extends Panel implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
+     * Remove the "lock" button seen when a robot is currently playing in this position.
+     * @see #addSittingRobotLockBut()
+     * @see #removeSitBut()
      */
-    public void removeSeatLockBut()
+    public void removeSittingRobotLockBut()
     {
-        seatLockBut.setVisible(false);
+        sittingRobotLockBut.setVisible(false);
     }
 
     /**
@@ -1553,8 +1565,10 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * Remove the sit-here / lockout-robot button.
-     * If it's currently "lockout", revert label to "sit-here",
-     * and hide the "locked, no robot" text.
+     * If it's currently "lockout", revert button text to "sit-here",
+     * and hide the "locked, no robot" text label.
+     * @see #renameSitButLock()
+     * @see #addSittingRobotLockBut()
      */
     public void removeSitBut()
     {
@@ -1589,6 +1603,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * with fewer players/robots. This uses the same server-interface as
      * the "lock" button shown when robot is playing in the position,
      * but a different button in the client (the sit-here button).
+     * @see #updateSeatLockButton()
      */
     public void renameSitButLock()
     {
@@ -1885,11 +1900,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         boolean isLocked = game.isSeatLocked(player.getPlayerNumber());
         if (isLocked)
         {
-            seatLockBut.setLabel(UNLOCKSEAT);
+            sittingRobotLockBut.setLabel(UNLOCKSEAT);
         }
         else
         {
-            seatLockBut.setLabel(LOCKSEAT);
+            sittingRobotLockBut.setLabel(LOCKSEAT);
         }
         if (sitButIsLock)
         {
@@ -2326,10 +2341,10 @@ public class SOCHandPanel extends Panel implements ActionListener
                     {
                         takeOverBut.setBounds(10, (inset + balloonH) - 10, dim.width - 20, 20);
                     }
-                    else if (seatLockBut.isVisible())
+                    else if (sittingRobotLockBut.isVisible())
                     {
                         //seatLockBut.setBounds(10, inset+balloonH-10, dim.width-20, 20);
-                        seatLockBut.setBounds(inset + dcardsW + space + ColorSquare.WIDTH + space, inset + balloonH + (lineH + space) + (lineH / 2), (dim.width - (2 * (inset + ColorSquare.WIDTH + (2 * space))) - stlmtsW - dcardsW), 2 * (lineH + space));
+                        sittingRobotLockBut.setBounds(inset + dcardsW + space + ColorSquare.WIDTH + space, inset + balloonH + (lineH + space) + (lineH / 2), (dim.width - (2 * (inset + ColorSquare.WIDTH + (2 * space))) - stlmtsW - dcardsW), 2 * (lineH + space));
                     }
                 }
 

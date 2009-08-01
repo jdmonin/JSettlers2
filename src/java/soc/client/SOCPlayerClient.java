@@ -2450,7 +2450,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             if (player != null)
             {
                 //
-                //  This user was not a spectator
+                //  This user was not a spectator.
+                //  Remove first from interface, then from game data.
                 //
                 pi.removePlayer(player.getPlayerNumber());
                 ga.removePlayer(mes.getNickname());
