@@ -457,6 +457,12 @@ public class NewGameOptionsFrame extends Frame
     }
 
     /**
+     * For use in {@link #initOption_int(SOCGameOption)}, to determine
+     * number of digits needed for the option in a textfield
+     */
+    private static final double LOG_10 = Math.log(10.0);
+
+    /**
      * Based on this game option's type, present its intvalue either as
      * a numeric textfield, or a popup menu if min/max are near each other.
      * The maximum min/max distance which creates a popup is {@link #INTFIELD_POPUP_MAXRANGE}.
@@ -473,7 +479,19 @@ public class NewGameOptionsFrame extends Frame
         Component c;
         if ((optrange > INTFIELD_POPUP_MAXRANGE) || (optrange < 0))
         {
-            c = new IntTextField(op.getIntValue(), 3); // TODO: width based on min/max's magnitude            
+            // IntTextField with width based on number of digits in min/max .
+            // Math.log10 isn't available in java 1.4, so we calculate it for now.
+            int amaxv = Math.abs(op.maxIntValue);
+            int aminv = Math.abs(op.minIntValue);
+            final int magn;
+            if (amaxv > aminv)
+                magn = amaxv;
+            else
+                magn = aminv;
+            int twidth = 1 + (int) Math.ceil(Math.log(magn)/LOG_10);
+            if (twidth < 3)
+                twidth = 3;
+            c = new IntTextField(op.getIntValue(), twidth);          
         } else {
             Choice ch = new Choice();
             for (int i = op.minIntValue; i <= op.maxIntValue; ++i)
