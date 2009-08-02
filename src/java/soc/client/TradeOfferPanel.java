@@ -150,13 +150,19 @@ public class TradeOfferPanel extends Panel
     /** Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)} */
     private class OfferPanel extends Panel implements ActionListener
     {
+        /** Balloon to hold offer received */
         SpeechBalloon balloon;
+
+        /** "Offered To" line 1 */
         Label toWhom1;
+        /** "Offered To" line 2 for wrapping; usually blank */
         Label toWhom2;
+        /** "I Give" */
         Label giveLab;
+        /** "I Get" */
         Label getLab;
 
-        /** Offer received */
+        /** Offer's resources */
         SquaresPanel squares;
         /** send button for counter-offer */
         Button offerBut;
@@ -165,6 +171,8 @@ public class TradeOfferPanel extends Panel
 
         /** Counter-offer to send */
         ShadowedBox offerBox;
+        Label counterOfferToWhom;
+        boolean counterOffer_playerInit = false;
         SquaresPanel offerSquares;
         Label giveLab2;
         Label getLab2;
@@ -189,6 +197,8 @@ public class TradeOfferPanel extends Panel
             setLayout(null);
             setFont(new Font("Helvetica", Font.PLAIN, 10));
 
+            /** Offer received */
+
             toWhom1 = new Label();
             toWhom1.setBackground(insideBGColor);
             add(toWhom1);
@@ -197,8 +207,7 @@ public class TradeOfferPanel extends Panel
             toWhom2.setBackground(insideBGColor);
             add(toWhom2);
 
-            /** Offer received */
-
+            /** Offer's resources */
             squares = new SquaresPanel(false);
             add(squares);
 
@@ -231,6 +240,10 @@ public class TradeOfferPanel extends Panel
             add(offerBut);
 
             /** Counter-offer to send */
+
+            counterOfferToWhom = new Label();
+            counterOfferToWhom.setVisible(false);
+            add(counterOfferToWhom);
 
             sendBut = new Button("Send");
             sendBut.setActionCommand(SEND);
@@ -289,11 +302,20 @@ public class TradeOfferPanel extends Panel
 
             if (player != null)
             {
-                Color ourPlayerColor = pi.getPlayerColor(player.getPlayerNumber());
-                giveLab2.setBackground(ourPlayerColor);
-                getLab2.setBackground(ourPlayerColor);
-                offerBox.setInterior(ourPlayerColor);
-                
+                if (! counterOffer_playerInit)
+                {
+                    // do we have to fill in opponent's name for 1st time,
+                    // and set up colors?
+                    Color ourPlayerColor = pi.getPlayerColor(player.getPlayerNumber());
+                    giveLab2.setBackground(ourPlayerColor);
+                    getLab2.setBackground(ourPlayerColor);
+                    counterOfferToWhom.setBackground(ourPlayerColor);
+                    offerBox.setInterior(ourPlayerColor);
+                    counterOfferToWhom.setText
+                        ("Counter to " + hp.getPlayer().getName() + " ('you'):");
+
+                    counterOffer_playerInit = true;
+                }                
                 offered = offerList[player.getPlayerNumber()];
             }
             else
@@ -383,10 +405,11 @@ public class TradeOfferPanel extends Panel
             if (counterOfferMode)
             {
                 // show the counter offer controls
+
+                final int lineH = ColorSquareLarger.HEIGHT_L;
                 h = Math.min(60 + 2 * ColorSquareLarger.HEIGHT_L, h);
-                top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 5;
-                
-                int lineH = ColorSquareLarger.HEIGHT_L;
+                top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 10;
+
                 int giveW = fm.stringWidth("You Give: ") + 2;
 
                 toWhom1.setBounds(inset, top, w - 20, 14);
@@ -396,18 +419,19 @@ public class TradeOfferPanel extends Panel
                 squares.setLocation(inset + giveW, top + 32);
 
                 int squaresHeight = squares.getBounds().height + 24;
-                giveLab2.setBounds(inset, top + 32 + squaresHeight, giveW, lineH);
-                getLab2.setBounds(inset, top + 32 + lineH + squaresHeight, giveW, lineH);
-                offerSquares.setLocation(inset + giveW, top + 32 + squaresHeight);
+                counterOfferToWhom.setBounds(inset, top + 32 + squaresHeight, w - 20, 14);
+                giveLab2.setBounds(inset, top + 32 + lineH + squaresHeight, giveW, lineH);
+                getLab2.setBounds(inset, top + 32 + 2*lineH + squaresHeight, giveW, lineH);
+                offerSquares.setLocation(inset + giveW, top + 32 + lineH + squaresHeight);
                 offerSquares.doLayout();
 
-                int buttonY = top + 12 + (2 * squaresHeight);
+                int buttonY = top + 12 + (2 * squaresHeight) + lineH;
                 sendBut.setBounds(inset, buttonY, buttonW, buttonH);
                 clearBut.setBounds(inset + 5 + buttonW, buttonY, buttonW, buttonH);
                 cancelBut.setBounds(inset + (2 * (5 + buttonW)), buttonY, buttonW, buttonH);
 
                 balloon.setBounds(0, 0, w, h);
-                offerBox.setBounds(0, top + 22 + squaresHeight, w, squaresHeight + 15);
+                offerBox.setBounds(0, top + 22 + squaresHeight, w, squaresHeight + 20 + lineH);
             }
             else
             {
@@ -537,6 +561,7 @@ public class TradeOfferPanel extends Panel
 
             giveLab2.setVisible(visible);
             getLab2.setVisible(visible);
+            counterOfferToWhom.setVisible(visible);
             if (! visible)
             {
                 // Clear counteroffer for next use

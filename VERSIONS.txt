@@ -9,10 +9,11 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 	- E7  Roll no 7s during first # rounds
 	- BC  Break up clumps of # or more same-type ports/hexes
 	- NT  No trading allowed
-- GameList kept at server/client
+- Re-word counter offer text
+- Hide trade offer after rejecting counteroffer (John F idea)
 - Framework for parsing "-" / "--" options at server commandline
 - Refactor per-turn resets from many places to new game.updateAtTurn()
-- Hide trade offer after rejecting counteroffer (John F idea)
+- GameList kept at server/client
 - Removed unused hex graphics from soc/client/images (clay0-5.gif, misc0-5.gif, ore0-5, sheep0-5, wheat0-5, wood0-5)
 
     > 1.1.06 (build 2009-06-01)
