@@ -270,6 +270,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * Display other players' trade offers and related messages. Not used if playerIsClient.
+     * Both offer and counter-offer display are part of this object.
      * Also used to display board-reset vote messages.
      *
      * @see #offerIsResetMessage
