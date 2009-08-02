@@ -2399,6 +2399,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             // We may still ask for GAMEOPTIONGETDEFAULTS if asking to create a game,
             // but that will happen when user clicks that button, not yet.
             tcpServGameOpts.noMoreOptions(false);
+
+            // Reset enum for addToGameList call; serverGames.addGames has consumed it.
+            gameNamesEnum = mes.getGames().elements();
         }
 
         while (gameNamesEnum.hasMoreElements())
