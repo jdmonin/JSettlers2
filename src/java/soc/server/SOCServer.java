@@ -2748,6 +2748,10 @@ public class SOCServer extends Server
      *
      * @param c     Client's connection
      * @param cvers Version reported by client, or assumed version if no report
+     * @param isKnown Is this the client's definite version, or just an assumed one?
+     *                Affects {@link StringConnection#isVersionKnown() c.isVersionKnown}.
+     *                Can only set the client's known version once; a second "known" call with
+     *                a different cvers will be rejected.
      * @return True if OK, false if rejected
      */
     boolean setClientVersSendGamesOrReject(StringConnection c, final int cvers, final boolean isKnown)
@@ -2784,6 +2788,7 @@ public class SOCServer extends Server
         }
         if (wasKnown && isKnown && (cvers != prevVers))
         {
+            // can't change the version once known
             rejectMsg = "Sorry, cannot report two different versions.";
             rejectLogMsg = "Rejected client: Already gave VERSION(" + prevVers
                 + "), now says VERSION(" + cvers + ")";
