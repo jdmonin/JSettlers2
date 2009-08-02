@@ -43,6 +43,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Hashtable;
@@ -152,6 +154,10 @@ public class NewGameOptionsFrame extends Frame
 
         addKeyListener(this);
         initInterfaceElements(gaName);
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) { clickCancel(); }    
+            });
 
         /**
          * complete - reset mouse cursor from hourglass to normal
