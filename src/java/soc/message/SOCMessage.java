@@ -188,15 +188,16 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int SERVERPING = 9999;  // available in all versions
 
     /**
-     * Token seperators. At most one SEP per message; multiple SEP2 are allowed after SEP.
+     * Token separators. At most one SEP per message; multiple SEP2 are allowed after SEP.
      * For multi-messages, multiple SEP are allowed; see {@link SOCMessageMulti}.
+     * SEP is "|".
      */
     public static final String sep = "|";
-    /** secondary separator token SEP2, as string */
+    /** secondary separator token SEP2, as string. SEP2 is ",". */
     public static final String sep2 = ",";
-    /** main separator token {@link #sep}, as character */
+    /** main separator token {@link #sep}, as character. SEP is '|'. */
     public static final char sep_char = '|';
-    /** secondary separator token {@link #sep2}, as character */
+    /** secondary separator token {@link #sep2}, as character. SEP2 is ','. */
     public static final char sep2_char = ',';
 
     /**

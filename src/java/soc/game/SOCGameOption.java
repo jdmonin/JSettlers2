@@ -1204,6 +1204,11 @@ public class SOCGameOption implements Cloneable
                 return false;
             if ((i == 0) && (c < 'A'))
                 return false;
+
+            // We use range checks, and not methods such as
+            // Character.isLetterOrDigit(ch), because those
+            // methods also permit unicode characters beyond
+            // what we'd like to accept here.
         }
         return true;
     }
