@@ -22,7 +22,6 @@
 package soc.client;
 
 import soc.game.SOCGame;
-import soc.game.SOCPlayer;
 
 import java.awt.Canvas;
 import java.awt.Color;

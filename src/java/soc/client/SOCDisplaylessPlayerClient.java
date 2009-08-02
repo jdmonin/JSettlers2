@@ -99,7 +99,6 @@ import soc.message.SOCTurn;
 import soc.message.SOCVersion;
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.LocalStringConnection;
-import soc.server.genericServer.StringConnection;
 import soc.util.Version;
 
 import java.io.DataInputStream;

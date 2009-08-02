@@ -20,10 +20,6 @@
  **/
 package soc.message;
 
-import java.util.StringTokenizer;
-
-import soc.server.genericServer.StringConnection;
-
 
 /**
  * This message from client to server requests a "reset board" of

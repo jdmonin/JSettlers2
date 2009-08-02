@@ -20,11 +20,7 @@
  **/
 package soc.game;
 
-import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 /**
