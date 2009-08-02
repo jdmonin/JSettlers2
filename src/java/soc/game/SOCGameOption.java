@@ -41,6 +41,11 @@ import soc.message.SOCMessage;
  * game option settings; only a very few places use SOCGameOption
  * objects.
  *<P>
+ * Option name keys must start with a letter and contain only ASCII uppercase
+ * letters ('A' through 'Z') and digits ('0' through '9'), in order to normalize
+ * handling and network message formats.  This is enforced in constructors via
+ * {@link #isAlphanumericUpcaseAscii(String)}.
+ *<P>
  * The "known options" are initialized via {@link #initAllOptions()}.  See that
  * method's description for more details on adding an option.
  * If a new option changes previously expected behavior, it should default to
@@ -280,8 +285,10 @@ public class SOCGameOption implements Cloneable
     public final int minIntValue, maxIntValue;
 
     /**
-     * Descriptive text for the option. If {@link #OTYPE_INTBOOL},
-     * may contain a placeholder '#' where the value is typed onscreen.
+     * Descriptive text for the option. Must not contain the network delimiter
+     * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
+     * If {@link #OTYPE_INTBOOL}, may contain a placeholder '#' where the value is typed onscreen.
+     * For {@link #OTYPE_UNKNOWN}, an empty string.
      */
     public final String optDesc;   // OTYPE_* - if a new type is added, update this field's javadoc.
 
@@ -302,7 +309,8 @@ public class SOCGameOption implements Cloneable
      * Create a new game option of unknown type ({@link #OTYPE_UNKNOWN}).
      * Minimum version will be {@link Integer#MAX_VALUE}.
      * Value will be false/0. optDesc will be an empty string.
-     * @param key   Alphanumeric 2-character code for this option
+     * @param key   Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -315,7 +323,8 @@ public class SOCGameOption implements Cloneable
     /**
      * Create a new boolean game option. Type is {@link #OTYPE_BOOL}.
      *
-     * @param key     Alphanumeric 2-character code for this option
+     * @param key     Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default value (true if set, false if not set)
@@ -325,6 +334,7 @@ public class SOCGameOption implements Cloneable
      *           (for example, maxplayers == 4 unless option PL is present).
      * @param desc    Descriptive brief text, to appear in the options dialog
      * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
@@ -336,7 +346,8 @@ public class SOCGameOption implements Cloneable
 
     /**
      * Create a new integer game option.  Type is {@link #OTYPE_INT}.
-     * @param key     Alphanumeric 2-character code for this option
+     * @param key     Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value
@@ -353,6 +364,7 @@ public class SOCGameOption implements Cloneable
      *             like boolean options.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
      *        or if key length is > 3 or not alphanumeric,
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
@@ -365,7 +377,8 @@ public class SOCGameOption implements Cloneable
 
     /**
      * Create a new int+boolean game option. Type is {@link #OTYPE_INTBOOL}.
-     * @param key     Alphanumeric 2-character code for this option
+     * @param key     Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
@@ -382,6 +395,7 @@ public class SOCGameOption implements Cloneable
      *             contain a placeholder character '#' where the int value goes.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
      *        or if key length is > 3 or not alphanumeric,
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers, boolean defaultBoolValue, int defaultIntValue,
@@ -395,7 +409,8 @@ public class SOCGameOption implements Cloneable
     /**
      * Create a new enumerated game option.  Type is {@link #OTYPE_ENUM}.
      * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
-     * @param key     Alphanumeric 2-character code for this option
+     * @param key     Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
@@ -410,6 +425,7 @@ public class SOCGameOption implements Cloneable
      *             like boolean options.
      * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
      *        or if key length is > 3 or not alphanumeric,
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
@@ -423,7 +439,8 @@ public class SOCGameOption implements Cloneable
     /**
      * Create a new text game option.  Type is {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE}.
      * The {@link #maxIntValue} will be maxLength.
-     * @param key     Alphanumeric 2-character code for this option
+     * @param key     Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param maxLength   Maximum length, between 1 and 255 (for network bandwidth conservation)
@@ -438,6 +455,7 @@ public class SOCGameOption implements Cloneable
      *             like boolean options.
      * @throws IllegalArgumentException if maxLength > 255,
      *        or if key length is > 3 or not alphanumeric,
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
@@ -453,7 +471,8 @@ public class SOCGameOption implements Cloneable
 
     /**
      * Create a new game option - common constructor.
-     * @param key     Alphanumeric 2-character code for this option
+     * @param key     Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param otype   Option type; use caution, as this is unvalidated against
      *                {@link #OTYPE_MIN} or {@link #OTYPE_MAX}.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
@@ -469,6 +488,7 @@ public class SOCGameOption implements Cloneable
      *             contain a placeholder character '#' where the int value goes.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
      *        or if key length is > 3 or not alphanumeric,
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     protected SOCGameOption(int otype, String key, int minVers, int lastModVers,
@@ -481,13 +501,15 @@ public class SOCGameOption implements Cloneable
 
         if (key.length() > 3)
             throw new IllegalArgumentException("Key length: " + key);
-        // TODO alphanumeric-only? due to unicode, use char ranges and not char.isLetter etc
-        if (false)
+        if (! isAlphanumericUpcaseAscii(key))
             throw new IllegalArgumentException("Key not alphanumeric: " + key);
         if ((minVers < 1000) && (minVers != -1))
             throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
         if ((lastModVers < 1000) && (lastModVers != -1))
             throw new IllegalArgumentException("lastModVers " + lastModVers + " for key " + key);
+        if ((-1 != desc.indexOf(SOCMessage.sep_char))
+                || (-1 != desc.indexOf(SOCMessage.sep2_char)))
+              throw new IllegalArgumentException("desc contains msg separator char");
 
 	optKey = key;
 	optType = otype;
@@ -499,7 +521,7 @@ public class SOCGameOption implements Cloneable
 	maxIntValue = maxValue;
 	this.skipIfDefault = skipIfDefault;
         this.enumVals = enumVals;
-	optDesc = desc;   // TODO validate/javadoc: no sep/sep2 chars
+	optDesc = desc;
 
 	// starting values (= defaults)
 	boolValue = defaultBoolValue;
@@ -1161,5 +1183,28 @@ public class SOCGameOption implements Cloneable
             otname = null;
         }
         return otname;
+    }
+
+    /**
+     * Test whether a string's characters are all within the strict
+     * ranges 0-9, A-Z. The first character must be A-Z. Option name keys
+     * must start with a letter and contain only ASCII uppercase letters
+     * ('A' through 'Z') and digits ('0' through '9'), in order to normalize
+     * handling and network message formats.
+     * @param s string to test
+     * @return true if all characters are OK, false otherwise
+     */
+    public static boolean isAlphanumericUpcaseAscii(String s)
+    {
+        for (int i = s.length()-1; i>=0; --i)
+        {
+            final char c = s.charAt(i);
+            if (((c < '0') || (c > '9'))
+                && (c < 'A') || (c > 'Z'))
+                return false;
+            if ((i == 0) && (c < 'A'))
+                return false;
+        }
+        return true;
     }
 }
