@@ -1234,11 +1234,17 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * advance the turn to the previous player,
-     * used during initial placement. Does not change any other game state.
+     * used during initial placement. Does not change any other game state,
+     * unless all players have left the game.
+     * @return true if the turn advances, false if all players have left and
+     *          the gamestate has been changed here to {@link #OVER}.
      */
-    protected void advanceTurnBackwards()
+    protected boolean advanceTurnBackwards()
     {
+        final int prevCPN = currentPlayerNumber;
+
         //D.ebugPrintln("ADVANCE TURN BACKWARDS");
+        forcingEndTurn = false;
         currentPlayerNumber--;
 
         if (currentPlayerNumber < 0)
@@ -1252,17 +1258,28 @@ public class SOCGame implements Serializable, Cloneable
             {
                 currentPlayerNumber = MAXPLAYERS - 1;
             }
+            if (currentPlayerNumber == prevCPN)
+            {
+                gameState = OVER;
+                return false;
+            }
         }
 
-        forcingEndTurn = false;
+        return true;
     }
 
     /**
-     * advance the turn to the next player. Does not change any other game state.
+     * advance the turn to the next player. Does not change any other game state,
+     * unless all players have left the game.
+     * @return true if the turn advances, false if all players have left and
+     *          the gamestate has been changed here to {@link #OVER}.
      */
-    protected void advanceTurn()
+    protected boolean advanceTurn()
     {
+        final int prevCPN = currentPlayerNumber;
+
         //D.ebugPrintln("ADVANCE TURN FORWARDS");
+        forcingEndTurn = false;
         currentPlayerNumber++;
 
         if (currentPlayerNumber == MAXPLAYERS)
@@ -1276,9 +1293,14 @@ public class SOCGame implements Serializable, Cloneable
             {
                 currentPlayerNumber = 0;
             }
+            if (currentPlayerNumber == prevCPN)
+            {
+                gameState = OVER;
+                return false;
+            }
         }
 
-        forcingEndTurn = false;
+        return true;
     }
 
     /**
@@ -1489,8 +1511,7 @@ public class SOCGame implements Serializable, Cloneable
                 }
                 else
                 {
-                    advanceTurn();
-                    if (gameState < OVER)
+                    if (advanceTurn())
                         gameState = START1A;
                 }
             }
@@ -1531,8 +1552,8 @@ public class SOCGame implements Serializable, Cloneable
                 }
                 else
                 {
-                    advanceTurnBackwards();
-                    gameState = START2A;
+                    if (advanceTurnBackwards())
+                        gameState = START2A;
                 }
             }
 
@@ -1908,8 +1929,7 @@ public class SOCGame implements Serializable, Cloneable
     public void endTurn()
     {
         gameState = PLAY;
-        advanceTurn();
-        if (gameState < OVER)
+        if (advanceTurn())
         {
             updateAtTurn();
             players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
