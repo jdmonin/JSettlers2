@@ -176,10 +176,13 @@ public class TradeOfferPanel extends Panel
         SOCResourceSet get;
         int[] giveInt = new int[5];
         int[] getInt = new int[5];
+
+        /** is the counter-offer showing? use {@link #setCounterOfferVisible(boolean)} to change. */
         boolean counterOfferMode = false;
 
         /**
          * Creates a new OfferPanel object.
+         * The counter-offer is initially hidden.
          */
         public OfferPanel()
         {
