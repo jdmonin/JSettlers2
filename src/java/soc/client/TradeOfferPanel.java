@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,7 +40,7 @@ import java.awt.event.ActionListener;
 
 /**
  * Two-mode panel to display either a short status message, or a
- * resource trade offer/counter-offer.
+ * resource trade offer (and counter-offer).
  *<P>
  * The status message mode is used for tasks such as:
  *<UL>
@@ -48,9 +48,6 @@ import java.awt.event.ActionListener;
  *  <LI> Showing vote on a board reset request
  *  <LI> Showing the player is deciding what to discard
  *</UL>
- *
- * @author $author$
- * @version $Revision$
  */
 public class TradeOfferPanel extends Panel
 {
@@ -150,7 +147,7 @@ public class TradeOfferPanel extends Panel
         }
     }
 
-    /** Contains both offer and counter-offer */
+    /** Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)} */
     private class OfferPanel extends Panel implements ActionListener
     {
         SpeechBalloon balloon;
@@ -165,9 +162,9 @@ public class TradeOfferPanel extends Panel
         Button offerBut;
         Button acceptBut;
         Button rejectBut;
-        ShadowedBox offerBox;
 
         /** Counter-offer to send */
+        ShadowedBox offerBox;
         SquaresPanel offerSquares;
         Label giveLab2;
         Label getLab2;
@@ -196,6 +193,8 @@ public class TradeOfferPanel extends Panel
             toWhom2 = new Label();
             toWhom2.setBackground(insideBGColor);
             add(toWhom2);
+
+            /** Offer received */
 
             squares = new SquaresPanel(false);
             add(squares);
@@ -227,6 +226,8 @@ public class TradeOfferPanel extends Panel
             offerBut.setActionCommand(OFFER);
             offerBut.addActionListener(this);
             add(offerBut);
+
+            /** Counter-offer to send */
 
             sendBut = new Button("Send");
             sendBut.setActionCommand(SEND);
@@ -264,6 +265,8 @@ public class TradeOfferPanel extends Panel
             offerBox = new ShadowedBox(pi.getPlayerColor(from), Color.white);
             offerBox.setVisible(false);
             add(offerBox);
+
+            /** done with counter-offer */
 
             balloon = new SpeechBalloon(pi.getPlayerColor(from));
             add(balloon);
@@ -361,7 +364,7 @@ public class TradeOfferPanel extends Panel
         }
 
         /**
-         * DOCUMENT ME!
+         * Custom layout for this panel
          */
         public void doLayout()
         {
@@ -427,10 +430,11 @@ public class TradeOfferPanel extends Panel
                 balloon.setBounds(0, 0, w, h);
             }
         }
+
         /**
-         * DOCUMENT ME!
+         * Respond to button-related user input
          *
-         * @param e DOCUMENT ME!
+         * @param e Input event and source
          */
         public void actionPerformed(ActionEvent e)
         {
@@ -517,7 +521,8 @@ public class TradeOfferPanel extends Panel
                 pi.chatPrintStackTrace(th);
             }            
         }
-        
+
+        /** show or hide our counter-offer panel, below the trade-offer panel. */
         private void setCounterOfferVisible(boolean visible)
         {
             boolean haveResources = true;
