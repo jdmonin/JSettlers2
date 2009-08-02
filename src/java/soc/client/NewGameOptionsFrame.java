@@ -198,7 +198,7 @@ public class NewGameOptionsFrame extends Frame
 
         if (! readOnly)
         {
-            msgText = new TextField();
+            msgText = new TextField("Choose options for the new game.");
             msgText.setEditable(false);
             msgText.setBackground(getBackground());
             gbl.setConstraints(msgText, gbc);
