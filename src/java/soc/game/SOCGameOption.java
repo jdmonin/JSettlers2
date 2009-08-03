@@ -39,7 +39,8 @@ import soc.message.SOCMessage;
  *</UL>
  * All in-game code uses 2-letter key strings to query and change
  * game option settings; only a very few places use SOCGameOption
- * objects.
+ * objects.  To search the code for uses of a game option, search for
+ * its capitalized key string.
  *<P>
  * Option name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z') and digits ('0' through '9'), in order to normalize
