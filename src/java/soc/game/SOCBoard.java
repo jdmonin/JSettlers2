@@ -184,7 +184,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Hex data array, one element per water or land (or port, which is special water) hex.
      * Each element's value encodes hex type and (if a
      * port) facing. (Facing is defined just below).
-       Key to the hexes[] values:
+       Key to the hexLayout[] values:
        <pre>
        0 : desert  {@link #DESERT_HEX}
        1 : clay    {@link #CLAY_HEX}
@@ -495,7 +495,7 @@ public class SOCBoard implements Serializable, Cloneable
         makeNewBoard_shufflePorts
             (portHex, opt_breakClumps);
 
-        // place the ports (hex numbers and facing);
+        // place the ports (hex numbers and facing) within hexLayout;
         // for their corresponding node coordinates,
         // see comments just below.
 
@@ -829,7 +829,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Auxiliary method for placing the port hexes
+     * Auxiliary method for placing the port hexes, changing an element of {@link #hexLayout}.
      * @param port Port type; in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      * @param hex  Hex coordinate within {@link #hexLayout}
      * @param face Facing of port; 1 to 6; for facing direction, see {@link #hexLayout}
