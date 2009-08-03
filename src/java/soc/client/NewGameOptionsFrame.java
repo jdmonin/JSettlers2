@@ -200,6 +200,7 @@ public class NewGameOptionsFrame extends Frame
         {
             msgText = new TextField("Choose options for the new game.");
             msgText.setEditable(false);
+            msgText.setForeground(LABEL_TXT_COLOR);
             msgText.setBackground(getBackground());
             gbl.setConstraints(msgText, gbc);
             bp.add(msgText);
