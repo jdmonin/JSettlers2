@@ -266,6 +266,9 @@ public class SOCGameOption implements Cloneable
      * Only recommended if game behavior without the option is well-established
      * (for example, maxplayers == 4 unless option "PL" is present).
      * This is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable)}.
+     *<P>
+     * For {@link #OTYPE_INTBOOL}, both the integer and boolean values are checked
+     * against defaults.
      */
     public final boolean skipIfDefault;
 
@@ -1129,7 +1132,8 @@ public class SOCGameOption implements Cloneable
 			    op.setIntValue(iv);
 			}
 
-			if (knownOp.skipIfDefault && (iv == knownOp.defaultIntValue))
+			if (knownOp.skipIfDefault && (iv == knownOp.defaultIntValue)
+			    && ( (op.optType != OTYPE_INTBOOL) || (op.boolValue == knownOp.defaultBoolValue) ))
 			    ikv.remove();
 		    }
 		    break;
