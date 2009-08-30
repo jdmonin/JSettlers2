@@ -3098,7 +3098,8 @@ public class SOCServer extends Server
      *      and this method will check that against cli's version.
      *  <LI> announce to all players using NEWGAMEWITHOPTIONS;
      *       older clients get NEWGAME, won't see the options
-     *  <LI> send JOINGAMEAUTH to requesting client
+     *  <LI> send JOINGAMEAUTH to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean)}
+     *  <LI> send game status details to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean)}
      *</UL>
      *
      * @param c connection requesting the game, must not be null
@@ -3179,17 +3180,20 @@ public class SOCServer extends Server
 
             /**
              * Try to add player to game, and tell the client that everything is ready;
-             * if game doesn't yet exist, it's created in connectToGame.
-             * If client's version is too low, connectToGame will throw an exception;
-             * tell the client if that happens.
+             * if game doesn't yet exist, it's created in connectToGame, and announced
+             * there to all clients.
+             *<P>
+             * If client's version is too low (based on game options, etc),
+             * connectToGame will throw an exception; tell the client if that happens.
              */
             try
             {
                 if (connectToGame(c, gameName, gameOpts))
                 {
                     /**
+                     * send JOINGAMEAUTH to client,
                      * send the entire state of the game to client,
-                     * send client join event to other players
+                     * send client join event to other players of game
                      */
                     SOCGame gameData = gameList.getGameData(gameName);
 
