@@ -121,7 +121,7 @@ public class SOCGameOption implements Cloneable
      *   <LI> {@link soc.client.SOCDisplaylessClient} is the foundation for the robot client,
      *           and handles some of its messages
      *   </UL>
-     *   Some options don't need any changes to the robot; for example, the robot doesn't
+     *   Some options don't need any code at the robot; for example, the robot doesn't
      *   care about the maximum number of players in a game, because it doesn't decide when
      *   to join a game; the server tells it that.
      *<LI> To find other places which may possibly need an update from your new option,
@@ -142,6 +142,14 @@ public class SOCGameOption implements Cloneable
      *<LI> Change the default value, although this can also be done
      *   at runtime on the command line
      *</UL>
+     *   Things you can't change about an option, because inconsistencies would occur:
+     *<UL>
+     *<LI> {@link #optKey name key}
+     *<LI> {@link #optType}
+     *<LI> {@link #minVersion}
+     *<LI> {@link #skipIfDefault} flag
+     *</UL>
+     *
      *   <b>To make the change:</b>
      *<UL>
      *<LI> Change the option here in initAllOptions; change the "last modified" field to
@@ -238,7 +246,7 @@ public class SOCGameOption implements Cloneable
     public final int optType;  // OTYPE_* - if a new type is added, update this field's javadoc.
 
     /**
-     * Option key/name: Short alphanumeric name (2 characters)
+     * Option key/name: Short alphanumeric name (2 characters, uppercase, starting with a letter)
      */
     public final String optKey;
 
@@ -261,16 +269,18 @@ public class SOCGameOption implements Cloneable
     public final int lastModVersion;
 
     /**
-     * If this option's value is the default, should we not add it to game options
-     * or send over the network (to reduce overhead)?
-     * Only recommended if game behavior without the option is well-established
-     * (for example, maxplayers == 4 unless option "PL" is present).
-     * This is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable)}.
+     * Should we drop this option from game options, and not send over the network (to reduce overhead),
+     * if the value is un-set or blank? (un-set for {@link #OTYPE_BOOL} or {@link #OTYPE_INTBOOL},
+     * blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE})
+     * Only recommended for seldom-used options.
+     * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable)}.
+     * Once this flag is set for an option, it should not be un-set if the
+     * option is changed in a later version.
      *<P>
      * For {@link #OTYPE_INTBOOL}, both the integer and boolean values are checked
      * against defaults.
      */
-    public final boolean skipIfDefault;
+    public final boolean skipIfDefault;  // OTYPE_* - mention in javadoc if this applies to the new type.
 
     /**
      * Default value for boolean part of this option, if any
@@ -1070,12 +1080,15 @@ public class SOCGameOption implements Cloneable
      * Compare a set of options with known-good values.
      * If any are above/below maximum/minimum, clip to the max/min value in knownOpts.
      * If any are unknown, return false. Will still check (and clip) the known ones.
-     * If any are default, and their {@link #skipIfDefault} flag is set, remove them from
-     * newOpts.
+     * If any boolean or string-valued options are default, and unset/blank, and
+     * their {@link #skipIfDefault} flag is set, remove them from newOpts.
+     * For {@link #OTYPE_INTBOOL}, both the integer and boolean values are checked
+     * against defaults.
      *
      * @param newOpts Set of SOCGameOptions to check against knownOpts;
      *            an option's current value will be changed if it's outside of
      *            the min/max for that option in knownOpts.
+     *            Must not be null.
      * @param knownOpts Set of known SOCGameOptions to check against, or null to use
      *            the server's static copy
      * @return true if all are known; false if any of newOpts are unknown
@@ -1084,12 +1097,14 @@ public class SOCGameOption implements Cloneable
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
     public static boolean adjustOptionsToKnown(Hashtable newOpts, Hashtable knownOpts)
-	throws IllegalArgumentException
+        throws IllegalArgumentException
     {
-	if (knownOpts == null)
-	    knownOpts = allOptions;
+        if (knownOpts == null)
+            knownOpts = allOptions;
 
-	// use Iterator so we can remove from the hash if needed
+        // OTYPE_* - adj javadoc above (re skipIfDefault) if a string-type or bool-type is added.
+
+        // use Iterator in loop, so we can remove from the hash if needed
         boolean allKnown = true;
 	for (Iterator ikv = newOpts.entrySet().iterator();
 	     ikv.hasNext(); )
@@ -1132,18 +1147,29 @@ public class SOCGameOption implements Cloneable
 			    op.setIntValue(iv);
 			}
 
-			if (knownOp.skipIfDefault && (iv == knownOp.defaultIntValue)
-			    && ( (op.optType != OTYPE_INTBOOL) || (op.boolValue == knownOp.defaultBoolValue) ))
-			    ikv.remove();
+                        // integer-type options are not subject to skipIfDefault,
+                        // except for OTYPE_INTBOOL.
+                        if ((op.optType == OTYPE_INTBOOL)
+                               && knownOp.skipIfDefault
+                               && (iv == knownOp.defaultIntValue)
+                               && (! op.boolValue))
+                             ikv.remove();
 		    }
 		    break;
 
 		case OTYPE_BOOL:
-                    if (knownOp.skipIfDefault && (op.boolValue == knownOp.defaultBoolValue))
+                    if (knownOp.skipIfDefault && ! op.boolValue)
                         ikv.remove();
 		    break;
 
-		// default: other types don't have default values (OTYPE_STR, OTYPE_STRHIDE)
+                case OTYPE_STR:
+                case OTYPE_STRHIDE:
+                    if (knownOp.skipIfDefault &&
+                          ((op.strValue == null) || (op.strValue.length() == 0)))
+                        ikv.remove();
+                    break;
+
+                // no default: all types should be handled above.
 
 		}  // endsw
 	    }
