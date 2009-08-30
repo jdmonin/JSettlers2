@@ -120,6 +120,6 @@ public class SOCJoinGame extends SOCMessageTemplateJoinGame
      */
     public String toString()
     {
-        return super.toString("SOCJoinGame");
+        return super.toString("SOCJoinGame", null);
     }
 }

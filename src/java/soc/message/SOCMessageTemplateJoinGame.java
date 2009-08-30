@@ -108,11 +108,16 @@ public abstract class SOCMessageTemplateJoinGame extends SOCMessage
     }
 
     /**
+     * @param classname message name calling this class, appears in returned string
+     * @param otherParams null, or other parameters to append in the returned string,
+     *           of the form "p1=x|p2=y"
      * @return a human readable form of the message
      */
-    public String toString(String classname)
+    public String toString(String classname, String otherParams)
     {
         String s = classname + ":nickname=" + nickname + "|password=***|host=" + host + "|game=" + game;
+        if (otherParams != null)
+            s = s + "|" + otherParams;
         return s;
     }
 }

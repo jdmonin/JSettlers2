@@ -40,7 +40,10 @@ import soc.game.SOCGameOption;
  */
 public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
 {
+    /** won't be null, even if opts is null, due to {@link SOCGameOption#packOptionsToString(Hashtable, boolean)} format. */
     private String optsStr;
+
+    /** may be null */
     private Hashtable opts;
 
     /**
@@ -50,7 +53,9 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * @param pw  password
      * @param hn  host name
      * @param ga  name of the game
-     * @param opts the game options (hashtable of {@link SOCGameOption})
+     * @param opts the game options (hashtable of {@link SOCGameOption}), or null;
+     *           if null, it probably makes sense to create
+     *           a {@link SOCJoinGame} message instead.
      */
     public SOCNewGameWithOptionsRequest(String nn, String pw, String hn, String ga, Hashtable opts)
     {
@@ -79,7 +84,8 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
     }
 
     /**
-     * @return the game options (hashtable of {@link SOCGameOption})
+     * @return the game options (hashtable of {@link SOCGameOption}), or null;
+     *   does not parse optsStr.
      */
     public Hashtable getOptions()
     {
@@ -175,6 +181,6 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      */
     public String toString()
     {
-        return super.toString("SOCNewGameWithOptionsRequest");
+        return super.toString("SOCNewGameWithOptionsRequest", "opts=" + optsStr);
     }
 }
