@@ -93,7 +93,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         } else {
             pa[9] = Integer.toString(op.getIntValue());
         }
-        pa[10] = (op.skipIfDefault ? "t" : "f");
+        pa[10] = (op.dropIfUnused ? "t" : "f");
         pa[11] = op.optDesc;
 
         // for OTYPE_ENUM, pa[12+] are the enum choices' string values
@@ -116,7 +116,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[7] = maxIntValue
      * pa[8] = boolValue ('t' or 'f'; current, not default)
      * pa[9] = intValue (current, not default) or stringvalue
-     * pa[10] = skipIfDefault ( 't' or 'f')
+     * pa[10] = dropIfUnused ('t' or 'f')
      * pa[11] = optDesc (displayed text) if present; required for all but OTYPE_UNKNOWN
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *
@@ -172,7 +172,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    break;
 
 	case SOCGameOption.OTYPE_INT:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, skip_def, pa[11]);
+	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, pa[11]);  // skip_def ignored
 	    opt.setIntValue(ival_cur);
 	    break;
 
@@ -186,7 +186,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    {
 		String[] choices = new String[ival_max];
 		System.arraycopy(pa, 12, choices, 0, ival_max);
-	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, skip_def, pa[11]);
+	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, pa[11]);  // skip_def ignored
 	        opt.setIntValue(ival_cur);
 	    }
 	    break;
@@ -240,7 +240,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[7] = maxIntValue
      * pa[8] = boolValue ('t' or 'f'; current, not default)
      * pa[9] = intValue (current, not default) or stringvalue
-     * pa[10] = skipIfDefault ( 't' or 'f')
+     * pa[10] = dropIfUnused ('t' or 'f')
      * pa[11] = optDesc (displayed text) if present; required for all but OTYPE_UNKNOWN
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *

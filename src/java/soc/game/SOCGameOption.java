@@ -147,7 +147,7 @@ public class SOCGameOption implements Cloneable
      *<LI> {@link #optKey name key}
      *<LI> {@link #optType}
      *<LI> {@link #minVersion}
-     *<LI> {@link #skipIfDefault} flag
+     *<LI> {@link #dropIfUnused} flag
      *</UL>
      *
      *   <b>To make the change:</b>
@@ -169,7 +169,7 @@ public class SOCGameOption implements Cloneable
         Hashtable opt = new Hashtable();
 
         opt.put("PL", new SOCGameOption
-                ("PL", -1, 1107, 4, 2, 4, true, "Maximum # players"));
+                ("PL", -1, 1107, 4, 2, 4, "Maximum # players"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("E7", new SOCGameOption
@@ -185,7 +185,7 @@ public class SOCGameOption implements Cloneable
         /*
         opt.put("DEBUG_ENUM", new SOCGameOption
                 ("DEBUG_ENUM", 1107, 1107, 
-                 3, new String[]{ "First", "Second", "Third", "Fourth"}, false, "Test option enum"));
+                 3, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option enum"));
         opt.put("DEBUG_STR", new SOCGameOption
                 ("DEBUG_STR", 1107, 1107, 20, false, true, "Test option str"));
         opt.put("DEBUG_STRHIDE", new SOCGameOption
@@ -280,7 +280,7 @@ public class SOCGameOption implements Cloneable
      * For {@link #OTYPE_INTBOOL}, both the integer and boolean values are checked
      * against defaults.
      */
-    public final boolean skipIfDefault;  // OTYPE_* - mention in javadoc if this applies to the new type.
+    public final boolean dropIfUnused;  // OTYPE_* - mention in javadoc if this applies to the new type.
 
     /**
      * Default value for boolean part of this option, if any
@@ -342,24 +342,27 @@ public class SOCGameOption implements Cloneable
      * @param minVers Minimum client version if this option is set (is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default value (true if set, false if not set)
-     * @param skipIfDefault If this option's value is the default, should we not add it to game options
+     * @param dropIfUnused If this option's value is unset, should we not add it to game options
      *           or send over the network (to reduce overhead)?
      *           Only recommended if game behavior without the option is well-established
-     *           (for example, maxplayers == 4 unless option PL is present).
+     *           (for example, trading is allowed unless option NT is present).
      * @param desc    Descriptive brief text, to appear in the options dialog
      * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
-        boolean defaultValue, boolean skipIfDefault, String desc)
+        boolean defaultValue, boolean dropIfUnused, String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, skipIfDefault, null, desc);
+	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, dropIfUnused, null, desc);
     }
 
     /**
      * Create a new integer game option.  Type is {@link #OTYPE_INT}.
+     * There is no dropIfUnused parameter for integer options,
+     * because they have no 'blank' value.
+     *
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
@@ -368,10 +371,6 @@ public class SOCGameOption implements Cloneable
      * @param minValue Minimum permissible value
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
-     * @param skipIfDefault If this option's value is the default, should we not add it to game options
-     *           or send over the network (to reduce overhead)?
-     *           Only recommended if game behavior without the option is well-established
-     *           (for example, maxplayers == 4 unless option PL is present).
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the int value goes.
      *             If no placeholder is found, the value text field appears at left,
@@ -382,11 +381,11 @@ public class SOCGameOption implements Cloneable
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
-        int defaultValue, int minValue, int maxValue, boolean skipIfDefault, String desc)
+        int defaultValue, int minValue, int maxValue, String desc)
         throws IllegalArgumentException 
     {
 	this(OTYPE_INT, key, minVers, lastModVers, false, defaultValue,
-	     minValue, maxValue, skipIfDefault, null, desc);
+	     minValue, maxValue, false, null, desc);
     }
 
     /**
@@ -400,11 +399,11 @@ public class SOCGameOption implements Cloneable
      * @param minValue Minimum permissible value
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
-     * @param skipIfDefault If this option's value is the default, should we not add it to game options
+     * @param dropIfUnused If this option's bool value is unset, and its int value is the default,
+     *           should we not add it to game options
      *           or send over the network (to reduce overhead)?
      *           Only recommended if game behavior without the option is well-established
-     *           (for example, maxplayers == 4 unless option PL is present).
-     *           For type OTYPE_INTBOOL, the integer value is checkd, not the boolean value.
+     *           (for example, trading is allowed unless option NT is present).
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
@@ -413,26 +412,25 @@ public class SOCGameOption implements Cloneable
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers, boolean defaultBoolValue, int defaultIntValue,
-        int minValue, int maxValue, boolean skipIfDefault, String desc)
+        int minValue, int maxValue, boolean dropIfUnused, String desc)
         throws IllegalArgumentException
     {
 	this(OTYPE_INTBOOL, key, minVers, lastModVers, defaultBoolValue, defaultIntValue,
-	     minValue, maxValue, skipIfDefault, null, desc);
+	     minValue, maxValue, dropIfUnused, null, desc);
     }
 
     /**
      * Create a new enumerated game option.  Type is {@link #OTYPE_ENUM}.
      * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
+     * There is no dropIfUnused parameter for enum options,
+     * because they have no 'blank' value.
+     *
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
      * @param enumVals text to display for each possible choice of this option
-     * @param skipIfDefault If this option's value is the default, should we not add it to game options
-     *           or send over the network (to reduce overhead)?
-     *           Only recommended if game behavior without the option is well-established
-     *           (for example, maxplayers == 4 unless option PL is present).
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the enum's popup-menu goes.
      *             If no placeholder is found, the value field appears at left,
@@ -443,11 +441,11 @@ public class SOCGameOption implements Cloneable
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
-        int defaultValue, String[] enumVals, boolean skipIfDefault, String desc)
+        int defaultValue, String[] enumVals, String desc)
         throws IllegalArgumentException 
     {
 	this(OTYPE_ENUM, key, minVers, lastModVers, false, defaultValue,
-	     1, enumVals.length, skipIfDefault, enumVals, desc);
+	     1, enumVals.length, false, enumVals, desc);
     }
 
     /**
@@ -459,10 +457,8 @@ public class SOCGameOption implements Cloneable
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param maxLength   Maximum length, between 1 and 255 (for network bandwidth conservation)
      * @param hideTyping  Should type be {@link #OTYPE_STRHIDE} instead of {@link #OTYPE_STR}?
-     * @param skipIfDefault If this option's value is the default, should we not add it to game options
+     * @param dropIfUnused If this option's value is blank, should we not add it to game options
      *           or send over the network (to reduce overhead)?
-     *           Only recommended if game behavior without the option is well-established
-     *           (for example, maxplayers == 4 unless option PL is present).
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the text value goes.
      *             If no placeholder is found, the value text field appears at left,
@@ -473,12 +469,12 @@ public class SOCGameOption implements Cloneable
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
-	int maxLength, boolean hideTyping, boolean skipIfDefault, String desc)
+	int maxLength, boolean hideTyping, boolean dropIfUnused, String desc)
         throws IllegalArgumentException 
     {
 	this( (hideTyping ? OTYPE_STRHIDE : OTYPE_STR ),
 	     key, minVers, lastModVers, false, 0,
-	     0, maxLength, skipIfDefault, null, desc);
+	     0, maxLength, dropIfUnused, null, desc);
 	if ((maxLength < 1) || (maxLength > 255))
 	    throw new IllegalArgumentException("maxLength");
     }
@@ -496,7 +492,8 @@ public class SOCGameOption implements Cloneable
      * @param minValue Minimum permissible value
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
-     * @param skipIfDefault If this option's value is the default, should we not add it to game options?
+     * @param dropIfUnused If this option's value is blank or unset, should we not add it to game options?
+     *                 See {@link #dropIfUnused} javadoc for more details.
      * @param enumVals Possible choice texts for {@link #OTYPE_ENUM}, or null
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
@@ -507,7 +504,7 @@ public class SOCGameOption implements Cloneable
      */
     protected SOCGameOption(int otype, String key, int minVers, int lastModVers,
         boolean defaultBoolValue, int defaultIntValue,
-        int minValue, int maxValue, boolean skipIfDefault,
+        int minValue, int maxValue, boolean dropIfUnused,
         String[] enumVals, String desc)
         throws IllegalArgumentException
     {
@@ -533,7 +530,7 @@ public class SOCGameOption implements Cloneable
 	this.defaultIntValue = defaultIntValue;
 	minIntValue = minValue;
 	maxIntValue = maxValue;
-	this.skipIfDefault = skipIfDefault;
+	this.dropIfUnused = dropIfUnused;
         this.enumVals = enumVals;
 	optDesc = desc;
 
@@ -1081,7 +1078,7 @@ public class SOCGameOption implements Cloneable
      * If any are above/below maximum/minimum, clip to the max/min value in knownOpts.
      * If any are unknown, return false. Will still check (and clip) the known ones.
      * If any boolean or string-valued options are default, and unset/blank, and
-     * their {@link #skipIfDefault} flag is set, remove them from newOpts.
+     * their {@link #dropIfUnused} flag is set, remove them from newOpts.
      * For {@link #OTYPE_INTBOOL}, both the integer and boolean values are checked
      * against defaults.
      *
@@ -1102,7 +1099,7 @@ public class SOCGameOption implements Cloneable
         if (knownOpts == null)
             knownOpts = allOptions;
 
-        // OTYPE_* - adj javadoc above (re skipIfDefault) if a string-type or bool-type is added.
+        // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
 
         // use Iterator in loop, so we can remove from the hash if needed
         boolean allKnown = true;
@@ -1147,10 +1144,10 @@ public class SOCGameOption implements Cloneable
 			    op.setIntValue(iv);
 			}
 
-                        // integer-type options are not subject to skipIfDefault,
+                        // integer-type options are not subject to dropIfUnused,
                         // except for OTYPE_INTBOOL.
                         if ((op.optType == OTYPE_INTBOOL)
-                               && knownOp.skipIfDefault
+                               && knownOp.dropIfUnused
                                && (iv == knownOp.defaultIntValue)
                                && (! op.boolValue))
                              ikv.remove();
@@ -1158,13 +1155,13 @@ public class SOCGameOption implements Cloneable
 		    break;
 
 		case OTYPE_BOOL:
-                    if (knownOp.skipIfDefault && ! op.boolValue)
+                    if (knownOp.dropIfUnused && ! op.boolValue)
                         ikv.remove();
 		    break;
 
                 case OTYPE_STR:
                 case OTYPE_STRHIDE:
-                    if (knownOp.skipIfDefault &&
+                    if (knownOp.dropIfUnused &&
                           ((op.strValue == null) || (op.strValue.length() == 0)))
                         ikv.remove();
                     break;
