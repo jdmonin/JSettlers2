@@ -443,7 +443,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * The number of normal rounds (each player has 1 turn per round, after initial placements), including this round.
-     *  for gameoption E7: Roll no 7s during first # rounds.
+     *  for gameoption N7: Roll no 7s during first # rounds.
      *  This is 0 during initial piece placement, and 1 when the first player is about to
      *  roll dice for the first time.  It becomes 2 when that first player's turn begins again.
      *  updated in {@link #updateAtTurn()}.
@@ -2306,14 +2306,14 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * roll the dice.
-     * Checks game option E7: Roll no 7s during first # rounds
+     * Checks game option N7: Roll no 7s during first # rounds
      */
     public IntPair rollDice()
     {
-        // E7: Roll no 7s during first # rounds.
+        // N7: Roll no 7s during first # rounds.
         //     Use > not >= because roundCount includes current round
         final boolean okToRoll7 =
-            (! isGameOptionSet("E7")) || (roundCount > getGameOptionIntValue("E7"));
+            (! isGameOptionSet("N7")) || (roundCount > getGameOptionIntValue("N7"));
 
         int die1, die2;
         do

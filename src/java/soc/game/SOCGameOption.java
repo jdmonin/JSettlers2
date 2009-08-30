@@ -79,7 +79,7 @@ public class SOCGameOption implements Cloneable
      *<UL>
      *<LI> PL  Maximum # players (2-4)
      *<LI> RD  Robber can't return to the desert
-     *<LI> E7  Roll no 7s during first # rounds
+     *<LI> N7  Roll no 7s during first # rounds
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
      *<LI> NT  No trading allowed
      *</UL>
@@ -98,7 +98,7 @@ public class SOCGameOption implements Cloneable
      *   Its default value on your own server can be changed at runtime.
      *<LI> Decide if all client versions can use your option.  Typically, if the option
      *   requires server changes but not any client changes, all clients can use it.
-     *   (For example, "E7" for "roll no 7s early in the game" is strictly server-side.)
+     *   (For example, "N7" for "roll no 7s early in the game" is strictly server-side.)
      *   If only <em>some values</em> of the option will require client changes,
      *   also update {@link #getMinVersion()}.  (For example, if "PL"'s value is 5 or 6,
      *   a new client would be needed to display that many players at once, but 2 - 4
@@ -172,8 +172,8 @@ public class SOCGameOption implements Cloneable
                 ("PL", -1, 1107, 4, 2, 4, "Maximum # players"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
-        opt.put("E7", new SOCGameOption
-                ("E7", -1, 1107, false, 7, 1, 999, false, "Roll no 7s during first # rounds"));
+        opt.put("N7", new SOCGameOption
+                ("N7", -1, 1107, false, 7, 1, 999, false, "Roll no 7s during first # rounds"));
         opt.put("BC", new SOCGameOption
                 ("BC", -1, 1107, true, 3, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
@@ -639,7 +639,7 @@ public class SOCGameOption implements Cloneable
 
         // SAMPLE CODE:
         /*
-        if (optKey.equals("E7") && (intValue == 42))
+        if (optKey.equals("N7") && (intValue == 42))
         {
             return 1108;
         }
