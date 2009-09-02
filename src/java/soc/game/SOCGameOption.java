@@ -1240,4 +1240,17 @@ public class SOCGameOption implements Cloneable
         }
         return true;
     }
+
+    /**
+     * Form a string with the key and current value, useful for debugging purposes.
+     * @return string such as "PL=4" or "BC=t3", with the same format
+     *    as {@link #packKnownOptionsToString(boolean)}.
+     */
+    public String toString()
+    {
+        StringBuffer sb = new StringBuffer(optKey);
+        sb.append('=');
+        packValue(sb);
+        return sb.toString();
+    }
 }
