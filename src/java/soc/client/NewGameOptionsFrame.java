@@ -639,8 +639,10 @@ public class NewGameOptionsFrame extends Frame
         for (Enumeration e = controlsOpts.keys(); e.hasMoreElements(); )
         {
             Component ctrl = (Component) e.nextElement();
+            if (ctrl instanceof Label)
+                continue;
             SOCGameOption op = (SOCGameOption) controlsOpts.get(ctrl);
-            
+
             // OTYPE_* - new option types may have new AWT control objects, or
             //           may use the same controls with different contents as these.
 
