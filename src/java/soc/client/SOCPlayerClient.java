@@ -1119,31 +1119,34 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         {
             // This game is either from remote server, or local practice server,
             // both servers' games are in the same GUI list.
-            Hashtable opts = serverGames.getGameOptions(gm);
-            if ((opts == null) && (serverGames.getGameOptionsString(gm) != null))
+            Hashtable opts = null;
+            if ((practiceServer != null) && (-1 != practiceServer.getGameState(gm)))
+                opts = practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
+            else if (serverGames != null)
             {
-                // If necessary, parse game options from string before displaying.
-                // (Parsed options are cached, they won't be re-parsed)
-
-                if (tcpServGameOpts.allOptionsReceived)
+                opts = serverGames.getGameOptions(gm);
+                if ((opts == null) && (serverGames.getGameOptionsString(gm) != null))
                 {
-                    opts = serverGames.parseGameOptions(gm);
-                } else {
-                    // not yet received; remember game name.
-                    // when all are received, will show it,
-                    // and will also clear WAIT_CURSOR.
-                    // (see handleGAMEOPTIONINFO)
-
-                    tcpServGameOpts.gameInfoWaitingForOpts = gm;
-                    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                    return true;  // <---- early return: not yet ready to show ----
+                    // If necessary, parse game options from string before displaying.
+                    // (Parsed options are cached, they won't be re-parsed)
+    
+                    if (tcpServGameOpts.allOptionsReceived)
+                    {
+                        opts = serverGames.parseGameOptions(gm);
+                    } else {
+                        // not yet received; remember game name.
+                        // when all are received, will show it,
+                        // and will also clear WAIT_CURSOR.
+                        // (see handleGAMEOPTIONINFO)
+    
+                        tcpServGameOpts.gameInfoWaitingForOpts = gm;
+                        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                        return true;  // <---- early return: not yet ready to show ----
+                    }
                 }
             }
-            else if ((opts == null) && (practiceServer != null))
-            {
-                opts = practiceServer.getGameOptions(gm);
-            }
-	    // don't overwrite newGameOptsFrame; this one is to show an existing game.
+
+	    // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
             NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
             return true;
         }
@@ -2198,9 +2201,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 		    tcpServGameOpts.noMoreOptions(true);
 	    }
 	} else {
-	    // sVersion == cliVersion, so we know the options already
+	    // sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
+	    // For local practice games, optionSet may already be initialized, so check vs null.
 	    GameOptionServerSet opts = (isLocal ? practiceServGameOpts : tcpServGameOpts);
-	    opts.optionSet = SOCGameOption.getAllKnownOptions();
+	    if (opts.optionSet == null)
+	        opts.optionSet = SOCGameOption.getAllKnownOptions();
 	    opts.noMoreOptions(isLocal);  // defaults not known unless it's local practice
 	}
     }
@@ -2411,7 +2416,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * handle the "join game authorization" message
+     * handle the "join game authorization" message: create new {@link SOCGame} and
+     * {@link SOCPlayerInterface} so user can join the game
      * @param mes  the message
      * @param isLocal server is local for practice (vs. normal network)
      */
@@ -2437,6 +2443,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         if (isLocal)
         {
             gameOpts = practiceServGameOpts.optionSet;  // holds most recent settings by user
+            if (gameOpts != null)
+                gameOpts = (Hashtable) gameOpts.clone();  // changes here shouldn't change practiceServ's copy
         } else {
             if (serverGames != null)
                 gameOpts = serverGames.parseGameOptions(gaName);
