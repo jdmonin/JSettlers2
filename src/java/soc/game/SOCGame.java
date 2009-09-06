@@ -1827,7 +1827,7 @@ public class SOCGame implements Serializable, Cloneable
         gameState = START1A;
 
         /**
-         * choose to goes first
+         * choose who goes first
          */
         do
         {
