@@ -2150,9 +2150,12 @@ public class SOCServer extends Server
                     }
 
                     //
-                    // useful for debuging 
+                    // useful for debugging
                     //
-                    if (c.getData().equals("debug"))
+                    // 1.1.07: all practice games are debug mode, for ease of debugging;
+                    //         not much use for a chat window in a practice game anyway.
+                    //
+                    if (c.getData().equals("debug") || ga.isLocal)
                     {
                         final String msgText = gameTextMsgMes.getText();
                         if (gameTextMsgMes.getText().startsWith("rsrcs:"))
