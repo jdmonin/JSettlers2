@@ -2084,112 +2084,10 @@ public class SOCServer extends Server
                     break;
 
                 /**
-                 * text message from a game
+                 * text message from a game (includes debug commands)
                  */
                 case SOCMessage.GAMETEXTMSG:
-
-                    //createNewGameEventRecord();
-                    //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-                    SOCGameTextMsg gameTextMsgMes = (SOCGameTextMsg) mes;
-                    recordGameEvent(gameTextMsgMes.getGame(), gameTextMsgMes.toCmd());
-
-                    ga = gameList.getGameData(gameTextMsgMes.getGame());
-
-                    //currentGameEventRecord.setSnapshot(ga);
-                    ///
-                    /// command to add time to a game
-                    /// If the command text changes from '*ADDTIME*' to something else,
-                    /// please update the warning text sent in checkForExpiredGames().
-                    ///
-                    if ((gameTextMsgMes.getText().startsWith("*ADDTIME*")) || (gameTextMsgMes.getText().startsWith("*addtime*")) || (gameTextMsgMes.getText().startsWith("ADDTIME")) || (gameTextMsgMes.getText().startsWith("addtime")))
-                    {
-                        SOCGame gameData = gameList.getGameData(gameTextMsgMes.getGame());
-
-                        if (gameData != null)
-                        {
-                            // add 30 min. to the expiration time.  If this
-                            // changes to another timespan, please update the
-                            // warning text sent in checkForExpiredGames().
-                            // Use ">>>" in messageToGame to mark as urgent.
-                            gameData.setExpiration(gameData.getExpiration() + (30 * 60 * 1000));
-                            messageToGameUrgent(gameTextMsgMes.getGame(), ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
-                        }
-                    }
-
-                    ///
-                    /// Check the time remaining for this game
-                    ///
-                    if (gameTextMsgMes.getText().startsWith("*CHECKTIME*"))
-                    {
-                        SOCGame gameData = gameList.getGameData(gameTextMsgMes.getGame());
-                        messageToGameUrgent(gameTextMsgMes.getGame(), ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
-                    }
-                    else if (gameTextMsgMes.getText().startsWith("*WHO*"))
-                    {
-                        Vector gameMembers = null;
-                        gameList.takeMonitorForGame(gameTextMsgMes.getGame());
-
-                        try
-                        {
-                            gameMembers = gameList.getMembers(gameTextMsgMes.getGame());
-                        }
-                        catch (Exception e)
-                        {
-                            D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
-                        }
-
-                        gameList.releaseMonitorForGame(gameTextMsgMes.getGame());
-
-                        if (gameMembers != null)
-                        {
-                            Enumeration membersEnum = gameMembers.elements();
-
-                            while (membersEnum.hasMoreElements())
-                            {
-                                StringConnection conn = (StringConnection) membersEnum.nextElement();
-                                messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), SERVERNAME, "> " + conn.getData()));
-                            }
-                        }
-                    }
-
-                    //
-                    // useful for debugging
-                    //
-                    // 1.1.07: all practice games are debug mode, for ease of debugging;
-                    //         not much use for a chat window in a practice game anyway.
-                    //
-                    if (c.getData().equals("debug") || (c instanceof LocalStringConnection))
-                    {
-                        final String msgText = gameTextMsgMes.getText();
-                        if (gameTextMsgMes.getText().startsWith("rsrcs:"))
-                        {
-                            giveResources(gameTextMsgMes.getText(), ga);
-                        }
-                        else if (gameTextMsgMes.getText().startsWith("dev:"))
-                        {
-                            giveDevCard(gameTextMsgMes.getText(), ga);
-                        }
-                        else if (gameTextMsgMes.getText().charAt(0) == '*')
-                        {
-                            processDebugCommand(c, ga.getName(), msgText);
-                        }
-                        else
-                        {
-                            //
-                            // Send the message to the members of the game
-                            //
-                            messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), (String) c.getData(), gameTextMsgMes.getText()));
-                        }
-                    }
-                    else
-                    {
-                        //
-                        // Send the message to the members of the game
-                        //
-                        messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), (String) c.getData(), gameTextMsgMes.getText()));
-                    }
-
-                    //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
+                    handleGAMETEXTMSG(c, (SOCGameTextMsg) mes);
                     break;
 
                 /**
@@ -3059,6 +2957,117 @@ public class SOCServer extends Server
             robots.addElement(c);
             nameConnection(c);
         }
+    }
+
+    /**
+     * Handle game text messages, including debug commands.
+     * Was part of processCommand before 1.1.07.
+     * @since 1.1.07
+     */
+    private void handleGAMETEXTMSG(StringConnection c, SOCGameTextMsg gameTextMsgMes)
+    {
+        SOCGame ga;
+        //createNewGameEventRecord();
+        //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
+        recordGameEvent(gameTextMsgMes.getGame(), gameTextMsgMes.toCmd());
+
+        ga = gameList.getGameData(gameTextMsgMes.getGame());
+
+        //currentGameEventRecord.setSnapshot(ga);
+        ///
+        /// command to add time to a game
+        /// If the command text changes from '*ADDTIME*' to something else,
+        /// please update the warning text sent in checkForExpiredGames().
+        ///
+        if ((gameTextMsgMes.getText().startsWith("*ADDTIME*")) || (gameTextMsgMes.getText().startsWith("*addtime*")) || (gameTextMsgMes.getText().startsWith("ADDTIME")) || (gameTextMsgMes.getText().startsWith("addtime")))
+        {
+            SOCGame gameData = gameList.getGameData(gameTextMsgMes.getGame());
+
+            if (gameData != null)
+            {
+                // add 30 min. to the expiration time.  If this
+                // changes to another timespan, please update the
+                // warning text sent in checkForExpiredGames().
+                // Use ">>>" in messageToGame to mark as urgent.
+                gameData.setExpiration(gameData.getExpiration() + (30 * 60 * 1000));
+                messageToGameUrgent(gameTextMsgMes.getGame(), ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
+            }
+        }
+
+        ///
+        /// Check the time remaining for this game
+        ///
+        if (gameTextMsgMes.getText().startsWith("*CHECKTIME*"))
+        {
+            SOCGame gameData = gameList.getGameData(gameTextMsgMes.getGame());
+            messageToGameUrgent(gameTextMsgMes.getGame(), ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
+        }
+        else if (gameTextMsgMes.getText().startsWith("*WHO*"))
+        {
+            Vector gameMembers = null;
+            gameList.takeMonitorForGame(gameTextMsgMes.getGame());
+
+            try
+            {
+                gameMembers = gameList.getMembers(gameTextMsgMes.getGame());
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
+            }
+
+            gameList.releaseMonitorForGame(gameTextMsgMes.getGame());
+
+            if (gameMembers != null)
+            {
+                Enumeration membersEnum = gameMembers.elements();
+
+                while (membersEnum.hasMoreElements())
+                {
+                    StringConnection conn = (StringConnection) membersEnum.nextElement();
+                    messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), SERVERNAME, "> " + conn.getData()));
+                }
+            }
+        }
+
+        //
+        // useful for debugging
+        //
+        // 1.1.07: all practice games are debug mode, for ease of debugging;
+        //         not much use for a chat window in a practice game anyway.
+        //
+        if (c.getData().equals("debug") || (c instanceof LocalStringConnection))
+        {
+            final String msgText = gameTextMsgMes.getText();
+            if (gameTextMsgMes.getText().startsWith("rsrcs:"))
+            {
+                giveResources(gameTextMsgMes.getText(), ga);
+            }
+            else if (gameTextMsgMes.getText().startsWith("dev:"))
+            {
+                giveDevCard(gameTextMsgMes.getText(), ga);
+            }
+            else if (gameTextMsgMes.getText().charAt(0) == '*')
+            {
+                processDebugCommand(c, ga.getName(), msgText);
+            }
+            else
+            {
+                //
+                // Send the message to the members of the game
+                //
+                messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), (String) c.getData(), gameTextMsgMes.getText()));
+            }
+        }
+        else
+        {
+            //
+            // Send the message to the members of the game
+            //
+            messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), (String) c.getData(), gameTextMsgMes.getText()));
+        }
+
+        //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
     }
 
     /**
