@@ -59,6 +59,11 @@ import java.util.Vector;
  * See {@link SOCMessage} for details of the client/server protocol.
  * See {@link Server} for details of the server threading and processing.
  *<P>
+ * The server supports several <b>debug commands</b> when enabled, and
+ * when sent as chat messages by a user named "debug".
+ * See {@link #processDebugCommand(StringConnection, String, String)}
+ * for details.
+ *<P>
  * The version check timer is set in {@link SOCClientData#setVersionTimer(SOCServer, StringConnection)}.
  * Before 1.1.06, the server's response was first message,
  * and client version was then sent in reply to server's version.
