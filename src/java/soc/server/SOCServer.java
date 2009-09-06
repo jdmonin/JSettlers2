@@ -2391,10 +2391,52 @@ public class SOCServer extends Server
     }  // processCommand
 
     /**
+     * Used by {@link #processDebugCommand(StringConnection, String, String)}}
+     * when *HELP* is requested.
+     * @since 1.1.07
+     */
+    public static final String[] DEBUG_COMMANDS_HELP =
+        {
+        "--- General Commands ---",
+        "*ADDTIME*  add 30 minutes before game expiration",
+        "*CHECKTIME*  print time remaining before expiration",
+        "*WHO*   show players and observers of this game",
+        "--- Debug Commands ---",
+        "*BCAST*  broadcast msg to all games/channels",
+        "*GC*    trigger the java garbage-collect",
+        "*KILLBOT*  botname  End a bot's connection",
+        "*KILLGAME*  end the current game",
+        "*RESETBOT* botname  End a bot's connection",
+        "*STATS*   server stats since startup",
+        "*STOP*  kill the server",
+        "--- Debug Resources ---",
+        "rsrcs: #cl #or #sh #wh #wo playername",
+        "dev: #typ playername",
+        "Dev card types are:",  // see SOCDevCardConstants
+        "0 knight",
+        "1 road-building",
+        "2 discovery",
+        "3 monopoly",
+        "4 governors house",
+        "5 market",
+        "6 university",
+        "7 temple",
+        "8 chapel"
+        };
+
+    /**
      * Process a debug command, sent by the "debug" client/player.
+     * See {@link #DEBUG_COMMANDS_HELP} for list of commands.
      */
     public void processDebugCommand(StringConnection debugCli, String ga, String dcmd)
     {
+        if (dcmd.startsWith("*HELP*") || dcmd.startsWith("*help"))
+        {
+            for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
+                messageToPlayer(debugCli, new SOCGameTextMsg(ga, SERVERNAME, DEBUG_COMMANDS_HELP[i]));
+            return;
+        }
+
         if (dcmd.startsWith("*KILLGAME*"))
         {
             messageToGameUrgent(ga, ">>> ********** " + (String) debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
@@ -2509,7 +2551,7 @@ public class SOCServer extends Server
                 }
             }
             if (! botFound)
-                D.ebugPrintln("L2614 Bot not found to reset: " + botName);
+                D.ebugPrintln("L2614 Bot not found to disconnect: " + botName);
         }
     }
 
@@ -7187,7 +7229,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * this is a debugging command that gives resources to a player
+     * this is a debugging command that gives resources to a player.
+     * Format: rsrcs: #cl #or #sh #wh #wo playername
      */
     protected void giveResources(String mes, SOCGame game)
     {
