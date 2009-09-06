@@ -97,7 +97,8 @@ public class D
 
     /**
      * If debug is enabled, print the stack trace of this exception
-     * @param ex Exception or other Throwable
+     * @param ex Exception or other Throwable.  If null, will create an exception
+     *           in order to force a stack trace.
      * @param prefixMsg Message for {@link #ebugPrintln(String)} above the exception,
      *                  or null; will print as:
      *                  prefixMsg + " - " + ex.toString
@@ -109,6 +110,17 @@ public class D
             return;
         }
 
+        if (ex == null)
+        {
+            try
+            {
+                int x = 0;
+                int y = x / 0;                
+            } catch (Throwable th)
+            {
+                ex = th;
+            }            
+        }
         if (prefixMsg != null)
             ebugPrintln(prefixMsg + " - " + ex.toString());
         System.out.println("-- Exception stack trace begins -- Thread: " + Thread.currentThread().getName());
