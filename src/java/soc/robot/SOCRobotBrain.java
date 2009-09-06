@@ -2138,7 +2138,7 @@ public class SOCRobotBrain extends Thread
 
                     if ((mesType == SOCMessage.ROBOTDISMISS) && (!expectDISCARD) && (!expectPLACING_ROBBER))
                     {
-                        client.leaveGame(game);
+                        client.leaveGame(game, "dismiss msg");
                         alive = false;
                     }
 
@@ -2151,7 +2151,7 @@ public class SOCRobotBrain extends Thread
                     if (counter > 15000)
                     {
                         // We've been waiting too long, commit suicide.
-                        client.leaveGame(game);
+                        client.leaveGame(game, "counter 15000");
                         alive = false;
                     }
 

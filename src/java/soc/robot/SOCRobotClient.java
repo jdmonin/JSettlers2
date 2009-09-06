@@ -793,7 +793,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             ;
         }
 
-        put(SOCSitDown.toCmd(mes.getGame(), nickname, pn.intValue(), true));
+        if (pn != null)
+        {
+            put(SOCSitDown.toCmd(mes.getGame(), nickname, pn.intValue(), true));
+        } else {
+            System.err.println("** Cannot sit down: Assert failed: null pn for game " + mes.getGame());
+        }
     }
 
     /**
@@ -1670,7 +1675,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             if ((brain == null) || (!brain.isAlive()))
             {
-                leaveGame((SOCGame) games.get(mes.getGame()));
+                leaveGame((SOCGame) games.get(mes.getGame()), "brain not alive");
             }
         }
     }
@@ -1817,14 +1822,18 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * the user leaves the given game
      *
      * @param ga   the game
+     * @param leaveReason reason for leaving
      */
-    public void leaveGame(SOCGame ga)
+    public void leaveGame(SOCGame ga, String leaveReason)
     {
         if (ga != null)
         {
             robotBrains.remove(ga.getName());
             brainQs.remove(ga.getName());
             games.remove(ga.getName());
+            System.err.println("L1833 robot leaving game" + ga + " due to " + leaveReason);
+            soc.debug.D.ebugPrintStackTrace(null, "Leaving game here");
+            System.err.flush();
             put(SOCLeaveGame.toCmd(nickname, host, ga.getName()));
         }
     }
