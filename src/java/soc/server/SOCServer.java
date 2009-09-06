@@ -3016,9 +3016,10 @@ public class SOCServer extends Server
         SOCGame ga;
         //createNewGameEventRecord();
         //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
-        recordGameEvent(gameTextMsgMes.getGame(), gameTextMsgMes.toCmd());
+        final String gaName = gameTextMsgMes.getGame();
+        recordGameEvent(gaName, gameTextMsgMes.toCmd());
 
-        ga = gameList.getGameData(gameTextMsgMes.getGame());
+        ga = gameList.getGameData(gaName);
 
         //currentGameEventRecord.setSnapshot(ga);
         ///
@@ -3026,9 +3027,10 @@ public class SOCServer extends Server
         /// If the command text changes from '*ADDTIME*' to something else,
         /// please update the warning text sent in checkForExpiredGames().
         ///
-        if ((gameTextMsgMes.getText().startsWith("*ADDTIME*")) || (gameTextMsgMes.getText().startsWith("*addtime*")) || (gameTextMsgMes.getText().startsWith("ADDTIME")) || (gameTextMsgMes.getText().startsWith("addtime")))
+        final String cmdText = gameTextMsgMes.getText();
+        if ((cmdText.startsWith("*ADDTIME*")) || (cmdText.startsWith("*addtime*")) || (cmdText.startsWith("ADDTIME")) || (cmdText.startsWith("addtime")))
         {
-            SOCGame gameData = gameList.getGameData(gameTextMsgMes.getGame());
+            SOCGame gameData = gameList.getGameData(gaName);
 
             if (gameData != null)
             {
@@ -3037,37 +3039,37 @@ public class SOCServer extends Server
                 // warning text sent in checkForExpiredGames().
                 // Use ">>>" in messageToGame to mark as urgent.
                 gameData.setExpiration(gameData.getExpiration() + (30 * 60 * 1000));
-                messageToGameUrgent(gameTextMsgMes.getGame(), ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
+                messageToGameUrgent(gaName, ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
             }
         }
 
         ///
         /// Check the time remaining for this game
         ///
-        if (gameTextMsgMes.getText().startsWith("*CHECKTIME*"))
+        if (cmdText.startsWith("*CHECKTIME*"))
         {
-            processDebugCommand_checktime(c, gameTextMsgMes.getGame());
+            processDebugCommand_checktime(c, gaName);
         }
-        else if (gameTextMsgMes.getText().startsWith("*VERSION*"))
+        else if (cmdText.startsWith("*VERSION*"))
         {
-            messageToPlayer(c, new SOCGameTextMsg(gameTextMsgMes.getGame(), SERVERNAME,
+            messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME,
                     "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum()));
         }
-        else if (gameTextMsgMes.getText().startsWith("*WHO*"))
+        else if (cmdText.startsWith("*WHO*"))
         {
             Vector gameMembers = null;
-            gameList.takeMonitorForGame(gameTextMsgMes.getGame());
+            gameList.takeMonitorForGame(gaName);
 
             try
             {
-                gameMembers = gameList.getMembers(gameTextMsgMes.getGame());
+                gameMembers = gameList.getMembers(gaName);
             }
             catch (Exception e)
             {
                 D.ebugPrintStackTrace(e, "Exception in *WHO* (gameMembers)");
             }
 
-            gameList.releaseMonitorForGame(gameTextMsgMes.getGame());
+            gameList.releaseMonitorForGame(gaName);
 
             if (gameMembers != null)
             {
@@ -3076,7 +3078,7 @@ public class SOCServer extends Server
                 while (membersEnum.hasMoreElements())
                 {
                     StringConnection conn = (StringConnection) membersEnum.nextElement();
-                    messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), SERVERNAME, "> " + conn.getData()));
+                    messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "> " + conn.getData()));
                 }
             }
         }
@@ -3089,16 +3091,16 @@ public class SOCServer extends Server
         //
         if (c.getData().equals("debug") || (c instanceof LocalStringConnection))
         {
-            final String msgText = gameTextMsgMes.getText();
-            if (gameTextMsgMes.getText().startsWith("rsrcs:"))
+            final String msgText = cmdText;
+            if (cmdText.startsWith("rsrcs:"))
             {
-                giveResources(gameTextMsgMes.getText(), ga);
+                giveResources(cmdText, ga);
             }
-            else if (gameTextMsgMes.getText().startsWith("dev:"))
+            else if (cmdText.startsWith("dev:"))
             {
-                giveDevCard(gameTextMsgMes.getText(), ga);
+                giveDevCard(cmdText, ga);
             }
-            else if (gameTextMsgMes.getText().charAt(0) == '*')
+            else if (cmdText.charAt(0) == '*')
             {
                 processDebugCommand(c, ga.getName(), msgText);
             }
@@ -3107,7 +3109,7 @@ public class SOCServer extends Server
                 //
                 // Send the message to the members of the game
                 //
-                messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), (String) c.getData(), gameTextMsgMes.getText()));
+                messageToGame(gaName, new SOCGameTextMsg(gaName, (String) c.getData(), cmdText));
             }
         }
         else
@@ -3115,7 +3117,7 @@ public class SOCServer extends Server
             //
             // Send the message to the members of the game
             //
-            messageToGame(gameTextMsgMes.getGame(), new SOCGameTextMsg(gameTextMsgMes.getGame(), (String) c.getData(), gameTextMsgMes.getText()));
+            messageToGame(gaName, new SOCGameTextMsg(gaName, (String) c.getData(), cmdText));
         }
 
         //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
