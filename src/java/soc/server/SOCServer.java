@@ -28,6 +28,7 @@ import soc.message.*;
 
 import soc.server.database.SOCDBHelper;
 
+import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
@@ -61,6 +62,7 @@ import java.util.Vector;
  *<P>
  * The server supports several <b>debug commands</b> when enabled, and
  * when sent as chat messages by a user named "debug".
+ * (Or by the user in a practice game.)
  * See {@link #processDebugCommand(StringConnection, String, String)}
  * for details.
  *<P>
@@ -684,6 +686,7 @@ public class SOCServer extends Server
                 recordGameEvent(gm, leaveMessage.toCmd());
 
                 D.ebugPrintln("*** " + plName + " left the game " + gm);
+                D.ebugPrintStackTrace(null, "Left the game here");  // JM TODO temp
                 messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, plName + " left the game"));
 
                 /**
@@ -2155,7 +2158,7 @@ public class SOCServer extends Server
                     // 1.1.07: all practice games are debug mode, for ease of debugging;
                     //         not much use for a chat window in a practice game anyway.
                     //
-                    if (c.getData().equals("debug") || ga.isLocal)
+                    if (c.getData().equals("debug") || (c instanceof LocalStringConnection))
                     {
                         final String msgText = gameTextMsgMes.getText();
                         if (gameTextMsgMes.getText().startsWith("rsrcs:"))
@@ -2567,13 +2570,13 @@ public class SOCServer extends Server
 
             Enumeration robotsEnum = robots.elements();
 
+            boolean botFound = false;
             while (robotsEnum.hasMoreElements())
             {
                 StringConnection robotConn = (StringConnection) robotsEnum.nextElement();
-                D.ebugPrintln("&&& '" + botName + "' == '" + robotConn.getData() + "' is " + (botName.equals((String) robotConn.getData())));
-
                 if (botName.equals((String) robotConn.getData()))
                 {
+                    botFound = true;
                     messageToGame(ga, new SOCGameTextMsg(ga, SERVERNAME, "> SENDING RESET COMMAND TO " + botName));
 
                     SOCAdminReset resetCmd = new SOCAdminReset();
@@ -2582,6 +2585,8 @@ public class SOCServer extends Server
                     break;
                 }
             }
+            if (! botFound)
+                D.ebugPrintln("L2590 Bot not found to reset: " + botName);
         }
         else if (dcmd.startsWith("*KILLBOT* "))
         {
@@ -2590,13 +2595,14 @@ public class SOCServer extends Server
 
             Enumeration robotsEnum = robots.elements();
 
+            boolean botFound = false;
             while (robotsEnum.hasMoreElements())
             {
                 StringConnection robotConn = (StringConnection) robotsEnum.nextElement();
-                D.ebugPrintln("&&& '" + botName + "' == '" + robotConn.getData() + "' is " + (botName.equals((String) robotConn.getData())));
 
                 if (botName.equals((String) robotConn.getData()))
                 {
+                    botFound = true;
                     messageToGame(ga, new SOCGameTextMsg(ga, SERVERNAME, "> DISCONNECTING " + botName));
                     removeConnection(robotConn);
                     removeConnectionCleanup(robotConn);
@@ -2604,6 +2610,8 @@ public class SOCServer extends Server
                     break;
                 }
             }
+            if (! botFound)
+                D.ebugPrintln("L2614 Bot not found to reset: " + botName);
         }
     }
 
