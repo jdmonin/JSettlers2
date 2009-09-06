@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,21 +27,47 @@ package soc.game;
  * types of development cards in Settlers of Catan.
  * {@link #MIN} is the lowest value, {@link #MAX_KNOWN} is highest "known",
  * and {@link #UNKNOWN} is higher than MAX_KNOWN.
+ * If you add values here, be sure to update javadocs at
+ * server.giveDevCard,  .handleGAMETEXTMSG and .sendGameStateOVER ,
+ * and handpanel.updateDevCards .
  */
 public interface SOCDevCardConstants
 {
+    /** Minimum valid card type */
     public static final int MIN = 0;
-    public static final int KNIGHT = 0; // knight card
-    public static final int ROADS = 1; // road building card
-    public static final int DISC = 2; // discovery card
-    public static final int MONO = 3; // monopoly card
-    public static final int CAP = 4; // capitol VP card
-    public static final int LIB = 5; // library VP card
-    public static final int UNIV = 6; // university VP card
-    public static final int TEMP = 7; // temple VP card
-    public static final int TOW = 8; // tower VP card
+
+    /** knight, robber card */
+    public static final int KNIGHT = 0;
+
+    /** road building card */
+    public static final int ROADS = 1;
+
+    /**  discovery, year-of-plenty card */
+    public static final int DISC = 2;
+
+    /** monopoly card */
+    public static final int MONO = 3;
+
+    /** capitol, governors-house VP card */
+    public static final int CAP = 4;
+
+    /** library, market VP card */
+    public static final int LIB = 5;
+
+    /** university VP card */
+    public static final int UNIV = 6;
+
+    /** temple VP card */
+    public static final int TEMP = 7;
+
+    /** tower, chapel VP card */
+    public static final int TOW = 8;
+
+    /** Maximum valid card type */
     public static final int MAX_KNOWN = 8;
+
     /** Dev-card of unknown type, for reporting to other players */ 
     public static final int UNKNOWN = 9; // unknown card
+
     public static final int MAXPLUSONE = 10;
 }
