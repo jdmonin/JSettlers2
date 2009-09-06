@@ -251,6 +251,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * true if the game's network is local for practice.  Used by
      * client to route messages to appropriate connection.
+     * NOT CURRENTLY SET AT SERVER.  Instead check if server's strSocketName != null,
+     * or if connection instanceof LocalStringConnection.
      */
     public boolean isLocal;
 
