@@ -2400,6 +2400,7 @@ public class SOCServer extends Server
         "--- General Commands ---",
         "*ADDTIME*  add 30 minutes before game expiration",
         "*CHECKTIME*  print time remaining before expiration",
+        "*VERSION*  show version and build information",
         "*WHO*   show players and observers of this game",
         "--- Debug Commands ---",
         "*BCAST*  broadcast msg to all games/channels",
@@ -2407,15 +2408,17 @@ public class SOCServer extends Server
         "*KILLBOT*  botname  End a bot's connection",
         "*KILLGAME*  end the current game",
         "*RESETBOT* botname  End a bot's connection",
-        "*STATS*   server stats since startup",
+        "*STATS*   server stats and current-game stats",
         "*STOP*  kill the server",
         "--- Debug Resources ---",
         "rsrcs: #cl #or #sh #wh #wo playername",
+        "Example  rsrcs: 0 3 0 2 0 Myname",
         "dev: #typ playername",
-        "Dev card types are:",  // see SOCDevCardConstants
-        "0 knight",
+        "Example  dev: 2 Myname",
+        "Development card types are:",  // see SOCDevCardConstants
+        "0 robber",
         "1 road-building",
-        "2 discovery",
+        "2 year of plenty",
         "3 monopoly",
         "4 governors house",
         "5 market",
@@ -2471,6 +2474,8 @@ public class SOCServer extends Server
             messageToGame(ga, new SOCGameTextMsg(ga, SERVERNAME, "> Free Memory: " + rt.freeMemory()));
             messageToGame(ga, new SOCGameTextMsg(ga, SERVERNAME, "> Version: "
                 + Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum()));
+
+            processDebugCommand_checktime(debugCli, ga);
         }
         else if (dcmd.startsWith("*GC*"))
         {
@@ -3041,8 +3046,12 @@ public class SOCServer extends Server
         ///
         if (gameTextMsgMes.getText().startsWith("*CHECKTIME*"))
         {
-            SOCGame gameData = gameList.getGameData(gameTextMsgMes.getGame());
-            messageToGameUrgent(gameTextMsgMes.getGame(), ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
+            processDebugCommand_checktime(c, gameTextMsgMes.getGame());
+        }
+        else if (gameTextMsgMes.getText().startsWith("*VERSION*"))
+        {
+            messageToPlayer(c, new SOCGameTextMsg(gameTextMsgMes.getGame(), SERVERNAME,
+                    "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum()));
         }
         else if (gameTextMsgMes.getText().startsWith("*WHO*"))
         {
@@ -3110,6 +3119,33 @@ public class SOCServer extends Server
         }
 
         //saveCurrentGameEventRecord(gameTextMsgMes.getGame());
+    }
+
+    /**
+     * Print time-remaining and other game stats.
+     * @param c  Client requesting the stats
+     * @param gaName Name of game
+     * @since 1.1.07
+     */
+    private void processDebugCommand_checktime(StringConnection c, final String gaName)
+    {
+        SOCGame gameData = gameList.getGameData(gaName);
+        if (gameData == null)
+            return;
+        messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "-- Game statistics: --"));
+        messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "Rounds played: " + gameData.getRoundCount()));
+        // time
+        Date gstart = gameData.getStartTime();
+        if (gstart != null)
+        {                
+            long gameSeconds = ((new Date().getTime() - gstart.getTime())+500L) / 1000L;
+            long gameMinutes = (gameSeconds+29L)/60L;
+            String gLengthMsg = "This game started " + gameMinutes + " minutes ago.";
+            messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, gLengthMsg));
+            // Ignore possible "1 minutes"; that game is too short to worry about.
+        }
+        String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
+        messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, expireMsg));
     }
 
     /**
