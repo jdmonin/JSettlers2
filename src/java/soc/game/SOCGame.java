@@ -1027,6 +1027,17 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * The number of normal rounds (each player has 1 turn per round, after initial placements), including this round.
+     *  This is 0 during initial piece placement, and 1 when the first player is about to
+     *  roll dice for the first time.  It becomes 2 when that first player's turn begins again.
+     *  @since 1.1.07
+     */
+    public int getRoundCount()
+    {
+        return roundCount;
+    }
+
+    /**
      * @return the current dice result
      */
     public int getCurrentDice()
