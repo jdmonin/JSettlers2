@@ -12,6 +12,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 - Re-word counter offer text
 - Hide trade offer after rejecting counteroffer (John F idea)
 - Allow debug commands in practice games
+- New applet parameter "nickname" for use with dynamic html
 - Framework for parsing "-" / "--" options at server commandline
 - Refactor per-turn resets from many places to new game.updateAtTurn()
 - GameList kept at server/client

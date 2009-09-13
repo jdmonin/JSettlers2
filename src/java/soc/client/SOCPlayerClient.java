@@ -305,7 +305,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     public static String STATUS_CANNOT_JOIN_THIS_GAME = "Cannot join, this client is incompatible with features of this game.";
 
     /**
-     * the nickname
+     * the nickname; null until validated and set by {@link #getValidNickname()}
      */
     protected String nickname = null;
 
@@ -758,6 +758,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         param = getParameter("suggestion");
         if (param != null)
             channel.setText(param); // after visuals initialized
+
+        param = getParameter("nickname");  // for use with dynamically-generated html
+        if (param != null)
+            nick.setText(param);
 
         System.out.println("Getting host...");
         host = getCodeBase().getHost();
