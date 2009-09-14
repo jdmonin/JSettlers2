@@ -3813,12 +3813,14 @@ public class SOCRobotBrain extends Thread
                 {
                     // The first pick
                     D.ebugPrintln("Picking a robber victim: pnum=" + pnum);
+                    System.err.println("L3816 Picking a robber victim: pnum=" + pnum);
                     victimNum = pnum;
                 }
                 else if ((pnum != ourPlayerData.getPlayerNumber()) && (winGameETAs[pnum] < winGameETAs[victimNum]))
                 {
                     // A better pick
                     D.ebugPrintln("Picking a robber victim: pnum=" + pnum);
+                    System.err.println("L3823 Picking a robber victim: pnum=" + pnum);
                     victimNum = pnum;
                 }
             }
@@ -3881,16 +3883,20 @@ public class SOCRobotBrain extends Thread
          *       Use similar algorithm as picking for opponent,
          *       but apply it worst vs best.
          */
-        int numRand = 0;
-        while ((bestHex == robberHex)
-                || (skipDeserts
-                        && (gboard.getHexTypeFromCoord(bestHex) == SOCBoard.DESERT_HEX ))
-                || ((numRand < 30)
-                        && ourPlayerData.getNumbers().getNumberResourcePairsForHex(bestHex).isEmpty()))
+        if (bestHex == robberHex)
         {
-            bestHex = hexes[Math.abs(rand.nextInt()) % hexes.length];
-            // D.ebugPrintln("%%% random pick = " + Integer.toHexString(bestHex));
-            ++numRand;
+            int numRand = 0;
+            while ((bestHex == robberHex)
+                    || (skipDeserts
+                            && (gboard.getHexTypeFromCoord(bestHex) == SOCBoard.DESERT_HEX ))
+                    || ((numRand < 30)
+                            && ourPlayerData.getNumbers().getNumberResourcePairsForHex(bestHex).isEmpty()))
+            {
+                bestHex = hexes[Math.abs(rand.nextInt()) % hexes.length];
+                // D.ebugPrintln("%%% random pick = " + Integer.toHexString(bestHex));
+                System.err.println("%%% random pick = " + Integer.toHexString(bestHex));
+                ++numRand;
+            }
         }
 
         D.ebugPrintln("!!! MOVING ROBBER !!!");
