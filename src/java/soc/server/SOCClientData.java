@@ -49,6 +49,12 @@ public class SOCClientData
     private boolean sentGameList;
 
     /**
+     * Is this connection a robot?
+     * @since 1.1.07
+     */
+    public boolean isRobot;
+
+    /**
      * TimerTask for connect-time client-version timer
      * @since 1.1.06
      */
@@ -56,6 +62,7 @@ public class SOCClientData
 
     public SOCClientData()
     {
+        isRobot = false;
         winLossSync = new Object();
         wins = 0;
         losses = 0;
