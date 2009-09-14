@@ -101,6 +101,7 @@ public class SOCGame implements Serializable, Cloneable
      * Wait for requested robots to sit down.
      * Once robots have joined the game (this happens in other threads, possibly in other
      * processes), gameState will become {@link #START1A}.
+     * @see #READY_RESET_WAIT_ROBOT_DISMISS
      */
     public static final int READY = 1; // Ready to start playing
 
@@ -108,6 +109,15 @@ public class SOCGame implements Serializable, Cloneable
     public static final int SETOPTIONS_INCL = 3; // Future use: Game owner setting options, but anyone can connect
         // These are still unused in 1.1.07, even though we now have options,
         // because they are set before the SOCGame is created.
+
+    /**
+     * This game object has just been created by a reset, but the old game contains robot players,
+     * so we must wait for them to leave before re-inviting anyone to continue the reset process.
+     * Once they have all left, state becomes {@link #READY}.
+     * See {@link #boardResetOngoingInfo} and (private) SOCServer.resetBoardAndNotify.
+     * @since 1.1.07
+     */
+    public static final int READY_RESET_WAIT_ROBOT_DISMISS = 4;
 
     /**
      * Players place first settlement.  Proceed in order for each player; next state
@@ -172,15 +182,6 @@ public class SOCGame implements Serializable, Cloneable
      * @see #getResetOldGameState()
      */
     public static final int RESET_OLD = 1001;
-
-    /**
-     * This game object has just been created by a reset, but the old game contains robot players,
-     * so we must wait for them to leave before re-inviting anyone to continue the reset process.
-     * Once they have all left, state becomes {@link #NEW}.
-     * See {@link #boardResetOngoingInfo} and (private) SOCServer.resetBoardAndNotify.
-     * @since 1.1.07
-     */
-    public static final int RESET_WAITING_FOR_ROBOT_DISMISS = 1002;
 
     /**
      * seat states
@@ -294,7 +295,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * For the server's use, if a reset is in progress, this holds the reset data
-     * until all robots have left (new game state is {@link #RESET_WAITING_FOR_ROBOT_DISMISS}).
+     * until all robots have left (new game state is {@link #READY_RESET_WAIT_ROBOT_DISMISS}).
      * This field is null except within the newly-created game object during reset.
      * @since 1.1.07
      */
@@ -3814,7 +3815,7 @@ public class SOCGame implements Serializable, Cloneable
      * Create a new game with same players and name, new board;
      * like calling constructor otherwise.
      * State of current game can be any state. State of copy is {@link #NEW},
-     * although if there are robots, it will be set to {@link #RESET_WAITING_FOR_ROBOT_DISMISS}
+     * although if there are robots, it will be set to {@link #READY_RESET_WAIT_ROBOT_DISMISS}
      * by the {@link SOCGameBoardReset} constructor.
      * Deep copy: Player names, faceIDs, and robot-flag are copied from
      * old game, but all other fields set as new Player and Board objects.

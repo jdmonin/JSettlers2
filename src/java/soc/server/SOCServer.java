@@ -7001,11 +7001,11 @@ public class SOCServer extends Server
      *<OL>
      * <LI value=1> Reset the board, remember player positions.
      *    If there are robots, we must wait for them to leave before players can rejoin;
-     *    if robots, set the game state to {@link SOCGame#RESET_WAITING_FOR_ROBOT_DISMISS} now,
+     *    if robots, set the game state to {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS} now,
      *    and set {@link SOCGame#boardResetOngoingInfo}.
      * <LI value=2a> Send ResetBoardAuth to each client (like sending JoinGameAuth at new game)
      *    Humans will reset their copy of the game.
-     *    Robots will leave the game and request to re-join.
+     *    Robots will leave the game, and soon be requested to re-join.
      *    (This simplifies the robot client.)
      *    If the game was already over at reset time, different robots will
      *    be randomly chosen to join the reset game.
@@ -7062,7 +7062,7 @@ public class SOCServer extends Server
          *
          * 1. Send ResetBoardAuth to each (like sending JoinGameAuth at new game).
          *    Humans will reset their copy of the game.
-         *    Robots will leave the game and request to re-join.
+         *    Robots will leave the game, and soon will be requested to re-join.
          */
         for (int pn = 0; pn < SOCGame.MAXPLAYERS; ++pn)
         {
@@ -7072,9 +7072,9 @@ public class SOCServer extends Server
             else if (roConns[pn] != null)
             {
                 if (! gameWasOverAtReset)
-                    messageToPlayer(roConns[pn], resetMsg);
+                    messageToPlayer(roConns[pn], resetMsg);  // same robot will rejoin
                 else
-                    messageToPlayer(roConns[pn], new SOCRobotDismiss(gaName));
+                    messageToPlayer(roConns[pn], new SOCRobotDismiss(gaName));  // could be different bot
             }
         }
 
@@ -7101,6 +7101,7 @@ public class SOCServer extends Server
          *     clicked "start game", and set up state to begin game play.
          */
         if (! reBoard.hadRobots)
+        {
             startGame (reGame);
 
         /**
@@ -7110,6 +7111,7 @@ public class SOCServer extends Server
          *     as they do when joining a newly created game.
          *     Once all robots have re-joined, the game will begin.
          */
+        }
         else
         {
             reGame.setGameState(SOCGame.READY);
@@ -7118,7 +7120,8 @@ public class SOCServer extends Server
         }
 
         // All set.
-    }
+
+    }  // resetBoardAndNotify
 
     /**
      * send whose turn it is. Optionally also send a prompt to roll.

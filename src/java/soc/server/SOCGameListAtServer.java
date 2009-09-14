@@ -227,7 +227,7 @@ public class SOCGameListAtServer extends SOCGameList
      * If the game had robots, they must leave the old game before any players can
      * join the new game; the new game's {@link SOCGame#boardResetOngoingInfo} field
      * is set to the object returned by this method, and its gameState will be
-     * {@link SOCGame#RESET_WAITING_FOR_ROBOT_DISMISS} instead of {@link SOCGame#NEW}.
+     * {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS} instead of {@link SOCGame#NEW}.
      *<P>
      * Takes game monitor.
      * Destroys old game.
@@ -247,7 +247,7 @@ public class SOCGameListAtServer extends SOCGameList
         takeMonitorForGame(gaName);
 
         // Create reset-copy of game;
-        // also removes robots from game and its member list,
+        // also removes robots from game obj and its member list,
         // and sets boardResetOngoingInfo field/gamestate if there are robots.
         SOCGameBoardReset reset = new SOCGameBoardReset(oldGame, getMembers(gaName));
         SOCGame rgame = reset.newGame;

@@ -32,7 +32,7 @@ import soc.server.genericServer.StringConnection;
  * This class holds data the server needs, related to a
  * "board reset" of a game being played.
  *<P>
- * If the SOCGame is in state {@link SOCGame#RESET_WAITING_FOR_ROBOT_DISMISS},
+ * If the SOCGame is in state {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS},
  * this object is referenced within the newly created game object.
  *
  * @see soc.server.SOCGameListAtServer#resetBoard(String)
@@ -125,7 +125,7 @@ public class SOCGameBoardReset
         if (hadRobots)
         {
             newGame.boardResetOngoingInfo = this;
-            newGame.setGameState(SOCGame.RESET_WAITING_FOR_ROBOT_DISMISS);
+            newGame.setGameState(SOCGame.READY_RESET_WAIT_ROBOT_DISMISS);
         }
     }
 
