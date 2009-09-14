@@ -1763,7 +1763,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * (new game with same players, same game name).
      * Destroy old Game object.
      * Take robotbrain out of old game, don't yet put it in new game.
-     * Treat as a JOINGAMEREQUEST: ask server for us to join the new game.
+     * Server will soon send a JOINGAMEREQUEST if we should join the new game.
      *
      * @param mes  the message
      * 
@@ -1789,14 +1789,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         brainQs.remove(gname);
         games.remove(gname);
         ga.destroyGame();
-
-        // now, react like handleJOINGAMEREQUEST
-        seatRequests.put(gname, new Integer(mes.getRejoinPlayerNumber()));
-
-        if (put(SOCJoinGame.toCmd(nickname, password, host, gname)))
-        {
-            D.ebugPrintln("**** sent SOCJoinGame ****");
-        }
     }
 
     /**
