@@ -7000,12 +7000,17 @@ public class SOCServer extends Server
      * Reset the board, to a copy with same players but new layout.
      *<OL>
      * <LI value=1> Reset the board, remember player positions.
-     * <LI value=2> Send ResetBoardAuth to each client (like sending JoinGameAuth at new game)
+     *    If there are robots, we must wait for them to leave before players can rejoin;
+     *    if robots, set the game state to {@link SOCGame#RESET_WAITING_FOR_ROBOT_DISMISS} now,
+     *    and set {@link SOCGame#boardResetOngoingInfo}.
+     * <LI value=2a> Send ResetBoardAuth to each client (like sending JoinGameAuth at new game)
      *    Humans will reset their copy of the game.
      *    Robots will leave the game and request to re-join.
      *    (This simplifies the robot client.)
      *    If the game was already over at reset time, different robots will
      *    be randomly chosen to join the reset game.
+     * <LI value=2b> If there were robots, wait for them all to leave the old game.
+     *    Otherwise, (race condition) they may leave the new game as it is forming.
      * <LI value=3> Send messages as if each human player has clicked "join" (except JoinGameAuth)
      * <LI value=4> Send as if each human player has clicked "sit here"
      * <LI value=5a> If no robots, send to game as if someone else has
@@ -7021,6 +7026,8 @@ public class SOCServer extends Server
         /**
          * 1. Reset the board, remember player positions.
          *    Takes the monitorForGame if exists.
+         *    If robots, resetBoard will also set gamestate
+         *    and boardResetOngoingInfo field.
          */
         SOCGameBoardReset reBoard = gameList.resetBoard(gaName);
         if (reBoard == null)

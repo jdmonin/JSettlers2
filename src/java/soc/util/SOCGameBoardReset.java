@@ -33,10 +33,11 @@ import soc.server.genericServer.StringConnection;
  * "board reset" of a game being played.
  *<P>
  * If the SOCGame is in state {@link SOCGame#RESET_WAITING_FOR_ROBOT_DISMISS},
- * this object is referenced within the (old not-yet-reset) game object.
+ * this object is referenced within the newly created game object.
  *
  * @see soc.server.SOCGameListAtServer#resetBoard(String)
  * @see soc.game.SOCGame#resetAsCopy()
+ * @see soc.game.SOCGame#boardResetOngoingInfo
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
  */
@@ -52,6 +53,11 @@ public class SOCGameBoardReset
 
     /** Were there robots in the old game? */
     public boolean hadRobots;
+
+    /** Are we still waiting for robots to leave the old game?
+     * @since 1.1.07
+     */
+    public int oldRobotCount;
 
     /**
      * Human and robot connections; both arrays null at vacant seats.
@@ -77,6 +83,7 @@ public class SOCGameBoardReset
     {
         oldGameState = oldGame.getGameState();
         hadRobots = false;
+        oldRobotCount = 0;
         wasRobot = new boolean[SOCGame.MAXPLAYERS];
         for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)
         {
@@ -84,7 +91,10 @@ public class SOCGameBoardReset
             boolean isRobot = pl.isRobot();
             wasRobot[i] = isRobot;
             if (isRobot)
+            {
                 hadRobots = true;
+                ++oldRobotCount;
+            }
         }
 
         /**
@@ -110,6 +120,12 @@ public class SOCGameBoardReset
                 if (wasRobot[pn])
                     memberConns.remove(robotConns[pn]);
             }
+        }
+
+        if (hadRobots)
+        {
+            newGame.boardResetOngoingInfo = this;
+            newGame.setGameState(SOCGame.RESET_WAITING_FOR_ROBOT_DISMISS);
         }
     }
 
@@ -195,4 +211,4 @@ public class SOCGameBoardReset
         return numHuman;
     }
   
-}  // public class SOCGameReset
+}  // public class SOCGameBoardReset

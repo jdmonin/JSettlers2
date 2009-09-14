@@ -174,9 +174,10 @@ public class SOCGame implements Serializable, Cloneable
     public static final int RESET_OLD = 1001;
 
     /**
-     * This game is being reset, but it contains robot players, so we must wait for them
-     * to leave before re-inviting them to continue the reset process.
-     * See (private) SOCServer.resetBoardAndNotify.
+     * This game object has just been created by a reset, but the old game contains robot players,
+     * so we must wait for them to leave before re-inviting anyone to continue the reset process.
+     * Once they have all left, state becomes {@link #NEW}.
+     * See {@link #boardResetOngoingInfo} and (private) SOCServer.resetBoardAndNotify.
      * @since 1.1.07
      */
     public static final int RESET_WAITING_FOR_ROBOT_DISMISS = 1002;
@@ -293,8 +294,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * For the server's use, if a reset is in progress, this holds the reset data
-     * until all robots have left (game state is {@link #RESET_WAITING_FOR_ROBOT_DISMISS}).
-     * This field is null except within the old pre-reset game object.
+     * until all robots have left (new game state is {@link #RESET_WAITING_FOR_ROBOT_DISMISS}).
+     * This field is null except within the newly-created game object during reset.
      * @since 1.1.07
      */
     public transient SOCGameBoardReset boardResetOngoingInfo;
@@ -3812,14 +3813,16 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Create a new game with same players and name, new board;
      * like calling constructor otherwise.
-     * State of current game can be any state. State of copy is NEW.
+     * State of current game can be any state. State of copy is {@link #NEW},
+     * although if there are robots, it will be set to {@link #RESET_WAITING_FOR_ROBOT_DISMISS}
+     * by the {@link SOCGameBoardReset} constructor.
      * Deep copy: Player names, faceIDs, and robot-flag are copied from
      * old game, but all other fields set as new Player and Board objects.
      * Robot players are NOT carried over, and must be asked to re-join.
      * (This simplifies the robot client.)
      * Any vacant seats will be locked, so a robot won't sit there.
      *<P>
-     * Old game's state becomes RESET_OLD.
+     * Old game's state becomes {@link #RESET_OLD}.
      * Old game's previous state is saved to {@link #getResetOldGameState()}.
      * Please call destroyGame() on old game when done examining its state.
      *<P>
