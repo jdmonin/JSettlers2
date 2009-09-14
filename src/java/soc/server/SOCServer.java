@@ -3933,7 +3933,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Fill all the unlocked empty seats with robots.
+     * Fill all the unlocked empty seats with robots, by asking them to join.
      * Builds a Vector of StringConnections of robots asked to join,
      * and adds it to the robotJoinRequests table.
      * Game state should be READY.
@@ -3942,9 +3942,6 @@ public class SOCServer extends Server
      *<P>
      * Called by {@link #handleSTARTGAME(StringConnection, SOCStartGame) handleSTARTGAME},
      * {@link #resetBoardAndNotify(String, int) resetBoardAndNotify}.
-     * MUST be called ONLY from the one thread handling all inbound messages,
-     * or (race condition) the robots may ask to join before we've
-     * set up robotJoinRequests.
      *<P>
      * Once the robots have all responded (from their own threads/clients)
      * and joined up, the game can begin.
@@ -3991,6 +3988,7 @@ public class SOCServer extends Server
 	final Hashtable gopts = ga.getGameOptions();
 	int seatsOpen = ga.getAvailableSeatCount();
         int idx = 0;
+        StringConnection[] robotSeatsConns = new StringConnection[SOCGame.MAXPLAYERS];
 
         for (int i = 0; (i < SOCGame.MAXPLAYERS) && (seatsOpen > 0);
                 i++)
@@ -4017,11 +4015,7 @@ public class SOCServer extends Server
                     }
                     idx++;
                     --seatsOpen;
-
-                    /**
-                     * make the request
-                     */
-                    robotConn.put(SOCJoinGameRequest.toCmd(gname, i, gopts));
+                    robotSeatsConns[i] = robotConn;
 
                     /**
                      * record the request
@@ -4039,6 +4033,11 @@ public class SOCServer extends Server
             // we know it isn't empty,
             // so add to the request table
             robotJoinRequests.put(gname, robotRequests);
+
+            // now, make the requests
+            for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)
+                if (robotSeatsConns[i] != null)
+                    robotSeatsConns[i].put(SOCJoinGameRequest.toCmd(gname, i, gopts));
         }
     }
 
