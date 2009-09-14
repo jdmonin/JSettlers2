@@ -24,6 +24,7 @@ package soc.game;
 import soc.disableDebug.D;
 
 import soc.util.IntPair;
+import soc.util.SOCGameBoardReset;
 
 import java.io.Serializable;
 
@@ -173,6 +174,14 @@ public class SOCGame implements Serializable, Cloneable
     public static final int RESET_OLD = 1001;
 
     /**
+     * This game is being reset, but it contains robot players, so we must wait for them
+     * to leave before re-inviting them to continue the reset process.
+     * See (private) SOCServer.resetBoardAndNotify.
+     * @since 1.1.07
+     */
+    public static final int RESET_WAITING_FOR_ROBOT_DISMISS = 1002;
+
+    /**
      * seat states
      */
     public static final int VACANT = 0, OCCUPIED = 1;
@@ -281,6 +290,14 @@ public class SOCGame implements Serializable, Cloneable
      * true if the game came from a board reset
      */
     private boolean isFromBoardReset;
+
+    /**
+     * For the server's use, if a reset is in progress, this holds the reset data
+     * until all robots have left (game state is {@link #RESET_WAITING_FOR_ROBOT_DISMISS}).
+     * This field is null except within the old pre-reset game object.
+     * @since 1.1.07
+     */
+    public transient SOCGameBoardReset boardResetOngoingInfo;
 
     /**
      * If a board reset vote is active, player number who requested the vote.

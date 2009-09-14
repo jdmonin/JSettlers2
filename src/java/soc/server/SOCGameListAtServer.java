@@ -26,6 +26,7 @@ import soc.game.SOCGameOption;
 
 import soc.server.genericServer.StringConnection;
 
+import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.Version;
 

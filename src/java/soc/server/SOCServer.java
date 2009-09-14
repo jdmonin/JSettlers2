@@ -33,6 +33,7 @@ import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
 import soc.util.IntPair;
+import soc.util.SOCGameBoardReset;
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
@@ -7014,9 +7015,6 @@ public class SOCServer extends Server
      *     JOINGAME and SITDOWN, as they do when joining a newly created game.
      *     Once all robots have re-joined, the game will begin.
      *</OL>
-     * MUST be called ONLY from the one thread handling all inbound messages,
-     * or (race condition) the robots may ask to join before we've
-     * set up robotJoinRequests. 
      */
     private void resetBoardAndNotify (final String gaName, final int requestingPlayer)
     {

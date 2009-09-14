@@ -18,7 +18,7 @@
  *
  * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
-package soc.server;
+package soc.util;
 
 import java.util.Enumeration;
 import java.util.Vector;
@@ -27,13 +27,15 @@ import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.server.genericServer.StringConnection;
-import soc.util.SOCGameList;
 
 /**
  * This class holds data the server needs, related to a
  * "board reset" of a game being played.
+ *<P>
+ * If the SOCGame is in state {@link SOCGame#RESET_WAITING_FOR_ROBOT_DISMISS},
+ * this object is referenced within the (old not-yet-reset) game object.
  *
- * @see soc.util.SOCGameList#resetBoard(String)
+ * @see soc.server.SOCGameListAtServer#resetBoard(String)
  * @see soc.game.SOCGame#resetAsCopy()
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
