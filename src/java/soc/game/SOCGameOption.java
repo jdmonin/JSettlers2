@@ -726,9 +726,9 @@ public class SOCGameOption implements Cloneable
 	    return null;
 
 	Hashtable opts2 = new Hashtable();
-	for (Enumeration e = allOptions.keys(); e.hasMoreElements(); )
+	for (Enumeration e = opts.keys(); e.hasMoreElements(); )
 	{
-	    SOCGameOption op = (SOCGameOption) allOptions.get(e.nextElement());
+	    SOCGameOption op = (SOCGameOption) opts.get(e.nextElement());
 	    try
 	    {
 	        opts2.put(op.optKey, (SOCGameOption) op.clone());
