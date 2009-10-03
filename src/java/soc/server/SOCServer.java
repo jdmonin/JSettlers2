@@ -3379,65 +3379,65 @@ public class SOCServer extends Server
      */
     private void handleLEAVEGAME_member(StringConnection c, final String gaName)
     {
-                boolean gameDestroyed = false;
-                gameList.takeMonitorForGame(gaName);
+        boolean gameDestroyed = false;
+        gameList.takeMonitorForGame(gaName);
 
-                try
-                {
-                    gameDestroyed = leaveGame(c, gaName, false);
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (leaveGame)");
-                }
+        try
+        {
+            gameDestroyed = leaveGame(c, gaName, false);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (leaveGame)");
+        }
 
-                gameList.releaseMonitorForGame(gaName);
+        gameList.releaseMonitorForGame(gaName);
 
-                if (gameDestroyed)
+        if (gameDestroyed)
+        {
+            broadcast(SOCDeleteGame.toCmd(gaName));
+        }
+        else
+        {
+            /*
+               SOCLeaveGame leaveMessage = new SOCLeaveGame((String)c.getData(), c.host(), mes.getGame());
+               messageToGame(mes.getGame(), leaveMessage);
+               recordGameEvent(mes.getGame(), leaveMessage.toCmd());
+             */
+        }
+
+        /**
+         * if it's a robot, remove it from the request list
+         */
+        Vector requests = (Vector) robotDismissRequests.get(gaName);
+
+        if (requests != null)
+        {
+            Enumeration reqEnum = requests.elements();
+            SOCReplaceRequest req = null;
+
+            while (reqEnum.hasMoreElements())
+            {
+                SOCReplaceRequest tempReq = (SOCReplaceRequest) reqEnum.nextElement();
+
+                if (tempReq.getLeaving() == c)
                 {
-                    broadcast(SOCDeleteGame.toCmd(gaName));
+                    req = tempReq;
+                    break;
                 }
-                else
-                {
-                    /*
-                       SOCLeaveGame leaveMessage = new SOCLeaveGame((String)c.getData(), c.host(), mes.getGame());
-                       messageToGame(mes.getGame(), leaveMessage);
-                       recordGameEvent(mes.getGame(), leaveMessage.toCmd());
-                     */
-                }
+            }
+
+            if (req != null)
+            {
+                requests.removeElement(req);
 
                 /**
-                 * if it's a robot, remove it from the request list
+                 * let the person replacing the robot sit down
                  */
-                Vector requests = (Vector) robotDismissRequests.get(gaName);
-
-                if (requests != null)
-                {
-                    Enumeration reqEnum = requests.elements();
-                    SOCReplaceRequest req = null;
-
-                    while (reqEnum.hasMoreElements())
-                    {
-                        SOCReplaceRequest tempReq = (SOCReplaceRequest) reqEnum.nextElement();
-
-                        if (tempReq.getLeaving() == c)
-                        {
-                            req = tempReq;
-                            break;
-                        }
-                    }
-
-                    if (req != null)
-                    {
-                        requests.removeElement(req);
-
-                        /**
-                         * let the person replacing the robot sit down
-                         */
-                        SOCGame ga = gameList.getGameData(gaName);
-                        sitDown(ga, req.getArriving(), req.getSitDownMessage().getPlayerNumber(), req.getSitDownMessage().isRobot(), false);
-                    }
-                }
+                SOCGame ga = gameList.getGameData(gaName);
+                sitDown(ga, req.getArriving(), req.getSitDownMessage().getPlayerNumber(), req.getSitDownMessage().isRobot(), false);
+            }
+        }
     }
 
     /**
