@@ -109,13 +109,17 @@ public class SOCGameList
      * take the monitor for this game
      *
      * @param game  the name of the game
-     * @return false if the game has no mutex
+     * @return false if the game has no mutex, or game not found in the list
      */
     public boolean takeMonitorForGame(String game)
     {
         // D.ebugPrintln("SOCGameList : TAKE MONITOR FOR " + game);
 
         GameInfo info = (GameInfo) gameInfo.get(game);
+        if (info == null)
+        {
+            return false;
+        }
         MutexFlag mutex = info.mutex;
 
         if (mutex == null)
