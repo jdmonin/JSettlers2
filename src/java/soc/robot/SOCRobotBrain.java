@@ -2138,7 +2138,7 @@ public class SOCRobotBrain extends Thread
 
                     if ((mesType == SOCMessage.ROBOTDISMISS) && (!expectDISCARD) && (!expectPLACING_ROBBER))
                     {
-                        client.leaveGame(game, "dismiss msg");
+                        client.leaveGame(game, "dismiss msg", false);
                         alive = false;
                     }
 
@@ -2151,7 +2151,7 @@ public class SOCRobotBrain extends Thread
                     if (counter > 15000)
                     {
                         // We've been waiting too long, commit suicide.
-                        client.leaveGame(game, "counter 15000");
+                        client.leaveGame(game, "counter 15000", false);
                         alive = false;
                     }
 
@@ -3813,14 +3813,13 @@ public class SOCRobotBrain extends Thread
                 {
                     // The first pick
                     D.ebugPrintln("Picking a robber victim: pnum=" + pnum);
-                    System.err.println("L3816 Picking a robber victim: pnum=" + pnum);
                     victimNum = pnum;
                 }
                 else if ((pnum != ourPlayerData.getPlayerNumber()) && (winGameETAs[pnum] < winGameETAs[victimNum]))
                 {
                     // A better pick
                     D.ebugPrintln("Picking a robber victim: pnum=" + pnum);
-                    System.err.println("L3823 Picking a robber victim: pnum=" + pnum);
+                    System.err.println("L3823 Picking a robber victim: pnum=" + pnum + " (was " + victimNum + ")");
                     victimNum = pnum;
                 }
             }

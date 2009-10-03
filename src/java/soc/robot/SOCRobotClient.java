@@ -1675,7 +1675,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             if ((brain == null) || (!brain.isAlive()))
             {
-                leaveGame((SOCGame) games.get(mes.getGame()), "brain not alive");
+                leaveGame((SOCGame) games.get(mes.getGame()), "brain not alive", false);
             }
         }
     }
@@ -1763,6 +1763,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * (new game with same players, same game name).
      * Destroy old Game object.
      * Take robotbrain out of old game, don't yet put it in new game.
+     * Let server know we've done so, by sending LEAVEGAME via {@link #leaveGame(SOCGame, String, boolean)}.
      * Server will soon send a JOINGAMEREQUEST if we should join the new game.
      *
      * @param mes  the message
@@ -1782,12 +1783,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(gname);
         if (brain != null)
-        {
             brain.kill();
-            robotBrains.remove(gname);
-        }
-        brainQs.remove(gname);
-        games.remove(gname);
+        leaveGame(ga, "resetboardauth", false);  // Same as in handleROBOTDISMISS
         ga.destroyGame();
     }
 
@@ -1816,16 +1813,19 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param ga   the game
      * @param leaveReason reason for leaving
      */
-    public void leaveGame(SOCGame ga, String leaveReason)
+    public void leaveGame(SOCGame ga, String leaveReason, boolean showDebugTrace)
     {
         if (ga != null)
         {
             robotBrains.remove(ga.getName());
             brainQs.remove(ga.getName());
             games.remove(ga.getName());
-            System.err.println("L1833 robot leaving game" + ga + " due to " + leaveReason);
-            soc.debug.D.ebugPrintStackTrace(null, "Leaving game here");
-            System.err.flush();
+            System.err.println("L1833 robot " + nickname + " leaving game " + ga + " due to " + leaveReason);
+            if (showDebugTrace)
+            {
+                soc.debug.D.ebugPrintStackTrace(null, "Leaving game here");
+                System.err.flush();
+            }
             put(SOCLeaveGame.toCmd(nickname, host, ga.getName()));
         }
     }
