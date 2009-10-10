@@ -44,11 +44,10 @@ public class ColorSquare extends Canvas implements MouseListener
     /**
      * The color constants are used by ColorSquare,
      * and also used for the robber's "ghost" when
-     * moving the robber. Specifying the color here is
-     * simpler than trying to read it at runtime from the
-     * hex graphics, which may have a texture.
+     * moving the robber, and fallback for missing hex graphics.
      *
      * @see soc.client.SOCBoardPanel#drawRobber(Graphics, int, boolean)
+     * @see soc.client.SOCBoardPanel#drawHex(Graphics, int)
      */
     public final static Color CLAY = new Color(204, 102, 102);
     public final static Color ORE = new Color(153, 153, 153);
@@ -57,6 +56,9 @@ public class ColorSquare extends Canvas implements MouseListener
     public final static Color WOOD = new Color(204, 153, 102);
     public final static Color GREY = new Color(204, 204, 204);  // Must not equal ORE, for ore's auto-tooltip to show
     public final static Color DESERT = new Color(255, 255, 153);
+    /** Water hex color, for fallback if graphic is missing. @since 1.1.07 */
+    public static final Color WATER = new Color(72, 97, 162);  // grey-blue; waterHex.gif average is actually (76, 102, 152)
+
     public final static int NUMBER = 0;
     public final static int YES_NO = 1;
     public final static int CHECKBOX = 2;

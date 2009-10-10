@@ -848,7 +848,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return the hex layout
+     * @return the hex layout; meaning of values same as {@link #hexLayout}.
      */
     public int[] getHexLayout()
     {

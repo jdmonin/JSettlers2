@@ -336,6 +336,35 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private int[] scaledArrowXL, scaledArrowXR, scaledArrowY; 
 
+    /** hex corners, clockwise from top-center, as located in waterHex.gif and other hex graphics:
+     * (27,0) (54,16) (54,47) (27,63) (0,47) (0,16).
+     *  If rotated 90deg clockwise, clockwise from center-right, would be:
+     * (63,27) (47,54) (16,54) (0,27) (16,0) (47,0).
+     * @see #hexCornersY
+     * @since 1.1.07
+     */
+    private static final int[] hexCornersX =
+    {
+    	27, 54, 54, 27, 0, 0
+    };
+
+    /** hex corners, clockwise from top-center.
+     * @see #hexCornersX
+     * @since 1.1.07
+     */
+    private static final int[] hexCornersY =
+    {
+    	0, 16, 47, 63, 47, 16
+    };
+
+    /** 
+     * hex corner coordinates, as scaled to current board size.
+     * @see #hexCornersX
+     * @see #rescaleCoordinateArrays()
+     * @since 1.1.07
+     */
+    private int[] scaledHexCornersX, scaledHexCornersY; 
+
     /**
      * Old pointer coords for interface
      */
@@ -1055,6 +1084,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledCityX     = cityX;         scaledCityY     = cityY;
             scaledRobberX   = robberX;       scaledRobberY   = robberY;
             scaledArrowXL   = arrowXL;       scaledArrowY    = arrowY;
+            scaledHexCornersX = hexCornersX; scaledHexCornersY = hexCornersY;
             if (arrowXR == null)
             {
                 int[] axr = new int[arrowXL.length];
@@ -1084,6 +1114,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledRobberY   = scaleCopyToActualY(robberY);
             scaledArrowXL   = scaleCopyToActualX(arrowXL);
             scaledArrowY    = scaleCopyToActualY(arrowY);
+            scaledHexCornersX = scaleCopyToActualX(hexCornersX);
+            scaledHexCornersY = scaleCopyToActualY(hexCornersY);
 
             // Ensure arrow-tip sides are 45 degrees.
             int p = Math.abs(scaledArrowXL[0] - scaledArrowXL[1]);
@@ -1227,9 +1259,45 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         if (! g.drawImage(scaledHexes[tmp], x, y, this))
         {
+            // for now, draw the placeholder; try to rescale and redraw soon if we can
+
+            Color hexColor;
+            switch (hexType)
+            {
+            case SOCBoard.DESERT_HEX:
+            	hexColor = ColorSquare.DESERT;
+                break;
+            case SOCBoard.CLAY_HEX:
+            	hexColor = ColorSquare.CLAY;
+                break;
+            case SOCBoard.ORE_HEX:
+            	hexColor = ColorSquare.ORE;                
+                break;
+            case SOCBoard.SHEEP_HEX:
+            	hexColor = ColorSquare.SHEEP;
+                break;
+            case SOCBoard.WHEAT_HEX:
+            	hexColor = ColorSquare.WHEAT;
+                break;
+            case SOCBoard.WOOD_HEX:
+            	hexColor = ColorSquare.WOOD;
+                break;
+            default:  // WATER_HEX
+                hexColor = ColorSquare.WATER;
+            }
+
+            g.translate(x, y);
+            g.setColor(hexColor);  // TODO refactor the color switch: see drawRobber
+            g.fillPolygon(scaledHexCornersX, scaledHexCornersY, 6);
+            g.setColor(Color.BLACK);
+            g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
+            g.translate(-x, -y);
+
             if (isScaled && (7000 < (System.currentTimeMillis() - scaledAt)))
             {
                 missedDraw = true;
+
+                // rescale the image or give up
                 if (scaledHexFail[tmp])
                 {
                     scaledHexes[tmp] = hexes[tmp];  // fallback
