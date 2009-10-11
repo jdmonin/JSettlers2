@@ -4,8 +4,9 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+// import org.apache.log4j.Logger;
 
+import soc.disableDebug.D;
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -23,7 +24,8 @@ import soc.util.CutoffExceededException;
 public class OpeningBuildStrategy {
 
 	/** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
+    // private transient Logger log = Logger.getLogger(this.getClass().getName());
+    private transient D log = new D();
     
     /**
      * used in planning where to put our first and second settlements

@@ -4,15 +4,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 
-import org.apache.log4j.Logger;
+// import org.apache.log4j.Logger;
 
+import soc.disableDebug.D;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
 public class RobberStrategy {
 
 	/** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
+    // private transient Logger log = Logger.getLogger(this.getClass().getName());
+    private transient D log = new D();
 	
 	/**
     *

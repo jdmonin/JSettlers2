@@ -3,8 +3,9 @@ package soc.robot;
 import java.util.Random;
 import java.util.Stack;
 
-import org.apache.log4j.Logger;
+// import org.apache.log4j.Logger;
 
+import soc.disableDebug.D;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -15,7 +16,7 @@ import soc.util.SOCRobotParameters;
 public class DiscardStrategy {
 
 	/** debug logging */
-    private transient Logger log = Logger.getLogger(this.getClass().getName());
+    // private transient Logger log = Logger.getLogger(this.getClass().getName());
 
 	public SOCResourceSet discard(int numDiscards, Stack buildingPlan, SOCPlayer ourPlayerData, SOCRobotParameters robotParameters, SOCRobotDM decisionMaker, SOCRobotNegotiator negotiator){
 		Random rand = new Random();
@@ -161,7 +162,8 @@ public class DiscardStrategy {
 
             if (curRsrc == 5)
             {
-                log.error("PROBLEM IN DISCARD - curRsrc == 5");
+                // log.error("PROBLEM IN DISCARD - curRsrc == 5");
+                D.ebugPrintln("discardStrategy: PROBLEM IN DISCARD - curRsrc == 5");
             }
         }
         else
