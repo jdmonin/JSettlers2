@@ -34,6 +34,7 @@ import java.net.SocketTimeoutException;
 
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Timer;
@@ -149,6 +150,30 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @since 1.1.06
      */
     public Timer utilTimer = new Timer(true);  // use daemon thread
+
+    /**
+     * Client disconnect error messages, to be printed after a short delay.
+     * If the client reconnects during the delay, the disconnect and reconnect
+     * messages are not printed.
+     * This is only used if {@link D#ebugIsEnabled()} is true.
+     *<P>
+     * <em>Keys:</em> The {@link StringConnection} object is used as the key
+     *    within {@link #addConnection(StringConnection)}.
+     *    The {@link StringConnection#getData() connection keyname} is used as the key
+     *    within {@link #removeConnection(StringConnection)}; if this is null,
+     *    the message is printed immediately, and not added to this map.
+     *
+     * @see #CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
+     * @since 1.1.07
+     */
+    public HashMap cliConnDisconPrintsPending = new HashMap();
+
+    /**
+     * Delay before printing a client disconnect error announcement.
+     * @see #cliConnDisconPrintsPending
+     * @since 1.1.07
+     */
+    public static int CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS = 1000;
 
     /** start listening to the given port */
     public Server(int port)
@@ -421,6 +446,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * after calling {@link StringConnection#disconnect()} on c.
      *<P>
      * This method is called within a per-client thread.
+     * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
      * @param c Connection to remove; will call its disconnect() method
      *          and remove it from the server state.
@@ -455,7 +481,17 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             Exception cerr = c.getError();
             if ((cerr == null) || (! (c instanceof SocketTimeoutException)) || ! c.wantsHideTimeoutMessage())
             {
-                D.ebugPrintln(c.host() + " left (" + connectionCount() + ")  " + (new Date()).toString() + ((cerr != null) ? (": " + cerr.toString()) : ""));
+                if (cKey != null)
+                {
+                    ConnExcepDelayedPrintTask leftMsgTask
+                        = new ConnExcepDelayedPrintTask(false, cerr, c);
+                    cliConnDisconPrintsPending.put(cKey, leftMsgTask);
+                    utilTimer.schedule(leftMsgTask, CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS);
+                } else {
+                    // no data; we can't identify it later if it reconnects;
+                    // just print the announcement right now.
+                    D.ebugPrintln(c.host() + " left (" + connectionCount() + ")  " + (new Date()).toString() + ((cerr != null) ? (": " + cerr.toString()) : ""));
+                }
             }
         }
     }
@@ -475,6 +511,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      * <b>Locking:</b> Synchronized on unnamedConns, although
      * named conns (getData not null) are added to conns, not unnamedConns.
+     * The add to {@link #cliConnDisconPrintsPending} is unsynchronized.
      *
      * @param c Connecting client; its key data ({@link StringConnection#getData()}) must not be null.
      * @see #nameConnection(StringConnection)
@@ -514,7 +551,15 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         if (connAccepted)
         {
             numberOfConnections++;
-            D.ebugPrintln(c.host() + " came (" + connectionCount() + ")  " + (new Date()).toString());
+            if (D.ebugIsEnabled())
+            {
+                ConnExcepDelayedPrintTask cameMsgTask
+                    = new ConnExcepDelayedPrintTask(true, null, c);
+                cliConnDisconPrintsPending.put(c, cameMsgTask);
+                utilTimer.schedule(cameMsgTask, 20 + CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS);
+
+                // D.ebugPrintln(c.host() + " came (" + connectionCount() + ")  " + (new Date()).toString());
+            }
             newConnection2(c);  // <-- App-specific #2 --
         } else {
             D.ebugPrintln(c.host() + " came but rejected (" + connectionCount() + ")  " + (new Date()).toString());
@@ -1078,5 +1123,91 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
 
     }  // ConnVersionSetCheckerTask
+
+    /**
+     * This object represents one client-connect or disconnect
+     * debug-print announcement within {@link Server#cliConnDisconPrintsPending}.
+     * When a client is {@link Server#removeConnection(StringConnection) removed}
+     * due to an error, the error message print is delayed briefly, in case the client
+     * is doing a disconnect/reconnect (as some robot clients do).
+     * This gives the server a chance to suppress the left/rejoined messages if the
+     * client quickly reconnects.  It's up to the server application (extending this
+     * generic Server) to recognize that the arrived client is the same as the departed one,
+     * and remove both messages from the pending vector.
+     *
+     * @author Jeremy D Monin <jeremy@nand.net>
+     * @since 1.1.07
+     * @see Server#addConnection(StringConnection).
+     * @see Server#CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
+     */
+    protected class ConnExcepDelayedPrintTask extends TimerTask
+    {
+        /** may be null */
+        public Throwable excep;
+
+        /** non-null unless isArriveNotDepart */
+        public Object connData;
+
+        /** @see StringConnection#host() */
+        public String connHost;
+
+        /** Arrival, not a departure */
+        public boolean isArriveNotDepart;
+
+        /** null unless isArriveNotDepart */
+        public StringConnection arrivingConn;
+
+        /** Time at which this message was constructed, via {@link System#currentTimeMillis()} */
+        public long thrownAt;
+
+        /**
+         * Create a new delayed print.  See class javadoc for details.
+         * If debug isn't enabled, will not do anything useful.
+         *
+         * @param isArrival Is this an arriving, not departing, connection?
+         *               Store connection data only if true.
+         * @param ex  Exception to print after the delay; may be null
+         * @param c   Connection being disconnected; may not be null,
+         *              and unless isArrival,
+         *              {@link StringConnection#getData() c.getData()}
+         *              may not be null.
+         *
+         * @throws IllegalArgumentException if c or c.getData is null
+         * @see D#ebugIsEnabled()
+         */
+        public ConnExcepDelayedPrintTask(boolean isArrival, Throwable ex, StringConnection c)
+            throws IllegalArgumentException
+        {
+            if (! D.ebugIsEnabled())
+                return;
+            if (c == null)
+                throw new IllegalArgumentException("null conn");
+            excep = ex;
+            thrownAt = System.currentTimeMillis();
+            isArriveNotDepart = isArrival;
+            connHost = c.host();
+            connData = c.getData();
+            if (isArrival)
+                arrivingConn = c;
+            else if (connData == null)
+                throw new IllegalArgumentException("null c.getData");
+        }
+
+        /**
+         * Debug-print connection's arrival or departure.
+         */
+        public void run()
+        {
+            if (isArriveNotDepart)
+            {
+                D.ebugPrintln(connHost + " came (" + connectionCount() + ")  " + (new Date(thrownAt)).toString());
+                cliConnDisconPrintsPending.remove(arrivingConn);
+            } else {
+                D.ebugPrintln(connHost + " left (" + connectionCount() + ")  " + (new Date(thrownAt)).toString() + ((excep != null) ? (": " + excep.toString()) : ""));
+                cliConnDisconPrintsPending.remove(connData);
+            }
+        }
+        
+    }  // ConnExcepPrintDelayedTask
 
 }  // Server

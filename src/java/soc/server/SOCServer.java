@@ -2975,6 +2975,26 @@ public class SOCServer extends Server
                 return;
             }
 
+            // Idle robots disconnect and reconnect every so often (socket timeout).
+            // In case of disconnect-reconnect, don't print the error or re-arrival debug announcements.
+            // The robot's nickname is used as the key for the disconnect announcement.
+            {
+                ConnExcepDelayedPrintTask depart
+                    = (ConnExcepDelayedPrintTask) cliConnDisconPrintsPending.get(mes.getNickname());
+                if (depart != null)
+                {
+                    depart.cancel();
+                    cliConnDisconPrintsPending.remove(mes.getNickname());
+                    ConnExcepDelayedPrintTask arrive
+                        = (ConnExcepDelayedPrintTask) cliConnDisconPrintsPending.get(c);
+                    if (arrive != null)
+                    {
+                        arrive.cancel();
+                        cliConnDisconPrintsPending.remove(c);
+                    }
+                }
+            }
+
             SOCRobotParameters params = null;
             //
             // send the current robot parameters
@@ -3343,7 +3363,10 @@ public class SOCServer extends Server
         {
             boolean isMember = false;
             final String gaName = mes.getGame();
-            gameList.takeMonitorForGame(gaName);
+            if (! gameList.takeMonitorForGame(gaName))
+            {
+                return;  // <--- Early return: game not in gamelist ---
+            }
 
             try
             {
@@ -3380,7 +3403,10 @@ public class SOCServer extends Server
     private void handleLEAVEGAME_member(StringConnection c, final String gaName)
     {
         boolean gameDestroyed = false;
-        gameList.takeMonitorForGame(gaName);
+        if (! gameList.takeMonitorForGame(gaName))
+        {
+            return;  // <--- Early return: game not in gamelist ---
+        }
 
         try
         {

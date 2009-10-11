@@ -19,6 +19,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 - Bugfix: Could sit down at 2 positions due to network lag
 - Rescaled board hex graphics now fall back to polygons if problem occurs
 - Removed unused hex graphics from soc/client/images (clay0-5.gif, misc0-5.gif, ore0-5, sheep0-5, wheat0-5, wood0-5)
+- Fewer disconnect-reconnect debug messages from robots during idle hours
 
     > 1.1.06 (build 2009-06-01)
 - Based on 1.1.04's code
