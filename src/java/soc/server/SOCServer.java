@@ -687,7 +687,6 @@ public class SOCServer extends Server
                 recordGameEvent(gm, leaveMessage.toCmd());
 
                 D.ebugPrintln("*** " + plName + " left the game " + gm);
-                D.ebugPrintStackTrace(null, "Left the game here");  // JM TODO temp
                 messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, plName + " left the game"));
 
                 /**
