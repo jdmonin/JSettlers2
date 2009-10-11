@@ -16,6 +16,8 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 - Framework for parsing "-" / "--" options at server commandline
 - Refactor per-turn resets from many places to new game.updateAtTurn()
 - GameList kept at server/client
+- Bugfix: Could sit down at 2 positions due to network lag
+- Rescaled board hex graphics now fall back to polygons if problem occurs
 - Removed unused hex graphics from soc/client/images (clay0-5.gif, misc0-5.gif, ore0-5, sheep0-5, wheat0-5, wood0-5)
 
     > 1.1.06 (build 2009-06-01)
