@@ -6030,9 +6030,20 @@ public class SOCServer extends Server
             {
                 if (! isReset)
                 {
-                    ga.addPlayer((String) c.getData(), pn);
-                    ga.getPlayer(pn).setRobotFlag(robot);
                     // If reset, player is already added and knows if robot.
+                    try
+                    {
+                        ga.addPlayer((String) c.getData(), pn);
+                        ga.getPlayer(pn).setRobotFlag(robot);
+                    }
+                    catch (IllegalStateException e)
+                    {
+                        // Maybe already seated? (network lag)
+                        if (! robot)
+                            c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, "You cannot sit down here."));
+                        ga.releaseMonitor();
+                        return;  // <---- Early return: cannot sit down ----
+                    }
                 }
 
                 /**

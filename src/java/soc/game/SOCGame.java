@@ -655,7 +655,8 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param name  the player's name
      * @param pn    the player's number
-     * @throws IllegalStateException if there are no open seats
+     * @throws IllegalStateException if player is already sitting in
+     *              another seat in this game, or if there are no open seats
      *              (based on seats[] == OCCUPIED, and game option "PL" or MAXPLAYERS)
      *               via {@link #getAvailableSeatCount()}
      */
@@ -666,6 +667,11 @@ public class SOCGame implements Serializable, Cloneable
         {
 	    if (0 == getAvailableSeatCount())
 		throw new IllegalStateException("Game is full");
+        }
+        SOCPlayer already = getPlayer(name);
+        if ((already != null) && (pn != already.getPlayerNumber()))
+        {
+            throw new IllegalStateException("Already sitting in this game");
         }
 
         players[pn].setName(name);
