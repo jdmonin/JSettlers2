@@ -2935,10 +2935,10 @@ public class SOCRobotBrain extends Thread
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = (Integer) hexes.nextElement();
-            int number = board.getNumberOnHexFromCoord(hex.intValue());
-            int resource = board.getHexTypeFromCoord(hex.intValue());
-            playerNumbers.addNumberForResource(number, resource, hex.intValue());
+            int hex = ((Integer) hexes.nextElement()).intValue();
+            int number = board.getNumberOnHexFromCoord(hex);
+            int resource = board.getHexTypeFromCoord(hex);
+            playerNumbers.addNumberForResource(number, resource, hex);
         }
 
         Integer firstSettlementInt = new Integer(firstSettlement);
@@ -3002,10 +3002,10 @@ public class SOCRobotBrain extends Thread
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = (Integer) hexes.nextElement();
-            int number = board.getNumberOnHexFromCoord(hex.intValue());
-            int resource = board.getHexTypeFromCoord(hex.intValue());
-            playerNumbers.addNumberForResource(number, resource, hex.intValue());
+            int hex = ((Integer) hexes.nextElement()).intValue();
+            int number = board.getNumberOnHexFromCoord(hex);
+            int resource = board.getHexTypeFromCoord(hex);
+            playerNumbers.addNumberForResource(number, resource, hex);
         }
 
         Integer secondSettlementInt = new Integer(secondSettlement);
@@ -3112,10 +3112,10 @@ public class SOCRobotBrain extends Thread
 
                 while (hexes.hasMoreElements())
                 {
-                    Integer hex = (Integer) hexes.nextElement();
-                    int number = board.getNumberOnHexFromCoord(hex.intValue());
-                    int resource = board.getHexTypeFromCoord(hex.intValue());
-                    playerNumbers.addNumberForResource(number, resource, hex.intValue());
+                    final int hex = ((Integer) hexes.nextElement()).intValue();
+                    int number = board.getNumberOnHexFromCoord(hex);
+                    int resource = board.getHexTypeFromCoord(hex);
+                    playerNumbers.addNumberForResource(number, resource, hex);
                     probTotal += prob[number];
                     D.ebugPrint(number + " ");
                 }
@@ -3124,10 +3124,10 @@ public class SOCRobotBrain extends Thread
 
                 while (hexes.hasMoreElements())
                 {
-                    Integer hex = (Integer) hexes.nextElement();
-                    int number = board.getNumberOnHexFromCoord(hex.intValue());
-                    int resource = board.getHexTypeFromCoord(hex.intValue());
-                    playerNumbers.addNumberForResource(number, resource, hex.intValue());
+                    final int hex = ((Integer) hexes.nextElement()).intValue();
+                    int number = board.getNumberOnHexFromCoord(hex);
+                    int resource = board.getHexTypeFromCoord(hex);
+                    playerNumbers.addNumberForResource(number, resource, hex);
                     probTotal += prob[number];
                     D.ebugPrint(number + " ");
                 }
@@ -3403,12 +3403,12 @@ public class SOCRobotBrain extends Thread
                     while (nodesEnum.hasMoreElements())
                     {
                         Integer nodeCoord = (Integer) nodesEnum.nextElement();
-                        Integer score = (Integer) allNodes.get(nodeCoord);
+                        final int score = ((Integer) allNodes.get(nodeCoord)).intValue();
                         D.ebugPrintln("NODE = " + Integer.toHexString(nodeCoord.intValue()) + " SCORE = " + score);
 
-                        if (bestNodePair.getScore() < score.intValue())
+                        if (bestNodePair.getScore() < score)
                         {
-                            bestNodePair.setScore(score.intValue());
+                            bestNodePair.setScore(score);
                             bestNodePair.setNode(nodeCoord.intValue());
                         }
                     }
@@ -3435,15 +3435,15 @@ public class SOCRobotBrain extends Thread
         while (cenum.hasMoreElements())
         {
             Integer coord = (Integer) cenum.nextElement();
-            Integer score = (Integer) twoAway.get(coord);
+            final int score = ((Integer) twoAway.get(coord)).intValue();
 
             D.ebugPrintln("Considering " + Integer.toHexString(coord.intValue()) + " with a score of " + score);
 
             if (dummy.isPotentialSettlement(coord.intValue()))
             {
-                if (bestNodePair.getScore() < score.intValue())
+                if (bestNodePair.getScore() < score)
                 {
-                    bestNodePair.setScore(score.intValue());
+                    bestNodePair.setScore(score);
                     bestNodePair.setNode(coord.intValue());
                 }
             }
@@ -3567,10 +3567,10 @@ public class SOCRobotBrain extends Thread
 
             while (hexesEnum.hasMoreElements())
             {
-                Integer hex = (Integer) hexesEnum.nextElement();
-                score += numRating[board.getNumberOnHexFromCoord(hex.intValue())];
+                int hex = ((Integer) hexesEnum.nextElement()).intValue();
+                score += numRating[board.getNumberOnHexFromCoord(hex)];
 
-                //D.ebugPrintln(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex.intValue())]);
+                //D.ebugPrintln(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex)]);
             }
 
             /*
@@ -3616,21 +3616,21 @@ public class SOCRobotBrain extends Thread
 
             while (hexesEnum.hasMoreElements())
             {
-                Integer hex = (Integer) hexesEnum.nextElement();
-                Integer number = new Integer(board.getNumberOnHexFromCoord(hex.intValue()));
-                score += numRating[number.intValue()];
+                final int hex = ((Integer) hexesEnum.nextElement()).intValue();
+                final int number = board.getNumberOnHexFromCoord(hex);
+                score += numRating[number];
 
-                if ((number.intValue() != 0) && (!player.getNumbers().hasNumber(number.intValue())))
+                if ((number != 0) && (!player.getNumbers().hasNumber(number)))
                 {
                     /**
                      * add a bonus for numbers that the player doesn't already have
                      */
 
                     //D.ebugPrintln("ADDING BONUS FOR NOT HAVING "+number);
-                    score += numRating[number.intValue()];
+                    score += numRating[number];
                 }
 
-                //D.ebugPrintln(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex.intValue())]);
+                //D.ebugPrintln(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex)]);
             }
 
             /*
@@ -3667,7 +3667,7 @@ public class SOCRobotBrain extends Thread
             Integer nodeCoord = (Integer) nodesInEnum.nextElement();
             int node = nodeCoord.intValue();
             int score = 0;
-            int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
+            final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
 
             Enumeration nodeSetEnum = nodeSet.elements();
 
@@ -3737,7 +3737,7 @@ public class SOCRobotBrain extends Thread
             Integer nodeCoord = (Integer) nodesInEnum.nextElement();
             int node = nodeCoord.intValue();
             int score = 0;
-            int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
+            final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
 
             Enumeration nodeSetEnum = nodeSet.elements();
 
