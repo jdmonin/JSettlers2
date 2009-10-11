@@ -50,7 +50,7 @@ public class OpeningBuildStrategy {
         log.debug("--- planInitialSettlements");
 
         int[] rolls;
-        Enumeration<Integer> hexes;
+        Enumeration hexes;  // Integers
         int speed;
         boolean allTheWay;
         firstSettlement = 0;
@@ -88,7 +88,7 @@ public class OpeningBuildStrategy {
 
                 while (hexes.hasMoreElements())
                 {
-                    Integer hex = hexes.nextElement();
+                    Integer hex = (Integer) hexes.nextElement();
                     int number = board.getNumberOnHexFromCoord(hex.intValue());
                     int resource = board.getHexTypeFromCoord(hex.intValue());
                     playerNumbers.addNumberForResource(number, resource, hex.intValue());
@@ -164,7 +164,7 @@ public class OpeningBuildStrategy {
 
                         while (hexes.hasMoreElements())
                         {
-                            Integer hex = hexes.nextElement();
+                            Integer hex = (Integer) hexes.nextElement();
                             int number = board.getNumberOnHexFromCoord(hex.intValue());
                             int resource = board.getHexTypeFromCoord(hex.intValue());
                             playerNumbers.addNumberForResource(number, resource, hex.intValue());
@@ -177,7 +177,7 @@ public class OpeningBuildStrategy {
 
                         while (hexes.hasMoreElements())
                         {
-                            Integer hex = hexes.nextElement();
+                            Integer hex = (Integer) hexes.nextElement();
                             int number = board.getNumberOnHexFromCoord(hex.intValue());
                             int resource = board.getHexTypeFromCoord(hex.intValue());
                             playerNumbers.addNumberForResource(number, resource, hex.intValue());
@@ -294,10 +294,10 @@ public class OpeningBuildStrategy {
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = hexes.nextElement();
-            int number = board.getNumberOnHexFromCoord(hex.intValue());
-            int resource = board.getHexTypeFromCoord(hex.intValue());
-            playerNumbers.addNumberForResource(number, resource, hex.intValue());
+            int hex = ((Integer) hexes.nextElement()).intValue();
+            int number = board.getNumberOnHexFromCoord(hex);
+            int resource = board.getHexTypeFromCoord(hex);
+            playerNumbers.addNumberForResource(number, resource, hex);
         }
 
         Integer firstSettlementInt = new Integer(firstSettlement);
@@ -361,10 +361,10 @@ public class OpeningBuildStrategy {
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = hexes.nextElement();
-            int number = board.getNumberOnHexFromCoord(hex.intValue());
-            int resource = board.getHexTypeFromCoord(hex.intValue());
-            playerNumbers.addNumberForResource(number, resource, hex.intValue());
+            int hex = ((Integer) hexes.nextElement()).intValue();
+            int number = board.getNumberOnHexFromCoord(hex);
+            int resource = board.getHexTypeFromCoord(hex);
+            playerNumbers.addNumberForResource(number, resource, hex);
         }
 
         Integer secondSettlementInt = new Integer(secondSettlement);
@@ -469,14 +469,14 @@ public class OpeningBuildStrategy {
                 playerNumbers.clear();
                 probTotal = 0;
 
-                Enumeration<Integer> hexes = SOCBoard.getAdjacentHexesToNode(firstNode).elements();
+                Enumeration hexes = SOCBoard.getAdjacentHexesToNode(firstNode).elements();  // Integers
 
                 while (hexes.hasMoreElements())
                 {
-                    Integer hex = hexes.nextElement();
-                    int number = board.getNumberOnHexFromCoord(hex.intValue());
-                    int resource = board.getHexTypeFromCoord(hex.intValue());
-                    playerNumbers.addNumberForResource(number, resource, hex.intValue());
+                    final int hex = ((Integer) hexes.nextElement()).intValue();
+                    int number = board.getNumberOnHexFromCoord(hex);
+                    int resource = board.getHexTypeFromCoord(hex);
+                    playerNumbers.addNumberForResource(number, resource, hex);
                     probTotal += prob[number];
                     sb.append(number + " ");
                 }
@@ -485,10 +485,10 @@ public class OpeningBuildStrategy {
 
                 while (hexes.hasMoreElements())
                 {
-                    Integer hex = hexes.nextElement();
-                    int number = board.getNumberOnHexFromCoord(hex.intValue());
-                    int resource = board.getHexTypeFromCoord(hex.intValue());
-                    playerNumbers.addNumberForResource(number, resource, hex.intValue());
+                    final int hex = ((Integer) hexes.nextElement()).intValue();
+                    int number = board.getNumberOnHexFromCoord(hex);
+                    int resource = board.getHexTypeFromCoord(hex);
+                    playerNumbers.addNumberForResource(number, resource, hex);
                     probTotal += prob[number];
                     sb.append(number + " ");
                 }
@@ -602,7 +602,7 @@ public class OpeningBuildStrategy {
     public int planInitRoad(SOCGame game, SOCPlayer ourPlayerData, SOCRobotClient client)
     {
         int settlementNode = ourPlayerData.getLastSettlementCoord();
-        Hashtable<Integer, Integer> twoAway = new Hashtable<Integer, Integer>();
+        Hashtable twoAway = new Hashtable();  // <Integer,Integer>
 
         log.debug("--- placeInitRoad");
 
@@ -679,7 +679,7 @@ public class OpeningBuildStrategy {
                 /**
                  * rule out where other players are going to build
                  */
-                Hashtable<Integer, Integer> allNodes = new Hashtable<Integer, Integer>();
+                Hashtable allNodes = new Hashtable();  // <Integer.Integer>
 
                 for (int i = 0x23; i < 0xDC; i++)
                 {
@@ -726,7 +726,7 @@ public class OpeningBuildStrategy {
                  * create a list of potential settlements that takes into account
                  * where other players will build
                  */
-                Vector<Integer> psList = new Vector<Integer>();
+                Vector psList = new Vector();  // <Integer>
 
                 for (int j = 0x23; j <= 0xDC; j++)
                 {
@@ -742,17 +742,17 @@ public class OpeningBuildStrategy {
                 for (int builds = 0; builds < numberOfBuilds; builds++)
                 {
                     BoardNodeScorePair bestNodePair = new BoardNodeScorePair(0, 0);
-                    Enumeration<Integer> nodesEnum = allNodes.keys();
+                    Enumeration nodesEnum = allNodes.keys();  // <Integer>
 
                     while (nodesEnum.hasMoreElements())
                     {
-                        Integer nodeCoord = nodesEnum.nextElement();
-                        Integer score = allNodes.get(nodeCoord);
+                        Integer nodeCoord = (Integer) nodesEnum.nextElement();
+                        final int score = ((Integer) allNodes.get(nodeCoord)).intValue();
                         log.debug("NODE = " + Integer.toHexString(nodeCoord.intValue()) + " SCORE = " + score);
 
-                        if (bestNodePair.getScore() < score.intValue())
+                        if (bestNodePair.getScore() < score)
                         {
-                            bestNodePair.setScore(score.intValue());
+                            bestNodePair.setScore(score);
                             bestNodePair.setNode(nodeCoord.intValue());
                         }
                     }
@@ -774,20 +774,20 @@ public class OpeningBuildStrategy {
          * Find the best scoring node
          */
         BoardNodeScorePair bestNodePair = new BoardNodeScorePair(0, 0);
-        Enumeration<Integer> cenum = twoAway.keys();
+        Enumeration cenum = twoAway.keys();  // <Integer>
 
         while (cenum.hasMoreElements())
         {
-            Integer coord = cenum.nextElement();
-            Integer score = twoAway.get(coord);
+            Integer coord = (Integer) cenum.nextElement();
+            final int score = ((Integer) twoAway.get(coord)).intValue();
 
             log.debug("Considering " + Integer.toHexString(coord.intValue()) + " with a score of " + score);
 
             if (dummy.isPotentialSettlement(coord.intValue()))
             {
-                if (bestNodePair.getScore() < score.intValue())
+                if (bestNodePair.getScore() < score)
                 {
-                    bestNodePair.setScore(score.intValue());
+                    bestNodePair.setScore(score);
                     bestNodePair.setNode(coord.intValue());
                 }
             }
@@ -845,12 +845,12 @@ public class OpeningBuildStrategy {
      * to find which one is best for building a
      * settlement
      *
-     * @param nodes          a hashtable of nodes, the scores in the table will be modified
+     * @param nodes          a hashtable of nodes, the scores in the table will be modified. Hashtable<Integer,Integer>.
      * @param numberWeight   the weight given to nodes on good numbers
      * @param miscPortWeight the weight given to nodes on 3:1 ports
      * @param portWeight     the weight given to nodes on good 2:1 ports
      */
-    protected void scoreNodesForSettlements(Hashtable<Integer, Integer> nodes, int numberWeight, int miscPortWeight, int portWeight, SOCGame game, SOCPlayer ourPlayerData)
+    protected void scoreNodesForSettlements(Hashtable nodes, int numberWeight, int miscPortWeight, int portWeight, SOCGame game, SOCPlayer ourPlayerData)
     {
         /**
          * favor spots with the most high numbers
@@ -900,20 +900,20 @@ public class OpeningBuildStrategy {
      * If a node is in the desired set of nodes it gets 100.
      * Otherwise it gets 0.
      *
-     * @param nodesIn   the table of nodes to evaluate
+     * @param nodesIn   the table of nodes to evaluate: Hashtable<Integer,Integer>
      * @param nodeSet   the set of desired nodes
      * @param weight    the score multiplier
      */
-    protected void bestSpotInANodeSet(Hashtable<Integer, Integer> nodesIn, Vector nodeSet, int weight)
+    protected void bestSpotInANodeSet(Hashtable nodesIn, Vector nodeSet, int weight)
     {
-        Enumeration<Integer> nodesInEnum = nodesIn.keys();
+        Enumeration nodesInEnum = nodesIn.keys();  // <Integer>
 
         while (nodesInEnum.hasMoreElements())
         {
-            Integer nodeCoord = nodesInEnum.nextElement();
+            Integer nodeCoord = (Integer) nodesInEnum.nextElement();
             int node = nodeCoord.intValue();
             int score = 0;
-            int oldScore = nodesIn.get(nodeCoord).intValue();
+            final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
 
             Enumeration nodeSetEnum = nodeSet.elements();
 
@@ -948,20 +948,20 @@ public class OpeningBuildStrategy {
      * If a node is two away from a node in the desired set of nodes it gets 100.
      * Otherwise it gets 0.
      *
-     * @param nodesIn   the table of nodes to evaluate
+     * @param nodesIn   the table of nodes to evaluate: Hashtable<Integer,Integer>
      * @param nodeSet   the set of desired nodes
      * @param weight    the score multiplier
      */
-    protected void bestSpot2AwayFromANodeSet(Hashtable<Integer, Integer> nodesIn, Vector nodeSet, int weight)
+    protected void bestSpot2AwayFromANodeSet(Hashtable nodesIn, Vector nodeSet, int weight)
     {
-        Enumeration<Integer> nodesInEnum = nodesIn.keys();
+        Enumeration nodesInEnum = nodesIn.keys();  // <Integer>
 
         while (nodesInEnum.hasMoreElements())
         {
-            Integer nodeCoord = nodesInEnum.nextElement();
+            Integer nodeCoord = (Integer) nodesInEnum.nextElement();
             int node = nodeCoord.intValue();
             int score = 0;
-            int oldScore = nodesIn.get(nodeCoord).intValue();
+            final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
 
             Enumeration nodeSetEnum = nodeSet.elements();
 
@@ -1054,32 +1054,32 @@ public class OpeningBuildStrategy {
      * each node score in the table.  Nodes touching hexes
      * with better numbers get better scores.
      *
-     * @param nodes    the table of nodes with scores
+     * @param nodes    the table of nodes with scores: Hashtable<Integer,Integer>
      * @param weight   a number that is multiplied by the score
      */
-    protected void bestSpotForNumbers(Hashtable<Integer, Integer> nodes, int weight, SOCGame game)
+    protected void bestSpotForNumbers(Hashtable nodes, int weight, SOCGame game)
     {
         int[] numRating = SOCNumberProbabilities.INT_VALUES;
         SOCBoard board = game.getBoard();
         int oldScore;
-        Enumeration<Integer> nodesEnum = nodes.keys();
+        Enumeration nodesEnum = nodes.keys();  // <Integer>
 
         while (nodesEnum.hasMoreElements())
         {
-            Integer node = nodesEnum.nextElement();
+            Integer node = (Integer) nodesEnum.nextElement();
 
             //log.debug("BSN - looking at node "+Integer.toHexString(node.intValue()));
-            oldScore = nodes.get(node).intValue();
+            oldScore = ((Integer) nodes.get(node)).intValue();
 
             int score = 0;
-            Enumeration<Integer> hexesEnum = SOCBoard.getAdjacentHexesToNode(node.intValue()).elements();
+            Enumeration hexesEnum = SOCBoard.getAdjacentHexesToNode(node.intValue()).elements();  // <Integer>
 
             while (hexesEnum.hasMoreElements())
             {
-                Integer hex = hexesEnum.nextElement();
-                score += numRating[board.getNumberOnHexFromCoord(hex.intValue())];
+                int hex = ((Integer) hexesEnum.nextElement()).intValue();
+                score += numRating[board.getNumberOnHexFromCoord(hex)];
 
-                //log.debug(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex.intValue())]);
+                //log.debug(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex)]);
             }
 
             /*
@@ -1161,31 +1161,31 @@ public class OpeningBuildStrategy {
      * that the player isn't touching yet are better than ones
      * that the player is already touching.
      *
-     * @param nodes    the table of nodes with scores
+     * @param nodes    the table of nodes with scores: Hashtable<Integer,Integer>
      * @param player   the player that we are doing the rating for
      * @param weight   a number that is multiplied by the score
      */
-    protected void bestSpotForNumbers(Hashtable<Integer, Integer> nodes, SOCPlayer player, int weight, SOCGame game)
+    protected void bestSpotForNumbers(Hashtable nodes, SOCPlayer player, int weight, SOCGame game)
     {
         int[] numRating = SOCNumberProbabilities.INT_VALUES;
         SOCBoard board = game.getBoard();
         int oldScore;
-        Enumeration<Integer> nodesEnum = nodes.keys();
+        Enumeration nodesEnum = nodes.keys();  // <Integer>
 
         while (nodesEnum.hasMoreElements())
         {
-            Integer node = nodesEnum.nextElement();
+            Integer node = (Integer) nodesEnum.nextElement();
 
             //log.debug("BSN - looking at node "+Integer.toHexString(node.intValue()));
-            oldScore = nodes.get(node).intValue();
+            oldScore = ((Integer) nodes.get(node)).intValue();
 
             int score = 0;
-            Enumeration<Integer> hexesEnum = SOCBoard.getAdjacentHexesToNode(node.intValue()).elements();
+            Enumeration hexesEnum = SOCBoard.getAdjacentHexesToNode(node.intValue()).elements();  // <Integer>
 
             while (hexesEnum.hasMoreElements())
             {
-                Integer hex = hexesEnum.nextElement();
-                int number = board.getNumberOnHexFromCoord(hex);
+                final int hex = ((Integer) hexesEnum.nextElement()).intValue();
+                final int number = board.getNumberOnHexFromCoord(hex);
                 score += numRating[number];
 
                 if ((number != 0) && (!player.getNumbers().hasNumber(number)))
@@ -1198,7 +1198,7 @@ public class OpeningBuildStrategy {
                     score += numRating[number];
                 }
 
-                //log.debug(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex.intValue())]);
+                //log.debug(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex)]);
             }
 
             /*
