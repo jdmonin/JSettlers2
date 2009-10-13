@@ -23,6 +23,7 @@ package soc.game;
 
 import soc.disableDebug.D;
 
+import soc.message.SOCMessage;
 import soc.util.IntPair;
 import soc.util.SOCGameBoardReset;
 
@@ -475,7 +476,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * create a new, active game
      *
-     * @param n  the name of the game
+     * @param n  the name of the game.  For network message safety, must not contain
+     *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
+     *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
     public SOCGame(String n)
     {
@@ -485,7 +488,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * create a new, active game with options
      *
-     * @param n  the name of the game
+     * @param n  the name of the game.  For network message safety, must not contain
+     *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
+     *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
      *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)},
@@ -504,10 +509,15 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * create a new game that can be ACTIVE or INACTIVE
      *
-     * @param n  the name of the game
+     * @param n  the name of the game.  For network message safety, must not contain
+     *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
+     *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param a  true if this is an active game, false for inactive
+     * @throws IllegalArgumentException if game name fails
+     *           {@link SOCMessage#isSingleLineAndSafe(String)}. This check was added in 1.1.07.
      */
     public SOCGame(String n, boolean a)
+        throws IllegalArgumentException
     {
 	this(n, a, null);
     }
@@ -515,7 +525,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * create a new game that can be ACTIVE or INACTIVE, and have options
      *
-     * @param n  the name of the game
+     * @param n  the name of the game.  For network message safety, must not contain
+     *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
+     *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param a  true if this is an active game, false for inactive
      * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
@@ -523,13 +535,17 @@ public class SOCGame implements Serializable, Cloneable
      *           and set game's minimum version by calling
      *           {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      * @throws IllegalArgumentException if op contains unknown options, or any
-     *             object class besides {@link SOCGameOption}
+     *             object class besides {@link SOCGameOption}, or if game name
+     *             fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @since 1.1.07
      */
     public SOCGame(String n, boolean a, Hashtable op)
 	throws IllegalArgumentException
     {
         // For places to initialize fields, see also resetAsCopy().
+
+        if (! SOCMessage.isSingleLineAndSafe(n))
+            throw new IllegalArgumentException("n");
 
         active = a;
         inUse = false;
@@ -653,16 +669,20 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * add a new player
      *
-     * @param name  the player's name
+     * @param name  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param pn    the player's number
      * @throws IllegalStateException if player is already sitting in
      *              another seat in this game, or if there are no open seats
      *              (based on seats[] == OCCUPIED, and game option "PL" or MAXPLAYERS)
      *               via {@link #getAvailableSeatCount()}
+     * @throws IllegalArgumentException if name fails {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *           This exception was added in 1.1.07.
      */
     public void addPlayer(final String name, final int pn)
-	throws IllegalStateException
+        throws IllegalStateException, IllegalArgumentException
     {
+        if (! SOCMessage.isSingleLineAndSafe(name))
+            throw new IllegalArgumentException("name");
         if (seats[pn] == VACANT)
         {
 	    if (0 == getAvailableSeatCount())
@@ -687,10 +707,15 @@ public class SOCGame implements Serializable, Cloneable
      * remove a player
      *
      * @param name  the player's name
+     * @throws IllegalArgumentException if name isn't in this game.
+     *           This exception was added in 1.1.07.
      */
     public void removePlayer(String name)
+        throws IllegalArgumentException
     {
         SOCPlayer pl = getPlayer(name);
+        if (pl == null)
+            throw new IllegalArgumentException("name");
         pl.setName(null);
         seats[pl.getPlayerNumber()] = VACANT;
 

@@ -23,6 +23,7 @@ package soc.game;
 
 import soc.disableDebug.D;
 
+import soc.message.SOCMessage;
 import soc.util.IntPair;
 import soc.util.NodeLenVis;
 
@@ -505,10 +506,19 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * set the name of the player
      *
-     * @param na        the name
+     * @param na    the player's new name, or null.
+     *           For network message safety, must not contain
+     *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
+     *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @throws IllegalArgumentException if a non-null name fails
+     *           {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *           This exception was added in 1.1.07.
      */
     public void setName(String na)
+        throws IllegalArgumentException
     {
+        if ((na != null) && ! SOCMessage.isSingleLineAndSafe(na))
+            throw new IllegalArgumentException("na");
         name = na;
     }
 
