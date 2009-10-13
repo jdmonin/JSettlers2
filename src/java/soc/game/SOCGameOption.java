@@ -47,6 +47,10 @@ import soc.message.SOCMessage;
  * handling and network message formats.  This is enforced in constructors via
  * {@link #isAlphanumericUpcaseAscii(String)}.
  *<P>
+ * For the same reason, option string values (and enum choices) must not contain
+ * certain characters or span more than 1 line; this is checked by calling
+ * {@link SOCMessage#isSingleLineAndSafe(String)} within constructors and setters.
+ *<P>
  * The "known options" are initialized via {@link #initAllOptions()}.  See that
  * method's description for more details on adding an option.
  * If a new option changes previously expected behavior, it should default to
@@ -494,9 +498,12 @@ public class SOCGameOption implements Cloneable
      *                 value field is based on the number of digits in maxValue.
      * @param dropIfUnused If this option's value is blank or unset, should we not add it to game options?
      *                 See {@link #dropIfUnused} javadoc for more details.
-     * @param enumVals Possible choice texts for {@link #OTYPE_ENUM}, or null
+     * @param enumVals Possible choice texts for {@link #OTYPE_ENUM}, or null;
+     *                 value(s) must pass same checks as desc.
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
+     *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
      *        or if key length is > 3 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
@@ -518,9 +525,8 @@ public class SOCGameOption implements Cloneable
             throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
         if ((lastModVers < 1000) && (lastModVers != -1))
             throw new IllegalArgumentException("lastModVers " + lastModVers + " for key " + key);
-        if ((-1 != desc.indexOf(SOCMessage.sep_char))
-                || (-1 != desc.indexOf(SOCMessage.sep2_char)))
-              throw new IllegalArgumentException("desc contains msg separator char");
+        if (! SOCMessage.isSingleLineAndSafe(desc))
+            throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
 
 	optKey = key;
 	optType = otype;
@@ -533,6 +539,13 @@ public class SOCGameOption implements Cloneable
 	this.dropIfUnused = dropIfUnused;
         this.enumVals = enumVals;
 	optDesc = desc;
+
+        if (enumVals != null)
+        {
+            for (int i = enumVals.length - 1; i>=0; --i)
+                if (! SOCMessage.isSingleLineAndSafe(enumVals[i]))
+                    throw new IllegalArgumentException("enumVal fails isSingleLineAndSafe");
+        }    
 
 	// starting values (= defaults)
 	boolValue = defaultBoolValue;
@@ -571,7 +584,8 @@ public class SOCGameOption implements Cloneable
     }
 
     /**
-     * @return current string value of this option, or "" (empty string) if not set
+     * @return current string value of this option, or "" (empty string) if not set.
+     * Will not contain newlines or otherwise fail {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
     public String getStringValue()
     {
@@ -588,7 +602,8 @@ public class SOCGameOption implements Cloneable
      *          if v.length > {@link #maxIntValue}, length will be truncated.
      * @throws IllegalArgumentException if v contains characters reserved for
      *          message handling: {@link SOCMessage#sep} or 
-     *          {@link SOCMessage#sep2} ('|' or ',')
+     *          {@link SOCMessage#sep2} ('|' or ','), or is
+     *          multi-line or otherwise fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
     public void setStringValue(String v)
 	throws IllegalArgumentException
@@ -602,9 +617,8 @@ public class SOCGameOption implements Cloneable
             } else {
                 if (vl > maxIntValue)
                     v = v.substring(0, maxIntValue);
-                if ((-1 != v.indexOf(SOCMessage.sep_char))
-                      || (-1 != v.indexOf(SOCMessage.sep2_char)))
-                    throw new IllegalArgumentException("new value contains msg separator char");
+                if (! SOCMessage.isSingleLineAndSafe(v))
+                    throw new IllegalArgumentException("new value fails isSingleLineAndSafe");
             }
         }
         strValue = v;
@@ -1222,7 +1236,7 @@ public class SOCGameOption implements Cloneable
      * @param s string to test
      * @return true if all characters are OK, false otherwise
      */
-    public static boolean isAlphanumericUpcaseAscii(String s)
+    public static final boolean isAlphanumericUpcaseAscii(String s)
     {
         for (int i = s.length()-1; i>=0; --i)
         {
