@@ -32,7 +32,8 @@ import java.util.StringTokenizer;
  *<P>
  * No objects, only strings and integers, are to be sent over the network
  * between servers and clients!  Your game's code must guarantee that no string
- * sent contains a separator character ({@link #sep_char} or {@link #sep2_char}). 
+ * sent contains a separator character ({@link #sep_char} or {@link #sep2_char}).
+ * To help with this, use {@link #isSingleLineAndSafe(String)}.
  *<P>
  * Text announcements ({@link SOCGameTextMsg}) are often sent along with
  * data messages.
@@ -265,6 +266,39 @@ public abstract class SOCMessage implements Serializable, Cloneable
         if (dot > 0)
             clName = clName.substring(dot + 1);
         return clName;
+    }
+
+    /**
+     * Test whether a string is non-empty and its characters are
+     * all 'safe' as a single-line string:
+     * No newlines or {@link Character#isISOControl(char) control characters},
+     * no {@link Character#isSpaceChar(char) line separators or paragraph separators}.
+     * Whitespace character type {@link Character#SPACE_SEPARATOR} is OK.
+     * Must not contain {@link #sep_char} or {@link #sep2_char}.
+     * @param s   string to test; if null, returns false.
+     * @return true if all characters are OK, false otherwise.
+     *            Null string or 0-length string returns false.
+     * @since 1.1.07
+     */
+    public static final boolean isSingleLineAndSafe(String s)
+    {
+        if (s == null)
+            return false;
+        if ((-1 != s.indexOf(sep_char))
+            || (-1 != s.indexOf(sep2_char)))
+            return false;
+        int i = s.length();
+        if (i == 0)
+            return false;
+        --i;
+        for (; i>=0; --i)
+        {
+            final char c = s.charAt(i);
+            if (Character.isISOControl(c) || 
+                (Character.isSpaceChar(c) && (Character.getType(c) != Character.SPACE_SEPARATOR)))
+                return false;
+        }
+        return true;
     }
 
     /**
