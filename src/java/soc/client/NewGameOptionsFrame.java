@@ -51,6 +51,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 import soc.game.SOCGameOption;
+import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
 
 /**
@@ -581,6 +582,12 @@ public class NewGameOptionsFrame extends Frame
         if (gmName.length() == 0)
         {
             return;  // Should not happen (button disabled by TextListener)
+        }
+        if (! SOCMessage.isSingleLineAndSafe(gmName))
+        {
+            msgText.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
+            gameName.requestFocusInWindow();
+            return;  // Not a valid game name
         }
 
         boolean gameExists;

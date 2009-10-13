@@ -305,7 +305,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     public static String STATUS_CANNOT_JOIN_THIS_GAME = "Cannot join, this client is incompatible with features of this game.";
 
     /**
-     * the nickname; null until validated and set by {@link #getValidNickname()}
+     * the nickname; null until validated and set by
+     * {@link #getValidNickname(boolean) getValidNickname(true)}
      */
     protected String nickname = null;
 
@@ -857,7 +858,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     /**
      * @return the nickname of this user
-     * @see #getValidNickname()
+     * @see #getValidNickname(boolean)
      */
     public String getNickname()
     {
@@ -1046,12 +1047,12 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * This method may set status bar to a hint message if username is empty,
      * such as {@link #NEED_NICKNAME_BEFORE_JOIN}.
      * @return true if OK, false if blank or not ready
-     * @see #getValidNickname()
+     * @see #getValidNickname(boolean)
      * @since 1.1.07
      */
     public boolean readValidNicknameAndPassword()
     {
-        nickname = getValidNickname();  // May set hint message if empty,
+        nickname = getValidNickname(true);  // May set hint message if empty,
                                         // like NEED_NICKNAME_BEFORE_JOIN
         if (nickname == null)
            return false;  // not filled in yet
@@ -1086,7 +1087,12 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         }
         else if (target == ng)  // "New Game" button
         {
-            gameWithOptionsBeginSetup(false);  // Also may set status, WAIT_CURSOR
+            if (null != getValidNickname(false))  // name check, but don't set nick field yet
+            {
+                gameWithOptionsBeginSetup(false);  // Also may set status, WAIT_CURSOR
+            } else {
+                nick.requestFocusInWindow();  // Not a valid player nickname
+            }
             return true;
         }
         else if (target == jg) // "Join Game" Button
@@ -1215,7 +1221,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         {
             if (games.isEmpty())
             {
-                nickname = getValidNickname();  // May set hint message if empty,
+                nickname = getValidNickname(true);  // May set hint message if empty,
                                            // like NEED_NICKNAME_BEFORE_JOIN
 		if (nickname == null)
 		    return true;  // not filled in yet
@@ -1265,9 +1271,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     /**
      * Validate and return the nickname textfield, or null if blank or not ready.
      * If successful, also set {@link #nickname} field.
+     * @param precheckOnly If true, only validate the name, don't set {@link #nickname}.
      * @since 1.1.07
      */
-    protected String getValidNickname()
+    protected String getValidNickname(boolean precheckOnly)
     {
 	String n = nick.getText().trim();
 
@@ -1286,8 +1293,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	{
 	    n = n.substring(1, 20);
 	}
-	nickname = n;
-	return n;
+        if (! SOCMessage.isSingleLineAndSafe(n))
+        {
+            status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
+            return null;
+        }
+        nick.setText(n);
+        if (! precheckOnly)
+            nickname = n;
+        return n;
     }
 
     /**
@@ -1441,7 +1455,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     /**
      * Ask server to start a game with options.
      * If is local(practice), will call {@link #startPracticeGame(String, Hashtable, boolean)}.
-     * Assumes {@link #getValidNickname()}, {@link #getPassword()}, {@link #host},
+     * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link #host},
      * and {@link #gotPassword} are already called and valid.
      *
      * @param gmName Game name; for practice, null is allowed
