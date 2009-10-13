@@ -1912,7 +1912,8 @@ public class SOCServer extends Server
 
     /**
      * check if a name is ok
-     * a name is ok if it hasn't been used yet
+     * a name is ok if it hasn't been used yet, isn't {@link #SERVERNAME the server's name},
+     * and (since 1.1.07) passes {@link SOCMessage#isSingleLineAndSafe(String)}.
      *
      * @param n  the name
      * @return   true if the name is ok
@@ -1929,6 +1930,10 @@ public class SOCServer extends Server
             return false;
         }
 
+        if (! SOCMessage.isSingleLineAndSafe(n))
+        {
+            return false;
+        }
         return true;
     }
 
@@ -3231,7 +3236,7 @@ public class SOCServer extends Server
      * @param c connection requesting the game, must not be null
      * @param msgUser username of client in message
      * @param msgPass password of client in message
-     * @param gameName  name of game to create/join
+     * @param gameName  name of game to create/join; must pass {@link SOCMessage#isSingleLineAndSafe(String)}
      * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game; if not null, will not join an existing game.
      *                  Will validate by calling
      *                  {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
@@ -3271,7 +3276,15 @@ public class SOCServer extends Server
             /**
              * Check that the game name is ok
              */
+            if (! SOCMessage.isSingleLineAndSafe(gameName))
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, c.getVersion(),
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+                  // "This game name is not permitted, please choose a different name."
 
+                  return;  // <---- Early return ----
+            }
             /*
                if (!checkGameName(mes.getGame())) {
                return;

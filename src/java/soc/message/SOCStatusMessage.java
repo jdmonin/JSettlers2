@@ -126,6 +126,13 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_NEWGAME_ALREADY_EXISTS = 11;
 
+    /**
+     * New game requested, but name of game or player does not meet standards = 12
+     * @see soc.server.SOCServer#createOrJoinGameIfUserOK
+     * @since 1.1.07
+     */
+    public static final int SV_NEWGAME_NAME_REJECTED = 12;
+
     // IF YOU ADD A STATUS VALUE:
     // Be sure to update statusValidAtVersion().
 
@@ -136,6 +143,14 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final String MSG_SV_NEWGAME_ALREADY_EXISTS
         = "A game with this name already exists, please choose a different name.";
+
+    /**
+     * Text for server or client to present: New game requested,
+     * but game name or player name does not meet standards
+     * @since 1.1.07
+     */
+    public static final String MSG_SV_NEWGAME_NAME_REJECTED
+        = "This name is not permitted, please choose a different name.";
 
     /**
      * Status message
@@ -260,7 +275,7 @@ public class SOCStatusMessage extends SOCMessage
         case 1106:
             return (statusValue <= SV_ACCT_NOT_CREATED_ERR);
         case 1107:
-            return (statusValue <= SV_NEWGAME_ALREADY_EXISTS);
+            return (statusValue <= SV_NEWGAME_NAME_REJECTED);
         default:
             {
             if (cliVersion < 1106)
