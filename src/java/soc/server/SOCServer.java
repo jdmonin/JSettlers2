@@ -1745,7 +1745,7 @@ public class SOCServer extends Server
      * The minimum version which recognizes the "can't join" marker is
      * 1.1.06 ({@link SOCGames#VERSION_FOR_UNJOINABLE}).
      *<P>
-     * <b>Locks:</b> Will call {@link SOCGameList#takeMonitor()} / releaseMonitor
+     * <b>Locks:</b> Will call {@link SOCGameListAtServer#takeMonitor()} / releaseMonitor
      *
      * @param c Client's connection; will call getVersion() on it
      * @param prevVers  Previously assumed version of this client;
@@ -7518,6 +7518,7 @@ public class SOCServer extends Server
 
         try
         {
+            final long currentTimeMillis = System.currentTimeMillis();
             for (Enumeration k = gameList.getGamesData(); k.hasMoreElements();)
             {
                 SOCGame gameData = (SOCGame) k.nextElement();
@@ -7525,18 +7526,18 @@ public class SOCServer extends Server
 
                 // Start our text messages with ">>>" to mark as urgent to the client.
 
-                if (gameExpir <= System.currentTimeMillis())
+                if (gameExpir <= currentTimeMillis)
                 {
                     final String gameName = gameData.getName();
                     expired.addElement(gameName);
                     messageToGameUrgent(gameName, ">>> The time limit on this game has expired and will now be destroyed.");
                 }
-                else if ((gameExpir - warn_ms) <= System.currentTimeMillis())
+                else if ((gameExpir - warn_ms) <= currentTimeMillis)
                 {
                     //
                     //  Give people a few minutes' warning (they may have a few warnings)
                     //                
-                    long minutes = ((gameExpir - System.currentTimeMillis()) / 60000);
+                    long minutes = ((gameExpir - currentTimeMillis) / 60000);
                     messageToGameUrgent(gameData.getName(), ">>> Less than "
                             + minutes + " minutes remaining.  Type *ADDTIME* to extend this game another 30 minutes.");
                 }
