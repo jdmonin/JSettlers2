@@ -3293,16 +3293,6 @@ public class SOCServer extends Server
                 return;
             }
 
-            if (c != null)
-            {
-                if (c.getData() == null)
-                {
-                    c.setData(msgUser);
-                    nameConnection(c);
-                    numberOfUsers++;
-                }
-            }
-
             /**
              * Check that the game name is ok
              */
@@ -3324,11 +3314,19 @@ public class SOCServer extends Server
 
                 return;  // <---- Early return ----
             }
-            /*
-               if (!checkGameName(mes.getGame())) {
-               return;
-               }
+
+            /**
+             * Now that everything's validated, name this connection/user/player
              */
+            if (c != null)
+            {
+                if (c.getData() == null)
+                {
+                    c.setData(msgUser);
+                    nameConnection(c);
+                    numberOfUsers++;
+                }
+            }
 
             /**
 	     * If we have game options, validate them and ensure
