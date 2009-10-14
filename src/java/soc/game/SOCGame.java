@@ -3881,7 +3881,7 @@ public class SOCGame implements Serializable, Cloneable
         for (int i = 0; i < MAXPLAYERS; i++)
         {
             boolean wasRobot = false;
-            if (players[i] != null)
+            if ((seats[i] != VACANT) && (players[i] != null) && (players[i].getName() != null))
             {
                 wasRobot = players[i].isRobot();
                 if (! wasRobot)
