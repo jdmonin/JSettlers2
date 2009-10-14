@@ -121,6 +121,23 @@ public class SOCServer extends Server
     public static int GAME_EXPIRE_WARN_MINUTES = 10;
 
     /**
+     * Maximum permitted game name length, default 20 characters.
+     *
+     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
+     * @since 1.1.07
+     */
+    public static int GAME_NAME_MAX_LENGTH = 20;
+
+    /**
+     * Maximum permitted player name length, default 20 characters.
+     * The client already truncates to 20 characters in SOCPlayerClient.getValidNickname.
+     *
+     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
+     * @since 1.1.07
+     */
+    public static int PLAYER_NAME_MAX_LENGTH = 20;
+
+    /**
      * For local practice games (pipes, not TCP), the name of the pipe.
      * Used to distinguish practice vs "real" games.
      * 
@@ -3215,6 +3232,8 @@ public class SOCServer extends Server
      * client's username and password, so c.getData() may be null.
      * Assumes client's version is already received or guessed.
      *<P>
+     * Game name and player name have a maximum length and some disallowed characters; see parameters.
+     *<P>
      *<b>Process if gameOpts != null:</b>
      *<UL>
      *  <LI> if game with this name already exists, resp with
@@ -3234,9 +3253,11 @@ public class SOCServer extends Server
      *</UL>
      *
      * @param c connection requesting the game, must not be null
-     * @param msgUser username of client in message
+     * @param msgUser username of client in message. Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
+     *                  and be at most {@link #PLAYER_NAME_MAX_LENGTH} characters.
      * @param msgPass password of client in message
-     * @param gameName  name of game to create/join; must pass {@link SOCMessage#isSingleLineAndSafe(String)}
+     * @param gameName  name of game to create/join. Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
+     *                  and be at most {@link #GAME_NAME_MAX_LENGTH} characters.
      * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game; if not null, will not join an existing game.
      *                  Will validate by calling
      *                  {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
@@ -3249,13 +3270,22 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
-            if ((c.getData() == null) && (!checkNickname(msgUser)))
+            if (c.getData() == null)
             {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
-                         MSG_NICKNAME_ALREADY_IN_USE));
-
-                return;
+                if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, c.getVersion(),
+                             SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
+                    return;
+                }
+                if (!checkNickname(msgUser))
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
+                             MSG_NICKNAME_ALREADY_IN_USE));    
+                    return;
+                }
             }
 
             if ((c.getData() == null) && (!authenticateUser(c, msgUser, msgPass)))
@@ -3284,6 +3314,15 @@ public class SOCServer extends Server
                   // "This game name is not permitted, please choose a different name."
 
                   return;  // <---- Early return ----
+            }
+            if (gameName.length() > GAME_NAME_MAX_LENGTH)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, c.getVersion(),
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
+                // Please choose a shorter name; maximum length: 25
+
+                return;  // <---- Early return ----
             }
             /*
                if (!checkGameName(mes.getGame())) {

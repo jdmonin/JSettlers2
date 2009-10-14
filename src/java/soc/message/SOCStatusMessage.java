@@ -133,6 +133,14 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_NEWGAME_NAME_REJECTED = 12;
 
+    /**
+     * New game requested, but name of game or player is too long = 13.
+     * The text returned with this status shall indicate the max permitted length. 
+     * @see soc.server.SOCServer#createOrJoinGameIfUserOK
+     * @since 1.1.07
+     */
+    public static final int SV_NEWGAME_NAME_TOO_LONG = 13;
+
     // IF YOU ADD A STATUS VALUE:
     // Be sure to update statusValidAtVersion().
 
@@ -151,6 +159,15 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final String MSG_SV_NEWGAME_NAME_REJECTED
         = "This name is not permitted, please choose a different name.";
+
+    /**
+     * Text for server or client to present: New game requested,
+     * but game name or player name is too long.  Maximum permitted length
+     * is appended to this message after the trailing ":".
+     * @since 1.1.07
+     */
+    public static final String MSG_SV_NEWGAME_NAME_TOO_LONG
+        = "Please choose a shorter name; maximum length: ";
 
     /**
      * Status message
@@ -275,7 +292,7 @@ public class SOCStatusMessage extends SOCMessage
         case 1106:
             return (statusValue <= SV_ACCT_NOT_CREATED_ERR);
         case 1107:
-            return (statusValue <= SV_NEWGAME_NAME_REJECTED);
+            return (statusValue <= SV_NEWGAME_NAME_TOO_LONG);
         default:
             {
             if (cliVersion < 1106)
