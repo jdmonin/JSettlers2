@@ -3310,7 +3310,7 @@ public class SOCServer extends Server
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, c.getVersion(),
                          SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
-                // Please choose a shorter name; maximum length: 25
+                // Please choose a shorter name; maximum length: 20
 
                 return;  // <---- Early return ----
             }
