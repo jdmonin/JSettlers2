@@ -230,14 +230,17 @@ public class SOCGameListAtServer extends SOCGameList
      * is set to the object returned by this method, and its gameState will be
      * {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS} instead of {@link SOCGame#NEW}.
      *<P>
+     * <b>Locking:</b>
      * Takes game monitor.
+     * Copies old game.
+     * Adds reset-copy to gamelist.
      * Destroys old game.
-     * YOU MUST RELEASE the game monitor after returning.
+     * Releases game monitor.
      *
      * @param gaName Name of game - If not found, do nothing. No monitor is taken.
-     * @return New game if gaName was found and copied; null if no game called gaName
+     * @return New game if gaName was found and copied; null if no game called gaName,
+     *         or if a problem occurs during reset
      * @see soc.game.SOCGame#resetAsCopy()
-     * @see #releaseMonitorForGame(String)
      */
     public SOCGameBoardReset resetBoard(String gaName)
     {
@@ -251,11 +254,20 @@ public class SOCGameListAtServer extends SOCGameList
         // also removes robots from game obj and its member list,
         // and sets boardResetOngoingInfo field/gamestate if there are robots.
         SOCGameBoardReset reset = null;
-        SOCGame rgame = null;
         try
         {
             reset = new SOCGameBoardReset(oldGame, getMembers(gaName));
-            rgame = reset.newGame;
+            SOCGame rgame = reset.newGame;
+
+            // As in createGame, set expiration timer to 90 min. from now
+            rgame.setExpiration(new Date().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
+
+            // Adjust game-list
+            gameData.remove(gaName);
+            gameData.put(gaName, rgame);
+
+            // Done.
+            oldGame.destroyGame();
         }
         catch (Throwable e)
         {
@@ -265,21 +277,8 @@ public class SOCGameListAtServer extends SOCGameList
         {
             releaseMonitorForGame(gaName);
         }
-        if (reset == null)
-        {
-            return null;  // <---- Early return: error during reset ----
-        }
 
-        // As in createGame, set expiration timer to 90 min. from now
-        rgame.setExpiration(new Date().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
-
-        // Adjust game-list
-        gameData.remove(gaName);
-        gameData.put(gaName, rgame);
-
-        // Done.
-        oldGame.destroyGame();
-        return reset;
+        return reset;  // null if error during reset
     }
 
     /**

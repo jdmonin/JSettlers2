@@ -7127,7 +7127,7 @@ public class SOCServer extends Server
     {
         /**
          * 1. Reset the board, remember player positions.
-         *    Takes the monitorForGame if exists.
+         *    Takes the monitorForGame and (when reset is ready) releases it.
          *    If robots, resetBoard will also set gamestate
          *    and boardResetOngoingInfo field.
          */
@@ -7135,12 +7135,9 @@ public class SOCServer extends Server
         if (reBoard == null)
         {
             messageToGameUrgent(gaName, ">>> Internal error, Game " + gaName + " board reset failed");
-            return;
+            return;  // <---- Early return: reset failed ----
         }
         SOCGame reGame = reBoard.newGame;
-
-        // Must release before calling methods below
-        gameList.releaseMonitorForGame(gaName);
 
         // Announce who asked for this reset
         {
