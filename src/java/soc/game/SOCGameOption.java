@@ -600,6 +600,7 @@ public class SOCGameOption implements Cloneable
      * @param v set to this value, or "" (empty string) if null; should
      *          be a simple string (no newlines or control characters).
      *          if v.length > {@link #maxIntValue}, length will be truncated.
+     *          Must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char} ('|' or ',').
      * @throws IllegalArgumentException if v contains characters reserved for
      *          message handling: {@link SOCMessage#sep} or 
      *          {@link SOCMessage#sep2} ('|' or ','), or is
