@@ -7133,7 +7133,10 @@ public class SOCServer extends Server
          */
         SOCGameBoardReset reBoard = gameList.resetBoard(gaName);
         if (reBoard == null)
+        {
+            messageToGameUrgent(gaName, ">>> Internal error, Game " + gaName + " board reset failed");
             return;
+        }
         SOCGame reGame = reBoard.newGame;
 
         // Must release before calling methods below

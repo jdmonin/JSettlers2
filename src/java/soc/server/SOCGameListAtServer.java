@@ -21,6 +21,7 @@
  **/
 package soc.server;
 
+import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 
@@ -249,8 +250,25 @@ public class SOCGameListAtServer extends SOCGameList
         // Create reset-copy of game;
         // also removes robots from game obj and its member list,
         // and sets boardResetOngoingInfo field/gamestate if there are robots.
-        SOCGameBoardReset reset = new SOCGameBoardReset(oldGame, getMembers(gaName));
-        SOCGame rgame = reset.newGame;
+        SOCGameBoardReset reset = null;
+        SOCGame rgame = null;
+        try
+        {
+            reset = new SOCGameBoardReset(oldGame, getMembers(gaName));
+            rgame = reset.newGame;
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "ERROR -> gamelist.resetBoard");
+        }
+        finally
+        {
+            releaseMonitorForGame(gaName);
+        }
+        if (reset == null)
+        {
+            return null;  // <---- Early return: error during reset ----
+        }
 
         // As in createGame, set expiration timer to 90 min. from now
         rgame.setExpiration(new Date().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));
