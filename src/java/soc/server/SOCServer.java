@@ -2497,7 +2497,7 @@ public class SOCServer extends Server
             messageToGame(ga, new SOCGameTextMsg(ga, SERVERNAME, "> Version: "
                 + Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum()));
 
-            processDebugCommand_checktime(debugCli, ga);
+            processDebugCommand_checktime(debugCli, ga, gameList.getGameData(ga));
         }
         else if (dcmd.startsWith("*GC*"))
         {
@@ -3056,13 +3056,14 @@ public class SOCServer extends Server
      */
     private void handleGAMETEXTMSG(StringConnection c, SOCGameTextMsg gameTextMsgMes)
     {
-        SOCGame ga;
         //createNewGameEventRecord();
         //currentGameEventRecord.setMessageIn(new SOCMessageRecord(mes, c.getData(), "SERVER"));
         final String gaName = gameTextMsgMes.getGame();
         recordGameEvent(gaName, gameTextMsgMes.toCmd());
 
-        ga = gameList.getGameData(gaName);
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;  // <---- early return: no game by that name ----
 
         //currentGameEventRecord.setSnapshot(ga);
         ///
@@ -3073,17 +3074,12 @@ public class SOCServer extends Server
         final String cmdText = gameTextMsgMes.getText();
         if ((cmdText.startsWith("*ADDTIME*")) || (cmdText.startsWith("*addtime*")) || (cmdText.startsWith("ADDTIME")) || (cmdText.startsWith("addtime")))
         {
-            SOCGame gameData = gameList.getGameData(gaName);
-
-            if (gameData != null)
-            {
-                // add 30 min. to the expiration time.  If this
-                // changes to another timespan, please update the
-                // warning text sent in checkForExpiredGames().
-                // Use ">>>" in messageToGame to mark as urgent.
-                gameData.setExpiration(gameData.getExpiration() + (30 * 60 * 1000));
-                messageToGameUrgent(gaName, ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
-            }
+            // add 30 min. to the expiration time.  If this
+            // changes to another timespan, please update the
+            // warning text sent in checkForExpiredGames().
+            // Use ">>>" in messageToGame to mark as urgent.
+            ga.setExpiration(ga.getExpiration() + (30 * 60 * 1000));
+            messageToGameUrgent(gaName, ">>> This game will expire in " + ((ga.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
         }
 
         ///
@@ -3091,7 +3087,7 @@ public class SOCServer extends Server
         ///
         if (cmdText.startsWith("*CHECKTIME*"))
         {
-            processDebugCommand_checktime(c, gaName);
+            processDebugCommand_checktime(c, gaName, ga);
         }
         else if (cmdText.startsWith("*VERSION*"))
         {
@@ -3169,12 +3165,11 @@ public class SOCServer extends Server
     /**
      * Print time-remaining and other game stats.
      * @param c  Client requesting the stats
-     * @param gaName Name of game
+     * @param gameData  Game to print stats
      * @since 1.1.07
      */
-    private void processDebugCommand_checktime(StringConnection c, final String gaName)
+    private void processDebugCommand_checktime(StringConnection c, final String gaName, SOCGame gameData)
     {
-        SOCGame gameData = gameList.getGameData(gaName);
         if (gameData == null)
             return;
         messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "-- Game statistics: --"));
