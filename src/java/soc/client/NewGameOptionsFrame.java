@@ -604,9 +604,9 @@ public class NewGameOptionsFrame extends Frame
         if (cl.readValidNicknameAndPassword()
             && readOptsValuesFromControls(checkOptionsMinVers))
         {
-            cl.askStartGameWithOptions(gmName, forPractice, opts);
+            cl.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR
         } else {
-            return;  // TODO readvalidnick should update dia's status line; readopts does already
+            return;  // TODO if error msg, readvalidnick should update dia's status line; readopts does already
         }
 
         dispose();

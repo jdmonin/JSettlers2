@@ -1455,6 +1455,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     /**
      * Ask server to start a game with options.
      * If is local(practice), will call {@link #startPracticeGame(String, Hashtable, boolean)}.
+     * Otherwise, ask remote server, and also set WAIT_CURSOR and status line ("Talking to server...").
+     *<P>
      * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link #host},
      * and {@link #gotPassword} are already called and valid.
      *
@@ -1477,6 +1479,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                         (nickname, password, host, gmName, opts)
                 : SOCJoinGame.toCmd(nickname, password, host, gmName);
             putNet(askMsg);
+            status.setText("Talking to server...");
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         }
     }
 
