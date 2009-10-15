@@ -1338,6 +1338,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             if (! g.drawImage(scaledPorts[tmp], x, y, this))
             {
+                g.drawImage(ports[tmp], x, y, null);  // show small port graphic, instead of a blank space
                 if (isScaled && (7000 < (System.currentTimeMillis() - scaledAt)))
                 {
                     missedDraw = true;
@@ -1388,6 +1389,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             if (! g.drawImage(scaledNumbers[hnl], x, y, this))
             {
+                g.drawImage(numbers[hnl], x, y, null);  // must show a number, not a blank space
                 if (isScaled && (7000 < (System.currentTimeMillis() - scaledAt)))
                 {
                     missedDraw = true;
