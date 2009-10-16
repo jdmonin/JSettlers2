@@ -37,6 +37,8 @@ import java.awt.Panel;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -62,7 +64,7 @@ import soc.message.SOCStatusMessage;
  * @since 1.1.07
  */
 public class NewGameOptionsFrame extends Frame
-    implements ActionListener, KeyListener, TextListener, MouseListener
+    implements ActionListener, KeyListener, ItemListener, TextListener, MouseListener
 {
     /**
      * Maximum range (min-max value) for integer-type options
@@ -368,13 +370,18 @@ public class NewGameOptionsFrame extends Frame
                     }
                 }
 
-                // Textfield at placeholder position
+                // Textfield or Choice at placeholder position
                 Component intbc = initOption_int(op);
                 controlsOpts.put(intbc, op);
                 intbc.setEnabled(! readOnly);
                 optp.add(intbc);
-                if ((! readOnly) && (intbc instanceof TextField))
-                    ((TextField) intbc).addTextListener(this);
+                if (! readOnly)
+                {
+                    if (intbc instanceof TextField)
+                        ((TextField) intbc).addTextListener(this);
+                    else if (intbc instanceof Choice)
+                        ((Choice) intbc).addItemListener(this);
+                }
 
                 // Any text to the right of placeholder?
                 if (placeholderIdx + 1 < op.optDesc.length())
@@ -760,7 +767,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * When gamename contents change, enable/disable buttons as appropriate. (TextListener)
      * Also handles {@link SOCGameOption#OTYPE_INTBOOL} textfield/checkbox combos.
-     * @param e textevent from {@link #gameName}
+     * @param e textevent from {@link #gameName}, or from a TextField in {@link #controlsOpts}
      * @since 1.1.07
      */
     public void textValueChanged(TextEvent e)
@@ -771,9 +778,10 @@ public class NewGameOptionsFrame extends Frame
         if (! (srcObj instanceof TextField))
             return;
         final boolean notEmpty = (((TextField) srcObj).getText().trim().length() > 0);
-        if ((srcObj == gameName) && (notEmpty != create.isEnabled()))
+        if (srcObj == gameName)
         {
-            create.setEnabled(notEmpty);  // enable "create" btn only if game name filled in
+            if (notEmpty != create.isEnabled())
+                create.setEnabled(notEmpty);  // enable "create" btn only if game name filled in
         }
         else
         {
@@ -782,11 +790,26 @@ public class NewGameOptionsFrame extends Frame
             if (opt == null)
                 return;
             Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
-            if (cb == null)
             if ((cb == null) || (notEmpty == cb.getState()))
                 return;
             cb.setState(notEmpty);
         }
+    }
+
+    /**
+     * When {@link SOCGameOption#OTYPE_INTBOOL}'s Choice value is changed, set its checkbox. (itemListener)
+     * @param e textevent from a Choice in {@link #controlsOpts}
+     * @since 1.1.07
+     */
+    public void itemStateChanged(ItemEvent e)
+    {
+        SOCGameOption opt = (SOCGameOption) controlsOpts.get(e.getSource());
+        if (opt == null)
+            return;
+        Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
+        if (cb == null)
+            return;
+        cb.setState(true);
     }
 
     /** when an option with a boolValue's label is clicked, toggle its checkbox */
