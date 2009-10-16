@@ -77,21 +77,22 @@ public class NewGameOptionsFrame extends Frame
     private SOCPlayerClient cl;
 
     /** should this be sent to the remote tcp server, or local practice server? */
-    private boolean forPractice;
+    private final boolean forPractice;
 
     /** is this for display only? */
-    private boolean readOnly;
+    private final boolean readOnly;
 
     /** Contains this game's {@link SOCGameOption}s, or null if none.
      *  Unknowns (OTYPE_UNKNOWN) are removed in initInterface_options.
      */
     private Hashtable opts;
 
-    /** Key = AWT control; value = {@link SOCGameOption}. Empty if opts is null.  */
+    /** Key = AWT control; value = {@link SOCGameOption} within {@link #opts}. Empty if opts is null.  */
     private Hashtable controlsOpts;
 
     /** Key = {@link SOCGameOption#optKey}; value = {@link Checkbox} if bool/intbool option.
       * Empty if none, null if readOnly.
+      * Used to quickly find an option's associated checkbox.
       */
     private Hashtable boolOptCheckboxes;
 
@@ -340,6 +341,8 @@ public class NewGameOptionsFrame extends Frame
                 gbc.gridwidth = 1;
                 gbl.setConstraints(cb2, gbc);
                 bp.add(cb2);
+                if (! readOnly)
+                    boolOptCheckboxes.put(op.optKey, cb2);
 
                 final int placeholderIdx = op.optDesc.indexOf('#');
                 Panel optp = new Panel();  // with FlowLayout
@@ -352,6 +355,7 @@ public class NewGameOptionsFrame extends Frame
                 }
                 catch (Throwable fle) {}
 
+                // Any text to the left of placeholder in optDesc?
                 if (placeholderIdx > 0)
                 {
                     L = new Label(op.optDesc.substring(0, placeholderIdx - 1).trim());
@@ -360,16 +364,19 @@ public class NewGameOptionsFrame extends Frame
                     if (! readOnly)
                     {
                         controlsOpts.put(L, op);
-                        boolOptCheckboxes.put(op.optKey, cb2);
-                        L.addMouseListener(this);
+                        L.addMouseListener(this);  // Click label to toggle checkbox
                     }
                 }
 
+                // Textfield at placeholder position
                 Component intbc = initOption_int(op);
                 controlsOpts.put(intbc, op);
                 intbc.setEnabled(! readOnly);
                 optp.add(intbc);
+                if ((! readOnly) && (intbc instanceof TextField))
+                    ((TextField) intbc).addTextListener(this);
 
+                // Any text to the right of placeholder?
                 if (placeholderIdx + 1 < op.optDesc.length())
                 {
                     L = new Label(op.optDesc.substring(placeholderIdx + 1).trim());
@@ -378,8 +385,7 @@ public class NewGameOptionsFrame extends Frame
                     if (! readOnly)
                     {
                         controlsOpts.put(L, op);
-                        boolOptCheckboxes.put(op.optKey, cb2);
-                        L.addMouseListener(this);
+                        L.addMouseListener(this);  // Click label to toggle checkbox
                     }
                 }
 
@@ -753,6 +759,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * When gamename contents change, enable/disable buttons as appropriate. (TextListener)
+     * Also handles {@link SOCGameOption#OTYPE_INTBOOL} textfield/checkbox combos.
      * @param e textevent from {@link #gameName}
      * @since 1.1.07
      */
@@ -760,10 +767,25 @@ public class NewGameOptionsFrame extends Frame
     {
         if (readOnly)
             return;
-        boolean notEmpty = (gameName.getText().trim().length() > 0);
-        if (notEmpty != create.isEnabled())
+        Object srcObj = e.getSource();
+        if (! (srcObj instanceof TextField))
+            return;
+        final boolean notEmpty = (((TextField) srcObj).getText().trim().length() > 0);
+        if ((srcObj == gameName) && (notEmpty != create.isEnabled()))
         {
-            create.setEnabled(notEmpty);
+            create.setEnabled(notEmpty);  // enable "create" btn only if game name filled in
+        }
+        else
+        {
+            // if source is OTYPE_INTBOOL, check its checkbox vs notEmpty.
+            SOCGameOption opt = (SOCGameOption) controlsOpts.get(srcObj);
+            if (opt == null)
+                return;
+            Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
+            if (cb == null)
+            if ((cb == null) || (notEmpty == cb.getState()))
+                return;
+            cb.setState(notEmpty);
         }
     }
 
