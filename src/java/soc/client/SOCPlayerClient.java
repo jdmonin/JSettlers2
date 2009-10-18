@@ -1499,9 +1499,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         Enumeration gameNames;
         if (fromPracticeServer)
+        {
+            if (practiceServer == null)
+                return null;  // <---- Early return: no games if no practice server ----
             gameNames = practiceServer.getGameNames();
-        else
+        } else {
             gameNames = playerInterfaces.keys();
+        }
 
         while (gameNames.hasMoreElements())
         {
@@ -4861,7 +4865,12 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         cardLayout.show(this, MESSAGE_PANEL);
         validate();
         if (canLocal)
-            pgm.requestFocus();
+        {
+            if (null == findAnyActiveGame(true))
+                pgm.requestFocus();  // No practice games: put this msg as topmost window
+            else
+                pgm.requestFocusInWindow();  // Practice game is active; don't interrupt to show this
+        }
     }
 
     /**
