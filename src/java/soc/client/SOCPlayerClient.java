@@ -4399,23 +4399,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     protected boolean onIgnoreList(String name)
     {
-        D.ebugPrintln("onIgnoreList |" + name + "|");
-
         boolean result = false;
         Enumeration ienum = ignoreList.elements();
 
         while (ienum.hasMoreElements())
         {
             String s = (String) ienum.nextElement();
-            if (D.ebugIsEnabled())
-            {
-                D.ebugPrintln("comparing |" + s + "| to |" + name + "|");
-            }
-
             if (s.equals(name))
             {
                 result = true;
-                D.ebugPrintln("match");
 
                 break;
             }
