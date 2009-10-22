@@ -349,7 +349,7 @@ public class SOCGameOption implements Cloneable
     }
 
     /**
-     * Create a new boolean game option. Type is {@link #OTYPE_BOOL}.
+     * Create a new boolean game option ({@link #OTYPE_BOOL}).
      *
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
@@ -373,7 +373,7 @@ public class SOCGameOption implements Cloneable
     }
 
     /**
-     * Create a new integer game option.  Type is {@link #OTYPE_INT}.
+     * Create a new integer game option ({@link #OTYPE_INT}).
      * There is no dropIfUnused parameter for integer options,
      * because they have no 'blank' value.
      *
@@ -403,7 +403,7 @@ public class SOCGameOption implements Cloneable
     }
 
     /**
-     * Create a new int+boolean game option. Type is {@link #OTYPE_INTBOOL}.
+     * Create a new int+boolean game option ({@link #OTYPE_INTBOOL}).
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
@@ -434,7 +434,7 @@ public class SOCGameOption implements Cloneable
     }
 
     /**
-     * Create a new enumerated game option.  Type is {@link #OTYPE_ENUM}.
+     * Create a new enumerated game option ({@link #OTYPE_ENUM}).
      * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
      * There is no dropIfUnused parameter for enum options,
      * because they have no 'blank' value.
@@ -463,7 +463,7 @@ public class SOCGameOption implements Cloneable
     }
 
     /**
-     * Create a new enumerated + boolean game option.  Type is {@link #OTYPE_ENUMBOOL}.
+     * Create a new enumerated + boolean game option ({@link #OTYPE_ENUMBOOL}).
      * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
      *
      * @param key     Alphanumeric 2-character code for this option;
@@ -497,7 +497,7 @@ public class SOCGameOption implements Cloneable
     }
 
     /**
-     * Create a new text game option.  Type is {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE}.
+     * Create a new text game option ({@link #OTYPE_STR} or {@link #OTYPE_STRHIDE}).
      * The {@link #maxIntValue} will be maxLength.
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
