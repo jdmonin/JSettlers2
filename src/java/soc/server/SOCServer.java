@@ -7812,7 +7812,7 @@ public class SOCServer extends Server
             sb.append("  ");
             sb.append(opt.optDesc);
             System.err.println(sb.toString());
-            if (opt.optType == SOCGameOption.OTYPE_ENUM)
+            if ((opt.optType == SOCGameOption.OTYPE_ENUM) || (opt.optType == SOCGameOption.OTYPE_ENUMBOOL))
             {
                 sb = new StringBuffer("    option choices (1-n): ");
                 for (int i = 1; i <= opt.maxIntValue; ++i)
