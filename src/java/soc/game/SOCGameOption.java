@@ -187,13 +187,16 @@ public class SOCGameOption implements Cloneable
         //       list of "current known options" in javadoc just above.
 
         /*
-        opt.put("DEBUG_ENUM", new SOCGameOption
-                ("DEBUG_ENUM", 1107, 1107, 
-                 3, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option enum"));
-        opt.put("DEBUG_STR", new SOCGameOption
-                ("DEBUG_STR", 1107, 1107, 20, false, true, "Test option str"));
-        opt.put("DEBUG_STRHIDE", new SOCGameOption
-                ("DEBUG_STRHIDE", 1107, 1107, 20, true, true, "Test option strhide"));
+        opt.put("DEBUGENUM", new SOCGameOption
+                ("DEBUGENUM", 1107, 1107, 
+                 3, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option # enum"));
+        opt.put("DEBUGENUMBOOL", new SOCGameOption
+                ("DEBUGENUMBOOL", 1107, 1107, false,
+                 3, new String[]{ "First", "Second", "Third", "Fourth"}, true, "Test option # enumbool"));
+        opt.put("DEBUGSTR", new SOCGameOption
+                ("DEBUGSTR", 1107, 1107, 20, false, true, "Test option str"));
+        opt.put("DEBUGSTRHIDE", new SOCGameOption
+                ("DEBUGSTRHIDE", 1107, 1107, 20, true, true, "Test option strhide"));
         */
 
         return opt;
@@ -211,7 +214,7 @@ public class SOCGameOption implements Cloneable
     /** Option type: integer  */
     public static final int OTYPE_INT = 2;
 
-    /** Option type: integer + boolean */
+    /** Option type: integer + boolean.  Both {@link #boolValue} and {@link #intValue} fields are used. */
     public static final int OTYPE_INTBOOL = 3;
 
     /** Option type: enumeration (1 of several possible choices, described with text strings,
