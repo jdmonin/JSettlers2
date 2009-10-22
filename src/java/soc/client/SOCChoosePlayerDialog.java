@@ -169,15 +169,15 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
         int space = 10;
         int bwidth = (width - ((number - 1 + 2) * space)) / number;
 
-        /* put the dialog in the center of the game window */
+        /* put the dialog in the top-center of the game window */
         if (! didSetLocation)
         {
             int piX = pi.getInsets().left;
             int piY = pi.getInsets().top;
-            int piWidth = pi.getSize().width - pi.getInsets().left - pi.getInsets().right;
-            int piHeight = pi.getSize().height - pi.getInsets().top - pi.getInsets().bottom;
-
-            setLocation(piX + ((piWidth - width) / 2), piY + ((piHeight - height) / 2));
+            final int piWidth = pi.getSize().width - piX - pi.getInsets().right;
+            piX += pi.getLocation().x;
+            piY += pi.getLocation().y;
+            setLocation(piX + ((piWidth - width) / 2), piY + 50);
             didSetLocation = true;
         }
 
