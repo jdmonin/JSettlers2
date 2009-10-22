@@ -351,7 +351,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         setForeground(COLOR_FOREGROUND);
         setFont(new Font("Helvetica", Font.PLAIN, 10));
 
-        blankStandIn = new ColorSquare(ColorSquare.CHECKBOX, false, pcolor);
+        blankStandIn = new ColorSquare(pcolor, "One moment...");
         blankStandIn.setVisible(false);
         // playerinterface.initInterfaceElements will add blankStandIn to its layout, and set its size/position.
 
