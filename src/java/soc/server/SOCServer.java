@@ -191,6 +191,7 @@ public class SOCServer extends Server
 
     /**
      * Did the command line include --option / -o to set {@link SOCGameOption game option} values?
+     * Checked in constructors for possible stderr option-values printout.
      * @since 1.1.07
      */
     public static boolean hasSetGameOptions = false;
@@ -265,6 +266,10 @@ public class SOCServer extends Server
     /**
      * Create a Settlers of Catan server listening on port p.
      * You must start its thread yourself.
+     *<P>
+     * In 1.1.07 and later, will also print game options to stderr if
+     * any option defaults require a minimum client version, or if 
+     * {@link #hasSetGameOptions} is set.
      *
      * @param p    the port that the server listens on
      * @param mc   the maximum number of connections allowed
@@ -282,6 +287,10 @@ public class SOCServer extends Server
     /**
      * Create a Settlers of Catan server listening on local stringport s.
      * You must start its thread yourself.
+     *<P>
+     * In 1.1.07 and later, will also print game options to stderr if
+     * any option defaults require a minimum client version, or if 
+     * {@link #hasSetGameOptions} is set.
      *
      * @param s    the stringport that the server listens on
      * @param mc   the maximum number of connections allowed
@@ -297,7 +306,7 @@ public class SOCServer extends Server
 
     /**
      * Common init for both constructors.
-     * 
+     *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
      */
@@ -334,6 +343,18 @@ public class SOCServer extends Server
         gameTimeoutChecker.start();
         this.databaseUserName = databaseUserName;
         this.databasePassword = databasePassword;
+
+        /**
+         * Print game options if we've set them on commandline, or if
+         * any option defaults require a minimum client version.
+         */
+        if (hasSetGameOptions || (SOCGameOption.optionsMinimumVersion(SOCGameOption.getAllKnownOptions()) > -1))
+        {
+            Thread.yield();  // wait for other output to appear first
+            try { Thread.sleep(200); } catch (InterruptedException ie) {}
+
+            printGameOptions();
+        }
     }
 
     /**
@@ -7851,12 +7872,8 @@ public class SOCServer extends Server
         SOCServer server = new SOCServer(port, mc, args[2], args[3]);
         server.setPriority(5);
         server.start();
-        if (hasSetGameOptions)
-        {
-            Thread.yield();  // wait for other output to appear first
-            try { Thread.sleep(200); } catch (InterruptedException ie) {} 
 
-            printGameOptions();
-        }
+        // SOCServer constructor will also print game options if we've set them on
+        // commandline, or if any option defaults require a minimum client version.
     }
 }
