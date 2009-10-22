@@ -126,7 +126,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /***  settlement  ***/
     private static final int[] settlementX = { -7, 0, 7, 7, -7, -7, 7 };
-    private static final int[] settlementY = { -7, -15, -7, 5, 5, -7, -7 };
+    private static final int[] settlementY = { -7, -14, -7, 5, 5, -7, -7 };
 
     /***  city  ***/
     private static final int[] cityX = 
