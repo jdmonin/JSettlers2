@@ -682,7 +682,15 @@ public class NewGameOptionsFrame extends Frame
                 if ((op.optType == SOCGameOption.OTYPE_STR)
                     || (op.optType == SOCGameOption.OTYPE_STRHIDE))
                 {
-                    op.setStringValue(txt);
+                    try
+                    {
+                        op.setStringValue(txt);
+                    } catch (IllegalArgumentException ex)
+                    {
+                        allOK = false;
+                        msgText.setText("Please use only a single line of text here.");
+                        ctrl.requestFocusInWindow();
+                    }
                 } else {
                     try   // OTYPE_INT, OTYPE_INTBOOL
                     {

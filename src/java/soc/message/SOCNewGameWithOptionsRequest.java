@@ -136,7 +136,9 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
      * Parse the command String into a NewGameWithOptionsRequest message
      *
      * @param s   the String to parse
-     * @return    a NewGameWithOptionsRequest message, or null of the data is garbled
+     * @return    a NewGameWithOptionsRequest message, or null if the data is garbled;
+     *            this would include string-valued options which fail
+     *            {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
     public static SOCNewGameWithOptionsRequest parseDataStr(String s)
     {
