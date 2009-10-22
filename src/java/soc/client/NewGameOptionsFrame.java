@@ -327,24 +327,25 @@ public class NewGameOptionsFrame extends Frame
                 break;
 
             case SOCGameOption.OTYPE_INT:
-                // IntTextField or Choice (popup menu)
-                initInterface_Opt1(op, initOption_int(op), bp, gbl, gbc);
-                break;
-
             case SOCGameOption.OTYPE_INTBOOL:
+            case SOCGameOption.OTYPE_ENUMBOOL:
                 // Special handling: descriptive text may have
-                // "#" as a placeholder for where textfield goes
+                // "#" as a placeholder for where int/enum value is specified
+                // (IntTextField or Choice-dropdown)
 
-                Checkbox cb2 = new Checkbox();
-                controlsOpts.put(cb2, op);
-                cb2.setState(op.getBoolValue());
-                cb2.setEnabled(! readOnly);
-                // cb2.addActionListener(this);
-                gbc.gridwidth = 1;
-                gbl.setConstraints(cb2, gbc);
-                bp.add(cb2);
-                if (! readOnly)
-                    boolOptCheckboxes.put(op.optKey, cb2);
+                if (op.optType != SOCGameOption.OTYPE_INT)  // no bool for _INT
+                {
+                    Checkbox cb2 = new Checkbox();
+                    controlsOpts.put(cb2, op);
+                    cb2.setState(op.getBoolValue());
+                    cb2.setEnabled(! readOnly);
+                    // cb2.addActionListener(this);
+                    gbc.gridwidth = 1;
+                    gbl.setConstraints(cb2, gbc);
+                    bp.add(cb2);
+                    if (! readOnly)
+                        boolOptCheckboxes.put(op.optKey, cb2);
+                }
 
                 final int placeholderIdx = op.optDesc.indexOf('#');
                 Panel optp = new Panel();  // with FlowLayout
@@ -371,7 +372,11 @@ public class NewGameOptionsFrame extends Frame
                 }
 
                 // Textfield or Choice at placeholder position
-                Component intbc = initOption_int(op);
+                Component intbc;
+                if ((op.optType != SOCGameOption.OTYPE_ENUMBOOL))
+                    intbc = initOption_int(op);
+                else
+                    intbc = initOption_enum(op);
                 controlsOpts.put(intbc, op);
                 intbc.setEnabled(! readOnly);
                 optp.add(intbc);
@@ -383,7 +388,8 @@ public class NewGameOptionsFrame extends Frame
                         ((Choice) intbc).addItemListener(this);
                 }
 
-                // Any text to the right of placeholder?
+                // Any text to the right of placeholder?  Also creates
+                // the text label if there is no placeholder (placeholderIdx == -1).
                 if (placeholderIdx + 1 < op.optDesc.length())
                 {
                     L = new Label(op.optDesc.substring(placeholderIdx + 1).trim());
@@ -528,6 +534,8 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Create a popup menu for the choices of this enum.
+     * @param op Game option, of type {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
+     *           or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
      */
     private Choice initOption_enum(SOCGameOption op)
     {
@@ -700,7 +708,7 @@ public class NewGameOptionsFrame extends Frame
             }
             else if (ctrl instanceof Choice)
             {
-                // this works with OTYPE_INT, OTYPE_INTBOOL, OTYPE_ENUM
+                // this works with OTYPE_INT, OTYPE_INTBOOL, OTYPE_ENUM, OTYPE_ENUMBOOL
                 int chIdx = ((Choice) ctrl).getSelectedIndex();  // 0 to n-1
                 if (chIdx != -1)
                     op.setIntValue(chIdx + op.minIntValue);
@@ -797,9 +805,9 @@ public class NewGameOptionsFrame extends Frame
     }
 
     /**
-     * When {@link SOCGameOption#OTYPE_INTBOOL}'s Choice value is changed, set its checkbox. (itemListener)
+     * Set the checkbox when the popup-menu Choice value is changed for a
+     * {@link SOCGameOption#OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL}. (ItemListener)
      * @param e textevent from a Choice in {@link #controlsOpts}
-     * @since 1.1.07
      */
     public void itemStateChanged(ItemEvent e)
     {

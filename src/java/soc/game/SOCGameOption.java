@@ -222,13 +222,18 @@ public class SOCGameOption implements Cloneable
      */
     public static final int OTYPE_ENUM = 4;
 
+    /** Option type: enumeration + boolean; see {@link #OTYPE_ENUM}.
+     *  Like {@link #OTYPE_INTBOOL}, both {@link #boolValue} and {@link #intValue} fields are used.
+     */
+    public static final int OTYPE_ENUMBOOL = 5;
+
     /** Option type: text string (max string length is {@link #maxIntValue}, default value is "") */
-    public static final int OTYPE_STR = 5;
+    public static final int OTYPE_STR = 6;
 
     /** Option type: text string (like {@link #OTYPE_STR}) but hidden from view; is NOT encrypted,
      *  but contents show up as "*" when typed into a text field.
      */
-    public static final int OTYPE_STRHIDE = 6;
+    public static final int OTYPE_STRHIDE = 7;
 
     /** Highest OTYPE value known at this version */
     public static final int OTYPE_MAX = OTYPE_STRHIDE;  // OTYPE_* - adj OTYPE_MAX if adding new type
@@ -246,6 +251,7 @@ public class SOCGameOption implements Cloneable
      * <LI> {@link #OTYPE_INTBOOL} Int plus bool (Ex. [x] no robber rolls in first _5_ turns)
      * <LI> {@link #OTYPE_ENUM} Enumerated-choice (Ex. Standard vs Seafarers):
      *        Stored like integer {@link #OTYPE_INT} in range 1-n, described to user with text strings.
+     * <LI> {@link #OTYPE_ENUMBOOL} Enum plus bool; stored like {@link #OTYPE_INTBOOL}.
      * <LI> {@link #OTYPE_STR} short text string: max string length is {@link #maxIntValue}; default value is the empty string.
      * <LI> {@link #OTYPE_STRHIDE} text string (like {@link #OTYPE_STR}) but hidden from view; is NOT encrypted.
      *</UL>
@@ -277,15 +283,15 @@ public class SOCGameOption implements Cloneable
 
     /**
      * Should we drop this option from game options, and not send over the network (to reduce overhead),
-     * if the value is un-set or blank? (un-set for {@link #OTYPE_BOOL} or {@link #OTYPE_INTBOOL},
-     * blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE})
+     * if the value is un-set or blank? (un-set for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
+     * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE})
      * Only recommended for seldom-used options.
      * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable)}.
      * Once this flag is set for an option, it should not be un-set if the
      * option is changed in a later version.
      *<P>
-     * For {@link #OTYPE_INTBOOL}, both the integer and boolean values are checked
-     * against defaults.
+     * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
+     * boolean values are checked against defaults.
      */
     public final boolean dropIfUnused;  // OTYPE_* - mention in javadoc if this applies to the new type.
 
@@ -308,14 +314,15 @@ public class SOCGameOption implements Cloneable
     /**
      * Descriptive text for the option. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
-     * If {@link #OTYPE_INTBOOL}, may contain a placeholder '#' where the value is typed onscreen.
+     * If option type is integer-valued ({@link #OTYPE_ENUM}, {@link #OTYPE_INTBOOL}, etc),
+     * may contain a placeholder '#' where the value is typed onscreen.
      * For {@link #OTYPE_UNKNOWN}, an empty string.
      */
     public final String optDesc;   // OTYPE_* - if a new type is added, update this field's javadoc.
 
     /**
-     * For type {@link #OTYPE_ENUM}, descriptive text for each possible value,
-     * otherwise null.  If a value is added or changed in a later version, the option's
+     * For type {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL}, descriptive text for each possible value;
+     * null for other types.  If a value is added or changed in a later version, the option's
      * {@link #lastModVersion} field must be updated, so server/client will know
      * to ask for the proper version with all available options.
      * Although the option's intVals are in the range 1 to n, this array is indexed 0 to n-1.
@@ -449,10 +456,44 @@ public class SOCGameOption implements Cloneable
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
         int defaultValue, String[] enumVals, String desc)
-        throws IllegalArgumentException 
+        throws IllegalArgumentException
     {
-	this(OTYPE_ENUM, key, minVers, lastModVers, false, defaultValue,
-	     1, enumVals.length, false, enumVals, desc);
+        this(OTYPE_ENUM, key, minVers, lastModVers, false, defaultValue,
+             1, enumVals.length, false, enumVals, desc);
+    }
+
+    /**
+     * Create a new enumerated + boolean game option.  Type is {@link #OTYPE_ENUMBOOL}.
+     * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
+     *
+     * @param key     Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     * @param minVers Minimum client version if this option is set (boolean is true), or -1
+     * @param lastModVers Last-modified version for this option, or version which added it
+     * @param defaultBoolValue Default value (true if set, false if not set)
+     * @param defaultIntValue Default int value, in range 1 - n (n == number of possible values)
+     * @param enumVals text to display for each possible choice of this option
+     * @param dropIfUnused If this option's bool value is unset, and its int value is the default,
+     *           should we not add it to game options
+     *           or send over the network (to reduce overhead)?
+     *           Only recommended if game behavior without the option is well-established
+     *           (for example, trading is allowed unless option NT is present).
+     * @param desc Descriptive brief text, to appear in the options dialog; may
+     *             contain a placeholder character '#' where the enum's popup-menu goes.
+     *             If no placeholder is found, the value field appears at left,
+     *             like boolean options.
+     * @throws IllegalArgumentException if defaultValue < minValue or is > maxValue,
+     *        or if key length is > 3 or not alphanumeric,
+     *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if minVers or lastModVers is under 1000 but not -1
+     */
+    public SOCGameOption(String key, int minVers, int lastModVers, boolean defaultBoolValue,
+        int defaultIntValue, String[] enumVals, boolean dropIfUnused, String desc)
+        throws IllegalArgumentException
+    {
+        this(OTYPE_ENUMBOOL, key, minVers, lastModVers,
+             defaultBoolValue, defaultIntValue,
+             1, enumVals.length, dropIfUnused, enumVals, desc);
     }
 
     /**
@@ -501,7 +542,7 @@ public class SOCGameOption implements Cloneable
      *                 value field is based on the number of digits in maxValue.
      * @param dropIfUnused If this option's value is blank or unset, should we not add it to game options?
      *                 See {@link #dropIfUnused} javadoc for more details.
-     * @param enumVals Possible choice texts for {@link #OTYPE_ENUM}, or null;
+     * @param enumVals Possible choice texts for {@link #OTYPE_ENUM} or {@link #OTYPE_ENUMBOOL}, or null;
      *                 value(s) must pass same checks as desc.
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
@@ -633,7 +674,8 @@ public class SOCGameOption implements Cloneable
      * The current value of an option can change its minimum version.
      * For example, a 5- or 6-player game will need a newer client than 4 players,
      * but option "PL"'s {@link #minVersion} is -1, to allow 2- or 3-player games with any client.
-     * For option types {@link #OTYPE_BOOL} and {@link #OTYPE_INTBOOL}, the minimum
+     * For boolean-valued option types ({@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL} and
+     * {@link #OTYPE_INTBOOL}), the minimum
      * value is -1 unless {@link #getBoolValue()} is true (that is, unless the option is set).
      *
      * @return minimum version, or -1;
@@ -642,7 +684,8 @@ public class SOCGameOption implements Cloneable
      */
     public int getMinVersion()
     {
-        if ((optType == OTYPE_BOOL) || (optType == OTYPE_INTBOOL))  // OTYPE_*: check here if boolean-valued
+        if ((optType == OTYPE_BOOL) || (optType == OTYPE_INTBOOL)
+                || (optType == OTYPE_ENUMBOOL))  // OTYPE_*: check here if boolean-valued
         {
             if (! boolValue)
                 return -1;  // Option not set: any client version is OK
@@ -723,6 +766,7 @@ public class SOCGameOption implements Cloneable
             break;
 
         case OTYPE_INTBOOL:
+        case OTYPE_ENUMBOOL:
             oKnown.boolValue = ocurr.boolValue;
             oKnown.setIntValue(ocurr.intValue);
             break;
@@ -874,6 +918,7 @@ public class SOCGameOption implements Cloneable
             break;
 
         case OTYPE_INTBOOL:
+        case OTYPE_ENUMBOOL:
             sb.append(boolValue ? 't' : 'f');
             sb.append(intValue);
             break;
@@ -989,6 +1034,7 @@ public class SOCGameOption implements Cloneable
                 break;
 
             case OTYPE_INTBOOL:
+            case OTYPE_ENUMBOOL:
                 try
                 {
                     final char ch0 = optval.charAt(0);
@@ -1097,8 +1143,8 @@ public class SOCGameOption implements Cloneable
      * If any are unknown, return false. Will still check (and clip) the known ones.
      * If any boolean or string-valued options are default, and unset/blank, and
      * their {@link #dropIfUnused} flag is set, remove them from newOpts.
-     * For {@link #OTYPE_INTBOOL}, both the integer and boolean values are checked
-     * against defaults.
+     * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
+     * boolean values are checked against defaults.
      *
      * @param newOpts Set of SOCGameOptions to check against knownOpts;
      *            an option's current value will be changed if it's outside of
@@ -1149,6 +1195,7 @@ public class SOCGameOption implements Cloneable
 		case OTYPE_INT:
 		case OTYPE_INTBOOL:
 		case OTYPE_ENUM:
+                case OTYPE_ENUMBOOL:
 		    {
 			int iv = op.intValue;
 			if (iv < knownOp.minIntValue)
@@ -1163,8 +1210,8 @@ public class SOCGameOption implements Cloneable
 			}
 
                         // integer-type options are not subject to dropIfUnused,
-                        // except for OTYPE_INTBOOL.
-                        if ((op.optType == OTYPE_INTBOOL)
+                        // except when also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
+                        if (((op.optType == OTYPE_INTBOOL) || (op.optType == OTYPE_ENUMBOOL))
                                && knownOp.dropIfUnused
                                && (iv == knownOp.defaultIntValue)
                                && (! op.boolValue))
@@ -1218,6 +1265,9 @@ public class SOCGameOption implements Cloneable
 
         case OTYPE_ENUM:
             otname = "ENUM";  break;
+
+        case OTYPE_ENUMBOOL:
+            otname = "ENUMBOOL";  break;
 
         case OTYPE_STR:
             otname = "STR";  break;

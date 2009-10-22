@@ -856,9 +856,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Is this boolean game option currently set to true?
-     * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL}
-     *               or {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
+     * Is this boolean-valued game option currently set to true?
+     * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
+     *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
+     *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
      * @return True if option is set, false if not set or not defined in this game's options
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
@@ -873,10 +874,11 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Is this boolean game option currently set to true?
+     * Is this boolean-valued game option currently set to true?
      * @param opts A hashtable of {@link SOCGameOption}, or null
-     * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL}
-     *               or {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
+     * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
+     *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
+     *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
      * @return True if option is set, false if not set or not defined in this game's options
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
@@ -899,7 +901,8 @@ public class SOCGame implements Serializable, Cloneable
      * What is this integer game option's current value?
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
-     *               or {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
+     *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
+     *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
      *         or 0 if not defined in this game's options;
      *         OTYPE_ENUM's choices give an intVal in range 1 to n.
@@ -919,10 +922,11 @@ public class SOCGame implements Serializable, Cloneable
      * @param opts A hashtable of {@link SOCGameOption}, or null
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
-     *               or {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
+     *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
+     *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
      *         or 0 if not defined in this game's options;
-     *         OTYPE_ENUM's choices give an intVal in range 1 to n.
+     *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)

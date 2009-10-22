@@ -71,9 +71,10 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
     {
         // OTYPE_*
         super(GAMEOPTIONINFO, null,
-            new String[12 + ((op.optType != SOCGameOption.OTYPE_ENUM)
+            new String[12 + ( ((op.optType != SOCGameOption.OTYPE_ENUM)
+                               && (op.optType != SOCGameOption.OTYPE_ENUMBOOL))
                     ? 0
-                    : op.maxIntValue)]);
+                    : op.maxIntValue ) ]);
         opt = op;
         pa[0] = op.optKey;
         pa[1] = Integer.toString(op.optType);
@@ -96,8 +97,8 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         pa[10] = (op.dropIfUnused ? "t" : "f");
         pa[11] = op.optDesc;
 
-        // for OTYPE_ENUM, pa[12+] are the enum choices' string values
-        if (op.optType == SOCGameOption.OTYPE_ENUM)
+        // for OTYPE_ENUM, _ENUMBOOL, pa[12+] are the enum choices' string values
+        if ((op.optType == SOCGameOption.OTYPE_ENUM) || (op.optType == SOCGameOption.OTYPE_ENUMBOOL))
             System.arraycopy(op.enumVals, 0, pa, 12, op.enumVals.length);
     }
 
@@ -121,7 +122,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *
      * @throws IllegalArgumentException if pa.length < 11, or type is not a valid {@link SOCGameOption.optType};
-     *      if type isn't {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}, pa.length must == 12 (or 11 for OTYPE_UNKNOWN).
+     *      if type isn't {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM} or ENUMBOOL, pa.length must == 12 (or 11 for OTYPE_UNKNOWN).
      * @throws NumberFormatException    if pa integer-field contents are incorrectly formatted.
      */
     protected SOCGameOptionInfo(String[] pa)
@@ -157,7 +158,9 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	}
         final boolean skip_def = (pa[10].equals("t"));
 
-	if ((otyp != SOCGameOption.OTYPE_ENUM) && (pa.length != 11) && (pa.length != 12))
+        if ((pa.length != 11) && (pa.length != 12)
+              && (otyp != SOCGameOption.OTYPE_ENUM)
+              && (otyp != SOCGameOption.OTYPE_ENUMBOOL))
 	    throw new IllegalArgumentException("pa.length");
 
 	switch (otyp)  // OTYPE_*
@@ -188,10 +191,20 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 		System.arraycopy(pa, 12, choices, 0, ival_max);
 	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, pa[11]);  // skip_def ignored
 	        opt.setIntValue(ival_cur);
-	    }
+            }
 	    break;
 
-	case SOCGameOption.OTYPE_STR:
+        case SOCGameOption.OTYPE_ENUMBOOL:
+            {
+                String[] choices = new String[ival_max];
+                System.arraycopy(pa, 12, choices, 0, ival_max);
+                opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, choices, skip_def, pa[11]);
+                opt.setBoolValue(bval_cur);
+                opt.setIntValue(ival_cur);
+            }
+            break;
+
+        case SOCGameOption.OTYPE_STR:
 	case SOCGameOption.OTYPE_STRHIDE:
 	    opt = new SOCGameOption
 		(pa[0], oversmin, oversmod, ival_max, (otyp == SOCGameOption.OTYPE_STRHIDE), skip_def, pa[11]);
