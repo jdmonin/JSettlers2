@@ -187,6 +187,8 @@ public class SOCGameOption implements Cloneable
         //       list of "current known options" in javadoc just above.
 
         /*
+                // OTYPE_* - Add a commented-out debug of the new type, for testing the new type.
+
         opt.put("DEBUGENUM", new SOCGameOption
                 ("DEBUGENUM", 1107, 1107, 
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option # enum"));

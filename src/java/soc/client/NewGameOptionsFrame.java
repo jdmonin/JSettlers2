@@ -284,6 +284,8 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Interface setup: Options. 
      * One row per option.
+     * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
+     *<P>
      * If options are null, put a label with {@link #TXT_SERVER_TOO_OLD}.
      */
     private void initInterface_Options(Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
@@ -320,106 +322,33 @@ public class NewGameOptionsFrame extends Frame
             switch (op.optType)  // OTYPE_*
             {
             case SOCGameOption.OTYPE_BOOL:
-                Checkbox cb = new Checkbox();
-                cb.setState(op.getBoolValue());
-                // cb.addActionListener(this);
-                initInterface_Opt1(op, cb, bp, gbl, gbc);
+                initInterface_Opt1(op, new Checkbox(), true, false, bp, gbl, gbc);
                 break;
 
             case SOCGameOption.OTYPE_INT:
             case SOCGameOption.OTYPE_INTBOOL:
-            case SOCGameOption.OTYPE_ENUMBOOL:
-                // Special handling: descriptive text may have
-                // "#" as a placeholder for where int/enum value is specified
-                // (IntTextField or Choice-dropdown)
-
-                if (op.optType != SOCGameOption.OTYPE_INT)  // no bool for _INT
                 {
-                    Checkbox cb2 = new Checkbox();
-                    controlsOpts.put(cb2, op);
-                    cb2.setState(op.getBoolValue());
-                    cb2.setEnabled(! readOnly);
-                    // cb2.addActionListener(this);
-                    gbc.gridwidth = 1;
-                    gbl.setConstraints(cb2, gbc);
-                    bp.add(cb2);
-                    if (! readOnly)
-                        boolOptCheckboxes.put(op.optKey, cb2);
+                    final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
+                    initInterface_Opt1(op, initOption_int(op), hasCheckbox, true, bp, gbl, gbc);
                 }
-
-                final int placeholderIdx = op.optDesc.indexOf('#');
-                Panel optp = new Panel();  // with FlowLayout
-                try
-                {
-                    FlowLayout fl = (FlowLayout) (optp.getLayout());
-                    fl.setAlignment(FlowLayout.LEFT);
-                    fl.setVgap(0);
-                    fl.setHgap(0);
-                }
-                catch (Throwable fle) {}
-
-                // Any text to the left of placeholder in optDesc?
-                if (placeholderIdx > 0)
-                {
-                    L = new Label(op.optDesc.substring(0, placeholderIdx - 1).trim());
-                    L.setForeground(LABEL_TXT_COLOR);
-                    optp.add(L);
-                    if (! readOnly)
-                    {
-                        controlsOpts.put(L, op);
-                        L.addMouseListener(this);  // Click label to toggle checkbox
-                    }
-                }
-
-                // Textfield or Choice at placeholder position
-                Component intbc;
-                if ((op.optType != SOCGameOption.OTYPE_ENUMBOOL))
-                    intbc = initOption_int(op);
-                else
-                    intbc = initOption_enum(op);
-                controlsOpts.put(intbc, op);
-                intbc.setEnabled(! readOnly);
-                optp.add(intbc);
-                if (! readOnly)
-                {
-                    if (intbc instanceof TextField)
-                        ((TextField) intbc).addTextListener(this);
-                    else if (intbc instanceof Choice)
-                        ((Choice) intbc).addItemListener(this);
-                }
-
-                // Any text to the right of placeholder?  Also creates
-                // the text label if there is no placeholder (placeholderIdx == -1).
-                if (placeholderIdx + 1 < op.optDesc.length())
-                {
-                    L = new Label(op.optDesc.substring(placeholderIdx + 1).trim());
-                    L.setForeground(LABEL_TXT_COLOR);
-                    optp.add(L);
-                    if (! readOnly)
-                    {
-                        controlsOpts.put(L, op);
-                        L.addMouseListener(this);  // Click label to toggle checkbox
-                    }
-                }
-
-                gbc.gridwidth = GridBagConstraints.REMAINDER;
-                gbl.setConstraints(optp, gbc);
-                bp.add(optp);
-
                 break;
 
             case SOCGameOption.OTYPE_ENUM:
+            case SOCGameOption.OTYPE_ENUMBOOL:
                 // Choice (popup menu)
-                initInterface_Opt1(op, initOption_enum(op), bp, gbl, gbc);
+                {
+                    final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
+                    initInterface_Opt1(op, initOption_enum(op), hasCheckbox, true, bp, gbl, gbc);
+                }
                 break;
 
             case SOCGameOption.OTYPE_STR:
             case SOCGameOption.OTYPE_STRHIDE:
                 {
-                    int txtwid = op.maxIntValue;
+                    int txtwid = op.maxIntValue;  // used as max length
                     if (txtwid > 20)
                         txtwid = 20;
-                    boolean doHide = (op.optType == SOCGameOption.OTYPE_STRHIDE);
+                    final boolean doHide = (op.optType == SOCGameOption.OTYPE_STRHIDE);
                     String txtcontent = (doHide ? "" : op.getStringValue());
                     TextField txtc = new TextField(txtcontent, txtwid);
                     if (doHide)
@@ -429,21 +358,10 @@ public class NewGameOptionsFrame extends Frame
                         else
                             txtc.setEchoChar('*');
                     }
-                    controlsOpts.put(txtc, op);
-                    txtc.setEnabled(! readOnly);
                     if (! readOnly)
                         txtc.addKeyListener(this);  // for ESC/ENTER
-                    // tf.addActionListener(this);
-                    gbc.gridwidth = 1;
-                    gbl.setConstraints(txtc, gbc);
-                    bp.add(txtc);
+                    initInterface_Opt1(op, txtc, false, false, bp, gbl, gbc);
                 }
-
-                gbc.gridwidth = GridBagConstraints.REMAINDER;
-                L = new Label(op.optDesc);
-                L.setForeground(LABEL_TXT_COLOR);
-                gbl.setConstraints(L, gbc);
-                bp.add(L);
                 break;
 
                 // default: unknown, see above
@@ -453,38 +371,107 @@ public class NewGameOptionsFrame extends Frame
     }
 
     /**
-     * Add one GridBagLayout row with this game option (component and label).
+     * Add one GridBagLayout row with this game option (component and label(s)).
+     * The option's descriptive text may have "#" as a placeholder for where
+     * int/enum value is specified (IntTextField or Choice-dropdown).
      * @param op  Option data
-     * @param oc  Component with option choices (popup menu, textfield, etc)
+     * @param oc  Component with option choices (popup menu, textfield, etc).
+     *            If oc is a {@link TextField} or {@link Choice}, and hasCB,
+     *            changing the component's value will set the checkbox.
+     * @param hasCB  Add a checkbox?  If oc is {@link Checkbox}, set this true;
+     *            it won't add a second checkbox.
+     * @param allowPH  Allow the "#" placeholder within option desc?
      * @param bp  Add to this panel
      * @param gbl Use this layout
      * @param gbc Use these constraints; gridwidth will be set to 1 and then REMAINDER
      */
     private void initInterface_Opt1(SOCGameOption op, Component oc,
+            boolean hasCB, boolean allowPH,
             Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
-        controlsOpts.put(oc, op);
-        oc.setEnabled(! readOnly);
+        Label L;
+
         gbc.gridwidth = 1;
-        gbl.setConstraints(oc, gbc);
-        bp.add(oc);
+        if (hasCB)
+        {
+            Checkbox cb;
+            if (oc instanceof Checkbox)
+                cb = (Checkbox) oc;
+            else
+                cb = new Checkbox();
+            controlsOpts.put(cb, op);
+            cb.setState(op.getBoolValue());
+            cb.setEnabled(! readOnly);
+            gbl.setConstraints(cb, gbc);
+            bp.add(cb);
+            if (! readOnly)
+                boolOptCheckboxes.put(op.optKey, cb);
+        } else {
+            L = new Label();  // to fill checkbox's column
+            gbl.setConstraints(L, gbc);
+            bp.add(L);
+        }
+
+        final int placeholderIdx = allowPH ? op.optDesc.indexOf('#') : -1;
+        Panel optp = new Panel();  // with FlowLayout
+        try
+        {
+            FlowLayout fl = (FlowLayout) (optp.getLayout());
+            fl.setAlignment(FlowLayout.LEFT);
+            fl.setVgap(0);
+            fl.setHgap(0);
+        }
+        catch (Throwable fle) {}
+
+        // Any text to the left of placeholder in optDesc?
+        if (placeholderIdx > 0)
+        {
+            L = new Label(op.optDesc.substring(0, placeholderIdx - 1).trim());
+            L.setForeground(LABEL_TXT_COLOR);
+            optp.add(L);
+            if (hasCB && ! readOnly)
+            {
+                controlsOpts.put(L, op);
+                L.addMouseListener(this);  // Click label to toggle checkbox
+            }
+        }
+
+        // TextField or Choice at placeholder position
+        if (! (oc instanceof Checkbox))
+        {
+            controlsOpts.put(oc, op);
+            oc.setEnabled(! readOnly);
+            optp.add(oc);
+            if (hasCB && ! readOnly)
+            {
+                if (oc instanceof TextField)
+                    ((TextField) oc).addTextListener(this);
+                else if (oc instanceof Choice)
+                    ((Choice) oc).addItemListener(this);
+            }
+        }
+
+        // Any text to the right of placeholder?  Also creates
+        // the text label if there is no placeholder (placeholderIdx == -1).
+        if (placeholderIdx + 1 < op.optDesc.length())
+        {
+            L = new Label(op.optDesc.substring(placeholderIdx + 1).trim());
+            L.setForeground(LABEL_TXT_COLOR);
+            optp.add(L);
+            if (hasCB && ! readOnly)
+            {
+                controlsOpts.put(L, op);
+                L.addMouseListener(this);  // Click label to toggle checkbox
+            }
+        }
 
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        Label L = new Label(op.optDesc);
-        L.setForeground(LABEL_TXT_COLOR);
-        gbl.setConstraints(L, gbc);
-        bp.add(L);
-
-        if ((! readOnly) && (oc instanceof Checkbox))
-        {
-            controlsOpts.put(L, op);
-            boolOptCheckboxes.put(op.optKey, oc);
-            L.addMouseListener(this);
-        }
+        gbl.setConstraints(optp, gbc);
+        bp.add(optp);      
     }
 
     /**
-     * For use in {@link #initOption_int(SOCGameOption)}, to determine
+     * Natural log of 10. For use in {@link #initOption_int(SOCGameOption)}, to determine
      * number of digits needed for the option in a textfield
      */
     private static final double LOG_10 = Math.log(10.0);
