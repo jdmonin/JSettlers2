@@ -48,9 +48,8 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.Hashtable;
-import java.util.Map;
+import java.util.TreeSet;
 
 import soc.game.SOCGameOption;
 import soc.message.SOCMessage;
@@ -302,20 +301,18 @@ public class NewGameOptionsFrame extends Frame
             return;  // <---- Early return: no options ----
         }
 
-        // TODO sort options
-
         gbc.anchor = GridBagConstraints.WEST;
 
-        // use Iterator so we can remove from the hash if unknown
-
-        for (Iterator ikv = opts.entrySet().iterator();
-            ikv.hasNext(); )
+        // Sort and lay out options; remove unknowns from opts.
+        // TreeSet sorts game options by description, using gameopt.compareTo.
+        // The array lets us remove from opts without disrupting an iterator.
+        Object[] optArr =  new TreeSet(opts.values()).toArray();
+        for (int i = 0; i < optArr.length; ++i)
         {
-            Map.Entry okv = (Map.Entry) ikv.next();
-            SOCGameOption op = (SOCGameOption) okv.getValue();
+            SOCGameOption op = (SOCGameOption) optArr[i];
             if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             {
-                ikv.remove();
+                opts.remove(op.optKey);
                 continue;  // <-- Removed, Go to next entry --
             }
 

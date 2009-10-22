@@ -68,7 +68,7 @@ import soc.message.SOCMessage;
  * @author Jeremy D. Monin <jeremy@nand.net>
  * @since 1.1.07
  */
-public class SOCGameOption implements Cloneable
+public class SOCGameOption implements Cloneable, Comparable
 {
     /**
      * Set of "known options".
@@ -1323,4 +1323,25 @@ public class SOCGameOption implements Cloneable
         packValue(sb);
         return sb.toString();
     }
+
+    /**
+     * Compare two options, for display purposes. ({@link Comparable} interface)
+     * Two gameoptions are considered equal if they have the same {@link #optKey}.
+     * Greater/lesser is determined by {@link #optDesc}.{@link String#compareTo(String) compareTo()}.
+     * @param other A SOCGameOption to compare, or another object;  if other isn't a
+     *              gameoption, the {@link #hashCode()}s are compared.
+     */
+    public int compareTo(Object other)
+    {
+        if (other instanceof SOCGameOption)
+        {
+            SOCGameOption oopt = (SOCGameOption) other;
+            if (optKey.equals(oopt.optKey))
+                return 0;
+            else
+                return optDesc.compareTo(oopt.optDesc);
+        }
+        return hashCode() - other.hashCode();
+    }
+
 }
