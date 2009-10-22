@@ -611,23 +611,37 @@ public class NewGameOptionsFrame extends Frame
             return;  // Not a valid game name
         }
 
+        /**
+         * Is this game name already used?
+         * Always check remote server for the requested game name.
+         * Check practice game names only if creating another practice game.
+         */
         boolean gameExists;
         if (forPractice)
             gameExists = (cl.practiceServer != null) && (-1 != cl.practiceServer.getGameState(gmName));
         else
-            gameExists = (cl.serverGames != null) && cl.serverGames.isGame(gmName);
+            gameExists = false;
+        if (cl.serverGames != null)
+            gameExists = gameExists || cl.serverGames.isGame(gmName);
         if (gameExists)
         {
             NotifyDialog.createAndShow(cl, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
             return;
         }
 
-        if (cl.readValidNicknameAndPassword()
-            && readOptsValuesFromControls(checkOptionsMinVers))
+        if (cl.readValidNicknameAndPassword())
         {
-            cl.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR
+            if (readOptsValuesFromControls(checkOptionsMinVers))
+                cl.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR
+            else
+                return;  // readOptsValues will put the err msg in dia's status line
         } else {
-            return;  // TODO if error msg, readvalidnick should update dia's status line; readopts does already
+            // Nickname field is also checked before this dialog is displayed,
+            // so the user must have gone back and changed it.
+            // Can't correct the problem from within this dialog, since the
+            // nickname field (and hint message) is in SOCPlayerClient's panel.
+            NotifyDialog.createAndShow(cl, this, "Please go back and enter a valid nickname for your user.", null, true);
+            return;
         }
 
         dispose();
@@ -776,7 +790,6 @@ public class NewGameOptionsFrame extends Frame
      * When gamename contents change, enable/disable buttons as appropriate. (TextListener)
      * Also handles {@link SOCGameOption#OTYPE_INTBOOL} textfield/checkbox combos.
      * @param e textevent from {@link #gameName}, or from a TextField in {@link #controlsOpts}
-     * @since 1.1.07
      */
     public void textValueChanged(TextEvent e)
     {
