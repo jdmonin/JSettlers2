@@ -181,7 +181,7 @@ public class SOCGameOption implements Cloneable
         opt.put("BC", new SOCGameOption
                 ("BC", -1, 1107, true, 3, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
-                ("NT", 1107, 1107, false, true, "No Trading allowed"));
+                ("NT", 1107, 1107, false, true, "No trading allowed between players"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -517,7 +517,7 @@ public class SOCGameOption implements Cloneable
     {
 	// validate & set option properties:
 
-        if (key.length() > 3)
+        if ((key.length() > 3) && ! key.startsWith("DEBUG"))
             throw new IllegalArgumentException("Key length: " + key);
         if (! isAlphanumericUpcaseAscii(key))
             throw new IllegalArgumentException("Key not alphanumeric: " + key);
@@ -1136,7 +1136,7 @@ public class SOCGameOption implements Cloneable
 	    {
 		allKnown = false;
 	    } else {
-	        // Clip int values, check default values
+	        // Clip int values, check default values, check dropIfUnused
 
 		if (knownOp.lastModVersion != op.lastModVersion)
 		    allKnown = false;
