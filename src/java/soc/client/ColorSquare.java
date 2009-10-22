@@ -36,6 +36,12 @@ import java.awt.event.MouseListener;
  * possibly a number or X in it.  This box can be
  * interactive, or non-interactive.  The possible
  * colors of the box correspond to resources in SoC.
+ *<P>
+ * Default size is {@link #WIDTH} by {@link #HEIGHT} pixels.
+ * Most colorsquares in JSettlers are actually
+ * {@link ColorSquareLarger} instances.
+ * This was easier than changing the values of {@link #WIDTH} and {@link #HEIGHT},
+ * which are used for setting the size of many GUI elements.
  *
  * @author Robert S Thomas
  */
@@ -299,6 +305,12 @@ public class ColorSquare extends Canvas implements MouseListener
         setBackground(c);
     }
 
+    /**
+     * Set the width and height of this ColorSquare.    
+     * Does not need to be a square (w != h is OK).   
+     * @param w width in pixels
+     * @param h height in pixels
+     */
     public void setSize(int w, int h)
     {
         super.setSize(w, h);
@@ -660,7 +672,14 @@ public class ColorSquare extends Canvas implements MouseListener
 
     /**
      * Set bounds (position and size).
+     * Does not need to be a square (w != h is OK).
+     * @param x x-position
+     * @param y y-position
+     * @param w width in pixels
+     * @param h height in pixels
+     *
      * @since 1.1.06
+     * @see java.awt.Component#setBounds(int, int, int, int)
      */
     public void setBounds(int x, int y, int w, int h)
     {
