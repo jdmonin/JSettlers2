@@ -33,7 +33,7 @@ import java.awt.event.MouseListener;
 
 /**
  * This is a square box with a background color and
- * possibly a number or X in it.  This box can be
+ * possibly a number, checkmark, or text in it.  This box can be
  * interactive, or non-interactive.  The possible
  * colors of the box correspond to resources in SoC.
  *<P>
@@ -70,6 +70,13 @@ public class ColorSquare extends Canvas implements MouseListener
     public final static int CHECKBOX = 2;
     public final static int BOUNDED_INC = 3;
     public final static int BOUNDED_DEC = 4;
+    /**
+     * Colorsquare type TEXT displays a short message.
+     * You will have to change the colorsquare's size yourself.
+     * @since 1.1.06
+     */
+    public static final int TEXT = 5;
+
     public final static int WIDTH = 16;
     public final static int HEIGHT = 16;
 
@@ -90,6 +97,7 @@ public class ColorSquare extends Canvas implements MouseListener
 
     int intValue;
     boolean boolValue;
+    private String textValue;  // since 1.1.06
     boolean valueVis;
     int kind;
     int upperBound;
@@ -169,6 +177,29 @@ public class ColorSquare extends Canvas implements MouseListener
     }
 
     /**
+     * Creates a new ColorSquare object with specified background color and
+     * initial value. Type {@link #TEXT}, non-interactive.
+     *<P>
+     * The colorsquare's size is small by default and not changed here, so
+     * be sure to call {@link #setSize(int, int) setSize} or
+     * {@link #setBounds(int, int, int, int) setBounds} to make the square
+     * large enough to display your text. 
+     *<P>
+     * A tooltip with the resource name is created if c is one of the
+     * resource colors defined in ColorSquare (CLAY, WHEAT, etc).
+     *
+     * @param c background color
+     * @param v initial string value
+     *
+     * @since 1.1.06
+     */
+    public ColorSquare(Color c, String v)
+    {
+        this(TEXT, false, c);
+        textValue = v;
+    }
+
+    /**
      * Creates a new ColorSquare of the specified kind and background
      * color. Possibly interactive. For kind = NUMBER, upper=99, lower=0.
      *<P>
@@ -235,6 +266,8 @@ public class ColorSquare extends Canvas implements MouseListener
             break;
 
         case CHECKBOX:
+            // fallthrough
+        case TEXT:
             valueVis = true;
             boolValue = false;
 
@@ -306,8 +339,8 @@ public class ColorSquare extends Canvas implements MouseListener
     }
 
     /**
-     * Set the width and height of this ColorSquare.    
-     * Does not need to be a square (w != h is OK).   
+     * Set the width and height of this ColorSquare.
+     * Does not need to be a square (w != h is OK).
      * @param w width in pixels
      * @param h height in pixels
      */
@@ -730,17 +763,24 @@ public class ColorSquare extends Canvas implements MouseListener
                 case NUMBER:
                 case BOUNDED_INC:
                 case BOUNDED_DEC:
+                case TEXT:
+                    {
+                        String valstring;
+                        if (kind != TEXT)
+                            valstring = Integer.toString(intValue);
+                        else
+                            valstring = textValue;
 
-                    numW = fm.stringWidth(Integer.toString(intValue));
+                        numW = fm.stringWidth(valstring);
 
-                    x = (squareW - numW) / 2;
+                        x = (squareW - numW) / 2;
 
-                    // y = numA + (HEIGHT - numH) / 2; // proper way
-                    // y = 12; // way that works
-                    y = (squareH + ((int)(.6 * numH))) / 2;  // Semi-proper
+                        // y = numA + (HEIGHT - numH) / 2; // proper way
+                        // y = 12; // way that works
+                        y = (squareH + ((int)(.6 * numH))) / 2;  // Semi-proper
 
-                    g.drawString(Integer.toString(intValue), x, y);
-
+                        g.drawString(valstring, x, y);
+                    }
                     break;
 
                 case YES_NO:
