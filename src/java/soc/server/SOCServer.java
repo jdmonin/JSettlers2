@@ -4662,7 +4662,14 @@ public class SOCServer extends Server
 
             if (ga != null)
             {
-                ga.takeMonitor();
+                final String gaName = ga.getName();
+            	if (ga.isGameOptionSet("NT"))
+            	{
+            		messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "Trading is not allowed in this game."));
+            		return;  // <---- Early return: No Trading ----
+            	}
+
+            	ga.takeMonitor();
 
                 try
                 {
@@ -4679,7 +4686,6 @@ public class SOCServer extends Server
                      */
                     if (player != null)
                     {
-                        final String gaName = ga.getName();
                         SOCTradeOffer remadeOffer;
                         {
                             SOCResourceSet offGive = offer.getGiveSet(),
