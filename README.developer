@@ -17,6 +17,13 @@ See VERSIONS.txt for recent changes.
 Current partially-done work:
 	- Refactor SOCMessage classes to use templates
 
+
+For debugging, if you want to inspect the game state at the server or robot:
+	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
+	  send a text msg from a client (the chat textfield), and inspect the game obj at that point
+	To inspect game state at robot, breakpoint robotcli.treat and send a text msg like *BOTLIST* or robot2:current-plans
+
+
 Current TODO list: (Work on these items not yet begun)
 	You can also search the source for TODO for ideas.
 	- Keyboard shortcuts for "roll", "done" buttons
