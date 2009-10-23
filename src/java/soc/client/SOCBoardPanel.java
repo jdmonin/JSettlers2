@@ -1261,33 +1261,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             // for now, draw the placeholder; try to rescale and redraw soon if we can
 
-            Color hexColor;
-            switch (hexType)
-            {
-            case SOCBoard.DESERT_HEX:
-            	hexColor = ColorSquare.DESERT;
-                break;
-            case SOCBoard.CLAY_HEX:
-            	hexColor = ColorSquare.CLAY;
-                break;
-            case SOCBoard.ORE_HEX:
-            	hexColor = ColorSquare.ORE;                
-                break;
-            case SOCBoard.SHEEP_HEX:
-            	hexColor = ColorSquare.SHEEP;
-                break;
-            case SOCBoard.WHEAT_HEX:
-            	hexColor = ColorSquare.WHEAT;
-                break;
-            case SOCBoard.WOOD_HEX:
-            	hexColor = ColorSquare.WOOD;
-                break;
-            default:  // WATER_HEX
-                hexColor = ColorSquare.WATER;
-            }
-
             g.translate(x, y);
-            g.setColor(hexColor);  // TODO refactor the color switch: see drawRobber
+            g.setColor(hexColor(hexType));
             g.fillPolygon(scaledHexCornersX, scaledHexCornersY, 6);
             g.setColor(Color.BLACK);
             g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
@@ -1454,27 +1429,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 rOutline = robberGhostOutline[hexType];
             } else {
                 // find basic color, "ghost" it
-                switch (hexType)
+                rOutline = hexColor(hexType);
+                if (rOutline == ColorSquare.WATER)
                 {
-                case SOCBoard.DESERT_HEX:
-                    rOutline = ColorSquare.DESERT;
-                    break;
-                case SOCBoard.CLAY_HEX:
-                    rOutline = ColorSquare.CLAY;
-                    break;
-                case SOCBoard.ORE_HEX:
-                    rOutline = ColorSquare.ORE;                
-                    break;
-                case SOCBoard.SHEEP_HEX:
-                    rOutline = ColorSquare.SHEEP;
-                    break;
-                case SOCBoard.WHEAT_HEX:
-                    rOutline = ColorSquare.WHEAT;
-                    break;
-                case SOCBoard.WOOD_HEX:
-                    rOutline = ColorSquare.WOOD;
-                    break;
-                default:
                     // Should not happen
                     rOutline = Color.lightGray;
                 }
@@ -3001,6 +2958,46 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
     }
 
+    ///
+    // ----- Utility methods -----
+    ///
+
+    /**
+     * Hex color for a hex resource type
+     * @param hexType  hexType value, as in {@link SOCBoard#DESERT_HEX}, {@link SOCBoard#WOOD_HEX},
+     *                 {@link SOCBoard#WATER_HEX}.
+     *                 Same value and meaning as those in {@link SOCBoard#getHexLayout()}.
+     * @return The corresponding color from ColorSquare, or {@link ColorSquare#WATER} if hexType not recognized.
+     * @since 1.1.07
+     */
+    public static final Color hexColor(int hexType)
+    {
+        Color hexColor;
+        switch (hexType)
+        {
+        case SOCBoard.DESERT_HEX:
+            hexColor = ColorSquare.DESERT;
+            break;
+        case SOCBoard.CLAY_HEX:
+            hexColor = ColorSquare.CLAY;
+            break;
+        case SOCBoard.ORE_HEX:
+            hexColor = ColorSquare.ORE;                
+            break;
+        case SOCBoard.SHEEP_HEX:
+            hexColor = ColorSquare.SHEEP;
+            break;
+        case SOCBoard.WHEAT_HEX:
+            hexColor = ColorSquare.WHEAT;
+            break;
+        case SOCBoard.WOOD_HEX:
+            hexColor = ColorSquare.WOOD;
+            break;
+        default:  // WATER_HEX
+            hexColor = ColorSquare.WATER;
+        }
+        return hexColor;
+    }
 
     /**
      * With a recent board resize, one or more rescaled images still hasn't
