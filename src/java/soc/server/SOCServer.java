@@ -7144,16 +7144,13 @@ public class SOCServer extends Server
 
     /**
      * Reset the board, to a copy with same players but new layout.
-     * Here's the general outline: Step 1 is done immediately here,
-     * steps 2-n are done (after robots are dismissed) within
+     * Here's the general outline: Step 1 and 2 are done immediately here,
+     * steps 3-n are done (after robots are dismissed) within
      * {@link #resetBoardAndNotify_finish(SOCGameBoardReset, SOCGame)}.
      *<OL>
-     * <LI value=1a> Reset the board, remember player positions.
-     * <LI value=1b> If there are robots, we must wait for them to
-     *    leave before players can rejoin.  Set the game state to
-     *    {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS} now,
-     *    and set {@link SOCGame#boardResetOngoingInfo}.
-     *    Wait for them to leave the old game before continuing.
+     * <LI value=1> Reset the board, remember player positions.
+     *              If there are robots, set game state to
+     *              {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS}.
      * <LI value=2a> Send ResetBoardAuth to each client (like sending JoinGameAuth at new game)
      *    Humans will reset their copy of the game.
      *    Robots will leave the game, and soon be requested to re-join.
@@ -7162,6 +7159,13 @@ public class SOCServer extends Server
      *    be randomly chosen to join the reset game.
      * <LI value=2b> If there were robots, wait for them all to leave the old game.
      *    Otherwise, (race condition) they may leave the new game as it is forming.
+     *    Set {@link SOCGame#boardResetOngoingInfo}.
+     *    Wait for them to leave the old game before continuing.
+     *    The call will be made from {@link #handleLEAVEGAME_maybeGameReset_oldRobot(String)}.
+     * <LI value=2c> If no robots, immediately call {@link #resetBoardAndNotify_finish(SOCGameBoardReset, SOCGame)}.
+     *   <P>
+     *    <b>This ends this method.</b>  Step 3 and the rest are in
+     *    {@link #resetBoardAndNotify_finish(SOCGameBoardReset, SOCGame)}.
      * <LI value=3> Send messages as if each human player has clicked "join" (except JoinGameAuth)
      * <LI value=4> Send as if each human player has clicked "sit here"
      * <LI value=5a> If no robots, send to game as if someone else has
@@ -7211,7 +7215,7 @@ public class SOCServer extends Server
         /**
          * Notify old game's players. (Humans and robots)
          *
-         * 1. Send ResetBoardAuth to each (like sending JoinGameAuth at new game).
+         * 2a. Send ResetBoardAuth to each (like sending JoinGameAuth at new game).
          *    Humans will reset their copy of the game.
          *    Robots will leave the game, and soon will be requested to re-join.
          */
