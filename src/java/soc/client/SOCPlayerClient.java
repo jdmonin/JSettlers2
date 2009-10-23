@@ -82,6 +82,7 @@ import java.net.Socket;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
@@ -208,6 +209,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * Track the game options available at the remote server, at the practice server.
      * Initialized by {@link #gameWithOptionsBeginSetup(String, boolean)}
      * and/or {@link #handleVERSION(boolean, SOCVersion)}.
+     * These fields are never null, even if the respective server is not connected or not running.
      * @since 1.1.07
      */
     protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
@@ -1718,7 +1720,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
              * status message
              */
             case SOCMessage.STATUSMESSAGE:
-                handleSTATUSMESSAGE((SOCStatusMessage) mes);
+                handleSTATUSMESSAGE(isLocal, (SOCStatusMessage) mes);
 
                 break;
 
@@ -2206,6 +2208,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	final int cliVersion = Version.versionNumber();
 	if (sVersion > cliVersion)
         {
+            // Newer server: Ask it to list any options we don't know about yet.
             if (! isLocal)
                 gameOptionsSetTimeoutTask();
             put(SOCGameOptionGetInfos.toCmd(null), isLocal);  // sends "-"
@@ -2213,6 +2216,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	{
 	    if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
 	    {
+	        // Older server: Look for options created or changed since server's version.
+	        // Ask it what it knows about them.
 	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, null);
 		if (tooNewOpts != null)
                 {
@@ -2237,16 +2242,57 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * handle the "status message" message.
+     * handle the {@link SOCStatusMessage "status"} message.
      * Used for server events, also used if player tries to join a game
      * but their nickname is not OK.
+     * @param isLocal from practice server, or remote server?
      * @param mes  the message
      */
-    protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
+    protected void handleSTATUSMESSAGE(final boolean isLocal, SOCStatusMessage mes)
     {
         status.setText(mes.getStatus());
         // If was trying to join a game, reset cursor from WAIT_CURSOR.
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+
+        if (mes.getStatusValue() == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
+        {
+            // Extract game name and failing game-opt keynames,
+            // and pop up an error message window.
+            String errMsg;
+            StringTokenizer st = new StringTokenizer(mes.getStatus(), SOCMessage.sep2);
+            try
+            {
+                String gameName = null;
+                Vector optNames = new Vector();
+                errMsg = st.nextToken();
+                gameName = st.nextToken();
+                while (st.hasMoreTokens())
+                    optNames.addElement(st.nextToken());
+                StringBuffer err = new StringBuffer("Cannot create game ");
+                err.append(gameName);
+                err.append("\nThere is a problem with the option values chosen.\n");
+                err.append(errMsg);
+                Hashtable knowns = isLocal ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
+                for (int i = 0; i < optNames.size(); ++i)
+                {
+                    err.append("\nThis option must be changed: ");
+                    String oname = (String) optNames.elementAt(i);
+                    SOCGameOption oinfo = null;
+                    if (knowns != null)
+                        oinfo = (SOCGameOption) knowns.get(oname);
+                    if (oinfo != null)
+                        oname = oinfo.optDesc;
+                    err.append(oname);
+                }
+                errMsg = err.toString();
+            }
+            catch (Throwable t)
+            {
+                errMsg = mes.getStatus();  // fallback, not expected to happen
+            }
+            NotifyDialog.createAndShow(this, (Frame) null,
+                errMsg, "Cancel", false);
+        }
     }
 
     /**

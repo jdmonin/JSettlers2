@@ -20,6 +20,7 @@
  **/
 package soc.game;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -58,4 +59,32 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
         cliVersion = cliVers;
         problemOptionsTooNew = optsValuesTooNew;
     }
+
+    /**
+     * Build the list of "problem options" as a string, separated by "," (SOCMessage.SEP2).
+     * @return list of options (and values?) too new, or "" if none
+     */
+    public String problemOptionsList()
+    {
+        if (problemOptionsTooNew == null)
+            return "";
+
+        StringBuffer sb = new StringBuffer();
+        boolean hadAny = false;
+        for (Enumeration e = problemOptionsTooNew.elements(); e.hasMoreElements(); )
+        {
+            Object opt = e.nextElement();
+            String item;
+            if (opt instanceof SOCGameOption)
+                item = ((SOCGameOption) opt).optKey;
+            else
+                item = opt.toString();
+            if (hadAny)
+                sb.append(",");  // "," == SOCMessage.SEP2
+            sb.append(item);
+            hadAny = true;
+        }
+        return sb.toString();
+    }
+
 }

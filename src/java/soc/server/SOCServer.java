@@ -468,8 +468,11 @@ public class SOCServer extends Server
      * @return     true if c was not a member of ch before,
      *             false if c was already in this game
      *
-     * @throws SOCGameOptionVersionException if client's version is too low to join because
-     *           of a requested game option in gaOpts. (this exception was added in 1.1.07)
+     * @throws SOCGameOptionVersionException if asking to create a game (gaOpts != null),
+     *           but client's version is too low to join because of a
+     *           requested game option's minimum version in gaOpts. 
+     *           Calculated via {@link SOCGameOption#optionsNewerThanVersion(int, boolean, Hashtable)}.
+     *           (this exception was added in 1.1.07)
      * @throws IllegalArgumentException if client's version is too low to join for any
      *           other reason. (this exception was added in 1.1.06)
      * @see #handleSTARTGAME(StringConnection, SOCStartGame)
@@ -498,6 +501,7 @@ public class SOCServer extends Server
 
             if (gameExists)
             {
+                boolean cliVersOld = false;
                 gameList.takeMonitorForGame(gaName);
                 SOCGame ga = gameList.getGameData(gaName);
 
@@ -514,14 +518,9 @@ public class SOCServer extends Server
                             gameList.addMember(c, gaName);
                             result = true;
                         } else {
-                            gameList.releaseMonitorForGame(gaName);
-                            throw new IllegalArgumentException("Client version");
+                            cliVersOld = true;
                         }
                     }
-                }
-                catch (IllegalArgumentException iae)
-                {
-                    throw iae;  // Pass to caller: Is reporting bad client version
                 }
                 catch (Exception e)
                 {
@@ -529,39 +528,40 @@ public class SOCServer extends Server
                 }
 
                 gameList.releaseMonitorForGame(gaName);
+                if (cliVersOld)
+                    throw new IllegalArgumentException("Client version");
+                // <---- Exception: Early return ----
+
             }
             else
             {
                 /**
-                 * the game did not exist, create it
+                 * the game did not exist, create it after checking options
                  */
-                gameList.takeMonitor();
+                final int gVers;
+                if (gaOpts == null)
+                {
+                    gVers = -1;
+                } else {
+                    gVers = SOCGameOption.optionsMinimumVersion(gaOpts);
+                    if (gVers > cliVers)
+                    {
+                        // Which option(s) are too new for client?
+                        Vector optsValuesTooNew =
+                            SOCGameOption.optionsNewerThanVersion(cliVers, true, gaOpts);
+                        throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
 
+                        // <---- Exception: Early return ----
+                    }
+                }
+
+                gameList.takeMonitor();
                 boolean monitorReleased = false;
 
                 try
                 {
                     // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
                     SOCGame ng = gameList.createGame(gaName, gaOpts); 
-
-                    final int gVers = ng.getClientVersionMinRequired();
-                    if (gVers > cliVers)
-                    {
-                        // Can't join its own game: find out why, and get rid of the game.
-                        Vector optsValuesTooNew = null;
-                        Exception problem;
-                        if (gaOpts != null)
-                            optsValuesTooNew =
-                                SOCGameOption.optionsNewerThanVersion(cliVers, true, gaOpts);
-                        if (optsValuesTooNew == null)
-                            problem = new IllegalArgumentException("Client version");
-                        else
-                            problem = new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
-
-                        destroyGame(gaName);
-                        gameList.releaseMonitor();
-                        throw problem;   // <--- Exception: Early return ---
-                    }
 
                     // Add this (creating) player to the game
                     gameList.addMember(c, gaName);
@@ -616,12 +616,10 @@ public class SOCServer extends Server
 			}
                     }
                 }
-                catch (SOCGameOptionVersionException e)
-                {
-                    throw e;  // caller handles it
-                }
                 catch (IllegalArgumentException e)
                 {
+                    if (! monitorReleased)
+                        gameList.releaseMonitor();
                     throw e;  // caller handles it
                 }
                 catch (Exception e)
@@ -3252,12 +3250,14 @@ public class SOCServer extends Server
      *<P>
      *<b>Process if gameOpts != null:</b>
      *<UL>
-     *  <LI> if game with this name already exists, resp with
+     *  <LI> if game with this name already exists, respond with
      *      STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_ALREADY_EXISTS SV_NEWGAME_ALREADY_EXISTS})
      *  <LI> compare cli's param name-value pairs, with srv's known values. <br>
      *	    - if any are above/below max/min, clip to the max/min value <br>
      *	    - if any are unknown, resp with
-     *      STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
+     *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
+     *      - if any are too new for client's version, resp with
+     *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_VALUE_TOONEW SV_NEWGAME_OPTION_VALUE_TOONEW}) <br>
      *      Comparison is done by {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
      *  <LI> if ok: create new game with params;
      *      socgame will calc game's minCliVersion,
@@ -3345,11 +3345,11 @@ public class SOCServer extends Server
             }
 
             /**
-	     * If we have game options, validate them and ensure
-	     * the game doesn't already exist.
-	     */
-	    if (gameOpts != null)
-	    {
+             * If we have game options, we're being asked to create a new game.
+             * Validate them and ensure the game doesn't already exist.
+             */
+            if (gameOpts != null)
+            {
 		if (gameList.isGame(gameName))
 		{
 		    c.put(SOCStatusMessage.toCmd
@@ -3360,15 +3360,15 @@ public class SOCServer extends Server
 		    return;  // <---- Early return ----
 		}
 
-		if (! SOCGameOption.adjustOptionsToKnown(gameOpts, null))
-		{
-		    c.put(SOCStatusMessage.toCmd
-			  (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, c.getVersion(),
-			   "Unknown game option(s) were requested, cannot create this game."));
+                if (! SOCGameOption.adjustOptionsToKnown(gameOpts, null))
+                {
+                    c.put(SOCStatusMessage.toCmd
+                          (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, c.getVersion(),
+                           "Unknown game option(s) were requested, cannot create this game."));
 
 		    return;  // <---- Early return ----
-		}
-	    }
+                }
+            }
 
             /**
              * Try to add player to game, and tell the client that everything is ready;
@@ -3397,19 +3397,20 @@ public class SOCServer extends Server
             } catch (SOCGameOptionVersionException e)
             {
                 // Let them know they can't join; include the game's version.
-                // cli asked to created it, otherwise gameOpts would be null
+                // This cli asked to created it, otherwise gameOpts would be null.
                 c.put(SOCStatusMessage.toCmd
                   (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, c.getVersion(),
-                    "Cannot create game with these options, requires version "
+                    "Cannot create game with these options; requires version "
                     + Integer.toString(e.gameOptsVersion)
-                    + ": " + gameName));
+                    + SOCMessage.sep2_char + gameName
+                    + SOCMessage.sep2_char + e.problemOptionsList()));
             } catch (IllegalArgumentException e)
             {
                 // Let them know they can't join; include the game's version.
 
                 c.put(SOCStatusMessage.toCmd
                   (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, c.getVersion(),
-                    "Cannot join game, requires version "
+                    "Cannot join game; requires version "
                     + Integer.toString(gameList.getGameData(gameName).getClientVersionMinRequired())
                     + ": " + gameName));
             }
@@ -5837,22 +5838,11 @@ public class SOCServer extends Server
 
     /**
      * process the "new game with options request" message.
-     *<UL>
-     *  <LI> if game with this name already exists, resp with
-     *      STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_ALREADY_EXISTS SV_NEWGAME_ALREADY_EXISTS})
-     *  <LI> compare cli's param name-value pairs, with srv's known values. <br>
-     *	    - if any are above/below max/min, clip to the max/min value <br>
-     *	    - if any are unknown, resp with
-     *      STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
-     *      Comparison is done by {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
-     *  <LI> if ok: create new game with params;
-     *      socgame will calc game's minCliVersion
-     *  <LI> announce to all players using NEWGAMEWITHOPTIONS;
-     *       older clients get NEWGAME, won't see the options
-     *  <LI> send JOINGAMEAUTH to requesting client
-     *</UL>
-     *    Because this was introduced after 1.1.06, we don't need to check whether
-     *    we know the client version.
+     * For messages sent, and other details,
+     * see {@link #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)}.
+     * <P>
+     * Because this message is sent only by clients newer than 1.1.06, we definitely know that
+     * the client has already sent its version information.
      *
      * @param c  the connection
      * @param mes  the message
