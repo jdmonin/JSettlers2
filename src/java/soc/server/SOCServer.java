@@ -561,7 +561,7 @@ public class SOCServer extends Server
                 try
                 {
                     // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-                    SOCGame ng = gameList.createGame(gaName, gaOpts); 
+                    gameList.createGame(gaName, gaOpts); 
 
                     // Add this (creating) player to the game
                     gameList.addMember(c, gaName);
@@ -2034,8 +2034,6 @@ public class SOCServer extends Server
             // D.ebugPrintln(c.getData()+" - "+mes);
             if (mes != null)
             {
-                SOCGame ga;
-
                 switch (mes.getType())
                 {
 
@@ -7352,27 +7350,27 @@ public class SOCServer extends Server
     /**
      * create a new game event record
      */
-    private void createNewGameEventRecord()
-    {
+    // private void createNewGameEventRecord()
+    // {
         /*
            currentGameEventRecord = new SOCGameEventRecord();
            currentGameEventRecord.setTimestamp(new Date());
          */
-    }
+    // }
 
     /**
      * save the current game event record in the game record
      *
      * @param gn  the name of the game
      */
-    private void saveCurrentGameEventRecord(String gn)
-    {
+    // private void saveCurrentGameEventRecord(String gn)
+    // {
         /*
            SOCGameRecord gr = (SOCGameRecord)gameRecords.get(gn);
            SOCGameEventRecord ger = currentGameEventRecord.myClone();
            gr.addEvent(ger);
          */
-    }
+    // }
 
     /**
      * write a gameRecord out to disk
