@@ -672,7 +672,7 @@ public class SOCGameOption implements Cloneable, Comparable
     }
 
     /**
-     * Minimum game version supporting this option, given the option's current value.
+     * Minimum game version supporting this option, given {@link #minVersion} and the option's current value.
      * The current value of an option can change its minimum version.
      * For example, a 5- or 6-player game will need a newer client than 4 players,
      * but option "PL"'s {@link #minVersion} is -1, to allow 2- or 3-player games with any client.
@@ -687,7 +687,7 @@ public class SOCGameOption implements Cloneable, Comparable
     public int getMinVersion()
     {
         if ((optType == OTYPE_BOOL) || (optType == OTYPE_INTBOOL)
-                || (optType == OTYPE_ENUMBOOL))  // OTYPE_*: check here if boolean-valued
+            || (optType == OTYPE_ENUMBOOL))  // OTYPE_*: check here if boolean-valued
         {
             if (! boolValue)
                 return -1;  // Option not set: any client version is OK
@@ -1093,31 +1093,43 @@ public class SOCGameOption implements Cloneable, Comparable
     /**
      * Compare a set of options against the specified version.
      * Make a list of all which are new or changed since that version.
+     *<P>
+     * This method has 2 modes, because it's called for 2 different purposes:
+     *<UL>
+     * <LI> sync client-server known-option info, in general: <tt>checkValues</tt> == false
+     * <LI> check if client can create game with a specific set of option values: <tt>checkValues</tt> == true
+     *</UL>
+     * See <tt>checkValues</tt> for method's behavior in each mode.
      *
      * @param vers  Version to compare known options against
-     * @param checkValues  Check options' current values,
-     *              not just their {@link #lastModVersion}?
+     * @param checkValues  Which mode: Check options' current values and {@link #minVersion},
+     *              not their {@link #lastModVersion}?
      *              An option's minimum version can increase based
      *              on its value; see {@link #getMinVersion()}.
      * @param opts  Set of {@link SOCGameOption}s to check current values;
      *              if null, use the "known option" set
-     * @return Vector of the unknown {@link SOCGameOption}s, or null
-     *     if all are known and unchanged since vers.
-     *     If checkValues, any options whose version is based on current value
-     *     will appear first in the vector.  When looking for these,
-     *     look for getMinVersion() > vers.
+     * @return Vector of the newer {@link SOCGameOption}s, or null
+     *     if all are known and unchanged since <tt>vers</tt>.
      */
     public static Vector optionsNewerThanVersion(final int vers, final boolean checkValues, Hashtable opts)
     {
         if (opts == null)
             opts = allOptions;
         Vector uopt = null;  // add problems to uopt
-        if (checkValues)
+        
+        for (Enumeration e = opts.elements(); e.hasMoreElements(); )
         {
-            for (Enumeration e = opts.elements(); e.hasMoreElements(); )
+            SOCGameOption opt = (SOCGameOption) e.nextElement();
+            if (checkValues)
             {
-                SOCGameOption opt = (SOCGameOption) e.nextElement();
                 if (opt.getMinVersion() > vers)
+                {
+                    if (uopt == null)
+                        uopt = new Vector();
+                    uopt.addElement(opt);
+                }
+            } else {
+                if (opt.lastModVersion > vers)
                 {
                     if (uopt == null)
                         uopt = new Vector();
@@ -1125,18 +1137,8 @@ public class SOCGameOption implements Cloneable, Comparable
                 }
             }
         }
-	for (Enumeration e = opts.elements(); e.hasMoreElements(); )
-	{
-	    SOCGameOption opt = (SOCGameOption) e.nextElement();
-	    if (opt.lastModVersion > vers)
-	    {
-		if (uopt == null)
-		    uopt = new Vector();
-                else if (! (checkValues && uopt.contains(opt)))
-                    uopt.addElement(opt);
-	    }
-	}
-	return uopt;
+
+        return uopt;
     }
 
     /**

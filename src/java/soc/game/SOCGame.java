@@ -282,6 +282,7 @@ public class SOCGame implements Serializable, Cloneable
      * For use at server; lowest version of client which can connect to
      * this game (based on game options/features added in a given version),
      * or -1 if unknown.
+     * Calculated by {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
      *<P>
      *<b>Reminder:</b> If you add new game options, please be sure that the
@@ -988,7 +989,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For use at server; lowest version of client which can connect to
      * this game (based on game options/features added in a given version),
-     * or -1 if unknown.
+     * or -1 if unknown or if this game has no opts.
+     * Calculated by {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      *<P>
      *<b>Reminder:</b> If you add new game options, please be sure that the
      *   robot is also capable of understanding them.
