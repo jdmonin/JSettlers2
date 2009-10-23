@@ -113,6 +113,13 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * New game requested with game options, but this option or value
      * is too new for the client to handle = 10
+     *<P>
+     * Format of this status text is: <BR>
+     * Status string with error message
+     *   {@link SOCMessage#sep2 SEP2} game name
+     *   {@link SOCMessage#sep2 SEP2} option keyname with problem
+     *   {@link SOCMessage#sep2 SEP2} option keyname with problem (if more than one)
+     *   ...
      * @see soc.server.SOCServer#handleNEWGAMEWITHOPTIONSREQUEST
      * @since 1.1.07
      */
@@ -183,7 +190,10 @@ public class SOCStatusMessage extends SOCMessage
     /**
      * Create a StatusMessage message, with status value 0 ({@link #SV_OK}).
      *
-     * @param st  the status message text
+     * @param st  the status message text.
+     *            For this constructor, since status value is 0,
+     *            may not contain {@link SOCMessage#sep2} characters.
+     *            This will cause parsing to fail on the remote end.
      */
     public SOCStatusMessage(String st)
     {
@@ -194,7 +204,9 @@ public class SOCStatusMessage extends SOCMessage
      * Create a StatusMessage message, with a nonzero value.
      *
      * @param sv  status value (from constants defined here, such as {@link #SV_OK})
-     * @param st  the status message text
+     * @param st  the status message text.
+     *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
+     *            in your string, and they will be passed on for the receiver to parse.
      * @since 1.1.06
      */
     public SOCStatusMessage(int sv, String st)
@@ -205,7 +217,7 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
-     * @return the status message text
+     * @return the status message text. Is allowed to contain {@link SOCMessage#sep2} characters.
      */
     public String getStatus()
     {
@@ -235,7 +247,9 @@ public class SOCStatusMessage extends SOCMessage
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
-     * @param st  the status
+     * @param st  the status message text.
+     *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
+     *            in your string, and they will be passed on for the receiver to parse.
      * @return the command string
      */
     public static String toCmd(int sv, String st)
@@ -260,7 +274,9 @@ public class SOCStatusMessage extends SOCMessage
      * @param cliVers Client's version, same format as {@link soc.util.Version#versionNumber()};
      *            if sv isn't recognized in that version, use {@link #SV_NOT_OK_GENERIC} instead.
      *            Calls {@link #statusValidAtVersion(int, int)}.
-     * @param st  the status
+     * @param st  the status message text.
+     *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
+     *            in your string, and they will be passed on for the receiver to parse.
      * @return the command string
      * @since 1.1.07
      */
@@ -305,7 +321,9 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
-     * Parse the command String into a StatusMessage message
+     * Parse the command String into a StatusMessage message.
+     * If status is nonzero, you may embed {@link SOCMessage#sep2} characters
+     * in your string, and they will be passed on to the receiver.
      *
      * @param s   the String to parse
      * @return    a StatusMessage message, or null of the data is garbled
