@@ -28,7 +28,9 @@ import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
@@ -39,11 +41,16 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.StringTokenizer;
 
 
 /**
  * This is the generic dialog to ask players a two- or three-choice question;
- * to present a one-button message, see {@link NotifyDialog}. 
+ * to present a one-button message, see {@link NotifyDialog}.
+ *<P>
+ * <b>Since 1.1.07:</b>
+ * If dialog text contains \n, multiple lines will be created.
+ * If title bar text contains \n, only its first line (before \n) is used.
  *<P>
  * To react to button presses, override the abstract methods
  * {@link #button1Chosen()}, {@link #button2Chosen()}, 
@@ -64,8 +71,8 @@ public abstract class AskDialog extends Dialog
      */
     protected SOCPlayerInterface pi;
 
-    /** Prompt message, or null */
-    protected final Label msg;
+    /** Prompt message Label, or Panel for multi-line prompt, or null */
+    protected Component msg;
 
     /** Button for first choice.
      *
@@ -228,7 +235,7 @@ public abstract class AskDialog extends Dialog
         int defaultChoice)
         throws IllegalArgumentException
     {
-        super(parentFr, titlebar, true);
+        super(parentFr, firstLine(titlebar), true);
 
         if (cli == null)
             throw new IllegalArgumentException("cli cannot be null");
@@ -264,15 +271,51 @@ public abstract class AskDialog extends Dialog
         choiceDefault = defaultChoice;
         setLayout (new BorderLayout());
 
-        msg = new Label(prompt, Label.CENTER);
-        add(msg, BorderLayout.NORTH);
+        int promptMultiLine = prompt.indexOf("\n");
+        int promptMaxWid;
+        int promptLines = 1;
+        if (promptMultiLine == -1)
+        {
+            msg = new Label(prompt, Label.CENTER);
+            add(msg, BorderLayout.NORTH);
+            promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
+        } else {
+            promptMaxWid = 0;
+            try
+            {
+                StringTokenizer st = new StringTokenizer(prompt, "\n");
+                Panel pmsg = new Panel();
+                msg = pmsg;
+                pmsg.setLayout(new GridLayout(0, 1));
+                Font ourfont = getFont();
+                FontMetrics fm = ourfont != null ? getFontMetrics(getFont()) : null;
+                for (int i = 0; st.hasMoreTokens(); ++i)
+                {
+                    String promptline = st.nextToken();
+                    pmsg.add(new Label(promptline));
+                    ++promptLines;
+                    if (fm != null)
+                    {
+                        int mwid = fm.stringWidth(promptline);
+                        if (mwid > promptMaxWid)
+                            promptMaxWid = mwid;
+                    }
+                }
+                add (pmsg, BorderLayout.NORTH);
+            } catch (Throwable t) {
+                promptLines = 1;
+                msg = new Label(prompt, Label.CENTER);
+                add(msg, BorderLayout.NORTH);
+                promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);                
+            }
+        }
 
-        wantW = 6 + getFontMetrics(msg.getFont()).stringWidth(prompt);
+        wantW = 6 + promptMaxWid;
         if (wantW < 280)
             wantW = 280;
         if ((choice3 != null) && (wantW < (280+80)))
             wantW = (280 + 80);
-        wantH = 40 + 2 * ColorSquare.HEIGHT;
+        wantH = 25 + 2 * ColorSquare.HEIGHT + (promptLines * getFontMetrics(msg.getFont()).getHeight());
         padW = 0;  // Won't be able to call getInsets and know the values, until windowOpened()
         padH = 0;
         setSize(wantW + 6, wantH + 20);
@@ -578,4 +621,18 @@ public abstract class AskDialog extends Dialog
         return (Frame) c;
     }
 
+    /**
+     * Extract the first line (up to \n) if f is multi-line.
+     * @param f  A string, possibly containing \n. Should not start with \n.
+     * @return  f's first line, or all of f if no \n
+     * @since 1.1.07
+     */
+    public static String firstLine(String f)
+    {
+        int i = f.indexOf("\n");
+        if (i == -1)
+            return f;
+        else
+            return f.substring(0, i);
+    }
 }
