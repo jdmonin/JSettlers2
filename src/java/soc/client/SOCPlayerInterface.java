@@ -398,7 +398,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         add(boardPanel);
         if (game.isGameOptionDefined("PL"))
         {
-            updatePlayerLimitDisplay(true, false);
+            updatePlayerLimitDisplay(true, false);  // Player data may not be received yet;
+                // game is created empty, then SITDOWN messages are received from server.
         }
 
         /**
@@ -603,6 +604,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      * and hide or show "sit down" buttons if necessary.
      * If the game has already started, and the client is playing in this game,
      * will not show this display (it overlays the board, which is in use).
+     * It will still hide/show sit-here buttons if needed.
      * @param show show the text, or clear the display (at game start)?
      * @param leaving Is a player leaving the game? If so, subtract 1 from the
      *            value returned by {@link SOCGame#getAvailableSeatCount()}.
@@ -611,21 +613,24 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     private void updatePlayerLimitDisplay(final boolean show, final boolean leaving)
     {
         final int gstate = game.getGameState();
-        if ((! show) ||
-            ((gstate >= SOCGame.START1A) && (clientHand != null)))
+        boolean noTextOverlay =  ((! show) ||
+            ((gstate >= SOCGame.START1A) && (clientHand != null)));
+        if (noTextOverlay)
         {
             boardPanel.setSuperimposedText(null, null);
-            return;           
         }
         final int maxPl = game.getGameOptionIntValue("PL");
         if (maxPl == SOCGame.MAXPLAYERS)
-            return;
+            noTextOverlay = true;
         int availPl = game.getAvailableSeatCount();
         if (leaving)
             ++availPl;
-        String availTxt = (availPl == 1) ? "1 seat available" : Integer.toString(availPl) + " seats available";
-        boardPanel.setSuperimposedText
-            ("Maximum players: " + maxPl, availTxt);
+        if (! noTextOverlay)
+        {
+            String availTxt = (availPl == 1) ? "1 seat available" : Integer.toString(availPl) + " seats available";
+            boardPanel.setSuperimposedText
+                ("Maximum players: " + maxPl, availTxt);
+        }
         if (gstate == SOCGame.NEW)
         {
             if ((availPl == 0) && (clientHand == null))
@@ -1032,9 +1037,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     }
 
     /**
-     * start the game interface: add "sit" buttons, set chat input (textInput) to initial prompt.
+     * start the game interface: set chat input (textInput) to initial prompt.
      * This doesn't mean that game play or placement is starting,
      * only that the window is ready for players to choose where to sit.
+     * HandPanel adds "sit" buttons, updatePlayerLimitDisplay removes them if necessary.
      */
     public void began()
     {
@@ -1042,15 +1048,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         textInput.setText("");
         textInputSetToInitialPrompt(true);
         textInput.requestFocus();
-
-        if ((game.getGameState() == SOCGame.NEW) || (game.getGameState() == SOCGame.READY))
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                if (game.isSeatVacant(i))
-                    hands[i].addSitButton(false);
-            }
-        }
     }
 
     /**
@@ -1096,16 +1093,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     public void removePlayer(int pn)
     {
         hands[pn].removePlayer();  // May also clear clientHand
-
-        if (game.getGameState() <= SOCGame.READY)
-        {
-            boolean clientSittingInGame = (clientHand != null);  // Is the client player already sitting down at this game?
-
-            hands[pn].addSitButton(clientSittingInGame);
-        }
-
         if (game.isGameOptionDefined("PL"))
             updatePlayerLimitDisplay(true, true);
+        else
+            hands[pn].addSitButton(clientHand != null);  // Is the client player already sitting down at this game?
+
     }
 
     /**
