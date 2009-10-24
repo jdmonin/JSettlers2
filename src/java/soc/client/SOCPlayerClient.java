@@ -3625,12 +3625,12 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 gameOptionsSetTimeoutTask();
 	    put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isLocal);
 	} else {
+            opts.newGameWaitingForOpts = false;
             if (gameOptsDefsTask != null)
             {
                 gameOptsDefsTask.cancel();
                 gameOptsDefsTask = null;
             }
-
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
                 (this, (String) null, opts.optionSet, isLocal, false);
         }
