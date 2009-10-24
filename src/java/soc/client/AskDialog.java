@@ -292,7 +292,7 @@ public abstract class AskDialog extends Dialog
                 for (int i = 0; st.hasMoreTokens(); ++i)
                 {
                     String promptline = st.nextToken();
-                    pmsg.add(new Label(promptline));
+                    pmsg.add(new Label(promptline, Label.CENTER));
                     ++promptLines;
                     if (fm != null)
                     {
@@ -322,7 +322,7 @@ public abstract class AskDialog extends Dialog
         setLocation(150, 100);
 
         Panel pBtns = new Panel();
-        pBtns.setLayout(new FlowLayout(FlowLayout.CENTER));
+        pBtns.setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));  // horiz border 3 pixels
 
         pBtns.add(choice1But);
         choice1But.addActionListener(this);
@@ -376,7 +376,7 @@ public abstract class AskDialog extends Dialog
     protected void checkSizeAndFocus()
     {
         // Can't call getInsets and know the values, until windowOpened().
-        padW = getInsets().left + getInsets().right;
+        padW = getInsets().left + getInsets().right + 6;
         padH = getInsets().top + getInsets().bottom;
         if ((padW > 0) || (padH > 0))
         {
