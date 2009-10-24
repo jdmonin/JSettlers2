@@ -25,8 +25,9 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that someone is joining a game, or asking to create a game
- * (with no {@link soc.game.SOCGameOption game options}).
+ * This message is used to join any existing game (with or without game options).
+ * It can also be a client asking to create a game
+ * with no {@link soc.game.SOCGameOption game options}.
  * Server responds to client's request with {@link SOCJoinGameAuth JOINGAMEAUTH}
  * and sends JOINGAME to all players/observers of the game (including client).
  *<P>
