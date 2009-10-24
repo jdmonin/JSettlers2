@@ -1854,13 +1854,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     public static void main(String[] args)
     {
-		if (args.length < 4)
-		{
-			System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
+        if (args.length < 4)
+        {
+            System.err.println("Java Settlers robotclient " + Version.version() +    
+                    ", build " + Version.buildnum());
+            System.err.println("usage: java soc.robot.SOCRobotClient host port_number userid password");
+            return;
+        }
 
-			return;
-		}
-    	
         SOCRobotClient ex1 = new SOCRobotClient(args[0], Integer.parseInt(args[1]), args[2], args[3]);
         ex1.init();
     }
