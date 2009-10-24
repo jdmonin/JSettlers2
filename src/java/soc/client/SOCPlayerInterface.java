@@ -1069,8 +1069,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         {
             for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
             {
-                D.ebugPrintln("game.getPlayer(" + i + ").isRobot() = " + game.getPlayer(i).isRobot());
-
                 if (game.getPlayer(i).isRobot())
                 {
                     hands[i].addSittingRobotLockBut();
