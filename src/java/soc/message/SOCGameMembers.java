@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +29,11 @@ import java.util.Vector;
 
 
 /**
- * This message lists all the members of a game
+ * This message lists all the members of a game.
+ * The group of messages sent by server in response to JOINGAME ends
+ * with GAMEMEMBERS, SETTURN and GAMESTATE, and GAMEMEMBERS thus tells the client
+ * that the server's ready for its input.  Robots use GAMEMEMBERS as their cue to
+ * sit down at the game, if they've been asked to sit.
  *
  * @author Robert S Thomas
  */

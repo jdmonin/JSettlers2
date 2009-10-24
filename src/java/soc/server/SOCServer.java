@@ -5928,7 +5928,11 @@ public class SOCServer extends Server
      * send client join event to other players.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * First message sent to connecting client is JOINGAMEAUTH, unless isReset.
-     *
+     *<P>
+     * Among other messages, player names are sent via SITDOWN, and pieces on board
+     * sent by PUTPIECE.  See comments here for further details.
+     * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
+     *<P>
      * @param gameData Game to join
      * @param c        The connection of joining client
      * @param isReset  Game is a board-reset of an existing game
@@ -6071,6 +6075,11 @@ public class SOCServer extends Server
         String membersCommand = null;
         gameList.takeMonitorForGame(gameName);
 
+        /**
+         * Almost done; send GAMEMEMBERS as a hint to client that we're almost ready for its input.
+         * There's no new data in GAMEMEMBERS, because player names have already been sent by
+         * the SITDOWN messages above.
+         */
         try
         {
             Vector gameMembers = gameList.getMembers(gameName);

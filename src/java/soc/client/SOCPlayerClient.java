@@ -2591,13 +2591,14 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * handle the "game members" message
+     * handle the "game members" message, the server's hint that it's almost
+     * done sending us the complete game state in response to JOINGAME.
      * @param mes  the message
      */
     protected void handleGAMEMEMBERS(SOCGameMembers mes)
     {
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        System.err.println("got GAMEMEMBERS"); // TODO tracing
+        D.ebugPrintln("got GAMEMEMBERS");
         pi.began();
     }
 

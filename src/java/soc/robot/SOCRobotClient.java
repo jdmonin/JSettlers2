@@ -774,7 +774,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleLEAVEGAME(SOCLeaveGame mes) {}
 
     /**
-     * handle the "game members" message
+     * handle the "game members" message, which indicates the entire game state has now been sent.
+     * If we have a {@link #seatRequests} for this game, sit down now.
      * @param mes  the message
      */
     protected void handleGAMEMEMBERS(SOCGameMembers mes)
