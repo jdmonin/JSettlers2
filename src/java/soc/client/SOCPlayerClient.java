@@ -354,7 +354,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     protected SOCGameList serverGames = null;
 
     /**
-     * the game names from {@link #gamesUnjoinable} that player has asked to join,
+     * the unjoinable game names from {@link #serverGames} that player has asked to join,
      * and been told they can't.  If they click again, try to connect.
      * (This is a failsafe against bugs in server or client version-recognition.)
      * Both key and value are the game name, without the UNJOINABLE prefix.
@@ -3730,14 +3730,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * add a new game to the initial window's list of games.
-     * If client can't join, also add to {@link #gamesUnjoinable}.
+     * add a new game to the initial window's list of games, and possibly
+     * to the {@link #serverGames server games list}.
      *
      * @param gameName the game name to add to the list;
      *                 may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
      * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
      * @param addToSrvList Should this game be added to the list of remote-server games?
      *                 Local practice games should not be added.
+     *                 The {@link #serverGames} list also has a flag for cannotJoin.
      */
     public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)
     {
