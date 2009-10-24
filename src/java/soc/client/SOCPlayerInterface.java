@@ -59,6 +59,10 @@ import java.io.StringWriter;
  * Contains {@link SOCBoardPanel board}, client's and other players' {@link SOCHandPanel hands},
  * chat interface, game message window, and the {@link SOCBuildingPanel building/buying panel}.
  *<P>
+ * When we join a game, the client will update visible game state by calling methods here like
+ * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
+ * ready for interaction, the client calls {@link #began()}.
+ *<P>
  * A separate {@link SOCPlayerClient} window holds the list of current games and channels.
  *
  * @author Robert S. Thomas
@@ -1045,7 +1049,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      * start the game interface: set chat input (textInput) to initial prompt.
      * This doesn't mean that game play or placement is starting,
      * only that the window is ready for players to choose where to sit.
-     * HandPanel adds "sit" buttons, updatePlayerLimitDisplay removes them if necessary.
+     * By now HandPanel has added "sit" buttons, or updatePlayerLimitDisplay
+     * has removed them if necessary.
      */
     public void began()
     {
