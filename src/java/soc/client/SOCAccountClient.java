@@ -145,9 +145,9 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
         
         nick = new TextField(20);
         pass = new TextField(10);
-        pass.setEchoChar('*');
+        pass.setEchoChar(pwchar);
         pass2 = new TextField(10);
-        pass2.setEchoChar('*');
+        pass2.setEchoChar(pwchar);
         email = new TextField(50);
         status = new TextField(50);
         status.setEditable(false);
