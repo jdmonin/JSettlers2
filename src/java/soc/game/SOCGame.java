@@ -2017,6 +2017,7 @@ public class SOCGame implements Serializable, Cloneable
      *<LI> Mark current player's new dev cards as old
      *<LI> Clear any votes to reset the board
      *<LI> If game state is {@link #PLAY}, increment turnCount (and roundCount if necessary).
+     *     These include the current turn; they both are 1 during the first player's first turn.
      *</UL>
      * Called by server and client.
      * @since 1.1.07
