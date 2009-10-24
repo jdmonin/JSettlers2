@@ -51,7 +51,9 @@ import java.util.Vector;
  * @author  Robert S. Thomas
  *
  * Note: This is an attempt at being more modular. 5/13/99 RST
- * Note: Hopfully fixed all of the deadlock problems. 12/27/01 RST
+ * Note: Hopefully fixed all of the deadlock problems. 12/27/01 RST
+ *<P>
+ * For server command line options, use the --help option.
  *<P>
  *<b>Network traffic:</b>
  * The first message over the connection is the client's version
@@ -5770,7 +5772,11 @@ public class SOCServer extends Server
     }
 
     /**
-     * process the "game option get defaults" message
+     * process the "game option get defaults" message.
+     * Responds to client by sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
+     * All of server's known options are sent, except empty string-valued options. 
+     * Depending on client version, server's response may include option names that
+     * the client is too old to use; the client is able to ignore them.
      * @param c  the connection
      * @param mes  the message
      * @since 1.1.07
@@ -5789,6 +5795,11 @@ public class SOCServer extends Server
      * one {@link SOCGameOptionInfo GAMEOPTIONINFO} message per option keyname.
      * Mark the end of the option list with {@link SOCGameOptionGetInfo GAMEOPTIONGETINFO}("-").
      * If this list is empty, "-" will be the only GAMEOPTIONGETINFO message sent.
+     *<P>
+     * We check the default values, not current values, so the list is unaffected by
+     * cases where some option values are restricted to newer client versions.
+     * Any option where opt.{@link SOCGameOption#minVersion minVersion} is too new for
+     * this client's version, is sent as {@link SOCGameOption#OTYPE_UNKNOWN}.
      *
      * @param c  the connection
      * @param mes  the message
@@ -5823,7 +5834,7 @@ public class SOCServer extends Server
                 } else {
                     String okey = (String) okeys.elementAt(i);
                     opt = SOCGameOption.getOption(okey);
-                    if ((opt == null) || (opt.minVersion > cliVers))
+                    if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
 		}
 		c.put(new SOCGameOptionInfo(opt).toCmd());
@@ -7782,6 +7793,8 @@ public class SOCServer extends Server
             System.err.println("       -h or --help or -? : print this screen");
             System.err.println("       -o or --option name=value : set per-game options' default values");
             printGameOptions();
+        } else {
+            System.err.println("       use java soc.server.SOCServer --help to see recognized options");            
         }
     }
 
