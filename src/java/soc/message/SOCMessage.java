@@ -49,11 +49,15 @@ import java.util.StringTokenizer;
  * The client receives messages in {@link soc.client.SOCPlayerClient#treat(SOCMessage, boolean)}.
  * The server receives messages in {@link soc.server.SOCServer#processCommand(String, StringConnection)}.
  *<P>
- * To create a new message type:
+ * To create and add a new message type:
  *<UL>
  * <LI> Decide the message type name.  Add to the end of the constant list in this
- *      class, and give it the next available type ID number.  Add a comment to
- *      note the JSettlers version in which it was introduced, and the date.
+ *      class.  Add a comment to note the JSettlers version in which it was introduced, and the date.
+ * <LI> If the new message is for something that any kind of game can use,
+ *      give it the next available type ID number in the list (10xx).
+ *      If the message is specific to the JSettlers game and its interface,
+ *      use a message number above 10000.  The intention is that other kinds of games
+ *      can be played eventually within this server framework.
  * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version.
  *      Do not add if (TODO what instead??) extends SOCMessageTemplateMs or SOCMessageTemplateMi
  * <LI> Extend the SOCMessage class, including the required parseDataStr method.
@@ -182,6 +186,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /** @since 1.1.07 */
     public static final int GAMESWITHOPTIONS = 1083;  // gameoptions, 20090601
+
+    /////////////////////////////////////////
+    // REQUEST FOR FUTURE MESSAGE NUMBERS: //
+    /////////////////////////////////////////
+    // Gametype-specific messages (jsettlers) above 10000;
+    // messages applicable to any game (game options, etc) in current low-1000s range.
+    // Please see class javadoc.
+    /////////////////////////////////////////
 
     /** @since 1.1.00 */
     public static final int VERSION = 9998;   // cli-serv versioning, 20080807, v1.1.00
