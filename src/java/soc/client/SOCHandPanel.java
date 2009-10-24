@@ -106,8 +106,8 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected static final String GET = "I Get:";
     protected static final String AUTOROLL_COUNTDOWN = "Auto-Roll in: ";
     protected static final String ROLL_OR_PLAY_CARD = "Roll or Play Card";
-    protected static final String SENDBUTTIP_ENA = "Send trade offer to other players";
-    protected static final String SENDBUTTIP_DIS = "To offer a trade, first click resources";
+    protected static final String OFFERBUTTIP_ENA = "Send trade offer to other players";
+    protected static final String OFFERBUTTIP_DIS = "To offer a trade, first click resources";
     protected static final String TRADEMSG_DISCARD = "Discarding..."; 
 
     /** If player has won the game, update pname label */
@@ -209,17 +209,21 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     protected Label giveLab;
     protected Label getLab;
-    protected Button sendBut;  // "Offer" button for player trading
+    protected Button offerBut;  // "Offer" button for player trading: send offer to server
 
     /**
      * Hint for "Offer" button; non-null only if interactive
      *   and if playerTradingDisabled == false.
-     * @see #SENDBUTTIP_DIS
-     * @see #SENDBUTTIP_ENA
+     * @see #OFFERBUTTIP_DIS
+     * @see #OFFERBUTTIP_ENA
      * @see #interactive
      */
-    protected AWTToolTip sendButTip;
-    protected Button clearBut;
+    protected AWTToolTip offerButTip;
+
+    /** Clear the current trade offer at client and server */
+    protected Button clearOfferBut;
+
+    /** Trade resources with the bank or port */
     protected Button bankBut;
 
     /**
@@ -509,21 +513,21 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         if (playerTradingDisabled)
         {
-            sendBut = null;
-            sendButTip = null;
+            offerBut = null;
+            offerButTip = null;
         } else {
-            sendBut = new Button(SEND);
-            sendBut.addActionListener(this);
-            sendBut.setEnabled(interactive);
-            add(sendBut);
+            offerBut = new Button(SEND);
+            offerBut.addActionListener(this);
+            offerBut.setEnabled(interactive);
+            add(offerBut);
             if (interactive)
-                sendButTip = new AWTToolTip(SENDBUTTIP_ENA, sendBut);
+                offerButTip = new AWTToolTip(OFFERBUTTIP_ENA, offerBut);
         }
 
-        clearBut = new Button(CLEAR);
-        clearBut.addActionListener(this);
-        clearBut.setEnabled(interactive);
-        add(clearBut);
+        clearOfferBut = new Button(CLEAR);
+        clearOfferBut.addActionListener(this);
+        clearOfferBut.setEnabled(interactive);
+        add(clearOfferBut);
 
         bankBut = new Button(BANK);
         bankBut.addActionListener(this);
@@ -1083,12 +1087,12 @@ public class SOCHandPanel extends Panel implements ActionListener
         giveLab.setVisible(false);
         getLab.setVisible(false);
         sqPanel.setVisible(false);
-        clearBut.setVisible(false);
+        clearOfferBut.setVisible(false);
         bankBut.setVisible(false);
 
         if (! playerTradingDisabled)
         {
-            sendBut.setVisible(false);  // also hides sendButTip if created
+            offerBut.setVisible(false);  // also hides offerButTip if created
             for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
             {
                 playerSend[i].setVisible(false);
@@ -1240,12 +1244,12 @@ public class SOCHandPanel extends Panel implements ActionListener
             getLab.setVisible(true);
             sqPanel.setVisible(true);
 
-            clearBut.setVisible(true);
+            clearOfferBut.setVisible(true);
             bankBut.setVisible(true);
 
             if (! playerTradingDisabled)
             {
-                sendBut.setVisible(true);
+                offerBut.setVisible(true);
                 for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
                 {
                     playerSend[i].setBoolValue(true);
@@ -1431,12 +1435,12 @@ public class SOCHandPanel extends Panel implements ActionListener
             bankBut.disable();  // enabled by updateAtPlay1()
         }
 
-        clearBut.disable();  // No trade offer has been set yet
+        clearOfferBut.disable();  // No trade offer has been set yet
         if (! playerTradingDisabled)
         {
-            sendBut.disable();
-            if (sendButTip != null)
-                sendButTip.setTip(SENDBUTTIP_DIS);
+            offerBut.disable();
+            if (offerButTip != null)
+                offerButTip.setTip(OFFERBUTTIP_DIS);
         }
     }
 
@@ -1451,22 +1455,22 @@ public class SOCHandPanel extends Panel implements ActionListener
         pnameActiveBG = SOCPlayerInterface.makeGhostColor(getBackground());
     }
 
-    /** If enable/disable buttons accordingly. */
+    /** If trade offer is set/cleared, enable/disable buttons accordingly. */
     public void sqPanelZerosChange(boolean notAllZero)
     {
         int gs = game.getGameState();
-        clearBut.setEnabled(notAllZero);
+        clearOfferBut.setEnabled(notAllZero);
         if (playerTradingDisabled)
             return;
 
-        boolean enaSendBut = notAllZero && ((gs == SOCGame.PLAY) || (gs == SOCGame.PLAY1));
-        sendBut.setEnabled(enaSendBut);
-        if (sendButTip != null)
+        final boolean enaOfferBut = notAllZero && ((gs == SOCGame.PLAY) || (gs == SOCGame.PLAY1));
+        offerBut.setEnabled(enaOfferBut);
+        if (offerButTip != null)
         {
-            if (enaSendBut)
-                sendButTip.setTip(SENDBUTTIP_ENA);
+            if (enaOfferBut)
+                offerButTip.setTip(OFFERBUTTIP_ENA);
             else
-                sendButTip.setTip(SENDBUTTIP_DIS);
+                offerButTip.setTip(OFFERBUTTIP_DIS);
         }
     }
 
@@ -1771,11 +1775,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                 }
             }
 
-            clearBut.disable();
+            clearOfferBut.disable();
             if (! playerTradingDisabled)
             {
-                sendBut.disable();
-                sendButTip.setTip(SENDBUTTIP_DIS);
+                offerBut.disable();
+                offerButTip.setTip(OFFERBUTTIP_DIS);
             }
         }
         validate();
@@ -2286,9 +2290,9 @@ public class SOCHandPanel extends Panel implements ActionListener
                 int tbW = ((giveW + sqpDim.width) / 2);
                 int tbX = inset;
                 int tbY = tradeY + sqpDim.height + space;
-                if (sendBut != null)
-                    sendBut.setBounds(tbX, tbY, tbW, lineH);
-                clearBut.setBounds(tbX, tbY + lineH + space, tbW, lineH);
+                if (offerBut != null)
+                    offerBut.setBounds(tbX, tbY, tbW, lineH);
+                clearOfferBut.setBounds(tbX, tbY + lineH + space, tbW, lineH);
                 bankBut.setBounds(tbX + tbW + space, tbY + lineH + space, tbW, lineH);
 
                 if (! playerTradingDisabled)
