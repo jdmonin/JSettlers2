@@ -37,6 +37,10 @@ import soc.message.SOCMessage;
  * <LI> Static dictionary of known options;
  *    see {@link #initAllOptions()} for the current list.
  *</UL>
+ *<P>
+ * For information about adding or changing game options in a
+ * later version of JSettlers, please see {@link #initAllOptions()}.
+ *<P>
  * All in-game code uses 2-letter key strings to query and change
  * game option settings; only a very few places use SOCGameOption
  * objects.  To search the code for uses of a game option, search for
@@ -53,7 +57,7 @@ import soc.message.SOCMessage;
  *<P>
  * The "known options" are initialized via {@link #initAllOptions()}.  See that
  * method's description for more details on adding an option.
- * If a new option changes previously expected behavior, it should default to
+ * If a new option changes previously expected behavior of the game, it should default to
  * the old behavior; its default value on your server can be changed at runtime.
  *<P>
  * Introduced in 1.1.07; check server, client versions against
@@ -129,18 +133,19 @@ public class SOCGameOption implements Cloneable, Comparable
      *   care about the maximum number of players in a game, because it doesn't decide when
      *   to join a game; the server tells it that.
      *<LI> To find other places which may possibly need an update from your new option,
-     *   search the source for this marker: <code> // NEW_OPTION </code>
+     *   search the source for this marker: <code> // NEW_OPTION</code>
      *   <br>
      *   This would include places like
      *   {@link soc.util.SOCRobotParameters#copyIfOptionChanged(Hashtable)}
      *   which ignore most, but not all, game options.
      *</UL>
      *
-     * <h3>If you want to change a game option:</h3>
+     * <h3>If you want to change a game option (in a later version):</h3>
      *
      *   Typical changes to a game option would be:
      *<UL>
-     *<LI> Add new values to an {@link #OTYPE_ENUM enumerated} option
+     *<LI> Add new values to an {@link #OTYPE_ENUM enumerated} option;
+     *   they must be added to the end of the list
      *<LI> Change the maximum or minimum permitted values for an
      *   {@link #OTYPE_INT integer} option
      *<LI> Change the default value, although this can also be done
@@ -152,6 +157,9 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> {@link #optType}
      *<LI> {@link #minVersion}
      *<LI> {@link #dropIfUnused} flag
+     *<LI> For {@link #OTYPE_ENUM}, you can't remove options or change the meaning
+           of current ones, because this would mean that the option's intValue (sent over
+           the network) would mean different things to different-versioned clients in the game.
      *</UL>
      *
      *   <b>To make the change:</b>
@@ -168,7 +176,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *
      * @return a fresh copy of the "known" options, with their hardcoded default values
      */
-    private static Hashtable initAllOptions()
+    public static Hashtable initAllOptions()
     {
         Hashtable opt = new Hashtable();
 
@@ -193,7 +201,7 @@ public class SOCGameOption implements Cloneable, Comparable
                 ("DEBUGENUM", 1107, 1107, 
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option # enum"));
         opt.put("DEBUGENUMBOOL", new SOCGameOption
-                ("DEBUGENUMBOOL", 1107, 1107, false,
+                ("DEBUGENUMBOOL", 1107, 1107, true,
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, true, "Test option # enumbool"));
         opt.put("DEBUGSTR", new SOCGameOption
                 ("DEBUGSTR", 1107, 1107, 20, false, true, "Test option str"));
@@ -347,7 +355,7 @@ public class SOCGameOption implements Cloneable, Comparable
     public SOCGameOption(String key)
         throws IllegalArgumentException
     {
-        this(OTYPE_UNKNOWN, key, Integer.MAX_VALUE, Integer.MAX_VALUE, false, 0, 0, 0, false, null, "");
+        this(OTYPE_UNKNOWN, key, Integer.MAX_VALUE, Integer.MAX_VALUE, false, 0, 0, 0, false, null, key);
     }
 
     /**
@@ -446,7 +454,9 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
-     * @param enumVals text to display for each possible choice of this option
+     * @param enumVals text to display for each possible choice of this option.
+     *                Please see the discussion at {@link #initAllOptions()} about
+     *                changing or adding to enumVals in later versions.
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the enum's popup-menu goes.
      *             If no placeholder is found, the value field appears at left,
@@ -565,7 +575,7 @@ public class SOCGameOption implements Cloneable, Comparable
 
         if ((key.length() > 3) && ! key.startsWith("DEBUG"))
             throw new IllegalArgumentException("Key length: " + key);
-        if (! isAlphanumericUpcaseAscii(key))
+        if (! (isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
             throw new IllegalArgumentException("Key not alphanumeric: " + key);
         if ((minVers < 1000) && (minVers != -1))
             throw new IllegalArgumentException("minVers " + minVers + " for key " + key);

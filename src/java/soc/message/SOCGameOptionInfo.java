@@ -30,6 +30,8 @@ import soc.game.SOCGameOption;
  * default value, and current value at the server for new games.
  * If the server doesn't know this option, the returned option type is
  * {@link SOCGameOption#OTYPE_UNKNOWN}.
+ * If the client asks about an option too new for it to use,
+ * the server will respond with {@link SOCGameOption#OTYPE_UNKNOWN}.
  *<P>
  * Special case: If the client is asking for any new options, by sending
  * GAMEOPTIONGETINFOS("-"), but there aren't any new options, server responds with

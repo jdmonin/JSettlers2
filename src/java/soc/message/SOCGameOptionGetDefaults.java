@@ -26,7 +26,13 @@ package soc.message;
  * Information on current defaults for new games' {@link soc.game.SOCGameOption game options}.
  * Based on server's current values ({@link soc.game.SOCGameOption#getIntValue() .getIntValue()},
  * not {@link soc.game.SOCGameOption#defaultIntValue .defaultIntValue} field).
- *
+ *<P>
+ * Server responds to client's GAMEOPTIONGETDEFAULTS by sending its own GAMEOPTIONGETDEFAULTS.
+ * All of server's known options are sent, except empty string-valued options. 
+ * Depending on client version, server's response may include option names that
+ * the client is too old to use; the client is able to ignore them.
+ * If the client asks about such an option (by sending {@link SOCGameOptionInfo GAMEOPTIONINFO}),
+ * the server will respond with {@link soc.game.SOCGameOption#OTYPE_UNKNOWN GAMEOPTIONINFO(OTYPE_UNKNOWN)}.
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.
