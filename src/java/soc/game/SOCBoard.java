@@ -1546,9 +1546,19 @@ public class SOCBoard implements Serializable, Cloneable
     }
     
     /**
-     * Make a list of all valid hex coordinates (or only land) adjacent to this hex.
+     * Make a list of all valid hex coordinates (or, only land) adjacent to this hex.
+     * Valid coordinates are those within the board data structures, within {@link #MINHEX} to {@link #MAXHEX}.
+     *<P>
+     * Coordinate offsets, from Dissertation figure A.4 - adjacent hexes to hex:<PRE>
+     *    (-2,0)   (0,+2)
+     *
+     * (-2,-2)   x    (+2,+2)
+     *
+     *    (0,-2)   (+2,0)  </PRE>
+     *
      * @param hexCoord Coordinate ("ID") of this hex
      * @param includeWater Should water hexes be returned (not only land ones)?
+     *         Port hexes are water hexes.
      * @return the hexes that touch this hex, as a Vector of Integer coordinates,
      *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
      * @since 1.1.07
@@ -1561,14 +1571,6 @@ public class SOCBoard implements Serializable, Cloneable
         //       - new array of all on-land coords (useful elsewhere too)
         //       - new hexLayout[] value to indicate a hex which is invalid in logical-layout as it appears to the user
 
-	/**
-	 * From Dissertation figure A.4 - adjacent hexes to hex
-	 *    (-2,0)   (0,+2)
-	 *
-	 * (-2,-2)   x    (+2,+2)
-	 *
-	 *    (0,-2)   (+2,0)
-	 */
 	Vector hexes = new Vector();
 
 	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x20);  // NW (northwest)
