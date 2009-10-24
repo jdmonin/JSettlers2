@@ -58,7 +58,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
 
     private int gameMinVers = -1;
 
-    private Hashtable opts = null;
+    // private Hashtable opts = null;
 
     /**
      * Create a SOCNewGameWithOptions message.
@@ -94,7 +94,6 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     public SOCNewGameWithOptions(String ga, Hashtable opts, int minVers)
     {
 	this(ga, SOCGameOption.packOptionsToString(opts, false), minVers);
-	this.opts = opts;
 	// p1 = minVers
 	// p2 = optstr
     }

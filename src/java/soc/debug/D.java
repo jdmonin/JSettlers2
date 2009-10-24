@@ -122,7 +122,8 @@ public class D
             try
             {
                 int x = 0;
-                int y = x / 0;                
+                int y = x / 0;
+                System.out.print(y);
             } catch (Throwable th)
             {
                 ex = th;

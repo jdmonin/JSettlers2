@@ -90,8 +90,6 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
      */
     public void doLayout()
     {
-        int x = getInsets().left;
-        int y = getInsets().top;
         int width = getSize().width - getInsets().left - getInsets().right;
         int height = getSize().height - getInsets().top - getInsets().bottom;
         int space = 5;

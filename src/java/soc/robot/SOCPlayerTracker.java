@@ -2428,9 +2428,6 @@ public class SOCPlayerTracker
     {
         int oldWGETA = winGameETA;
 
-        int good = 0;
-        int bad = 0;
-
         try
         {
             needLR = false;
