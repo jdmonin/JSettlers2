@@ -442,9 +442,13 @@ public class NewGameOptionsFrame extends Frame
             if (hasCB && ! readOnly)
             {
                 if (oc instanceof TextField)
-                    ((TextField) oc).addTextListener(this);
-                else if (oc instanceof Choice)
+                {
+                    ((TextField) oc).addTextListener(this);  // for enable/disable
+                    ((TextField) oc).addKeyListener(this);   // for ESC/ENTER
+                } else if (oc instanceof Choice)
+                {
                     ((Choice) oc).addItemListener(this);
+                }
             }
         }
 
@@ -737,7 +741,7 @@ public class NewGameOptionsFrame extends Frame
         return allOK;
     }
 
-    /** Handle Enter or Esc key */
+    /** Handle Enter or Esc key (KeyListener) */
     public void keyPressed(KeyEvent e)
     {
         if (e.isConsumed())

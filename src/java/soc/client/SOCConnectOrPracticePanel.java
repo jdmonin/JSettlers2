@@ -24,6 +24,7 @@ package soc.client;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Label;
@@ -267,6 +268,7 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_servhost = new TextField(20);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_servhost, gbc);
+        conn_servhost.addKeyListener(this);   // for ESC/ENTER
         pconn.add(conn_servhost);        
 
         L = new Label("Port");
@@ -282,6 +284,7 @@ public class SOCConnectOrPracticePanel extends Panel
         }
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_servport, gbc);
+        conn_servport.addKeyListener(this);   // for ESC/ENTER
         pconn.add(conn_servport);
 
         L = new Label("Nickname");
@@ -291,6 +294,7 @@ public class SOCConnectOrPracticePanel extends Panel
         conn_user = new TextField(20);
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_user, gbc);
+        conn_user.addKeyListener(this);
         pconn.add(conn_user);
 
         L = new Label("Password");
@@ -304,6 +308,7 @@ public class SOCConnectOrPracticePanel extends Panel
             conn_pass.setEchoChar('*');
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_pass, gbc);
+        conn_pass.addKeyListener(this);
         pconn.add(conn_pass);
 
         L = new Label(" ");
@@ -356,7 +361,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbl.setConstraints(L, gbc);
         prun.add(L);
 
-
+        // Port#
         L = new Label("Port");
         gbc.gridwidth = 1;
         gbl.setConstraints(L, gbc);
@@ -370,6 +375,7 @@ public class SOCConnectOrPracticePanel extends Panel
         }
         gbc.gridwidth = 2;
         gbl.setConstraints(run_servport, gbc);
+        run_servport.addKeyListener(this);  // for ESC/ENTER
         prun.add(run_servport);
         L = new Label(" ");  // Spacing for rest of form's rows
         gbc.gridwidth = GridBagConstraints.REMAINDER;
@@ -505,7 +511,7 @@ public class SOCConnectOrPracticePanel extends Panel
 
     }
 
-    /** "Connect..." from connect setup; check fields, etc */
+    /** "Connect..." from connect setup; check fields, set WAIT_CURSOR, ask cli to connect  */
     private void clickConnConnect()
     {
         // TODO Check contents of fields
@@ -523,6 +529,7 @@ public class SOCConnectOrPracticePanel extends Panel
         }
 
         // Copy fields, show MAIN_PANEL, and connect in client
+        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         cl.connect(cserv, cport, conn_user.getText(), conn_pass.getText());
     }
 
@@ -558,7 +565,7 @@ public class SOCConnectOrPracticePanel extends Panel
         validate();
     }
 
-    /** Handle Enter or Esc key */
+    /** Handle Enter or Esc key (KeyListener) */
     public void keyPressed(KeyEvent e)
     {
         if (e.isConsumed())
