@@ -5833,6 +5833,7 @@ public class SOCServer extends Server
             return;
         final int cliVers = c.getVersion();
         boolean vecIsOptObjs = false;
+        boolean alreadyTrimmedEnums = false;
         Vector okeys = mes.getOptionKeys();
 
         if (okeys == null)
@@ -5841,6 +5842,7 @@ public class SOCServer extends Server
             // okeys will be null if nothing is new.
             okeys = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
             vecIsOptObjs = true;
+            alreadyTrimmedEnums = true;
         }
 
 	if (okeys != null)
@@ -5859,6 +5861,16 @@ public class SOCServer extends Server
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
 		}
+
+		// Enum-type options may have their values restricted by version.
+		if ( (! alreadyTrimmedEnums)
+		    && (opt.enumVals != null)
+		    && (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
+		    && (opt.lastModVersion > cliVers))
+		{
+		    opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
+		}
+
 		c.put(new SOCGameOptionInfo(opt).toCmd());
 	    }
 	}

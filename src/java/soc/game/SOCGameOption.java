@@ -627,7 +627,7 @@ public class SOCGameOption implements Cloneable, Comparable
 
     /**
      * Copy constructor for enum-valued types ({@link #OTYPE_ENUM}, {@link #OTYPE_ENUMBOOL}),
-     * for restricting values for a certain client version.
+     * for restricting (trimming) values for a certain client version.
      * @param enumOpt  Option object to copy.  If its <tt>defaultIntValue</tt> is greater than
      *                 <tt>keptEnumVals.length</tt>, the default will be reduced to that.
      * @param keptEnumVals  Enum values to keep; should be a subset of enumOpt.{@link #enumVals}
@@ -1219,12 +1219,8 @@ public class SOCGameOption implements Cloneable, Comparable
                 // Possibly trim enum values. (OTYPE_ENUM, OTYPE_ENUMBOOL)
                 // OTYPE_* - Add here in comment if enum-valued option type
                 final int ev = getMaxEnumValueForVersion(opt.optKey, vers);
-                if (ev < Integer.MAX_VALUE)
-                {
-                    String[] evkeep = new String[ev];
-                    System.arraycopy(opt.enumVals, 0, evkeep, 0, ev);
-                    opt = new SOCGameOption(opt, evkeep);  // Copy option and restrict enum values
-                }
+                if (ev < opt.enumVals.length)
+                    opt = trimEnumForVersion(opt, vers);
             }
 
             if (opt != null)
@@ -1236,6 +1232,26 @@ public class SOCGameOption implements Cloneable, Comparable
         }
 
         return uopt;
+    }
+
+    /**
+     * Copy this option and restrict its enumerated values (type {@link #OTYPE_ENUM} or similar)
+     * by trimming {@link #enumVals} shorter.
+     * Assumes {@link #getMaxEnumValueForVersion(String, int)} indicates this is needed.
+     * @param opt Option to restrict
+     * @param vers Version to restrict to
+     * @return   A copy of the option, containing only the enum
+     *       values permitted at <tt>vers</tt>.
+     *       If no restriction is needed, return <tt>opt</tt>.
+     */
+    public static SOCGameOption trimEnumForVersion(SOCGameOption opt, final int vers)
+    {
+        final int ev = getMaxEnumValueForVersion(opt.optKey, vers);
+        if ((ev == Integer.MAX_VALUE) || (ev == opt.enumVals.length))
+            return opt;
+        String[] evkeep = new String[ev];
+        System.arraycopy(opt.enumVals, 0, evkeep, 0, ev);
+        return new SOCGameOption(opt, evkeep);  // Copy option and restrict enum values
     }
 
     /**
