@@ -210,6 +210,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * Initialized by {@link #gameWithOptionsBeginSetup(String, boolean)}
      * and/or {@link #handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
+     *<P>
+     * For a summary of the flags and variables involved with game options,
+     * and the client/server interaction about their values, see
+     * {@link GameOptionServerSet}'s javadoc.
+     *
      * @since 1.1.07
      */
     protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
@@ -477,7 +482,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         jc = new Button("Join Channel");
         jg = new Button("Join Game");
         pg = new Button("Practice");  // "practice game" text is too wide
-        so = new Button("Show Options");  // show options
+        so = new Button("Show Options");  // show game options
 
         // Username not entered yet: can't click buttons
         ng.setEnabled(false);
@@ -1346,6 +1351,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * Updates tcpServGameOpts, practiceServGameOpts, newGameOptsFrame.
      * If a {@link NewGameOptionsFrame} is already showing, give it focus
      * instead of creating a new one.
+     *<P>
+     * For a summary of the flags and variables involved with game options,
+     * and the client/server interaction about their values, see
+     * {@link GameOptionServerSet}.
+     *
      * @param forPracticeServer  Ask {@link #practiceServer}, instead of remote tcp server?
      * @since 1.1.07
      */
@@ -3601,7 +3611,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * process the "game option get defaults" message
+     * process the "game option get defaults" message.
+     * If any default option's keyname is unknown, ask the server.
+     * @see GameOptionServerSet
      * @since 1.1.07
      */
     private void handleGAMEOPTIONGETDEFAULTS(SOCGameOptionGetDefaults mes, boolean isLocal)
@@ -3615,6 +3627,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	Vector unknowns;
 	synchronized(opts)
 	{
+	    // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
 	    unknowns = opts.receiveDefaults
 		(SOCGameOption.parseOptionsToHash((mes.getOpts())));
 	}
@@ -3640,6 +3653,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * process the "game option info" message
      * by calling {@link GameOptionServerSet#receiveInfo(SOCGameOptionInfo)}.
      * If all are now received, possibly show options window for new game or existing game.
+     *<P>
+     * For a summary of the flags and variables involved with game options,
+     * and the client/server interaction about their values, see
+     * {@link GameOptionServerSet}.
+     *
      * @since 1.1.07
      */
     private void handleGAMEOPTIONINFO(SOCGameOptionInfo mes, boolean isLocal)
@@ -5227,6 +5245,29 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * Track the server's valid game option set.
      * One instance for remote tcp server, one for practice server.
      * Not doing getters/setters - Synchronize on the object to set/read its fields.
+     *<P>
+     * Interaction with client-server messages at connect:
+     *<OL>
+     *<LI> First, this object is created; <tt>allOptionsReceived</tt> false,
+     *     <tt>newGameWaitingForOpts</tt> false.
+     *     <tt>optionSet</tt> is set at client from {@link SOCGameOption#getAllKnownOptions()}.
+     *<LI> At server connect, ask and receive info about options, if our version and the
+     *     server's version differ.  Once this is done, <tt>allOptionsReceived</tt> == true.
+     *<LI> When user wants to create a new game, <tt>askedDefaultsAlready</tt> is false;
+     *     ask server for its defaults (current option values for any new game).
+     *     Also set <tt>newGameWaitingForOpts</tt> = true.  Server will respond with
+     *     its current option values.  This sets <tt>defaultsReceived</tt> and updates <tt>optionSet</tt>.
+     *     It's possible that the server's defaults contain option names that are
+     *     unknown at our version.  If so, <tt>allOptionsReceived</tt> is cleared, and we ask the
+     *     server about those specific options.
+     *     Otherwise, clear <tt>newGameWaitingForOpts</tt>.
+     *<LI> If waiting on option info from defaults above, the server replies with option info.
+     *     (They may remain as type {@link SOCGameOption#OTYPE_UNKNOWN}.)
+     *     Once these are all received, set <tt>allOptionsReceived</tt> = true,
+     *     clear <tt>newGameWaitingForOpts</tt>.
+     *<LI> Once  <tt>newGameWaitingForOpts</tt> == false, show the {@link NewGameOptionsFrame}.
+     *</OL>
+     *
      * @since 1.1.07
      */
     public static class GameOptionServerSet
@@ -5238,7 +5279,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         public boolean   allOptionsReceived = false;
 
         /**
-	 * If true, we've asked the server about options because
+	 * If true, we've asked the server about defaults or options because
 	 * we're about to create a new game.  When all are received,
 	 * we should create and show a NewGameOptionsFrame.
 	 */
@@ -5255,6 +5296,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         /**
          * Options will be null if {@link SOCPlayerClient#sVersion}
          * is less than {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+         * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
+         * and update from server as needed.
          */
 	public Hashtable optionSet = null;
 
@@ -5294,7 +5337,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         /**
          * Set of default options has been received from the server, examine them.
-         * Sets allOptionsReceived, optionSet.  If we already have non-null optionSet,
+         * Sets allOptionsReceived, defaultsReceived, optionSet.  If we already have non-null optionSet,
          * merge (update the values) instead of replacing the entire set with servOpts.
          *
          * @param servOpts The allowable {@link SOCGameOption} received from the server.

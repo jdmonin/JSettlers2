@@ -2413,6 +2413,11 @@ public class SOCServer extends Server
 
                     break;
 
+                /**
+                 * Game option messages. For the best writeup of these messages' interaction with
+                 * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
+                 */
+
 		case SOCMessage.GAMEOPTIONGETDEFAULTS:
 		    handleGAMEOPTIONGETDEFAULTS(c, (SOCGameOptionGetDefaults) mes);
 		    break;
