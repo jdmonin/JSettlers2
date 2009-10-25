@@ -3996,8 +3996,20 @@ public class SOCServer extends Server
                                 ++numPlayers;
                             }
                         }
-                        numEmpty = Math.min(numEmpty, ga.getAvailableSeatCount());
-                        
+
+                        // Check vs max-players allowed in game (option "PL").
+                        // Like seat locks, this can cause robots to be unwanted
+                        // in otherwise-empty seats.
+                        {
+                            final int numAvail = ga.getAvailableSeatCount();
+                            if (numAvail < numEmpty)
+                            {
+                                numEmpty = numAvail;
+                                if (numEmpty == 0)
+                                    seatsFull = true;
+                            }
+                        }
+
                         if (seatsFull && (numPlayers < 2))
                         {
                             seatsFull = false;
@@ -4023,7 +4035,8 @@ public class SOCServer extends Server
                             else
                             {
                                 //
-                                // make sure there are enough robots connected
+                                // make sure there are enough robots connected,
+                                // then set gamestate READY and ask them to connect.
                                 //
                                 if (numEmpty > robots.size())
                                 {
