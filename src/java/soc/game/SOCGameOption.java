@@ -82,6 +82,7 @@ public class SOCGameOption implements Cloneable, Comparable
 
     /**
      * Create a set of the known options.
+     * This method creates and returns a Hashtable, but does not set the static {@link #allOptions} field.
      *
      * <h3>Current known options:</h3>
      *<UL>
@@ -176,8 +177,12 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> Consider if any other places listed above (for add) need adjustment.
      *</UL>
      *
-     *<P>
-     * This method creates and returns a Hashtable, but does not set the static {@link #allOptions} field.
+     * <h3>If you want to remove or obsolete a game option (in a later version):</h3>
+     *
+     * Please think twice beforehand; breaking compatibility with older clients shouldn't
+     * be done without a very good reason.  That said, the server is authoritative on options.
+     * If an option isn't in its known list ({@link #initAllOptions()}), the client won't be
+     * allowed to ask for it.  Any obsolete options should be kept around as commented-out code.
      *
      * @return a fresh copy of the "known" options, with their hardcoded default values
      */
@@ -199,7 +204,10 @@ public class SOCGameOption implements Cloneable, Comparable
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
 
+        return opt;
+
         /*
+                // A commented-out debug option is kept here for each option type's testing convenience.
                 // OTYPE_* - Add a commented-out debug of the new type, for testing the new type.
 
         opt.put("DEBUGENUM", new SOCGameOption
@@ -214,7 +222,8 @@ public class SOCGameOption implements Cloneable, Comparable
                 ("DEBUGSTRHIDE", 1107, 1107, 20, true, true, "Test option strhide"));
         */
 
-        return opt;
+        // OBSOLETE OPTIONS, REMOVED OPTIONS - Move its opt.put down here, commented out,
+        //       including the version, date, and reason of the removal.
     }
 
     /** Lowest OTYPE value known at this version */
