@@ -733,6 +733,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @return minimum version, or -1;
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      * @see #optionsMinimumVersion(Hashtable)
+     * @see #getMaxEnumValueForVersion(String, int)
      */
     public int getMinVersion()
     {
