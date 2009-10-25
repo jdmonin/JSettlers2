@@ -1756,6 +1756,9 @@ public class SOCServer extends Server
     /**
      * Send the entire list of games to this client; this is sent once per connecting client.
      * Or, send the set of changed games, if the client's guessed version was wrong.
+     * The list includes a flag on games which can't be joined by this client version
+     * ({@link SOCGames#MARKER_THIS_GAME_UNJOINABLE).
+     *<P>
      * Depending on client's version, the message sent will be either
      * {@link SOCGames GAMES} or {@link SOCGamesWithOptions GAMESWITHOPTIONS}.
      * The set of changed games is sent as matching pairs of {@link SOCDeleteGame DELETEGAME}
@@ -1781,7 +1784,8 @@ public class SOCServer extends Server
      * know the client's version.
      *<P>
      * The minimum version which recognizes the "can't join" marker is
-     * 1.1.06 ({@link SOCGames#VERSION_FOR_UNJOINABLE}).
+     * 1.1.06 ({@link SOCGames#VERSION_FOR_UNJOINABLE}).  Older clients won't be sent
+     * the game names they can't join.
      *<P>
      * <b>Locks:</b> Will call {@link SOCGameListAtServer#takeMonitor()} / releaseMonitor
      *

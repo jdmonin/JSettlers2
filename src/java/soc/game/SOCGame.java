@@ -284,9 +284,7 @@ public class SOCGame implements Serializable, Cloneable
      * or -1 if unknown.
      * Calculated by {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
-     *<P>
-     *<b>Reminder:</b> If you add new game options, please be sure that the
-     *   robot is also capable of understanding/using them.
+     * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired() for details.
      */
     private int clientVersionMinRequired;
 
@@ -992,8 +990,12 @@ public class SOCGame implements Serializable, Cloneable
      * or -1 if unknown or if this game has no opts.
      * Calculated by {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      *<P>
-     *<b>Reminder:</b> If you add new game options, please be sure that the
-     *   robot is also capable of understanding them.
+     * For options where the minimum version changes with its current value, some
+     * option version data is hardcoded in {@link SOCGameOption#getMinVersion()},
+     * executed on the server with a newer version than an older client.  So, the
+     * version returned may be too low when called at that client.  The server
+     * will let the client know if it's too old to join or create a game due
+     * to options.
      *
      * @return game version, in same integer format as {@link soc.util.Version#versionNumber()}.
      * @since 1.1.06

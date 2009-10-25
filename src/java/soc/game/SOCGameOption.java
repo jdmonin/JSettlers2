@@ -455,7 +455,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
      * @param enumVals text to display for each possible choice of this option.
-     *                Please see the discussion at {@link #initAllOptions()} about
+     *                Please see the explanation at {@link #initAllOptions()} about
      *                changing or adding to enumVals in later versions.
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the enum's popup-menu goes.
@@ -689,6 +689,10 @@ public class SOCGameOption implements Cloneable, Comparable
      * For boolean-valued option types ({@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL} and
      * {@link #OTYPE_INTBOOL}), the minimum
      * value is -1 unless {@link #getBoolValue()} is true (that is, unless the option is set).
+     *<P>
+     * Because this calculation is hardcoded here, the version returned may be too low when
+     * called at an older-version client.  The server will let the client know if it's too
+     * old to join or create a game due to options.
      *
      * @return minimum version, or -1;
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
