@@ -7890,6 +7890,12 @@ public class SOCServer extends Server
 
         if (args.length < 4)
         {
+            if (! printedUsageAlready)
+            {
+                // Print this hint only if parsed OK up to now, and
+                // if we haven't responded to -h / --help already.
+                System.err.println("SOCServer: Some required command-line parameters are missing.");
+            }
             printUsage(false);
             return;
         }
