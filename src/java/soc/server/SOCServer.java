@@ -7779,12 +7779,24 @@ public class SOCServer extends Server
     }
 
     /**
+     * Track whether we've already called {@link #printUsage(boolean)}.
+     * @since 1.1.07
+     */
+    public static boolean printedUsageAlready = false;
+
+    /**
      * Print command line parameter information, including options ("--" / "-").
+     * @param longFormat short or long? 
      * Long format gives details and also calls {@link #printVersionText()} beforehand.
+     * Short format is printed at most once, after checking {@link #printedUsageAlready}.
      * @since 1.1.07
      */
     public static void printUsage(final boolean longFormat)
     {
+        if (printedUsageAlready && ! longFormat)
+            return;
+        printedUsageAlready = true;
+
         if (longFormat)
         {
             printVersionText();
@@ -7830,7 +7842,7 @@ public class SOCServer extends Server
             sb.append("  ");
             sb.append(opt.optDesc);
             System.err.println(sb.toString());
-            if ((opt.optType == SOCGameOption.OTYPE_ENUM) || (opt.optType == SOCGameOption.OTYPE_ENUMBOOL))
+            if (opt.enumVals != null)  // possible values of OTYPE_ENUM
             {
                 sb = new StringBuffer("    option choices (1-n): ");
                 for (int i = 1; i <= opt.maxIntValue; ++i)
