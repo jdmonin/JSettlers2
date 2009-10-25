@@ -5255,8 +5255,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      *     server's version differ.  Once this is done, <tt>allOptionsReceived</tt> == true.
      *<LI> When user wants to create a new game, <tt>askedDefaultsAlready</tt> is false;
      *     ask server for its defaults (current option values for any new game).
-     *     Also set <tt>newGameWaitingForOpts</tt> = true.  Server will respond with
-     *     its current option values.  This sets <tt>defaultsReceived</tt> and updates <tt>optionSet</tt>.
+     *     Also set <tt>newGameWaitingForOpts</tt> = true.
+     *<LI> Server will respond with its current option values.  This sets
+     *     <tt>defaultsReceived</tt> and updates <tt>optionSet</tt>.
      *     It's possible that the server's defaults contain option names that are
      *     unknown at our version.  If so, <tt>allOptionsReceived</tt> is cleared, and we ask the
      *     server about those specific options.
