@@ -473,7 +473,7 @@ public class SOCServer extends Server
      * @throws SOCGameOptionVersionException if asking to create a game (gaOpts != null),
      *           but client's version is too low to join because of a
      *           requested game option's minimum version in gaOpts. 
-     *           Calculated via {@link SOCGameOption#optionsNewerThanVersion(int, boolean, Hashtable)}.
+     *           Calculated via {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Hashtable)}.
      *           (this exception was added in 1.1.07)
      * @throws IllegalArgumentException if client's version is too low to join for any
      *           other reason. (this exception was added in 1.1.06)
@@ -550,7 +550,7 @@ public class SOCServer extends Server
                     {
                         // Which option(s) are too new for client?
                         Vector optsValuesTooNew =
-                            SOCGameOption.optionsNewerThanVersion(cliVers, true, gaOpts);
+                            SOCGameOption.optionsNewerThanVersion(cliVers, true, false, gaOpts);
                         throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
 
                         // <---- Exception: Early return ----
@@ -5821,7 +5821,7 @@ public class SOCServer extends Server
         {
             // received "-", look for newer options (cli is older than us).
             // okeys will be null if nothing is new.
-            okeys = SOCGameOption.optionsNewerThanVersion(cliVers, false, null);
+            okeys = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
             vecIsOptObjs = true;
         }
 

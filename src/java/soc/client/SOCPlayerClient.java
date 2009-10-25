@@ -2218,7 +2218,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 	    {
 	        // Older server: Look for options created or changed since server's version.
 	        // Ask it what it knows about them.
-	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, null);
+	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
 		if (tooNewOpts != null)
                 {
                     if (! isLocal)

@@ -107,10 +107,12 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> Decide if all client versions can use your option.  Typically, if the option
      *   requires server changes but not any client changes, all clients can use it.
      *   (For example, "N7" for "roll no 7s early in the game" is strictly server-side.)
-     *   If only <em>some values</em> of the option will require client changes,
+     *<LI> If only <em>some values</em> of the option will require client changes,
      *   also update {@link #getMinVersion()}.  (For example, if "PL"'s value is 5 or 6,
      *   a new client would be needed to display that many players at once, but 2 - 4
-     *   can use any client version.)
+     *   can use any client version.)  If this is the case and your option type
+     *   is {@link #OTYPE_ENUM} or {@link #OTYPE_ENUMBOOL}, also update
+     *   {@link #getMaxEnumValueForVersion(String, int)}.
      *<LI> Create the option by calling opt.put here in initAllOptions.
      *   Use the current version for the "last modified" field.
      *<LI> Within {@link SOCGame}, don't add any object fields due to the new option;
@@ -130,10 +132,10 @@ public class SOCGameOption implements Cloneable, Comparable
      *           and handles some of its messages
      *   </UL>
      *   Some options don't need any code at the robot; for example, the robot doesn't
-     *   care about the maximum number of players in a game, because it doesn't decide when
-     *   to join a game; the server tells it that.
+     *   care about the maximum number of players in a game, because the server tells the
+     *   robot when to join a game.
      *<LI> To find other places which may possibly need an update from your new option,
-     *   search the source for this marker: <code> // NEW_OPTION</code>
+     *   search the entire source tree for this marker: <code> // NEW_OPTION</code>
      *   <br>
      *   This would include places like
      *   {@link soc.util.SOCRobotParameters#copyIfOptionChanged(Hashtable)}
@@ -157,9 +159,9 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> {@link #optType}
      *<LI> {@link #minVersion}
      *<LI> {@link #dropIfUnused} flag
-     *<LI> For {@link #OTYPE_ENUM}, you can't remove options or change the meaning
-           of current ones, because this would mean that the option's intValue (sent over
-           the network) would mean different things to different-versioned clients in the game.
+     *<LI> For {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL}, you can't remove options or change
+     *     the meaning of current ones, because this would mean that the option's intValue (sent over
+     *     the network) would mean different things to different-versioned clients in the game.
      *</UL>
      *
      *   <b>To make the change:</b>
@@ -167,7 +169,10 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> Change the option here in initAllOptions; change the "last modified" field to
      *   the current game version. Otherwise the server can't tell the client what has
      *   changed about the option.
-     *<LI> Search the source for its key name, to find places which may need an update.
+     *<LI> If new values require a newer minimum client version, add code to {@link #getMinVersion()}.
+     *   If adding a new enum value for {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL},
+     *   also add code to {@link #getMaxEnumValueForVersion(String, int)}.
+     *<LI> Search the entire source tree for its key name, to find places which may need an update.
      *<LI> Consider if any other places listed above (for add) need adjustment.
      *</UL>
      *
@@ -201,7 +206,7 @@ public class SOCGameOption implements Cloneable, Comparable
                 ("DEBUGENUM", 1107, 1107, 
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option # enum"));
         opt.put("DEBUGENUMBOOL", new SOCGameOption
-                ("DEBUGENUMBOOL", 1107, 1107, true,
+                ("DEBUGENUMBOOL", 1107, 1108, true,
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, true, "Test option # enumbool"));
         opt.put("DEBUGSTR", new SOCGameOption
                 ("DEBUGSTR", 1107, 1107, 20, false, true, "Test option str"));
@@ -612,6 +617,28 @@ public class SOCGameOption implements Cloneable, Comparable
     }
 
     /**
+     * Copy constructor for enum-valued types ({@link #OTYPE_ENUM}, {@link #OTYPE_ENUMBOOL}),
+     * for restricting values for a certain client version.
+     * @param enumOpt  Option object to copy.  If its <tt>defaultIntValue</tt> is greater than
+     *                 <tt>keptEnumVals.length</tt>, the default will be reduced to that.
+     * @param keptEnumVals  Enum values to keep; should be a subset of enumOpt.{@link #enumVals}
+     *                 containing the first n values of that list.
+     * @see #getMaxEnumValueForVersion(String, int)
+     * @see #optionsNewerThanVersion(int, boolean, boolean, Hashtable)
+     * @throws NullPointerException  if keptEnumVals is null
+     */
+    protected SOCGameOption(SOCGameOption enumOpt, String[] keptEnumVals)
+        throws NullPointerException
+    {
+        // OTYPE_* - If enum-valued, add to javadoc.
+        this(enumOpt.optType, enumOpt.optKey, enumOpt.minVersion, enumOpt.lastModVersion,
+             enumOpt.defaultBoolValue,
+             enumOpt.defaultIntValue <= keptEnumVals.length ? enumOpt.defaultIntValue : keptEnumVals.length,
+             1, keptEnumVals.length, enumOpt.dropIfUnused,
+             keptEnumVals, enumOpt.optDesc);
+    }
+
+    /**
      * Is this option set, if this option's type has a boolean component?
      * @return current boolean value of this option
      */
@@ -724,6 +751,35 @@ public class SOCGameOption implements Cloneable, Comparable
         // END OF SAMPLE CODE.
 
         return minVersion;
+    }
+
+    /**
+     * For use at server, for enum options where some values require a newer client version.
+     * Given the option's keyname and a version, what is the maximum permitted enum value?
+     * The server, when giving option info to a connecting client, can remove the too-new values,
+     * and send only the permitted values to an older client.
+     *
+     * @param optKey Option's keyname
+     * @param vers   Version of client
+     * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
+     *          if this option has no restriction.
+     *          Enum values range from 1 to n, not from 0 to n-1.
+     */
+    public static final int getMaxEnumValueForVersion(final String optKey, final int vers)
+    {
+        // SAMPLE CODE:
+        /*
+        if (optKey.equals("DEBUGENUMBOOL"))
+        {
+            if (vers >= 1108)
+                return 4;
+            else
+                return 2;
+        }
+        */
+        // END OF SAMPLE CODE.
+
+        return Integer.MAX_VALUE;
     }
 
     /**
@@ -850,7 +906,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
-     * @return string of name-value pairs;
+     * @return string of name-value pairs, same format as {@link #packOptionsToString(Hashtable, boolean)};
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string.
      * @see #parseOptionsToHash(String)
@@ -1120,12 +1176,15 @@ public class SOCGameOption implements Cloneable, Comparable
      *              not their {@link #lastModVersion}?
      *              An option's minimum version can increase based
      *              on its value; see {@link #getMinVersion()}.
+     * @param trimEnums  For enum-type options where minVersion changes based on current value,
+     *              should we remove too-new values from the returned option info?
+     *              This lets us send only the permitted values to an older client.
      * @param opts  Set of {@link SOCGameOption}s to check current values;
      *              if null, use the "known option" set
      * @return Vector of the newer {@link SOCGameOption}s, or null
      *     if all are known and unchanged since <tt>vers</tt>.
      */
-    public static Vector optionsNewerThanVersion(final int vers, final boolean checkValues, Hashtable opts)
+    public static Vector optionsNewerThanVersion(final int vers, final boolean checkValues, final boolean trimEnums, Hashtable opts)
     {
         if (opts == null)
             opts = allOptions;
@@ -1134,21 +1193,36 @@ public class SOCGameOption implements Cloneable, Comparable
         for (Enumeration e = opts.elements(); e.hasMoreElements(); )
         {
             SOCGameOption opt = (SOCGameOption) e.nextElement();
+
             if (checkValues)
             {
-                if (opt.getMinVersion() > vers)
-                {
-                    if (uopt == null)
-                        uopt = new Vector();
-                    uopt.addElement(opt);
-                }
+                if (opt.getMinVersion() <= vers)
+                    opt = null;  // not too new
             } else {
-                if (opt.lastModVersion > vers)
+                if (opt.lastModVersion <= vers)
+                    opt = null;  // not modified since vers
+            }
+
+            if (trimEnums && (opt != null)
+                && (opt.minVersion <= vers)  // vers is new enough to use this opt
+                && (opt.enumVals != null))
+            {
+                // Possibly trim enum values. (OTYPE_ENUM, OTYPE_ENUMBOOL)
+                // OTYPE_* - Add here in comment if enum-valued option type
+                final int ev = getMaxEnumValueForVersion(opt.optKey, vers);
+                if (ev < Integer.MAX_VALUE)
                 {
-                    if (uopt == null)
-                        uopt = new Vector();
-                    uopt.addElement(opt);
+                    String[] evkeep = new String[ev];
+                    System.arraycopy(opt.enumVals, 0, evkeep, 0, ev);
+                    opt = new SOCGameOption(opt, evkeep);  // Copy option and restrict enum values
                 }
+            }
+
+            if (opt != null)
+            {
+                if (uopt == null)
+                    uopt = new Vector();
+                uopt.addElement(opt);                
             }
         }
 
