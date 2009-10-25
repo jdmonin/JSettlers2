@@ -5085,7 +5085,7 @@ public class SOCServer extends Server
                                 ga.undoPutInitSettlement(pp);
                                 messageToGame(gaName, mes);  // Re-send to all clients to announce it
                                     // (Safe since we've validated all message parameters)
-                                messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " cancelled their settlement placement."));
+                                messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " cancelled this settlement placement."));
                                 sendGameState(ga);  // This send is redundant, if client reaction changes game state
                             }
                             else
