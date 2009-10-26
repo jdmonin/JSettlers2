@@ -61,10 +61,10 @@ public class SOCGameOptionGetInfos extends SOCMessage
      *
      * @param okeys  list of game option keynames (Strings), or null for "-"
      */
-    public SOCGameOptionGetInfos(Vector ga)
+    public SOCGameOptionGetInfos(Vector okeys)
     {
         messageType = GAMEOPTIONGETINFOS;
-        optkeys = ga;
+        optkeys = okeys;
     }
 
     /**
@@ -98,7 +98,7 @@ public class SOCGameOptionGetInfos extends SOCMessage
     /**
      * GAMEOPTIONGETINFOS sep optkeys
      *
-     * @param ga  the list of option keynames, as an enum of Strings or SOCGameOptions,
+     * @param opts  the list of option keynames, as an enum of Strings or SOCGameOptions,
      *            or null to use "-" as 'optkeys'
      * @return    the command string
      */

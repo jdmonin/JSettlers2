@@ -24,9 +24,7 @@ package soc.server;
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
-
 import soc.server.genericServer.StringConnection;
-
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.Version;
@@ -39,12 +37,13 @@ import java.util.Vector;
 /**
  * A class for creating and tracking the games;
  * contains each game's name, {@link SOCGameOption game options},
- * {@link SOCGame} object, and clients ({@link #StringConnection}s).
+ * {@link SOCGame} object, and clients ({@link StringConnection}s).
  *<P>
  * In 1.1.07, parent class SOCGameList was refactored, with
  * some methods moved to this new subclass, such as {@link #createGame(String, Hashtable) createGame}.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
+ * @since 1.1.07
  */
 public class SOCGameListAtServer extends SOCGameList
 {
@@ -56,7 +55,7 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public static int GAME_EXPIRE_MINUTES = 90;
 
-    /** map of game names to Vector of game members */
+    /** map of game names to Vector of game members ({@link StringConnection}s) */
     protected Hashtable gameMembers;
 
     /**
@@ -69,8 +68,9 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
+     * does the game have no members?
      * @param   gaName  the name of the game
-     * @return true if the channel exists and has an empty member list
+     * @return true if the game exists and has an empty member list
      */
     public synchronized boolean isGameEmpty(String gaName)
     {
@@ -92,8 +92,9 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
+     * get a game's members (client connections)
      * @param   gaName  game name
-     * @return  list of members: a Vector of StringConnections
+     * @return  list of members: a Vector of {@link StringConnection}s
      */
     public synchronized Vector getMembers(String gaName)
     {
@@ -101,6 +102,7 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
+     * is this connection a member of the game?
      * @param  gaName   the name of the game
      * @param  conn     the member's connection
      * @return true if memName is a member of the game
@@ -223,7 +225,9 @@ public class SOCGameListAtServer extends SOCGameList
     /**
      * Reset the board of this game, create a new game of same name,
      * same players, new layout.  The new "reset" board takes the place
-     * of the old game in the game list.  Robots are not copied and
+     * of the old game in the game list.
+     *<P>
+     * Robots are not copied and
      * must re-join the game. (They're removed from the list of game members.)
      * If the game had robots, they must leave the old game before any players can
      * join the new game; the new game's {@link SOCGame#boardResetOngoingInfo} field

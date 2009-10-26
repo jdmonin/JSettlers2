@@ -68,7 +68,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Maximum range (min-max value) for integer-type options
      * to be rendered using a value popup, instead of a textfield. 
-     * @see #initOption_intfield(SOCGameOption)
+     * @see #initOption_int(SOCGameOption)
      */
     public static final int INTFIELD_POPUP_MAXRANGE = 21;
 
@@ -932,8 +932,8 @@ public class NewGameOptionsFrame extends Frame
         /**
          * Creates a new VersionConfirmDialog.
          *
-         * @param cli      Player client interface
-         * @param gamePI   Current game's player interface
+         * @param ngof  Parent options-frame, which contains these options
+         * @param minVers  Minimum required version for these options
          */
         public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers)
         {

@@ -127,9 +127,9 @@ public class SOCGameOption implements Cloneable, Comparable
      *   <LI> {@link soc.server.SOCServer} is the server class,
      *           see its "handle" methods for network messages
      *   <LI> {@link soc.client.SOCPlayerClient} is the graphical client
-     *   <LI> {@link soc.client.SOCRobotClient} and {@link soc.robot.SOCRobotBrain#run()}
+     *   <LI> {@link soc.robot.SOCRobotClient} and {@link soc.robot.SOCRobotBrain#run()}
      *           together handle the robot client messages
-     *   <LI> {@link soc.client.SOCDisplaylessClient} is the foundation for the robot client,
+     *   <LI> {@link soc.client.SOCDisplaylessPlayerClient} is the foundation for the robot client,
      *           and handles some of its messages
      *   </UL>
      *   Some options don't need any code at the robot; for example, the robot doesn't

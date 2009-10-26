@@ -34,6 +34,7 @@ import soc.server.genericServer.StringConnection;
 
 import soc.util.IntPair;
 import soc.util.SOCGameBoardReset;
+import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
@@ -113,12 +114,12 @@ public class SOCServer extends Server
 
     /**
      * If game will expire in this or fewer minutes, warn the players. Default 10.
-     * Must be at least twice the sleep-time in SOCGameTimeoutChecker.run().
-     * The game expiry time is set at game creation in SOCGameListAtServer.CreateGame.
+     * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
+     * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, Hashtable)}.
      *
      * @see #checkForExpiredGames()
      * @see SOCGameTimeoutChecker#run()
-     * @see SOCGameListAtServer#createGame(String)
+     * @see SOCGameListAtServer#createGame(String, Hashtable)
      */
     public static int GAME_EXPIRE_WARN_MINUTES = 10;
 
@@ -1757,7 +1758,7 @@ public class SOCServer extends Server
      * Send the entire list of games to this client; this is sent once per connecting client.
      * Or, send the set of changed games, if the client's guessed version was wrong.
      * The list includes a flag on games which can't be joined by this client version
-     * ({@link SOCGames#MARKER_THIS_GAME_UNJOINABLE).
+     * ({@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}).
      *<P>
      * Depending on client's version, the message sent will be either
      * {@link SOCGames GAMES} or {@link SOCGamesWithOptions GAMESWITHOPTIONS}.
@@ -5815,7 +5816,7 @@ public class SOCServer extends Server
     /**
      * process the "game option get infos" message; reply with the info, with
      * one {@link SOCGameOptionInfo GAMEOPTIONINFO} message per option keyname.
-     * Mark the end of the option list with {@link SOCGameOptionGetInfo GAMEOPTIONGETINFO}("-").
+     * Mark the end of the option list with {@link SOCGameOptionInfo GAMEOPTIONINFO}("-").
      * If this list is empty, "-" will be the only GAMEOPTIONGETINFO message sent.
      *<P>
      * We check the default values, not current values, so the list is unaffected by

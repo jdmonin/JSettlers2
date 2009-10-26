@@ -31,7 +31,7 @@ import java.util.Vector;
 
 /**
  * This is a representation of the board in Settlers of Catan.
- * Board initialization is done in {@link #makeNewBoard()}; that method
+ * Board initialization is done in {@link #makeNewBoard(Hashtable)}; that method
  * has some internal comments on structures, coordinates, layout and values.
  *<P>
  * Other methods to examine the board: {@link SOCGame#getPlayersOnHex(int)},

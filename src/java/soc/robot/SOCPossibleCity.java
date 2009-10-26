@@ -86,7 +86,8 @@ public class SOCPossibleCity extends SOCPossiblePiece
     }
 
     /**
-     * @return the speedup that this city gives
+     * calculate the speedup that this city gives
+     * @see #getSpeedup()
      */
     public void updateSpeedup()
     {

@@ -91,9 +91,8 @@ public class SOCDBHelper
      *
      * @param user  the user name for accessing the database
      * @param pswd  the password for the user
-     * @return true if the database was initialized
      * @throws SQLException if an SQL command fails, or the db couldn't be
-     * initialied
+     *         initialized
      */
     public static void initialize(String user, String pswd) throws SQLException
     {

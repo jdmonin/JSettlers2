@@ -24,8 +24,6 @@ package soc.util;
 import soc.disableDebug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
-
-
 import soc.message.SOCGames;
 
 import java.util.Enumeration;
@@ -35,10 +33,11 @@ import java.util.Hashtable;
 /**
  * A class for creating and tracking the games;
  * contains each game's name, {@link SOCGameOption game options},
- * {@link SOCGame} object, and clients ({@link #StringConnection}s).
+ * {@link SOCGame} object, and mutex for synchronization.
  *<P>
  * In 1.1.07, moved from soc.server to soc.util package for client's use.
  * Some methods moved to new subclass {@link soc.server.SOCGameListAtServer}.
+ * That subclass also tracks each game's clients ({@link soc.server.genericServer.StringConnection}s).
  *<P>
  * The client-side addGame methods allow game names to have a prefix which marks them
  * as unjoinable by the client ({@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}).
@@ -193,7 +192,7 @@ public class SOCGameList
     /**
      * Get the names of every game we know about, even those with no {@link SOCGame} object.
      * @return an enumeration of game names (Strings)
-     * @see #getGameObjects()
+     * @see #getGamesData()
      */
     public Enumeration getGames()
     {
@@ -214,6 +213,7 @@ public class SOCGameList
     }
 
     /**
+     * the number of games in our list
      * @return the number of games in our list
      * @since 1.1.07
      */
@@ -223,8 +223,9 @@ public class SOCGameList
     }
 
     /**
+     * get a game's SOCGame, if we've stored that
      * @param   gaName  game name
-     * @return the game data
+     * @return the game object data, or null
      */
     public SOCGame getGameData(String gaName)
     {
@@ -232,6 +233,7 @@ public class SOCGameList
     }
 
     /**
+     * get a game's {@link SOCGameOption}s, if stored and parsed
      * @param   gaName  game name
      * @return the game options (hashtable of {@link SOCGameOption}), or null if none or if unparsed
      * @see #getGameOptionsString(String)
@@ -248,6 +250,7 @@ public class SOCGameList
     }
 
     /**
+     * get a game's {@link SOCGameOption}s, as a packed string
      * @param   gaName  game name
      * @return the game options string, or null if no packed version
      * @see #getGameOptions(String)
@@ -280,6 +283,7 @@ public class SOCGameList
     }
 
     /**
+     * does this game exist in our list?
      * @param   gaName  the name of the game
      * @return true if the game exists
      */
@@ -289,6 +293,7 @@ public class SOCGameList
     }
 
     /**
+     * does this game have the unjoinable flag prefix?
      * @param   gaName  the name of the game;  may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      *         Remember that the prefix is not stored as part of the game name in this list,

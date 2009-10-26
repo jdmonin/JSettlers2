@@ -35,7 +35,7 @@ import soc.game.SOCGameOption;
  *<P>
  * Special case: If the client is asking for any new options, by sending
  * GAMEOPTIONGETINFOS("-"), but there aren't any new options, server responds with
- * {@link #OPTINFO_NOTHINGNEW}, a GAMEOPTIONINFO named "-" with type OTYPE_UNKNOWN.
+ * {@link #OPTINFO_NO_MORE_OPTS}, a GAMEOPTIONINFO named "-" with type OTYPE_UNKNOWN.
  *<P>
  * This is so clients can find out about options which were
  * introduced in versions newer than the client's version, but which
@@ -123,7 +123,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[11] = optDesc (displayed text) if present; required for all but OTYPE_UNKNOWN
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *
-     * @throws IllegalArgumentException if pa.length < 11, or type is not a valid {@link SOCGameOption.optType};
+     * @throws IllegalArgumentException if pa.length < 11, or type is not a valid {@link SOCGameOption#optType};
      *      if type isn't {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM} or ENUMBOOL, pa.length must == 12 (or 11 for OTYPE_UNKNOWN).
      * @throws NumberFormatException    if pa integer-field contents are incorrectly formatted.
      */

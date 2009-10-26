@@ -407,11 +407,11 @@ public class LocalStringConnection
      * The StringConnection system uses this data to name the connection,
      * so it should not change once set.
      *<P>
-     * If you call setData after {@link #newConnection1(StringConnection)},
+     * If you call setData after {@link Server#newConnection1(StringConnection)},
      * please call {@link Server#nameConnection(StringConnection)} afterwards
      * to ensure the name is tracked properly at the server.
      *
-     * @param data The new key data, or null
+     * @param dat The new key data, or null
      * @see #setAppData(Object)
      */
     public void setData(Object dat)
@@ -592,7 +592,7 @@ public class LocalStringConnection
      * If client connection times out at server, should the server not print a message to console?
      * This would be desired, for instance, in automated clients, which would reconnect
      * if they become disconnected.
-     * @see setHideTimeoutMessage(boolean)
+     * @see #setHideTimeoutMessage(boolean)
      * @since 1.0.5
      */
     public boolean wantsHideTimeoutMessage()
@@ -605,7 +605,7 @@ public class LocalStringConnection
      * This would be desired, for instance, in automated clients, which would reconnect
      * if they become disconnected.
      * @param wantsHide true to hide, false to print, the log message on idle-disconnect
-     * @see wantsHideTimeoutMessage()
+     * @see #wantsHideTimeoutMessage()
      * @since 1.0.5
      */
     public void setHideTimeoutMessage(boolean wantsHide)

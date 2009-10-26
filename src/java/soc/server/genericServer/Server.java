@@ -53,7 +53,7 @@ import java.util.Vector;
  *  and are integrated into server data via {@link #addConnection(StringConnection)}
  *  called from that thread.  If the client's connection is accepted in
  *  {@link #newConnection1(StringConnection)},
- *  the per-client thread enters a while-loop and calls {@link treat(String, StringConnection)}
+ *  the per-client thread enters a while-loop and calls {@link #treat(String, StringConnection)}
  *  to handle messages from the client.  Treat places them in a server-wide {@link #inQueue},
  *  which is processed in a server-wide single thread called the "treater".
  *<P>
@@ -124,8 +124,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Key = Integer(version). Value = ConnVersionCounter.
      * Synchronized on {@link #unnamedConns}, like many other
      * client-related structures.
-     * @see #clientVersionAdd()
-     * @see #clientVersionRem()
+     * @see #clientVersionAdd(int)
+     * @see #clientVersionRem(int)
      * @since 1.1.06
      */
     private TreeMap cliVersionsConnected = new TreeMap();
@@ -721,8 +721,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *<P>
      * <b>Locks:</b> Caller should synchronize on {@link #unnamedConns}.
      *
-     * @see #clientVersionCheckMap(TreeMap)
-     * @see #clientVersionRebuildMap()
+     * @see #clientVersionCheckMap(TreeMap, boolean)
+     * @see #clientVersionRebuildMap(TreeMap)
      * @since 1.1.06
      */
     private TreeMap clientVersionBuildMap()

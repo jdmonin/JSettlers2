@@ -284,7 +284,7 @@ public class SOCGame implements Serializable, Cloneable
      * or -1 if unknown.
      * Calculated by {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      * Format is the internal integer format, see {@link soc.util.Version#versionNumber()}.
-     * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired() for details.
+     * Value may sometimes be too low at client, see {@link #getClientVersionMinRequired()} for details.
      */
     private int clientVersionMinRequired;
 
@@ -3855,7 +3855,7 @@ public class SOCGame implements Serializable, Cloneable
      * Create a new game with same players and name, new board;
      * like calling constructor otherwise.
      * State of current game can be any state. State of copy is {@link #NEW},
-     * although if there are robots, it will be set to {@link #READY_RESET_WAIT_ROBOT_DISMISS}
+     * or if there are robots, it will be set to {@link #READY_RESET_WAIT_ROBOT_DISMISS}
      * by the {@link SOCGameBoardReset} constructor.
      * Deep copy: Player names, faceIDs, and robot-flag are copied from
      * old game, but all other fields set as new Player and Board objects.

@@ -207,7 +207,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     /**
      * Track the game options available at the remote server, at the practice server.
-     * Initialized by {@link #gameWithOptionsBeginSetup(String, boolean)}
+     * Initialized by {@link #gameWithOptionsBeginSetup(boolean)}
      * and/or {@link #handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
      *<P>
@@ -873,7 +873,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * When nickname contents change, enable/disable buttons as appropriate. ({@link {TextListener})
+     * When nickname contents change, enable/disable buttons as appropriate. ({@link TextListener})
      * @param e textevent from {@link #nick}
      * @since 1.1.07
      */
@@ -888,7 +888,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link {ItemListener})
+     * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ItemListener})
      * @param e textevent from {@link #gmlist}
      * @since 1.1.07
      */
@@ -1474,7 +1474,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      *
      * @param gmName Game name; for practice, null is allowed
      * @param forPracticeServer Is this for a new game on the local-practice (not remote) server?
-     * @param gameOpts Set of {@link SOCGameOption game options} to use, or null
+     * @param opts Set of {@link SOCGameOption game options} to use, or null
      * @since 1.1.07
      * @see #readValidNicknameAndPassword()
      */

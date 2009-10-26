@@ -72,11 +72,13 @@ public class SOCGameBoardReset
 
     /** Create a SOCGameReset: Extract data, reset the old game, and gather new data.
      *  Adjust game member list to remove robots.
+     *  If there were robots, the <b>new</b> game's state is set to
+     *  {@link SOCGame#READY_RESET_WAIT_ROBOT_DISMISS}.
      *
      * @param oldGame Game to reset - {@link soc.game.SOCGame#resetAsCopy()}
      *   will be called.  The old game's state will be changed to RESET_OLD.
      * @param memberConns Game members (StringConnections),
-     *   as retrieved by {@link SOCGameList#getMembers(String)}.
+     *   as retrieved by {@link soc.server.SOCGameListAtServer#getMembers(String)}.
      *   Contents of this vector will be changed to remove any robot members.
      */
     public SOCGameBoardReset (SOCGame oldGame, Vector memberConns)
@@ -144,7 +146,7 @@ public class SOCGameBoardReset
      *
      * @param newGame New game (if resetting), or only game
      * @param oldGame Old game (if resetting), or null
-     * @param memberConns Members of old game, from {@link SOCGameList#getMembers(String)}; a Vector of StringConnections
+     * @param memberConns Members of old game, from {@link soc.server.SOCGameListAtServer#getMembers(String)}; a Vector of StringConnections
      * @param humanConns New array to fill with human players; indexed 0 to SOCGame.MAXPLAYERS-1.
      *                   humanConns[pn] will be the human player at position pn, or null.
      * @param robotConns New array to fill with robot players; indexed 0 to SOCGame.MAXPLAYERS-1.
