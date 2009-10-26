@@ -20,7 +20,6 @@
  **/
 package soc.server.genericServer;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketException;
 
@@ -33,10 +32,11 @@ import java.net.SocketException;
  *  1.0.3 - 2008-08-08 - add change history; no other changes in this file since 1.0.0
  *  1.0.4 - 2008-09-04 - no change in this file
  *  1.0.5 - 2009-05-31 - no change in this file
+ *  1.0.5.1- 2009-10-26- remove unused import EOFException
  *</PRE>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
- * @version 1.0.5
+ * @version 1.0.5.1
  */
 public interface StringServerSocket
 {

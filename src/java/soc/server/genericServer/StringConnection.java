@@ -20,7 +20,6 @@
  **/
 package soc.server.genericServer;
 
-import java.io.EOFException;
 import java.util.Date;
 
 /**
@@ -36,10 +35,11 @@ import java.util.Date;
  *  1.0.5 - 2009-05-31 - add isVersionKnown, setVersion(int,bool),
  *                       setVersionTracking, isInputAvailable,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage
+ *  1.0.5.1- 2009-10-26- javadoc warnings fixed; remove unused import EOFException
  *</PRE>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
- * @version 1.0.5
+ * @version 1.0.5.1
  */
 public interface StringConnection
 {

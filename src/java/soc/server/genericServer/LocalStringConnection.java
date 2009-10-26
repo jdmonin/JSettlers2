@@ -50,10 +50,11 @@ import soc.disableDebug.D;
  *                       isInputAvailable, callback to processFirstCommand,
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage;
  *                       common constructor code moved to init().
+ *  1.0.5.1- 2009-10-26- javadoc warnings fixed
  *</PRE>
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
- * @version 1.0.5
+ * @version 1.0.5.1
  */
 public class LocalStringConnection
     implements StringConnection, Runnable
