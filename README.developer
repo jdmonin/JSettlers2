@@ -10,12 +10,17 @@ Robots talk with the server like normal human clients.
 Coding is done in Java 1.4 for now, but should compile cleanly in newer JDKs.
 The build system is Ant, which is natively understood by Eclipse.  Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the code already there.
+When adding new methods or fields, describe them in javadoc, including the @since marker
+and the one-sentence summary (even though some old methods don't have that summary).
 When submitting patches, please use unified diff (-ur) format.
 
 See VERSIONS.txt for recent changes.
 
 Current partially-done work:
 	- Refactor SOCMessage classes to use templates
+	- Support for other board encoding formats, or other board sizes
+	- Some SOCMessage classes (SOCGames, SOCJoinGameRequest) accept objects like SOCGame and parse/create them;
+	    over-the-network communication will always be strings only.
 
 
 For debugging, if you want to inspect the game state at the server or robot:
