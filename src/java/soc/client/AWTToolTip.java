@@ -450,6 +450,9 @@ public class AWTToolTip
 
 /*
  * $Log$
+ * Revision 1.5  2009/08/01 11:58:51  jdmonin
+ * fix src line endings
+ *
  * Revision 1.4  2009/07/01 03:35:03  jdmonin
  * latest devel code, to become 1.1.07
  *
