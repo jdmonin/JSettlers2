@@ -218,7 +218,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * @since 1.1.07
      */
     protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
-	practiceServGameOpts = new GameOptionServerSet();
+        practiceServGameOpts = new GameOptionServerSet();
 
     /**
      * Task for timeout when asking remote server for {@link SOCGameOptionInfo game options info}.
@@ -467,10 +467,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         
         nick = new TextField(20);
         pass = new TextField(20);
-	if (isJavaOnOSX)
-	    pass.setEchoChar('\u2022');  // round bullet (option-8)
-	else
-	    pass.setEchoChar('*');
+        if (isJavaOnOSX)
+            pass.setEchoChar('\u2022');  // round bullet (option-8)
+        else
+            pass.setEchoChar('*');
         status = new TextField(20);
         status.setEditable(false);
         channel = new TextField(20);
@@ -1163,7 +1163,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 }
             }
 
-	    // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
+            // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
             NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
             return true;
         }
@@ -1230,8 +1230,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             {
                 nickname = getValidNickname(true);  // May set hint message if empty,
                                            // like NEED_NICKNAME_BEFORE_JOIN
-		if (nickname == null)
-		    return true;  // not filled in yet
+                if (nickname == null)
+                    return true;  // not filled in yet
 
                 if (!gotPassword)
                     password = getPassword();  // may be 0-length
@@ -1254,8 +1254,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             }
             else
             {
-		// Join a game on the remote server.
-		// Send JOINGAME right away.
+                // Join a game on the remote server.
+                // Send JOINGAME right away.
                 // (Create New Game is done above; see calls to gameWithOptionsBeginSetup)
 
                 // May take a while for server to start game, so set WAIT_CURSOR.
@@ -1283,23 +1283,23 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     protected String getValidNickname(boolean precheckOnly)
     {
-	String n = nick.getText().trim();
+        String n = nick.getText().trim();
 
-	if (n.length() == 0)
-	{
-	    if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
-		// Send stronger hint message
-		status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
-	    else
-		// Send first hint message (or re-send first if they've seen _2)
-		status.setText(NEED_NICKNAME_BEFORE_JOIN);
-	    return null;
-	}
+        if (n.length() == 0)
+        {
+            if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
+                // Send stronger hint message
+                status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
+            else
+                // Send first hint message (or re-send first if they've seen _2)
+                status.setText(NEED_NICKNAME_BEFORE_JOIN);
+            return null;
+        }
 
-	if (n.length() > 20)
-	{
-	    n = n.substring(1, 20);
-	}
+        if (n.length() > 20)
+        {
+            n = n.substring(1, 20);
+        }
         if (! SOCMessage.isSingleLineAndSafe(n))
         {
             status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
@@ -1319,18 +1319,18 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     protected String getPassword()
     {
-	if (gotPassword)
-	    return password;
+        if (gotPassword)
+            return password;
 
-	String p = pass.getText().trim();
+        String p = pass.getText().trim();
 
-	if (p.length() > 20)
-	{
-	    p = p.substring(1, 20);
-	}
+        if (p.length() > 20)
+        {
+            p = p.substring(1, 20);
+        }
 
-	password = p;
-	return p;
+        password = p;
+        return p;
     }
 
     /**
@@ -1730,7 +1730,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
              * status message
              */
             case SOCMessage.STATUSMESSAGE:
-                handleSTATUSMESSAGE(isLocal, (SOCStatusMessage) mes);
+                handleSTATUSMESSAGE((SOCStatusMessage) mes, isLocal);
 
                 break;
 
@@ -2145,21 +2145,24 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
                 break;
 
-	    case SOCMessage.GAMEOPTIONGETDEFAULTS:
-		handleGAMEOPTIONGETDEFAULTS((SOCGameOptionGetDefaults) mes, isLocal);
-		break;
+            /**
+             * for game options (1.1.07)
+             */
+            case SOCMessage.GAMEOPTIONGETDEFAULTS:
+                handleGAMEOPTIONGETDEFAULTS((SOCGameOptionGetDefaults) mes, isLocal);
+                break;
 
-	    case SOCMessage.GAMEOPTIONINFO:
-		handleGAMEOPTIONINFO((SOCGameOptionInfo) mes, isLocal);
-		break;
+            case SOCMessage.GAMEOPTIONINFO:
+                handleGAMEOPTIONINFO((SOCGameOptionInfo) mes, isLocal);
+                break;
 
-	    case SOCMessage.NEWGAMEWITHOPTIONS:
-		handleNEWGAMEWITHOPTIONS((SOCNewGameWithOptions) mes, isLocal);
-		break;
+            case SOCMessage.NEWGAMEWITHOPTIONS:
+                handleNEWGAMEWITHOPTIONS((SOCNewGameWithOptions) mes, isLocal);
+                break;
 
-	    case SOCMessage.GAMESWITHOPTIONS:
-	        handleGAMESWITHOPTIONS((SOCGamesWithOptions) mes, isLocal);
-	        break;
+            case SOCMessage.GAMESWITHOPTIONS:
+                handleGAMESWITHOPTIONS((SOCGamesWithOptions) mes, isLocal);
+                break;
 
             }  // switch (mes.getType())               
         }
@@ -2215,50 +2218,50 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         // Check known game options vs server's version. (added in 1.1.07)
         // Server's responses will add, remove or change our "known options".
-	final int cliVersion = Version.versionNumber();
-	if (sVersion > cliVersion)
+        final int cliVersion = Version.versionNumber();
+        if (sVersion > cliVersion)
         {
             // Newer server: Ask it to list any options we don't know about yet.
             if (! isLocal)
                 gameOptionsSetTimeoutTask();
             put(SOCGameOptionGetInfos.toCmd(null), isLocal);  // sends "-"
-	} else if (sVersion < cliVersion)
-	{
-	    if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-	    {
-	        // Older server: Look for options created or changed since server's version.
-	        // Ask it what it knows about them.
-	        Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
-		if (tooNewOpts != null)
+        } else if (sVersion < cliVersion)
+        {
+            if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+            {
+                // Older server: Look for options created or changed since server's version.
+                // Ask it what it knows about them.
+                Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
+                if (tooNewOpts != null)
                 {
                     if (! isLocal)
                         gameOptionsSetTimeoutTask();
                     put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isLocal);
-		}
-	    } else {
-		// server is too old to understand options. Can't happen with local practice srv,
-		// because that's our version (it runs from our own JAR file).
-		if (! isLocal)
-		    tcpServGameOpts.noMoreOptions(true);
-	    }
-	} else {
-	    // sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
-	    // For local practice games, optionSet may already be initialized, so check vs null.
-	    GameOptionServerSet opts = (isLocal ? practiceServGameOpts : tcpServGameOpts);
-	    if (opts.optionSet == null)
-	        opts.optionSet = SOCGameOption.getAllKnownOptions();
-	    opts.noMoreOptions(isLocal);  // defaults not known unless it's local practice
-	}
+                }
+            } else {
+                // server is too old to understand options. Can't happen with local practice srv,
+                // because that's our version (it runs from our own JAR file).
+                if (! isLocal)
+                    tcpServGameOpts.noMoreOptions(true);
+            }
+        } else {
+            // sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
+            // For local practice games, optionSet may already be initialized, so check vs null.
+            GameOptionServerSet opts = (isLocal ? practiceServGameOpts : tcpServGameOpts);
+            if (opts.optionSet == null)
+                opts.optionSet = SOCGameOption.getAllKnownOptions();
+            opts.noMoreOptions(isLocal);  // defaults not known unless it's local practice
+        }
     }
 
     /**
      * handle the {@link SOCStatusMessage "status"} message.
      * Used for server events, also used if player tries to join a game
      * but their nickname is not OK.
-     * @param isLocal from practice server, or remote server?
      * @param mes  the message
+     * @param isLocal from practice server, or remote server?
      */
-    protected void handleSTATUSMESSAGE(final boolean isLocal, SOCStatusMessage mes)
+    protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isLocal)
     {
         status.setText(mes.getStatus());
         // If was trying to join a game, reset cursor from WAIT_CURSOR.
@@ -3618,26 +3621,26 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     private void handleGAMEOPTIONGETDEFAULTS(SOCGameOptionGetDefaults mes, boolean isLocal)
     {
-	GameOptionServerSet opts;
-	if (isLocal)
-	    opts = practiceServGameOpts;
-	else
-	    opts = tcpServGameOpts;
+        GameOptionServerSet opts;
+        if (isLocal)
+            opts = practiceServGameOpts;
+        else
+            opts = tcpServGameOpts;
 
-	Vector unknowns;
-	synchronized(opts)
-	{
-	    // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
-	    unknowns = opts.receiveDefaults
-		(SOCGameOption.parseOptionsToHash((mes.getOpts())));
-	}
+        Vector unknowns;
+        synchronized(opts)
+        {
+            // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
+            unknowns = opts.receiveDefaults
+                (SOCGameOption.parseOptionsToHash((mes.getOpts())));
+        }
 
-	if (unknowns != null)
-	{
+        if (unknowns != null)
+        {
             if (! isLocal)
                 gameOptionsSetTimeoutTask();
-	    put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isLocal);
-	} else {
+            put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isLocal);
+        } else {
             opts.newGameWaitingForOpts = false;
             if (gameOptsDefsTask != null)
             {
@@ -3662,26 +3665,26 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     private void handleGAMEOPTIONINFO(SOCGameOptionInfo mes, boolean isLocal)
     {
-	GameOptionServerSet opts;
-	if (isLocal)
-	    opts = practiceServGameOpts;
-	else
-	    opts = tcpServGameOpts;
+        GameOptionServerSet opts;
+        if (isLocal)
+            opts = practiceServGameOpts;
+        else
+            opts = tcpServGameOpts;
 
-	boolean hasAllNow, newGameWaiting;
+        boolean hasAllNow, newGameWaiting;
         String gameInfoWaiting;
-	synchronized(opts)
-	{
-	    hasAllNow = opts.receiveInfo(mes);
-	    newGameWaiting = opts.newGameWaitingForOpts;
+        synchronized(opts)
+        {
+            hasAllNow = opts.receiveInfo(mes);
+            newGameWaiting = opts.newGameWaitingForOpts;
             gameInfoWaiting = opts.gameInfoWaitingForOpts;
-	}
+        }
 
-	if ((! isLocal) && mes.getOptionNameKey().equals("-"))
-	    gameOptionsCancelTimeoutTask();
+        if ((! isLocal) && mes.getOptionNameKey().equals("-"))
+            gameOptionsCancelTimeoutTask();
 
-	if (hasAllNow)
-	{
+        if (hasAllNow)
+        {
             if (gameInfoWaiting != null)
             {
                 Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
@@ -3692,7 +3695,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
                     (this, (String) null, opts.optionSet, isLocal, false);
             }
-	}
+        }
     }
 
     /**
@@ -3701,15 +3704,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, boolean isLocal)
     {
-	String gname = mes.getGame();
+        String gname = mes.getGame();
         String opts = mes.getOptionsString();
-	boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
+        boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());
         if (gname.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
         {
             gname = gname.substring(1);
             canJoin = false;
         }
-	addToGameList(! canJoin, gname, opts, ! isLocal);
+        addToGameList(! canJoin, gname, opts, ! isLocal);
     }
 
     /**
@@ -4701,10 +4704,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         }
 
         // Ask local "server" to create the game
-	if (gameOpts == null)
-	    putLocal(SOCJoinGame.toCmd(nickname, password, host, practiceGameName));
-	else
-	    putLocal(SOCNewGameWithOptionsRequest.toCmd(nickname, password, host, practiceGameName, gameOpts));
+        if (gameOpts == null)
+            putLocal(SOCJoinGame.toCmd(nickname, password, host, practiceGameName));
+        else
+            putLocal(SOCNewGameWithOptionsRequest.toCmd(nickname, password, host, practiceGameName, gameOpts));
     }
 
     /**
@@ -4866,7 +4869,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     /**
      * applet info, of the form similar to that seen at server startup:
-     * SOCPlayerClient (Java Settlers Client) 1.1.07, build JM20090712, 2001-2004 Robb Thomas, portions 2007-2009 Jeremy D Monin.
+     * SOCPlayerClient (Java Settlers Client) 1.1.07, build JM20091027, 2001-2004 Robb Thomas, portions 2007-2009 Jeremy D Monin.
      * Version and copyright info is from the {@link Version} utility class.
      */
     public String getAppletInfo()
@@ -5280,10 +5283,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         public boolean   allOptionsReceived = false;
 
         /**
-	 * If true, we've asked the server about defaults or options because
-	 * we're about to create a new game.  When all are received,
-	 * we should create and show a NewGameOptionsFrame.
-	 */
+         * If true, we've asked the server about defaults or options because
+         * we're about to create a new game.  When all are received,
+         * we should create and show a NewGameOptionsFrame.
+         */
         public boolean   newGameWaitingForOpts = false;
 
         /**
@@ -5300,9 +5303,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
          * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
          * and update from server as needed.
          */
-	public Hashtable optionSet = null;
+        public Hashtable optionSet = null;
 
-	/** Have we asked the server for default values? */
+        /** Have we asked the server for default values? */
         public boolean   askedDefaultsAlready = false;
 
         /** Has the server told us defaults? */
@@ -5319,22 +5322,22 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             optionSet = SOCGameOption.getAllKnownOptions();
         }
 
-	/**
-	 * The server doesn't have any more options to send (or none at all, from its version).
-	 * Set fields as if we've already received the complete set of options, and aren't waiting
-	 * for any more.
-	 * @param askedDefaults Should we also set the askedDefaultsAlready flag? It not, leave it unchanged.
-	 */
-	public void noMoreOptions(boolean askedDefaults)
-	{
-	    allOptionsReceived = true;
+        /**
+         * The server doesn't have any more options to send (or none at all, from its version).
+         * Set fields as if we've already received the complete set of options, and aren't waiting
+         * for any more.
+         * @param askedDefaults Should we also set the askedDefaultsAlready flag? It not, leave it unchanged.
+         */
+        public void noMoreOptions(boolean askedDefaults)
+        {
+            allOptionsReceived = true;
             if (askedDefaults)
             {
                 defaultsReceived = true;
                 askedDefaultsAlready = true;
                 askedDefaultsTime = System.currentTimeMillis();
             }
-	}
+        }
 
         /**
          * Set of default options has been received from the server, examine them.
@@ -5372,35 +5375,35 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             return unknowns;
         }
 
-	/**
-	 * After calling receiveDefaults, call this as each GAMEOPTIONGETINFO is received.
-	 * Updates allOptionsReceived.
-	 *
-	 * @param gi  Message from server with info on one parameter
-	 * @return true if all are known, false if more are unknown after this one
-	 */
-	public boolean receiveInfo(SOCGameOptionInfo gi)
-	{
-	    String oKey = gi.getOptionNameKey();
-	    SOCGameOption oinfo = gi.getOptionInfo();
-	    SOCGameOption oldcopy = (SOCGameOption) optionSet.get(oKey);
+        /**
+         * After calling receiveDefaults, call this as each GAMEOPTIONGETINFO is received.
+         * Updates allOptionsReceived.
+         *
+         * @param gi  Message from server with info on one parameter
+         * @return true if all are known, false if more are unknown after this one
+         */
+        public boolean receiveInfo(SOCGameOptionInfo gi)
+        {
+            String oKey = gi.getOptionNameKey();
+            SOCGameOption oinfo = gi.getOptionInfo();
+            SOCGameOption oldcopy = (SOCGameOption) optionSet.get(oKey);
 
-	    if ((oinfo.optKey.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
-	    {
-		// end-of-list marker: no more options from server.
-		// That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
-		noMoreOptions(false);
-		return true;
-	    } else {
-		// remove old, replace with new from server (if any)
-		SOCGameOption.addKnownOption(oinfo);
-		if (oldcopy != null)
-		    optionSet.remove(oKey);
-		if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
-		    optionSet.put(oKey, oinfo);
-		return false;
-	    }
-	}
+            if ((oinfo.optKey.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
+            {
+                // end-of-list marker: no more options from server.
+                // That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
+                noMoreOptions(false);
+                return true;
+            } else {
+                // remove old, replace with new from server (if any)
+                SOCGameOption.addKnownOption(oinfo);
+                if (oldcopy != null)
+                    optionSet.remove(oKey);
+                if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
+                    optionSet.put(oKey, oinfo);
+                return false;
+            }
+        }
 
     }  // class GameOptionServerSet
 

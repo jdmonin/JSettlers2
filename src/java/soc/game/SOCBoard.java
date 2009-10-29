@@ -1566,31 +1566,31 @@ public class SOCBoard implements Serializable, Cloneable
     public Vector getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
     {
         // TODO TODO TODO - need to chk vs edges of board / landHex stuff;
-	//      v2 layout won't allow water beyond edge
+        //      v2 layout won't allow water beyond edge
         //      -> Options:
         //       - new array of all on-land coords (useful elsewhere too)
         //       - new hexLayout[] value to indicate a hex which is invalid in logical-layout as it appears to the user
 
-	Vector hexes = new Vector();
+        Vector hexes = new Vector();
 
-	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x20);  // NW (northwest)
-	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x02);  // NE
-	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x22);  // W
-	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x22);  // E
-	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x02);  // SW
-	getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x20);  // SE
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x20);  // NW (northwest)
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x02);  // NE
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x22);  // W
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x22);  // E
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x02);  // SW
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x20);  // SE
 
-	if (hexes.size() > 0)
-	    return hexes;
-	else
-	    return null;
+        if (hexes.size() > 0)
+            return hexes;
+        else
+            return null;
     }
 
     /**
      * Check one coordinate for getAdjacentHexesToHex.
      * @since 1.1.07
      */
-    private void getAdjacentHexes_AddIfOK
+    private final void getAdjacentHexes_AddIfOK
         (Vector addTo, final boolean includeWater, final int hexCoord)
     {
         if ((hexCoord >= MINHEX) && (hexCoord <= MAXHEX)

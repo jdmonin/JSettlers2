@@ -3818,8 +3818,7 @@ public class SOCRobotBrain extends Thread
                 else if ((pnum != ourPlayerData.getPlayerNumber()) && (winGameETAs[pnum] < winGameETAs[victimNum]))
                 {
                     // A better pick
-                    D.ebugPrintln("Picking a robber victim: pnum=" + pnum);
-                    System.err.println("L3823 Picking a robber victim: pnum=" + pnum + " (was " + victimNum + ")");
+                    D.ebugPrintln("Picking a better robber victim: pnum=" + pnum);
                     victimNum = pnum;
                 }
             }

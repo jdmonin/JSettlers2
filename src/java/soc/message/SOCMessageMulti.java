@@ -37,9 +37,10 @@ package soc.message;
  *<P>
  * The required static parseDataStr method is given an array of one or more Strings,
  * each of which is a parameter:
- * public static SOCMessageType parseDataStr(String[] s)
- *<P>
- * If no parameters were seen, s will be null.
+ *<br>
+ * <tt> public static SOCMessageType parseDataStr(String[] s) </tt>
+ *<br>
+ * If no parameters were seen, <tt>s</tt> will be null.
  *<P>
  * The section you add to {@link SOCMessage#toMsg(String)} will look like:
  *<code>
@@ -49,9 +50,12 @@ package soc.message;
  *         return SOCPotentialSettlements.parseDataStr(multiData);
  *</code>
  *<P>
- * Note that if you passed a non-null gamename to the {@link SOCMessageTemplateMs}
- * or SOCMessageTemplateMi constructor,
- * then multiData[0] here will be gamename, and multiData[1] == param[0] as passed to that constructor.
+ * Note that if, on the sending end of the network connection, you passed a
+ * non-null gamename to the {@link SOCMessageTemplateMs} or {@link SOCMessageTemplateMi}
+ * constructor, then on this end within the toMsg code, 
+ * multiData[0] is the gamename, and multiData[1] == param[0] from the sending end.
+ * Your parseDataStr will need to separate out the gamename again, so it doesn't
+ * become param[0] at this end.
  *
  * @see SOCMessageTemplateMi
  * @see SOCMessageTemplateMs

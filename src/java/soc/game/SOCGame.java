@@ -108,7 +108,7 @@ public class SOCGame implements Serializable, Cloneable
 
     public static final int SETOPTIONS_EXCL = 2; // Future use: Game owner setting options, no one can yet connect
     public static final int SETOPTIONS_INCL = 3; // Future use: Game owner setting options, but anyone can connect
-        // These are still unused in 1.1.07, even though we now have options,
+        // These are still unused in 1.1.07, even though we now have game options,
         // because they are set before the SOCGame is created.
 
     /**
@@ -500,7 +500,7 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.07
      */
     public SOCGame(String n, Hashtable op)
-	throws IllegalArgumentException
+        throws IllegalArgumentException
     {
         this(n, true, op);
     }
@@ -518,7 +518,7 @@ public class SOCGame implements Serializable, Cloneable
     public SOCGame(String n, boolean a)
         throws IllegalArgumentException
     {
-	this(n, a, null);
+        this(n, a, null);
     }
 
     /**
@@ -539,7 +539,7 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.07
      */
     public SOCGame(String n, boolean a, Hashtable op)
-	throws IllegalArgumentException
+        throws IllegalArgumentException
     {
         // For places to initialize fields, see also resetAsCopy().
 
@@ -577,22 +577,19 @@ public class SOCGame implements Serializable, Cloneable
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack();
 
-	opts = op;
-	if (op == null)
-	{
-	    clientVersionMinRequired = -1;
-	} else {
-	    if (! SOCGameOption.adjustOptionsToKnown(op, null))
-		throw new IllegalArgumentException("op: unknown option");
+        opts = op;
+        if (op == null)
+        {
+            clientVersionMinRequired = -1;
+        } else {
+            if (! SOCGameOption.adjustOptionsToKnown(op, null))
+                throw new IllegalArgumentException("op: unknown option");
 
-	    // the adjust method will also throw IllegalArg if a non-SOCGameOption
-	    // object is found within opts.
+            // the adjust method will also throw IllegalArg if a non-SOCGameOption
+            // object is found within opts.
 
-	    clientVersionMinRequired = SOCGameOption.optionsMinimumVersion(op);
-
-	    // ** Reminder:** If you add new game options/features, please be sure that the
-	    //    robot is also capable of understanding/using them.
-	}
+            clientVersionMinRequired = SOCGameOption.optionsMinimumVersion(op);
+        }
 
         if (active)
             startTime = new Date();
@@ -684,8 +681,8 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalArgumentException("name");
         if (seats[pn] == VACANT)
         {
-	    if (0 == getAvailableSeatCount())
-		throw new IllegalStateException("Game is full");
+            if (0 == getAvailableSeatCount())
+                throw new IllegalStateException("Game is full");
         }
         SOCPlayer already = getPlayer(name);
         if ((already != null) && (pn != already.getPlayerNumber()))
@@ -743,17 +740,17 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int getAvailableSeatCount()
     {
-	int availSeats;
-	if (isGameOptionDefined("PL"))
-	    availSeats = getGameOptionIntValue("PL");
-	else
-	    availSeats = MAXPLAYERS;
+        int availSeats;
+        if (isGameOptionDefined("PL"))
+            availSeats = getGameOptionIntValue("PL");
+        else
+            availSeats = MAXPLAYERS;
 
-	for (int i = 0; i < MAXPLAYERS; ++i)
-	    if (seats[i] == OCCUPIED)
-		--availSeats;
+        for (int i = 0; i < MAXPLAYERS; ++i)
+            if (seats[i] == OCCUPIED)
+                --availSeats;
 
-	return availSeats;
+        return availSeats;
     }
 
     /**
@@ -835,7 +832,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public Hashtable getGameOptions()
     {
-	return opts;
+        return opts;
     }
 
     /**
@@ -1331,7 +1328,7 @@ public class SOCGame implements Serializable, Cloneable
             }
             if (currentPlayerNumber == prevCPN)
             {
-                gameState = OVER;
+                gameState = OVER;  // Looped around, no one is here
                 return false;
             }
         }
@@ -1366,7 +1363,7 @@ public class SOCGame implements Serializable, Cloneable
             }
             if (currentPlayerNumber == prevCPN)
             {
-                gameState = OVER;
+                gameState = OVER;  // Looped around, no one is here
                 return false;
             }
         }
@@ -3044,7 +3041,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Can these two players currently trade?
      * If game option "NT" is set, players can trade only
-     * with the bank, not with other players.
+     * with the bank/ports, not with other players.
      *
      * @return true if the two players can make the trade
      *         described in the offering players current offer

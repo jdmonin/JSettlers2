@@ -209,7 +209,8 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     protected Label giveLab;
     protected Label getLab;
-    protected Button offerBut;  // "Offer" button for player trading: send offer to server
+    /** "Offer" button for player trading: send offer to server */
+    protected Button offerBut;
 
     /**
      * Hint for "Offer" button; non-null only if interactive
@@ -524,6 +525,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 offerButTip = new AWTToolTip(OFFERBUTTIP_ENA, offerBut);
         }
 
+        // clearOfferBut used by bank/port trade, and player trade
         clearOfferBut = new Button(CLEAR);
         clearOfferBut.addActionListener(this);
         clearOfferBut.setEnabled(interactive);
@@ -937,6 +939,8 @@ public class SOCHandPanel extends Panel implements ActionListener
      * This is not the large "lock" button seen in empty positions when the
      * game is forming, which prevents a robot from sitting down. That button
      * is actually sitBut with a different label.
+     *<P>
+     * This method was <tt>addSeatLockBut()</tt> before 1.1.07.
      */
     public void addSittingRobotLockBut()
     {
@@ -1554,6 +1558,9 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * Remove the "lock" button seen when a robot is currently playing in this position.
+     *<P>
+     * This method was <tt>removeSeatLockBut()</tt> before 1.1.07.
+     *
      * @see #addSittingRobotLockBut()
      * @see #removeSitBut()
      */

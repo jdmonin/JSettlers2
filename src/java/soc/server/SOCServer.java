@@ -66,7 +66,7 @@ import java.util.Vector;
  *<P>
  * The server supports several <b>debug commands</b> when enabled, and
  * when sent as chat messages by a user named "debug".
- * (Or by the user in a practice game.)
+ * (Or, by the only user in a practice game.)
  * See {@link #processDebugCommand(StringConnection, String, String)}
  * for details.
  *<P>
@@ -579,44 +579,44 @@ public class SOCServer extends Server
 
                     if ((gVers <= cversMin) && (gaOpts == null))
                     {
-			// All clients can join it, and no game options: use simplest message
+                        // All clients can join it, and no game options: use simplest message
                         broadcast(SOCNewGame.toCmd(gaName));
 
                     } else {
                         // Send messages, based on clients' version
-			// and whether there are game options.
+                        // and whether there are game options.
 
-			if (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-			{
-			    // All cli can understand msg with version/options included
-			    broadcast
-				(SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers));
-			} else {
-			    // Only some can understand msg with version/options included;
-			    // send at most 1 to each connected client, split by client version.
+                        if (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                        {
+                            // All cli can understand msg with version/options included
+                            broadcast
+                                (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers));
+                        } else {
+                            // Only some can understand msg with version/options included;
+                            // send at most 1 message to each connected client, split by client version.
 
-			    final int cversMax = getMaxConnectedCliVersion();
-			    int newgameMaxCliVers;
-			    if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-			    {
-				broadcastToVers
-				    (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers),
-				     SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
-				newgameMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
-			    } else {
-				newgameMaxCliVers = Integer.MAX_VALUE;
-			    }
+                            final int cversMax = getMaxConnectedCliVersion();
+                            int newgameMaxCliVers;
+                            if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                            {
+                                broadcastToVers
+                                    (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers),
+                                     SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
+                                newgameMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
+                            } else {
+                                newgameMaxCliVers = Integer.MAX_VALUE;
+                            }
 
-			    // To older clients who can join, announce game without its options/version
-			    broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameMaxCliVers);
+                            // To older clients who can join, announce game without its options/version
+                            broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameMaxCliVers);
 
-			    // To older clients who can't join, announce game with cant-join prefix
-			    StringBuffer sb = new StringBuffer();
-			    sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
-			    sb.append(gaName);
-			    broadcastToVers
-				(SOCNewGame.toCmd(sb.toString()), SOCGames.VERSION_FOR_UNJOINABLE, gVers-1);
-			}
+                            // To older clients who can't join, announce game with cant-join prefix
+                            StringBuffer sb = new StringBuffer();
+                            sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+                            sb.append(gaName);
+                            broadcastToVers
+                                (SOCNewGame.toCmd(sb.toString()), SOCGames.VERSION_FOR_UNJOINABLE, gVers-1);
+                        }
                     }
                 }
                 catch (IllegalArgumentException e)
@@ -1168,7 +1168,8 @@ public class SOCServer extends Server
      * Given a game name on this server, return its game options.
      *
      * @param gm Game name
-     * @return the game options (hashtable of {@link SOCGameOption}), or null if none or if game doesn't exist
+     * @return the game options (hashtable of {@link SOCGameOption}), or
+     *       null if the game doesn't exist or has no options
      * @since 1.1.07
      */
     public Hashtable getGameOptions(String gm)
@@ -1760,12 +1761,12 @@ public class SOCServer extends Server
      * The list includes a flag on games which can't be joined by this client version
      * ({@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}).
      *<P>
-     * Depending on client's version, the message sent will be either
-     * {@link SOCGames GAMES} or {@link SOCGamesWithOptions GAMESWITHOPTIONS}.
-     * The set of changed games is sent as matching pairs of {@link SOCDeleteGame DELETEGAME}
+     * If <b>entire list</b>, then depending on client's version, the message sent will be
+     * either {@link SOCGames GAMES} or {@link SOCGamesWithOptions GAMESWITHOPTIONS}.
+     * If <b>set of changed games</b>, sent as matching pairs of {@link SOCDeleteGame DELETEGAME}
      * and either {@link SOCNewGame NEWGAME} or {@link SOCNewGameWithOptions NEWGAMEWITHOPTIONS}.
      *<P>
-     * Two possible scenarios for when this method is called:
+     * There are 2 possible scenarios for when this method is called:
      *<P>
      * - (A) Sending game list to client, for the first time:
      *    Iterate through all games, looking for ones the client's version
@@ -1788,7 +1789,7 @@ public class SOCServer extends Server
      * 1.1.06 ({@link SOCGames#VERSION_FOR_UNJOINABLE}).  Older clients won't be sent
      * the game names they can't join.
      *<P>
-     * <b>Locks:</b> Will call {@link SOCGameListAtServer#takeMonitor()} / releaseMonitor
+     * <b>Locks:</b> Calls {@link SOCGameListAtServer#takeMonitor()} / releaseMonitor
      *
      * @param c Client's connection; will call getVersion() on it
      * @param prevVers  Previously assumed version of this client;
@@ -1803,7 +1804,7 @@ public class SOCServer extends Server
         // Give client 1.2 seconds to send it, before we assume it's old
         // (too old to know VERSION).
         // This waiting is done from SOCClientData.setVersionTimer;
-	// time to wait is SOCServer.CLI_VERSION_TIMER_FIRE_MS.
+        // time to wait is SOCServer.CLI_VERSION_TIMER_FIRE_MS.
 
         // GAMES / GAMESWITHOPTIONS
 
@@ -2419,17 +2420,17 @@ public class SOCServer extends Server
                  * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
                  */
 
-		case SOCMessage.GAMEOPTIONGETDEFAULTS:
-		    handleGAMEOPTIONGETDEFAULTS(c, (SOCGameOptionGetDefaults) mes);
-		    break;
+                case SOCMessage.GAMEOPTIONGETDEFAULTS:
+                    handleGAMEOPTIONGETDEFAULTS(c, (SOCGameOptionGetDefaults) mes);
+                    break;
 
-		case SOCMessage.GAMEOPTIONGETINFOS:
-		    handleGAMEOPTIONGETINFOS(c, (SOCGameOptionGetInfos) mes);
-		    break;
+                case SOCMessage.GAMEOPTIONGETINFOS:
+                    handleGAMEOPTIONGETINFOS(c, (SOCGameOptionGetInfos) mes);
+                    break;
 
-		case SOCMessage.NEWGAMEWITHOPTIONSREQUEST:
-		    handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
-		    break;
+                case SOCMessage.NEWGAMEWITHOPTIONSREQUEST:
+                    handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
+                    break;
 
                 }  // switch (mes.getType)
             }  // if (mes != null)
@@ -2749,8 +2750,8 @@ public class SOCServer extends Server
      *<P>
      * Along with the game list, the client will need to know the game option info.
      * This is sent when the client asks (after VERSION) for {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
-     * Because game options aren't sent before client version is known, we won't ever need to
-     * send a "delta" of game options based on client version.
+     * Game options are sent after client version is known, so the list of
+     * sent options is based on client version.
      *<P>
      *<b>Locks:</b> To set the version, will synchronize briefly on {@link Server#unnamedConns unnamedConns}.
      * If {@link StringConnection#getVersion() c.getVersion()} is already == cvers,
@@ -2762,7 +2763,7 @@ public class SOCServer extends Server
      * @param cvers Version reported by client, or assumed version if no report
      * @param isKnown Is this the client's definite version, or just an assumed one?
      *                Affects {@link StringConnection#isVersionKnown() c.isVersionKnown}.
-     *                Can only set the client's known version once; a second "known" call with
+     *                Can set the client's known version only once; a second "known" call with
      *                a different cvers will be rejected.
      * @return True if OK, false if rejected
      */
@@ -2771,8 +2772,8 @@ public class SOCServer extends Server
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
 
-	if (prevVers == -1)
-	    ((SOCClientData) c.getAppData()).clearVersionTimer();
+        if (prevVers == -1)
+            ((SOCClientData) c.getAppData()).clearVersionTimer();
 
         if (prevVers != cvers)
         {
@@ -3071,7 +3072,7 @@ public class SOCServer extends Server
             // add this connection to the robot list
             //
             c.setData(mes.getNickname());
-	    c.setHideTimeoutMessage(true);
+            c.setHideTimeoutMessage(true);
             robots.addElement(c);
             ((SOCClientData) c.getAppData()).isRobot = true;
             nameConnection(c);
@@ -3243,10 +3244,10 @@ public class SOCServer extends Server
                     return;  // <--- Early return: Client too old ---
             }
 
-	    createOrJoinGameIfUserOK
-		(c, mes.getNickname(), mes.getPassword(), mes.getGame(), null);
+            createOrJoinGameIfUserOK
+                (c, mes.getNickname(), mes.getPassword(), mes.getGame(), null);
 
-	}
+        }
     }
 
     /**
@@ -3263,8 +3264,8 @@ public class SOCServer extends Server
      *  <LI> if game with this name already exists, respond with
      *      STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_ALREADY_EXISTS SV_NEWGAME_ALREADY_EXISTS})
      *  <LI> compare cli's param name-value pairs, with srv's known values. <br>
-     *	    - if any are above/below max/min, clip to the max/min value <br>
-     *	    - if any are unknown, resp with
+     *      - if any are above/below max/min, clip to the max/min value <br>
+     *      - if any are unknown, resp with
      *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
      *      - if any are too new for client's version, resp with
      *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_VALUE_TOONEW SV_NEWGAME_OPTION_VALUE_TOONEW}) <br>
@@ -3360,15 +3361,15 @@ public class SOCServer extends Server
              */
             if (gameOpts != null)
             {
-		if (gameList.isGame(gameName))
-		{
-		    c.put(SOCStatusMessage.toCmd
-			  (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, c.getVersion(),
-			   SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
-		    // "A game with this name already exists, please choose a different name."
+                if (gameList.isGame(gameName))
+                {
+                    c.put(SOCStatusMessage.toCmd
+                          (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, c.getVersion(),
+                           SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
+                    // "A game with this name already exists, please choose a different name."
 
-		    return;  // <---- Early return ----
-		}
+                    return;  // <---- Early return ----
+                }
 
                 if (! SOCGameOption.adjustOptionsToKnown(gameOpts, null))
                 {
@@ -3376,7 +3377,7 @@ public class SOCServer extends Server
                           (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, c.getVersion(),
                            "Unknown game option(s) were requested, cannot create this game."));
 
-		    return;  // <---- Early return ----
+                    return;  // <---- Early return ----
                 }
             }
 
@@ -4149,8 +4150,8 @@ public class SOCServer extends Server
         }
 
         final String gname = ga.getName();
-	final Hashtable gopts = ga.getGameOptions();
-	int seatsOpen = ga.getAvailableSeatCount();
+        final Hashtable gopts = ga.getGameOptions();
+        int seatsOpen = ga.getAvailableSeatCount();
         int idx = 0;
         StringConnection[] robotSeatsConns = new StringConnection[SOCGame.MAXPLAYERS];
 
@@ -4687,13 +4688,13 @@ public class SOCServer extends Server
             if (ga != null)
             {
                 final String gaName = ga.getName();
-            	if (ga.isGameOptionSet("NT"))
-            	{
-            		messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "Trading is not allowed in this game."));
-            		return;  // <---- Early return: No Trading ----
-            	}
+                if (ga.isGameOptionSet("NT"))
+                {
+                    messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "Trading is not allowed in this game."));
+                    return;  // <---- Early return: No Trading ----
+                }
 
-            	ga.takeMonitor();
+                ga.takeMonitor();
 
                 try
                 {
@@ -5806,12 +5807,11 @@ public class SOCServer extends Server
      */
     private void handleGAMEOPTIONGETDEFAULTS(StringConnection c, SOCGameOptionGetDefaults mes)
     {
-	if (c == null)
-	    return;
-	c.put(SOCGameOptionGetDefaults.toCmd
-	      (SOCGameOption.packKnownOptionsToString(true)));
+        if (c == null)
+            return;
+        c.put(SOCGameOptionGetDefaults.toCmd
+              (SOCGameOption.packKnownOptionsToString(true)));
     }
-
 
     /**
      * process the "game option get infos" message; reply with the info, with
@@ -5846,13 +5846,13 @@ public class SOCServer extends Server
             alreadyTrimmedEnums = true;
         }
 
-	if (okeys != null)
-	{
-	    for (int i = 0; i < okeys.size(); ++i)
-	    {
-		SOCGameOption opt;
-		if (vecIsOptObjs)
-		{
+        if (okeys != null)
+        {
+            for (int i = 0; i < okeys.size(); ++i)
+            {
+                SOCGameOption opt;
+                if (vecIsOptObjs)
+                {
                     opt = (SOCGameOption) okeys.elementAt(i);
                     if (opt.minVersion > cliVers)
                         opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN
@@ -5861,23 +5861,23 @@ public class SOCServer extends Server
                     opt = SOCGameOption.getOption(okey);
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
-		}
+                }
 
-		// Enum-type options may have their values restricted by version.
-		if ( (! alreadyTrimmedEnums)
-		    && (opt.enumVals != null)
-		    && (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
-		    && (opt.lastModVersion > cliVers))
-		{
-		    opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
-		}
+                // Enum-type options may have their values restricted by version.
+                if ( (! alreadyTrimmedEnums)
+                    && (opt.enumVals != null)
+                    && (opt.optType != SOCGameOption.OTYPE_UNKNOWN)
+                    && (opt.lastModVersion > cliVers))
+                {
+                    opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
+                }
 
-		c.put(new SOCGameOptionInfo(opt).toCmd());
-	    }
-	}
+                c.put(new SOCGameOptionInfo(opt).toCmd());
+            }
+        }
 
-	// mark end of list, even if list was empty
-	c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS.toCmd());  // GAMEOPTIONINFO("-")
+        // mark end of list, even if list was empty
+        c.put(SOCGameOptionInfo.OPTINFO_NO_MORE_OPTS.toCmd());  // GAMEOPTIONINFO("-")
     }
 
     /**
@@ -5894,11 +5894,11 @@ public class SOCServer extends Server
      */
     private void handleNEWGAMEWITHOPTIONSREQUEST(StringConnection c, SOCNewGameWithOptionsRequest mes)
     {
-	if (c == null)
-	    return;
+        if (c == null)
+            return;
 
-	createOrJoinGameIfUserOK
-	    (c, mes.getNickname(), mes.getPassword(), mes.getGame(), mes.getOptions());
+        createOrJoinGameIfUserOK
+            (c, mes.getNickname(), mes.getPassword(), mes.getGame(), mes.getOptions());
     }
 
     /**
@@ -7197,8 +7197,8 @@ public class SOCServer extends Server
 
     /**
      * Reset the board, to a copy with same players but new layout.
-     * Here's the general outline: Step 1 and 2 are done immediately here,
-     * steps 3-n are done (after robots are dismissed) within
+     * Here's the general outline; step 1 and 2 are done immediately here,
+     * steps 3 through n are done (after robots are dismissed) within
      * {@link #resetBoardAndNotify_finish(SOCGameBoardReset, SOCGame)}.
      *<OL>
      * <LI value=1> Reset the board, remember player positions.
@@ -7300,7 +7300,7 @@ public class SOCServer extends Server
     }  // resetBoardAndNotify
 
     /**
-     * Complete steps 2-n of the board-reset process
+     * Complete steps 3 - n of the board-reset process
      * outlined in {@link #resetBoardAndNotify(String, int)},
      * after any robots have left the old game.
      * @param reBoard
@@ -7313,7 +7313,7 @@ public class SOCServer extends Server
         StringConnection[] huConns = reBoard.humanConns;
 
         /**
-         * 2. Send messages as if each human player has clicked "join" (except JoinGameAuth)
+         * 3. Send messages as if each human player has clicked "join" (except JoinGameAuth)
          */
         for (int pn = 0; pn < SOCGame.MAXPLAYERS; ++pn)
         {
@@ -7322,7 +7322,7 @@ public class SOCServer extends Server
         }
 
         /**
-         * 3. Send as if each human player has clicked "sit here"
+         * 4. Send as if each human player has clicked "sit here"
          */
         for (int pn = 0; pn < SOCGame.MAXPLAYERS; ++pn)
         {
@@ -7331,23 +7331,23 @@ public class SOCServer extends Server
         }
 
         /**
-         * 4a. If no robots, send to game as if someone else has
+         * 5a. If no robots, send to game as if someone else has
          *     clicked "start game", and set up state to begin game play.
          */
         if (! reBoard.hadRobots)
         {
             startGame (reGame);
+        }
+        else
+        {
 
         /**
-         * 4b. If there are robots, set up wait-request queue
+         * 5b. If there are robots, set up wait-request queue
          *     (robotJoinRequests) and ask robots to re-join.
          *     Game will wait for robots to send JOINGAME and SITDOWN,
          *     as they do when joining a newly created game.
          *     Once all robots have re-joined, the game will begin.
          */
-        }
-        else
-        {
             reGame.setGameState(SOCGame.READY);
             readyGameAskRobotsJoin
               (reGame, gameWasOverAtReset ? null : reBoard.robotConns);
@@ -7903,6 +7903,7 @@ public class SOCServer extends Server
      * Starting the server from the command line
      *
      * @param args  arguments: port number, etc
+     * @see #printUsage(boolean)
      */
     static public void main(String[] args)
     {

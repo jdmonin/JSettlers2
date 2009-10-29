@@ -220,7 +220,8 @@ public abstract class AskDialog extends Dialog
      * @param cli      Player client interface
      * @param parentFr SOCPlayerClient or other parent frame
      * @param titlebar Title bar text
-     * @param prompt   Prompting text shown above buttons, or null
+     * @param prompt   Prompting text shown above buttons, or null.
+     *              Can be multi-line, use "\n" within your string to separate them.
      * @param choice1  First choice button text
      * @param choice2  Second choice button text, or null if 1 button
      * @param choice3  Third choice button text, or null if 1 or 2 buttons

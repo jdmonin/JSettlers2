@@ -26,7 +26,7 @@ package soc.message;
 
 /**
  * Template for message types with variable number of integer parameters.
- * You will have to write parseDataStr, because of its return
+ * You will have to write parseDataStr, because of its subclass return
  * type and because it's static.
  *<P>
  * Sample implementation:
@@ -56,6 +56,9 @@ package soc.message;
  *       return new SOCPotentialSettlements(ga, sett);
  *   }
  *</code>
+ *<P>
+ * For notes on the section you must add to {@link SOCMessage#toMsg(String)},
+ * see {@link SOCMessageMulti}.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */

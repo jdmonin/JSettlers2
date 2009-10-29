@@ -488,7 +488,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     cliConnDisconPrintsPending.put(cKey, leftMsgTask);
                     utilTimer.schedule(leftMsgTask, CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS);
                 } else {
-                    // no data; we can't identify it later if it reconnects;
+                    // no connection-key data; we can't identify it later if it reconnects;
                     // just print the announcement right now.
                     D.ebugPrintln(c.host() + " left (" + connectionCount() + ")  " + (new Date()).toString() + ((cerr != null) ? (": " + cerr.toString()) : ""));
                 }
@@ -1130,10 +1130,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * When a client is {@link Server#removeConnection(StringConnection) removed}
      * due to an error, the error message print is delayed briefly, in case the client
      * is doing a disconnect/reconnect (as some robot clients do).
-     * This gives the server a chance to suppress the left/rejoined messages if the
-     * client quickly reconnects.  It's up to the server application (extending this
-     * generic Server) to recognize that the arrived client is the same as the departed one,
-     * and remove both messages from the pending vector.
+     * This gives the server a chance to suppress the 2 left/rejoined messages if the
+     * client quickly reconnects.
+     *<P>
+     * It's up to the server application (extending this generic Server) to recognize
+     * that the arrived client is the same as the departed one, and remove both
+     * messages from the pending vector.  This is typically done via the client's username
+     * or nickname, as stored in {@link StringConnection#getData()}.
      *
      * @author Jeremy D Monin <jeremy@nand.net>
      * @since 1.1.07
@@ -1194,7 +1197,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         }
 
         /**
-         * Debug-print connection's arrival or departure.
+         * Debug-print connection's arrival or departure,
+         * and remove from pending list.
          */
         public void run()
         {

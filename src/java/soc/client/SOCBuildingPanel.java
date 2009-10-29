@@ -309,6 +309,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         // cardCount.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cardCount.setLocation(curX, curY);
 
+        // Game Options button is in bottom-center of panel
         curX = (dim.width / 2) - butW;
         optsBut.setSize(butW * 2, lineH);
         optsBut.setLocation(curX, curY);

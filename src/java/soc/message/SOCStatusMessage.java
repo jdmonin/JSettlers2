@@ -251,6 +251,7 @@ public class SOCStatusMessage extends SOCMessage
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
      * @return the command string
+     * @see #toCmd(int, int, String)
      */
     public static String toCmd(int sv, String st)
     {
@@ -267,13 +268,14 @@ public class SOCStatusMessage extends SOCMessage
     }
 
     /**
-     * STATUSMESSAGE sep [svalue sep2] status
+     * STATUSMESSAGE sep [svalue sep2] status -- includes backwards compatibility.
+     *            Calls {@link #statusValidAtVersion(int, int)}.
+     *            if sv isn't recognized in that version, will send
+     *            {@link #SV_NOT_OK_GENERIC} instead.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
-     * @param cliVers Client's version, same format as {@link soc.util.Version#versionNumber()};
-     *            if sv isn't recognized in that version, use {@link #SV_NOT_OK_GENERIC} instead.
-     *            Calls {@link #statusValidAtVersion(int, int)}.
+     * @param cliVers Client's version, same format as {@link soc.util.Version#versionNumber()}
      * @param st  the status message text.
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
