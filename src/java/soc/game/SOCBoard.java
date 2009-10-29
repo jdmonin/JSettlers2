@@ -183,8 +183,9 @@ public class SOCBoard implements Serializable, Cloneable
     /***************************************
      * Hex data array, one element per water or land (or port, which is special water) hex.
      * Each element's value encodes hex type and (if a
-     * port) facing. (Facing is defined just below).
-       Key to the hexLayout[] values:
+     * port) facing. (Facing is defined just below.)
+     *<P>
+     * Key to the hexLayout[] values:
        <pre>
        0 : desert  {@link #DESERT_HEX}
        1 : clay    {@link #CLAY_HEX}
@@ -193,7 +194,7 @@ public class SOCBoard implements Serializable, Cloneable
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
        6 : water   {@link #WATER_HEX}
-       7 : misc port ("3:1") facing 1
+       7 : misc port ("3:1") facing 1 ({@link #MISC_PORT} in {@link #getPortTypeFromHex(int)})
        8 : misc port facing 2
        9 : misc port facing 3
        10 : misc port facing 4
@@ -201,17 +202,17 @@ public class SOCBoard implements Serializable, Cloneable
        12 : misc port facing 6
        16+: non-misc ("2:1") encoded port
        </pre>
-        non-misc ports are encoded here in binary like this:<pre>
-        (port facing)           (kind of port)
+        Non-misc ports are encoded here in binary like this:<pre>
+      (port facing, 1-6)        (kind of port)
               \--> [0 0 0][0 0 0 0] <--/       </pre>
-        kind of port:<pre>
-        1 : clay   {@link #CLAY_PORT}
+        Kind of port:<pre>
+        1 : clay  ({@link #CLAY_PORT} in {@link #getPortTypeFromHex(int)})
         2 : ore    {@link #ORE_PORT}
         3 : sheep  {@link #SHEEP_PORT}
         4 : wheat  {@link #WHEAT_PORT}
         5 : wood   {@link #WOOD_PORT}
         </pre>
-        <em>port facing</em> is the edge of the port's hex
+        <em>Port facing</em> is the edge of the port's hex
         that contains 2 nodes where player can build a
         port settlement/city; facing is a number 1-6. <pre>
         6___    ___1
@@ -223,7 +224,8 @@ public class SOCBoard implements Serializable, Cloneable
         4___/\/\___3  </pre>
 
          @see #getHexTypeFromNumber(int)
-     **************************************************/
+     *
+     **/
     private int[] hexLayout = 
     {
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
