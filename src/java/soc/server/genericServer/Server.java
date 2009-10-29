@@ -69,11 +69,11 @@ import java.util.Vector;
  *  version.  You must send this in an app-specific way, during the initial exchange
  *  when a client connects.
  *<P>
- *  @version 1.5
+ *  @version 1.7
  *  @author Original author: <A HREF="http://www.nada.kth.se/~cristi">Cristian Bogdan</A> <br>
  *  Lots of mods by Robert S. Thomas and Jay Budzik <br>
  *  Local (StringConnection) network system by Jeremy D Monin <jeremy@nand.net> <br>
- *  Version-tracking system by Jeremy D Monin <jeremy@nand.net>
+ *  Version-tracking system and other minor mods by Jeremy D Monin <jeremy@nand.net>
  */
 public abstract class Server extends Thread implements Serializable, Cloneable
 {
