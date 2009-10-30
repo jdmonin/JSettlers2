@@ -146,12 +146,14 @@ public class SOCBoard implements Serializable, Cloneable
      */
 
     /**
-     * largest coordinate value for a hex, in the current encoding
+     * largest coordinate value for a hex, in the current encoding.
+     * See also hardcoded checks in {@link #getAdjacentHexes_AddIfOK(Vector, boolean, int, int, int)}
      */
     public static final int MAXHEX = 0xDD;
 
     /**
-     * smallest coordinate value for a hex, in the current encoding
+     * smallest coordinate value for a hex, in the current encoding.
+     * See also hardcoded checks in {@link #getAdjacentHexes_AddIfOK(Vector, boolean, int, int, int)}
      */
     public static final int MINHEX = 0x11;
 
@@ -182,6 +184,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /***************************************
      * Hex data array, one element per water or land (or port, which is special water) hex.
+     * Each element's coordinates on the board ("hex ID") is {@link #numToHexID}[i].
      * Each element's value encodes hex type and (if a
      * port) facing. (Facing is defined just below.)
      *<P>
@@ -226,10 +229,10 @@ public class SOCBoard implements Serializable, Cloneable
          @see #getHexTypeFromNumber(int)
      *
      **/
-    private int[] hexLayout = 
+    private int[] hexLayout =   // initially all WATER_HEX
     {
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6
+        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, WATER_HEX
     };
 
     /**
@@ -1570,17 +1573,18 @@ public class SOCBoard implements Serializable, Cloneable
         // TODO TODO TODO - need to chk vs edges of board / landHex stuff;
         //      v2 layout won't allow water beyond edge
         //      -> Options:
-        //       - new array of all on-land coords (useful elsewhere too)
-        //       - new hexLayout[] value to indicate a hex which is invalid in logical-layout as it appears to the user
+        //       - check vs hexIDtoNum
+        //       - new hexLayout[] value to indicate a hex which is invalid in logical-layout as it
+        //         appears to the user; currently invalid looks like water.
 
         Vector hexes = new Vector();
 
-        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x20);  // NW (northwest)
-        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x02);  // NE
-        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x22);  // W
-        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x22);  // E
-        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord - 0x02);  // SW
-        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord + 0x20);  // SE
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord, -2,  0);  // NW (northwest)
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord,  0, +2);  // NE
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord, -2, -2);  // W
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord, +2, +2);  // E
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord,  0, -2);  // SW
+        getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord,  2,  0);  // SE
 
         if (hexes.size() > 0)
             return hexes;
@@ -1590,11 +1594,24 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Check one coordinate for getAdjacentHexesToHex.
+     * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
+     * @param includeWater Should water hexes be returned (not only land ones)?
+     *         Port hexes are water hexes.
+     * @param hexCoord Coordinate ("ID") of this hex
+     * @param d1  Delta along axis 1
+     * @param d2  Delta along axis 2
      * @since 1.1.07
      */
     private final void getAdjacentHexes_AddIfOK
-        (Vector addTo, final boolean includeWater, final int hexCoord)
+        (Vector addTo, final boolean includeWater, int hexCoord, final int d1, final int d2)
     {
+        int a1 = ((hexCoord & 0xF0) >> 4) + d1;  // Axis-1 coordinate
+        int a2 = (hexCoord & 0x0F) + d2;         // Axis-2 coordinate
+        if ((a1 < 1) || (a1 > 0xD) || (a2 < 1) || (a2 > 0xD))
+            return;  // <--- Off the board in one coordinate ----
+
+        hexCoord += (d1 << 4);  // this shift works for both + and - (confirmed by testing)
+        hexCoord += d2;
         if ((hexCoord >= MINHEX) && (hexCoord <= MAXHEX)
             && (includeWater
                 || hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX))
