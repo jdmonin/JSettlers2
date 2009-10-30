@@ -170,10 +170,20 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Delay before printing a client disconnect error announcement.
+     * Should be at least 300 ms more than {@link #CLI_CONN_PRINT_TIMER_FIRE_MS},
+     * so that connects are printed before disconnects, if a connection is
+     * lost right away.
      * @see #cliConnDisconPrintsPending
      * @since 1.1.07
      */
-    public static int CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS = 1000;
+    public static int CLI_DISCON_PRINT_TIMER_FIRE_MS = 1300;
+
+    /**
+     * Delay before printing a client connect/arrival announcement.
+     * @see #cliConnDisconPrintsPending
+     * @since 1.1.07
+     */
+    public static int CLI_CONN_PRINT_TIMER_FIRE_MS = 1000;
 
     /** start listening to the given port */
     public Server(int port)
@@ -486,7 +496,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     ConnExcepDelayedPrintTask leftMsgTask
                         = new ConnExcepDelayedPrintTask(false, cerr, c);
                     cliConnDisconPrintsPending.put(cKey, leftMsgTask);
-                    utilTimer.schedule(leftMsgTask, CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS);
+                    utilTimer.schedule(leftMsgTask, CLI_DISCON_PRINT_TIMER_FIRE_MS);
                 } else {
                     // no connection-key data; we can't identify it later if it reconnects;
                     // just print the announcement right now.
@@ -556,7 +566,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 ConnExcepDelayedPrintTask cameMsgTask
                     = new ConnExcepDelayedPrintTask(true, null, c);
                 cliConnDisconPrintsPending.put(c, cameMsgTask);
-                utilTimer.schedule(cameMsgTask, 20 + CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS);
+                utilTimer.schedule(cameMsgTask, CLI_CONN_PRINT_TIMER_FIRE_MS);
 
                 // D.ebugPrintln(c.host() + " came (" + connectionCount() + ")  " + (new Date()).toString());
             }
