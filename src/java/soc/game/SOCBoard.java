@@ -147,13 +147,11 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * largest coordinate value for a hex, in the current encoding.
-     * See also hardcoded checks in {@link #getAdjacentHexes_AddIfOK(Vector, boolean, int, int, int)}
      */
-    public static final int MAXHEX = 0xDD;
+    public static final int MAXHEX = 0xDD;  // See also hardcoded checks in {@link #getAdjacentHexes_AddIfOK.
 
     /**
      * smallest coordinate value for a hex, in the current encoding.
-     * See also hardcoded checks in {@link #getAdjacentHexes_AddIfOK(Vector, boolean, int, int, int)}
      */
     public static final int MINHEX = 0x11;
 
@@ -302,7 +300,9 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * translate hex ID (hex coordinate) to an array index within {@link #hexLayout}.
      * The non-zero values in here are the board's land hexes and also the surrounding
-     * ring of water/port hexes.  Initialized in constructor.
+     * ring of water/port hexes.  Initialized in constructor.  Length is >= {@link #MAXHEX}.
+     * A value of 0 means the ID isn't a valid hex number on the board, because 0x00
+     * isn't a valid hex coordinate. 
      * @see #numToHexID
      */
     private int[] hexIDtoNum;
@@ -401,11 +401,11 @@ public class SOCBoard implements Serializable, Cloneable
          * initialize the hexIDtoNum array;
          * see dissertation figure A.1 for coordinates
          */
-        hexIDtoNum = new int[0xEE];
+        hexIDtoNum = new int[0xEE];  // Length must be >= MAXHEX
 
         for (i = 0; i < 0xEE; i++)
         {
-            hexIDtoNum[i] = 0;
+            hexIDtoNum[i] = 0;  // 0 means off the board (assumes coordinate 0x00 is never a valid hex) 
         }
 
         // Sets up the board as land hexes with surrounding ring of water/port hexes.
@@ -464,7 +464,8 @@ public class SOCBoard implements Serializable, Cloneable
      * See dissertation figure A.1.
      * @param begin Beginning of coordinate range
      * @param end   Ending coordinate - same horizontal row as begin
-     * @param num   Number to assign to {@link #hexIDtoNum}[] within this coordinate range
+     * @param num   Number to assign to first {@link #hexIDtoNum}[] within this coordinate range;
+     *              corresponds to hex's index ("hex number") within {@link #hexLayout}.
      */
     private final void initHexIDtoNumAux(int begin, int end, int num)
     {
@@ -1552,7 +1553,8 @@ public class SOCBoard implements Serializable, Cloneable
     
     /**
      * Make a list of all valid hex coordinates (or, only land) adjacent to this hex.
-     * Valid coordinates are those within the board data structures, within {@link #MINHEX} to {@link #MAXHEX}.
+     * Valid coordinates are those within the board data structures,
+     * within {@link #MINHEX} to {@link #MAXHEX}, and valid according to {@link #hexIDtoNum}.
      *<P>
      * Coordinate offsets, from Dissertation figure A.4 - adjacent hexes to hex:<PRE>
      *    (-2,0)   (0,+2)
@@ -1570,13 +1572,6 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public Vector getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
     {
-        // TODO TODO TODO - need to chk vs edges of board / landHex stuff;
-        //      v2 layout won't allow water beyond edge
-        //      -> Options:
-        //       - check vs hexIDtoNum
-        //       - new hexLayout[] value to indicate a hex which is invalid in logical-layout as it
-        //         appears to the user; currently invalid looks like water.
-
         Vector hexes = new Vector();
 
         getAdjacentHexes_AddIfOK(hexes, includeWater, hexCoord, -2,  0);  // NW (northwest)
@@ -1593,7 +1588,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Check one coordinate for getAdjacentHexesToHex.
+     * Check one possible coordinate for getAdjacentHexesToHex.
      * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
      * @param includeWater Should water hexes be returned (not only land ones)?
      *         Port hexes are water hexes.
@@ -1613,6 +1608,7 @@ public class SOCBoard implements Serializable, Cloneable
         hexCoord += (d1 << 4);  // this shift works for both + and - (confirmed by testing)
         hexCoord += d2;
         if ((hexCoord >= MINHEX) && (hexCoord <= MAXHEX)
+            && (hexIDtoNum[hexCoord] > 0)
             && (includeWater
                 || hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX))
             addTo.addElement(new Integer(hexCoord));
