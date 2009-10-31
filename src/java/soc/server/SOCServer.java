@@ -6168,6 +6168,7 @@ public class SOCServer extends Server
 
             try
             {
+                final String gaName = ga.getName();
                 if (! isReset)
                 {
                     // If reset, player is already added and knows if robot.
@@ -6180,7 +6181,7 @@ public class SOCServer extends Server
                     {
                         // Maybe already seated? (network lag)
                         if (! robot)
-                            c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, "You cannot sit down here."));
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You cannot sit down here."));
                         ga.releaseMonitor();
                         return;  // <---- Early return: cannot sit down ----
                     }
@@ -6189,17 +6190,17 @@ public class SOCServer extends Server
                 /**
                  * if the player can sit, then tell the other clients in the game
                  */
-                SOCSitDown sitMessage = new SOCSitDown(ga.getName(), (String) c.getData(), pn, robot);
-                messageToGame(ga.getName(), sitMessage);
+                SOCSitDown sitMessage = new SOCSitDown(gaName, (String) c.getData(), pn, robot);
+                messageToGame(gaName, sitMessage);
 
                 D.ebugPrintln("*** sent SOCSitDown message to game ***");
 
-                recordGameEvent(ga.getName(), sitMessage.toCmd());
+                recordGameEvent(gaName, sitMessage.toCmd());
 
                 Vector requests;
                 if (! isReset)
                 {
-                    requests = (Vector) robotJoinRequests.get(ga.getName());
+                    requests = (Vector) robotJoinRequests.get(gaName);
                 }
                 else
                 {
@@ -6222,7 +6223,7 @@ public class SOCServer extends Server
                      */
                     if (requests.isEmpty())
                     {
-                        robotJoinRequests.remove(ga.getName());
+                        robotJoinRequests.remove(gaName);
                     }
                 }
 
@@ -6232,12 +6233,12 @@ public class SOCServer extends Server
                  * send all the private information
                  */
                 SOCResourceSet resources = ga.getPlayer(pn).getResources();
-                messageToPlayer(c, new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.SET, SOCPlayerElement.CLAY, resources.getAmount(SOCPlayerElement.CLAY)));
-                messageToPlayer(c, new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.SET, SOCPlayerElement.ORE, resources.getAmount(SOCPlayerElement.ORE)));
-                messageToPlayer(c, new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.SET, SOCPlayerElement.SHEEP, resources.getAmount(SOCPlayerElement.SHEEP)));
-                messageToPlayer(c, new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.SET, SOCPlayerElement.WHEAT, resources.getAmount(SOCPlayerElement.WHEAT)));
-                messageToPlayer(c, new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.SET, SOCPlayerElement.WOOD, resources.getAmount(SOCPlayerElement.WOOD)));
-                messageToPlayer(c, new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, resources.getAmount(SOCPlayerElement.UNKNOWN)));
+                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.CLAY, resources.getAmount(SOCPlayerElement.CLAY)));
+                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ORE, resources.getAmount(SOCPlayerElement.ORE)));
+                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SHEEP, resources.getAmount(SOCPlayerElement.SHEEP)));
+                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.WHEAT, resources.getAmount(SOCPlayerElement.WHEAT)));
+                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.WOOD, resources.getAmount(SOCPlayerElement.WOOD)));
+                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, resources.getAmount(SOCPlayerElement.UNKNOWN)));
 
                 SOCDevCardSet devCards = ga.getPlayer(pn).getDevCards();
 
@@ -6248,133 +6249,133 @@ public class SOCServer extends Server
 
                 for (i = 0; i < devCards.getTotal(); i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.KNIGHT));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.KNIGHT));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.ROADS);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.ROADS));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.ROADS));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.DISC);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.DISC));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.DISC));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.MONO);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.MONO));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.MONO));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.CAP));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.CAP));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.LIB);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.LIB));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.LIB));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.UNIV);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.UNIV));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.UNIV));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.TEMP);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TEMP));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TEMP));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.TOW);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TOW));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TOW));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.KNIGHT));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.KNIGHT));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.ROADS));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.ROADS));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.DISC));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.DISC));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.MONO));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.MONO));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.CAP);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.CAP));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.CAP));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.LIB);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.LIB));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.LIB));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.UNIV);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNIV));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNIV));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.TEMP);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TEMP));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TEMP));
                 }
 
                 for (i = 0;
                         i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.TOW);
                         i++)
                 {
-                    messageToPlayer(c, new SOCDevCard(ga.getName(), pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TOW));
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TOW));
                 }
 
                 /**
@@ -6384,13 +6385,13 @@ public class SOCServer extends Server
 
                 if ((ga.getCurrentDice() == 7) && ga.getPlayer(pn).getNeedToDiscard())
                 {
-                    messageToPlayer(c, new SOCDiscardRequest(ga.getName(), ga.getPlayer(pn).getResources().getTotal() / 2));
+                    messageToPlayer(c, new SOCDiscardRequest(gaName, ga.getPlayer(pn).getResources().getTotal() / 2));
                 }
 
                 /**
                  * send what face this player is using
                  */
-                messageToGame(ga.getName(), new SOCChangeFace(ga.getName(), pn, ga.getPlayer(pn).getFaceId()));
+                messageToGame(gaName, new SOCChangeFace(gaName, pn, ga.getPlayer(pn).getFaceId()));
             }
             catch (Throwable e)
             {
