@@ -628,7 +628,7 @@ public class SOCBoard implements Serializable, Cloneable
                 //     - if none, done looking at this hex
                 //     - remove all adj-of-same-type from unvisited-set
                 //     - build a new clump-vector of this + all adj of same type
-                //     - iterate through each hex in clump-vector (skip its first hex,
+                //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
                 //       because we already have its adjacent hexes)
                 //          precondition: each hex already in the clump set, is not in unvisited-vec
                 //          - look at its adjacent unvisited hexes of same type
@@ -703,9 +703,9 @@ public class SOCBoard implements Serializable, Cloneable
                         continue;
                     clump.insertElementAt(hexIdxObj, 0);  // put the first hex into clump
 
-                    //     - iterate through each hex in clump-vector (skip its first hex,
+                    //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
                     //       because we already have its adjacent hexes)
-                    for (int ic = 1; ic < clump.size(); ++ic)
+                    for (int ic = 1; ic < clump.size(); )  // ++ic is within loop body, if nothing inserted
                     {
                         // precondition: each hex already in clump set, is not in unvisited-vec
                         Integer chexIdxObj = (Integer) clump.elementAt(ic);
@@ -719,7 +719,11 @@ public class SOCBoard implements Serializable, Cloneable
 
                         Vector adjacent2 = getAdjacentHexesToHex(numToHexID[chexIdx], false);
                         if (adjacent2 == null)
+                        {
+                            ++ic;
                             continue;
+                        }
+                        boolean didInsert = false;
                         for (int ia = 0; ia < adjacent2.size(); ++ia)
                         {
                             Integer adjCoordObj = (Integer) adjacent2.elementAt(ia);
@@ -731,8 +735,11 @@ public class SOCBoard implements Serializable, Cloneable
                                 // keep this one
                                 clump.insertElementAt(adjIdxObj, ic);
                                 unvisited.remove(adjIdxObj);
+                                didInsert = true;
                             }
                         }
+                        if (! didInsert)
+                            ++ic;
 
                     }  // for each in clump
 
