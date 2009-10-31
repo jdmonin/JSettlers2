@@ -197,7 +197,7 @@ public class SOCGameOption implements Cloneable, Comparable
         opt.put("N7", new SOCGameOption
                 ("N7", -1, 1107, false, 7, 1, 999, false, "Roll no 7s during first # rounds"));
         opt.put("BC", new SOCGameOption
-                ("BC", -1, 1107, true, 3, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
+                ("BC", -1, 1107, true, 4, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
 
