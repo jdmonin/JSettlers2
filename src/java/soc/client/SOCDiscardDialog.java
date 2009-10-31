@@ -286,14 +286,14 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
+     * When a resource's colorsquare is clicked, add/remove 1
+     * from the resource totals as requested; update {@link #discardBut}.
      */
     public void mousePressed(MouseEvent e)
     {
         try {
         Object target = e.getSource();
+        boolean wantsRepaint = false;
 
         for (int i = 0; i < 5; i++)
         {
@@ -305,12 +305,12 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
                 if (numChosen == (numDiscards-1))
                 {
                     discardBut.disable();  // Count un-reached (too few)
-                    discardBut.repaint();
+                    wantsRepaint = true;
                 }
                 else if (numChosen == numDiscards)
                 {
                     discardBut.enable();   // Exact count reached
-                    discardBut.repaint();
+                    wantsRepaint = true;
                 }
                 break;
             }
@@ -322,16 +322,23 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
                 if (numChosen == numDiscards)
                 {
                     discardBut.enable();  // Exact count reached
-                    discardBut.repaint();
+                    wantsRepaint = true;
                 }
                 else if (numChosen == (numDiscards+1))
                 {
                     discardBut.disable();  // Count un-reached (too many)
-                    discardBut.repaint();
+                    wantsRepaint = true;
                 }
                 break;
             }
         }
+        if (wantsRepaint)
+        {
+            discardBut.repaint();
+            // TODO: still not always updated in some circumstances,
+            //       depending on mouse position / AWTToolTip visibility
+        }
+
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
