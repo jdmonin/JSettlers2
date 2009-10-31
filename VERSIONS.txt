@@ -2,7 +2,7 @@
 
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 
-    > 1.1.07 (build tbd)
+    > 1.1.07 (build 20091031)
 - Per-game options framework, including these options:
 	- PL  Maximum # players (2-4)
 	- RD  Robber can't return to the desert
