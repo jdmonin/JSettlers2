@@ -274,7 +274,7 @@ public class SOCBoard implements Serializable, Cloneable
         -1
     };
 
-    /** Hex coordinates ("IDs") of each hex number (number is index within
+    /** Hex coordinates ("IDs") of each hex number ("hex number" means index within
      *  {@link #hexLayout}).  The hexes in here are the board's land hexes and also
      *  the surrounding ring of water/port hexes.
      * @see #hexIDtoNum
@@ -298,11 +298,11 @@ public class SOCBoard implements Serializable, Cloneable
     };
 
     /**
-     * translate hex ID (hex coordinate) to an array index within {@link #hexLayout}.
-     * The non-zero values in here are the board's land hexes and also the surrounding
+     * translate hex ID (hex coordinate) to an array index within {@link #hexLayout},
+     * which is sometimes called its "hex number".
+     * The numbers in here are the board's land hexes and also the surrounding
      * ring of water/port hexes.  Initialized in constructor.  Length is >= {@link #MAXHEX}.
-     * A value of 0 means the ID isn't a valid hex number on the board, because 0x00
-     * isn't a valid hex coordinate. 
+     * A value of -1 means the ID isn't a valid hex number on the board.
      * @see #numToHexID
      */
     private int[] hexIDtoNum;
@@ -405,7 +405,7 @@ public class SOCBoard implements Serializable, Cloneable
 
         for (i = 0; i < 0xEE; i++)
         {
-            hexIDtoNum[i] = 0;  // 0 means off the board (assumes coordinate 0x00 is never a valid hex) 
+            hexIDtoNum[i] = -1;  // -1 means off the board
         }
 
         // Sets up the board as land hexes with surrounding ring of water/port hexes.
@@ -993,7 +993,7 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @return the number on that hex, or 0 if not a hex coordinate
      */
-    public int getNumberOnHexFromCoord(int hex)
+    public int getNumberOnHexFromCoord(final int hex)
     {
         if ((hex >= 0) && (hex < hexIDtoNum.length))
             return getNumberOnHexFromNumber(hexIDtoNum[hex]);
@@ -1004,12 +1004,14 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Given a hex number, return the (dice-roll) number on that hex
      *
-     * @param hex  the number of a hex
+     * @param hex  the number of a hex, or -1 if invalid
      *
      * @return the dice-roll number on that hex, or 0
      */
-    public int getNumberOnHexFromNumber(int hex)
+    public int getNumberOnHexFromNumber(final int hex)
     {
+        if ((hex < 0) || (hex >= numberLayout.length))
+            return 0;
         int num = numberLayout[hex];
 
         if (num < 0)
@@ -1028,11 +1030,13 @@ public class SOCBoard implements Serializable, Cloneable
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, or {@link #MISC_PORT_HEX} for any port.
+     *         or {@link #DESERT_HEX},
+     *         or {@link #MISC_PORT_HEX} for any port,
+     *         or {@link #WATER_HEX}.
      *
      * @see #getPortTypeFromHex(int)
      */
-    public int getHexTypeFromCoord(int hex)
+    public int getHexTypeFromCoord(final int hex)
     {
         return getHexTypeFromNumber(hexIDtoNum[hex]);
     }
@@ -1040,16 +1044,20 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Given a hex number, return the type of hex
      *
-     * @param hex  the number of a hex (its index in {@link #hexLayout}, not its coordinate)
+     * @param hex  the number of a hex (its index in {@link #hexLayout}, not its coordinate), or -1 for invalid
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, or {@link #MISC_PORT_HEX} for any port.
+     *         {@link #DESERT_HEX}, or {@link #WATER_HEX},
+     *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc).
+     *         Invalid hex numbers return -1.
      *
      * @see #getPortTypeFromHex(int)
      */
-    public int getHexTypeFromNumber(int hex)
+    public int getHexTypeFromNumber(final int hex)
     {
-        int hexType = hexLayout[hex];
+        if ((hex < 0) || (hex >= hexLayout.length))
+            return -1;
+        final int hexType = hexLayout[hex];
 
         if (hexType < 7)
         {
@@ -1615,7 +1623,7 @@ public class SOCBoard implements Serializable, Cloneable
         hexCoord += (d1 << 4);  // this shift works for both + and - (confirmed by testing)
         hexCoord += d2;
         if ((hexCoord >= MINHEX) && (hexCoord <= MAXHEX)
-            && (hexIDtoNum[hexCoord] > 0)
+            && (hexIDtoNum[hexCoord] != -1)
             && (includeWater
                 || hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX))
             addTo.addElement(new Integer(hexCoord));
