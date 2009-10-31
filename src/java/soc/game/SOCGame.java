@@ -2453,6 +2453,7 @@ public class SOCGame implements Serializable, Cloneable
     public SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, int roll)
     {
         SOCResourceSet resources = new SOCResourceSet();
+        final int robberHex = board.getRobberHex();
 
         /**
          * check the hexes touching settlements
@@ -2466,11 +2467,10 @@ public class SOCGame implements Serializable, Cloneable
 
             while (hexes.hasMoreElements())
             {
-                Integer hex = (Integer) hexes.nextElement();
-
-                if ((board.getNumberOnHexFromCoord(hex.intValue()) == roll) && (hex.intValue() != board.getRobberHex()))
+                final int hexCoord = ((Integer) hexes.nextElement()).intValue();
+                if ((board.getNumberOnHexFromCoord(hexCoord) == roll) && (hexCoord != robberHex))
                 {
-                    switch (board.getHexTypeFromCoord(hex.intValue()))
+                    switch (board.getHexTypeFromCoord(hexCoord))
                     {
                     case SOCBoard.CLAY_HEX:
                         resources.add(1, SOCResourceConstants.CLAY);
@@ -2513,11 +2513,11 @@ public class SOCGame implements Serializable, Cloneable
 
             while (hexes.hasMoreElements())
             {
-                Integer hex = (Integer) hexes.nextElement();
+                final int hexCoord = ((Integer) hexes.nextElement()).intValue();
 
-                if ((board.getNumberOnHexFromCoord(hex.intValue()) == roll) && (hex.intValue() != board.getRobberHex()))
+                if ((board.getNumberOnHexFromCoord(hexCoord) == roll) && (hexCoord != robberHex))
                 {
-                    switch (board.getHexTypeFromCoord(hex.intValue()))
+                    switch (board.getHexTypeFromCoord(hexCoord))
                     {
                     case SOCBoard.CLAY_HEX:
                         resources.add(2, SOCResourceConstants.CLAY);
@@ -2661,17 +2661,21 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        int hexType = board.getHexTypeFromCoord(co);
-
-        if ((hexType == SOCBoard.DESERT_HEX) && isGameOptionSet("RD"))
-            return false;
-
-        if ((hexType != SOCBoard.CLAY_HEX) && (hexType != SOCBoard.ORE_HEX) && (hexType != SOCBoard.SHEEP_HEX) && (hexType != SOCBoard.WHEAT_HEX) && (hexType != SOCBoard.WOOD_HEX) && (hexType != SOCBoard.DESERT_HEX))
+        switch (board.getHexTypeFromCoord(co))
         {
-            return false;
-        }
+        case SOCBoard.DESERT_HEX:
+            return ! isGameOptionSet("RD");  // Only if it can return to the desert
 
-        return true;
+        case SOCBoard.CLAY_HEX:
+        case SOCBoard.ORE_HEX:
+        case SOCBoard.SHEEP_HEX:
+        case SOCBoard.WHEAT_HEX:
+        case SOCBoard.WOOD_HEX:
+            return true;
+
+        default:
+            return false;  // Land hexes only
+        }
     }
 
     /**
