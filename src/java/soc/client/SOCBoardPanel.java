@@ -80,10 +80,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link #scaledPanelX} {@link #scaledPanelY};
      */
     public static final int PANELX = 379, PANELY = 340;
-    
-    private static final int deltaY = 46;     //How many pixels to drop for each row of hexes
-    private static final int deltaX = 54;     //How many pixels to move over for a new hex
-    private static final int halfdeltaX = 27; //Each row only moves a half hex over horizontally
+
+    /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
+    private static final int deltaY = 46;
+    /** How many pixels to move over for a new hex. @see #HEXWIDTH */
+    private static final int deltaX = 54;
+    /** Each row only moves a half hex over horizontally. @see #deltaX */
+    private static final int halfdeltaX = 27;
 
     /**
      * hex coordinates for drawing
@@ -138,7 +141,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         -8, -14, -8, -4, -4, 6, 6, -8, -8, -4, -4, -8, -8
     };
 
-    /***  robber  ***/
+    /** robber polygon. Not centered, unlike city & settlement. X is 4 to 12; Y is 0 to 16. */
     private static final int[] robberX = 
     {
         6, 4, 4, 6, 10, 12, 12, 10, 12, 12, 4, 4, 6, 10
@@ -227,6 +230,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * hex size, in unscaled internal-pixels: 55 wide, 64 tall.
      * The road polygon coordinate-arrays ({@link #downRoadX}, etc)
      * are plotted against a hex of this size.
+     * @see #deltaX
+     * @see #deltaY
      */
     private static final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
@@ -241,6 +246,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *</UL>
      * When the board is also {@link #isScaled scaled}, go in this order:
      * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
+     *<P>
+     * When calculating position at which to draw an image or polygon,
+     * remember that rotation changes which corner is considered (0,0),
+     * and the image is offset from that corner.  (For example, {@link #drawHex(Graphics, int)}
+     * subtracts HEXHEIGHT from x, after rotation but before scaling.)
      *
      * @see #isScaledOrRotated
      * @since 1.1.08
@@ -1352,7 +1362,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 // (cw):  P'=(PANELY-y, x)
                 int y1 = x;
-                x = PANELY - y;
+                x = PANELY - y - HEXHEIGHT;  // move 1 hex over, since corner of image has rotated
                 y = y1;
             }
             if (isScaled)
@@ -1850,7 +1860,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.fillRect(0, 0, scaledPanelX, scaledPanelY);
 
         scaledMissedImage = false;    // drawHex will set this flag if missed
-        for (int i = 0; i < 37; i++)
+        for (int i = 0; i < 37; i++)  // TODO 5,6-player largerboard: assumes 37 hexes
         {
             drawHex(g, i);
         }
