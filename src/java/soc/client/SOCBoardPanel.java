@@ -232,6 +232,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * The board is rotated 90 degrees clockwise (game opt DEBUGROTABOARD).
      * Use {@link #scaleToActualX(int)}, {@link #scaleFromActualX(int)},
      * etc to convert between internal and actual screen pixel coordinates.
+     * Using this for rotation:
+     *     rot90cw: P'=(h-y, x).
+     *    rot90ccw: P'=(y, w-x).
      * @since 1.1.08
      */
     protected boolean isRotated;
@@ -273,6 +276,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Hex pix - shared unscaled original-resolution from GIF files.
+     * Note that miscPort0.gif - miscPort5.gif are stored in {@link #hexes};
+     * {@link #ports} stores the resource ports.
      * @see #scaledHexes
      * @see #rotatHexes
      */
