@@ -112,15 +112,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * coordinates for drawing the playing pieces
      */
-    /***  road looks like "|"  ***/
+    /***  road looks like "|" along left edge of hex ***/
     private static final int[] vertRoadX = { -2, 3, 3, -2, -2 };
     private static final int[] vertRoadY = { 17, 17, 47, 47, 17 };
 
-    /***  road looks like "/"  ***/
+    /***  road looks like "/" along upper-left edge of hex ***/
     private static final int[] upRoadX = { -1, 26, 29, 2, -1 };
     private static final int[] upRoadY = { 15, -2, 2, 19, 15 };
 
-    /***  road looks like "\"  ***/
+    /***  road looks like "\" along lower-left edge of hex ***/
     private static final int[] downRoadX = { -1, 2, 29, 26, -1 };
     private static final int[] downRoadY = { 49, 45, 62, 66, 49 };
 
@@ -224,9 +224,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int SUPERTEXT_INSET = 3, SUPERTEXT_PADDING_HORIZ = 2 * SUPERTEXT_INSET + 2;
 
     /**
-     * hex size, in unscaled internal-pixels
+     * hex size, in unscaled internal-pixels: 55 wide, 64 tall.
+     * The road polygon coordinate-arrays ({@link #downRoadX}, etc)
+     * are plotted against a hex of this size.
      */
-    private final int HEXWIDTH = 55, HEXHEIGHT = 64;
+    private static final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
      * The board is visually rotated 90 degrees clockwise (game opt DEBUGROTABOARD)
@@ -1076,31 +1078,40 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Scale images, or point to static arrays.
          */
+        Image[] hex, por;
+        if (isRotated)
+        {
+            hex = rotatHexes;
+            por = rotatPorts;
+        } else {
+            hex = hexes;
+            por = ports;
+        }
         if (! isScaled)
         {
             int i;
             for (i = scaledHexes.length - 1; i>=0; --i)
-                scaledHexes[i] = hexes[i];
+                scaledHexes[i] = hex[i];
             for (i = ports.length - 1; i>=0; --i)
-                scaledPorts[i] = ports[i];
+                scaledPorts[i] = por[i];
             for (i = numbers.length - 1; i>=0; --i)
                 scaledNumbers[i] = numbers[i];
         }
         else
         {
-            int w = scaleToActualX(hexes[0].getWidth(null));
-            int h = scaleToActualY(hexes[0].getHeight(null));
+            int w = scaleToActualX(hex[0].getWidth(null));
+            int h = scaleToActualY(hex[0].getHeight(null));
             for (int i = scaledHexes.length - 1; i>=0; --i)
             {
-                scaledHexes[i] = hexes[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                scaledHexes[i] = hex[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                 scaledHexFail[i] = false;
             }
 
-            w = scaleToActualX(ports[1].getWidth(null));
-            h = scaleToActualY(ports[1].getHeight(null));
+            w = scaleToActualX(por[1].getWidth(null));
+            h = scaleToActualY(por[1].getHeight(null));
             for (int i = scaledPorts.length - 1; i>=1; --i)
             {
-                scaledPorts[i] = ports[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                scaledPorts[i] = por[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                 scaledPortFail[i] = false;
             }
 
@@ -1121,7 +1132,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Scale coordinate arrays for drawing pieces,
+     * Scale coordinate arrays for drawing pieces
+     * (from internal coordinates to actual on-screen pixels),
      * or (if not isScaled) point to static arrays.
      * Called from constructor and rescaleBoard.
      */
@@ -1129,14 +1141,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
         {
-            scaledVertRoadX = vertRoadX;     scaledVertRoadY = vertRoadY;
-            scaledUpRoadX   = upRoadX;       scaledUpRoadY   = upRoadY;
-            scaledDownRoadX = downRoadX;     scaledDownRoadY = downRoadY;
+            if (! isRotated)
+            {
+                scaledVertRoadX = vertRoadX;     scaledVertRoadY = vertRoadY;
+                scaledUpRoadX   = upRoadX;       scaledUpRoadY   = upRoadY;
+                scaledDownRoadX = downRoadX;     scaledDownRoadY = downRoadY;
+                scaledHexCornersX = hexCornersX; scaledHexCornersY = hexCornersY;
+            } else {
+                // (cw):  P'=(width-y, x)
+                scaledVertRoadX = rotateScaleCopyYToActualX(vertRoadY, HEXWIDTH, false);
+                scaledVertRoadY = vertRoadX;
+                scaledUpRoadX   = rotateScaleCopyYToActualX(upRoadY, HEXWIDTH, false);
+                scaledUpRoadY   = upRoadX;
+                scaledDownRoadX = rotateScaleCopyYToActualX(downRoadY, HEXWIDTH, false);
+                scaledDownRoadY = downRoadX;
+                scaledHexCornersX = rotateScaleCopyYToActualX(hexCornersY, HEXWIDTH, false);
+                scaledHexCornersY = hexCornersX;
+            }
             scaledSettlementX = settlementX; scaledSettlementY = settlementY;
             scaledCityX     = cityX;         scaledCityY     = cityY;
             scaledRobberX   = robberX;       scaledRobberY   = robberY;
             scaledArrowXL   = arrowXL;       scaledArrowY    = arrowY;
-            scaledHexCornersX = hexCornersX; scaledHexCornersY = hexCornersY;
             if (arrowXR == null)
             {
                 int[] axr = new int[arrowXL.length];
@@ -1152,12 +1177,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         else
         {
-            scaledVertRoadX = scaleCopyToActualX(vertRoadX); 
-            scaledVertRoadY = scaleCopyToActualY(vertRoadY);
-            scaledUpRoadX   = scaleCopyToActualX(upRoadX);
-            scaledUpRoadY   = scaleCopyToActualY(upRoadY);
-            scaledDownRoadX = scaleCopyToActualX(downRoadX);     
-            scaledDownRoadY = scaleCopyToActualY(downRoadY);
+            if (! isRotated)
+            {
+                scaledVertRoadX = scaleCopyToActualX(vertRoadX);
+                scaledVertRoadY = scaleCopyToActualY(vertRoadY);
+                scaledUpRoadX   = scaleCopyToActualX(upRoadX);
+                scaledUpRoadY   = scaleCopyToActualY(upRoadY);
+                scaledDownRoadX = scaleCopyToActualX(downRoadX);
+                scaledDownRoadY = scaleCopyToActualY(downRoadY);
+                scaledHexCornersX = scaleCopyToActualX(hexCornersX);
+                scaledHexCornersY = scaleCopyToActualY(hexCornersY);
+            } else {
+                // (cw):  P'=(width-y, x)
+                scaledVertRoadX = rotateScaleCopyYToActualX(vertRoadY, HEXWIDTH, true);
+                scaledVertRoadY = scaleCopyToActualY(vertRoadX);
+                scaledUpRoadX   = rotateScaleCopyYToActualX(upRoadY, HEXWIDTH, true);
+                scaledUpRoadY   = scaleCopyToActualY(upRoadX);
+                scaledDownRoadX = rotateScaleCopyYToActualX(downRoadY, HEXWIDTH, true);
+                scaledDownRoadY = scaleCopyToActualY(downRoadX);
+                scaledHexCornersX = rotateScaleCopyYToActualX(hexCornersY, HEXWIDTH, true);
+                scaledHexCornersY = scaleCopyToActualY(hexCornersX);
+            }
             scaledSettlementX = scaleCopyToActualX(settlementX);
             scaledSettlementY = scaleCopyToActualY(settlementY);
             scaledCityX     = scaleCopyToActualX(cityX);
@@ -1166,8 +1206,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledRobberY   = scaleCopyToActualY(robberY);
             scaledArrowXL   = scaleCopyToActualX(arrowXL);
             scaledArrowY    = scaleCopyToActualY(arrowY);
-            scaledHexCornersX = scaleCopyToActualX(hexCornersX);
-            scaledHexCornersY = scaleCopyToActualY(hexCornersY);
 
             // Ensure arrow-tip sides are 45 degrees.
             int p = Math.abs(scaledArrowXL[0] - scaledArrowXL[1]);
@@ -1198,6 +1236,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @return Scaled copy of xorig
      *
      * @see #scaleToActualX(int[])
+     * @see #rotateScaleCopyYToActualX(int[], int, boolean)
      */
     public int[] scaleCopyToActualX(int[] xorig)
     {
@@ -1222,6 +1261,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         for (int i = yorig.length - 1; i >= 0; --i)
             ys[i] = (int) ((yorig[i] * (long) scaledPanelY) / PANELY);
         return ys;
+    }
+
+    /**
+     * Copy and rotate this array of y-coordinates, optionally also rescaling.
+     * Rotates internal to actual (clockwise):  P'=(width-y, x)
+     * @param yorig Array to copy and rotate, not null
+     * @param width Width to rotate against
+     * @param rescale Should we also rescale, same formula as {@link #scaleCopyToActualX(int[])}?
+     * @return Rotated copy of <tt>yorig</tt> for use as x-coordinates
+     * @since 1.1.08
+     */
+    public int[] rotateScaleCopyYToActualX(final int[] yorig, final int width, final boolean rescale)
+    {
+        int[] xr = new int[yorig.length];
+        for (int i = yorig.length - 1; i >= 0; --i)
+            xr[i] = width - yorig[i];
+        if (rescale)
+            for (int i = yorig.length - 1; i >= 0; --i)
+                xr[i] = (int) ((xr[i] * (long) scaledPanelX) / PANELX);
+        return xr;
     }
 
     /**
@@ -1283,23 +1342,32 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * to the static original-resolution image will be used.
          */
         boolean missedDraw = false;
+        Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original or rotated?
 
         int x = hexX[hexNum];
         int y = hexY[hexNum];
-        if (isScaled)
+        if (isScaledOrRotated)
         {
-            x = scaleToActualX(x); 
-            y = scaleToActualY(y);
+            if (isRotated)
+            {
+                // (cw):  P'=(PANELY-y, x)
+                int y1 = x;
+                x = PANELY - y;
+                y = y1;
+            }
+            if (isScaled)
+            {
+                x = scaleToActualX(x); 
+                y = scaleToActualY(y);
+            }
         }
-
         tmp = hexType & 15; // get only the last 4 bits;
 
-
-        if (isScaled && (scaledHexes[tmp] == hexes[tmp]))
+        if (isScaled && (scaledHexes[tmp] == hexis[tmp]))
         {
             recenterPrevMiss = true;
-            int w = hexes[tmp].getWidth(null);
-            int h = hexes[tmp].getHeight(null);
+            int w = hexis[tmp].getWidth(null);
+            int h = hexis[tmp].getHeight(null);
             xm = (scaleToActualX(w) - w) / 2;
             ym = (scaleToActualY(h) - h) / 2;
             x += xm;
@@ -1327,14 +1395,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 // rescale the image or give up
                 if (scaledHexFail[tmp])
                 {
-                    scaledHexes[tmp] = hexes[tmp];  // fallback
+                    scaledHexes[tmp] = hexis[tmp];  // fallback
                 }
                 else
                 {
                     scaledHexFail[tmp] = true;
-                    int w = scaleToActualX(hexes[0].getWidth(null));
-                    int h = scaleToActualY(hexes[0].getHeight(null));
-                    scaledHexes[tmp] = hexes[tmp].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                    int w = scaleToActualX(hexis[0].getWidth(null));
+                    int h = scaleToActualY(hexis[0].getHeight(null));
+                    scaledHexes[tmp] = hexis[tmp].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                 }
             }
         }
@@ -1353,11 +1421,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (tmp > 0)
         {
-            if (isScaled && (scaledPorts[tmp] == ports[tmp]))
+            Image[] portis = (isRotated ? rotatPorts : ports);  // Fall back to original or rotated?
+            if (isScaled && (scaledPorts[tmp] == portis[tmp]))
             {
                 recenterPrevMiss = true;
-                int w = ports[tmp].getWidth(null);
-                int h = ports[tmp].getHeight(null);
+                int w = portis[tmp].getWidth(null);
+                int h = portis[tmp].getHeight(null);
                 xm = (scaleToActualX(w) - w) / 2;
                 ym = (scaleToActualY(h) - h) / 2;
                 x += xm;
@@ -1365,20 +1434,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             if (! g.drawImage(scaledPorts[tmp], x, y, this))
             {
-                g.drawImage(ports[tmp], x, y, null);  // show small port graphic, instead of a blank space
+                g.drawImage(portis[tmp], x, y, null);  // show small port graphic, instead of a blank space
                 if (isScaled && (7000 < (System.currentTimeMillis() - scaledAt)))
                 {
                     missedDraw = true;
                     if (scaledPortFail[tmp])
                     {
-                        scaledPorts[tmp] = ports[tmp];  // fallback
+                        scaledPorts[tmp] = portis[tmp];  // fallback
                     }
                     else
                     {
                         scaledPortFail[tmp] = true;
-                        int w = scaleToActualX(ports[1].getWidth(null));
-                        int h = scaleToActualY(ports[1].getHeight(null));
-                        scaledPorts[tmp] = ports[tmp].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                        int w = scaleToActualX(portis[1].getWidth(null));
+                        int h = scaleToActualY(portis[1].getHeight(null));
+                        scaledPorts[tmp] = portis[tmp].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                     }
                 }
             }
@@ -1394,15 +1463,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int hnl = numberLayout[hexNum];
         if (hnl >= 0)
         {
+            final int dx, dy;  // Offset of number graphic from upper-left corner of hex
+            if (isRotated)
+            {
+                dx = 22;  dy = 17;
+            } else {
+                dx = 17;  dy = 22;
+            }
+
             if (! isScaled)
             {
-                x += 17;
-                y += 22;
+                x += dx;
+                y += dy;
             }
             else
             {
-                x = scaleToActualX(hexX[hexNum] + 17);
-                y = scaleToActualY(hexY[hexNum] + 22);
+                x = scaleToActualX(hexX[hexNum] + dx);
+                y = scaleToActualY(hexY[hexNum] + dy);
                 if (scaledNumbers[hnl] == numbers[hnl])
                 {
                     // recenterPrevMiss = true;
@@ -1455,6 +1532,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int hexNum = hexIDtoNum[hexID];
         int hx = hexX[hexNum] + 19;
         int hy = hexY[hexNum] + 23;
+        if (isRotated)
+        {
+            // (cw):  P'=(PANELY-y, x)
+            int hy1 = hx;
+            hx = PANELY - hy;
+            hy = hy1;
+        }
         if (isScaled)
         {
             hx = scaleToActualX(hx);
@@ -1536,6 +1620,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         int hx = hexX[hexNum];
         int hy = hexY[hexNum];
+        if (isRotated)
+        {
+            // (cw):  P'=(PANELY-y, x)
+            int hy1 = hx;
+            hx = PANELY - hy;
+            hy = hy1;
+        }            
         if (isScaled)
         {
             hx = scaleToActualX(hx);
@@ -1575,6 +1666,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hexNum = hexIDtoNum[nodeNum - 0x01];
             hx = hexX[hexNum] + 27;
             hy = hexY[hexNum] + 2;
+        }
+        if (isRotated)
+        {
+            // (cw):  P'=(PANELY-y, x)
+            int hy1 = hx;
+            hx = PANELY - hy;
+            hy = hy1;
         }
         if (isScaled)
         {
@@ -1616,10 +1714,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hx = hexX[hexNum] + 27;
             hy = hexY[hexNum] + 2;
         }
-        if (isScaled)
+        if (isScaledOrRotated)
         {
-            hx = scaleToActualX(hx);
-            hy = scaleToActualY(hy);
+            if (isRotated)
+            {
+                // (cw):  P'=(PANELY-y, x)
+                int hy1 = hx;
+                hx = PANELY - hy;
+                hy = hy1;
+            }
+            if (isScaled)
+            {
+                hx = scaleToActualX(hx);
+                hy = scaleToActualY(hy);
+            }
         }
 
         g.translate(hx, hy);
@@ -2309,6 +2417,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             xb = x;
             yb = y;
+        }
+        if (isRotated)
+        {
+            // (ccw): P'=(y, PANELX-x)
+            int xb1 = yb;
+            yb = PANELX - xb;
+            xb = xb1;
         }
 
         int edgeNum;
@@ -3367,7 +3482,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
                 if (isRotated)
                 {
-                    // TODO NEXT
+                    // (ccw): P'=(y, PANELX-x)
+                    int xb1 = yb;
+                    yb = PANELX - xb;
+                    xb = xb1;
                 }
             }
 
