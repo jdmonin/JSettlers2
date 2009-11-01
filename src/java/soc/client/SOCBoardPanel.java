@@ -854,43 +854,43 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final void initNodeMapAux(int x1, int y1, int x2, int y2, int startHex)
     {
         int facing = 0;  // current state; related to row# and logic for node coords from hex coords
-        int count = 0;  // 0 for first row (y1), 1 for second, etc.
+        int row = 0;  // 0 for first row (y1), 1 for second, etc.
         int hexNum;  // starts with startHex, incr by 0x22 to move across a horizontal row of board coords
-        int edgeNum = 0;  // node number
+        int nodeNum = 0;  // node number
 
-        for (int y = y1; y <= y2; y++, count++)
+        for (int y = y1; y <= y2; y++, row++)
         {
             hexNum = startHex;
 
-            switch (count)
+            switch (row)
             {
             case 0:
                 facing = -1;
-                edgeNum = 0;
+                nodeNum = 0;
 
                 break;
 
             case 1:
                 facing = 6;
-                edgeNum = hexNum - 0x10;
+                nodeNum = hexNum - 0x10;
 
                 break;
 
             case 2:
                 facing = -7;
-                edgeNum = 0;
+                nodeNum = 0;
 
                 break;
 
             case 3:
                 facing = 5;
-                edgeNum = hexNum - 0x01;
+                nodeNum = hexNum - 0x01;
 
                 break;
 
             case 4:
                 facing = -4;
-                edgeNum = 0;
+                nodeNum = 0;
 
                 break;
 
@@ -902,7 +902,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             for (int x = x1; x <= x2; x++)
             {
-                nodeMap[x + (y * 15)] = edgeNum;
+                nodeMap[x + (y * 15)] = nodeNum;
 
                 switch (facing)
                 {
@@ -910,13 +910,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 case 1:
                     facing = -1;
                     hexNum += 0x22;
-                    edgeNum = 0;
+                    nodeNum = 0;
 
                     break;
 
                 case -1:
                     facing = 1;
-                    edgeNum = hexNum + 0x01;
+                    nodeNum = hexNum + 0x01;
 
                     break;
 
@@ -924,45 +924,45 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 case 2:
                     facing = -2;
                     hexNum += 0x22;
-                    edgeNum = 0;
+                    nodeNum = 0;
 
                     break;
 
                 case -2:
                     facing = 2;
-                    edgeNum = hexNum + 0x12;
+                    nodeNum = hexNum + 0x12;
 
                     break;
 
                 case 6:
                     facing = -2;
-                    edgeNum = 0;
+                    nodeNum = 0;
 
                     break;
 
                 // Used in row 3 (count==2) //
                 case -7:
-                    edgeNum = 0;
+                    nodeNum = 0;
 
                     break;
 
                 // Used in row 4 (count==3) //
                 case 5:
                     facing = -3;
-                    edgeNum = 0;
+                    nodeNum = 0;
 
                     break;
 
                 case 3:
                     facing = -3;
                     hexNum += 0x22;
-                    edgeNum = 0;
+                    nodeNum = 0;
 
                     break;
 
                 case -3:
                     facing = 3;
-                    edgeNum = hexNum + 0x21;
+                    nodeNum = hexNum + 0x21;
 
                     break;
 
@@ -970,13 +970,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 case 4:
                     facing = -4;
                     hexNum += 0x22;
-                    edgeNum = 0;
+                    nodeNum = 0;
 
                     break;
 
                 case -4:
                     facing = 4;
-                    edgeNum = hexNum + 0x10;
+                    nodeNum = hexNum + 0x10;
 
                     break;
 
