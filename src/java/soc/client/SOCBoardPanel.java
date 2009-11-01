@@ -475,12 +475,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int hilight;
 
     /**
-     * Map grid sectors (from on-screen coordinates) to hex edges.
+     * Map grid sectors (from unscaled on-screen coordinates) to hex edges.
      * The grid has 15 columns and 23 rows.
      * This maps graphical coordinates to the board coordinate system.
-     * Each row of hexes touches 3 columns and 5 rows here. For instance,
-     * hex 0x35 has its top-center point in row 6, and its bottom-center
-     * point in row 10, of this grid.
      *<P>
      * The edge number at grid (x,y) is in edgeMap[x + (y * 15)].
      * @see #findEdge(int, int)
@@ -489,8 +486,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int[] edgeMap;
 
     /**
-     * Map grid sectors (from on-screen coordinates) to hex nodes.
+     * Map grid sectors (from unscaled on-screen coordinates) to hex nodes.
+     * The grid has 15 columns and 23 rows.
+     * This maps graphical coordinates to the board coordinate system.
+     * Each row of hexes touches 3 columns and 5 rows here. For instance,
+     * hex 0x35 has its top-center point (node) in row 6, and its bottom-center
+     * point in row 10, of this grid.
+     *<P>
+     * The node number at grid (x,y) is in nodeMap[x + (y * 15)].
      * @see #findNode(int, int)
+     * @see #initNodeMapAux(int, int, int, int, int)
      */
     private int[] nodeMap;
 
