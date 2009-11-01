@@ -141,14 +141,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         -8, -14, -8, -4, -4, 6, 6, -8, -8, -4, -4, -8, -8
     };
 
-    /** robber polygon. Not centered, unlike city & settlement. X is 4 to 12; Y is 0 to 16. */
-    private static final int[] robberX = 
+    /** robber polygon. X is -4 to +4; Y is -8 to +8. */
+    private static final int[] robberX =
     {
-        6, 4, 4, 6, 10, 12, 12, 10, 12, 12, 4, 4, 6, 10
+        -2, -4, -4, -2, 2, 4, 4, 2, 4, 4, -4, -4, -2, 2
     };
-    private static final int[] robberY = 
+    private static final int[] robberY =
     {
-        6, 4, 2, 0, 0, 2, 4, 6, 8, 16, 16, 8, 6, 6
+        -2, -4, -6, -8, -8, -6, -4, -2, 0, 8, 8, 0, -2, -2
     };
 
     /**
@@ -1540,8 +1540,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final void drawRobber(Graphics g, int hexID, boolean fullNotGhost)
     {
         int hexNum = hexIDtoNum[hexID];
-        int hx = hexX[hexNum] + 19;
-        int hy = hexY[hexNum] + 23;
+        int hx = hexX[hexNum] + 27;
+        int hy = hexY[hexNum] + 31;
         if (isRotated)
         {
             // (cw):  P'=(PANELY-y, x)
@@ -1634,7 +1634,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             // (cw):  P'=(PANELY-y, x)
             int hy1 = hx;
-            hx = PANELY - hy;
+            hx = PANELY - hy - deltaX;  // -deltaX is because road poly coords are against hex width/height,
+                                        // and the hex image gets similar translation in drawHex.
             hy = hy1;
         }            
         if (isScaled)
@@ -2432,7 +2433,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             // (ccw): P'=(y, PANELX-x)
             int xb1 = yb;
-            yb = PANELX - xb;
+            yb = PANELX - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
             xb = xb1;
         }
 
@@ -3494,7 +3495,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     // (ccw): P'=(y, PANELX-x)
                     int xb1 = yb;
-                    yb = PANELX - xb;
+                    yb = PANELX - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
                     xb = xb1;
                 }
             }
