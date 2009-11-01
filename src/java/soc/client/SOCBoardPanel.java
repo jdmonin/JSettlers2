@@ -229,6 +229,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
+     * The board is rotated 90 degrees clockwise (game opt DEBUGROTABOARD).
+     * Use {@link #scaleToActualX(int)}, {@link #scaleFromActualX(int)},
+     * etc to convert between internal and actual screen pixel coordinates.
+     * @since 1.1.08
+     */
+    protected boolean isRotated;
+
+    /**
      * actual size on-screen, not internal-pixels size
      * ({@link #PANELX}, {@link #PANELY})
      */
@@ -266,24 +274,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Hex pix - shared unscaled original-resolution from GIF files.
      * @see #scaledHexes
+     * @see #rotatHexes
      */
-    private static Image[] hexes;
-    private static Image[] ports;
+    private static Image[] hexes, ports;
 
     /**
-     * Hex pix - private scaled copy, if isScaled. Otherwise points to static copies.
+     * Hex pix - rotated board; from ./images/rotat GIF files.
+     * Image references are copied to
+     * {@link #scaledHexes}/{@link #scaledPorts} from here. 
      * @see #hexes
+     * @since 1.1.08
      */
-    private Image[] scaledHexes;
-    private Image[] scaledPorts;
+    private static Image[] rotatHexes, rotatPorts;
+
+    /**
+     * Hex pix - private scaled copy, if isScaled. Otherwise points to static copies,
+     * either {@link #hexes} or {@link #rotatHexes}
+     */
+    private Image[] scaledHexes, scaledPorts;
 
     /**
      * Hex pix - Flag to check if rescaling failed, if isScaled.
      * @see #scaledHexes
      * @see #drawHex(Graphics, int)
      */
-    private boolean[] scaledHexFail;
-    private boolean[] scaledPortFail;
+    private boolean[] scaledHexFail, scaledPortFail;
 
     /**
      * number pix (for hexes), original resolution.
@@ -514,6 +529,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         scaledPanelX = PANELX;
         scaledPanelY = PANELY;
         scaledMissedImage = false;
+        isRotated = game.isGameOptionSet("DEBUGROTABOARD");
 
         int i;
 
@@ -604,16 +620,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         superText2 = null;
 
         // load the static images
-        loadImages(this);
+        loadImages(this, isRotated);
 
         // point to static images, unless we're later resized
         scaledHexes = new Image[hexes.length];
         scaledPorts = new Image[ports.length];
         scaledNumbers = new Image[numbers.length];
+        Image[] h, p;
+        if (isRotated)
+        {
+            h = rotatHexes;
+            p = rotatPorts;
+        } else {
+            h = hexes;
+            p = ports;
+        }
         for (i = hexes.length - 1; i>=0; --i)
-            scaledHexes[i] = hexes[i];
+            scaledHexes[i] = h[i];
         for (i = ports.length - 1; i>=0; --i)
-            scaledPorts[i] = ports[i];
+            scaledPorts[i] = p[i];
         for (i = numbers.length - 1; i>=0; --i)
             scaledNumbers[i] = numbers[i];
         scaledHexFail = new boolean[hexes.length];
@@ -2884,44 +2909,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * we need to know if this board is in an applet
      * or an application
      */
-    private static synchronized void loadImages(Component c)
+    private static synchronized void loadImages(Component c, boolean wantsRotated)
     {
+        if ((hexes != null) && ((rotatHexes != null) || ! wantsRotated))
+            return;
+
+        Toolkit tk = c.getToolkit();
+        Class clazz = c.getClass();
+
         if (hexes == null)
         {
             MediaTracker tracker = new MediaTracker(c);
-            Toolkit tk = c.getToolkit();
-            Class clazz = c.getClass();
         
             hexes = new Image[13];
             numbers = new Image[10];
             ports = new Image[7];
-
             dice = new Image[14];
 
-            hexes[0] = tk.getImage(clazz.getResource(IMAGEDIR + "/desertHex.gif"));
-            hexes[1] = tk.getImage(clazz.getResource(IMAGEDIR + "/clayHex.gif"));
-            hexes[2] = tk.getImage(clazz.getResource(IMAGEDIR + "/oreHex.gif"));
-            hexes[3] = tk.getImage(clazz.getResource(IMAGEDIR + "/sheepHex.gif"));
-            hexes[4] = tk.getImage(clazz.getResource(IMAGEDIR + "/wheatHex.gif"));
-            hexes[5] = tk.getImage(clazz.getResource(IMAGEDIR + "/woodHex.gif"));
-            hexes[6] = tk.getImage(clazz.getResource(IMAGEDIR + "/waterHex.gif"));
-
-            for (int i = 0; i < 7; i++)
-            {
-                tracker.addImage(hexes[i], 0);
-            }
-
-            for (int i = 0; i < 6; i++)
-            {
-                hexes[i + 7] = tk.getImage(clazz.getResource(IMAGEDIR + "/miscPort" + i + ".gif"));
-                tracker.addImage(hexes[i + 7], 0);
-            }
-
-            for (int i = 0; i < 6; i++)
-            {
-                ports[i + 1] = tk.getImage(clazz.getResource(IMAGEDIR + "/port" + i + ".gif"));
-                tracker.addImage(ports[i + 1], 0);
-            }
+            loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz);
 
             numbers[0] = tk.getImage(clazz.getResource(IMAGEDIR + "/two.gif"));
             numbers[1] = tk.getImage(clazz.getResource(IMAGEDIR + "/three.gif"));
@@ -2955,6 +2960,66 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 System.out.println("Error loading board images");
             }
+        }
+
+        if (wantsRotated && (rotatHexes == null))
+        {
+            MediaTracker tracker = new MediaTracker(c);
+        
+            rotatHexes = new Image[13];
+            rotatPorts = new Image[7];
+            loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz);
+
+            try
+            {
+                tracker.waitForID(0);
+            }
+            catch (InterruptedException e) {}
+
+            if (tracker.isErrorID(0))
+            {
+                System.out.println("Error loading rotated board images");
+            }
+        }
+    }
+
+    /**
+     * Load hex and port images from either normal, or rotated, resource location.
+     * Remember that miscPort0.gif - miscPort5.gif are loaded into hexes, not ports.
+     * @param newHexes Array to store hex images into; {@link #hexes} or {@link #rotatHexes}
+     * @param newPorts Array to store port images into; {@link #ports} or {@link #rotatPorts}
+     * @param imageDir Location for {@link Class#getResource(String)}
+     * @param tracker Track image loading progress here
+     * @param tk   Toolkit to load image from resource
+     * @param clazz  Class for getResource
+     * @since 1.1.08
+     */
+    private static final void loadHexesPortsImages
+        (Image[] newHexes, Image[] newPorts, String imageDir,
+         MediaTracker tracker, Toolkit tk, Class clazz)
+    {
+        newHexes[0] = tk.getImage(clazz.getResource(imageDir + "/desertHex.gif"));
+        newHexes[1] = tk.getImage(clazz.getResource(imageDir + "/clayHex.gif"));
+        newHexes[2] = tk.getImage(clazz.getResource(imageDir + "/oreHex.gif"));
+        newHexes[3] = tk.getImage(clazz.getResource(imageDir + "/sheepHex.gif"));
+        newHexes[4] = tk.getImage(clazz.getResource(imageDir + "/wheatHex.gif"));
+        newHexes[5] = tk.getImage(clazz.getResource(imageDir + "/woodHex.gif"));
+        newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
+        for (int i = 0; i < 7; i++)
+        {
+            tracker.addImage(newHexes[i], 0);
+        }
+
+        for (int i = 0; i < 6; i++)
+        {
+            newHexes[i + 7] = tk.getImage(clazz.getResource(imageDir + "/miscPort" + i + ".gif"));
+            tracker.addImage(newHexes[i + 7], 0);
+        }
+
+        for (int i = 0; i < 6; i++)
+        {
+            newPorts[i + 1] = tk.getImage(clazz.getResource(imageDir + "/port" + i + ".gif"));
+            tracker.addImage(newPorts[i + 1], 0);
         }
     }
 
