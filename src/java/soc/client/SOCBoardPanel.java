@@ -490,10 +490,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * The grid has 15 columns and 23 rows.
      * This maps graphical coordinates to the board coordinate system.
      * Each row of hexes touches 3 columns and 5 rows here. For instance,
-     * hex 0x35 has its top-center point (node) in row 6, and its bottom-center
-     * point in row 10, of this grid.
+     * hex 0x35 has its top-center point (node) in row y=6, and its bottom-center
+     * point in row y=10, of this grid.  Its left edge is column x=3, and right is column x=5.
      *<P>
-     * The node number at grid (x,y) is in nodeMap[x + (y * 15)].
+     * The node number at grid (x,y) is nodeMap[x + (y * 15)].
      * @see #findNode(int, int)
      * @see #initNodeMapAux(int, int, int, int, int)
      */
@@ -831,25 +831,34 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Within {@link #edgeMap}, set the edge coordinates for a rectangular section
-     * from (x1,y1) to (x2,y2) covering one horizontal row of hexes.
-     * The grid's row numbers match the board coordinate system, so each row of
-     * hexes covers 5 rows here. For instance, hex 0x35 has its top-center point in row 6,
-     * and its bottom-center point in row 10.
-     * @param x1 Starting x-coordinate within {@link #edgeMap}'s index
-     * @param y1 Starting y-coordinate within {@link #edgeMap}'s index
-     * @param x2 Ending x-coordinate
-     * @param y2 Ending y-coordinate
-     * @param startHex  Starting hex ID (0x-coordinate of first hex in this row), to use for edgeMap[x1, y1].
+     * Within {@link #nodeMap}, set the node coordinates within a rectangular section
+     * from (x1,y1) to (x2,y2) covering all nodes of one horizontal row of hexes.
+     *<P>
+     * The grid maps graphical coordinates to the board coordinate system.
+     * Each row of hexes covers 5 rows here. For instance, hex 0x35 has its top-center
+     * point (node) in row 6, and its bottom-center point in row 10.
+     * All 6 nodes of each hex in range will be initialized within {@link #nodeMap}.
+     *<P>
+     * For node coordinates, see RST dissertation figure A2. For hex coordinates, see figure A1.
+     *
+     * @param x1 Starting x-coordinate within {@link #nodeMap}'s index;
+     *           should correspond to left edge of <tt>startHex</tt>
+     * @param y1 Starting y-coordinate within {@link #nodeMap}'s index;
+     *           should correspond to top point of <tt>startHex</tt>
+     * @param x2 Ending x-coordinate; should correspond to right edge of the last hex in the
+     *           row of hexes being initialized.  Each hex is 2 units wide in the grid.
+     * @param y2 Ending y-coordinate; should correspond to bottom point of <tt>startHex</tt>,
+     *           and thus should be y1 + 4.
+     * @param startHex  Starting hex ID (0x-coordinate of first hex in this row), to use with nodeMap[x1, y1].
      */
     private final void initNodeMapAux(int x1, int y1, int x2, int y2, int startHex)
     {
-        int facing = 0;
+        int facing = 0;  // current state; related to row# and logic for node coords from hex coords
         int count = 0;  // 0 for first row (y1), 1 for second, etc.
-        int hexNum;  // start with hexNum, incr by 0x22 to move across a horizontal row of board coords
-        int edgeNum = 0;
+        int hexNum;  // starts with startHex, incr by 0x22 to move across a horizontal row of board coords
+        int edgeNum = 0;  // node number
 
-        for (int y = y1; y <= y2; y++)
+        for (int y = y1; y <= y2; y++, count++)
         {
             hexNum = startHex;
 
@@ -897,6 +906,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 switch (facing)
                 {
+                // Used in top row (count==0) //
                 case 1:
                     facing = -1;
                     hexNum += 0x22;
@@ -910,6 +920,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     break;
 
+                // Used in row 2 (count==1) //
                 case 2:
                     facing = -2;
                     hexNum += 0x22;
@@ -929,11 +940,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     break;
 
+                // Used in row 3 (count==2) //
                 case -7:
                     edgeNum = 0;
 
                     break;
 
+                // Used in row 4 (count==3) //
                 case 5:
                     facing = -3;
                     edgeNum = 0;
@@ -953,6 +966,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     break;
 
+                // Used in bottom row (count==4) //
                 case 4:
                     facing = -4;
                     hexNum += 0x22;
@@ -971,10 +985,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     return;
                 }
-            }
-
-            count++;
-        }
+            }  // for (x)
+        }  // for (y)
     }
 
     private final void initHexIDtoNumAux(int begin, int end, int num)
