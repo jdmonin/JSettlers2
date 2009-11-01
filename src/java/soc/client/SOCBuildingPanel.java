@@ -54,24 +54,20 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     Button cardBut;
     Button optsBut;  // show SOCGameOptions; @since 1.1.07
     Label roadT;
-    Label roadV;
     Label roadC;
     ColorSquare roadWood;
     ColorSquare roadClay;
     Label settlementT;
-    Label settlementV;
     Label settlementC;
     ColorSquare settlementWood;
     ColorSquare settlementClay;
     ColorSquare settlementWheat;
     ColorSquare settlementSheep;
     Label cityT;
-    Label cityV;
     Label cityC;
     ColorSquare cityWheat;
     ColorSquare cityOre;
     Label cardT;
-    Label cardV;
     Label cardC;
     Label cardCountLab;
     ColorSquare cardWheat;
@@ -111,9 +107,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
          */
         roadT = new Label("Road: ");
         add(roadT);
-        roadV = new Label("0 VP  (longest road = 2 VP) ");
-        roadV.setAlignment(Label.LEFT);
-        add(roadV);
+        new AWTToolTip ("0 VP  (longest road = 2 VP) ", roadT);
         roadC = new Label("Cost: ");
         add(roadC);
         roadWood = new ColorSquare(ColorSquare.WOOD, 1);
@@ -128,9 +122,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         settlementT = new Label("Settlement: ");
         add(settlementT);
-        settlementV = new Label("1 VP ");
-        settlementV.setAlignment(Label.LEFT);
-        add(settlementV);
+        new AWTToolTip ("1 VP ", settlementT);
         settlementC = new Label("Cost: ");
         add(settlementC);
         settlementWood = new ColorSquare(ColorSquare.WOOD, 1);
@@ -149,9 +141,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         cityT = new Label("City Upgrade: ");
         add(cityT);
-        cityV = new Label("2 VP  (receives 2x rsrc.) ");
-        cityV.setAlignment(Label.LEFT);
-        add(cityV);
+        new AWTToolTip ("2 VP  (receives 2x rsrc.) ", cityT);
         cityC = new Label("Cost: ");
         add(cityC);
         cityWheat = new ColorSquare(ColorSquare.WHEAT, 2);
@@ -170,9 +160,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         cardT = new Label("Card: ");
         add(cardT);
-        cardV = new Label("? VP  (largest army = 2 VP) ");
-        cardV.setAlignment(Label.LEFT);
-        add(cardV);
+        new AWTToolTip ("? VP  (largest army = 2 VP) ", cardT);
         cardC = new Label("Cost: ");
         add(cardC);
         cardWheat = new ColorSquare(ColorSquare.WHEAT, 1);
@@ -212,6 +200,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         int butW = 50;
         int margin = 2;
 
+        final int settlementTW = fm.stringWidth(settlementT.getText());
+        final int cityTW = fm.stringWidth(cityT.getText());
+        final int buttonMargin = 2 * margin + ((settlementTW > cityTW) ? settlementTW : cityTW);
+
         /*
            title.setSize(dim.width, lineH);
            title.setLocation(0, 0);
@@ -219,10 +211,9 @@ public class SOCBuildingPanel extends Panel implements ActionListener
          */
         roadT.setSize(fm.stringWidth(roadT.getText()), lineH);
         roadT.setLocation(margin, curY);
+        roadBut.setSize(butW, lineH);
+        roadBut.setLocation(buttonMargin, curY);
 
-        int roadVW = fm.stringWidth(roadV.getText());
-        roadV.setSize(roadVW, lineH);
-        roadV.setLocation(dim.width - (roadVW + margin), curY);
         curY += lineH;
         roadC.setSize(costW, lineH);
         roadC.setLocation(margin, curY);
@@ -232,16 +223,13 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX += (ColorSquare.WIDTH + 3);
         roadClay.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         roadClay.setLocation(curX, curY);
-        roadBut.setSize(butW, lineH);
-        roadBut.setLocation(dim.width - (butW + margin), curY);
         curY += (rowSpaceH + lineH);
 
-        settlementT.setSize(fm.stringWidth(settlementT.getText()), lineH);
+        settlementT.setSize(settlementTW, lineH);
         settlementT.setLocation(margin, curY);
+        settlementBut.setSize(butW, lineH);
+        settlementBut.setLocation(buttonMargin, curY);
 
-        int settlementVW = fm.stringWidth(settlementV.getText());
-        settlementV.setSize(settlementVW, lineH);
-        settlementV.setLocation(dim.width - (settlementVW + margin), curY);
         curY += lineH;
         settlementC.setSize(costW, lineH);
         settlementC.setLocation(margin, curY);
@@ -257,16 +245,13 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX += (ColorSquare.WIDTH + 3);
         settlementSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         settlementSheep.setLocation(curX, curY);
-        settlementBut.setSize(butW, lineH);
-        settlementBut.setLocation(dim.width - (butW + margin), curY);
         curY += (rowSpaceH + lineH);
 
-        cityT.setSize(fm.stringWidth(cityT.getText()), lineH);
+        cityT.setSize(cityTW, lineH);
         cityT.setLocation(margin, curY);
+        cityBut.setSize(butW, lineH);
+        cityBut.setLocation(buttonMargin, curY);
 
-        int cityVW = fm.stringWidth(cityV.getText());
-        cityV.setSize(cityVW, lineH);
-        cityV.setLocation(dim.width - (cityVW + margin), curY);
         curY += lineH;
         cityC.setSize(costW, lineH);
         cityC.setLocation(margin, curY);
@@ -276,16 +261,13 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX += (ColorSquare.WIDTH + 3);
         cityOre.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cityOre.setLocation(curX, curY);
-        cityBut.setSize(butW, lineH);
-        cityBut.setLocation(dim.width - (butW + margin), curY);
         curY += (rowSpaceH + lineH);
 
         cardT.setSize(fm.stringWidth(cardT.getText()), lineH);
         cardT.setLocation(margin, curY);
+        cardBut.setSize(butW, lineH);
+        cardBut.setLocation(buttonMargin, curY);
 
-        int cardVW = fm.stringWidth(cardV.getText());
-        cardV.setSize(cardVW, lineH);
-        cardV.setLocation(dim.width - (cardVW + margin), curY);
         curY += lineH;
         cardC.setSize(costW, lineH);
         cardC.setLocation(margin, curY);
@@ -298,8 +280,6 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX += (ColorSquare.WIDTH + 3);
         cardOre.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cardOre.setLocation(curX, curY);
-        cardBut.setSize(butW, lineH);
-        cardBut.setLocation(dim.width - (butW + margin), curY);
         curX = dim.width - butW - margin;
         int cardCLabW = fm.stringWidth(cardCountLab.getText());
         curX -= (6 + cardCLabW);
