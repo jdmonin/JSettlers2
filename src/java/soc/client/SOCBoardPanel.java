@@ -475,17 +475,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int hilight;
 
     /**
-     * Map grid sectors to hex edges
+     * Map grid sectors (from on-screen coordinates) to hex edges.
+     * The grid has 15 columns and 23 rows.
+     * This maps graphical coordinates to the board coordinate system.
+     * Each row of hexes touches 3 columns and 5 rows here. For instance,
+     * hex 0x35 has its top-center point in row 6, and its bottom-center
+     * point in row 10, of this grid.
+     *<P>
+     * The edge number at grid (x,y) is in edgeMap[x + (y * 15)].
+     * @see #findEdge(int, int)
+     * @see #initEdgeMapAux(int, int, int, int, int)
      */
     private int[] edgeMap;
 
     /**
-     * Map grid sectors to hex nodes
+     * Map grid sectors (from on-screen coordinates) to hex nodes.
+     * @see #findNode(int, int)
      */
     private int[] nodeMap;
 
     /**
-     * Map grid sectors to hexes
+     * Map grid sectors (from on-screen coordinates) to hexes.
+     * @see #findHex(int, int)
      */
     private int[] hexMap;
 
@@ -585,11 +596,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             edgeMap[i] = 0;
         }
 
-        initEdgeMapAux(4, 3, 9, 6, 0x37);
+        initEdgeMapAux(4, 3, 9, 6, 0x37);    // Top row: 0x37 is first land hex of this row
         initEdgeMapAux(3, 6, 10, 9, 0x35);
-        initEdgeMapAux(2, 9, 11, 12, 0x33);
+        initEdgeMapAux(2, 9, 11, 12, 0x33);  // Middle row: 0x33 is leftmost land hex
         initEdgeMapAux(3, 12, 10, 15, 0x53);
-        initEdgeMapAux(4, 15, 9, 18, 0x73);
+        initEdgeMapAux(4, 15, 9, 18, 0x73);  // Bottom row: 0x73 is first land hex of this row
 
         // init node map
         nodeMap = new int[345];
@@ -599,11 +610,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             nodeMap[i] = 0;
         }
 
-        initNodeMapAux(4, 3, 10, 7, 0x37);
+        initNodeMapAux(4, 3, 10, 7, 0x37);   // Top row: 0x37 is first land hex of this row
         initNodeMapAux(3, 6, 11, 10, 0x35);
-        initNodeMapAux(2, 9, 12, 13, 0x33);
-        initNodeMapAux(3, 12, 11, 16, 0x53);
-        initNodeMapAux(4, 15, 10, 19, 0x73);
+        initNodeMapAux(2, 9, 12, 13, 0x33);  // Middle row: 0x33 is leftmost land hex
+        initNodeMapAux(3, 12, 11, 16, 0x53); 
+        initNodeMapAux(4, 15, 10, 19, 0x73); // Bottom row: 0x73 is first land hex of this row
 
         // init hex map
         hexMap = new int[345];
@@ -814,12 +825,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
     }
 
+    /**
+     * Within {@link #edgeMap}, set the edge coordinates for a rectangular section
+     * from (x1,y1) to (x2,y2) covering one horizontal row of hexes.
+     * The grid's row numbers match the board coordinate system, so each row of
+     * hexes covers 5 rows here. For instance, hex 0x35 has its top-center point in row 6,
+     * and its bottom-center point in row 10.
+     * @param x1 Starting x-coordinate within {@link #edgeMap}'s index
+     * @param y1 Starting y-coordinate within {@link #edgeMap}'s index
+     * @param x2 Ending x-coordinate
+     * @param y2 Ending y-coordinate
+     * @param startHex  Starting hex ID (0x-coordinate of first hex in this row), to use for edgeMap[x1, y1].
+     */
     private final void initNodeMapAux(int x1, int y1, int x2, int y2, int startHex)
     {
         int x;
         int y;
         int facing = 0;
-        int count = 0;
+        int count = 0;  // 0 for first row (y1), 1 for second, etc.
         int hexNum;
         int edgeNum = 0;
 
@@ -3545,8 +3568,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // Look first for settlements
             id = findNode(xb,yb);
+            if (id == 0)
+            {
+                StringBuffer sbd = new StringBuffer("grid sector: ");
+                int sector = ((xb + 13) / 27) + (((yb + 7) / 15) * 15);
+                sbd.append(sector);
+                setHoverText(sbd.toString());
+                hoverTextSet = true;
+            }
             if (id > 0)
             {
+                StringBuffer sbd = new StringBuffer("node: 0x");
+                sbd.append(Integer.toHexString(id));
+                setHoverText(sbd.toString());
+                hoverTextSet = true;
+                
                 // Are we already looking at it?
                 if ((hoverMode == PLACE_SETTLEMENT) && (hoverID == id))
                 {

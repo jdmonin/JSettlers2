@@ -77,6 +77,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     SOCPlayerInterface pi;
 
     /**
+     * Minimum required size of this panel, as laid out in {@link #doLayout()}.
+     * @since 1.1.08
+     */
+    public static final int MINHEIGHT =  2 + (4*ColorSquare.HEIGHT) + (3*ColorSquare.HEIGHT / 2);
+
+    /**
      * Client's player data.  Initially null; call setPlayer once seat is chosen.
      *
      * @see #setPlayer()
@@ -185,17 +191,18 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
+     * custom layout for this panel.
+     * If you change the line spacing or total height laid out here,
+     * please update {@link #MINHEIGHT}.
      */
     public void doLayout()
     {
         Dimension dim = getSize();
-        int curY = 0;
+        int curY = 1;
         int curX;
         FontMetrics fm = this.getFontMetrics(this.getFont());
-        int lineH = ColorSquare.HEIGHT;
-        int rowSpaceH = (dim.height - (8 * lineH)) / 3;
-        int halfLineH = lineH / 2;
+        final int lineH = ColorSquare.HEIGHT;
+        final int rowSpaceH = lineH / 2;
         int costW = fm.stringWidth("Cost:_");    //Bug in stringWidth does not give correct size for ' ' so use '_'
         int butW = 50;
         int margin = 2;
@@ -214,15 +221,21 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         roadBut.setSize(butW, lineH);
         roadBut.setLocation(buttonMargin, curY);
 
-        curY += lineH;
+        curX = buttonMargin + butW + margin;
         roadC.setSize(costW, lineH);
-        roadC.setLocation(margin, curY);
-        curX = 1 + costW + 3;
+        roadC.setLocation(curX, curY);
+        curX += 1 + costW + 3;
         roadWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         roadWood.setLocation(curX, curY);
         curX += (ColorSquare.WIDTH + 3);
         roadClay.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         roadClay.setLocation(curX, curY);
+
+        // Game Options button is top-right of panel
+        curX = dim.width - (2 * butW) - margin;
+        optsBut.setSize(butW * 2, lineH);
+        optsBut.setLocation(curX, curY);
+
         curY += (rowSpaceH + lineH);
 
         settlementT.setSize(settlementTW, lineH);
@@ -230,10 +243,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         settlementBut.setSize(butW, lineH);
         settlementBut.setLocation(buttonMargin, curY);
 
-        curY += lineH;
+        curX = buttonMargin + butW + margin;
         settlementC.setSize(costW, lineH);
-        settlementC.setLocation(margin, curY);
-        curX = 1 + costW + 3;
+        settlementC.setLocation(curX, curY);
+        curX += 1 + costW + 3;
         settlementWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         settlementWood.setLocation(curX, curY);
         curX += (ColorSquare.WIDTH + 3);
@@ -252,10 +265,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         cityBut.setSize(butW, lineH);
         cityBut.setLocation(buttonMargin, curY);
 
-        curY += lineH;
+        curX = buttonMargin + butW + margin;
         cityC.setSize(costW, lineH);
-        cityC.setLocation(margin, curY);
-        curX = 1 + costW + 3;
+        cityC.setLocation(curX, curY);
+        curX += 1 + costW + 3;
         cityWheat.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cityWheat.setLocation(curX, curY);
         curX += (ColorSquare.WIDTH + 3);
@@ -268,10 +281,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         cardBut.setSize(butW, lineH);
         cardBut.setLocation(buttonMargin, curY);
 
-        curY += lineH;
+        curX = buttonMargin + butW + margin;
         cardC.setSize(costW, lineH);
-        cardC.setLocation(margin, curY);
-        curX = 1 + costW + 3;
+        cardC.setLocation(curX, curY);
+        curX += 1 + costW + 3;
         cardWheat.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cardWheat.setLocation(curX, curY);
         curX += (ColorSquare.WIDTH + 3);
@@ -280,19 +293,15 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX += (ColorSquare.WIDTH + 3);
         cardOre.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cardOre.setLocation(curX, curY);
-        curX = dim.width - butW - margin;
-        int cardCLabW = fm.stringWidth(cardCountLab.getText());
-        curX -= (6 + cardCLabW);
-        cardCountLab.setLocation(curX, curY);
-        cardCountLab.setSize(cardCLabW + 2, lineH);
-        curX -= (ColorSquare.WIDTH + 3);
+
+        curX += 2 * (ColorSquare.WIDTH + 3);
         // cardCount.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         cardCount.setLocation(curX, curY);
-
-        // Game Options button is in bottom-center of panel
-        curX = (dim.width / 2) - butW;
-        optsBut.setSize(butW * 2, lineH);
-        optsBut.setLocation(curX, curY);
+        final int cardCLabW = fm.stringWidth(cardCountLab.getText());
+        curX += (ColorSquare.WIDTH + 3);
+        cardCountLab.setLocation(curX, curY);
+        cardCountLab.setSize(cardCLabW + 2, lineH);
+        
     }
 
     /**

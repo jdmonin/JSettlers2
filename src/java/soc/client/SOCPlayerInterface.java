@@ -342,7 +342,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
          * more initialization stuff
          */
         setLocation(50, 50);
-        setSize(840, 730);
+        setSize(830, 650);
         validate();
         
         if (didHideTemp)
@@ -388,7 +388,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
          * initialize the building interface and add it to the main interface
          */
         buildingPanel = new SOCBuildingPanel(this);
-        buildingPanel.setSize(200, 160);
+        buildingPanel.setSize(200, SOCBuildingPanel.MINHEIGHT);
         add(buildingPanel);
 
         /**
@@ -1559,17 +1559,17 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         }
         int bw = (dim.width - 16 - (2*SOCHandPanel.WIDTH_MIN));  // As wide as possible
         int bh = (int) ((bw * (long) bMinH) / bMinW);
-        int kh = buildingPanel.getHeight();
+        final int buildph = buildingPanel.getHeight();
         int tfh = textInput.getHeight();
-        if (bh > (dim.height - kh - 16 - (int)(5.5f * tfh)))
+        if (bh > (dim.height - buildph - 16 - (int)(5.5f * tfh)))
         {
             // Window is wide: board would become taller than fits in window.
             // Re-calc board max height, then board width.
-            bh = dim.height - kh - 16 - (int)(5.5f * tfh);  // As tall as possible
+            bh = dim.height - buildph - 16 - (int)(5.5f * tfh);  // As tall as possible
             bw = (int) ((bh * (long) bMinW) / bMinH);
         }
         int hw = (dim.width - bw - 16) / 2;
-        int tah = dim.height - bh - kh - tfh - 16;
+        int tah = dim.height - bh - buildph - tfh - 16;
 
         boolean canScaleBoard = (bw >= (1.15f * bMinW));
         if (canScaleBoard)
@@ -1588,7 +1588,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             bw = bMinW;
             bh = bMinH;
             hw = (dim.width - bw - 16) / 2;
-            tah = dim.height - bh - kh - tfh - 16;
+            tah = dim.height - bh - buildph - tfh - 16;
             try
             {
                 boardPanel.setBounds(i.left + hw + 8, i.top + tfh + tah + 8, bw, bh);
@@ -1598,14 +1598,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 bw = boardPanel.getWidth();
                 bh = boardPanel.getHeight();
                 hw = (dim.width - bw - 16) / 2;
-                tah = dim.height - bh - kh - tfh - 16;
+                tah = dim.height - bh - buildph - tfh - 16;
             }
         }
         boardIsScaled = canScaleBoard;  // set field, now that we know if it works
         int hh = (dim.height - 12) / 2;
         int kw = bw;
 
-        buildingPanel.setBounds(i.left + hw + 8, i.top + tah + tfh + bh + 12, kw, kh);
+        buildingPanel.setBounds(i.left + hw + 8, i.top + tah + tfh + bh + 12, kw, buildph);
 
         hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);  // hp.setBounds also sets its blankStandIn's bounds
 
