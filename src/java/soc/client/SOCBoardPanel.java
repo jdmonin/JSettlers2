@@ -839,14 +839,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void initNodeMapAux(int x1, int y1, int x2, int y2, int startHex)
     {
-        int x;
-        int y;
         int facing = 0;
         int count = 0;  // 0 for first row (y1), 1 for second, etc.
-        int hexNum;
+        int hexNum;  // start with hexNum, incr by 0x22 to move across a horizontal row of board coords
         int edgeNum = 0;
 
-        for (y = y1; y <= y2; y++)
+        for (int y = y1; y <= y2; y++)
         {
             hexNum = startHex;
 
@@ -888,7 +886,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 return;
             }
 
-            for (x = x1; x <= x2; x++)
+            for (int x = x1; x <= x2; x++)
             {
                 nodeMap[x + (y * 15)] = edgeNum;
 
