@@ -229,15 +229,30 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
-     * The board is rotated 90 degrees clockwise (game opt DEBUGROTABOARD).
-     * Use {@link #scaleToActualX(int)}, {@link #scaleFromActualX(int)},
-     * etc to convert between internal and actual screen pixel coordinates.
-     * Using this for rotation:
-     *     rot90cw: P'=(h-y, x).
-     *    rot90ccw: P'=(y, w-x).
+     * The board is visually rotated 90 degrees clockwise (game opt DEBUGROTABOARD)
+     * compared to the internal coordinates.
+     *<P>
+     * Use this for rotation:
+     *<UL>
+     *<LI> From internal to screen (cw):  P'=({@link #PANELY}-y, x)
+     *<LI> From screen to internal (ccw): P'=(y, {@link #PANELX}-x)
+     *</UL>
+     * When the board is also {@link #isScaled scaled}, go in this order:
+     * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
+     *
+     * @see #isScaledOrRotated
      * @since 1.1.08
      */
     protected boolean isRotated;
+
+    /**
+     * Convenience flag - The board is {@link #isRotated rotated} and/or {@link #isScaled scaled up}.
+     * Check both of those flags when transforming between screen coordinates
+     * and internal coordinates.  Go in this order:
+     * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
+     * @since 1.1.08
+     */
+    protected boolean isScaledOrRotated;
 
     /**
      * actual size on-screen, not internal-pixels size
@@ -250,6 +265,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link #PANELX} x {@link #PANELY} pixels.
      * Use {@link #scaleToActualX(int)}, {@link #scaleFromActualX(int)},
      * etc to convert between internal and actual screen pixel coordinates.
+     *<P>
+     * When the board is also {@link #isRotated rotated}, go in this order:
+     * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
+     *
+     * @see #isScaledOrRotated
      */
     protected boolean isScaled;
 
@@ -534,7 +554,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         scaledPanelX = PANELX;
         scaledPanelY = PANELY;
         scaledMissedImage = false;
-        isRotated = game.isGameOptionSet("DEBUGROTABOARD");
+        isRotated = isScaledOrRotated = game.isGameOptionSet("DEBUGROTABOARD");
 
         int i;
 
@@ -1012,6 +1032,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Set the board fields to a new size, rescale graphics if needed.
      * Does not call repaint.  Does not call setSize.
+     * Will update {@link #isScaledOrRotated}, {@link #scaledPanelX}, and other fields.
      *
      * @param newW New width in pixels, no less than {@link #PANELX}
      * @param newH New height in pixels, no less than {@link #PANELY}
@@ -1034,6 +1055,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         scaledPanelY = newH;
         isScaled = ((scaledPanelX != PANELX) || (scaledPanelY != PANELY));
         scaledAt = System.currentTimeMillis();
+        isScaledOrRotated = (isScaled || isRotated);
 
         /**
          * Off-screen buffer is now the wrong size.
@@ -3335,16 +3357,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             mouseX = x;
             mouseY = y;
-            int xb, yb;
-            if (! isScaled)
+            int xb = x, yb = y;  // internal board coordinates
+            if (isScaledOrRotated)
             {
-                xb = x;
-                yb = y;
-            }
-            else
-            {
-                xb = scaleFromActualX(x);
-                yb = scaleFromActualY(y);
+                if (isScaled)
+                {
+                    xb = scaleFromActualX(xb);
+                    yb = scaleFromActualY(yb);
+                }
+                if (isRotated)
+                {
+                    // TODO NEXT
+                }
             }
 
             // Variables set in previous call to handleHover:
