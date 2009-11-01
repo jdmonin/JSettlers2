@@ -78,6 +78,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * also minimum acceptable size in screen pixels.
      * For actual current size in screen pixels, see
      * {@link #scaledPanelX} {@link #scaledPanelY};
+     * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
      */
     public static final int PANELX = 379, PANELY = 340;
 
@@ -1025,8 +1026,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @param x New location's x-coordinate
      * @param y new location's y-coordinate
-     * @param w New width in pixels, no less than {@link #PANELX}
-     * @param h New height in pixels, no less than {@link #PANELY}
+     * @param w New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY}})
+     * @param h New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
      * @throws IllegalArgumentException if w or h is too small but not 0.
      *   During initial layout, the layoutmanager may make calls to setBounds(0,0,0,0);
      *   such a call is passed to super without scaling graphics.
@@ -1046,8 +1047,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Does not call repaint.  Does not call setSize.
      * Will update {@link #isScaledOrRotated}, {@link #scaledPanelX}, and other fields.
      *
-     * @param newW New width in pixels, no less than {@link #PANELX}
-     * @param newH New height in pixels, no less than {@link #PANELY}
+     * @param newW New width in pixels, no less than {@link #PANELX} (or if rotated, {@link #PANELY}})
+     * @param newH New height in pixels, no less than {@link #PANELY} (or if rotated, {@link #PANELX})
      * @throws IllegalArgumentException if newW or newH is too small but not 0.
      *   During initial layout, the layoutmanager may cause calls to rescaleBoard(0,0);
      *   such a call is ignored, no rescaling of graphics is done.
@@ -1057,7 +1058,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if ((newW == 0) || (newH == 0))
             return;
-        if ((newW < PANELX) || (newH < PANELY))
+        final int bMinW, bMinH;
+        if (isRotated)
+        {
+            bMinW = PANELY;  bMinH = PANELX;
+        } else {
+            bMinW = PANELX;  bMinH = PANELY;
+        }
+        if ((newW < bMinW) || (newH < bMinH))
             throw new IllegalArgumentException("Below minimum size");
     
         /**
@@ -1065,7 +1073,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         scaledPanelX = newW;
         scaledPanelY = newH;
-        isScaled = ((scaledPanelX != PANELX) || (scaledPanelY != PANELY));
+        isScaled = ((scaledPanelX != bMinW) || (scaledPanelY != bMinH));
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
 
@@ -2160,16 +2168,30 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Is the board is currently scaled larger than
+     * Is the board currently scaled larger than
      * {@link #PANELX} x {@link #PANELY} pixels?
      * If so, use {@link #scaleToActualX(int)}, {@link #scaleFromActualY(int)},
      * etc to convert between internal and actual screen pixel coordinates.
      *
      * @return Is the board scaled larger than default size?
+     * @see #isRotated()
      */
     public boolean isScaled()
     {
         return isScaled;
+    }
+
+    /**
+     * Is the board currently rotated 90 degrees clockwise?
+     * If so, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
+     *
+     * @return Is the board rotated?
+     * @see #isScaled()
+     * @since 1.1.08
+     */
+    public boolean isRotated()
+    {
+        return isRotated;
     }
 
     /**

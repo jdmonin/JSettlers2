@@ -1550,21 +1550,28 @@ public class SOCPlayerInterface extends Frame implements ActionListener
          * without violating minimum handpanel width, scale it larger.
          * Otherwise, use minimum board width (widen handpanels instead).
          */
-        int bw = (dim.width - 16 - (2*SOCHandPanel.WIDTH_MIN));
-        int bh = (int) ((bw * (long) SOCBoardPanel.PANELY) / SOCBoardPanel.PANELX);
+        final int bMinW, bMinH;
+        if (boardPanel.isRotated())
+        {
+            bMinW = SOCBoardPanel.PANELY;  bMinH = SOCBoardPanel.PANELX;
+        } else {
+            bMinW = SOCBoardPanel.PANELX;  bMinH = SOCBoardPanel.PANELY;
+        }
+        int bw = (dim.width - 16 - (2*SOCHandPanel.WIDTH_MIN));  // As wide as possible
+        int bh = (int) ((bw * (long) bMinH) / bMinW);
         int kh = buildingPanel.getHeight();
         int tfh = textInput.getHeight();
         if (bh > (dim.height - kh - 16 - (int)(5.5f * tfh)))
         {
             // Window is wide: board would become taller than fits in window.
             // Re-calc board max height, then board width.
-            bh = dim.height - kh - 16 - (int)(5.5f * tfh);
-            bw = (int) ((bh * (long) SOCBoardPanel.PANELX) / SOCBoardPanel.PANELY);
+            bh = dim.height - kh - 16 - (int)(5.5f * tfh);  // As tall as possible
+            bw = (int) ((bh * (long) bMinW) / bMinH);
         }
         int hw = (dim.width - bw - 16) / 2;
         int tah = dim.height - bh - kh - tfh - 16;
 
-        boolean canScaleBoard = (bw >= (1.15f * SOCBoardPanel.PANELX));
+        boolean canScaleBoard = (bw >= (1.15f * bMinW));
         if (canScaleBoard)
         {
             try
@@ -1578,8 +1585,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         }
         if (! canScaleBoard)
         {
-            bw = SOCBoardPanel.PANELX;
-            bh = SOCBoardPanel.PANELY;
+            bw = bMinW;
+            bh = bMinH;
             hw = (dim.width - bw - 16) / 2;
             tah = dim.height - bh - kh - tfh - 16;
             try
