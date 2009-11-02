@@ -858,6 +858,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int hexNum;  // starts with startHex, incr by 0x22 to move across a horizontal row of board coords
         int nodeNum = 0;  // node number
 
+        /**
+         * Brief Illustration of row, rowState, nodeNum:
+         *   As seen for startHex = 0x37.  All numbers below are in hex.
+         *         x-- 4     5     6     7     8
+         * row   y             nodeNums:
+         *  |    |
+         *  0    3     0     38    0     5A    0
+         *                /      \    /      \    /
+         *  1    4     27          49          6B
+         *             |           |           |
+         *  2    5     0           0           0
+         *             |           |           |
+         *  3    6     36          58          7A
+         *           /    \      /    \      /    \
+         *  4    7     0     47    0     69    0
+         */
+
         for (int y = y1; y <= y2; y++, row++)
         {
             hexNum = startHex;
