@@ -853,8 +853,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void initNodeMapAux(int x1, int y1, int x2, int y2, int startHex)
     {
-        int facing = 0;  // current state; related to row# and logic for node coords from hex coords
-        int row = 0;  // 0 for first row (y1), 1 for second, etc.
+        int rowState = 0;  // current state; related to row# and logic for node coords from hex coords
+        int row = 0;  // 0 for first row (y==y1), 1 for second, etc.
         int hexNum;  // starts with startHex, incr by 0x22 to move across a horizontal row of board coords
         int nodeNum = 0;  // node number
 
@@ -865,31 +865,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             switch (row)
             {
             case 0:
-                facing = -1;
+                rowState = -1;
                 nodeNum = 0;
 
                 break;
 
             case 1:
-                facing = 6;
+                rowState = 6;
                 nodeNum = hexNum - 0x10;
 
                 break;
 
             case 2:
-                facing = -7;
+                rowState = -7;
                 nodeNum = 0;
 
                 break;
 
             case 3:
-                facing = 5;
+                rowState = 5;
                 nodeNum = hexNum - 0x01;
 
                 break;
 
             case 4:
-                facing = -4;
+                rowState = -4;
                 nodeNum = 0;
 
                 break;
@@ -904,78 +904,78 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 nodeMap[x + (y * 15)] = nodeNum;
 
-                switch (facing)
+                switch (rowState)
                 {
-                // Used in top row (count==0) //
+                // Used in top row (row==0) //
                 case 1:
-                    facing = -1;
+                    rowState = -1;
                     hexNum += 0x22;
                     nodeNum = 0;
 
                     break;
 
                 case -1:
-                    facing = 1;
+                    rowState = 1;
                     nodeNum = hexNum + 0x01;
 
                     break;
 
-                // Used in row 2 (count==1) //
+                // Used in row 1 (row==1) //
                 case 2:
-                    facing = -2;
+                    rowState = -2;
                     hexNum += 0x22;
                     nodeNum = 0;
 
                     break;
 
                 case -2:
-                    facing = 2;
+                    rowState = 2;
                     nodeNum = hexNum + 0x12;
 
                     break;
 
                 case 6:
-                    facing = -2;
+                    rowState = -2;
                     nodeNum = 0;
 
                     break;
 
-                // Used in row 3 (count==2) //
+                // Used in middle row (row==2) //
                 case -7:
                     nodeNum = 0;
 
                     break;
 
-                // Used in row 4 (count==3) //
+                // Used in row 3 //
                 case 5:
-                    facing = -3;
+                    rowState = -3;
                     nodeNum = 0;
 
                     break;
 
                 case 3:
-                    facing = -3;
+                    rowState = -3;
                     hexNum += 0x22;
                     nodeNum = 0;
 
                     break;
 
                 case -3:
-                    facing = 3;
+                    rowState = 3;
                     nodeNum = hexNum + 0x21;
 
                     break;
 
-                // Used in bottom row (count==4) //
+                // Used in bottom row (row==4) //
                 case 4:
-                    facing = -4;
+                    rowState = -4;
                     hexNum += 0x22;
                     nodeNum = 0;
 
                     break;
 
                 case -4:
-                    facing = 4;
+                    rowState = 4;
                     nodeNum = hexNum + 0x10;
 
                     break;
