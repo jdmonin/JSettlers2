@@ -90,9 +90,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int halfdeltaX = 27;
 
     /**
-     * hex coordinates for drawing
+     * hex coordinates for drawing the standard board.
+     * These were called hexX, hexY before 1.1.08.
+     * @see #hexX_6pl
      */
-    private static final int[] hexX = 
+    private static final int[] hexX_st = 
     {
         deltaX + halfdeltaX, 2 * deltaX + halfdeltaX, 3 * deltaX + halfdeltaX, 4 * deltaX + halfdeltaX,  // row 1 4 hexes
         deltaX, 2 * deltaX, 3 * deltaX, 4 * deltaX, 5 * deltaX,                                          // row 2 5 hexes
@@ -102,7 +104,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         deltaX, 2 * deltaX, 3 * deltaX, 4 * deltaX, 5 * deltaX,                                          // row 6 5 hexes
         deltaX + halfdeltaX, 2 * deltaX + halfdeltaX, 3 * deltaX + halfdeltaX, 4 * deltaX + halfdeltaX   // row 7 4 hexes
     };
-    private static final int[] hexY = 
+    private static final int[] hexY_st = 
     {
         0, 0, 0, 0, 
         deltaY, deltaY, deltaY, deltaY, deltaY, 
@@ -112,6 +114,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         5 * deltaY, 5 * deltaY, 5 * deltaY, 5 * deltaY, 5 * deltaY,
         6 * deltaY, 6 * deltaY, 6 * deltaY, 6 * deltaY
     };
+
+    /**
+     * hex coordinates for drawing the 6-player board, or null.
+     * Initialized by constructor of the first 6-player boardpanel.
+     * To make room for the ring of ports/water which isn't in the
+     * coordinate system, the offset from {@link #hexX_st} is {@link #halfdeltaX},
+     * and the offset from {@link #hexY_st} is {@link #deltaY}.
+     * @since 1.1.08
+     */
+    private static int[] hexX_6pl, hexY_6pl;
 
     /**
      * coordinates for drawing the playing pieces
@@ -237,9 +249,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
-     * The board is configured for 5- or 6-player mode (and is {@link #isRotated}) (game opt DEBUG56PLBOARD).
+     * The board is configured for 6-player mode (and is {@link #isRotated}) (game opt DEBUG56PLBOARD).
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
+     * The 6-player mode uses {@link #hexX_6pl} instead of {@link #hexX_st} for coordinates.
      * @see #inactiveHexNums
      * @since 1.1.08
      */
@@ -324,6 +337,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 1.1.08
      */
     private boolean[] inactiveHexNums;
+
+    /**
+     * hex coordinates for drawing pieces on the board.
+     * Points to {@link #hexX_st} or {@link #hexX_6pl},
+     * and {@link #hexY_st} or {@link #hexY_6pl},
+     * depending on {@link #is6player} flag.
+     * @since 1.1.08
+     */
+    private int[] hexX, hexY;
 
     /**
      * Hex pix - shared unscaled original-resolution from GIF files.
@@ -498,6 +520,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * This maps graphical coordinates to the board coordinate system.
      *<P>
      * The edge number at grid (x,y) is in edgeMap[x + (y * 15)].
+     *<P>
+     * In {@link #is6player 6-player mode}, there is an extra ring of water/port hexes
+     * on the outside, which isn't within the coordinate system.  So this grid is
+     * shifted +1 column, +3 rows.
+     *
      * @see #findEdge(int, int)
      * @see #initEdgeMapAux(int, int, int, int, int)
      */
@@ -512,6 +539,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * point in row y=10, of this grid.  Its left edge is column x=3, and right is column x=5.
      *<P>
      * The node number at grid (x,y) is nodeMap[x + (y * 15)].
+     *<P>
+     * In {@link #is6player 6-player mode}, there is an extra ring of water/port hexes
+     * on the outside, which isn't within the coordinate system.  So this grid is
+     * shifted +1 column, +3 rows.
+     *
      * @see #findNode(int, int)
      * @see #initNodeMapAux(int, int, int, int, int)
      */
@@ -685,10 +717,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // Hex numbers (in range 0-36) to skip: (coords 7D-DD-D7).
             inactiveHexNums = new boolean[37];  // TODO largerboard: assumes 37 hexes
             int[] inacIdx = {3, 8, 14, 21, 27, 32, 36};
-            for (int ii = 0; ii < inacIdx.length; ++ii)
-                inactiveHexNums[inacIdx[ii]] = true;
+            for (i = 0; i < inacIdx.length; ++i)
+                inactiveHexNums[inacIdx[i]] = true;
+            if (hexX_6pl == null)
+            {
+                final int L = hexX_st.length;
+                hexX_6pl = new int[L];
+                hexY_6pl = new int[L];
+                for (i = 0; i < L; ++i)
+                    hexX_6pl[i] = hexX_st[i] + halfdeltaX;
+                for (i = 0; i < L; ++i)
+                    hexY_6pl[i] = hexY_st[i] + deltaY;
+            }
+            hexX = hexX_6pl;
+            hexY = hexY_6pl;
         } else {
             inactiveHexNums = null;
+            hexX = hexX_st;
+            hexY = hexY_st;
         }
 
         // set mode of interaction
@@ -1460,8 +1506,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         boolean missedDraw = false;
         Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original or rotated?
 
-        int x = hexX[hexNum];
-        int y = hexY[hexNum];
+        int x = hexX[hexNum],
+            y = hexY[hexNum];
         if (isScaledOrRotated)
         {
             if (isRotated)
@@ -3107,7 +3153,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // find which grid section the pointer is in 
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = (x / 18) + ((y / 10) * 15);
-        int sector = (x / 27) + ((y / 15) * 15);
+        int secX = x / 27;
+        int secY = y / 15;
+        if (is6player)
+        {
+            --secX;  secY -= 3;
+        }
+        int sector = secX + (secY * 15);
 
         // System.out.println("SECTOR = "+sector+" | EDGE = "+edgeMap[sector]);
         if ((sector >= 0) && (sector < edgeMap.length))
@@ -3129,7 +3181,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // find which grid section the pointer is in 
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = ((x + 9) / 18) + (((y + 5) / 10) * 15);
-        int sector = ((x + 13) / 27) + (((y + 7) / 15) * 15);
+        int secX = ((x + 13) / 27);
+        int secY = ((y + 7) / 15);
+        if (is6player)
+        {
+            --secX;  secY -= 3;
+        }
+        int sector = secX + (secY * 15);
 
         // System.out.println("SECTOR = "+sector+" | NODE = "+nodeMap[sector]);
         if ((sector >= 0) && (sector < nodeMap.length))
@@ -3151,7 +3209,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // find which grid section the pointer is in 
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = (x / 18) + ((y / 10) * 15);
-        int sector = (x / 27) + ((y / 15) * 15);
+        int secX = x / 27;
+        int secY = y / 15;
+        if (is6player)
+        {
+            --secX;  secY -= 3;
+        }
+        int sector = secX + (secY * 15);
 
         // System.out.println("SECTOR = "+sector+" | HEX = "+hexMap[sector]);
         if ((sector >= 0) && (sector < hexMap.length))
