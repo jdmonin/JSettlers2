@@ -240,6 +240,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * The board is configured for 5- or 6-player mode (and is {@link #isRotated}) (game opt DEBUG56PLBOARD).
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
+     * @see #inactiveHexNums
      * @since 1.1.08
      */
     protected boolean is6player;
@@ -314,6 +315,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * translate hex ID to number to get coords
      */
     private int[] hexIDtoNum;
+
+    /**
+     * Hex numbers which aren't drawn, or null.
+     * For {@link #is6player 6-player board},
+     * the rightmost line of hexes (7D-DD-D7) are skipped.
+     * Indicate this to {@link #drawBoard(Graphics)}.
+     * @since 1.1.08
+     */
+    private boolean[] inactiveHexNums;
 
     /**
      * Hex pix - shared unscaled original-resolution from GIF files.
@@ -669,6 +679,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         initHexIDtoNumAux(0x31, 0xDB, 22);
         initHexIDtoNumAux(0x51, 0xD9, 28);
         initHexIDtoNumAux(0x71, 0xD7, 33);
+
+        if (is6player)
+        {
+            // Hex numbers (in range 0-36) to skip: (coords 7D-DD-D7).
+            inactiveHexNums = new boolean[37];  // TODO largerboard: assumes 37 hexes
+            int[] inacIdx = {3, 8, 14, 21, 27, 32, 36};
+            for (int ii = 0; ii < inacIdx.length; ++ii)
+                inactiveHexNums[inacIdx[ii]] = true;
+        } else {
+            inactiveHexNums = null;
+        }
 
         // set mode of interaction
         mode = NONE;
@@ -1946,10 +1967,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.fillRect(0, 0, scaledPanelX, scaledPanelY);
 
         scaledMissedImage = false;    // drawHex will set this flag if missed
-        for (int i = 0; i < 37; i++)  // TODO 5,6-player largerboard: assumes 37 hexes
+
+        // Draw hexes:
+        // Normal board draws all 37 hexes.
+        // The 6-player board skips the rightmost row (hexes 7D-DD-D7).
+        for (int i = 0; i < 37; i++)  // TODO largerboard: assumes 37 hexes
         {
-            drawHex(g, i);
+            if ((inactiveHexNums == null) || ! inactiveHexNums[i])
+                drawHex(g, i);
         }
+
         if (scaledMissedImage)
         {
             // With recent board resize, one or more rescaled images still hasn't
