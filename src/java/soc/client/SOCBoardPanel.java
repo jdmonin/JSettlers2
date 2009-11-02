@@ -856,23 +856,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int rowState = 0;  // current state; related to row# and logic for node coords from hex coords
         int row = 0;  // 0 for first row (y==y1), 1 for second, etc.
         int hexNum;  // starts with startHex, incr by 0x22 to move across a horizontal row of board coords
+                     // during rowStates 01, 12, 32, 41.
         int nodeNum = 0;  // node number
 
         /**
          * Brief Illustration of row, rowState, nodeNum:
          *   As seen for startHex = 0x37.  All numbers below are in hex.
-         *         x-- 4     5     6     7     8
-         * row   y             nodeNums:
+         *         x-- 4     5     6     7     8        4     5     6     7     8
+         * row   y
+         *  |    |     nodeNums: (0 where blank)       rowState at top of x-loop:
          *  |    |
-         *  0    3     0     38    0     5A    0
-         *                /      \    /      \    /
-         *  1    4     27          49          6B
-         *             |           |           |
-         *  2    5     0           0           0
-         *             |           |           |
-         *  3    6     36          58          7A
-         *           /    \      /    \      /    \
-         *  4    7     0     47    0     69    0
+         *  0    3           38          5A            00    01    00    01    00
+         *                /      \    /      \    /       /      \    /      \    /
+         *  1    4     27          49          6B      10    11    12    11    12
+         *             |           |           |       |           |           |
+         *  2    5     0           0           0       20    20    20    20    20
+         *             |           |           |       |           |           |
+         *  3    6     36          58          7A      30    31    32    31    32
+         *           /    \      /    \      /    \       \      /    \      /    \
+         *  4    7     0     47    0     69    0       40    41    40    41    40
          */
 
         for (int y = y1; y <= y2; y++, row++)
@@ -882,31 +884,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             switch (row)
             {
             case 0:
-                rowState = -1;
+                rowState = 00;
                 nodeNum = 0;
 
                 break;
 
             case 1:
-                rowState = 6;
+                rowState = 10;
                 nodeNum = hexNum - 0x10;
 
                 break;
 
             case 2:
-                rowState = -7;
+                rowState = 20;
                 nodeNum = 0;
 
                 break;
 
             case 3:
-                rowState = 5;
+                rowState = 30;
                 nodeNum = hexNum - 0x01;
 
                 break;
 
             case 4:
-                rowState = -4;
+                rowState = 40;
                 nodeNum = 0;
 
                 break;
@@ -924,75 +926,75 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 switch (rowState)
                 {
                 // Used in top row (row==0) //
-                case 1:
-                    rowState = -1;
+                case 01:
+                    rowState = 00;
                     hexNum += 0x22;
                     nodeNum = 0;
 
                     break;
 
-                case -1:
-                    rowState = 1;
+                case 00:
+                    rowState = 01;
                     nodeNum = hexNum + 0x01;
 
                     break;
 
                 // Used in row 1 (row==1) //
-                case 2:
-                    rowState = -2;
+                case 12:
+                    rowState = 11;
                     hexNum += 0x22;
                     nodeNum = 0;
 
                     break;
 
-                case -2:
-                    rowState = 2;
+                case 11:
+                    rowState = 12;
                     nodeNum = hexNum + 0x12;
 
                     break;
 
-                case 6:
-                    rowState = -2;
+                case 10:
+                    rowState = 11;
                     nodeNum = 0;
 
                     break;
 
                 // Used in middle row (row==2) //
-                case -7:
+                case 20:
                     nodeNum = 0;
 
                     break;
 
                 // Used in row 3 //
-                case 5:
-                    rowState = -3;
+                case 30:
+                    rowState = 31;
                     nodeNum = 0;
 
                     break;
 
-                case 3:
-                    rowState = -3;
+                case 32:
+                    rowState = 31;
                     hexNum += 0x22;
                     nodeNum = 0;
 
                     break;
 
-                case -3:
-                    rowState = 3;
+                case 31:
+                    rowState = 32;
                     nodeNum = hexNum + 0x21;
 
                     break;
 
                 // Used in bottom row (row==4) //
-                case 4:
-                    rowState = -4;
+                case 41:
+                    rowState = 40;
                     hexNum += 0x22;
                     nodeNum = 0;
 
                     break;
 
-                case -4:
-                    rowState = 4;
+                case 40:
+                    rowState = 41;
                     nodeNum = hexNum + 0x10;
 
                     break;
