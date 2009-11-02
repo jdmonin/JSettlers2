@@ -2,6 +2,11 @@
 
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 
+    > 1.1.08 (build 200911xx)
+- Smaller, cleaner building panel
+- Rotated-board mode, to make it easier to fit a larger board
+- BoardPanel javadocs explain nodeMap and initNodeMapAux
+
     > 1.1.07 (build 20091031)
 - Per-game options framework, including these options:
 	- PL  Maximum # players (2-4)
