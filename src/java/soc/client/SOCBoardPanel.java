@@ -237,6 +237,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
+     * The board is configured for 5- or 6-player mode (and is {@link #isRotated}) (game opt DEBUG56PLBOARD).
+     * The entire coordinate system is land, except the rightmost hexes are unused
+     * (7D-DD-D7 row).
+     * @since 1.1.08
+     */
+    protected boolean is6player;
+
+    /**
      * The board is visually rotated 90 degrees clockwise (game opt DEBUGROTABOARD)
      * compared to the internal coordinates.
      *<P>
@@ -583,7 +591,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         scaledPanelX = PANELX;
         scaledPanelY = PANELY;
         scaledMissedImage = false;
-        isRotated = isScaledOrRotated = game.isGameOptionSet("DEBUGROTABOARD");
+        is6player = game.isGameOptionSet("DEBUG56PLBOARD");
+        isRotated = isScaledOrRotated = is6player || game.isGameOptionSet("DEBUGROTABOARD");
 
         int i;
 
@@ -615,11 +624,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             nodeMap[i] = 0;
         }
 
-        initNodeMapAux(4, 3, 10, 7, 0x37);   // Top row: 0x37 is first land hex of this row
-        initNodeMapAux(3, 6, 11, 10, 0x35);
-        initNodeMapAux(2, 9, 12, 13, 0x33);  // Middle row: 0x33 is leftmost land hex
-        initNodeMapAux(3, 12, 11, 16, 0x53); 
-        initNodeMapAux(4, 15, 10, 19, 0x73); // Bottom row: 0x73 is first land hex of this row
+        if (is6player)
+        {
+            initNodeMapAux(3,  0,  9,  4, 0x17);  // Very top row: 3 across
+            initNodeMapAux(2,  3, 10,  7, 0x15);
+            initNodeMapAux(1,  6, 11, 10, 0x13);
+            initNodeMapAux(0,  9, 12, 13, 0x11);  // Middle row: 6 across, 0x11 is leftmost land hex
+            initNodeMapAux(1, 12, 11, 16, 0x31); 
+            initNodeMapAux(2, 15, 10, 19, 0x51);
+            initNodeMapAux(3, 18,  9, 22, 0x71);  // Very bottom row: 3 across
+        } else {
+            initNodeMapAux(4,  3, 10,  7, 0x37);  // Top row: 0x37 is first land hex of this row
+            initNodeMapAux(3,  6, 11, 10, 0x35);
+            initNodeMapAux(2,  9, 12, 13, 0x33);  // Middle row: 0x33 is leftmost land hex
+            initNodeMapAux(3, 12, 11, 16, 0x53); 
+            initNodeMapAux(4, 15, 10, 19, 0x73);  // Bottom row: 0x73 is first land hex of this row
+        }
 
         // init hex map
         hexMap = new int[345];
