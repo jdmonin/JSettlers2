@@ -861,12 +861,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         /**
          * Brief Illustration of row, rowState, nodeNum:
-         *   As seen for startHex = 0x37.  All numbers below are in hex.
+         *   As seen for startHex = 0x37.  Node numbers below are in hex.
          *         x-- 4     5     6     7     8        4     5     6     7     8
          * row   y
          *  |    |     nodeNums: (0 where blank)       rowState at top of x-loop:
          *  |    |
-         *  0    3           38          5A            00    01    00    01    00
+         *  0    3     0     38          5A            00    01    00    01    00
          *                /      \    /      \    /       /      \    /      \    /
          *  1    4     27          49          6B      10    11    12    11    12
          *             |           |           |       |           |           |
@@ -874,7 +874,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *             |           |           |       |           |           |
          *  3    6     36          58          7A      30    31    32    31    32
          *           /    \      /    \      /    \       \      /    \      /    \
-         *  4    7     0     47    0     69    0       40    41    40    41    40
+         *  4    7     0     47          69            40    41    40    41    40
          */
 
         for (int y = y1; y <= y2; y++, row++)
@@ -3602,21 +3602,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // Look first for settlements
             id = findNode(xb,yb);
-            if (id == 0)
-            {
-                StringBuffer sbd = new StringBuffer("grid sector: ");
-                int sector = ((xb + 13) / 27) + (((yb + 7) / 15) * 15);
-                sbd.append(sector);
-                setHoverText(sbd.toString());
-                hoverTextSet = true;
-            }
             if (id > 0)
             {
-                StringBuffer sbd = new StringBuffer("node: 0x");
-                sbd.append(Integer.toHexString(id));
-                setHoverText(sbd.toString());
-                hoverTextSet = true;
-                
                 // Are we already looking at it?
                 if ((hoverMode == PLACE_SETTLEMENT) && (hoverID == id))
                 {
