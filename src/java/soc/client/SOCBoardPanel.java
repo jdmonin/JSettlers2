@@ -74,11 +74,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static String IMAGEDIR = "/soc/client/images";
 
     /**
-     * size of the whole panel, internal-pixels "scale";
-     * also minimum acceptable size in screen pixels.
+     * size of the whole panel, internal-pixels "scale".
+     * This constant may not reflect the current game board's minimum size:
+     * In board-internal coordinates, use {@link #panelMinBW} and {@link #panelMinBH} instead.
+     * For mimimum acceptable size in on-screen pixels,
+     * call {@link #getMinimumSize()} instead of using PANELX and PANELY directly.
      * For actual current size in screen pixels, see
      * {@link #scaledPanelX} {@link #scaledPanelY};
      * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
+     * If 6-player board, the minimum size is larger.
      */
     public static final int PANELX = 379, PANELY = 340;
 
@@ -94,7 +98,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * These were called hexX, hexY before 1.1.08.
      * @see #hexX_6pl
      */
-    private static final int[] hexX_st = 
+    private static final int[] hexX_st =
     {
         deltaX + halfdeltaX, 2 * deltaX + halfdeltaX, 3 * deltaX + halfdeltaX, 4 * deltaX + halfdeltaX,  // row 1 4 hexes
         deltaX, 2 * deltaX, 3 * deltaX, 4 * deltaX, 5 * deltaX,                                          // row 2 5 hexes
@@ -104,7 +108,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         deltaX, 2 * deltaX, 3 * deltaX, 4 * deltaX, 5 * deltaX,                                          // row 6 5 hexes
         deltaX + halfdeltaX, 2 * deltaX + halfdeltaX, 3 * deltaX + halfdeltaX, 4 * deltaX + halfdeltaX   // row 7 4 hexes
     };
-    private static final int[] hexY_st = 
+    private static final int[] hexY_st =
     {
         0, 0, 0, 0, 
         deltaY, deltaY, deltaY, deltaY, deltaY, 
@@ -119,11 +123,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * hex coordinates for drawing the 6-player board, or null.
      * Initialized by constructor of the first 6-player boardpanel.
      * To make room for the ring of ports/water which isn't in the
-     * coordinate system, the offset from {@link #hexX_st} is {@link #halfdeltaX},
-     * and the offset from {@link #hexY_st} is {@link #deltaY}.
+     * coordinate system, the offset from {@link #hexX_st} is {@link #HEXX_OFF_6PL},
+     * and the offset from {@link #hexY_st} is {@link #HEXY_OFF_6PL}.
+     * @see #hexX
      * @since 1.1.08
      */
     private static int[] hexX_6pl, hexY_6pl;
+
+    /**
+     * In 6-player mode, the offset of {@link #hexX_6pl}, {@link #hexY_6pl}
+     * from {@link #hexX_st}, {@link #hexY_st} in unscaled board coordinates.
+     * Remember that x and y are swapped on-screen, because the board is rotated.
+     * @since 1.1.08
+     */
+    private static final int HEXX_OFF_6PL = deltaX, HEXY_OFF_6PL = deltaY;
+
+    /**
+     * In 6-player mode, subtract this instead of {@link #HEXY_OFF_6PL}
+     * in {@link #findEdge(int, int)}, {@link #findHex(int, int)}, {@link #findNode(int, int)}.
+     * @since 1.1.08
+     */
+    private static final int HEXY_OFF_6PL_FIND = 7;
 
     /**
      * coordinates for drawing the playing pieces
@@ -249,6 +269,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
+     * Minimum required width and height, as determined by options and {@link #isRotated}.
+     * Used by {@link #getMinimumSize()}.
+     * @since 1.1.08
+     */
+    private Dimension minSize;
+
+    /**
+     * Ensure that super.setSize is called at least once.
+     * @since 1.1.08
+     */
+    private boolean hasCalledSetSize;
+
+    /**
      * The board is configured for 6-player mode (and is {@link #isRotated}) (game opt DEBUG56PLBOARD).
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
@@ -264,8 +297,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * Use this for rotation:
      *<UL>
-     *<LI> From internal to screen (cw):  P'=({@link #PANELY}-y, x)
-     *<LI> From screen to internal (ccw): P'=(y, {@link #PANELX}-x)
+     *<LI> From internal to screen (cw):  P'=({@link #panelMinBH}-y, x)
+     *<LI> From screen to internal (ccw): P'=(y, {@link #panelMinBW}-x)
      *</UL>
      * When the board is also {@link #isScaled scaled}, go in this order:
      * Rotate clockwise, then scale up; Scale down, then rotate counterclockwise.
@@ -291,13 +324,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * actual size on-screen, not internal-pixels size
-     * ({@link #PANELX}, {@link #PANELY})
+     * ({@link #panelMinBW}, {@link #panelMinBH})
      */
     protected int scaledPanelX, scaledPanelY;
 
     /**
+     * Minimum width and height, in board-internal coordinates.
+     * Differs from static {@link #PANELX}, {@link #PANELY} for {@link #is6player 6-player board}.
+     * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account,
+     * so minSize isn't suitable for use in rescaling formulas.
+     * @since 1.1.08
+     */
+    protected final int panelMinBW, panelMinBH;
+
+    /**
      * The board is currently scaled larger than
-     * {@link #PANELX} x {@link #PANELY} pixels.
+     * {@link #panelMinBW} x {@link #panelMinBH} pixels.
      * Use {@link #scaleToActualX(int)}, {@link #scaleFromActualX(int)},
      * etc to convert between internal and actual screen pixel coordinates.
      *<P>
@@ -359,7 +401,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Hex pix - rotated board; from ./images/rotat GIF files.
      * Image references are copied to
-     * {@link #scaledHexes}/{@link #scaledPorts} from here. 
+     * {@link #scaledHexes}/{@link #scaledPorts} from here.
      * @see #hexes
      * @since 1.1.08
      */
@@ -616,7 +658,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected Color[] robberGhostFill, robberGhostOutline;
 
     /**
-     * create a new board panel in an applet
+     * create a new board panel in a game interface.
+     * The minimum size needed on-screen is based on the game options.
+     * After construction, call {@link #getMinimumSize()} to read it.
      *
      * @param pi  the player interface that spawned us
      */
@@ -630,11 +674,34 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         playerNumber = -1;
         board = game.getBoard();
         isScaled = false;
-        scaledPanelX = PANELX;
-        scaledPanelY = PANELY;
         scaledMissedImage = false;
         is6player = game.isGameOptionSet("DEBUG56PLBOARD");
         isRotated = isScaledOrRotated = is6player || game.isGameOptionSet("DEBUGROTABOARD");
+        if (isRotated)
+        {
+            // scaledPanelX, scaledPanelY are on-screen minimum size.
+            // panelMinBW, panelMinBH are board-coordinates, so not rotated.
+            // Thus, x <-> y between these two pairs of variables.
+            scaledPanelX = PANELY;
+            scaledPanelY = PANELX;
+            if (is6player)
+            {
+                scaledPanelX += (2 * deltaY);
+                scaledPanelY += deltaX;
+            }
+            panelMinBW = scaledPanelY;
+            panelMinBH = scaledPanelX;
+        } else {
+            panelMinBW = scaledPanelX = PANELX;
+            panelMinBH = scaledPanelY = PANELY;
+            if (is6player)  // JM TODO: testing only, normally isRotated
+            {
+                scaledPanelY += (2 * deltaY);
+                scaledPanelX += deltaX;
+            }
+        }
+        minSize = new Dimension(scaledPanelX, scaledPanelY);
+        hasCalledSetSize = false;
 
         int i;
 
@@ -652,11 +719,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             edgeMap[i] = 0;
         }
 
-        initEdgeMapAux(4, 3, 9, 6, 0x37);    // Top row: 0x37 is first land hex of this row
-        initEdgeMapAux(3, 6, 10, 9, 0x35);
-        initEdgeMapAux(2, 9, 11, 12, 0x33);  // Middle row: 0x33 is leftmost land hex
-        initEdgeMapAux(3, 12, 10, 15, 0x53);
-        initEdgeMapAux(4, 15, 9, 18, 0x73);  // Bottom row: 0x73 is first land hex of this row
+        if (is6player)
+        {
+            // TODO TODO TODO: chk vs dissertation
+            initEdgeMapAux(4, 3, 9, 6, 0x37);    // Top row: 0x37 is first land hex of this row
+            initEdgeMapAux(3, 6, 10, 9, 0x35);
+            initEdgeMapAux(2, 9, 11, 12, 0x33);  // Middle row: 0x33 is leftmost land hex
+            initEdgeMapAux(3, 12, 10, 15, 0x53);
+            initEdgeMapAux(4, 15, 9, 18, 0x73);  // Bottom row: 0x73 is first land hex of this row
+        } else {
+            initEdgeMapAux(4, 3, 9, 6, 0x37);    // Top row: 0x37 is first land hex of this row
+            initEdgeMapAux(3, 6, 10, 9, 0x35);
+            initEdgeMapAux(2, 9, 11, 12, 0x33);  // Middle row: 0x33 is leftmost land hex
+            initEdgeMapAux(3, 12, 10, 15, 0x53);
+            initEdgeMapAux(4, 15, 9, 18, 0x73);  // Bottom row: 0x73 is first land hex of this row
+        }
 
         // init node map
         nodeMap = new int[345];
@@ -672,14 +749,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             initNodeMapAux(2,  3, 10,  7, 0x15);
             initNodeMapAux(1,  6, 11, 10, 0x13);
             initNodeMapAux(0,  9, 12, 13, 0x11);  // Middle row: 6 across, 0x11 is leftmost land hex
-            initNodeMapAux(1, 12, 11, 16, 0x31); 
+            initNodeMapAux(1, 12, 11, 16, 0x31);
             initNodeMapAux(2, 15, 10, 19, 0x51);
             initNodeMapAux(3, 18,  9, 22, 0x71);  // Very bottom row: 3 across
         } else {
             initNodeMapAux(4,  3, 10,  7, 0x37);  // Top row: 0x37 is first land hex of this row
             initNodeMapAux(3,  6, 11, 10, 0x35);
             initNodeMapAux(2,  9, 12, 13, 0x33);  // Middle row: 0x33 is leftmost land hex
-            initNodeMapAux(3, 12, 11, 16, 0x53); 
+            initNodeMapAux(3, 12, 11, 16, 0x53);
             initNodeMapAux(4, 15, 10, 19, 0x73);  // Bottom row: 0x73 is first land hex of this row
         }
 
@@ -714,27 +791,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (is6player)
         {
-            // Hex numbers (in range 0-36) to skip: (coords 7D-DD-D7).
-            inactiveHexNums = new boolean[37];  // TODO largerboard: assumes 37 hexes
-            int[] inacIdx = {3, 8, 14, 21, 27, 32, 36};
-            for (i = 0; i < inacIdx.length; ++i)
-                inactiveHexNums[inacIdx[i]] = true;
             if (hexX_6pl == null)
             {
                 final int L = hexX_st.length;
                 hexX_6pl = new int[L];
                 hexY_6pl = new int[L];
                 for (i = 0; i < L; ++i)
-                    hexX_6pl[i] = hexX_st[i] + halfdeltaX;
+                    hexX_6pl[i] = hexX_st[i] + HEXX_OFF_6PL;
                 for (i = 0; i < L; ++i)
-                    hexY_6pl[i] = hexY_st[i] + deltaY;
+                    hexY_6pl[i] = hexY_st[i] + HEXY_OFF_6PL;
             }
             hexX = hexX_6pl;
             hexY = hexY_6pl;
+
+            // Hex numbers (in range 0-36) to skip: (coords 7D-DD-D7).
+            inactiveHexNums = new boolean[hexX_6pl.length];
+            int[] inacIdx = {3, 8, 14, 21, 27, 32, 36};
+            for (i = 0; i < inacIdx.length; ++i)
+                inactiveHexNums[inacIdx[i]] = true;
         } else {
-            inactiveHexNums = null;
             hexX = hexX_st;
             hexY = hexY_st;
+            inactiveHexNums = null;
         }
 
         // set mode of interaction
@@ -1117,20 +1195,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * DOCUMENT ME!
+     * Minimum required width and height, as determined by options and {@link #isRotated}.
      *
-     * @return DOCUMENT ME!
+     * @return minimum size
      */
     public Dimension getMinimumSize()
     {
-        return new Dimension(PANELX, PANELY);
+        return minSize;
     }
 
     /**
      * Set the board to a new size, rescale graphics and repaint if needed.
      *
-     * @param newW New width in pixels, no less than {@link #PANELX}
-     * @param newH New height in pixels, no less than {@link #PANELY}
+     * @param newW New width in pixels, no less than {@link #getMinimumSize()}.width
+     * @param newH New height in pixels, no less than {@link #getMinimumSize()}.height
      * @throws IllegalArgumentException if newW or newH is too small but not 0.
      *   During initial layout, the layoutmanager may make calls to setSize(0,0);
      *   such a call is passed to super without scaling graphics.
@@ -1138,7 +1216,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public void setSize(int newW, int newH)
         throws IllegalArgumentException
     {
-        if ((newW == scaledPanelX) && (newH == scaledPanelY))
+        if ((newW == scaledPanelX) && (newH == scaledPanelY) && hasCalledSetSize)
             return;  // Already sized.
 
         // If below min-size, rescaleBoard throws
@@ -1147,13 +1225,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // Resize
         super.setSize(newW, newH);
+        hasCalledSetSize = true;
         repaint();
     }
 
     /**
      * Set the board to a new size, rescale graphics and repaint if needed.
      *
-     * @param sz New size in pixels, no less than {@link #PANELX} wide by {@link #PANELY} tall
+     * @param sz New size in pixels, no less than {@link #panelMinBW} wide by {@link #panelMinBH} tall
      * @throws IllegalArgumentException if sz is too small but not 0.
      *   During initial layout, the layoutmanager may make calls to setSize(0,0);
      *   such a call is passed to super without scaling graphics.
@@ -1202,22 +1281,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if ((newW == 0) || (newH == 0))
             return;
-        final int bMinW, bMinH;
-        if (isRotated)
-        {
-            bMinW = PANELY;  bMinH = PANELX;
-        } else {
-            bMinW = PANELX;  bMinH = PANELY;
-        }
-        if ((newW < bMinW) || (newH < bMinH))
+        if ((newW < minSize.width) || (newH < minSize.height))
             throw new IllegalArgumentException("Below minimum size");
-    
+
         /**
          * Set vars
          */
         scaledPanelX = newW;
         scaledPanelY = newH;
-        isScaled = ((scaledPanelX != bMinW) || (scaledPanelY != bMinH));
+        isScaled = ((scaledPanelX != minSize.width) || (scaledPanelY != minSize.height));
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
 
@@ -1404,7 +1476,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         int[] xs = new int[xorig.length];
         for (int i = xorig.length - 1; i >= 0; --i)
-            xs[i] = (int) ((xorig[i] * (long) scaledPanelX) / PANELX);
+            xs[i] = (int) ((xorig[i] * (long) scaledPanelX) / panelMinBW);
         return xs;
     }
 
@@ -1421,7 +1493,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         int[] ys = new int[yorig.length];
         for (int i = yorig.length - 1; i >= 0; --i)
-            ys[i] = (int) ((yorig[i] * (long) scaledPanelY) / PANELY);
+            ys[i] = (int) ((yorig[i] * (long) scaledPanelY) / panelMinBH);
         return ys;
     }
 
@@ -1441,7 +1513,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             xr[i] = width - yorig[i];
         if (rescale)
             for (int i = yorig.length - 1; i >= 0; --i)
-                xr[i] = (int) ((xr[i] * (long) scaledPanelX) / PANELX);
+                xr[i] = (int) ((xr[i] * (long) scaledPanelX) / panelMinBW);
         return xr;
     }
 
@@ -1478,13 +1550,47 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * draw a board tile
+     * @param g       graphics
+     * @param hexNum  hex number (0-36)
      */
     private final void drawHex(Graphics g, int hexNum)
     {
+        drawHex(g, hexX[hexNum], hexY[hexNum], board.getHexLayout()[hexNum], hexNum);
+    }
+
+    /**
+     * draw a given type of board tile at a given location.
+     * Use <tt>hexType</tt> to determine the hex graphic and possibly a port overlay graphic.
+     * When <tt>hexNum</tt> is -1, nothing else is drawn.
+     * Otherwise, also draw the dice number for this hex (if any).
+     *
+     * @param g      graphics
+     * @param x      board-graphics x-coordinate to draw at
+     * @param y      board-graphics y-coordinate to draw at
+     * @param hexType hex number, as in {@link SOCBoard#getHexLayout()}
+     * @param hexNum  hex number (0-36), or -1 if this isn't a valid hex number
+     * @since 1.1.08
+     */
+    private final void drawHex(Graphics g, int x, int y, int hexType, int hexNum)
+    {
         int tmp;
-        int[] hexLayout = board.getHexLayout();
         int[] numberLayout = board.getNumberLayout();
-        int hexType = hexLayout[hexNum];
+
+        if (isScaledOrRotated)
+        {
+            if (isRotated)
+            {
+                // (cw):  P'=(panelMinBH-y, x)
+                int y1 = x;
+                x = panelMinBH - y - HEXHEIGHT;  // move 1 hex over, since corner of image has rotated
+                y = y1;
+            }
+            if (isScaled)
+            {
+                x = scaleToActualX(x);
+                y = scaleToActualY(y);
+            }
+        }
 
         /**
          * If previous scaling has failed, fallback image will be smaller
@@ -1506,23 +1612,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         boolean missedDraw = false;
         Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original or rotated?
 
-        int x = hexX[hexNum],
-            y = hexY[hexNum];
-        if (isScaledOrRotated)
-        {
-            if (isRotated)
-            {
-                // (cw):  P'=(PANELY-y, x)
-                int y1 = x;
-                x = PANELY - y - HEXHEIGHT;  // move 1 hex over, since corner of image has rotated
-                y = y1;
-            }
-            if (isScaled)
-            {
-                x = scaleToActualX(x); 
-                y = scaleToActualY(y);
-            }
-        }
         tmp = hexType & 15; // get only the last 4 bits;
 
         if (isScaled && (scaledHexes[tmp] == hexis[tmp]))
@@ -1619,6 +1708,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // If not scaled, recenterPrevMiss is false.
         }
 
+        if (hexNum == -1)
+            return;  // <---- Early return: Not a valid hex number ----
+
         /**
          * Draw the number
          */
@@ -1640,8 +1732,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             else
             {
-                x = scaleToActualX(hexX[hexNum] + dx);
-                y = scaleToActualY(hexY[hexNum] + dy);
+                x += scaleToActualX(dx);
+                y += scaleToActualY(dy);
                 if (scaledNumbers[hnl] == numbers[hnl])
                 {
                     // recenterPrevMiss = true;
@@ -1696,9 +1788,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int hy = hexY[hexNum] + 31;
         if (isRotated)
         {
-            // (cw):  P'=(PANELY-y, x)
+            // (cw):  P'=(panelMinBH-y, x)
             int hy1 = hx;
-            hx = PANELY - hy;
+            hx = panelMinBH - hy;
             hy = hy1;
         }
         if (isScaled)
@@ -1784,12 +1876,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int hy = hexY[hexNum];
         if (isRotated)
         {
-            // (cw):  P'=(PANELY-y, x)
+            // (cw):  P'=(panelMinBH-y, x)
             int hy1 = hx;
-            hx = PANELY - hy - deltaX;  // -deltaX is because road poly coords are against hex width/height,
+            hx = panelMinBH - hy - deltaX;  // -deltaX is because road poly coords are against hex width/height,
                                         // and the hex image gets similar translation in drawHex.
             hy = hy1;
-        }            
+        }
         if (isScaled)
         {
             hx = scaleToActualX(hx);
@@ -1832,9 +1924,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         if (isRotated)
         {
-            // (cw):  P'=(PANELY-y, x)
+            // (cw):  P'=(panelMinBH-y, x)
             int hy1 = hx;
-            hx = PANELY - hy;
+            hx = panelMinBH - hy;
             hy = hy1;
         }
         if (isScaled)
@@ -1881,9 +1973,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             if (isRotated)
             {
-                // (cw):  P'=(PANELY-y, x)
+                // (cw):  P'=(panelMinBH-y, x)
                 int hy1 = hx;
-                hx = PANELY - hy;
+                hx = panelMinBH - hy;
                 hy = hy1;
             }
             if (isScaled)
@@ -1934,32 +2026,36 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         case 0:
 
             // top left
-            arrowX = 3;  arrowY = 5;  arrowLeft = true;
+            arrowX = 3;  arrowY = 5;
             diceX = 13;  diceY = 10;
+            arrowLeft = true;
 
             break;
 
         case 1:
 
             // top right
-            arrowX = 339;  arrowY = 5;  arrowLeft = false;
-            diceX = 339;  diceY = 10;
+            arrowX = minSize.width - 40;  arrowY = 5;
+            diceX = minSize.width - 40;  diceY = 10;
+            arrowLeft = false;
 
             break;
 
         case 2:
 
             // bottom right
-            arrowX = 339;  arrowY = 298;  arrowLeft = false;
-            diceX = 339;  diceY = 303;
+            arrowX = minSize.width - 40;  arrowY = minSize.height - 42;
+            diceX = minSize.width - 40;  diceY = minSize.height - 37;
+            arrowLeft = false;
 
             break;
 
         default:  // 3: (Default prevents compiler var-not-init errors)
 
             // bottom left
-            arrowX = 3;  arrowY = 298;  arrowLeft = true;
-            diceX = 13;  diceY = 303;
+            arrowX = 3;  arrowY = minSize.height - 42;
+            diceX = 13;  diceY = minSize.height - 37;
+            arrowLeft = true;
 
             break;
 
@@ -2002,6 +2098,53 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
     }
 
+    // TODO maybe move to socboard? otherwise refactor?
+    /**
+     * Hex numbers of start of each row of hexes in the board coordinates.
+     * @since 1.1.08
+     */
+    private static final int[] ROW_START_HEXNUM = { 0, 4, 9, 15, 22, 28, 33 };
+
+    /**
+     * for the 6-player board, draw the ring of surrounding water/ports.
+     * This is outside the coordinate system, and doesn't have hex numbers,
+     * and so can't be drawn in the standard drawHex loop.
+     * @since 1.1.08
+     */
+    private void drawPortsRing(Graphics g)
+    {
+        int hnum, hx, hy;
+
+        // To left of each of hex numbers: 0, 4, 9, 15, 22, 28, 33.
+        for (int r = 0; r <= 6; ++r)
+        {
+            hnum = ROW_START_HEXNUM[r];
+
+            // Water/port to left of hex row:
+            hx = hexX[hnum] - deltaX;
+            hy = hexY[hnum];
+            drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
+
+            // Water/port to right of hex row:
+            --hnum;  // is now rightmost hexnum of previous row
+            if (hnum < 0)
+                hnum = hexX.length - 1;  // wrap around
+            hx = hexX[hnum];  // since the rightmost hexnum isn't within 6pl coord,
+            hy = hexY[hnum];  // its (x,y) is right where we want to draw.
+            drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
+        }
+
+        hx = hexX[0] - halfdeltaX;
+        hy = hexY[0] - deltaY;        // Above top row
+        final int hy2 = hexY[33] + deltaY;  // Below bottom row
+
+        for (int c = 0; c < 4; ++c, hx += deltaX)
+        {
+            drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
+            drawHex(g, hx, hy2, SOCBoard.WATER_HEX, -1);
+        }
+    }
+
     /**
      * draw the whole board
      */
@@ -2022,6 +2165,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if ((inactiveHexNums == null) || ! inactiveHexNums[i])
                 drawHex(g, i);
         }
+        if (is6player)
+            drawPortsRing(g);
 
         if (scaledMissedImage)
         {
@@ -2236,7 +2381,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * If not isScaled, do nothing.
      *
      * @param xa Int array to be scaled; each member is an x-coordinate.
-     * 
+     *
      * @see #scaleCopyToActualX(int[])
      */
     public void scaleToActualX(int[] xa)
@@ -2244,7 +2389,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return;
         for (int i = xa.length - 1; i >= 0; --i)
-            xa[i] = (int) ((xa[i] * (long) scaledPanelX) / PANELX);
+            xa[i] = (int) ((xa[i] * (long) scaledPanelX) / panelMinBW);
     }
 
     /**
@@ -2260,7 +2405,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return;
         for (int i = ya.length - 1; i >= 0; --i)
-            ya[i] = (int) ((ya[i] * (long) scaledPanelY) / PANELY);
+            ya[i] = (int) ((ya[i] * (long) scaledPanelY) / panelMinBH);
     }
 
     /**
@@ -2274,7 +2419,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return x;
         else
-            return (int) ((x * (long) scaledPanelX) / PANELX);
+            return (int) ((x * (long) scaledPanelX) / panelMinBW);
     }
 
     /**
@@ -2288,7 +2433,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! isScaled)
             return y;
         else
-            return (int) ((y * (long) scaledPanelY) / PANELY);
+            return (int) ((y * (long) scaledPanelY) / panelMinBH);
     }
 
     /**
@@ -2301,7 +2446,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
             return x;
-        return (int) ((x * (long) PANELX) / scaledPanelX);
+        return (int) ((x * (long) panelMinBW) / scaledPanelX);
     }
 
     /**
@@ -2314,7 +2459,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
             return y;
-        return (int) ((y * (long) PANELY) / scaledPanelY);
+        return (int) ((y * (long) panelMinBH) / scaledPanelY);
     }
 
     /**
@@ -2603,9 +2748,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         if (isRotated)
         {
-            // (ccw): P'=(y, PANELX-x)
+            // (ccw): P'=(y, panelMinBW-x)
             int xb1 = yb;
-            yb = PANELX - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
+            yb = panelMinBW - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
             xb = xb1;
         }
 
@@ -3153,11 +3298,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // find which grid section the pointer is in 
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = (x / 18) + ((y / 10) * 15);
-        int secX = x / 27;
-        int secY = y / 15;
+        int secX, secY;
         if (is6player)
         {
-            --secX;  secY -= 3;
+            secX = (x - HEXX_OFF_6PL) / 27;
+            secY = (y - HEXY_OFF_6PL_FIND) / 15;
+        } else {
+            secX = x / 27;
+            secY = y / 15;
         }
         int sector = secX + (secY * 15);
 
@@ -3181,11 +3329,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // find which grid section the pointer is in 
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = ((x + 9) / 18) + (((y + 5) / 10) * 15);
-        int secX = ((x + 13) / 27);
-        int secY = ((y + 7) / 15);
+        int secX, secY;
         if (is6player)
         {
-            --secX;  secY -= 3;
+            secX = ((x + 13 - HEXX_OFF_6PL) / 27);
+            secY = ((y + 7 - HEXY_OFF_6PL_FIND) / 15);
+        } else {
+            secX = ((x + 13) / 27);
+            secY = ((y + 7) / 15);
         }
         int sector = secX + (secY * 15);
 
@@ -3209,11 +3360,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // find which grid section the pointer is in 
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = (x / 18) + ((y / 10) * 15);
-        int secX = x / 27;
-        int secY = y / 15;
+        int secX, secY;
         if (is6player)
         {
-            --secX;  secY -= 3;
+            secX = (x - HEXX_OFF_6PL) / 27;
+            secY = (y - HEXY_OFF_6PL_FIND) / 15;
+        } else {
+            secX = x / 27;
+            secY = y / 15;
         }
         int sector = secX + (secY * 15);
 
@@ -3308,7 +3462,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (wantsRotated && (rotatHexes == null))
         {
             MediaTracker tracker = new MediaTracker(c);
-        
+
             rotatHexes = new Image[13];
             rotatPorts = new Image[7];
             loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz);
@@ -3551,14 +3705,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (offsetX < 5)
                 boxY += 12;
 
-            if (SOCBoardPanel.PANELX < ( boxX + boxW ))
+            if (panelMinBW < ( boxX + boxW ))
             {
                 // Try to float it to left of mouse pointer
                 boxX = mouseX - boxW - offsetX;
                 if (boxX < 0)
                 {
                     // Not enough room, just place flush against right-hand side
-                    boxX = SOCBoardPanel.PANELX - boxW;
+                    boxX = panelMinBW - boxW;
                 }
             }
             
@@ -3683,9 +3837,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
                 if (isRotated)
                 {
-                    // (ccw): P'=(y, PANELX-x)
+                    // (ccw): P'=(y, panelMinBW-x)
                     int xb1 = yb;
-                    yb = PANELX - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
+                    yb = panelMinBW - xb - deltaY;  // -deltaY for similar reasons as -HEXHEIGHT in drawHex
                     xb = xb1;
                 }
             }

@@ -342,7 +342,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener
          * more initialization stuff
          */
         setLocation(50, 50);
-        setSize(830, 650);
+        if (game.isGameOptionSet("DEBUG56PLBOARD"))
+            setSize((2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width, 650);
+        else
+            setSize(830, 650);
         validate();
         
         if (didHideTemp)
@@ -397,7 +400,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         boardPanel = new SOCBoardPanel(this);
         boardPanel.setBackground(new Color(112, 45, 10));
         boardPanel.setForeground(Color.black);
-        boardPanel.setSize(SOCBoardPanel.PANELX, SOCBoardPanel.PANELY);
+        Dimension bpMinSz = boardPanel.getMinimumSize();
+        boardPanel.setSize(bpMinSz.width, bpMinSz.height);
         boardIsScaled = false;
         add(boardPanel);
         if (game.isGameOptionDefined("PL"))
@@ -1551,11 +1555,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener
          * Otherwise, use minimum board width (widen handpanels instead).
          */
         final int bMinW, bMinH;
-        if (boardPanel.isRotated())
         {
-            bMinW = SOCBoardPanel.PANELY;  bMinH = SOCBoardPanel.PANELX;
-        } else {
-            bMinW = SOCBoardPanel.PANELX;  bMinH = SOCBoardPanel.PANELY;
+            Dimension bpMinSz = boardPanel.getMinimumSize();
+            bMinW = bpMinSz.width;
+            bMinH = bpMinSz.height;
         }
         int bw = (dim.width - 16 - (2*SOCHandPanel.WIDTH_MIN));  // As wide as possible
         int bh = (int) ((bw * (long) bMinH) / bMinW);
