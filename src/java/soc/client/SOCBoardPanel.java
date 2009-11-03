@@ -776,11 +776,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hexMap[i] = 0;
         }
 
-        initHexMapAux(4, 4, 9, 5, 0x37);
-        initHexMapAux(3, 7, 10, 8, 0x35);
-        initHexMapAux(2, 10, 11, 11, 0x33);
-        initHexMapAux(3, 13, 10, 14, 0x53);
-        initHexMapAux(4, 16, 9, 17, 0x73);
+        if (is6player)
+        {
+            initHexMapAux(3, 1, 8, 2, 0x17);    // Top row: 0x17 is first land hex
+            initHexMapAux(2, 4, 9, 5, 0x15);
+            initHexMapAux(1, 7, 10, 8, 0x13);
+            initHexMapAux(0, 10, 11, 11, 0x11);
+            initHexMapAux(1, 13, 10, 14, 0x31);
+            initHexMapAux(2, 16, 9, 17, 0x51);
+            initHexMapAux(3, 19, 8, 20, 0x71);  // Bottom row: 0x71 is first land hex
+        } else {
+            initHexMapAux(4, 4, 9, 5, 0x37);    // Top row: 0x37 is first land hex
+            initHexMapAux(3, 7, 10, 8, 0x35);
+            initHexMapAux(2, 10, 11, 11, 0x33);
+            initHexMapAux(3, 13, 10, 14, 0x53);
+            initHexMapAux(4, 16, 9, 17, 0x73);  // Bottom row: 0x73 is first land hex
+        }
 
         hexIDtoNum = new int[0xDE];
 
