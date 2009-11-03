@@ -721,12 +721,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (is6player)
         {
-            // TODO TODO TODO: chk vs dissertation
-            initEdgeMapAux(4, 3, 9, 6, 0x37);    // Top row: 0x37 is first land hex of this row
-            initEdgeMapAux(3, 6, 10, 9, 0x35);
-            initEdgeMapAux(2, 9, 11, 12, 0x33);  // Middle row: 0x33 is leftmost land hex
-            initEdgeMapAux(3, 12, 10, 15, 0x53);
-            initEdgeMapAux(4, 15, 9, 18, 0x73);  // Bottom row: 0x73 is first land hex of this row
+            initEdgeMapAux(3, 0, 8, 3, 0x17);    // Top row: 0x17 is first land hex of this row
+            initEdgeMapAux(2, 3, 9, 6, 0x15);
+            initEdgeMapAux(1, 6, 10, 9, 0x13);
+            initEdgeMapAux(0, 9, 11, 12, 0x11);  // Middle row: 0x11 is leftmost land hex
+            initEdgeMapAux(1, 12, 10, 15, 0x31);
+            initEdgeMapAux(2, 15, 9, 18, 0x51);
+            initEdgeMapAux(3, 18, 8, 21, 0x71);  // Bottom row: 0x71 is first land hex of this row
         } else {
             initEdgeMapAux(4, 3, 9, 6, 0x37);    // Top row: 0x37 is first land hex of this row
             initEdgeMapAux(3, 6, 10, 9, 0x35);
