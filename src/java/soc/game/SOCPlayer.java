@@ -1875,19 +1875,23 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
     /**
      * @return true if this edge is a potential road
-     * @param edge        the coordinates of an edge on the board
+     * @param edge        the coordinates of an edge on the board. Accepts -1 for edge 0x00.
      */
     public boolean isPotentialRoad(int edge)
     {
+        if (edge == -1)
+            edge = 0x00;
         return potentialRoads[edge];
     }
 
     /**
      * @return true if this edge is a legal road
-     * @param edge        the coordinates of an edge on the board
+     * @param edge        the coordinates of an edge on the board. Accepts -1 for edge 0x00.
      */
     public boolean isLegalRoad(int edge)
     {
+        if (edge == -1)
+            edge = 0x00;
         return legalRoads[edge];
     }
 

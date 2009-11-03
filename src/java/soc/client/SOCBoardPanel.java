@@ -553,6 +553,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Edge or node being pointed to. When placing a road/settlement/city,
      * used for coordinate of "ghost" piece under the mouse pointer.
+     * 0 when nothing is hilighted. -1 for a road at edge 0x00.
      */
     private int hilight;
 
@@ -560,6 +561,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Map grid sectors (from unscaled on-screen coordinates) to hex edges.
      * The grid has 15 columns and 23 rows.
      * This maps graphical coordinates to the board coordinate system.
+     *<P>
+     * <b>Note:</b> For the 6-player board, edge 0x00 is a valid edge that
+     * can be built on.  It is marked here as -1, since a value of 0 marks an
+     * invalid edge in this map.
      *<P>
      * The edge number at grid (x,y) is in edgeMap[x + (y * 15)].
      *<P>
@@ -721,6 +726,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (is6player)
         {
+            // since 0x00 is a valid edge for 6player, it's
+            // marked in the map as -1 (0 means invalid in the map).
             initEdgeMapAux(3, 0, 8, 3, 0x17);    // Top row: 0x17 is first land hex of this row
             initEdgeMapAux(2, 3, 9, 6, 0x15);
             initEdgeMapAux(1, 6, 10, 9, 0x13);
@@ -914,6 +921,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 return;
             }
+
+            if (edgeNum == 0x00)
+                edgeNum = -1;  // valid edge 0x00 is stored as -1 in map
 
             for (x = x1; x <= x2; x++)
             {
@@ -1848,12 +1858,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * draw a road
+     * draw a road.
+     * @param g  graphics
+     * @param edgeNum  Edge number of this road; accepts -1 for edgeNum 0x00.
+     * @param pn   Player number
+     * @param isHilight  Is this the hilight for showing a potential placement?
      */
     private final void drawRoad(Graphics g, int edgeNum, int pn, boolean isHilight)
     {
         // Draw a road
         int hexNum, roadX[], roadY[];
+        if (edgeNum == -1)
+            edgeNum = 0x00;
 
         if ((((edgeNum & 0x0F) + (edgeNum >> 4)) % 2) == 0)
         { // If first and second digit 
@@ -2236,7 +2252,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         case PLACE_ROAD:
         case PLACE_INIT_ROAD:
 
-            if (hilight > 0)
+            if (hilight != 0)
             {
                 drawRoad(g, hilight, player.getPlayerNumber(), true);
             }
@@ -2275,7 +2291,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         case CONSIDER_LM_ROAD:
         case CONSIDER_LT_ROAD:
 
-            if (hilight > 0)
+            if (hilight != 0)
             {
                 drawRoad(g, hilight, otherPlayer.getPlayerNumber(), false);
             }
@@ -2800,9 +2816,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ptrOldY = y;
                 edgeNum = findEdge(xb, yb);
 
-                if ((player == null) || !player.isPotentialRoad(edgeNum))
+                if (edgeNum != 0)
                 {
-                    edgeNum = 0;
+                    if ((player == null) || !player.isPotentialRoad(edgeNum))
+                        edgeNum = 0;
                 }
 
                 if (hilight != edgeNum)
@@ -3023,7 +3040,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             return;  // <--- Ignore click: too soon after popup click ---
         }
 
-        if ((hilight > 0) && (player != null))
+        if ((hilight != 0) && (player != null))
         {
             SOCPlayerClient client = playerInterface.getClient();
 
@@ -3038,6 +3055,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             case PLACE_INIT_ROAD:
             case PLACE_ROAD:
 
+                if (hilight == -1)
+                    hilight = 0;  // Road on edge 0x00
                 if (player.isPotentialRoad(hilight))
                 {
                     client.putPiece(game, new SOCRoad(player, hilight));
@@ -3216,6 +3235,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     public void popupSetBuildRequest(int coord, int ptype)
     {
+        if (coord == -1)
+            coord = 0;  // road on edge 0x00
         Timer piTimer = playerInterface.getEventTimer();
         synchronized (piTimer)
         {
@@ -3632,7 +3653,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /** Object last pointed at; null for hexes and ports */
         private SOCPlayingPiece hoverPiece;
 
-        /** hover road ID, or 0. Readonly please from outside this inner class. Drawn in {@link #paint(Graphics)}. */
+        /** hover road ID, or 0. Readonly please from outside this inner class. Drawn in {@link #paint(Graphics)}.
+         *  value is -1 for a road at edge 0x00.
+         */
         int hoverRoadID;
 
         /** hover settlement or city node ID, or 0. Readonly please from outside this inner class. Drawn in {@link #paint(Graphics)}. */
@@ -3965,7 +3988,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // If not over a settlement, look for a road
             id = findEdge(xb,yb);
-            if (id > 0)
+            if (id != 0)
             {
                 // Are we already looking at it?
                 if ((hoverMode == PLACE_ROAD) && (hoverID == id))
@@ -4243,23 +4266,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               buildRoadItem.setEnabled(menuPlayerIsCurrent);
               hoverRoadID = hilightAt; 
               break;
-              
+
           case SOCPlayingPiece.SETTLEMENT:
               cancelBuildItem.setLabel("Cancel settlement");
               buildSettleItem.setEnabled(menuPlayerIsCurrent);
               hoverSettlementID = hilightAt; 
               break;
-              
+
           case SOCPlayingPiece.CITY:
               cancelBuildItem.setLabel("Cancel city upgrade");
               upgradeCityItem.setEnabled(menuPlayerIsCurrent);
               hoverCityID = hilightAt;
               break;
-              
+
           default:
               throw new IllegalArgumentException ("bad buildtype: " + buildType);
           }
-          
+
           super.show(bp, x, y);
       }
       
@@ -4608,7 +4631,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         /** Send this after maximum delay.
          * 
-         * @param coord Board coordinates, as used in SOCPutPiece message
+         * @param coord Board coordinates, as used in SOCPutPiece message. Does not accept -1 for road edge 0x00.
          * @param ptype Piece type, as used in SOCPlayingPiece / SOCPutPiece
          */
         protected BoardPanelSendBuildTask (int coord, int ptype)
