@@ -549,8 +549,12 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public void makeNewBoard(Hashtable opts)
     {
+        final boolean is6player = (opts != null) && ((SOCGameOption)opts.get("DEBUG56PLBOARD")).getBoolValue();
         int[] landHex = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
-        int[] portHex = { 0, 0, 0, 0, 1, 2, 3, 4, 5 };
+        int[] portHex= { 0, 0, 0, 0, 1, 2, 3, 4, 5 };
+        // TODO:
+        //if (is6player)
+        //    portHex = { 0, 0, 0, 0, 1, 2, 3, 4, 5, MISC_PORT, SHEEP_PORT };
         int[] number = { 3, 0, 4, 1, 5, 7, 6, 9, 8, 2, 5, 7, 6, 2, 3, 4, 1, 8 };
         int[] numPath = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
 
