@@ -101,7 +101,7 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAX_ROBBER_HEX = MAX_LAND_HEX;
 
     /**
-     * Each port's hex number within {@link #hexLayout}.
+     * Each port's hex number within {@link #hexLayout} on standard board.
      * Same order as {@link #PORTS_FACING_V1}:
      * Clockwise from upper-left (hex coordinate 0x17).
      * @since 1.1.08
@@ -109,7 +109,7 @@ public class SOCBoard implements Serializable, Cloneable
     private final static int PORTS_HEXNUM_V1[] = { 0, 2, 8, 21, 32, 35, 33, 22, 9 };
 
     /**
-     * Each port's facing.
+     * Each port's <em>facing,</em> on standard board.
      * Ordered clockwise from upper-left (hex coordinate 0x17).
      * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
      * @since 1.1.08
@@ -117,7 +117,7 @@ public class SOCBoard implements Serializable, Cloneable
     private final static int PORTS_FACING_V1[] = { 3, 4, 4, 5, 6, 6, 1, 2, 2};
 
     /**
-     * Each port's 2 node coordinates.
+     * Each port's 2 node coordinates on standard board.
      * Same order as {@link #PORTS_FACING_V1}:
      * Clockwise from upper-left (hex coordinate 0x17).
      * @since 1.1.08
@@ -133,6 +133,36 @@ public class SOCBoard implements Serializable, Cloneable
         0x72, 0x83,  // Leftmost of bottom row, NE
         0x43, 0x52,  // Leftmost land hex of row below middle, E
         0x25, 0x34   // Leftmost land hex above middle, facing E
+    };
+
+    /**
+     * Each port's <em>facing,</em> on 6-player board.
+     * Ordered clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
+     * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * @since 1.1.08
+     */
+    private final static int PORTS_FACING_V2[] =
+        { 3, 4, 4, 5, 5, 6, 6, 1, 1, 2, 3 };
+
+    /**
+     * Each port's 2 node coordinates on 6-player board.
+     * Same order as {@link #PORTS_FACING_V2}:
+     * Clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
+     * @since 1.1.08
+     */
+    private final static int PORTS_NODE_V2[] = 
+    {
+        0x07, 0x18,  // Port touches the upper-left land hex, port facing SE
+        0x3A, 0x4B,  // Touches middle land hex of top row, port facing SW
+        0x7C, 0x8D,  // Touches rightmost land hex of row below top, SW
+        0xAD, 0xBC,  // Touches rightmost land hex of row above middle, W
+        0xCB, 0xDA,  // Touches rightmost land hex of row below middle, W
+        0xC7, 0xD8,  // Touches rightmost land hex of row above bottom, NW
+        0xA3, 0xB4,  // Touches middle land hex of bottom row, NW
+        0x70, 0x81,  // Touches bottom-left land hex, NE
+        0x30, 0x41,  // Touches leftmost land hex of row below middle, NE
+        0x01, 0x10,  // Leftmost hex of middle row, E
+        0x03, 0x14   // Touches leftmost land hex of row above middle, SE
     };
 
     /**
