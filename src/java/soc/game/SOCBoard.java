@@ -101,6 +101,41 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAX_ROBBER_HEX = MAX_LAND_HEX;
 
     /**
+     * Each port's hex number within {@link #hexLayout}.
+     * Same order as {@link #PORTS_FACING_V1}:
+     * Clockwise from upper-left (hex coordinate 0x17).
+     * @since 1.1.08
+     */
+    private final static int PORTS_HEXNUM_V1[] = { 0, 2, 8, 21, 32, 35, 33, 22, 9 };
+
+    /**
+     * Each port's facing.
+     * Ordered clockwise from upper-left (hex coordinate 0x17).
+     * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * @since 1.1.08
+     */
+    private final static int PORTS_FACING_V1[] = { 3, 4, 4, 5, 6, 6, 1, 2, 2};
+
+    /**
+     * Each port's 2 node coordinates.
+     * Same order as {@link #PORTS_FACING_V1}:
+     * Clockwise from upper-left (hex coordinate 0x17).
+     * @since 1.1.08
+     */
+    private final static int PORTS_NODE_V1[] = 
+    {
+        0x27, 0x38,  // Port touches the upper-left land hex, port facing SE
+        0x5A, 0x6B,  // Touches middle land hex of top row, port facing SW
+        0x9C, 0xAD,  // Touches rightmost land hex of row above middle, SW
+        0xCD, 0xDC,  // Rightmost of middle-row land hex, W
+        0xC9, 0xDA,  // Rightmost land hex below middle, NW
+        0xA5, 0xB6,  // Port touches middle hex of bottom row, facing NW
+        0x72, 0x83,  // Leftmost of bottom row, NE
+        0x43, 0x52,  // Leftmost land hex of row below middle, E
+        0x25, 0x34   // Leftmost land hex above middle, facing E
+    };
+
+    /**
      * Board Encoding fields begin here
      * ------------------------------------------------------------------------------------
      */
@@ -214,7 +249,7 @@ public class SOCBoard implements Serializable, Cloneable
         5 : wood   {@link #WOOD_PORT}
         </pre>
         <em>Port facing</em> is the edge of the port's hex
-        that contains 2 nodes where player can build a
+        touching land, which contains 2 nodes where player can build a
         port settlement/city; facing is a number 1-6. <pre>
         6___    ___1
             \/\/
@@ -501,10 +536,9 @@ public class SOCBoard implements Serializable, Cloneable
         makeNewBoard_shufflePorts
             (portHex, opt_breakClumps);
 
-        // place the ports (hex numbers and facing) within hexLayout;
-        // for their corresponding node coordinates,
-        // see comments just below.
+        // place the ports (hex numbers and facing) within hexLayout
 
+        /*
         placePort(portHex[0], 0, 3);  // Facing 3 is SE: see hexLayout's javadoc.
                                       //   0 is hex number (index within hexLayout)
         placePort(portHex[1], 2, 4);  // Facing 4 is SW, at hex number 2
@@ -515,10 +549,19 @@ public class SOCBoard implements Serializable, Cloneable
         placePort(portHex[6], 33, 1); // NE
         placePort(portHex[7], 22, 2); // E
         placePort(portHex[8], 9, 2);  // E
+        */
+        for (int i = 0; i < PORTS_FACING_V1.length; ++i)
+            placePort(portHex[i], PORTS_HEXNUM_V1[i], PORTS_FACING_V1[i]);
 
         // fill out the ports[] vectors with node coordinates
         // where a trade port can be placed
 
+        for (int i = 0, ni=0; i < PORTS_FACING_V1.length; ++i)
+        {
+            ports[portHex[i]].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni; 
+            ports[portHex[i]].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni; 
+        }
+        /*
         ports[portHex[0]].addElement(new Integer(0x27));  // Port touches the upper-left land hex, port facing SE
         ports[portHex[0]].addElement(new Integer(0x38));  // [port's hex is NW of the upper-left land hex]
 
@@ -545,6 +588,7 @@ public class SOCBoard implements Serializable, Cloneable
 
         ports[portHex[8]].addElement(new Integer(0x25));  // Leftmost land hex above middle, facing E
         ports[portHex[8]].addElement(new Integer(0x34));
+        */
 
     }
 
@@ -904,37 +948,19 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * fill in the port node information
          */
-        ports[getPortTypeFromHex(hexLayout[0])].addElement(new Integer(0x27));
-        ports[getPortTypeFromHex(hexLayout[0])].addElement(new Integer(0x38));
-
-        ports[getPortTypeFromHex(hexLayout[2])].addElement(new Integer(0x5A));
-        ports[getPortTypeFromHex(hexLayout[2])].addElement(new Integer(0x6B));
-
-        ports[getPortTypeFromHex(hexLayout[8])].addElement(new Integer(0x9C));
-        ports[getPortTypeFromHex(hexLayout[8])].addElement(new Integer(0xAD));
-
-        ports[getPortTypeFromHex(hexLayout[9])].addElement(new Integer(0x25));
-        ports[getPortTypeFromHex(hexLayout[9])].addElement(new Integer(0x34));
-
-        ports[getPortTypeFromHex(hexLayout[21])].addElement(new Integer(0xCD));
-        ports[getPortTypeFromHex(hexLayout[21])].addElement(new Integer(0xDC));
-
-        ports[getPortTypeFromHex(hexLayout[22])].addElement(new Integer(0x43));
-        ports[getPortTypeFromHex(hexLayout[22])].addElement(new Integer(0x52));
-
-        ports[getPortTypeFromHex(hexLayout[32])].addElement(new Integer(0xC9));
-        ports[getPortTypeFromHex(hexLayout[32])].addElement(new Integer(0xDA));
-
-        ports[getPortTypeFromHex(hexLayout[33])].addElement(new Integer(0x72));
-        ports[getPortTypeFromHex(hexLayout[33])].addElement(new Integer(0x83));
-
-        ports[getPortTypeFromHex(hexLayout[35])].addElement(new Integer(0xA5));
-        ports[getPortTypeFromHex(hexLayout[35])].addElement(new Integer(0xB6));
+        for (int i = 0, ni=0; i < PORTS_FACING_V1.length; ++i)
+        {
+            int hexnum = PORTS_HEXNUM_V1[i];
+            ports[getPortTypeFromHex(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
+            ports[getPortTypeFromHex(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
+        }
     }
 
     /**
      * @return the type of port given a hex type;
-     *         in range {@link #MISC_PORT} to {@link #WOOD_PORT}
+     *         in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
+     *         If called on a non-port hex, returns 0 
+     *         (which is <tt>MISC_PORT</tt>).
      * @param hex  the hex type, as in {@link #hexLayout}
      * @see #getHexTypeFromCoord(int)
      */
