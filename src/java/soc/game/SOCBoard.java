@@ -101,6 +101,18 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAX_ROBBER_HEX = MAX_LAND_HEX;
 
     /**
+     * Port Placement constants begin here
+     * ------------------------------------------------------------------------------------
+     */
+
+    /**
+     * Each port's type, such as {@link #SHEEP_PORT}, on standard board.
+     * Same order as {@link #PORTS_FACING_V1}. {@link #MISC_PORT} is 0.
+     * @since 1.1.08
+     */
+    private final static int PORTS_TYPE_V1[] = { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT};
+
+    /**
      * Each port's hex number within {@link #hexLayout} on standard board.
      * Same order as {@link #PORTS_FACING_V1}:
      * Clockwise from upper-left (hex coordinate 0x17).
@@ -134,6 +146,14 @@ public class SOCBoard implements Serializable, Cloneable
         0x43, 0x52,  // Leftmost land hex of row below middle, E
         0x25, 0x34   // Leftmost land hex above middle, facing E
     };
+
+    /**
+     * Each port's type, such as {@link #SHEEP_PORT}, on 6-player board.
+     * Same order as {@link #PORTS_FACING_V2}. {@link #MISC_PORT} is 0.
+     * @since 1.1.08
+     */
+    private final static int PORTS_TYPE_V2[] =
+        { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT, MISC_PORT, SHEEP_PORT };
 
     /**
      * Each port's <em>facing,</em> on 6-player board.
@@ -549,12 +569,18 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public void makeNewBoard(Hashtable opts)
     {
-        final boolean is6player = (opts != null) && ((SOCGameOption)opts.get("DEBUG56PLBOARD")).getBoolValue();
+        final boolean is6player;
+        {
+            if (opts != null)
+            {
+                SOCGameOption opt_6player = (SOCGameOption) opts.get("DEBUG56PLBOARD");
+                is6player = (opt_6player != null) && opt_6player.getBoolValue();
+            } else {
+                is6player = false;
+            }
+        }
         int[] landHex = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
-        int[] portHex= { 0, 0, 0, 0, 1, 2, 3, 4, 5 };
-        // TODO:
-        //if (is6player)
-        //    portHex = { 0, 0, 0, 0, 1, 2, 3, 4, 5, MISC_PORT, SHEEP_PORT };
+        int[] portHex = (is6player) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
         int[] number = { 3, 0, 4, 1, 5, 7, 6, 9, 8, 2, 5, 7, 6, 2, 3, 4, 1, 8 };
         int[] numPath = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
 
