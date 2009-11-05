@@ -290,7 +290,7 @@ public class SOCBoard implements Serializable, Cloneable
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
        6 : water   {@link #WATER_HEX}
-       7 : misc port ("3:1") facing 1 ({@link #MISC_PORT} in {@link #getPortTypeFromHex(int)})
+       7 : misc port ("3:1") facing 1 ({@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
        8 : misc port facing 2
        9 : misc port facing 3
        10 : misc port facing 4
@@ -302,7 +302,7 @@ public class SOCBoard implements Serializable, Cloneable
       (port facing, 1-6)        (kind of port)
               \--> [0 0 0][0 0 0 0] <--/       </pre>
         Kind of port:<pre>
-        1 : clay  ({@link #CLAY_PORT} in {@link #getPortTypeFromHex(int)})
+        1 : clay  ({@link #CLAY_PORT} in {@link #getPortTypeFromNodeCoord(int)})
         2 : ore    {@link #ORE_PORT}
         3 : sheep  {@link #SHEEP_PORT}
         4 : wheat  {@link #WHEAT_PORT}
@@ -331,7 +331,9 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * On the 6-player (v2 layout) board, each port's type.  Null otherwise.
      * (In the standard (v1) board, these are part of {@link #hexLayout}.) 
+     * 1 element per port. Same ordering as {@link #PORTS_FACING_V2}.
      * Initialized in {@link #makeNewBoard(Hashtable)}.
+     * @see #ports
      * @since 1.1.08
      */
     private int[] portsLayout;
@@ -407,8 +409,20 @@ public class SOCBoard implements Serializable, Cloneable
      * ring of water/port hexes.  Initialized in constructor.  Length is >= {@link #MAXHEX}.
      * A value of -1 means the ID isn't a valid hex number on the board.
      * @see #numToHexID
+     * @see #nodeIDtoPortType
      */
     private int[] hexIDtoNum;
+
+    /**
+     * translate node ID (node coordinate) to a port's type ({@link #MISC_PORT} to {@link #WOOD_PORT}).
+     * Initialized in {@link #makeNewBoard(Hashtable)}.  Length is >= {@link #MAXNODE}.
+     * A value of -1 means the ID isn't a valid port on the board.
+     * @see #ports
+     * @see #portsLayout
+     * @see #hexIDtoNum
+     * @since 1.1.08
+     */
+    private int[] nodeIDtoPortType;
 
     /**
      * offset to add to hex coord to get all node coords
@@ -430,6 +444,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * where the ports are; coordinates per port type.
      * Indexes are port types, {@link #MISC_PORT} to {@link #WOOD_PORT}.
+     * @see #portsLayout
      */
     private Vector[] ports;
 
@@ -492,7 +507,7 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * initialize the port vector
          */
-        ports = new Vector[6];
+        ports = new Vector[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
         ports[MISC_PORT] = new Vector(8);
 
         for (i = CLAY_PORT; i <= WOOD_PORT; i++)
@@ -627,9 +642,9 @@ public class SOCBoard implements Serializable, Cloneable
         if (is6player)
         	portsLayout = portHex;  // No need to remember for 4-player standard layout
 
-        // place the ports (hex numbers and facing) within hexLayout
-
         /*
+        // place the ports (hex numbers and facing) within hexLayout and nodeIDtoPortType
+
         placePort(portHex[0], 0, 3);  // Facing 3 is SE: see hexLayout's javadoc.
                                       //   0 is hex number (index within hexLayout)
         placePort(portHex[1], 2, 4);  // Facing 4 is SW, at hex number 2
@@ -641,18 +656,25 @@ public class SOCBoard implements Serializable, Cloneable
         placePort(portHex[7], 22, 2); // E
         placePort(portHex[8], 9, 2);  // E
         */
-        for (int i = 0; i < PORTS_FACING_V1.length; ++i)
-            placePort(portHex[i], PORTS_HEXNUM_V1[i], PORTS_FACING_V1[i]);
 
+        // place the ports (hex numbers and facing) within hexLayout and nodeIDtoPortType.
+        // fill out the ports[] vectors with node coordinates where a trade port can be placed.
+        nodeIDtoPortType = new int[MAXNODEPLUSONE];
+        for (int i = 0; i <= MAXNODE; ++i)
+            nodeIDtoPortType[i] = -1;  // -1 means not a port (or not a valid node coord)
+        for (int i = 0, ni=0; i < PORTS_FACING_V1.length; ++i)
+        {
+            int node1 = PORTS_NODE_V1[ni];  ++ni;
+            int node2 = PORTS_NODE_V1[ni];  ++ni;
+            placePort(portHex[i], PORTS_HEXNUM_V1[i], PORTS_FACING_V1[i], node1, node2);
+            ports[portHex[i]].addElement(new Integer(node1)); 
+            ports[portHex[i]].addElement(new Integer(node2)); 
+        }
+
+        /*
         // fill out the ports[] vectors with node coordinates
         // where a trade port can be placed
 
-        for (int i = 0, ni=0; i < PORTS_FACING_V1.length; ++i)
-        {
-            ports[portHex[i]].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni; 
-            ports[portHex[i]].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni; 
-        }
-        /*
         ports[portHex[0]].addElement(new Integer(0x27));  // Port touches the upper-left land hex, port facing SE
         ports[portHex[0]].addElement(new Integer(0x38));  // [port's hex is NW of the upper-left land hex]
 
@@ -977,12 +999,15 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Auxiliary method for placing the port hexes, changing an element of {@link #hexLayout}.
+     * Auxiliary method for placing the port hexes, changing an element of {@link #hexLayout}
+     * and setting 2 elements of {@link #nodeIDtoPortType}.
      * @param port Port type; in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      * @param hex  Hex coordinate within {@link #hexLayout}
      * @param face Facing of port; 1 to 6; for facing direction, see {@link #hexLayout}
+     * @param node1 Node coordinate 1 of port
+     * @param node2 Node coordinate 2 of port
      */
-    private final void placePort(int port, int hex, int face)
+    private final void placePort(int port, int hex, int face, int node1, int node2)
     {
         if (port == MISC_PORT)
         {
@@ -993,6 +1018,8 @@ public class SOCBoard implements Serializable, Cloneable
         {
             hexLayout[hex] = (face << 4) + port;
         }
+        nodeIDtoPortType[node1] = port;
+        nodeIDtoPortType[node2] = port;
     }
 
     /**
@@ -1056,8 +1083,8 @@ public class SOCBoard implements Serializable, Cloneable
         for (int i = 0, ni=0; i < PORTS_FACING_V1.length; ++i)
         {
             int hexnum = PORTS_HEXNUM_V1[i];
-            ports[getPortTypeFromHex(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
-            ports[getPortTypeFromHex(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
+            ports[getPortTypeFromHexType(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
+            ports[getPortTypeFromHexType(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
         }
     }
 
@@ -1080,18 +1107,19 @@ public class SOCBoard implements Serializable, Cloneable
      *         (which is <tt>MISC_PORT</tt>).
      * @param hex  the hex type, as in {@link #hexLayout}
      * @see #getHexTypeFromCoord(int)
+     * @see #getPortTypeFromNodeCoord(int)
      */
-    public int getPortTypeFromHex(int hex)
+    public int getPortTypeFromHexType(final int hexType)
     {
         int portType = 0;
 
-        if ((hex >= 7) && (hex <= 12))
+        if ((hexType >= 7) && (hexType <= 12))
         {
             portType = 0;
         }
         else
         {
-            portType = hex & 0xF;
+            portType = hexType & 0xF;
         }
 
         return portType;
@@ -1123,11 +1151,28 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @param portType  the type of port;
      *        in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
+     * @see #getPortTypeFromNodeCoord(int)
      * @see #getPortsLayout()
      */
     public Vector getPortCoordinates(int portType)
     {
         return ports[portType];
+    }
+
+    /**
+     * What type of port is at this node?
+     * @param nodeCoord
+     * @return the type of port (in range {@link #MISC_PORT} to {@link #WOOD_PORT}),
+     *         or -1 if no port at this node
+     * @see #getPortTypeFromHexType(int)
+     * @since 1.1.08
+     */
+    public int getPortTypeFromNodeCoord(final int nodeCoord)
+    {
+        if ((nodeCoord >= 0) && (nodeCoord < nodeIDtoPortType.length))
+            return nodeIDtoPortType[nodeCoord];
+        else
+            return -1;
     }
 
     /**
@@ -1178,7 +1223,7 @@ public class SOCBoard implements Serializable, Cloneable
      *         or {@link #MISC_PORT_HEX} for any port,
      *         or {@link #WATER_HEX}.
      *
-     * @see #getPortTypeFromHex(int)
+     * @see #getPortTypeFromHexType(int)
      */
     public int getHexTypeFromCoord(final int hex)
     {
@@ -1195,7 +1240,7 @@ public class SOCBoard implements Serializable, Cloneable
      *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc).
      *         Invalid hex numbers return -1.
      *
-     * @see #getPortTypeFromHex(int)
+     * @see #getPortTypeFromHexType(int)
      */
     public int getHexTypeFromNumber(final int hex)
     {
