@@ -204,6 +204,16 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int BOARD_ENCODING_ORIGINAL = 1;
 
     /**
+     * 6-player format (2) for {@link #getBoardEncodingFormat()}:
+     * Land hexes are same encoding as {@link #BOARD_ENCODING_ORIGINAL}.
+     * Ports are not part of {@link #hexLayout} because their
+     * coordinates wouldn't fit within 2 hex digits.
+     * Instead, see {@link #getPortsLayout()} or {@link #getPortCoordinates(int)}.
+     * @since 1.1.08
+     */
+    public static final int BOARD_ENCODING_6PLAYER = 2;
+
+    /**
      * Size of board in coordinates (not in number of hexes across).
      * Default size per BOARD_ENCODING_ORIGINAL is: <pre>
      *   Hexes: 11 to DD
@@ -317,6 +327,14 @@ public class SOCBoard implements Serializable, Cloneable
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, WATER_HEX
     };
+
+    /**
+     * On the 6-player (v2 layout) board, each port's type.  Null otherwise.
+     * (In the standard (v1) board, these are part of {@link #hexLayout}.) 
+     * Initialized in {@link #makeNewBoard(Hashtable)}.
+     * @since 1.1.08
+     */
+    private int[] portsLayout;
 
     /**
      * Map of dice rolls to values in {@link #numberLayout}
@@ -565,7 +583,9 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Shuffle the hex tiles and layout a board
-     * @param opts {@link SOCGameOption Game options}, which may affect board layout, or null
+     * @param opts {@link SOCGameOption Game options}, which may affect board size and layout, or null
+     * @exception IllegalArgumentException if <tt>opts</tt> calls for a 6-player board, but
+     *        the current {@link #getBoardEncodingFormat()} is a larger value than {@link #BOARD_ENCODING_6PLAYER}.
      */
     public void makeNewBoard(Hashtable opts)
     {
@@ -575,12 +595,18 @@ public class SOCBoard implements Serializable, Cloneable
             {
                 SOCGameOption opt_6player = (SOCGameOption) opts.get("DEBUG56PLBOARD");
                 is6player = (opt_6player != null) && opt_6player.getBoolValue();
+                if (is6player)
+                {
+                    if (boardEncodingFormat > BOARD_ENCODING_6PLAYER)
+                        throw new IllegalArgumentException
+                            ("Cannot create 6-player when starting from a newer encoding");
+                    boardEncodingFormat = BOARD_ENCODING_6PLAYER;
+                }
             } else {
                 is6player = false;
             }
         }
         int[] landHex = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
-        int[] portHex = (is6player) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
         int[] number = { 3, 0, 4, 1, 5, 7, 6, 9, 8, 2, 5, 7, 6, 2, 3, 4, 1, 8 };
         int[] numPath = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
 
@@ -592,9 +618,14 @@ public class SOCBoard implements Serializable, Cloneable
         makeNewBoard_placeHexes
             (landHex, numPath, number, opt_breakClumps);
 
-        // shuffle the ports, and check vs game option BC
+        // copy and shuffle the ports, and check vs game option BC
+        final int[] portTypes = (is6player) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
+        int[] portHex = new int[portTypes.length];
+    	System.arraycopy(portTypes, 0, portHex, 0, portTypes.length);
         makeNewBoard_shufflePorts
             (portHex, opt_breakClumps);
+        if (is6player)
+        	portsLayout = portHex;  // No need to remember for 4-player standard layout
 
         // place the ports (hex numbers and facing) within hexLayout
 
@@ -981,6 +1012,20 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
+     * (In the standard board (v1), these are part of {@link #hexLayout}.)
+     * Same order as {@link #PORTS_FACING_V2}: Clockwise from upper-left.
+     *
+     * @return the ports layout, or null otherwise
+     * @see #getPortCoordinates(int)
+     * @since 1.1.08
+     */
+    public int[] getPortsLayout()
+    {
+    	return portsLayout;
+    }
+
+    /**
      * @return coordinate where the robber is
      */
     public int getRobberHex()
@@ -1014,6 +1059,18 @@ public class SOCBoard implements Serializable, Cloneable
             ports[getPortTypeFromHex(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
             ports[getPortTypeFromHex(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
         }
+    }
+
+    /**
+     * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
+     * (In the standard board (v1), these are part of {@link #hexLayout}.)
+     * Same order as {@link #PORTS_FACING_V2}: Clockwise from upper-left.
+     * @see #getPortsLayout()
+     * @since 1.1.08
+     */
+    public void setPortsLayout(int[] portTypes)
+    {
+        portsLayout = portTypes;
     }
 
     /**
@@ -1066,6 +1123,7 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @param portType  the type of port;
      *        in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
+     * @see #getPortsLayout()
      */
     public Vector getPortCoordinates(int portType)
     {
@@ -1778,6 +1836,10 @@ public class SOCBoard implements Serializable, Cloneable
     {
         String str;
         Enumeration hexes = getAdjacentHexesToNode(node).elements();
+        if (! hexes.hasMoreElements())
+        {
+            return "(node 0x" + Integer.toHexString(node) + ")";
+        }
         Integer hex = (Integer) hexes.nextElement();
         int number = getNumberOnHexFromCoord(hex.intValue());
 
