@@ -1899,7 +1899,6 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
              */
             case SOCMessage.BOARDLAYOUT2:
                 handleBOARDLAYOUT2((SOCBoardLayout2) mes);
-
                 break;
 
             /**
@@ -2783,6 +2782,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     /**
      * handle the "board layout" message, new format
      * @param mes  the message
+     * @since 1.1.08
      */
     protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
     {
