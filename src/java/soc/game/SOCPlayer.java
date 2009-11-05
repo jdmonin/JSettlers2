@@ -1066,8 +1066,9 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     public void undoPutPiece(SOCPlayingPiece piece)
     {
-        boolean ours = (piece.getPlayer().getPlayerNumber() == this.getPlayerNumber());
+        final boolean ours = (piece.getPlayer().getPlayerNumber() == this.getPlayerNumber());
 
+        final SOCBoard board = game.getBoard();
         switch (piece.getType())
         {
         //
@@ -1126,12 +1127,12 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             if (ours)
             {
                 removePiece(piece);
-                ourNumbers.undoUpdateNumbers(piece, game.getBoard());
+                ourNumbers.undoUpdateNumbers(piece, board);
 
                 //
                 // update our port flags
                 //
-                int portType = game.getBoard().getPortTypeFromNodeCoord(piece.getCoordinates());
+                int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
                 if (portType != -1)
                 {
                         //
@@ -1156,7 +1157,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                             {
                                 SOCSettlement settlement = (SOCSettlement) settlementEnum.nextElement();
 
-                                if (game.getBoard().getPortTypeFromNodeCoord(settlement.getCoordinates()) == SOCBoard.MISC_PORT)
+                                if (board.getPortTypeFromNodeCoord(settlement.getCoordinates()) == SOCBoard.MISC_PORT)
                                 {
                                     haveMiscPort = true;
 
@@ -1172,7 +1173,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                                 {
                                     SOCCity city = (SOCCity) cityEnum.nextElement();
 
-                                    if (game.getBoard().getPortTypeFromNodeCoord(city.getCoordinates()) == SOCBoard.MISC_PORT)
+                                    if (board.getPortTypeFromNodeCoord(city.getCoordinates()) == SOCBoard.MISC_PORT)
                                     {
                                         haveMiscPort = true;
 
@@ -1223,8 +1224,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                  * update what numbers we're touching
                  * a city counts as touching a number twice
                  */
-                ourNumbers.undoUpdateNumbers(piece, game.getBoard());
-                ourNumbers.undoUpdateNumbers(piece, game.getBoard());
+                ourNumbers.undoUpdateNumbers(piece, board);
+                ourNumbers.undoUpdateNumbers(piece, board);
             }
 
             break;
