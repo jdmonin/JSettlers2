@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,8 +33,7 @@ import java.util.StringTokenizer;
  * This message sends the standard board layout of the
  * original game, {@link soc.game.SOCBoard#BOARD_ENCODING_ORIGINAL}. 
  * As of version 1.1.08, there is a newer board layout for
- * game expansions.  See {@link SOCBoardLayout2} for the new
- * message type which sends the newer layout.
+ * game expansions.  See the new message type {@link SOCBoardLayout2 BOARDLAYOUT2}.
  *
  * @author Robert S. Thomas
  */
