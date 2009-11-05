@@ -291,12 +291,12 @@ public class SOCBoard implements Serializable, Cloneable
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
        6 : water   {@link #WATER_HEX}
-       7 : misc port ("3:1") facing 1 ({@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
-       8 : misc port facing 2
-       9 : misc port facing 3
-       10 : misc port facing 4
-       11 : misc port facing 5
-       12 : misc port facing 6
+       7 : misc port ("3:1") facing 1 (NorthEast) ({@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
+       8 : misc port facing 2 (E)
+       9 : misc port facing 3 (SE)
+       10 : misc port facing 4 (SW)
+       11 : misc port facing 5 (W)
+       12 : misc port facing 6 (NorthWest)
        16+: non-misc ("2:1") encoded port
        </pre>
         Non-misc ports are encoded here in binary like this:<pre>
@@ -321,6 +321,7 @@ public class SOCBoard implements Serializable, Cloneable
         4___/\/\___3  </pre>
 
          @see #getHexTypeFromNumber(int)
+         @see #getAdjacentNodeToHex(int, int)
      *
      **/
     private int[] hexLayout =   // initially all WATER_HEX
@@ -426,10 +427,11 @@ public class SOCBoard implements Serializable, Cloneable
     private int[] nodeIDtoPortType;
 
     /**
-     * offset to add to hex coord to get all node coords
+     * offset to add to hex coord to get all node coords,
+     * starting at top (northern point of hex) and going clockwise (RST dissertation figure A.5).
      * -- see getAdjacent* methods instead
-     * private int[] hexNodes = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
      */
+    private final int[] HEXNODES = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
 
     /**
      * offset of all hexes adjacent to a node
@@ -1818,6 +1820,27 @@ public class SOCBoard implements Serializable, Cloneable
             && (includeWater
                 || hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX))
             addTo.addElement(new Integer(hexCoord));
+    }
+
+    /**
+     * The node coordinate adjacent to this hex in a given direction.
+     * Since all hexes have 6 nodes, all node coordinates are valid so long as
+     * the hex coordinate is valid.
+     *
+     * @param hexCoord Coordinate ("ID") of this hex
+     * @param facing Direction, clockwise from top (northern point of hex):
+     *           0 is north, 1 is northeast, etc, 5 is northwest.
+     * @return Node coordinate in the facing direction
+     * @since 1.1.08
+     * @throws IllegalArgumentException if facing < 0 or facing &gt; 5
+     */
+    public int getAdjacentNodeToHex(final int hexCoord, final int facing)
+        throws IllegalArgumentException
+    {
+        if ((facing >= 0) && (facing < HEXNODES.length))
+            return hexCoord + HEXNODES[facing];
+        else
+            throw new IllegalArgumentException("facing");
     }
 
     /**
