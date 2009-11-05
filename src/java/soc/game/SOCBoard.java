@@ -208,7 +208,8 @@ public class SOCBoard implements Serializable, Cloneable
      * Land hexes are same encoding as {@link #BOARD_ENCODING_ORIGINAL}.
      * Ports are not part of {@link #hexLayout} because their
      * coordinates wouldn't fit within 2 hex digits.
-     * Instead, see {@link #getPortsLayout()} or {@link #getPortCoordinates(int)}.
+     * Instead, see {@link #getPortTypeFromNodeCoord(int)},
+     *   {@link #getPortCoordinates(int)} or {@link #getPortsLayout()}.
      * @since 1.1.08
      */
     public static final int BOARD_ENCODING_6PLAYER = 2;
@@ -1044,6 +1045,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Same order as {@link #PORTS_FACING_V2}: Clockwise from upper-left.
      *
      * @return the ports layout, or null otherwise
+     * @see #getPortTypeFromNodeCoord(int)
      * @see #getPortCoordinates(int)
      * @since 1.1.08
      */

@@ -2779,19 +2779,15 @@ public class SOCPlayerTracker
                                         fastestSetETA = posSetETA;
                                         tempPlayerNumbers.updateNumbers(posSet.getCoordinates(), player.getGame().getBoard());
 
-                                        Integer posSetCoords = new Integer(posSet.getCoordinates());
-
                                         for (int portType = SOCBoard.MISC_PORT;
                                                 portType <= SOCBoard.WOOD_PORT;
                                                 portType++)
                                         {
                                             tempPortFlagsSet[i][portType] = tempPortFlags[portType];
-
-                                            if (player.getGame().getBoard().getPortCoordinates(portType).contains(posSetCoords))
-                                            {
-                                                tempPortFlagsSet[i][portType] = true;
-                                            }
                                         }
+                                        int portType = player.getGame().getBoard().getPortTypeFromNodeCoord(posSet.getCoordinates());
+                                        if (portType != -1)
+                                            tempPortFlagsSet[i][portType] = true;
 
                                         tempSetBSE[i].recalculateEstimates(tempPlayerNumbers);
                                         chosenSetBuildingSpeed[i] = tempSetBSE[i].getEstimatesFromNothingFast(tempPortFlagsSet[i]);
@@ -2814,19 +2810,15 @@ public class SOCPlayerTracker
                                         boolean[] veryTempPortFlags = new boolean[SOCBoard.WOOD_PORT + 1];
                                         tempPlayerNumbers.updateNumbers(posSet.getCoordinates(), player.getGame().getBoard());
 
-                                        Integer posSetCoords = new Integer(posSet.getCoordinates());
-
                                         for (int portType = SOCBoard.MISC_PORT;
                                                 portType <= SOCBoard.WOOD_PORT;
                                                 portType++)
                                         {
                                             veryTempPortFlags[portType] = tempPortFlags[portType];
-
-                                            if (player.getGame().getBoard().getPortCoordinates(portType).contains(posSetCoords))
-                                            {
-                                                veryTempPortFlags[portType] = true;
-                                            }
                                         }
+                                        int portType = player.getGame().getBoard().getPortTypeFromNodeCoord(posSet.getCoordinates());
+                                        if (portType != -1)
+                                            veryTempPortFlags[portType] = true;
 
                                         tempBSE.recalculateEstimates(tempPlayerNumbers);
 
@@ -2876,7 +2868,7 @@ public class SOCPlayerTracker
                                                 chosenSetBuildingSpeed[i][buildingType] = tempBuildingSpeed[buildingType];
                                             }
 
-                                            for (int portType = SOCBoard.MISC_PORT;
+                                            for (portType = SOCBoard.MISC_PORT;
                                                     portType <= SOCBoard.WOOD_PORT;
                                                     portType++)
                                             {
@@ -3069,19 +3061,15 @@ public class SOCPlayerTracker
                                     fastestSetETA = posSetETA;
                                     tempPlayerNumbers.updateNumbers(posSet.getCoordinates(), player.getGame().getBoard());
 
-                                    Integer posSetCoords = new Integer(posSet.getCoordinates());
-
                                     for (int portType = SOCBoard.MISC_PORT;
                                             portType <= SOCBoard.WOOD_PORT;
                                             portType++)
                                     {
                                         tempPortFlagsSet[0][portType] = tempPortFlags[portType];
-
-                                        if (player.getGame().getBoard().getPortCoordinates(portType).contains(posSetCoords))
-                                        {
-                                            tempPortFlagsSet[0][portType] = true;
-                                        }
                                     }
+                                    int portType = player.getGame().getBoard().getPortTypeFromNodeCoord(posSet.getCoordinates());
+                                    if (portType != -1)
+                                        tempPortFlagsSet[0][portType] = true;
 
                                     tempSetBSE[0].recalculateEstimates(tempPlayerNumbers);
                                     chosenSetBuildingSpeed[0] = tempSetBSE[0].getEstimatesFromNothingFast(tempPortFlagsSet[0]);
@@ -3104,19 +3092,15 @@ public class SOCPlayerTracker
                                     boolean[] veryTempPortFlags = new boolean[SOCBoard.WOOD_PORT + 1];
                                     tempPlayerNumbers.updateNumbers(posSet.getCoordinates(), player.getGame().getBoard());
 
-                                    Integer posSetCoords = new Integer(posSet.getCoordinates());
-
                                     for (int portType = SOCBoard.MISC_PORT;
                                             portType <= SOCBoard.WOOD_PORT;
                                             portType++)
                                     {
                                         veryTempPortFlags[portType] = tempPortFlags[portType];
-
-                                        if (player.getGame().getBoard().getPortCoordinates(portType).contains(posSetCoords))
-                                        {
-                                            veryTempPortFlags[portType] = true;
-                                        }
                                     }
+                                    int portType = player.getGame().getBoard().getPortTypeFromNodeCoord(posSet.getCoordinates());
+                                    if (portType != -1)
+                                        veryTempPortFlags[portType] = true;
 
                                     tempBSE.recalculateEstimates(tempPlayerNumbers);
 
@@ -3166,7 +3150,7 @@ public class SOCPlayerTracker
                                             chosenSetBuildingSpeed[0][buildingType] = tempBuildingSpeed[buildingType];
                                         }
 
-                                        for (int portType = SOCBoard.MISC_PORT;
+                                        for (portType = SOCBoard.MISC_PORT;
                                                 portType <= SOCBoard.WOOD_PORT;
                                                 portType++)
                                         {
@@ -3381,22 +3365,12 @@ public class SOCPlayerTracker
                         tempPlayerNumbers.updateNumbers(chosenSet[0].getCoordinates(), player.getGame().getBoard());
                         tempPlayerNumbers.updateNumbers(chosenSet[1].getCoordinates(), player.getGame().getBoard());
 
-                        Integer chosenSet0Coords = new Integer(chosenSet[0].getCoordinates());
-                        Integer chosenSet1Coords = new Integer(chosenSet[1].getCoordinates());
-
-                        for (int portType = SOCBoard.MISC_PORT;
-                                portType <= SOCBoard.WOOD_PORT; portType++)
-                        {
-                            if (player.getGame().getBoard().getPortCoordinates(portType).contains(chosenSet0Coords))
-                            {
-                                tempPortFlags[portType] = true;
-                            }
-
-                            if (player.getGame().getBoard().getPortCoordinates(portType).contains(chosenSet1Coords))
-                            {
-                                tempPortFlags[portType] = true;
-                            }
-                        }
+                        int portType = player.getGame().getBoard().getPortTypeFromNodeCoord(chosenSet[0].getCoordinates());
+                        if (portType != -1)
+                            tempPortFlags[portType] = true;
+                        portType = player.getGame().getBoard().getPortTypeFromNodeCoord(chosenSet[1].getCoordinates());
+                        if (portType != -1)
+                            tempPortFlags[portType] = true;
 
                         ourBSE.recalculateEstimates(tempPlayerNumbers);
                         ourBuildingSpeed = ourBSE.getEstimatesFromNothingFast(tempPortFlags);
@@ -3443,16 +3417,9 @@ public class SOCPlayerTracker
                         //
                         tempPlayerNumbers.updateNumbers(chosenSet[0].getCoordinates(), player.getGame().getBoard());
 
-                        Integer chosenSet0Coords = new Integer(chosenSet[0].getCoordinates());
-
-                        for (int portType = SOCBoard.MISC_PORT;
-                                portType <= SOCBoard.WOOD_PORT; portType++)
-                        {
-                            if (player.getGame().getBoard().getPortCoordinates(portType).contains(chosenSet0Coords))
-                            {
-                                tempPortFlags[portType] = true;
-                            }
-                        }
+                        int portType = player.getGame().getBoard().getPortTypeFromNodeCoord(chosenSet[0].getCoordinates());
+                        if (portType != -1)
+                            tempPortFlags[portType] = true;
 
                         tempPlayerNumbers.updateNumbers(chosenCity[0].getCoordinates(), player.getGame().getBoard());
                         ourBSE.recalculateEstimates(tempPlayerNumbers);

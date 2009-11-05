@@ -181,7 +181,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
     /**
      * a boolean array stating wheather this player is touching a
-     * particular kind of port
+     * particular kind of port.
+     * Index == port type, in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
      */
     private boolean[] ports;
 
@@ -1024,18 +1025,9 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 /**
                  * update our port flags
                  */
-                Integer coordInteger = new Integer(piece.getCoordinates());
-
-                for (int portType = SOCBoard.MISC_PORT;
-                        portType <= SOCBoard.WOOD_PORT; portType++)
-                {
-                    if (game.getBoard().getPortCoordinates(portType).contains(coordInteger))
-                    {
-                        setPortFlag(portType, true);
-
-                        break;
-                    }
-                }
+                int portType = game.getBoard().getPortTypeFromNodeCoord(piece.getCoordinates());
+                if (portType != -1)
+                    setPortFlag(portType, true);
 
                 break;
 
@@ -1139,16 +1131,14 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 //
                 // update our port flags
                 //
-                Integer coordInteger = new Integer(piece.getCoordinates());
-
-                for (int portType = SOCBoard.MISC_PORT;
-                        portType <= SOCBoard.WOOD_PORT; portType++)
+                int portType = game.getBoard().getPortTypeFromNodeCoord(piece.getCoordinates());
+                if (portType != -1)
                 {
-                    if (game.getBoard().getPortCoordinates(portType).contains(coordInteger))
-                    {
                         //
                         // since only one settlement can be on a 2:1 port
                         // we can just set the port flag to false
+                        // TODO: In 6-player board, this may not be true;
+                        //   call getPortCoordinates(portType) and count # nodes / 2
                         //
                         if (portType != SOCBoard.MISC_PORT)
                         {
@@ -1166,7 +1156,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                             {
                                 SOCSettlement settlement = (SOCSettlement) settlementEnum.nextElement();
 
-                                if (game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT).contains(new Integer(settlement.getCoordinates())))
+                                if (game.getBoard().getPortTypeFromNodeCoord(settlement.getCoordinates()) == SOCBoard.MISC_PORT)
                                 {
                                     haveMiscPort = true;
 
@@ -1182,7 +1172,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                                 {
                                     SOCCity city = (SOCCity) cityEnum.nextElement();
 
-                                    if (game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT).contains(new Integer(city.getCoordinates())))
+                                    if (game.getBoard().getPortTypeFromNodeCoord(city.getCoordinates()) == SOCBoard.MISC_PORT)
                                     {
                                         haveMiscPort = true;
 
@@ -1193,9 +1183,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                             setPortFlag(SOCBoard.MISC_PORT, haveMiscPort);
                         }
-                    }
-                }
-            }
+                }  // if (portType != -1)
+            }  // if (ours)
 
             //
             // update settlement potentials 
@@ -2218,7 +2207,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * set a port flag
      *
-     * @param portType        the type of port, see SOCBoard
+     * @param portType  the type of port; in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
      * @param value                        true or false
      */
     public void setPortFlag(int portType, boolean value)
@@ -2229,7 +2218,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * @return the port flag for a type of port
      *
-     * @param portType        the type of port, see SOCBoard
+     * @param portType   the type of port; in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}
      */
     public boolean getPortFlag(int portType)
     {

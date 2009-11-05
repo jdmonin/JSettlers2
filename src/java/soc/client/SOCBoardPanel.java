@@ -1217,7 +1217,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Minimum required width and height, as determined by options and {@link #isRotated}.
+     * Minimum required width and height, as determined by options and {@link #isRotated()}.
      *
      * @return minimum size
      */
@@ -4120,17 +4120,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         public String portDescAtNode(int id)
         {
-            int portType;
-            Integer coordInteger = new Integer(id);
-
-            for (portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT; portType++)
-            {
-                if (game.getBoard().getPortCoordinates(portType).contains(coordInteger))
-                {
-                    break;
-                }
-            }
-            if (portType > SOCBoard.WOOD_PORT)
+            int portType = board.getPortTypeFromNodeCoord(id);
+            if (portType == -1)
                 return null;  // <--- No port found ---
 
             String portDesc;
@@ -4386,17 +4377,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   portId = bp.hoverTip.hoverID;
 
               if (portId != 0)
-              {
-                  Integer coordInteger = new Integer(portId);
-                  for (portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT; portType++)
-                  {
-                      if (game.getBoard().getPortCoordinates(portType).contains(coordInteger))
-                          break;
-                  }
-
-                  if (portType > SOCBoard.WOOD_PORT)
-                      portType = -1;
-              }
+                  portType = board.getPortTypeFromNodeCoord(portId);
 
               // Menu differs based on port
               if (portType != -1)
