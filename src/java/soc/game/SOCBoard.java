@@ -1005,21 +1005,24 @@ public class SOCBoard implements Serializable, Cloneable
      * Auxiliary method for placing the port hexes, changing an element of {@link #hexLayout}
      * and setting 2 elements of {@link #nodeIDtoPortType}.
      * @param port Port type; in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
-     * @param hex  Hex coordinate within {@link #hexLayout}
+     * @param hex  Hex coordinate within {@link #hexLayout}, or -1 if {@link #BOARD_ENCODING_6PLAYER}
      * @param face Facing of port; 1 to 6; for facing direction, see {@link #hexLayout}
      * @param node1 Node coordinate 1 of port
      * @param node2 Node coordinate 2 of port
      */
     private final void placePort(int port, int hex, int face, int node1, int node2)
     {
-        if (port == MISC_PORT)
+        if (hex != -1)
         {
-            // generic port == 6 + facing
-            hexLayout[hex] = face + 6;
-        }
-        else
-        {
-            hexLayout[hex] = (face << 4) + port;
+            if (port == MISC_PORT)
+            {
+                // generic port == 6 + facing
+                hexLayout[hex] = face + 6;
+            }
+            else
+            {
+                hexLayout[hex] = (face << 4) + port;
+            }
         }
         nodeIDtoPortType[node1] = port;
         nodeIDtoPortType[node2] = port;
@@ -1102,6 +1105,23 @@ public class SOCBoard implements Serializable, Cloneable
     public void setPortsLayout(int[] portTypes)
     {
         portsLayout = portTypes;
+        if (nodeIDtoPortType == null)
+        {
+            nodeIDtoPortType = new int[MAXNODEPLUSONE];
+            for (int i = 0; i <= MAXNODE; ++i)
+                nodeIDtoPortType[i] = -1;  // -1 means not a port (or not a valid node coord)
+        }
+        for (int i = 0; i < ports.length; ++i)
+            ports[i].removeAllElements();
+        for (int i = 0, ni=0; i < PORTS_FACING_V2.length; ++i)
+        {
+            int ptype = portTypes[i];
+            int node1 = PORTS_NODE_V2[ni];  ++ni;
+            int node2 = PORTS_NODE_V2[ni];  ++ni;
+            placePort(ptype, -1, PORTS_FACING_V2[i], node1, node2);
+            ports[ptype].addElement(new Integer(node1)); 
+            ports[ptype].addElement(new Integer(node2)); 
+        }
     }
 
     /**
@@ -1164,6 +1184,26 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Get a port's <em>facing</em>.
+     * @param portNum Port number, in range 0 to n-1,
+     *           Ordered clockwise from upper-left.
+     * @return facing (1-6), or 0 if not a valid port number.
+     *            Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * @since 1.1.08
+     */
+    public int getPortFacing(int portNum)
+    {
+        int[] pfacings;
+        if (boardEncodingFormat == BOARD_ENCODING_ORIGINAL)
+            pfacings = PORTS_FACING_V1;
+        else
+            pfacings = PORTS_FACING_V2;
+        if ((portNum >= 0) && (portNum < pfacings.length))
+            return pfacings[portNum];
+        else
+            return 0;
+    }
+    /**
      * What type of port is at this node?
      * @param nodeCoord
      * @return the type of port (in range {@link #MISC_PORT} to {@link #WOOD_PORT}),
@@ -1173,7 +1213,8 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public int getPortTypeFromNodeCoord(final int nodeCoord)
     {
-        if ((nodeCoord >= 0) && (nodeCoord < nodeIDtoPortType.length))
+        if ((nodeIDtoPortType != null)
+            && (nodeCoord >= 0) && (nodeCoord < nodeIDtoPortType.length))
             return nodeIDtoPortType[nodeCoord];
         else
             return -1;
