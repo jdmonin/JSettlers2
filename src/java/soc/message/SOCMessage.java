@@ -187,6 +187,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** @since 1.1.07 */
     public static final int GAMESWITHOPTIONS = 1083;  // gameoptions, 20090601
 
+    /** @since 1.1.08 */
+    public static final int BOARDLAYOUT2 = 1084;  // 6-player board, 20091104
+
+
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
     /////////////////////////////////////////
@@ -194,6 +198,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     // messages applicable to any game (game options, etc) in current low-1000s range.
     // Please see class javadoc.
     /////////////////////////////////////////
+
 
     /** @since 1.1.00 */
     public static final int VERSION = 9998;   // cli-serv versioning, 20080807, v1.1.00
@@ -655,6 +660,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
 	    case GAMESWITHOPTIONS:       // per-game options, 20090601, v1.1.07
 	        return SOCGamesWithOptions.parseDataStr(multiData);
+
+            case BOARDLAYOUT2:      // 6-player board, 20091104, v1.1.08
+                return SOCBoardLayout2.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
