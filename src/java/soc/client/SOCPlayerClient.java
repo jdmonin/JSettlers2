@@ -1895,6 +1895,14 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 break;
 
             /**
+             * receive a board layout (new format, as of 20091104 (v 1.1.08))
+             */
+            case SOCMessage.BOARDLAYOUT2:
+                handleBOARDLAYOUT2((SOCBoardLayout2) mes);
+
+                break;
+
+            /**
              * message that the game is starting
              */
             case SOCMessage.STARTGAME:
@@ -2770,6 +2778,29 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
             pi.getBoardPanel().repaint();
         }
+    }
+
+    /**
+     * handle the "board layout" message, new format
+     * @param mes  the message
+     */
+    protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
+    {
+        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        SOCBoard bd = ga.getBoard();
+        bd.setHexLayout(mes.getIntArrayPart("HL"));
+        bd.setNumberLayout(mes.getIntArrayPart("NL"));
+        bd.setRobberHex(mes.getIntPart("RH"));
+        int[] portLayout = mes.getIntArrayPart("PL");
+        if (portLayout != null)
+            bd.setPortsLayout(portLayout);
+        // TODO set board version somewhere from mes.getBoardEncodingFormat
+        //  or, after setting other things, it should match get.
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        pi.getBoardPanel().repaint();
     }
 
     /**

@@ -6018,8 +6018,7 @@ public class SOCServer extends Server
             messageToPlayer(c, new SOCSetSeatLock(gameName, i, gameData.isSeatLocked(i)));
         }
 
-        SOCBoardLayout bl = getBoardLayoutMessage(gameData);
-        c.put(bl.toCmd());
+        c.put(getBoardLayoutMessage(gameData).toCmd());
 
         for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
         {
@@ -7149,8 +7148,7 @@ public class SOCServer extends Server
             /**
              * send the board layout
              */
-            SOCBoardLayout bl = getBoardLayoutMessage(ga);
-            messageToGameWithMon(gaName, bl);
+            messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
 
             /**
              * send the player info
@@ -7383,12 +7381,14 @@ public class SOCServer extends Server
     }
 
     /**
-     * put together the SOCBoardLayout message
+     * put together the board layout message.
+     * Message type will be {@link SOCBoardLayout} or {@link SOCBoardLayout2},
+     * depending on {@link SOCBoard#getBoardEncodingFormat() ga.getBoard().getBoardEncodingFormat()}.
      *
      * @param  ga   the game
-     * @return      a board layout message
+     * @return   a board layout message
      */
-    private SOCBoardLayout getBoardLayoutMessage(SOCGame ga)
+    private SOCMessage getBoardLayoutMessage(SOCGame ga)
     {
         SOCBoard board;
         int[] hexes;
@@ -7399,8 +7399,13 @@ public class SOCServer extends Server
         hexes = board.getHexLayout();
         numbers = board.getNumberLayout();
         robber = board.getRobberHex();
-
-        return (new SOCBoardLayout(ga.getName(), hexes, numbers, robber));
+        int bef = board.getBoardEncodingFormat();
+        if (bef == 1)
+        {    
+            return new SOCBoardLayout(ga.getName(), hexes, numbers, robber);
+        } else {
+            return new SOCBoardLayout2(ga.getName(), bef, hexes, numbers, board.getPortsLayout(), robber);
+        }
     }
 
     /**
