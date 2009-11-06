@@ -1453,12 +1453,32 @@ public class SOCBoard implements Serializable, Cloneable
      }
 
     /**
+     * Adjacent node coordinates to an edge, within range {@link #MINNODE} to {@link #MAXNODE}.
      * @return the nodes that touch this edge, as a Vector of Integer coordinates
+     * @see #getAdjacentNodesToEdge_arr(int)
      */
-    public static Vector getAdjacentNodesToEdge(int coord)
+    public static Vector getAdjacentNodesToEdge(final int coord)
     {
         Vector nodes = new Vector(2);
-        int tmp;
+        int[] narr = getAdjacentNodesToEdge_arr(coord);
+        if ((narr[0] >= MINNODE) && (narr[0] <= MAXNODE))
+            nodes.addElement(new Integer(narr[0]));
+        if ((narr[1] >= MINNODE) && (narr[1] <= MAXNODE))
+            nodes.addElement(new Integer(narr[1]));
+        return nodes;
+    }
+
+    /**
+     * Adjacent node coordinates to an edge.
+     * Does not check against range {@link #MINNODE} to {@link #MAXNODE},
+     * so nodes in the water (off the land board) may be returned.
+     * @return the nodes that touch this edge, as an array of 2 integer coordinates
+     * @see #getAdjacentNodesToEdge(int)
+     * @since 1.1.08
+     */
+    public static int[] getAdjacentNodesToEdge_arr(final int coord)
+    {
+        int[] nodes = new int[2];
 
         /**
          * if the coords are (even, even), then
@@ -1466,36 +1486,14 @@ public class SOCBoard implements Serializable, Cloneable
          */
         if ((((coord & 0x0F) + (coord >> 4)) % 2) == 0)
         {
-            tmp = coord + 0x01;
-
-            if ((tmp >= MINNODE) && (tmp <= MAXNODE))
-            {
-                nodes.addElement(new Integer(tmp));
-            }
-
-            tmp = coord + 0x10;
-
-            if ((tmp >= MINNODE) && (tmp <= MAXNODE))
-            {
-                nodes.addElement(new Integer(tmp));
-            }
+            nodes[0] = coord + 0x01;
+            nodes[1] = coord + 0x10;
         }
         else
         {
             /* otherwise the road is either '/' or '\' */
-            tmp = coord;
-
-            if ((tmp >= MINNODE) && (tmp <= MAXNODE))
-            {
-                nodes.addElement(new Integer(tmp));
-            }
-
-            tmp = coord + 0x11;
-
-            if ((tmp >= MINNODE) && (tmp <= MAXNODE))
-            {
-                nodes.addElement(new Integer(tmp));
-            }
+            nodes[0] = coord;
+            nodes[1] = coord + 0x11;
         }
 
         return nodes;
