@@ -1483,7 +1483,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                             for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni) 
                             {
-                                boolean blocked = false;
+                                boolean blocked = false;  // Are we blocked in this node's direction?
                                 final int adjNode = adjNodes[ni];
                                 Enumeration allPiecesEnum = allPieces.elements();
 
