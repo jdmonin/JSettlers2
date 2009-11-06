@@ -42,11 +42,12 @@ public class SOCRoad extends SOCPlayingPiece
     }
 
     /**
-     * @return the nodes touching this road
+     * The 2 nodes touching this road.
+     * @return the 2 nodes touching this road
      */
-    public Vector getAdjacentNodes()
+    public int[] getAdjacentNodes()
     {
-        return SOCBoard.getAdjacentNodesToEdge(coord);
+        return SOCBoard.getAdjacentNodesToEdge_arr(coord);
     }
 
     /**

@@ -1479,19 +1479,19 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                              * check each adjacent node for blocking
                              * settlements or cities
                              */
-                            Enumeration adjNodesEnum = SOCBoard.getAdjacentNodesToEdge(adjEdge.intValue()).elements();
+                            final int[] adjNodes = SOCBoard.getAdjacentNodesToEdge_arr(adjEdge.intValue());
 
-                            while ((adjNodesEnum.hasMoreElements()) && (isPotentialRoad == false))
+                            for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni) 
                             {
                                 boolean blocked = false;
-                                Integer adjNode = (Integer) adjNodesEnum.nextElement();
+                                final int adjNode = adjNodes[ni];
                                 Enumeration allPiecesEnum = allPieces.elements();
 
                                 while (allPiecesEnum.hasMoreElements())
                                 {
                                     SOCPlayingPiece aPiece = (SOCPlayingPiece) allPiecesEnum.nextElement();
 
-                                    if ((aPiece.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((aPiece.getType() == SOCPlayingPiece.SETTLEMENT) || (aPiece.getType() == SOCPlayingPiece.CITY)) && (aPiece.getCoordinates() == (adjNode.intValue())))
+                                    if ((aPiece.getCoordinates() == adjNode) && (aPiece.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((aPiece.getType() == SOCPlayingPiece.SETTLEMENT) || (aPiece.getType() == SOCPlayingPiece.CITY)))
                                     {
                                         /**
                                          * we're blocked, don't bother checking adjacent edges
@@ -1504,7 +1504,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                                 if (!blocked)
                                 {
-                                    Enumeration adjAdjEdgesEnum = SOCBoard.getAdjacentEdgesToNode(adjNode.intValue()).elements();
+                                    Enumeration adjAdjEdgesEnum = SOCBoard.getAdjacentEdgesToNode(adjNode).elements();
 
                                     while ((adjAdjEdgesEnum.hasMoreElements()) && (isPotentialRoad == false))
                                     {
@@ -1601,11 +1601,11 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             {
                 // only add potentials if it's our piece
                 // add new potentials
-                Enumeration nodes = (SOCBoard.getAdjacentNodesToEdge(id)).elements();
+                final int[] nodes = SOCBoard.getAdjacentNodesToEdge_arr(id);
 
-                while (nodes.hasMoreElements())
+                for (int ni = 0; ni < 2; ++ni)
                 {
-                    Integer node = (Integer) nodes.nextElement();
+                    final int node = nodes[ni];
 
                     /**
                      * check for a foreign settlement or city
@@ -1618,7 +1618,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                     {
                         SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
 
-                        if ((p.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)) && (p.getCoordinates() == (node.intValue())))
+                        if ((p.getCoordinates() == node) && (p.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)))
                         {
                             blocked = true;
 
@@ -1628,7 +1628,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                     if (!blocked)
                     {
-                        Enumeration edges = SOCBoard.getAdjacentEdgesToNode(node.intValue()).elements();
+                        Enumeration edges = SOCBoard.getAdjacentEdgesToNode(node).elements();
 
                         while (edges.hasMoreElements())
                         {
@@ -1640,9 +1640,9 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                             }
                         }
 
-                        if (legalSettlements[node.intValue()])
+                        if (legalSettlements[node])
                         {
-                            potentialSettlements[node.intValue()] = true;
+                            potentialSettlements[node] = true;
                         }
                     }
                 }

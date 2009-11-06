@@ -1460,7 +1460,7 @@ public class SOCBoard implements Serializable, Cloneable
     public static Vector getAdjacentNodesToEdge(final int coord)
     {
         Vector nodes = new Vector(2);
-        int[] narr = getAdjacentNodesToEdge_arr(coord);
+        final int[] narr = getAdjacentNodesToEdge_arr(coord);
         if ((narr[0] >= MINNODE) && (narr[0] <= MAXNODE))
             nodes.addElement(new Integer(narr[0]));
         if ((narr[1] >= MINNODE) && (narr[1] <= MAXNODE))

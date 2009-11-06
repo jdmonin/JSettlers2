@@ -1548,7 +1548,7 @@ public class SOCPlayerTracker
                 /**
                  * look for possible settlements that can block this road
                  */
-                Vector adjNodeVec = SOCBoard.getAdjacentNodesToEdge(posRoad.getCoordinates());
+                final int[] adjNodesToPosRoad = SOCBoard.getAdjacentNodesToEdge_arr(posRoad.getCoordinates());
                 Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToEdge(posRoad.getCoordinates()).elements();
 
                 while (adjEdgeEnum.hasMoreElements())
@@ -1566,23 +1566,23 @@ public class SOCPlayerTracker
                              * found a supporting road, now find the node between
                              * the supporting road and the possible road
                              */
-                            Enumeration adjNodeToPosRoadEnum = adjNodeVec.elements();
+                            final int[] adjNodesToRealRoad = realRoad.getAdjacentNodes();
 
-                            while (adjNodeToPosRoadEnum.hasMoreElements())
+                            for (int pi = 0; pi < 2; ++pi)
                             {
-                                Integer adjNodeToPosRoad = (Integer) adjNodeToPosRoadEnum.nextElement();
-                                Enumeration adjNodeToRealRoadEnum = realRoad.getAdjacentNodes().elements();
+                                final int adjNodeToPosRoad = adjNodesToPosRoad[pi];
 
-                                while (adjNodeToRealRoadEnum.hasMoreElements())
+                                for (int ri = 0; ri < 2; ++ri)
                                 {
-                                    Integer adjNodeToRealRoad = (Integer) adjNodeToRealRoadEnum.nextElement();
+                                    final int adjNodeToRealRoad = adjNodesToRealRoad[ri];
 
-                                    if (adjNodeToPosRoad.intValue() == adjNodeToRealRoad.intValue())
+                                    if (adjNodeToPosRoad == adjNodeToRealRoad)
                                     {
                                         /**
                                          * we found the common node
                                          * now see if there is a possible enemy settlement
                                          */
+                                        final Integer adjNodeToPosRoadInt = new Integer(adjNodeToPosRoad);
                                         Iterator trackersIter = trackers.values().iterator();
 
                                         while (trackersIter.hasNext())
@@ -1591,7 +1591,7 @@ public class SOCPlayerTracker
 
                                             if (tracker.getPlayer().getPlayerNumber() != ourPlayerNumber)
                                             {
-                                                SOCPossibleSettlement posEnemySet = (SOCPossibleSettlement) tracker.getPossibleSettlements().get(adjNodeToPosRoad);
+                                                SOCPossibleSettlement posEnemySet = (SOCPossibleSettlement) tracker.getPossibleSettlements().get(adjNodeToPosRoadInt);
 
                                                 if (posEnemySet != null)
                                                 {
@@ -1743,24 +1743,25 @@ public class SOCPlayerTracker
                 if (necRoadVec.size() == 1)
                 {
                     SOCPossibleRoad necRoad = (SOCPossibleRoad) necRoadVec.firstElement();
-                    Enumeration adjNode1Enum = SOCBoard.getAdjacentNodesToEdge(posRoad.getCoordinates()).elements();
+                    final int[] adjNodes1 = SOCBoard.getAdjacentNodesToEdge_arr(posRoad.getCoordinates());
 
-                    while (adjNode1Enum.hasMoreElements())
+                    for (int i1 = 0; i1 < 2; ++i1)
                     {
-                        Integer adjNode1 = (Integer) adjNode1Enum.nextElement();
-                        Enumeration adjNode2Enum = SOCBoard.getAdjacentNodesToEdge(necRoad.getCoordinates()).elements();
+                        final int adjNode1 = adjNodes1[i1];
+                        final int[] adjNodes2 = SOCBoard.getAdjacentNodesToEdge_arr(necRoad.getCoordinates());
 
-                        while (adjNode2Enum.hasMoreElements())
+                        for (int i2 = 0; i2 < 2; ++i2)
                         {
-                            Integer adjNode2 = (Integer) adjNode2Enum.nextElement();
+                            final int adjNode2 = adjNodes2[i2];
 
-                            if (adjNode1.intValue() == adjNode2.intValue())
+                            if (adjNode1 == adjNode2)
                             {
                                 /**
                                  * see if there is a possible enemy settlement at
                                  * the node between the two possible roads
                                  */
                                 trackersIter = trackers.values().iterator();
+                                final Integer adjNodeInt = new Integer(adjNode1);
 
                                 while (trackersIter.hasNext())
                                 {
@@ -1768,7 +1769,7 @@ public class SOCPlayerTracker
 
                                     if (tracker.getPlayer().getPlayerNumber() != ourPlayerNumber)
                                     {
-                                        SOCPossibleSettlement posEnemySet = (SOCPossibleSettlement) tracker.getPossibleSettlements().get(adjNode1);
+                                        SOCPossibleSettlement posEnemySet = (SOCPossibleSettlement) tracker.getPossibleSettlements().get(adjNodeInt);
 
                                         if (posEnemySet != null)
                                         {
