@@ -123,6 +123,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Each port's <em>facing,</em> on standard board.
      * Ordered clockwise from upper-left (hex coordinate 0x17).
+     * Facing is the direction to the land hex touching the port.
      * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
      * @since 1.1.08
      */
@@ -136,7 +137,7 @@ public class SOCBoard implements Serializable, Cloneable
      */
     private final static int PORTS_NODE_V1[] = 
     {
-        0x27, 0x38,  // Port touches the upper-left land hex, port facing SE
+        0x27, 0x38,  // Port touches the upper-left land hex, port facing land to its SouthEast
         0x5A, 0x6B,  // Touches middle land hex of top row, port facing SW
         0x9C, 0xAD,  // Touches rightmost land hex of row above middle, SW
         0xCD, 0xDC,  // Rightmost of middle-row land hex, W
@@ -158,7 +159,9 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Each port's <em>facing,</em> on 6-player board.
      * Ordered clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
-     * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * Facing is the direction to the land hex touching the port.
+     * Within the board orientation (not the rotated visual orientation),
+     * facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
      * @since 1.1.08
      */
     private final static int PORTS_FACING_V2[] =
@@ -170,19 +173,19 @@ public class SOCBoard implements Serializable, Cloneable
      * Clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
      * @since 1.1.08
      */
-    private final static int PORTS_NODE_V2[] = 
+    private final static int PORTS_EDGE_V2[] = 
     {
-        0x07, 0x18,  // Port touches the upper-left land hex, port facing SE
-        0x3A, 0x4B,  // Touches middle land hex of top row, port facing SW
-        0x7C, 0x8D,  // Touches rightmost land hex of row below top, SW
-        0xAD, 0xBC,  // Touches rightmost land hex of row above middle, W
-        0xCB, 0xDA,  // Touches rightmost land hex of row below middle, W
-        0xC7, 0xD8,  // Touches rightmost land hex of row above bottom, NW
-        0xA3, 0xB4,  // Touches middle land hex of bottom row, NW
-        0x70, 0x81,  // Touches bottom-left land hex, NE
-        0x30, 0x41,  // Touches leftmost land hex of row below middle, NE
-        0x01, 0x10,  // Leftmost hex of middle row, E
-        0x03, 0x14   // Touches leftmost land hex of row above middle, SE
+        0x07,  // Port touches the upper-left land hex, port facing land to its SouthEast
+        0x3A,  // Touches middle land hex of top row, port facing SW
+        0x7C,  // Touches rightmost land hex of row below top, SW
+        0xAC,  // Touches rightmost land hex of row above middle, W
+        0xCA,  // Touches rightmost land hex of row below middle, W
+        0xC7,  // Touches rightmost land hex of row above bottom, NW
+        0xA3,  // Touches middle land hex of bottom row, NW
+        0x70,  // Touches bottom-left land hex, NE
+        0x30,  // Touches leftmost land hex of row below middle, NE
+        0x00,  // Leftmost hex of middle row, E
+        0x03   // Touches leftmost land hex of row above middle, SE
     };
 
     /**
@@ -291,7 +294,7 @@ public class SOCBoard implements Serializable, Cloneable
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
        6 : water   {@link #WATER_HEX}
-       7 : misc port ("3:1") facing 1 (NorthEast) ({@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
+       7 : misc port ("3:1") facing land in direction 1 (NorthEast) ({@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
        8 : misc port facing 2 (E)
        9 : misc port facing 3 (SE)
        10 : misc port facing 4 (SW)
@@ -1113,14 +1116,13 @@ public class SOCBoard implements Serializable, Cloneable
         }
         for (int i = 0; i < ports.length; ++i)
             ports[i].removeAllElements();
-        for (int i = 0, ni=0; i < PORTS_FACING_V2.length; ++i)
+        for (int i = 0; i < PORTS_FACING_V2.length; ++i)
         {
-            int ptype = portTypes[i];
-            int node1 = PORTS_NODE_V2[ni];  ++ni;
-            int node2 = PORTS_NODE_V2[ni];  ++ni;
-            placePort(ptype, -1, PORTS_FACING_V2[i], node1, node2);
-            ports[ptype].addElement(new Integer(node1)); 
-            ports[ptype].addElement(new Integer(node2)); 
+            final int ptype = portTypes[i];
+            final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V2[i]);
+            placePort(ptype, -1, PORTS_FACING_V2[i], nodes[1], nodes[2]);
+            ports[ptype].addElement(new Integer(nodes[1])); 
+            ports[ptype].addElement(new Integer(nodes[2])); 
         }
     }
 
