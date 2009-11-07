@@ -1120,9 +1120,9 @@ public class SOCBoard implements Serializable, Cloneable
         {
             final int ptype = portTypes[i];
             final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V2[i]);
-            placePort(ptype, -1, PORTS_FACING_V2[i], nodes[1], nodes[2]);
+            placePort(ptype, -1, PORTS_FACING_V2[i], nodes[0], nodes[1]);
+            ports[ptype].addElement(new Integer(nodes[0])); 
             ports[ptype].addElement(new Integer(nodes[1])); 
-            ports[ptype].addElement(new Integer(nodes[2])); 
         }
     }
 
@@ -1187,6 +1187,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Get a port's <em>facing</em>.
+     * Facing is the direction to the land hex touching the port.
      * @param portNum Port number, in range 0 to n-1,
      *           Ordered clockwise from upper-left.
      * @return facing (1-6), or 0 if not a valid port number.
