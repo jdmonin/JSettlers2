@@ -2139,9 +2139,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * and so can't be drawn in the standard drawHex loop.
      * @since 1.1.08
      */
-    private void drawPortsRing(Graphics g)
+    private final void drawPortsRing(Graphics g)
     {
-        int hnum, hx, hy;
+        int hnum, hx, hy, htype;
 
         // To left of each of hex numbers: 0, 4, 9, 15, 22, 28, 33.
         for (int r = 0; r <= 6; ++r)
@@ -2166,10 +2166,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         hy = hexY[0] - deltaY;        // Above top row
         final int hy2 = hexY[33] + deltaY;  // Below bottom row
 
-        for (int c = 0; c < 4; ++c, hx += deltaX)
+        for (int c = 0, nodeCoord = 0x07;
+             c < 4;
+             ++c, nodeCoord += 0x22, hx += deltaX)
         {
-            drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
-            drawHex(g, hx, hy2, SOCBoard.WATER_HEX, -1);
+            htype = board.getPortTypeFromNodeCoord(nodeCoord);
+            if (htype == -1) {
+                htype = SOCBoard.WATER_HEX;
+            } else {
+                int pfacing = 2; // TODO board.getPortFacing
+                htype = htype + (pfacing << 4);
+            }
+            drawHex(g, hx, hy, htype, -1);
+
+            // bottom-row coords swap the hex digits of top-row coords.
+            htype = board.getPortTypeFromNodeCoord((nodeCoord >> 4) | ((nodeCoord & 0x0F) << 4));
+            if (htype == -1) {
+                htype = SOCBoard.WATER_HEX;
+            } else {
+                int pfacing = 2; // TODO board.getPortFacing
+                htype = htype + (pfacing << 4);
+            }
+            drawHex(g, hx, hy2, htype, -1);
         }
     }
 
@@ -4078,8 +4096,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     case SOCBoard.WATER_HEX:
                         sb.append("Water");   break;
                     default:
-                        sb.append("Hex type ");
-                        sb.append(board.getHexTypeFromCoord(id));
+                        {
+                            final int htype = board.getHexTypeFromCoord(id);
+                            String portDesc = null;
+                            if ((htype >= SOCBoard.MISC_PORT_HEX) && (htype <= SOCBoard.WOOD_PORT_HEX))
+                            {
+                                portDesc = portDescForType(htype - (SOCBoard.MISC_PORT_HEX - SOCBoard.MISC_PORT));
+                            }
+                            if (portDesc != null)
+                            {
+                                sb.append(portDesc);
+                            } else {
+                                sb.append("Hex type ");
+                                sb.append(htype);
+                            }
+                        }
                     }
                     if (board.getRobberHex() == id)
                     {
@@ -4120,7 +4151,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         public String portDescAtNode(int id)
         {
-            int portType = board.getPortTypeFromNodeCoord(id);
+            return portDescForType(board.getPortTypeFromNodeCoord(id));
+        }
+
+        /**
+         * Descriptive text for a given port type.
+         * @param portType Port type, as from {@link SOCBoard#getPortTypeFromNodeCoord(int)}.
+         *           Should be in range {@link SOCBoard#MISC_PORT} to {@link SOCBoard#WOOD_PORT}.
+         * @return Port text description, or null if no port for that value of <tt>portType</tt>
+         *    Text format is "3:1 Port" or "2:1 Wood port".
+         * @since 1.1.08
+         */
+        public String portDescForType(final int portType)
+        {
             if (portType == -1)
                 return null;  // <--- No port found ---
 
