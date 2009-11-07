@@ -335,6 +335,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * On the 6-player (v2 layout) board, each port's type.  Null otherwise.
+     * Same value range as in {@link #hexLayout}.
      * (In the standard (v1) board, these are part of {@link #hexLayout}.) 
      * 1 element per port. Same ordering as {@link #PORTS_FACING_V2}.
      * Initialized in {@link #makeNewBoard(Hashtable)}.
@@ -430,8 +431,10 @@ public class SOCBoard implements Serializable, Cloneable
     private int[] nodeIDtoPortType;
 
     /**
-     * offset to add to hex coord to get all node coords,
-     * starting at top (northern point of hex) and going clockwise (RST dissertation figure A.5).
+     * Offset to add to hex coordinate to get all adjacent node coords, starting at
+     * index 0 at the top (northern point of hex) and going clockwise (RST dissertation figure A.5).
+     * Because we're looking at nodes and not edges (points, not sides, of the hex),
+     * these are offset from the set of "facing" directions by 30 degrees.
      * -- see getAdjacent* methods instead
      */
     private final int[] HEXNODES = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
@@ -1051,6 +1054,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
+     * Same value range as in {@link #hexLayout}.
      * (In the standard board (v1), these are part of {@link #hexLayout}.)
      * Same order as {@link #PORTS_FACING_V2}: Clockwise from upper-left.
      *
@@ -1884,19 +1888,19 @@ public class SOCBoard implements Serializable, Cloneable
      * the hex coordinate is valid.
      *
      * @param hexCoord Coordinate ("ID") of this hex
-     * @param facing Direction, clockwise from top (northern point of hex):
+     * @param dir  Direction, clockwise from top (northern point of hex):
      *           0 is north, 1 is northeast, etc, 5 is northwest.
-     * @return Node coordinate in the facing direction
+     * @return Node coordinate in that direction
      * @since 1.1.08
-     * @throws IllegalArgumentException if facing < 0 or facing &gt; 5
+     * @throws IllegalArgumentException if dir < 0 or dir &gt; 5
      */
-    public int getAdjacentNodeToHex(final int hexCoord, final int facing)
+    public int getAdjacentNodeToHex(final int hexCoord, final int dir)
         throws IllegalArgumentException
     {
-        if ((facing >= 0) && (facing < HEXNODES.length))
-            return hexCoord + HEXNODES[facing];
+        if ((dir >= 0) && (dir < HEXNODES.length))
+            return hexCoord + HEXNODES[dir];
         else
-            throw new IllegalArgumentException("facing");
+            throw new IllegalArgumentException("dir");
     }
 
     /**
