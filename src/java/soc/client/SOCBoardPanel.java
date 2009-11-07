@@ -94,6 +94,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int halfdeltaX = 27;
 
     /**
+     * x-offset to move over 1 hex, for each port facing direction (1-6). 0 is unused.
+     * Facing is the direction to the land hex touching the port.
+     * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * @see #DELTAY_FACING
+     * @since 1.1.08
+     */
+    private static final int[] DELTAX_FACING =
+    {
+        0, halfdeltaX, deltaX, halfdeltaX, -halfdeltaX, -deltaX, -halfdeltaX 
+    };
+
+    /**
+     * y-offset to move over 1 hex, for each port facing direction (1-6). 0 is unused.
+     * @see #DELTAX_FACING
+     * @since 1.1.08
+     */
+    private static final int[] DELTAY_FACING =
+    {
+        0, -deltaY, 0, deltaY, deltaY, 0, -deltaY
+    };
+
+    /**
      * hex coordinates for drawing the standard board.
      * These were called hexX, hexY before 1.1.08.
      * @see #hexX_6pl
@@ -1596,7 +1618,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final void drawHex(Graphics g, int x, int y, int hexType, int hexNum)
     {
         int tmp;
-        int[] numberLayout = board.getNumberLayout();
 
         if (isScaledOrRotated)
         {
@@ -1736,7 +1757,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the number
          */
-        int hnl = numberLayout[hexNum];
+        final int hnl = board.getNumberLayout()[hexNum];
         if (hnl >= 0)
         {
             final int dx, dy;  // Offset of number graphic from upper-left corner of hex
@@ -2143,6 +2164,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         int hnum, hx, hy, htype;
 
+        /**
+         * First, draw the ring of water hexes.
+         * Then we'll overlay ports on them.
+         */
+
         // To left of each of hex numbers: 0, 4, 9, 15, 22, 28, 33.
         for (int r = 0; r <= 6; ++r)
         {
@@ -2171,23 +2197,46 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
              ++c, nodeCoord += 0x22, hx += deltaX)
         {
             htype = board.getPortTypeFromNodeCoord(nodeCoord);
-            if (htype == -1) {
-                htype = SOCBoard.WATER_HEX;
-            } else {
-                int pfacing = 2; // TODO board.getPortFacing
-                htype = htype + (pfacing << 4);
-            }
-            drawHex(g, hx, hy, htype, -1);
+            if (htype == -1)
+                drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
 
             // bottom-row coords swap the hex digits of top-row coords.
             htype = board.getPortTypeFromNodeCoord((nodeCoord >> 4) | ((nodeCoord & 0x0F) << 4));
-            if (htype == -1) {
-                htype = SOCBoard.WATER_HEX;
+            if (htype == -1)
+                drawHex(g, hx, hy2, SOCBoard.WATER_HEX, -1);
+        }
+
+        /**
+         * Draw each port
+         */
+        final int[] portsLayout = board.getPortsLayout();
+        if (portsLayout == null)
+            return;  // <--- Too early: board not created & sent from server ---
+
+        final int[] portsFacing = board.getPortsFacing();
+        final int[] portsEdges = board.getPortsEdges();
+        for (int i = portsLayout.length-1; i>=0; --i)
+        {
+            // The (x,y) graphic location for this port isn't in hexX/hexY, because
+            // the port is just beyond the coordinate system.  Get its facing land hex
+            // and base (x,y) off that.
+            final int landFacing = portsFacing[i];
+            final int landHexCoord = board.getAdjacentHexToEdge(portsEdges[i], landFacing);
+            hnum = board.getHexNumFromCoord(landHexCoord);
+            // now move 1 hex "backwards" from hnum
+            hx = hexX[hnum] - DELTAX_FACING[landFacing];
+            hy = hexY[hnum] - DELTAY_FACING[landFacing];
+
+            // portsLayout type will be like SHEEP_PORT;
+            // must encode facing type and facing for drawHex.
+            htype = portsLayout[i];
+            if (htype == SOCBoard.MISC_PORT)
+            {
+                htype = SOCBoard.MISC_PORT_HEX + (landFacing - 1);
             } else {
-                int pfacing = 2; // TODO board.getPortFacing
-                htype = htype + (pfacing << 4);
+                htype += (landFacing << 4) ;
             }
-            drawHex(g, hx, hy2, htype, -1);
+            drawHex(g, hx, hy, htype, -1);
         }
     }
 
