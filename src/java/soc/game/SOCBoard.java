@@ -1281,7 +1281,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
      *         or {@link #DESERT_HEX},
-     *         or {@link #MISC_PORT_HEX} for any port,
+     *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc),
      *         or {@link #WATER_HEX}.
      *
      * @see #getPortTypeFromHexType(int)
@@ -1302,6 +1302,7 @@ public class SOCBoard implements Serializable, Cloneable
      *         Invalid hex numbers return -1.
      *
      * @see #getPortTypeFromHexType(int)
+     * @see #getHexTypeFromCoord(int)
      */
     public int getHexTypeFromNumber(final int hex)
     {
