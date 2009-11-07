@@ -101,6 +101,23 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAX_ROBBER_HEX = MAX_LAND_HEX;
 
     /**
+     * Facing is the direction (1-6) to the hex touching a hex or edge.
+     * Facing 1 is NE, 2 is E, 3 is SE, 4 is SW, etc;
+     * used in {@link #hexLayout} for ports, and elsewhere.<pre>
+      6 &lt;--.    .--> 1
+            \/\/
+            /  \
+       5&lt;--|    |--> 2
+           |    |
+            \  /
+            /\/\
+      4 &lt;--.    .--> 3  </pre>
+     * @since 1.1.08
+     */
+    public static final int FACING_NE = 1, FACING_E = 2, FACING_SE = 3,
+        FACING_SW = 4, FACING_W = 5, FACING_NW = 6;
+
+    /**
      * Port Placement constants begin here
      * ------------------------------------------------------------------------------------
      */
@@ -123,11 +140,15 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Each port's <em>facing,</em> on standard board.
      * Ordered clockwise from upper-left (hex coordinate 0x17).
-     * Facing is the direction to the land hex touching the port.
-     * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * Port Facing is the direction from the port hex, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     * Facing 2 is east ({@link #FACING_E}), 3 is SE, 4 is SW, etc; see {@link #hexLayout}.
      * @since 1.1.08
      */
-    private final static int PORTS_FACING_V1[] = { 3, 4, 4, 5, 6, 6, 1, 2, 2};
+    private final static int PORTS_FACING_V1[] =
+    {
+        FACING_SE, FACING_SW, FACING_SW, FACING_W, FACING_NW, FACING_NW, FACING_NE, FACING_E, FACING_E
+    };
 
     /**
      * Each port's 2 node coordinates on standard board.
@@ -159,13 +180,17 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Each port's <em>facing,</em> on 6-player board.
      * Ordered clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
-     * Facing is the direction to the land hex touching the port.
+     * Port Facing is the direction from the port hex, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
      * Within the board orientation (not the rotated visual orientation),
-     * facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * facing 2 is east ({@link #FACING_E}), 3 is SE, 4 is SW, etc.
      * @since 1.1.08
      */
     private final static int PORTS_FACING_V2[] =
-        { 3, 4, 4, 5, 5, 6, 6, 1, 1, 2, 3 };
+    {
+        FACING_SE, FACING_SW, FACING_SW, FACING_W, FACING_W, FACING_NW,
+        FACING_NW, FACING_NE, FACING_NE, FACING_E, FACING_SE
+    };
 
     /**
      * Each port's 2 node coordinates on 6-player board.
@@ -282,8 +307,8 @@ public class SOCBoard implements Serializable, Cloneable
     /***************************************
      * Hex data array, one element per water or land (or port, which is special water) hex.
      * Each element's coordinates on the board ("hex ID") is {@link #numToHexID}[i].
-     * Each element's value encodes hex type and (if a
-     * port) facing. (Facing is defined just below.)
+     * Each element's value encodes hex type and, if a
+     * port, its facing ({@link #FACING_NE} to {@link #FACING_NW}).
      *<P>
      * Key to the hexLayout[] values:
        <pre>
@@ -294,19 +319,20 @@ public class SOCBoard implements Serializable, Cloneable
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
        6 : water   {@link #WATER_HEX}
-       7 : misc port ("3:1") facing land in direction 1 (NorthEast) ({@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
-       8 : misc port facing 2 (E)
-       9 : misc port facing 3 (SE)
-       10 : misc port facing 4 (SW)
-       11 : misc port facing 5 (W)
-       12 : misc port facing 6 (NorthWest)
+       7 : misc port ("3:1") facing land in direction 1 ({@link #FACING_NE NorthEast})
+                             (this port type is {@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
+       8 : misc port facing 2 ({@link #FACING_E})
+       9 : misc port facing 3 ({@link #FACING_SE})
+       10 : misc port facing 4 ({@link #FACING_SW})
+       11 : misc port facing 5 ({@link #FACING_W})
+       12 : misc port facing 6 ({@link #FACING_NW NorthWest})
        16+: non-misc ("2:1") encoded port
        </pre>
         Non-misc ports are encoded here in binary like this:<pre>
       (port facing, 1-6)        (kind of port)
               \--> [0 0 0][0 0 0 0] <--/       </pre>
         Kind of port:<pre>
-        1 : clay  ({@link #CLAY_PORT} in {@link #getPortTypeFromNodeCoord(int)})
+        1 : clay  (port type {@link #CLAY_PORT} in {@link #getPortTypeFromNodeCoord(int)})
         2 : ore    {@link #ORE_PORT}
         3 : sheep  {@link #SHEEP_PORT}
         4 : wheat  {@link #WHEAT_PORT}
@@ -314,14 +340,16 @@ public class SOCBoard implements Serializable, Cloneable
         </pre>
         <em>Port facing</em> is the edge of the port's hex
         touching land, which contains 2 nodes where player can build a
-        port settlement/city; facing is a number 1-6. <pre>
-        6___    ___1
+        port settlement/city; facing is a number 1-6
+        ({@link #FACING_NE}-{@link #FACING_NW}). <pre>
+      6 &lt;--.    .--> 1
             \/\/
             /  \
-       5___|    |___2
+       5&lt;--|    |--> 2
            |    |
             \  /
-        4___/\/\___3  </pre>
+            /\/\
+      4 &lt;--.    .--> 3  </pre>
 
          @see #getHexTypeFromNumber(int)
          @see #getAdjacentNodeToHex(int, int)
@@ -1014,7 +1042,7 @@ public class SOCBoard implements Serializable, Cloneable
      * and setting 2 elements of {@link #nodeIDtoPortType}.
      * @param port Port type; in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      * @param hex  Hex coordinate within {@link #hexLayout}, or -1 if {@link #BOARD_ENCODING_6PLAYER}
-     * @param face Facing of port; 1 to 6; for facing direction, see {@link #hexLayout}
+     * @param face Facing of port; 1 to 6 ({@link #FACING_NE} to {@link #FACING_NW})
      * @param node1 Node coordinate 1 of port
      * @param node2 Node coordinate 2 of port
      */
@@ -1204,11 +1232,12 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Get a port's <em>facing</em>.
-     * Facing is the direction to the land hex touching the port.
+     * Facing is the direction from the port hex, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
      * @param portNum Port number, in range 0 to n-1,
      *           Ordered clockwise from upper-left.
      * @return facing (1-6), or 0 if not a valid port number.
-     *            Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     *            Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
      * @since 1.1.08
      */
     public int getPortFacing(int portNum)
