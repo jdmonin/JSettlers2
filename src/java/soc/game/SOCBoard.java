@@ -603,7 +603,9 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Shuffle the hex tiles and layout a board
+     * Shuffle the hex tiles and layout a board.
+     * This is called at server, but not at client;
+     * client instead calls methods such as {@link #setHexLayout(int[])}.
      * @param opts {@link SOCGameOption Game options}, which may affect board size and layout, or null
      * @exception IllegalArgumentException if <tt>opts</tt> calls for a 6-player board, but
      *        the current {@link #getBoardEncodingFormat()} is a larger value than {@link #BOARD_ENCODING_6PLAYER}.
@@ -1090,11 +1092,22 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * fill in the port node information
          */
+        if (nodeIDtoPortType == null)
+        {
+            nodeIDtoPortType = new int[MAXNODEPLUSONE];
+            for (int i = 0; i <= MAXNODE; ++i)
+                nodeIDtoPortType[i] = -1;  // -1 means not a port (or not a valid node coord)
+        }
         for (int i = 0, ni=0; i < PORTS_FACING_V1.length; ++i)
         {
-            int hexnum = PORTS_HEXNUM_V1[i];
-            ports[getPortTypeFromHexType(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
-            ports[getPortTypeFromHexType(hexLayout[hexnum])].addElement(new Integer(PORTS_NODE_V1[ni]));  ++ni;
+            final int hexnum = PORTS_HEXNUM_V1[i];
+            final int ptype = getPortTypeFromHexType(hexLayout[hexnum]);
+            final int node1 = PORTS_NODE_V1[ni];  ++ni;
+            final int node2 = PORTS_NODE_V1[ni];  ++ni;
+            ports[ptype].addElement(new Integer(node1));
+            ports[ptype].addElement(new Integer(node2));
+            nodeIDtoPortType[node1] = ptype;
+            nodeIDtoPortType[node2] = ptype;
         }
     }
 
