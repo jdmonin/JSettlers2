@@ -1933,6 +1933,113 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * The hex touching an edge in a given direction,
+     * either along its length or at one end node.
+     * @param edgeCoord The edge's coordinate. {@link #MAXEDGE} is 0xEE.
+     * @param facing  Facing from edge; 1 to 6.
+     *           This will be either a direction perpendicular to the edge,
+     *           or towards one end. Each end has two facing directions angled
+     *           towards it; both will return the same hex.
+     *           Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
+     * @return hex coordinate of hex in the facing direction,
+     *           or 0 if a hex digit would be below 0 after subtraction
+     *           or above F after addition.
+     * @throws IllegalArgumentException if facing < 1 or facing &gt; 6
+     * @since 1.1.08
+     */
+    public int getAdjacentHexToEdge(final int edgeCoord, final int facing)
+        throws IllegalArgumentException
+    {
+        int hex = 0;
+
+        // Calculated as in RST dissertation figures A.11 - A.13,
+        // and A.1 / A.3 for hex/edge coordinates past ends of the edge.
+        // No valid edge has an F digit, so we need only
+        // bounds-check subtraction vs 0, and addition+2 vs D.
+
+        /**
+         * if the coords are (even, even), then
+         * the edge is '|'.  (Figure A.13)
+         */
+        if ((((edgeCoord & 0x0F) + (edgeCoord >> 4)) % 2) == 0)
+        {
+            switch (facing)
+            {
+            case FACING_E:
+                hex = edgeCoord + 0x11;
+                break;
+            case FACING_W:
+                if ((0 != (edgeCoord & 0x0F)) && (0 != (edgeCoord & 0xF0)))
+                    hex = edgeCoord - 0x11;
+                break;
+            case FACING_NE: case FACING_NW:
+                if (0 != (edgeCoord & 0xF0))
+                    hex = edgeCoord + 0x01 - 0x10;
+                break;
+            case FACING_SE: case FACING_SW:
+                if (0 != (edgeCoord & 0x0F))
+                    hex = edgeCoord - 0x01 + 0x10;
+                break;
+            }
+        }
+
+        /**
+         * if the coords are (even, odd), then
+         * the edge is '/'.  (Figure A.11)
+         */
+        else if (((edgeCoord >> 4) % 2) == 0)
+        {
+            switch (facing)
+            {
+            case FACING_NW:
+                if (0 != (edgeCoord & 0xF0))
+                    hex = edgeCoord - 0x10;
+                break;
+            case FACING_SE:
+                hex = edgeCoord + 0x10;
+                break;
+            case FACING_NE: case FACING_E:
+                if ((edgeCoord & 0x0F) <= 0xD)
+                    hex = edgeCoord + 0x12;
+                break;
+            case FACING_SW: case FACING_W:
+                if ((0 != (edgeCoord & 0xF0))
+                    && ((edgeCoord & 0x0F) >= 2))
+                    hex = edgeCoord - 0x12;   
+                break;
+            }
+        }
+        else
+        {
+            /**
+             * otherwise the coords are (odd, even),
+             * and the edge is '\'.  (Figure A.12)
+             */
+            switch (facing)
+            {
+            case FACING_NE:
+                hex = edgeCoord + 0x01;
+                break;
+            case FACING_SW:
+                if (0 != (edgeCoord & 0x0F))
+                    hex = edgeCoord - 0x01;
+                break;
+            case FACING_E: case FACING_SE:
+                if ((edgeCoord >> 4) <= 0xD)
+                    hex = edgeCoord + 0x21;
+                break;
+            case FACING_W: case FACING_NW:
+                if ((0 != (edgeCoord & 0x0F))
+                    && ((edgeCoord >> 4) >= 2))
+                    hex = edgeCoord - 0x21;
+                break;
+            }
+        }
+
+        return hex;
+    }
+
+    /**
      * If there's a settlement or city at this node, find it.
      * 
      * @param nodeCoord Location coordinate (as returned by SOCBoardPanel.findNode)
