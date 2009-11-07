@@ -156,17 +156,17 @@ public class SOCBoard implements Serializable, Cloneable
      * Clockwise from upper-left (hex coordinate 0x17).
      * @since 1.1.08
      */
-    private final static int PORTS_NODE_V1[] = 
+    private final static int PORTS_EDGE_V1[] = 
     {
-        0x27, 0x38,  // Port touches the upper-left land hex, port facing land to its SouthEast
-        0x5A, 0x6B,  // Touches middle land hex of top row, port facing SW
-        0x9C, 0xAD,  // Touches rightmost land hex of row above middle, SW
-        0xCD, 0xDC,  // Rightmost of middle-row land hex, W
-        0xC9, 0xDA,  // Rightmost land hex below middle, NW
-        0xA5, 0xB6,  // Port touches middle hex of bottom row, facing NW
-        0x72, 0x83,  // Leftmost of bottom row, NE
-        0x43, 0x52,  // Leftmost land hex of row below middle, E
-        0x25, 0x34   // Leftmost land hex above middle, facing E
+        0x27,  // Port touches the upper-left land hex, port facing land to its SouthEast
+        0x5A,  // Touches middle land hex of top row, port facing SW
+        0x9C,  // Touches rightmost land hex of row above middle, SW
+        0xCC,  // Rightmost of middle-row land hex, W
+        0xC9,  // Rightmost land hex below middle, NW
+        0xA5,  // Port touches middle hex of bottom row, facing NW
+        0x72,  // Leftmost of bottom row, NE
+        0x42,  // Leftmost land hex of row below middle, E
+        0x24   // Leftmost land hex above middle, facing E
     };
 
     /**
@@ -193,7 +193,8 @@ public class SOCBoard implements Serializable, Cloneable
     };
 
     /**
-     * Each port's 2 node coordinates on 6-player board.
+     * Each port's edge coordinate on the 6-player board.
+     * This is the edge whose 2 end nodes can be used to build port settlements/cities.
      * Same order as {@link #PORTS_FACING_V2}:
      * Clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
      * @since 1.1.08
@@ -243,6 +244,12 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int BOARD_ENCODING_6PLAYER = 2;
 
     /**
+     * Largest value of {@link #getBoardEncodingFormat()} supported in this version.
+     * @since 1.1.08
+     */
+    public static final int MAX_BOARD_ENCODING = 2;
+
+    /**
      * Size of board in coordinates (not in number of hexes across).
      * Default size per BOARD_ENCODING_ORIGINAL is: <pre>
      *   Hexes: 11 to DD
@@ -259,6 +266,11 @@ public class SOCBoard implements Serializable, Cloneable
      *<UL>
      *<LI> 1 - Original format: hexadecimal 0x00 to 0xFF.
      *       Coordinate range is 0 to 15 (in decimal).
+     *       Port types and facings encoded within {@link #hexLayout}.
+     *<LI> 2 - 6-player board, variant of original format: hexadecimal 0x00 to 0xFF.
+     *       Coordinate range is 0 to 15 (in decimal).
+     *       Port types stored in {@link #portsLayout}.
+     *       Added in 1.1.08.
      *</UL>
      * @since 1.1.06
      */
@@ -701,13 +713,13 @@ public class SOCBoard implements Serializable, Cloneable
         nodeIDtoPortType = new int[MAXNODEPLUSONE];
         for (int i = 0; i <= MAXNODE; ++i)
             nodeIDtoPortType[i] = -1;  // -1 means not a port (or not a valid node coord)
-        for (int i = 0, ni=0; i < PORTS_FACING_V1.length; ++i)
+        for (int i = 0; i < PORTS_FACING_V1.length; ++i)
         {
-            int node1 = PORTS_NODE_V1[ni];  ++ni;
-            int node2 = PORTS_NODE_V1[ni];  ++ni;
-            placePort(portHex[i], PORTS_HEXNUM_V1[i], PORTS_FACING_V1[i], node1, node2);
-            ports[portHex[i]].addElement(new Integer(node1)); 
-            ports[portHex[i]].addElement(new Integer(node2)); 
+            final int ptype = portHex[i];
+            final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V1[i]);
+            placePort(ptype, PORTS_HEXNUM_V1[i], PORTS_FACING_V1[i], nodes[0], nodes[1]);
+            ports[ptype].addElement(new Integer(nodes[0]));
+            ports[ptype].addElement(new Integer(nodes[1]));
         }
 
         /*
@@ -1084,7 +1096,7 @@ public class SOCBoard implements Serializable, Cloneable
      * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
      * Same value range as in {@link #hexLayout}.
      * (In the standard board (v1), these are part of {@link #hexLayout}.)
-     * Same order as {@link #PORTS_FACING_V2}: Clockwise from upper-left.
+     * Same order as {@link #getPortsFacing()}: Clockwise from upper-left.
      *
      * @return the ports layout, or null otherwise
      * @see #getPortTypeFromNodeCoord(int)
@@ -1097,11 +1109,64 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Each port's <em>facing</em>, such as {@link #FACING_NW}.
+     * Port Facing is the direction from the port hex, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
+     * @return the ports' facing
+     * @see #getPortsEdges()
+     * @since 1.1.8
+     */
+    public int[] getPortsFacing()
+    {
+        switch (boardEncodingFormat)
+        {
+        case BOARD_ENCODING_6PLAYER:
+            return PORTS_FACING_V2;
+        default:
+            return PORTS_FACING_V1;
+        }
+    }
+
+    /**
+     * Each port's edge coordinate.
+     * This is the edge whose 2 end nodes can be used to build port settlements/cities.
+     * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
+     * @return the ports' edges
+     * @see #getPortsFacing()
+     * @since 1.1.8
+     */
+    public int[] getPortsEdges()
+    {
+        switch (boardEncodingFormat)
+        {
+        case BOARD_ENCODING_6PLAYER:
+            return PORTS_EDGE_V2;
+        default:
+            return PORTS_EDGE_V1;
+        }    
+    }
+
+    /**
      * @return coordinate where the robber is
      */
     public int getRobberHex()
     {
         return robberHex;
+    }
+
+    /**
+     * set the board encoding format.
+     * Intended for client-side use.
+     * @param fmt  Board encoding format number
+     * @throws IllegalArgumentException if fmt &lt; 1 or > {@link #MAX_BOARD_ENCODING}
+     */
+    public void setBoardEncodingFormat(int fmt)
+        throws IllegalArgumentException
+    {
+        if ((fmt < 1) || (fmt > MAX_BOARD_ENCODING))
+            throw new IllegalArgumentException("Format out of range: " + fmt);
+        boardEncodingFormat = fmt;
     }
 
     /**
@@ -1130,16 +1195,15 @@ public class SOCBoard implements Serializable, Cloneable
             for (int i = 0; i <= MAXNODE; ++i)
                 nodeIDtoPortType[i] = -1;  // -1 means not a port (or not a valid node coord)
         }
-        for (int i = 0, ni=0; i < PORTS_FACING_V1.length; ++i)
+        for (int i = 0; i < PORTS_FACING_V1.length; ++i)
         {
             final int hexnum = PORTS_HEXNUM_V1[i];
             final int ptype = getPortTypeFromHexType(hexLayout[hexnum]);
-            final int node1 = PORTS_NODE_V1[ni];  ++ni;
-            final int node2 = PORTS_NODE_V1[ni];  ++ni;
-            ports[ptype].addElement(new Integer(node1));
-            ports[ptype].addElement(new Integer(node2));
-            nodeIDtoPortType[node1] = ptype;
-            nodeIDtoPortType[node2] = ptype;
+            final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V1[i]);
+            ports[ptype].addElement(new Integer(nodes[0]));
+            ports[ptype].addElement(new Integer(nodes[1]));
+            nodeIDtoPortType[nodes[0]] = ptype;
+            nodeIDtoPortType[nodes[1]] = ptype;
         }
     }
 
@@ -1308,6 +1372,22 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Given a hex coordinate, return the hex number
+     *
+     * @param hexCoord  the coordinates ("ID") for a hex
+     * @return the hex number, or -1 if hexCoord isn't a hex coordinate on the board
+     * @see #getHexTypeFromCoord(int)
+     * @since 1.1.08
+     */
+    public int getHexNumFromCoord(final int hexCoord)
+    {
+        if ((hexCoord >= 0) && (hexCoord <= hexIDtoNum.length))
+            return hexIDtoNum[hexCoord];
+        else
+            return -1;
+    }
+
+    /**
      * Given a hex coordinate, return the type of hex
      *
      * @param hex  the coordinates ("ID") for a hex
@@ -1318,6 +1398,7 @@ public class SOCBoard implements Serializable, Cloneable
      *         or {@link #WATER_HEX}.
      *
      * @see #getPortTypeFromHexType(int)
+     * @see #getHexNumFromCoord(int)
      */
     public int getHexTypeFromCoord(final int hex)
     {
@@ -1851,7 +1932,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Make a list of all valid hex coordinates (or, only land) adjacent to this hex.
      * Valid coordinates are those within the board data structures,
-     * within {@link #MINHEX} to {@link #MAXHEX}, and valid according to {@link #hexIDtoNum}.
+     * within {@link #MINHEX} to {@link #MAXHEX}, and valid according to {@link #getHexNumFromCoord(int)}.
      *<P>
      * Coordinate offsets, from Dissertation figure A.4 - adjacent hexes to hex:<PRE>
      *    (-2,0)   (0,+2)
