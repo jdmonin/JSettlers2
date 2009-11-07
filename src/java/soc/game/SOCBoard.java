@@ -672,9 +672,9 @@ public class SOCBoard implements Serializable, Cloneable
                 is6player = false;
             }
         }
-        int[] landHex = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
-        int[] number = { 3, 0, 4, 1, 5, 7, 6, 9, 8, 2, 5, 7, 6, 2, 3, 4, 1, 8 };
-        int[] numPath = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
+        final int[] landHex = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
+        final int[] number = { 3, 0, 4, 1, 5, 7, 6, 9, 8, 2, 5, 7, 6, 2, 3, 4, 1, 8 };
+        final int[] numPath = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
 
         SOCGameOption opt_breakClumps = (opts != null ? (SOCGameOption)opts.get("BC") : null);
 
@@ -691,7 +691,7 @@ public class SOCBoard implements Serializable, Cloneable
         makeNewBoard_shufflePorts
             (portHex, opt_breakClumps);
         if (is6player)
-        	portsLayout = portHex;  // No need to remember for 4-player standard layout
+            portsLayout = portHex;  // No need to remember for 4-player standard layout
 
         /*
         // place the ports (hex numbers and facing) within hexLayout and nodeIDtoPortType
@@ -713,13 +713,25 @@ public class SOCBoard implements Serializable, Cloneable
         nodeIDtoPortType = new int[MAXNODEPLUSONE];
         for (int i = 0; i <= MAXNODE; ++i)
             nodeIDtoPortType[i] = -1;  // -1 means not a port (or not a valid node coord)
-        for (int i = 0; i < PORTS_FACING_V1.length; ++i)
+        if (is6player)
         {
-            final int ptype = portHex[i];
-            final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V1[i]);
-            placePort(ptype, PORTS_HEXNUM_V1[i], PORTS_FACING_V1[i], nodes[0], nodes[1]);
-            ports[ptype].addElement(new Integer(nodes[0]));
-            ports[ptype].addElement(new Integer(nodes[1]));
+            for (int i = 0; i < PORTS_FACING_V2.length; ++i)
+            {
+                final int ptype = portHex[i];
+                final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V2[i]);
+                placePort(ptype, -1, PORTS_FACING_V2[i], nodes[0], nodes[1]);
+                ports[ptype].addElement(new Integer(nodes[0]));
+                ports[ptype].addElement(new Integer(nodes[1]));
+            }            
+        } else {
+            for (int i = 0; i < PORTS_FACING_V1.length; ++i)
+            {
+                final int ptype = portHex[i];
+                final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V1[i]);
+                placePort(ptype, PORTS_HEXNUM_V1[i], PORTS_FACING_V1[i], nodes[0], nodes[1]);
+                ports[ptype].addElement(new Integer(nodes[0]));
+                ports[ptype].addElement(new Integer(nodes[1]));
+            }
         }
 
         /*
