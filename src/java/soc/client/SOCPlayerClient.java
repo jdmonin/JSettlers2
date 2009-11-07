@@ -2797,8 +2797,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         int[] portLayout = mes.getIntArrayPart("PL");
         if (portLayout != null)
             bd.setPortsLayout(portLayout);
-        // TODO set board version somewhere from mes.getBoardEncodingFormat
-        //  or, after setting other things, it should match get.
+        bd.setBoardEncodingFormat(mes.getBoardEncodingFormat());
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
         pi.getBoardPanel().repaint();
     }
