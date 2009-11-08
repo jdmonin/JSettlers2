@@ -262,6 +262,13 @@ public class SOCBoard implements Serializable, Cloneable
     private int boardWidth, boardHeight;
 
     /**
+     * Minimum and maximum edge and node coordinates in this board's encoding.
+     * ({@link #MAXNODE} is the same in both current encodings.)
+     * @since 1.1.08
+     */
+    private int minNode, minEdge, maxEdge;
+
+    /**
      * The encoding format of board coordinates,
      * or {@link #BOARD_ENCODING_ORIGINAL} (default, original).
      * The board size determines the required encoding format.
@@ -294,14 +301,26 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MINHEX = 0x11;
 
     /**
-     * largest coordinate value for an edge, in the current encoding
+     * largest coordinate value for an edge, in the v1 encoding
      */
     public static final int MAXEDGE = 0xCC;
 
     /**
-     * smallest coordinate value for an edge, in the current encoding
+     * largest coordinate value for an edge, in the v2 encoding
+     * @since 1.1.08
+     */
+    public static final int MAXEDGE_V2 = 0xEE;
+
+    /**
+     * smallest coordinate value for an edge, in the v1 encoding
      */
     public static final int MINEDGE = 0x22;
+
+    /**
+     * smallest coordinate value for an edge, in the v2 encoding
+     * @since 1.1.08
+     */
+    public static final int MINEDGE_V2 = 0x00;
 
     /**
      * largest coordinate value for a node on land, in the v1 and v2 encodings
@@ -562,9 +581,17 @@ public class SOCBoard implements Serializable, Cloneable
             is6player = false;
         }
         if (is6player)
+        {
             boardEncodingFormat = BOARD_ENCODING_6PLAYER;
-        else
+            minEdge = MINEDGE_V2;
+            maxEdge = MAXEDGE_V2;
+            minNode = MINNODE_V2;
+        } else {
             boardEncodingFormat = BOARD_ENCODING_ORIGINAL;  // See javadoc of boardEncodingFormat
+            minEdge = MINEDGE;
+            maxEdge = MAXEDGE;
+            minNode = MINNODE;
+        }
 
         robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
 
@@ -1673,20 +1700,31 @@ public class SOCBoard implements Serializable, Cloneable
     public int getBoardEncodingFormat()
     {
         return boardEncodingFormat;
-     }
+    }
 
     /**
-     * Adjacent node coordinates to an edge, within range {@link #MINNODE} to {@link #MAXNODE}.
+     * Get the minimum node coordinate in this board encoding format.
+     * Note that the maximum is currently {@link #MAXNODE}, so it has no getter.
+     * @return minimum possible node coordinate
+     * @since 1.1.08
+     */
+    public int getMinNode()
+    {
+        return minNode;
+    }
+
+    /**
+     * Adjacent node coordinates to an edge, within range {@link #getMinNode()} to {@link #MAXNODE}.
      * @return the nodes that touch this edge, as a Vector of Integer coordinates
      * @see #getAdjacentNodesToEdge_arr(int)
      */
-    public static Vector getAdjacentNodesToEdge(final int coord)
+    public Vector getAdjacentNodesToEdge(final int coord)
     {
         Vector nodes = new Vector(2);
         final int[] narr = getAdjacentNodesToEdge_arr(coord);
-        if ((narr[0] >= MINNODE) && (narr[0] <= MAXNODE))
+        if ((narr[0] >= minNode) && (narr[0] <= MAXNODE))
             nodes.addElement(new Integer(narr[0]));
-        if ((narr[1] >= MINNODE) && (narr[1] <= MAXNODE))
+        if ((narr[1] >= minNode) && (narr[1] <= MAXNODE))
             nodes.addElement(new Integer(narr[1]));
         return nodes;
     }
@@ -1725,7 +1763,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the adjacent edges to this edge, as a Vector of Integer coordinates
      */
-    public static Vector getAdjacentEdgesToEdge(int coord)
+    public Vector getAdjacentEdgesToEdge(int coord)
     {
         Vector edges = new Vector(4);
         int tmp;
@@ -1738,28 +1776,28 @@ public class SOCBoard implements Serializable, Cloneable
         {
             tmp = coord - 0x10;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord + 0x01;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord + 0x10;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord - 0x01;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
@@ -1773,28 +1811,28 @@ public class SOCBoard implements Serializable, Cloneable
         {
             tmp = coord - 0x11;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord + 0x01;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord + 0x11;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord - 0x01;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
@@ -1807,28 +1845,28 @@ public class SOCBoard implements Serializable, Cloneable
              */
             tmp = coord - 0x10;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord + 0x11;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord + 0x10;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord - 0x11;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
@@ -1906,7 +1944,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the edges touching this node, as a Vector of Integer coordinates
      */
-    public static Vector getAdjacentEdgesToNode(int coord)
+    public Vector getAdjacentEdgesToNode(int coord)
     {
         Vector edges = new Vector(3);
         int tmp;
@@ -1919,21 +1957,21 @@ public class SOCBoard implements Serializable, Cloneable
         {
             tmp = coord - 0x11;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord - 0x01;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
@@ -1946,21 +1984,21 @@ public class SOCBoard implements Serializable, Cloneable
              */
             tmp = coord - 0x10;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
 
             tmp = coord - 0x11;
 
-            if ((tmp >= MINEDGE) && (tmp <= MAXEDGE))
+            if ((tmp >= minEdge) && (tmp <= maxEdge))
             {
                 edges.addElement(new Integer(tmp));
             }
@@ -1972,21 +2010,21 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the nodes adjacent to this node, as a Vector of Integer coordinates
      */
-    public static Vector getAdjacentNodesToNode(int coord)
+    public Vector getAdjacentNodesToNode(int coord)
     {
         Vector nodes = new Vector(3);
         int tmp;
 
         tmp = coord - 0x11;
 
-        if ((tmp >= MINNODE) && (tmp <= MAXNODE))
+        if ((tmp >= minNode) && (tmp <= MAXNODE))
         {
             nodes.addElement(new Integer(tmp));
         }
 
         tmp = coord + 0x11;
 
-        if ((tmp >= MINNODE) && (tmp <= MAXNODE))
+        if ((tmp >= minNode) && (tmp <= MAXNODE))
         {
             nodes.addElement(new Integer(tmp));
         }
@@ -1999,7 +2037,7 @@ public class SOCBoard implements Serializable, Cloneable
         {
             tmp = (coord + 0x10) - 0x01;
 
-            if ((tmp >= MINNODE) && (tmp <= MAXNODE))
+            if ((tmp >= minNode) && (tmp <= MAXNODE))
             {
                 nodes.addElement(new Integer((coord + 0x10) - 0x01));
             }
@@ -2012,7 +2050,7 @@ public class SOCBoard implements Serializable, Cloneable
              */
             tmp = coord - 0x10 + 0x01;
 
-            if ((tmp >= MINNODE) && (tmp <= MAXNODE))
+            if ((tmp >= minNode) && (tmp <= MAXNODE))
             {
                 nodes.addElement(new Integer(coord - 0x10 + 0x01));
             }
@@ -2108,7 +2146,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * The hex touching an edge in a given direction,
      * either along its length or at one end node.
-     * @param edgeCoord The edge's coordinate. {@link #MAXEDGE} is 0xEE.
+     * @param edgeCoord The edge's coordinate. {@link #MAXEDGE_V2} is 0xEE in v2 encoding.
      * @param facing  Facing from edge; 1 to 6.
      *           This will be either a direction perpendicular to the edge,
      *           or towards one end. Each end has two facing directions angled
