@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -66,7 +67,7 @@ public class SOCPlayerNumbers
 
         numberAndResourceForHex = new Vector[0xBC];
 
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < hexCoords.length; i++)
         {
             numberAndResourceForHex[hexCoords[i]] = (Vector) numbers.numberAndResourceForHex[hexCoords[i]].clone();
         }
@@ -94,7 +95,7 @@ public class SOCPlayerNumbers
 
         numberAndResourceForHex = new Vector[0xBC];
 
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < hexCoords.length; i++)
         {
             numberAndResourceForHex[hexCoords[i]] = new Vector();
         }
@@ -116,7 +117,7 @@ public class SOCPlayerNumbers
             resourcesForNumber[i].removeAllElements();
         }
 
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < hexCoords.length; i++)
         {
             numberAndResourceForHex[hexCoords[i]].removeAllElements();
         }
@@ -146,9 +147,9 @@ public class SOCPlayerNumbers
     /**
      * update the numbers data
      *
-     * given a coordinate and a board, add numbers for this player to the list
+     * given a node coordinate and a board, add numbers for this player to the list
      *
-     * @param coord   the coordinate
+     * @param coord   the node coordinate
      * @param board   the game board
      */
     public void updateNumbers(int coord, SOCBoard board)
@@ -204,7 +205,7 @@ public class SOCPlayerNumbers
     {
         Vector numbers = new Vector();
 
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < hexCoords.length; i++)
         {
             if (hexCoords[i] != robberHex)
             {
@@ -235,7 +236,7 @@ public class SOCPlayerNumbers
     {
         Vector resources = new Vector();
 
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < hexCoords.length; i++)
         {
             if (hexCoords[i] != robberHex)
             {
@@ -303,9 +304,9 @@ public class SOCPlayerNumbers
     /**
      * undo the updating of the numbers data
      *
-     * given a coordinate and a board, remove numbers for this player from the list
+     * given a node coordinate and a board, remove numbers for this player from the list
      *
-     * @param coord   the coordinate
+     * @param coord   the node coordinate
      * @param board   the game board
      */
     public void undoUpdateNumbers(int coord, SOCBoard board)
@@ -395,7 +396,7 @@ public class SOCPlayerNumbers
     {
         SOCPlayerNumbers copy = new SOCPlayerNumbers();
 
-        for (int i = 0; i < 19; i++)
+        for (int i = 0; i < hexCoords.length; i++)
         {
             Enumeration pairsEnum = numberAndResourceForHex[hexCoords[i]].elements();
 
