@@ -304,19 +304,25 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MINEDGE = 0x22;
 
     /**
-     * largest coordinate value for a node, in the current encoding
+     * largest coordinate value for a node on land, in the v1 and v2 encodings
      */
     public static final int MAXNODE = 0xDC;
 
     /**
-     * smallest coordinate value for a node, in the current encoding
+     * smallest coordinate value for a node on land, in the v1 encoding
      */
     public static final int MINNODE = 0x23;
 
     /**
-     * largest coordinate value for a node plus one, in the current encoding
+     * largest coordinate value for a node on land plus one, in the v1 and v2 encodings
      */
     public static final int MAXNODEPLUSONE = MAXNODE + 1;
+
+    /**
+     * smallest coordinate value for a node on land, in the v2 encoding
+     * @since 1.1.08
+     */
+    public static final int MINNODE_V2 = 0x01;
 
     /**
      * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).

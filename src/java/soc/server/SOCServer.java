@@ -6045,12 +6045,18 @@ public class SOCServer extends Server
              * send potential settlement list
              */
             Vector psList = new Vector();
-
-            for (int j = SOCBoard.MINNODE; j <= SOCBoard.MAXNODE; j++)
             {
-                if (pl.isPotentialSettlement(j))
+                int j;
+                if (gameData.isGameOptionSet("DEBUG56PLBOARD"))
+                    j = SOCBoard.MINNODE_V2;
+                else
+                    j = SOCBoard.MINNODE;
+                for (; j <= SOCBoard.MAXNODE; j++)
                 {
-                    psList.addElement(new Integer(j));
+                    if (pl.isPotentialSettlement(j))
+                    {
+                        psList.addElement(new Integer(j));
+                    }
                 }
             }
 
