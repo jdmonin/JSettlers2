@@ -83,6 +83,8 @@ public class SOCPlayerNumbers
      */
     public SOCPlayerNumbers(SOCPlayerNumbers numbers)
     {
+        landHexCoords = numbers.landHexCoords;
+
         numbersForResource = new Vector[SOCResourceConstants.MAXPLUSONE - 1];
 
         for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
@@ -420,27 +422,6 @@ public class SOCPlayerNumbers
     public boolean hasNumber(int number)
     {
         return !resourcesForNumber[number].isEmpty();
-    }
-
-    /**
-     * return a copy of this object
-     */
-    public SOCPlayerNumbers copy()
-    {
-        SOCPlayerNumbers copy = new SOCPlayerNumbers();
-
-        for (int i = 0; i < landHexCoords.length; i++)
-        {
-            Enumeration pairsEnum = numberAndResourceForHex[landHexCoords[i]].elements();
-
-            while (pairsEnum.hasMoreElements())
-            {
-                IntPair pair = (IntPair) pairsEnum.nextElement();
-                copy.addNumberForResource(pair.getA(), pair.getB(), landHexCoords[i]);
-            }
-        }
-
-        return copy;
     }
 
     /**
