@@ -632,46 +632,47 @@ public class OpeningBuildStrategy {
          * look at all of the nodes that are 2 away from the
          * last settlement and pick the best one
          */
+        SOCBoard board = game.getBoard();
         int tmp;
 
         tmp = settlementNode - 0x20;
 
-        if ((tmp >= SOCBoard.MINNODE) && (tmp <= SOCBoard.MAXNODE) && (ourPlayerData.isPotentialSettlement(tmp)))
+        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
         tmp = settlementNode + 0x02;
 
-        if ((tmp >= SOCBoard.MINNODE) && (tmp <= SOCBoard.MAXNODE) && (ourPlayerData.isPotentialSettlement(tmp)))
+        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
         tmp = settlementNode + 0x22;
 
-        if ((tmp >= SOCBoard.MINNODE) && (tmp <= SOCBoard.MAXNODE) && (ourPlayerData.isPotentialSettlement(tmp)))
+        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
         tmp = settlementNode + 0x20;
 
-        if ((tmp >= SOCBoard.MINNODE) && (tmp <= SOCBoard.MAXNODE) && (ourPlayerData.isPotentialSettlement(tmp)))
+        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
         tmp = settlementNode - 0x02;
 
-        if ((tmp >= SOCBoard.MINNODE) && (tmp <= SOCBoard.MAXNODE) && (ourPlayerData.isPotentialSettlement(tmp)))
+        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
         tmp = settlementNode - 0x22;
 
-        if ((tmp >= SOCBoard.MINNODE) && (tmp <= SOCBoard.MAXNODE) && (ourPlayerData.isPotentialSettlement(tmp)))
+        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
@@ -702,8 +703,9 @@ public class OpeningBuildStrategy {
                  * rule out where other players are going to build
                  */
                 Hashtable allNodes = new Hashtable();  // <Integer.Integer>
+                final int minNode = board.getMinNode();
 
-                for (int i = SOCBoard.MINNODE; i <= SOCBoard.MAXNODE; i++)
+                for (int i = minNode; i <= SOCBoard.MAXNODE; i++)
                 {
                     if (ourPlayerData.isPotentialSettlement(i))
                     {
@@ -750,7 +752,7 @@ public class OpeningBuildStrategy {
                  */
                 Vector psList = new Vector();  // <Integer>
 
-                for (int j = SOCBoard.MINNODE; j <= SOCBoard.MAXNODE; j++)
+                for (int j = minNode; j <= SOCBoard.MAXNODE; j++)
                 {
                     if (ourPlayerData.isPotentialSettlement(j))
                     {
