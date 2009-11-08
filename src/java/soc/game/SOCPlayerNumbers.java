@@ -50,8 +50,12 @@ public class SOCPlayerNumbers
      */
     private final static int[] hexCoords_v2 = 
     {
-        0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
-        0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
+        0x11, 0x13, 0x15, 0x17,      // First diagonal row (moving NE from 0x11)
+        0x31, 0x33, 0x35, 0x37, 0x39,
+        0x51, 0x53, 0x55, 0x57, 0x59, 0x5B,
+        0x71, 0x73, 0x75, 0x77, 0x79, 0x7B,
+        0x93, 0x95, 0x97, 0x99, 0x9B,
+        0xB5, 0xB7, 0xB9, 0xBB       // Last diagonal row (NE from 0xB5)
     };
 
     /**
@@ -65,6 +69,12 @@ public class SOCPlayerNumbers
 
     /** Hex information, by hex coordinate ID  */
     private Vector[] numberAndResourceForHex;
+
+    /**
+     * Points to either {@link #hexCoords_v1} or {@link #hexCoords_v2}.
+     * @since 1.1.08
+     */
+    private int[] landHexCoords;
 
     /**
      * make a copy of the player numbers
@@ -90,9 +100,9 @@ public class SOCPlayerNumbers
 
         numberAndResourceForHex = new Vector[0xBC];
 
-        for (int i = 0; i < hexCoords_v1.length; i++)
+        for (int i = 0; i < landHexCoords.length; i++)
         {
-            numberAndResourceForHex[hexCoords_v1[i]] = (Vector) numbers.numberAndResourceForHex[hexCoords_v1[i]].clone();
+            numberAndResourceForHex[landHexCoords[i]] = (Vector) numbers.numberAndResourceForHex[landHexCoords[i]].clone();
         }
     }
 
@@ -118,9 +128,9 @@ public class SOCPlayerNumbers
 
         numberAndResourceForHex = new Vector[0xBC];
 
-        for (int i = 0; i < hexCoords_v1.length; i++)
+        for (int i = 0; i < landHexCoords.length; i++)
         {
-            numberAndResourceForHex[hexCoords_v1[i]] = new Vector();
+            numberAndResourceForHex[landHexCoords[i]] = new Vector();
         }
     }
 
@@ -140,9 +150,9 @@ public class SOCPlayerNumbers
             resourcesForNumber[i].removeAllElements();
         }
 
-        for (int i = 0; i < hexCoords_v1.length; i++)
+        for (int i = 0; i < landHexCoords.length; i++)
         {
-            numberAndResourceForHex[hexCoords_v1[i]].removeAllElements();
+            numberAndResourceForHex[landHexCoords[i]].removeAllElements();
         }
     }
 
@@ -228,11 +238,11 @@ public class SOCPlayerNumbers
     {
         Vector numbers = new Vector();
 
-        for (int i = 0; i < hexCoords_v1.length; i++)
+        for (int i = 0; i < landHexCoords.length; i++)
         {
-            if (hexCoords_v1[i] != robberHex)
+            if (landHexCoords[i] != robberHex)
             {
-                Enumeration pairsEnum = numberAndResourceForHex[hexCoords_v1[i]].elements();
+                Enumeration pairsEnum = numberAndResourceForHex[landHexCoords[i]].elements();
 
                 while (pairsEnum.hasMoreElements())
                 {
@@ -259,11 +269,11 @@ public class SOCPlayerNumbers
     {
         Vector resources = new Vector();
 
-        for (int i = 0; i < hexCoords_v1.length; i++)
+        for (int i = 0; i < landHexCoords.length; i++)
         {
-            if (hexCoords_v1[i] != robberHex)
+            if (landHexCoords[i] != robberHex)
             {
-                Enumeration pairsEnum = numberAndResourceForHex[hexCoords_v1[i]].elements();
+                Enumeration pairsEnum = numberAndResourceForHex[landHexCoords[i]].elements();
 
                 while (pairsEnum.hasMoreElements())
                 {
@@ -419,14 +429,14 @@ public class SOCPlayerNumbers
     {
         SOCPlayerNumbers copy = new SOCPlayerNumbers();
 
-        for (int i = 0; i < hexCoords_v1.length; i++)
+        for (int i = 0; i < landHexCoords.length; i++)
         {
-            Enumeration pairsEnum = numberAndResourceForHex[hexCoords_v1[i]].elements();
+            Enumeration pairsEnum = numberAndResourceForHex[landHexCoords[i]].elements();
 
             while (pairsEnum.hasMoreElements())
             {
                 IntPair pair = (IntPair) pairsEnum.nextElement();
-                copy.addNumberForResource(pair.getA(), pair.getB(), hexCoords_v1[i]);
+                copy.addNumberForResource(pair.getA(), pair.getB(), landHexCoords[i]);
             }
         }
 
