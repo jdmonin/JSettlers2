@@ -1960,6 +1960,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void drawSettlement(Graphics g, int nodeNum, int pn, boolean isHilight)
     {
+        drawSettlementOrCity(g, nodeNum, pn, isHilight, false);
+    }
+
+    /**
+     * draw a city
+     */
+    private final void drawCity(Graphics g, int nodeNum, int pn, boolean isHilight)
+    {
+        drawSettlementOrCity(g, nodeNum, pn, isHilight, true);
+    }
+
+    /**
+     * draw a settlement or city; they have the same logic for determining (x,y) from nodeNum.
+     * @since 1.1.08
+     */
+    private final void drawSettlementOrCity
+        (Graphics g, final int nodeNum, final int pn, final boolean isHilight, final boolean isCity)
+    {
         int hexNum, hx, hy;
 
         if (((nodeNum >> 4) % 2) == 0)
@@ -2017,74 +2035,42 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         // System.out.println("NODEID = "+Integer.toHexString(nodeNum)+" | HEXNUM = "+hexNum);
-        if (isHilight)
-            g.setColor(playerInterface.getPlayerColor(pn, true));
-        else
+
+        if (isCity)
+        {
+            g.translate(hx, hy);
+            if (isHilight)
+            {
+                g.setColor(playerInterface.getPlayerColor(pn, true));
+                g.drawPolygon(scaledCityX, scaledCityY, 8);
+                // Draw again, slightly offset, for "ghost", since we can't fill and
+                // cover up the underlying settlement.
+                g.translate(1,1);
+                g.drawPolygon(scaledCityX, scaledCityY, 8);
+                g.translate(-(hx+1), -(hy+1));
+                return;
+            }
+
             g.setColor(playerInterface.getPlayerColor(pn));
-        g.translate(hx, hy);
-        g.fillPolygon(scaledSettlementX, scaledSettlementY, 6);
-        if (isHilight)
-            g.setColor(playerInterface.getPlayerColor(pn, false));
-        else
+            g.fillPolygon(scaledCityX, scaledCityY, 8);
             g.setColor(Color.black);
-        g.drawPolygon(scaledSettlementX, scaledSettlementY, 7);
-        g.translate(-hx, -hy);
-    }
-
-    /**
-     * draw a city
-     */
-    private final void drawCity(Graphics g, int nodeNum, int pn, boolean isHilight)
-    {
-        int hexNum, hx, hy;
-
-        if (((nodeNum >> 4) % 2) == 0)
-        { // If first digit is even,
-            hexNum = hexIDtoNum[nodeNum + 0x10]; // then it is a 'Y' node
-            hx = hexX[hexNum];
-            hy = hexY[hexNum] + 17;
-        }
-        else
-        { // otherwise it is an 'A' node
-            hexNum = hexIDtoNum[nodeNum - 0x01];
-            hx = hexX[hexNum] + 27;
-            hy = hexY[hexNum] + 2;
-        }
-        if (isScaledOrRotated)
-        {
-            if (isRotated)
-            {
-                // (cw):  P'=(panelMinBH-y, x)
-                int hy1 = hx;
-                hx = panelMinBH - hy;
-                hy = hy1;
-            }
-            if (isScaled)
-            {
-                hx = scaleToActualX(hx);
-                hy = scaleToActualY(hy);
-            }
-        }
-
-        g.translate(hx, hy);
-        if (isHilight)
-        {
-            g.setColor(playerInterface.getPlayerColor(pn, true));
             g.drawPolygon(scaledCityX, scaledCityY, 8);
-            // Draw again, slightly offset, for "ghost", since we can't fill and
-            // cover up the underlying settlement.
-            g.translate(1,1);
-            g.drawPolygon(scaledCityX, scaledCityY, 8);
-            g.translate(-(hx+1), -(hy+1));
-            return;
+            g.translate(-hx, -hy);
+        } else {
+            // settlement
+            if (isHilight)
+                g.setColor(playerInterface.getPlayerColor(pn, true));
+            else
+                g.setColor(playerInterface.getPlayerColor(pn));
+            g.translate(hx, hy);
+            g.fillPolygon(scaledSettlementX, scaledSettlementY, 6);
+            if (isHilight)
+                g.setColor(playerInterface.getPlayerColor(pn, false));
+            else
+                g.setColor(Color.black);
+            g.drawPolygon(scaledSettlementX, scaledSettlementY, 7);
+            g.translate(-hx, -hy);
         }
-        
-        g.setColor(playerInterface.getPlayerColor(pn));
-
-        g.fillPolygon(scaledCityX, scaledCityY, 8);
-        g.setColor(Color.black);
-        g.drawPolygon(scaledCityX, scaledCityY, 8);
-        g.translate(-hx, -hy);
     }
 
     /**
