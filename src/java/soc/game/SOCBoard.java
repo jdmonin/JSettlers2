@@ -318,6 +318,30 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public static final int MAXNODEPLUSONE = MAXNODE + 1;
 
+    /**
+     * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).
+     * @since 1.1.08
+     */
+    public final static int[] HEXCOORDS_LAND_V1 = 
+    {
+        0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
+        0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
+    };
+
+    /**
+     * Land-hex coordinates in 6-player board ({@link #BOARD_ENCODING_6PLAYER}).
+     * @since 1.1.08.
+     */
+    public final static int[] HEXCOORDS_LAND_V2 = 
+    {
+        0x11, 0x13, 0x15, 0x17,      // First diagonal row (moving NE from 0x11)
+        0x31, 0x33, 0x35, 0x37, 0x39,
+        0x51, 0x53, 0x55, 0x57, 0x59, 0x5B,
+        0x71, 0x73, 0x75, 0x77, 0x79, 0x7B,
+        0x93, 0x95, 0x97, 0x99, 0x9B,
+        0xB5, 0xB7, 0xB9, 0xBB       // Last diagonal row (NE from 0xB5)
+    };
+
     /***************************************
      * Hex data array, one element per water or land (or port, which is special water) hex.
      * Each element's coordinates on the board ("hex ID") is {@link #numToHexID}[i].
@@ -406,8 +430,13 @@ public class SOCBoard implements Serializable, Cloneable
     };
 
     /** Hex coordinates ("IDs") of each hex number ("hex number" means index within
-     *  {@link #hexLayout}).  The hexes in here are the board's land hexes and also
-     *  the surrounding ring of water/port hexes.
+     *  {@link #hexLayout}).
+     *<UL>
+     *<LI> {@link #BOARD_ENCODING_ORIGINAL}:  The hexes in here are the board's land hexes and also
+     *     the surrounding ring of water/port hexes.
+     *<LI> {@link #BOARD_ENCODING_6PLAYER}:  The hexes in here are the board's land hexes and also
+     *     the unused hexes (rightmost column: 7D - DD - D7).
+     *</UL>
      * @see #hexIDtoNum
      * @see #nodesOnBoard
      */
@@ -1111,10 +1140,27 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * @return the hex layout; meaning of values same as {@link #hexLayout}.
+     * @see #getHexLandCoords()
      */
     public int[] getHexLayout()
     {
         return hexLayout;
+    }
+
+    /**
+     * The hex coordinates of all land hexes.
+     * @return land hex coordinates, in no particular order.
+     * @since 1.1.08
+     */
+    public int[] getHexLandCoords()
+    {
+        switch (boardEncodingFormat)
+        {
+        case BOARD_ENCODING_6PLAYER:
+            return HEXCOORDS_LAND_V2;
+        default:
+            return HEXCOORDS_LAND_V1;
+        }        
     }
 
     /**
@@ -1438,6 +1484,7 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @see #getPortTypeFromHexType(int)
      * @see #getHexNumFromCoord(int)
+     * @see #getHexLandCoords()
      */
     public int getHexTypeFromCoord(final int hex)
     {

@@ -35,30 +35,6 @@ import java.util.Vector;
 public class SOCPlayerNumbers
 {
     /**
-     * Land-hex coordinates in standard board ({@link SOCBoard#BOARD_ENCODING_ORIGINAL}).
-     * hexCoords_v1 was hexCoords before version 1.1.08.
-     */
-    private final static int[] hexCoords_v1 = 
-    {
-        0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
-        0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
-    };
-
-    /**
-     * Land-hex coordinates in 6-player board ({@link SOCBoard#BOARD_ENCODING_6PLAYER}).
-     * @since 1.1.08.
-     */
-    private final static int[] hexCoords_v2 = 
-    {
-        0x11, 0x13, 0x15, 0x17,      // First diagonal row (moving NE from 0x11)
-        0x31, 0x33, 0x35, 0x37, 0x39,
-        0x51, 0x53, 0x55, 0x57, 0x59, 0x5B,
-        0x71, 0x73, 0x75, 0x77, 0x79, 0x7B,
-        0x93, 0x95, 0x97, 0x99, 0x9B,
-        0xB5, 0xB7, 0xB9, 0xBB       // Last diagonal row (NE from 0xB5)
-    };
-
-    /**
      * Dice roll numbers which yield this resource.
      * Uses indexes in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
      */
@@ -71,7 +47,7 @@ public class SOCPlayerNumbers
     private Vector[] numberAndResourceForHex;
 
     /**
-     * Reference to either {@link #hexCoords_v1} or {@link #hexCoords_v2}.
+     * Reference to either {@link SOCBoard#HEXCOORDS_LAND_V1} or {@link SOCBoard#HEXCOORDS_LAND_V2}.
      * @since 1.1.08
      */
     private int[] landHexCoords;
@@ -119,9 +95,9 @@ public class SOCPlayerNumbers
         switch (boardEncodingFormat)
         {
         case SOCBoard.BOARD_ENCODING_ORIGINAL:
-            landHexCoords = hexCoords_v1;  break;
+            landHexCoords = SOCBoard.HEXCOORDS_LAND_V1;  break;
         case SOCBoard.BOARD_ENCODING_6PLAYER:
-            landHexCoords = hexCoords_v2;  break;
+            landHexCoords = SOCBoard.HEXCOORDS_LAND_V2;  break;
         default:
             throw new IllegalArgumentException("boardEncodingFormat: " + boardEncodingFormat);
         }
