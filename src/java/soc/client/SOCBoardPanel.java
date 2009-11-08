@@ -1964,15 +1964,44 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (((nodeNum >> 4) % 2) == 0)
         { // If first digit is even,
-            hexNum = hexIDtoNum[nodeNum + 0x10]; // then it is a 'Y' node
-            hx = hexX[hexNum];
-            hy = hexY[hexNum] + 17;
+          // then it is a 'Y' node
+          // in the northwest corner of a hex.
+            if ((nodeNum >= 0x81) && (0 == ((nodeNum - 0x81) % 0x22)))
+            {
+                // this node's hex would be off the southern edge of the board.
+                // shift 1 hex north, then add to y.
+                hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10]; 
+                hx = hexX[hexNum];
+                hy = hexY[hexNum] + 17 + (2 * deltaY);
+            } else {
+                hexNum = hexIDtoNum[nodeNum + 0x10]; 
+                hx = hexX[hexNum];
+                hy = hexY[hexNum] + 17;
+            }
         }
         else
         { // otherwise it is an 'A' node
-            hexNum = hexIDtoNum[nodeNum - 0x01];
-            hx = hexX[hexNum] + 27;
-            hy = hexY[hexNum] + 2;
+          // in the northern corner of a hex.
+            if ((nodeNum >= 0x70) && (0 == ((nodeNum - 0x70) % 0x22)))
+            {
+                // this node's hex would be off the southern edge of the board.
+                // shift 1 hex north, then add to y.
+                hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 - 0x01];
+                hx = hexX[hexNum] + halfdeltaX;
+                hy = hexY[hexNum] + 2 + (2 * deltaY);
+            }
+            else if ((nodeNum & 0x0F) > 0)
+            {
+                hexNum = hexIDtoNum[nodeNum - 0x01];
+                hx = hexX[hexNum] + halfdeltaX;
+                hy = hexY[hexNum] + 2;
+            } else {
+                // this node's hex would be off the southwest edge of the board.
+                // shift 1 hex to the east, then subtract from x.
+                hexNum = hexIDtoNum[nodeNum + 0x22 - 0x01];
+                hx = hexX[hexNum] - halfdeltaX;
+                hy = hexY[hexNum] + 2;
+            }
         }
         if (isRotated)
         {
@@ -2258,7 +2287,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // Draw hexes:
         // Normal board draws all 37 hexes.
         // The 6-player board skips the rightmost row (hexes 7D-DD-D7).
-        for (int i = 0; i < 37; i++)  // TODO largerboard: assumes 37 hexes
+        for (int i = 0; i < hexX.length; i++)
         {
             if ((inactiveHexNums == null) || ! inactiveHexNums[i])
                 drawHex(g, i);
