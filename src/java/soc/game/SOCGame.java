@@ -549,7 +549,7 @@ public class SOCGame implements Serializable, Cloneable
         active = a;
         inUse = false;
         name = n;
-        board = new SOCBoard();
+        board = new SOCBoard(op);
         players = new SOCPlayer[MAXPLAYERS];
         seats = new int[MAXPLAYERS];
         seatLocks = new boolean[MAXPLAYERS];
@@ -3874,7 +3874,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public SOCGame resetAsCopy()
     {
-        SOCGame cp = new SOCGame(name, active);
+        SOCGame cp = new SOCGame(name, active, SOCGameOption.cloneOptions(opts));
 
         cp.isFromBoardReset = true;
         oldGameState = gameState;  // for getResetOldGameState()
@@ -3883,8 +3883,7 @@ public class SOCGame implements Serializable, Cloneable
 
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
 
-        // Game options
-        cp.opts = SOCGameOption.cloneOptions(opts);
+        // Game min-version from options
         cp.clientVersionMinRequired = clientVersionMinRequired;
 
         // Per-player state

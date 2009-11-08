@@ -235,6 +235,8 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * 6-player format (2) for {@link #getBoardEncodingFormat()}:
      * Land hexes are same encoding as {@link #BOARD_ENCODING_ORIGINAL}.
+     * Land starts 1 extra hex west of standard board,
+     * and has an extra row of land at north and south end.
      * Ports are not part of {@link #hexLayout} because their
      * coordinates wouldn't fit within 2 hex digits.
      * Instead, see {@link #getPortTypeFromNodeCoord(int)},
@@ -501,22 +503,35 @@ public class SOCBoard implements Serializable, Cloneable
     private Random rand = new Random();
 
     /**
-     * a list of nodes on the board; key is node's Integer coordinate, value is Boolean.
+     * a list of nodes on the land of the board; key is node's Integer coordinate, value is Boolean.
      * nodes on outer edges of surrounding water/ports are not on the board.
      * See dissertation figure A.2.
+     * See also SOCPlayer.initLegalAndPotentialSettlements().
      */
     protected Hashtable nodesOnBoard;
 
     /**
-     * Create a new Settlers of Catan Board
+     * Create a new Settlers of Catan Board.
+     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      */
-    public SOCBoard()
+    public SOCBoard(Hashtable gameOpts)
     {
         boardWidth = 0x10;
         boardHeight = 0x10;
-        boardEncodingFormat = BOARD_ENCODING_ORIGINAL;  // See javadoc of boardEncodingFormat
+        final boolean is6player;
+        if (gameOpts != null)
+        {
+            SOCGameOption opt_6player = (SOCGameOption) gameOpts.get("DEBUG56PLBOARD");
+            is6player = (opt_6player != null) && opt_6player.getBoolValue();
+        } else {
+            is6player = false;
+        }
+        if (is6player)
+            boardEncodingFormat = BOARD_ENCODING_6PLAYER;
+        else
+            boardEncodingFormat = BOARD_ENCODING_ORIGINAL;  // See javadoc of boardEncodingFormat
 
-        robberHex = -1;  // Soon placed on desert
+        robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
 
         /**
          * generic counter
@@ -566,40 +581,44 @@ public class SOCBoard implements Serializable, Cloneable
         nodesOnBoard = new Hashtable();
 
         /**
-         * initialize the list of nodes on the board;
+         * initialize the list of nodes on the land of the board;
          * nodes on outer edges of surrounding water/ports are not on the board.
          * See dissertation figure A.2.
+         * 6-player starts land 1 extra hex (2 nodes) west of standard board,
+         * and has an extra row of land hexes at north and south end.
+         * See also SOCPlayer.initLegalAndPotentialSettlements.
          */
-        Boolean t = new Boolean(true);
+        final Boolean t = new Boolean(true);
+        final int leftAdj = (is6player) ? 0x22 : 0x00;
 
-        for (i = 0x27; i <= 0x8D; i += 0x11)  //  Top horizontal row: each top corner across 3 hexes
+        if (is6player)
         {
-            nodesOnBoard.put(new Integer(i), t);
+            for (i = 0x07; i <= 0x6D; i += 0x11)
+                nodesOnBoard.put(new Integer(i), t);
         }
 
-        for (i = 0x25; i <= 0xAD; i += 0x11)  // Next: each top corner of row of 4 / bottom corner of the top 3 hexes
-        {
+        for (i = 0x27 - leftAdj; i <= 0x8D; i += 0x11)  //  Top horizontal row: each top corner across 3 hexes
             nodesOnBoard.put(new Integer(i), t);
-        }
 
-        for (i = 0x23; i <= 0xCD; i += 0x11)  // Next: top corners of middle row of 5 hexes
-        {
+        for (i = 0x25 - leftAdj; i <= 0xAD; i += 0x11)  // Next: each top corner of row of 4 / bottom corner of the top 3 hexes
             nodesOnBoard.put(new Integer(i), t);
-        }
 
-        for (i = 0x32; i <= 0xDC; i += 0x11) // Next: bottom corners of middle row of 5 hexes
-        {
+        for (i = 0x23 - leftAdj; i <= 0xCD; i += 0x11)  // Next: top corners of middle row of 5 hexes
             nodesOnBoard.put(new Integer(i), t);
-        }
 
-        for (i = 0x52; i <= 0xDA; i += 0x11)  // Bottom corners of row of 4 / top corners of the bottom 3 hexes
-        {
+        for (i = 0x32 - leftAdj; i <= 0xDC; i += 0x11) // Next: bottom corners of middle row of 5 hexes
             nodesOnBoard.put(new Integer(i), t);
-        }
 
-        for (i = 0x72; i <= 0xD8; i += 0x11)  // Last horizontal row: each bottom corner across 3 hexes
-        {
+        for (i = 0x52 - leftAdj; i <= 0xDA; i += 0x11)  // Bottom corners of row of 4 / top corners of the bottom 3 hexes
             nodesOnBoard.put(new Integer(i), t);
+
+        for (i = 0x72 - leftAdj; i <= 0xD8; i += 0x11)  // Last horizontal row: each bottom corner across 3 hexes
+            nodesOnBoard.put(new Integer(i), t);
+
+        if (is6player)
+        {
+            for (i = 0x70; i <= 0xD6; i += 0x11)
+                nodesOnBoard.put(new Integer(i), t);
         }
     }
 
@@ -2188,7 +2207,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return true if the node is on the board
+     * @return true if the node is on the land of the board (not water)
      * @param node Node coordinate
      */
     public boolean isNodeOnBoard(int node)
