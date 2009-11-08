@@ -34,6 +34,7 @@ import soc.message.SOCAcceptOffer;
 import soc.message.SOCAdminPing;
 import soc.message.SOCAdminReset;
 import soc.message.SOCBoardLayout;
+import soc.message.SOCBoardLayout2;
 import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChangeFace;
 import soc.message.SOCChoosePlayerRequest;
@@ -406,8 +407,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * receive a board layout
              */
             case SOCMessage.BOARDLAYOUT:
-                handleBOARDLAYOUT((SOCBoardLayout) mes);
+                handleBOARDLAYOUT((SOCBoardLayout) mes);  // in soc.client.SOCDisplaylessPlayerClient
+                break;
 
+            /**
+             * receive a board layout (new format, as of 20091104 (v 1.1.08))
+             */
+            case SOCMessage.BOARDLAYOUT2:
+                handleBOARDLAYOUT2((SOCBoardLayout2) mes);  // in soc.client.SOCDisplaylessPlayerClient
                 break;
 
             /**
@@ -1149,23 +1156,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     brain.addPlayerTracker(mes.getPlayerNumber());
                 }
             }
-        }
-    }
-
-    /**
-     * handle the "board layout" message
-     * @param mes  the message
-     */
-    protected void handleBOARDLAYOUT(SOCBoardLayout mes)
-    {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            SOCBoard bd = ga.getBoard();
-            bd.setHexLayout(mes.getHexLayout());
-            bd.setNumberLayout(mes.getNumberLayout());
-            bd.setRobberHex(mes.getRobberHex());
         }
     }
 

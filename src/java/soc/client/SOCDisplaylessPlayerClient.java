@@ -39,6 +39,7 @@ import soc.message.SOCAcceptOffer;
 import soc.message.SOCBCastTextMsg;
 import soc.message.SOCBankTrade;
 import soc.message.SOCBoardLayout;
+import soc.message.SOCBoardLayout2;
 import soc.message.SOCBuildRequest;
 import soc.message.SOCBuyCardRequest;
 import soc.message.SOCCancelBuildRequest;
@@ -512,6 +513,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * receive a board layout (new format, as of 20091104 (v 1.1.08))
+             */
+            case SOCMessage.BOARDLAYOUT2:
+                handleBOARDLAYOUT2((SOCBoardLayout2) mes);
+                break;
+
+            /**
              * message that the game is starting
              */
             case SOCMessage.STARTGAME:
@@ -962,6 +970,27 @@ public class SOCDisplaylessPlayerClient implements Runnable
             bd.setNumberLayout(mes.getNumberLayout());
             bd.setRobberHex(mes.getRobberHex());
         }
+    }
+
+    /**
+     * handle the "board layout" message, new format
+     * @param mes  the message
+     * @since 1.1.08
+     */
+    protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
+    {
+        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        if (ga == null)
+            return;
+
+        SOCBoard bd = ga.getBoard();
+        bd.setBoardEncodingFormat(mes.getBoardEncodingFormat());
+        bd.setHexLayout(mes.getIntArrayPart("HL"));
+        bd.setNumberLayout(mes.getIntArrayPart("NL"));
+        bd.setRobberHex(mes.getIntPart("RH"));
+        int[] portLayout = mes.getIntArrayPart("PL");
+        if (portLayout != null)
+            bd.setPortsLayout(portLayout);
     }
 
     /**
