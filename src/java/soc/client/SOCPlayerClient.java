@@ -2791,13 +2791,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             return;
 
         SOCBoard bd = ga.getBoard();
+        bd.setBoardEncodingFormat(mes.getBoardEncodingFormat());
         bd.setHexLayout(mes.getIntArrayPart("HL"));
         bd.setNumberLayout(mes.getIntArrayPart("NL"));
         bd.setRobberHex(mes.getIntPart("RH"));
         int[] portLayout = mes.getIntArrayPart("PL");
         if (portLayout != null)
             bd.setPortsLayout(portLayout);
-        bd.setBoardEncodingFormat(mes.getBoardEncodingFormat());
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
         pi.getBoardPanel().repaint();
     }
