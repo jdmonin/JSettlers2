@@ -81,7 +81,7 @@ public class OpeningBuildStrategy {
         int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
         SOCBoard board = game.getBoard();
         SOCResourceSet emptySet = new SOCResourceSet();
-        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers();
+        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board.getBoardEncodingFormat());
         int probTotal;
         int bestProbTotal;
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
@@ -465,7 +465,7 @@ public class OpeningBuildStrategy {
         int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
         SOCBoard board = game.getBoard();
         SOCResourceSet emptySet = new SOCResourceSet();
-        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers();
+        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board.getBoardEncodingFormat());
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
         int probTotal;

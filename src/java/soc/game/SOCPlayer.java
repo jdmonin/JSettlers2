@@ -338,7 +338,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         boardResetAskedThisTurn = false;
         robotFlag = false;
         faceId = 1;
-        ourNumbers = new SOCPlayerNumbers();
+        ourNumbers = new SOCPlayerNumbers(ga.getBoard().getBoardEncodingFormat());
 
         // buildingSpeed = new SOCBuildingSpeedEstimate(this);
         ports = new boolean[SOCBoard.WOOD_PORT + 1];

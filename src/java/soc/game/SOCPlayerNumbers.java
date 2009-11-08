@@ -71,7 +71,7 @@ public class SOCPlayerNumbers
     private Vector[] numberAndResourceForHex;
 
     /**
-     * Points to either {@link #hexCoords_v1} or {@link #hexCoords_v2}.
+     * Reference to either {@link #hexCoords_v1} or {@link #hexCoords_v2}.
      * @since 1.1.08
      */
     private int[] landHexCoords;
@@ -110,9 +110,22 @@ public class SOCPlayerNumbers
 
     /**
      * the constructor
+     * @param boardEncodingFormat  The board's coordinate encoding format, from {@link SOCBoard#getBoardEncodingFormat()}
+     * @throws IllegalArgumentException  If <tt>boardEncodingFormat</tt> value is unknown to this class
      */
-    public SOCPlayerNumbers()
+    public SOCPlayerNumbers(final int boardEncodingFormat)
+        throws IllegalArgumentException
     {
+        switch (boardEncodingFormat)
+        {
+        case SOCBoard.BOARD_ENCODING_ORIGINAL:
+            landHexCoords = hexCoords_v1;  break;
+        case SOCBoard.BOARD_ENCODING_6PLAYER:
+            landHexCoords = hexCoords_v2;  break;
+        default:
+            throw new IllegalArgumentException("boardEncodingFormat: " + boardEncodingFormat);
+        }
+
         numbersForResource = new Vector[SOCResourceConstants.MAXPLUSONE - 1];
 
         for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
