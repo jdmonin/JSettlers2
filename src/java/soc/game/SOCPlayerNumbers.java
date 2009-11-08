@@ -34,7 +34,21 @@ import java.util.Vector;
  */
 public class SOCPlayerNumbers
 {
-    static int[] hexCoords = 
+    /**
+     * Land-hex coordinates in standard board ({@link SOCBoard#BOARD_ENCODING_ORIGINAL}).
+     * hexCoords_v1 was hexCoords before version 1.1.08.
+     */
+    private final static int[] hexCoords_v1 = 
+    {
+        0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
+        0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
+    };
+
+    /**
+     * Land-hex coordinates in 6-player board ({@link SOCBoard#BOARD_ENCODING_6PLAYER}).
+     * @since 1.1.08.
+     */
+    private final static int[] hexCoords_v2 = 
     {
         0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
         0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
@@ -76,9 +90,9 @@ public class SOCPlayerNumbers
 
         numberAndResourceForHex = new Vector[0xBC];
 
-        for (int i = 0; i < hexCoords.length; i++)
+        for (int i = 0; i < hexCoords_v1.length; i++)
         {
-            numberAndResourceForHex[hexCoords[i]] = (Vector) numbers.numberAndResourceForHex[hexCoords[i]].clone();
+            numberAndResourceForHex[hexCoords_v1[i]] = (Vector) numbers.numberAndResourceForHex[hexCoords_v1[i]].clone();
         }
     }
 
@@ -104,9 +118,9 @@ public class SOCPlayerNumbers
 
         numberAndResourceForHex = new Vector[0xBC];
 
-        for (int i = 0; i < hexCoords.length; i++)
+        for (int i = 0; i < hexCoords_v1.length; i++)
         {
-            numberAndResourceForHex[hexCoords[i]] = new Vector();
+            numberAndResourceForHex[hexCoords_v1[i]] = new Vector();
         }
     }
 
@@ -126,9 +140,9 @@ public class SOCPlayerNumbers
             resourcesForNumber[i].removeAllElements();
         }
 
-        for (int i = 0; i < hexCoords.length; i++)
+        for (int i = 0; i < hexCoords_v1.length; i++)
         {
-            numberAndResourceForHex[hexCoords[i]].removeAllElements();
+            numberAndResourceForHex[hexCoords_v1[i]].removeAllElements();
         }
     }
 
@@ -214,11 +228,11 @@ public class SOCPlayerNumbers
     {
         Vector numbers = new Vector();
 
-        for (int i = 0; i < hexCoords.length; i++)
+        for (int i = 0; i < hexCoords_v1.length; i++)
         {
-            if (hexCoords[i] != robberHex)
+            if (hexCoords_v1[i] != robberHex)
             {
-                Enumeration pairsEnum = numberAndResourceForHex[hexCoords[i]].elements();
+                Enumeration pairsEnum = numberAndResourceForHex[hexCoords_v1[i]].elements();
 
                 while (pairsEnum.hasMoreElements())
                 {
@@ -245,11 +259,11 @@ public class SOCPlayerNumbers
     {
         Vector resources = new Vector();
 
-        for (int i = 0; i < hexCoords.length; i++)
+        for (int i = 0; i < hexCoords_v1.length; i++)
         {
-            if (hexCoords[i] != robberHex)
+            if (hexCoords_v1[i] != robberHex)
             {
-                Enumeration pairsEnum = numberAndResourceForHex[hexCoords[i]].elements();
+                Enumeration pairsEnum = numberAndResourceForHex[hexCoords_v1[i]].elements();
 
                 while (pairsEnum.hasMoreElements())
                 {
@@ -405,14 +419,14 @@ public class SOCPlayerNumbers
     {
         SOCPlayerNumbers copy = new SOCPlayerNumbers();
 
-        for (int i = 0; i < hexCoords.length; i++)
+        for (int i = 0; i < hexCoords_v1.length; i++)
         {
-            Enumeration pairsEnum = numberAndResourceForHex[hexCoords[i]].elements();
+            Enumeration pairsEnum = numberAndResourceForHex[hexCoords_v1[i]].elements();
 
             while (pairsEnum.hasMoreElements())
             {
                 IntPair pair = (IntPair) pairsEnum.nextElement();
-                copy.addNumberForResource(pair.getA(), pair.getB(), hexCoords[i]);
+                copy.addNumberForResource(pair.getA(), pair.getB(), hexCoords_v1[i]);
             }
         }
 
