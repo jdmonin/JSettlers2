@@ -221,6 +221,20 @@ public class SOCGame implements Serializable, Cloneable
     public static final int VP_WINNER = 10;
 
     /**
+     * Number of development cards (25) in the standard rules.
+     * @see #NUM_DEVCARDS_6PLAYER
+     * @since 1.1.08
+     */
+    private static final int NUM_DEVCARDS_STANDARD = 25;
+
+    /**
+     * Number of development cards (34) in the 6-player rules.
+     * @see #NUM_DEVCARDS_STANDARD
+     * @since 1.1.08
+     */
+    private static final int NUM_DEVCARDS_6PLAYER = 9 + NUM_DEVCARDS_STANDARD;
+
+    /**
      * the set of resources a player needs to build a settlement
      */
     public static final SOCResourceSet EMPTY_RESOURCES = new SOCResourceSet();
@@ -569,7 +583,6 @@ public class SOCGame implements Serializable, Cloneable
         playerWithLongestRoad = -1;
         boardResetVoteRequester = -1;
         playerWithWin = -1;
-        numDevCards = 25;
         gameState = NEW;
         turnCount = 0;
         roundCount = 0;
@@ -590,6 +603,11 @@ public class SOCGame implements Serializable, Cloneable
 
             clientVersionMinRequired = SOCGameOption.optionsMinimumVersion(op);
         }
+
+        if (isGameOptionSet("DEBUG56PLBOARD"))
+            numDevCards = NUM_DEVCARDS_6PLAYER;
+        else
+            numDevCards = NUM_DEVCARDS_STANDARD;
 
         if (active)
             startTime = new Date();
@@ -1848,7 +1866,10 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * shuffle the development cards
          */
-        devCardDeck = new int[25];
+        if (isGameOptionSet("DEBUG56PLBOARD"))
+            devCardDeck = new int[NUM_DEVCARDS_6PLAYER];
+        else
+            devCardDeck = new int[NUM_DEVCARDS_STANDARD];
 
         int i;
         int j;
@@ -1878,6 +1899,17 @@ public class SOCGame implements Serializable, Cloneable
         devCardDeck[22] = SOCDevCardConstants.UNIV;
         devCardDeck[23] = SOCDevCardConstants.TEMP;
         devCardDeck[24] = SOCDevCardConstants.TOW;
+
+        if (isGameOptionSet("DEBUG56PLBOARD"))
+        {
+            for (i = 25; i < 31; i++)
+            {
+                devCardDeck[i] = SOCDevCardConstants.KNIGHT;
+            }
+            devCardDeck[31] = SOCDevCardConstants.ROADS;
+            devCardDeck[32] = SOCDevCardConstants.MONO;
+            devCardDeck[33] = SOCDevCardConstants.DISC;
+        }
 
         for (j = 0; j < 10; j++)
         {
