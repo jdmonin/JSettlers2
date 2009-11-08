@@ -90,7 +90,7 @@ public class OpeningBuildStrategy {
 
         bestProbTotal = 0;
 
-        for (int firstNode = SOCBoard.MINNODE; firstNode <= SOCBoard.MAXNODE; firstNode++)
+        for (int firstNode = board.getMinNode(); firstNode <= SOCBoard.MAXNODE; firstNode++)
         {
             if (ourPlayerData.isPotentialSettlement(firstNode))
             {
@@ -168,7 +168,7 @@ public class OpeningBuildStrategy {
                 for (int secondNode = firstNode + 1; secondNode <= SOCBoard.MAXNODE;
                         secondNode++)
                 {
-                    if ((ourPlayerData.isPotentialSettlement(secondNode)) && (!SOCBoard.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
+                    if ((ourPlayerData.isPotentialSettlement(secondNode)) && (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
                     {
                         log.debug("firstNode = " + board.nodeCoordToString(firstNode));
                         log.debug("secondNode = " + board.nodeCoordToString(secondNode));
@@ -477,9 +477,9 @@ public class OpeningBuildStrategy {
         bestProbTotal = 0;
         secondSettlement = -1;
 
-        for (int secondNode = SOCBoard.MINNODE; secondNode <= SOCBoard.MAXNODE; secondNode++)
+        for (int secondNode = board.getMinNode(); secondNode <= SOCBoard.MAXNODE; secondNode++)
         {
-            if ((ourPlayerData.isPotentialSettlement(secondNode)) && (!SOCBoard.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
+            if ((ourPlayerData.isPotentialSettlement(secondNode)) && (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
             {
                 Integer secondNodeInt = new Integer(secondNode);
 
@@ -782,7 +782,7 @@ public class OpeningBuildStrategy {
                     /**
                      * pretend that someone has built a settlement on the best spot
                      */
-                    dummy.updatePotentials(new SOCSettlement(ourPlayerData, bestNodePair.getNode()));
+                    dummy.updatePotentials(new SOCSettlement(ourPlayerData, bestNodePair.getNode(), null));
 
                     /**
                      * remove this spot from the list of best spots

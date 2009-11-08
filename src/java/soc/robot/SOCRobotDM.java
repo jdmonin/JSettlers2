@@ -297,7 +297,7 @@ public class SOCRobotDM {
 	//  pretend to put the favorite road down, 
 	//  and then score the new pos roads
 	//
-	SOCRoad tmpRoad = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates());
+	SOCRoad tmpRoad = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
 	
 	HashMap trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
 	SOCPlayerTracker.updateWinGameETAs(trackersCopy);
@@ -1384,7 +1384,7 @@ public class SOCRobotDM {
 	//
 	// place the city
 	//
-	SOCCity tmpCity = new SOCCity(ourPlayerData, posCity.getCoordinates());
+	SOCCity tmpCity = new SOCCity(ourPlayerData, posCity.getCoordinates(), null);
 	game.putTempPiece(tmpCity);
 
 	ourTrackerCopy.addOurNewCity(tmpCity);
@@ -1569,10 +1569,11 @@ public class SOCRobotDM {
 	//
 	//  get wgeta score
 	//
-	SOCSettlement tmpSet = new SOCSettlement(ourPlayerData, posSet.getCoordinates());
+        SOCBoard board = game.getBoard();
+	SOCSettlement tmpSet = new SOCSettlement(ourPlayerData, posSet.getCoordinates(), board);
 	if ((brain != null) && (brain.getDRecorder().isOn())) {
 	  brain.getDRecorder().startRecording("SETTLEMENT"+posSet.getCoordinates());
-	  brain.getDRecorder().record("Estimate value of settlement at "+game.getBoard().nodeCoordToString(posSet.getCoordinates()));
+	  brain.getDRecorder().record("Estimate value of settlement at "+board.nodeCoordToString(posSet.getCoordinates()));
 	} 
 	
 	HashMap trackersCopy = SOCPlayerTracker.tryPutPiece(tmpSet, game, playerTrackers);
@@ -1623,14 +1624,14 @@ public class SOCRobotDM {
     switch (posPiece.getType()) {
     case SOCPossiblePiece.SETTLEMENT:
       tmpSet = new SOCSettlement(ourPlayerData, 
-				 posPiece.getCoordinates());
+				 posPiece.getCoordinates(), null);
       trackersCopy = SOCPlayerTracker.tryPutPiece(tmpSet, game, playerTrackers);
       break;
 
     case SOCPossiblePiece.CITY:
       trackersCopy = SOCPlayerTracker.copyPlayerTrackers(playerTrackers);
       tmpCity = new SOCCity(ourPlayerData, 
-			    posPiece.getCoordinates());
+			    posPiece.getCoordinates(), null);
       game.putTempPiece(tmpCity);
       SOCPlayerTracker trackerCopy = (SOCPlayerTracker)trackersCopy.get(new Integer(ourPlayerData.getPlayerNumber()));
       if (trackerCopy != null) {
@@ -1640,7 +1641,7 @@ public class SOCRobotDM {
 			
     case SOCPossiblePiece.ROAD:
       tmpRoad = new SOCRoad(ourPlayerData, 
-			    posPiece.getCoordinates());
+			    posPiece.getCoordinates(), null);
       trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
       break;
     }
@@ -1712,7 +1713,7 @@ public class SOCRobotDM {
     } catch (CutoffExceededException e) {
       D.ebugPrintln("crap in getWinGameETABonusForRoad - "+e);
     }
-    tmpRoad1 = new SOCRoad(ourPlayerData, posRoad.getCoordinates());
+    tmpRoad1 = new SOCRoad(ourPlayerData, posRoad.getCoordinates(), null);
     trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad1, game, playerTrackers);
     SOCPlayerTracker.updateWinGameETAs(trackersCopy);
     float score = calcWGETABonus(playerTrackers, trackersCopy);

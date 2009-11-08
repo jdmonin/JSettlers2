@@ -992,21 +992,21 @@ public class SOCRobotBrain extends Thread
                                 if (se != null)
                                     trackNewSettlement(se, false);
                             }
-                            SOCRoad rd = new SOCRoad(pl, ((SOCPutPiece) mes).getCoordinates());
+                            SOCRoad rd = new SOCRoad(pl, ((SOCPutPiece) mes).getCoordinates(), null);
                             game.putPiece(rd);
 
                             break;
 
                         case SOCPlayingPiece.SETTLEMENT:
 
-                            SOCSettlement se = new SOCSettlement(pl, ((SOCPutPiece) mes).getCoordinates());
+                            SOCSettlement se = new SOCSettlement(pl, ((SOCPutPiece) mes).getCoordinates(), null);
                             game.putPiece(se);
 
                             break;
 
                         case SOCPlayingPiece.CITY:
 
-                            SOCCity ci = new SOCCity(pl, ((SOCPutPiece) mes).getCoordinates());
+                            SOCCity ci = new SOCCity(pl, ((SOCPutPiece) mes).getCoordinates(), null);
                             game.putPiece(ci);
 
                             break;
@@ -1034,7 +1034,7 @@ public class SOCRobotBrain extends Thread
                         case SOCGame.START2B:
                             int pnum = game.getCurrentPlayerNumber();
                             SOCPlayer pl = game.getPlayer(pnum);
-                            SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord());
+                            SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
                             game.undoPutInitSettlement(pp);
                             //
                             // "forget" to track this cancelled initial settlement.
@@ -1588,7 +1588,7 @@ public class SOCRobotBrain extends Thread
                                             if ((secondPiece != null) && (secondPiece.getType() == SOCPossiblePiece.ROAD))
                                             {
                                                 roadBuildingPlan = true;
-                                                whatWeWantToBuild = new SOCRoad(ourPlayerData, topPiece.getCoordinates());
+                                                whatWeWantToBuild = new SOCRoad(ourPlayerData, topPiece.getCoordinates(), null);
                                                 if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
                                                 {
                                                     waitingForGameState = true;
@@ -1754,7 +1754,7 @@ public class SOCRobotBrain extends Thread
                                                         waitingForGameState = true;
                                                         counter = 0;
                                                         expectPLACING_ROAD = true;
-                                                        whatWeWantToBuild = new SOCRoad(ourPlayerData, targetPiece.getCoordinates());
+                                                        whatWeWantToBuild = new SOCRoad(ourPlayerData, targetPiece.getCoordinates(), null);
                                                         if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
                                                         {
                                                             D.ebugPrintln("!!! BUILD REQUEST FOR A ROAD AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
@@ -1771,7 +1771,7 @@ public class SOCRobotBrain extends Thread
                                                         waitingForGameState = true;
                                                         counter = 0;
                                                         expectPLACING_SETTLEMENT = true;
-                                                        whatWeWantToBuild = new SOCSettlement(ourPlayerData, targetPiece.getCoordinates());
+                                                        whatWeWantToBuild = new SOCSettlement(ourPlayerData, targetPiece.getCoordinates(), null);
                                                         if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
                                                         {
                                                             D.ebugPrintln("!!! BUILD REQUEST FOR A SETTLEMENT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
@@ -1788,7 +1788,7 @@ public class SOCRobotBrain extends Thread
                                                         waitingForGameState = true;
                                                         counter = 0;
                                                         expectPLACING_CITY = true;
-                                                        whatWeWantToBuild = new SOCCity(ourPlayerData, targetPiece.getCoordinates());
+                                                        whatWeWantToBuild = new SOCCity(ourPlayerData, targetPiece.getCoordinates(), null);
                                                         if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
                                                         {
                                                             D.ebugPrintln("!!! BUILD REQUEST FOR A CITY " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
@@ -1915,7 +1915,7 @@ public class SOCRobotBrain extends Thread
                             if (posPiece.getType() == SOCPossiblePiece.ROAD)
                             {
                                 D.ebugPrintln("posPiece = " + posPiece);
-                                whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates());
+                                whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
                                 D.ebugPrintln("$ POPPED OFF");
                                 D.ebugPrintln("!!! PUTTING PIECE 2 " + whatWeWantToBuild + " !!!");
                                 pause(500);
@@ -2015,7 +2015,7 @@ public class SOCRobotBrain extends Thread
                         {
                         case SOCPlayingPiece.ROAD:
 
-                            SOCRoad newRoad = new SOCRoad(game.getPlayer(((SOCPutPiece) mes).getPlayerNumber()), ((SOCPutPiece) mes).getCoordinates());
+                            SOCRoad newRoad = new SOCRoad(game.getPlayer(((SOCPutPiece) mes).getPlayerNumber()), ((SOCPutPiece) mes).getCoordinates(), null);
                             trackNewRoad(newRoad, false);
 
                             break;
@@ -2029,7 +2029,7 @@ public class SOCRobotBrain extends Thread
                              * player changes their mind on where to place the settlement.
                              */
                             SOCPlayer newSettlementPl = game.getPlayer(((SOCPutPiece) mes).getPlayerNumber());
-                            SOCSettlement newSettlement = new SOCSettlement(newSettlementPl, ((SOCPutPiece) mes).getCoordinates());
+                            SOCSettlement newSettlement = new SOCSettlement(newSettlementPl, ((SOCPutPiece) mes).getCoordinates(), null);
                             if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
                             {
                                 // Track it after the road is placed
@@ -2047,7 +2047,7 @@ public class SOCRobotBrain extends Thread
 
                         case SOCPlayingPiece.CITY:
 
-                            SOCCity newCity = new SOCCity(game.getPlayer(((SOCPutPiece) mes).getPlayerNumber()), ((SOCPutPiece) mes).getCoordinates());
+                            SOCCity newCity = new SOCCity(game.getPlayer(((SOCPutPiece) mes).getPlayerNumber()), ((SOCPutPiece) mes).getCoordinates(), null);
                             trackNewCity(newCity, false);
 
                             break;
@@ -2309,12 +2309,13 @@ public class SOCRobotBrain extends Thread
         /// see if this settlement bisected someone elses road
         ///
         int[] roadCount = { 0, 0, 0, 0 };
-        Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToNode(newSettlement.getCoordinates()).elements();
-        
+        SOCBoard board = game.getBoard();
+        Enumeration adjEdgeEnum = board.getAdjacentEdgesToNode(newSettlement.getCoordinates()).elements();
+
         while (adjEdgeEnum.hasMoreElements())
         {
             Integer adjEdge = (Integer) adjEdgeEnum.nextElement();
-            Enumeration roadEnum = game.getBoard().getRoads().elements();
+            Enumeration roadEnum = board.getRoads().elements();
 
             while (roadEnum.hasMoreElements())
             {
@@ -2599,15 +2600,15 @@ public class SOCRobotBrain extends Thread
         switch (mes.getPieceType())
         {
         case SOCPlayingPiece.ROAD:
-            cancelPiece = new SOCRoad(dummyCancelPlayerData, coord);
+            cancelPiece = new SOCRoad(dummyCancelPlayerData, coord, null);
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-            cancelPiece = new SOCSettlement(dummyCancelPlayerData, coord);
+            cancelPiece = new SOCSettlement(dummyCancelPlayerData, coord, null);
             break;
 
         case SOCPlayingPiece.CITY:
-            cancelPiece = new SOCCity(dummyCancelPlayerData, coord);
+            cancelPiece = new SOCCity(dummyCancelPlayerData, coord, null);
             break;
             
         default:
@@ -2720,7 +2721,7 @@ public class SOCRobotBrain extends Thread
 
         bestProbTotal = 0;
 
-        for (int firstNode = SOCBoard.MINNODE; firstNode <= SOCBoard.MAXNODE; firstNode++)
+        for (int firstNode = board.getMinNode(); firstNode <= SOCBoard.MAXNODE; firstNode++)
         {
             if (ourPlayerData.isPotentialSettlement(firstNode))
             {
@@ -2792,7 +2793,7 @@ public class SOCRobotBrain extends Thread
                 for (int secondNode = firstNode + 1; secondNode <= SOCBoard.MAXNODE;
                         secondNode++)
                 {
-                    if ((ourPlayerData.isPotentialSettlement(secondNode)) && (!SOCBoard.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
+                    if ((ourPlayerData.isPotentialSettlement(secondNode)) && (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
                     {
                         D.ebugPrintln("firstNode = " + board.nodeCoordToString(firstNode));
                         D.ebugPrintln("secondNode = " + board.nodeCoordToString(secondNode));
@@ -3095,9 +3096,9 @@ public class SOCRobotBrain extends Thread
         bestProbTotal = 0;
         secondSettlement = -1;
 
-        for (int secondNode = SOCBoard.MINNODE; secondNode <= SOCBoard.MAXNODE; secondNode++)
+        for (int secondNode = board.getMinNode(); secondNode <= SOCBoard.MAXNODE; secondNode++)
         {
-            if ((ourPlayerData.isPotentialSettlement(secondNode)) && (!SOCBoard.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
+            if ((ourPlayerData.isPotentialSettlement(secondNode)) && (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
             {
                 Integer secondNodeInt = new Integer(secondNode);
 
@@ -3237,7 +3238,7 @@ public class SOCRobotBrain extends Thread
     {
         //D.ebugPrintln("BUILD REQUEST FOR SETTLEMENT AT "+Integer.toHexString(firstSettlement));
         pause(500);
-        client.putPiece(game, new SOCSettlement(ourPlayerData, firstSettlement));
+        client.putPiece(game, new SOCSettlement(ourPlayerData, firstSettlement, null));
         pause(1000);
     }
 
@@ -3248,7 +3249,7 @@ public class SOCRobotBrain extends Thread
     {
         //D.ebugPrintln("BUILD REQUEST FOR SETTLEMENT AT "+Integer.toHexString(secondSettlement));
         pause(500);
-        client.putPiece(game, new SOCSettlement(ourPlayerData, secondSettlement));
+        client.putPiece(game, new SOCSettlement(ourPlayerData, secondSettlement, null));
         pause(1000);
     }
 
@@ -3416,7 +3417,7 @@ public class SOCRobotBrain extends Thread
                     /**
                      * pretend that someone has built a settlement on the best spot
                      */
-                    dummy.updatePotentials(new SOCSettlement(ourPlayerData, bestNodePair.getNode()));
+                    dummy.updatePotentials(new SOCSettlement(ourPlayerData, bestNodePair.getNode(), null));
 
                     /**
                      * remove this spot from the list of best spots
@@ -3495,7 +3496,7 @@ public class SOCRobotBrain extends Thread
         pause(500);
 
         //D.ebugPrintln("Trying to build a road at "+Integer.toHexString(roadEdge));
-        client.putPiece(game, new SOCRoad(ourPlayerData, roadEdge));
+        client.putPiece(game, new SOCRoad(ourPlayerData, roadEdge, null));
         pause(1000);
 
         dummy.destroyPlayer();

@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,16 +30,26 @@ import java.util.Vector;
 public class SOCCity extends SOCPlayingPiece
 {
     /**
+     * Board, for coordinate-related operations
+     * @since 1.1.08
+     */
+    private SOCBoard board;
+
+    /**
      * Make a new city
      *
      * @param pl  player who owns the city
      * @param co  coordinates
+     * @param board  board if known; otherwise will extract from <tt>pl</tt>
      */
-    public SOCCity(SOCPlayer pl, int co)
+    public SOCCity(SOCPlayer pl, int co, SOCBoard board)
     {
         pieceType = SOCPlayingPiece.CITY;
         player = pl;
         coord = co;
+        if (board == null)
+            board = pl.getGame().getBoard();
+        this.board = board;
     }
 
     /**
@@ -54,6 +65,6 @@ public class SOCCity extends SOCPlayingPiece
      */
     public Vector getAdjacentEdges()
     {
-        return SOCBoard.getAdjacentEdgesToNode(coord);
+        return board.getAdjacentEdgesToNode(coord);
     }
 }

@@ -95,7 +95,7 @@ public class SOCPossibleCity extends SOCPossiblePiece
         SOCBuildingSpeedEstimate bse1 = new SOCBuildingSpeedEstimate(player.getNumbers());
         int[] ourBuildingSpeed = bse1.getEstimatesFromNothingFast(player.getPortFlags());
         SOCPlayerNumbers newNumbers = new SOCPlayerNumbers(player.getNumbers());
-        newNumbers.updateNumbers(new SOCCity(player, coord), player.getGame().getBoard());
+        newNumbers.updateNumbers(new SOCCity(player, coord, null), player.getGame().getBoard());
 
         SOCBuildingSpeedEstimate bse2 = new SOCBuildingSpeedEstimate(newNumbers);
         int[] speed = bse2.getEstimatesFromNothingFast(player.getPortFlags());

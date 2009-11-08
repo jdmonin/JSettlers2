@@ -582,7 +582,8 @@ public class SOCPlayerTracker
         //
         // check adjacent nodes to road for potential settlements
         //
-        Enumeration adjNodeEnum = SOCBoard.getAdjacentNodesToEdge(road.getCoordinates()).elements();
+        SOCBoard board = player.getGame().getBoard();
+        Enumeration adjNodeEnum = board.getAdjacentNodesToEdge(road.getCoordinates()).elements();
 
         while (adjNodeEnum.hasMoreElements())
         {
@@ -630,7 +631,7 @@ public class SOCPlayerTracker
         //
         // check adjacent edges to road
         //
-        Enumeration adjEdgesEnum = SOCBoard.getAdjacentEdgesToEdge(road.getCoordinates()).elements();
+        Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(road.getCoordinates()).elements();
 
         while (adjEdgesEnum.hasMoreElements())
         {
@@ -717,7 +718,8 @@ public class SOCPlayerTracker
     public void expandRoad(SOCPossibleRoad targetRoad, SOCPlayer player, SOCPlayer dummy, HashMap trackers, int level)
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
-        SOCRoad dummyRoad = new SOCRoad(dummy, targetRoad.getCoordinates());
+        SOCBoard board = player.getGame().getBoard();
+        SOCRoad dummyRoad = new SOCRoad(dummy, targetRoad.getCoordinates(), board);
         dummy.putPiece(dummyRoad);
 
         //
@@ -727,7 +729,7 @@ public class SOCPlayerTracker
         //
         // check adjacent nodes to road for potential settlements
         //
-        Enumeration adjNodeEnum = SOCBoard.getAdjacentNodesToEdge(targetRoad.getCoordinates()).elements();
+        Enumeration adjNodeEnum = board.getAdjacentNodesToEdge(targetRoad.getCoordinates()).elements();
 
         while (adjNodeEnum.hasMoreElements())
         {
@@ -794,7 +796,7 @@ public class SOCPlayerTracker
             //
             // check adjacent edges to road
             //
-            Enumeration adjEdgesEnum = SOCBoard.getAdjacentEdgesToEdge(targetRoad.getCoordinates()).elements();
+            Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(targetRoad.getCoordinates()).elements();
 
             while (adjEdgesEnum.hasMoreElements())
             {
@@ -935,6 +937,7 @@ public class SOCPlayerTracker
          * look at all adjacent nodes and update possible settlements on nodes
          */
         Iterator trackersIter = trackers.values().iterator();
+        SOCBoard board = player.getGame().getBoard();
 
         while (trackersIter.hasNext())
         {
@@ -961,7 +964,7 @@ public class SOCPlayerTracker
             /**
              * now look at adjacent settlements
              */
-            Enumeration adjNodeEnum = SOCBoard.getAdjacentNodesToNode(ps.getCoordinates()).elements();
+            Enumeration adjNodeEnum = board.getAdjacentNodesToNode(ps.getCoordinates()).elements();
 
             while (adjNodeEnum.hasMoreElements())
             {
@@ -1034,6 +1037,7 @@ public class SOCPlayerTracker
     {
         //D.ebugPrintln();
         D.ebugPrintln("$$$ addOurNewSettlement : " + settlement);
+        SOCBoard board = player.getGame().getBoard();
 
         Integer settlementCoords = new Integer(settlement.getCoordinates());
 
@@ -1105,7 +1109,7 @@ public class SOCPlayerTracker
             D.ebugPrintln("$$$ wasn't possible settlement");
 
             Vector trash = new Vector();
-            Vector adjNodes = SOCBoard.getAdjacentNodesToNode(settlement.getCoordinates());
+            Vector adjNodes = board.getAdjacentNodesToNode(settlement.getCoordinates());
             Iterator trackersIter = trackers.values().iterator();
 
             while (trackersIter.hasNext())
@@ -1212,7 +1216,7 @@ public class SOCPlayerTracker
 
         Vector prTrash = new Vector();
         Vector nrTrash = new Vector();
-        Vector adjEdges = SOCBoard.getAdjacentEdgesToNode(settlement.getCoordinates());
+        Vector adjEdges = player.getGame().getBoard().getAdjacentEdgesToNode(settlement.getCoordinates());
         Enumeration edge1Enum = adjEdges.elements();
 
         while (edge1Enum.hasMoreElements())
@@ -1535,6 +1539,7 @@ public class SOCPlayerTracker
          * check roads that need updating and don't have necessary roads
          */
         int ourPlayerNumber = player.getPlayerNumber();
+        SOCBoard board = player.getGame().getBoard();
         Iterator posRoadsIter = possibleRoads.values().iterator();
 
         while (posRoadsIter.hasNext())
@@ -1549,7 +1554,7 @@ public class SOCPlayerTracker
                  * look for possible settlements that can block this road
                  */
                 final int[] adjNodesToPosRoad = SOCBoard.getAdjacentNodesToEdge_arr(posRoad.getCoordinates());
-                Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToEdge(posRoad.getCoordinates()).elements();
+                Enumeration adjEdgeEnum = board.getAdjacentEdgesToEdge(posRoad.getCoordinates()).elements();
 
                 while (adjEdgeEnum.hasMoreElements())
                 {
@@ -2288,7 +2293,7 @@ public class SOCPlayerTracker
                 //
                 // calc longest road value
                 //
-                SOCRoad dummyRoad = new SOCRoad(dummy, posRoad.getCoordinates());
+                SOCRoad dummyRoad = new SOCRoad(dummy, posRoad.getCoordinates(), null);
                 dummy.putPiece(dummyRoad);
 
                 int newLRLength = dummy.calcLongestRoad2();
@@ -2337,6 +2342,7 @@ public class SOCPlayerTracker
         // or if there are no more roads to place from this one.
         // then calc potential LR value
         //
+        SOCBoard board = player.getGame().getBoard();
         boolean noMoreExpansion;
 
         if (level <= 0)
@@ -2347,7 +2353,7 @@ public class SOCPlayerTracker
         {
             noMoreExpansion = false;
 
-            Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToEdge(dummyRoad.getCoordinates()).elements();
+            Enumeration adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRoad.getCoordinates()).elements();
 
             while (adjEdgeEnum.hasMoreElements())
             {
@@ -2381,7 +2387,7 @@ public class SOCPlayerTracker
             //
             // we need to add a new road and recurse
             //
-            Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToEdge(dummyRoad.getCoordinates()).elements();
+            Enumeration adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRoad.getCoordinates()).elements();
 
             while (adjEdgeEnum.hasMoreElements())
             {
@@ -2389,7 +2395,7 @@ public class SOCPlayerTracker
 
                 if (dummy.isPotentialRoad(adjEdge.intValue()))
                 {
-                    SOCRoad newDummyRoad = new SOCRoad(dummy, adjEdge.intValue());
+                    SOCRoad newDummyRoad = new SOCRoad(dummy, adjEdge.intValue(), board);
                     dummy.putPiece(newDummyRoad);
                     updateLRPotential(posRoad, dummy, newDummyRoad, lrLength, level - 1);
                     dummy.removePiece(newDummyRoad);

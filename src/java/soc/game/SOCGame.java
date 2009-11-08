@@ -1414,7 +1414,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pp.getType() == SOCPlayingPiece.CITY)
         {
-            SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates());
+            SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
 
             for (int i = 0; i < MAXPLAYERS; i++)
             {
@@ -1498,7 +1498,7 @@ public class SOCGame implements Serializable, Cloneable
                     roads[i] = 0;
                 }
 
-                Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
+                Enumeration adjEdgeEnum = board.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
 
                 while (adjEdgeEnum.hasMoreElements())
                 {
@@ -1696,7 +1696,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pp.getType() == SOCPlayingPiece.CITY)
         {
-            SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates());
+            SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
 
             for (int i = 0; i < MAXPLAYERS; i++)
             {
@@ -1721,7 +1721,7 @@ public class SOCGame implements Serializable, Cloneable
             else
             {
                 /**
-                 * this is a settlement, check if it cut anyone elses road
+                 * this is a settlement, check if it cut anyone else's road
                  */
                 int[] roads = new int[MAXPLAYERS];
 
@@ -1730,7 +1730,7 @@ public class SOCGame implements Serializable, Cloneable
                     roads[i] = 0;
                 }
 
-                Enumeration adjEdgeEnum = SOCBoard.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
+                Enumeration adjEdgeEnum = board.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
 
                 while (adjEdgeEnum.hasMoreElements())
                 {
@@ -1797,7 +1797,7 @@ public class SOCGame implements Serializable, Cloneable
         //
         if (pp.getType() == SOCPlayingPiece.CITY)
         {
-            SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates());
+            SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
 
             for (int i = 0; i < MAXPLAYERS; i++)
             {

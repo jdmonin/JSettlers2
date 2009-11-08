@@ -1326,21 +1326,21 @@ public class SOCDisplaylessPlayerClient implements Runnable
             {
             case SOCPlayingPiece.ROAD:
 
-                SOCRoad rd = new SOCRoad(pl, mes.getCoordinates());
+                SOCRoad rd = new SOCRoad(pl, mes.getCoordinates(), null);
                 ga.putPiece(rd);
 
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
 
-                SOCSettlement se = new SOCSettlement(pl, mes.getCoordinates());
+                SOCSettlement se = new SOCSettlement(pl, mes.getCoordinates(), null);
                 ga.putPiece(se);
 
                 break;
 
             case SOCPlayingPiece.CITY:
 
-                SOCCity ci = new SOCCity(pl, mes.getCoordinates());
+                SOCCity ci = new SOCCity(pl, mes.getCoordinates(), null);
                 ga.putPiece(ci);
 
                 break;
@@ -1393,7 +1393,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         SOCPlayer pl = ga.getPlayer(ga.getCurrentPlayerNumber());
-        SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord());
+        SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
         ga.undoPutInitSettlement(pp);
     }
 

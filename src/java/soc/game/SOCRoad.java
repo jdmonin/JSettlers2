@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,16 +30,26 @@ import java.util.Vector;
 public class SOCRoad extends SOCPlayingPiece
 {
     /**
+     * Board, for coordinate-related operations
+     * @since 1.1.08
+     */
+    private SOCBoard board;
+
+    /**
      * Make a new road
      *
      * @param pl  player who owns the city
      * @param co  coordinates
+     * @param board  board if known; otherwise will extract from <tt>pl</tt>
      */
-    public SOCRoad(SOCPlayer pl, int co)
+    public SOCRoad(SOCPlayer pl, int co, SOCBoard board)
     {
         pieceType = SOCPlayingPiece.ROAD;
         player = pl;
         coord = co;
+        if (board == null)
+            board = pl.getGame().getBoard();
+        this.board = board;
     }
 
     /**
@@ -47,7 +58,7 @@ public class SOCRoad extends SOCPlayingPiece
      */
     public int[] getAdjacentNodes()
     {
-        return SOCBoard.getAdjacentNodesToEdge_arr(coord);
+        return board.getAdjacentNodesToEdge_arr(coord);
     }
 
     /**
@@ -55,6 +66,6 @@ public class SOCRoad extends SOCPlayingPiece
      */
     public Vector getAdjacentEdges()
     {
-        return SOCBoard.getAdjacentEdgesToEdge(coord);
+        return board.getAdjacentEdgesToEdge(coord);
     }
 }

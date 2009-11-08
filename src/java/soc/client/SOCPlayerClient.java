@@ -3086,7 +3086,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             {
             case SOCPlayingPiece.ROAD:
 
-                SOCRoad rd = new SOCRoad(pl, mes.getCoordinates());
+                SOCRoad rd = new SOCRoad(pl, mes.getCoordinates(), null);
                 ga.putPiece(rd);
                 mesHp.updateValue(SOCHandPanel.ROADS);
 
@@ -3094,7 +3094,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
             case SOCPlayingPiece.SETTLEMENT:
 
-                SOCSettlement se = new SOCSettlement(pl, mes.getCoordinates());
+                SOCSettlement se = new SOCSettlement(pl, mes.getCoordinates(), null);
                 ga.putPiece(se);
                 mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
 
@@ -3118,7 +3118,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
             case SOCPlayingPiece.CITY:
 
-                SOCCity ci = new SOCCity(pl, mes.getCoordinates());
+                SOCCity ci = new SOCCity(pl, mes.getCoordinates(), null);
                 ga.putPiece(ci);
                 mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
                 mesHp.updateValue(SOCHandPanel.CITIES);
@@ -3185,7 +3185,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             return;
 
         SOCPlayer pl = ga.getPlayer(ga.getCurrentPlayerNumber());
-        SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord());
+        SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
         ga.undoPutInitSettlement(pp);
 
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());

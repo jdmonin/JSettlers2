@@ -3731,7 +3731,7 @@ public class SOCServer extends Server
                         {
                         case SOCPlayingPiece.ROAD:
 
-                            SOCRoad rd = new SOCRoad(player, mes.getCoordinates());
+                            SOCRoad rd = new SOCRoad(player, mes.getCoordinates(), null);
 
                             if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B) || (ga.getGameState() == SOCGame.PLACING_ROAD) || (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1) || (ga.getGameState() == SOCGame.PLACING_FREE_ROAD2))
                             {
@@ -3789,7 +3789,7 @@ public class SOCServer extends Server
 
                         case SOCPlayingPiece.SETTLEMENT:
 
-                            SOCSettlement se = new SOCSettlement(player, mes.getCoordinates());
+                            SOCSettlement se = new SOCSettlement(player, mes.getCoordinates(), null);
 
                             if ((ga.getGameState() == SOCGame.START1A) || (ga.getGameState() == SOCGame.START2A) || (ga.getGameState() == SOCGame.PLACING_SETTLEMENT))
                             {
@@ -3824,7 +3824,7 @@ public class SOCServer extends Server
 
                         case SOCPlayingPiece.CITY:
 
-                            SOCCity ci = new SOCCity(player, mes.getCoordinates());
+                            SOCCity ci = new SOCCity(player, mes.getCoordinates(), null);
 
                             if (ga.getGameState() == SOCGame.PLACING_CITY)
                             {
@@ -5088,7 +5088,7 @@ public class SOCServer extends Server
                             }
                             else if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B))
                             {
-                                SOCSettlement pp = new SOCSettlement(player, player.getLastSettlementCoord());
+                                SOCSettlement pp = new SOCSettlement(player, player.getLastSettlementCoord(), null);
                                 ga.undoPutInitSettlement(pp);
                                 messageToGame(gaName, mes);  // Re-send to all clients to announce it
                                     // (Safe since we've validated all message parameters)
@@ -6046,12 +6046,7 @@ public class SOCServer extends Server
              */
             Vector psList = new Vector();
             {
-                int j;
-                if (gameData.isGameOptionSet("DEBUG56PLBOARD"))
-                    j = SOCBoard.MINNODE_V2;
-                else
-                    j = SOCBoard.MINNODE;
-                for (; j <= SOCBoard.MAXNODE; j++)
+                for (int j = gameData.getBoard().getMinNode(); j <= SOCBoard.MAXNODE; j++)
                 {
                     if (pl.isPotentialSettlement(j))
                     {
