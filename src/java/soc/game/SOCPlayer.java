@@ -158,6 +158,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      * a list of nodes where it is legal to place a
      * settlement.        a node is legal if a settlement
      * could eventually be placed there.
+     * @see SOCBoard#nodesOnBoard
      */
     private boolean[] legalSettlements;
 
@@ -170,6 +171,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * a list of nodes where a settlement could be
      * placed on the next turn.
+     * @see SOCBoard#nodesOnBoard
      */
     private boolean[] potentialSettlements;
 
@@ -389,105 +391,135 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     private final void initLegalRoads()
     {
+        // 6-player starts land 1 extra hex (2 edges) west of standard board,
+        // and has an extra row of land hexes at north and south end.
+        final boolean is6player = (game.getBoard().getBoardEncodingFormat()
+            == SOCBoard.BOARD_ENCODING_6PLAYER);
+        final int leftAdj = (is6player) ? 0x22 : 0x00;
+
+        // Set each row of valid road (edge) coordinates:
         int i;
 
-        for (i = 0x27; i <= 0x7C; i += 0x11)
+        if (is6player)
         {
-            legalRoads[i] = true;
+            for (i = 0x07; i <= 0x5C; i += 0x11)
+                legalRoads[i] = true;
+
+            for (i = 0x06; i <= 0x6C; i += 0x22)
+                legalRoads[i] = true;
         }
 
-        for (i = 0x26; i <= 0x8C; i += 0x22)
-        {
+        for (i = 0x27 - leftAdj; i <= 0x7C; i += 0x11)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x25; i <= 0x9C; i += 0x11)
-        {
+        for (i = 0x26 - leftAdj; i <= 0x8C; i += 0x22)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x24; i <= 0xAC; i += 0x22)
-        {
+        for (i = 0x25 - leftAdj; i <= 0x9C; i += 0x11)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x23; i <= 0xBC; i += 0x11)
-        {
+        for (i = 0x24 - leftAdj; i <= 0xAC; i += 0x22)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x22; i <= 0xCC; i += 0x22)
-        {
+        for (i = 0x23 - leftAdj; i <= 0xBC; i += 0x11)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x32; i <= 0xCB; i += 0x11)
-        {
+        for (i = 0x22 - leftAdj; i <= 0xCC; i += 0x22)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x42; i <= 0xCA; i += 0x22)
-        {
+        for (i = 0x32 - leftAdj; i <= 0xCB; i += 0x11)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x52; i <= 0xC9; i += 0x11)
-        {
+        for (i = 0x42 - leftAdj; i <= 0xCA; i += 0x22)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x62; i <= 0xC8; i += 0x22)
-        {
+        for (i = 0x52 - leftAdj; i <= 0xC9; i += 0x11)
             legalRoads[i] = true;
-        }
 
-        for (i = 0x72; i <= 0xC7; i += 0x11)
-        {
+        for (i = 0x62 - leftAdj; i <= 0xC8; i += 0x22)
             legalRoads[i] = true;
+
+        for (i = 0x72 - leftAdj; i <= 0xC7; i += 0x11)
+            legalRoads[i] = true;
+
+        if (is6player)
+        {
+            for (i = 0x60; i <= 0xC6; i += 0x22)
+                legalRoads[i] = true;
+
+            for (i = 0x70; i <= 0xC5; i += 0x11)
+                legalRoads[i] = true;
+
         }
     }
 
     /**
-     * initialize the legal settlements array
+     * initialize the legal settlements array.
+     * @see SOCBoard#nodesOnBoard
      */
     private final void initLegalAndPotentialSettlements()
     {
+        // 6-player starts land 1 extra hex (2 nodes) west of standard board,
+        // and has an extra row of land hexes at north and south end.
+        final boolean is6player = (game.getBoard().getBoardEncodingFormat()
+            == SOCBoard.BOARD_ENCODING_6PLAYER);
+        final int leftAdj = (is6player) ? 0x22 : 0x00;
+
+        // Set each row of valid node coordinates:
         int i;
 
-        for (i = 0x27; i <= 0x8D; i += 0x11)
+        if (is6player)
+        {
+            for (i = 0x07; i <= 0x6D; i += 0x11)
+            {
+                potentialSettlements[i] = true;
+                legalSettlements[i] = true;
+            }            
+        }
+
+        for (i = 0x27 - leftAdj; i <= 0x8D; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x25; i <= 0xAD; i += 0x11)
+        for (i = 0x25 - leftAdj; i <= 0xAD; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x23; i <= 0xCD; i += 0x11)
+        for (i = 0x23 - leftAdj; i <= 0xCD; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x32; i <= 0xDC; i += 0x11)
+        for (i = 0x32 - leftAdj; i <= 0xDC; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x52; i <= 0xDA; i += 0x11)
+        for (i = 0x52 - leftAdj; i <= 0xDA; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x72; i <= 0xD8; i += 0x11)
+        for (i = 0x72 - leftAdj; i <= 0xD8; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
+        }
+
+        if (is6player)
+        {
+            for (i = 0x70; i <= 0xD6; i += 0x11)
+            {
+                potentialSettlements[i] = true;
+                legalSettlements[i] = true;
+            }            
         }
     }
 
