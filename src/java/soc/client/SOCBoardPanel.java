@@ -443,12 +443,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private boolean[] scaledHexFail, scaledPortFail;
 
     /**
-     * number pix (for hexes), original resolution.
+     * dice-number pix (for hexes), original resolution.
+     * Range is 0-12 (0,1,7 unused).
      */
     private static Image[] numbers;
 
     /**
-     * number pix (for hexes), current scaled resolution
+     * dice-number pix (for hexes), current scaled resolution
+     * Range is 0-12 (0,1,7 unused).
      */
     private Image[] scaledNumbers;
 
@@ -1393,11 +1395,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledPortFail[i] = false;
             }
 
-            w = scaleToActualX(numbers[0].getWidth(null));
-            h = scaleToActualY(numbers[0].getHeight(null));
+            w = scaleToActualX(numbers[2].getWidth(null));
+            h = scaleToActualY(numbers[2].getHeight(null));
             for (int i = scaledNumbers.length - 1; i>=0; --i)
             {
-                scaledNumbers[i] = numbers[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                if (numbers[i] != null)
+                    scaledNumbers[i] = numbers[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                 scaledNumberFail[i] = false;
             }
         }
@@ -1801,8 +1804,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     else
                     {
                         scaledNumberFail[hnl] = true;
-                        int w = scaleToActualX(numbers[0].getWidth(null));
-                        int h = scaleToActualY(numbers[0].getHeight(null));                    
+                        int w = scaleToActualX(numbers[2].getWidth(null));
+                        int h = scaleToActualY(numbers[2].getHeight(null));                    
                         scaledNumbers[hnl] = numbers[hnl].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                     }
                 }
@@ -3519,26 +3522,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
         
             hexes = new Image[13];
-            numbers = new Image[10];
+            numbers = new Image[13];  // 0-12 (0,1,7 unused)
             ports = new Image[7];
             dice = new Image[14];
 
             loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz);
 
-            numbers[0] = tk.getImage(clazz.getResource(IMAGEDIR + "/two.gif"));
-            numbers[1] = tk.getImage(clazz.getResource(IMAGEDIR + "/three.gif"));
-            numbers[2] = tk.getImage(clazz.getResource(IMAGEDIR + "/four.gif"));
-            numbers[3] = tk.getImage(clazz.getResource(IMAGEDIR + "/five.gif"));
-            numbers[4] = tk.getImage(clazz.getResource(IMAGEDIR + "/six.gif"));
-            numbers[5] = tk.getImage(clazz.getResource(IMAGEDIR + "/eight.gif"));
-            numbers[6] = tk.getImage(clazz.getResource(IMAGEDIR + "/nine.gif"));
-            numbers[7] = tk.getImage(clazz.getResource(IMAGEDIR + "/ten.gif"));
-            numbers[8] = tk.getImage(clazz.getResource(IMAGEDIR + "/eleven.gif"));
-            numbers[9] = tk.getImage(clazz.getResource(IMAGEDIR + "/twelve.gif"));
+            numbers[2] = tk.getImage(clazz.getResource(IMAGEDIR + "/two.gif"));
+            numbers[3] = tk.getImage(clazz.getResource(IMAGEDIR + "/three.gif"));
+            numbers[4] = tk.getImage(clazz.getResource(IMAGEDIR + "/four.gif"));
+            numbers[5] = tk.getImage(clazz.getResource(IMAGEDIR + "/five.gif"));
+            numbers[6] = tk.getImage(clazz.getResource(IMAGEDIR + "/six.gif"));
+            numbers[8] = tk.getImage(clazz.getResource(IMAGEDIR + "/eight.gif"));
+            numbers[9] = tk.getImage(clazz.getResource(IMAGEDIR + "/nine.gif"));
+            numbers[10] = tk.getImage(clazz.getResource(IMAGEDIR + "/ten.gif"));
+            numbers[11] = tk.getImage(clazz.getResource(IMAGEDIR + "/eleven.gif"));
+            numbers[12] = tk.getImage(clazz.getResource(IMAGEDIR + "/twelve.gif"));
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 2; i <= 12; i++)
             {
-                tracker.addImage(numbers[i], 0);
+                if (numbers[i] != null)
+                    tracker.addImage(numbers[i], 0);
             }
 
             for (int i = 2; i < 13; i++)
