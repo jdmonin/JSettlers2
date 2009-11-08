@@ -1132,57 +1132,59 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 //
                 // update our port flags
                 //
-                int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
+                final int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
                 if (portType != -1)
                 {
-                        //
-                        // since only one settlement can be on a 2:1 port
-                        // we can just set the port flag to false
-                        // TODO: In 6-player board, this may not be true;
-                        //   call getPortCoordinates(portType) and count # nodes / 2
-                        //
-                        if (portType != SOCBoard.MISC_PORT)
+                    boolean only1portOfType;
+                    if (portType == SOCBoard.MISC_PORT)
+                    {
+                        only1portOfType = false;
+                    } else {
+                        // how many 2:1 ports of this type?
+                        int nPort = board.getPortCoordinates(portType).size() / 2;
+                        only1portOfType = (nPort < 2);
+                    }
+                    
+                        if (only1portOfType)
                         {
+                            // since only one settlement on this kind of port,
+                            // we can just set the port flag to false
                             setPortFlag(portType, false);
                         }
                         else
                         {
                             //
-                            // there are muliple 3:1 ports, so we need to check all the settlements
+                            // there are muliple ports, so we need to check all
+                            // the settlements and cities
                             //
-                            boolean haveMiscPort = false;
+                            boolean havePortType = false;
                             Enumeration settlementEnum = settlements.elements();
 
                             while (settlementEnum.hasMoreElements())
                             {
                                 SOCSettlement settlement = (SOCSettlement) settlementEnum.nextElement();
-
-                                if (board.getPortTypeFromNodeCoord(settlement.getCoordinates()) == SOCBoard.MISC_PORT)
+                                if (board.getPortTypeFromNodeCoord(settlement.getCoordinates()) == portType)
                                 {
-                                    haveMiscPort = true;
-
+                                    havePortType = true;
                                     break;
                                 }
                             }
 
-                            if (!haveMiscPort)
+                            if (!havePortType)
                             {
                                 Enumeration cityEnum = cities.elements();
-
                                 while (cityEnum.hasMoreElements())
                                 {
                                     SOCCity city = (SOCCity) cityEnum.nextElement();
-
-                                    if (board.getPortTypeFromNodeCoord(city.getCoordinates()) == SOCBoard.MISC_PORT)
+                                    if (board.getPortTypeFromNodeCoord(city.getCoordinates()) == portType)
                                     {
-                                        haveMiscPort = true;
-
+                                        havePortType = true;
                                         break;
                                     }
                                 }
                             }
 
-                            setPortFlag(SOCBoard.MISC_PORT, haveMiscPort);
+                            setPortFlag(portType, havePortType);
                         }
                 }  // if (portType != -1)
             }  // if (ours)
