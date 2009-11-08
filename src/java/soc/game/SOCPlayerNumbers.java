@@ -28,7 +28,7 @@ import java.util.Vector;
 
 
 /**
- * This class tracks what numbers a player's pieces are touching
+ * This class tracks what dice-roll numbers a player's pieces are touching
  *
  * @author Robert S. Thomas
  */
@@ -39,9 +39,18 @@ public class SOCPlayerNumbers
         0x33, 0x35, 0x37, 0x53, 0x55, 0x57, 0x59, 0x73, 0x75, 0x77, 0x79, 0x7B,
         0x95, 0x97, 0x99, 0x9B, 0xB7, 0xB9, 0xBB
     };
-    Vector[] numbersForResource;
-    Vector[] resourcesForNumber;
-    Vector[] numberAndResourceForHex;
+
+    /**
+     * Dice roll numbers which yield this resource.
+     * Uses indexes in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     */
+    private Vector[] numbersForResource;
+
+    /** Resources on dice roll numbers; uses indexes 2-12  */
+    private Vector[] resourcesForNumber;
+
+    /** Hex information, by hex coordinate ID  */
+    private Vector[] numberAndResourceForHex;
 
     /**
      * make a copy of the player numbers
@@ -178,7 +187,7 @@ public class SOCPlayerNumbers
     /**
      * @return the numbers for a resource
      *
-     * @param resource  the resource
+     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      */
     public Vector getNumbersForResource(int resource)
     {
@@ -196,9 +205,9 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * @return the numbers for a resource taking the robber into account
+     * @return the numbers for a resource, taking the robber into account
      *
-     * @param resource  the resource
+     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @param robberHex the robber hex
      */
     public Vector getNumbersForResource(int resource, int robberHex)
@@ -229,7 +238,7 @@ public class SOCPlayerNumbers
     /**
      * @return the resources for a number taking the robber into account
      *
-     * @param number  the resource
+     * @param number  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @param robberHex the robber hex
      */
     public Vector getResourcesForNumber(int number, int robberHex)
@@ -260,9 +269,9 @@ public class SOCPlayerNumbers
     /**
      * set a number for a resource
      *
-     * @param number    the number
-     * @param resource  the resource
-     * @param hex       the hex      
+     * @param number    the dice-roll number
+     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @param hex       the hex coordinate ID
      */
     public void addNumberForResource(int number, int resource, int hex)
     {
@@ -326,9 +335,9 @@ public class SOCPlayerNumbers
      * remove a number for a resource
      * do this when you take back a piece
      *
-     * @param number    the number
-     * @param resource  the resource
-     * @param hex       the hex
+     * @param number    the dice-roll number
+     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @param hex       the hex coordinate ID
      */
     public void undoAddNumberForResource(int number, int resource, int hex)
     {
@@ -381,7 +390,7 @@ public class SOCPlayerNumbers
     /**
      * return true if this player is touching the requested number
      *
-     * @param number  the number
+     * @param number  the dice-roll number
      * @return true if the player has the number
      */
     public boolean hasNumber(int number)
