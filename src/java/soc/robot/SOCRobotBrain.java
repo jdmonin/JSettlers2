@@ -2720,7 +2720,7 @@ public class SOCRobotBrain extends Thread
 
         bestProbTotal = 0;
 
-        for (int firstNode = 0x23; firstNode < 0xDC; firstNode++)
+        for (int firstNode = SOCBoard.MINNODE; firstNode <= SOCBoard.MAXNODE; firstNode++)
         {
             if (ourPlayerData.isPotentialSettlement(firstNode))
             {
@@ -2789,7 +2789,7 @@ public class SOCRobotBrain extends Thread
                 //
                 // end test
                 //
-                for (int secondNode = firstNode + 1; secondNode < 0xDC;
+                for (int secondNode = firstNode + 1; secondNode <= SOCBoard.MAXNODE;
                         secondNode++)
                 {
                     if ((ourPlayerData.isPotentialSettlement(secondNode)) && (!SOCBoard.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
@@ -3095,7 +3095,7 @@ public class SOCRobotBrain extends Thread
         bestProbTotal = 0;
         secondSettlement = -1;
 
-        for (int secondNode = 0x23; secondNode < 0xDC; secondNode++)
+        for (int secondNode = SOCBoard.MINNODE; secondNode <= SOCBoard.MAXNODE; secondNode++)
         {
             if ((ourPlayerData.isPotentialSettlement(secondNode)) && (!SOCBoard.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
             {
@@ -3337,7 +3337,7 @@ public class SOCRobotBrain extends Thread
                  */
                 Hashtable allNodes = new Hashtable();
 
-                for (int i = 0x23; i < 0xDC; i++)
+                for (int i = SOCBoard.MINNODE; i <= SOCBoard.MAXNODE; i++)
                 {
                     if (ourPlayerData.isPotentialSettlement(i))
                     {
@@ -3384,7 +3384,7 @@ public class SOCRobotBrain extends Thread
                  */
                 Vector psList = new Vector();
 
-                for (int j = 0x23; j <= 0xDC; j++)
+                for (int j = SOCBoard.MINNODE; j <= SOCBoard.MAXNODE; j++)
                 {
                     if (ourPlayerData.isPotentialSettlement(j))
                     {
