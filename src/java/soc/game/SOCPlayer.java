@@ -1940,7 +1940,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     public boolean hasPotentialSettlement()
     {
-        for (int i = 0x23; i <= 0xDC; i++)
+        for (int i = SOCBoard.MINNODE; i <= SOCBoard.MAXNODE; i++)
         {
             if (potentialSettlements[i])
             {
@@ -1956,7 +1956,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     public boolean hasPotentialCity()
     {
-        for (int i = 0x23; i <= 0xDC; i++)
+        for (int i = SOCBoard.MINNODE; i <= SOCBoard.MAXNODE; i++)
         {
             if (potentialCities[i])
             {

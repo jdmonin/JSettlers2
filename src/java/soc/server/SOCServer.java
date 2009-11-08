@@ -6046,7 +6046,7 @@ public class SOCServer extends Server
              */
             Vector psList = new Vector();
 
-            for (int j = 0x23; j <= 0xDC; j++)
+            for (int j = SOCBoard.MINNODE; j <= SOCBoard.MAXNODE; j++)
             {
                 if (pl.isPotentialSettlement(j))
                 {
