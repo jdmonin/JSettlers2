@@ -752,19 +752,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             // since 0x00 is a valid edge for 6player, it's
             // marked in the map as -1 (0 means invalid in the map).
-            initEdgeMapAux(3, 0, 8, 3, 0x17);    // Top row: 0x17 is first land hex of this row
-            initEdgeMapAux(2, 3, 9, 6, 0x15);
-            initEdgeMapAux(1, 6, 10, 9, 0x13);
-            initEdgeMapAux(0, 9, 11, 12, 0x11);  // Middle row: 0x11 is leftmost land hex
-            initEdgeMapAux(1, 12, 10, 15, 0x31);
-            initEdgeMapAux(2, 15, 9, 18, 0x51);
-            initEdgeMapAux(3, 18, 8, 21, 0x71);  // Bottom row: 0x71 is first land hex of this row
+            initEdgeMapAux(3, 0, 9, 3, 0x17);    // Top row: 0x17 is first land hex of this row
+            initEdgeMapAux(2, 3, 10, 6, 0x15);
+            initEdgeMapAux(1, 6, 11, 9, 0x13);
+            initEdgeMapAux(0, 9, 12, 12, 0x11);  // Middle row: 0x11 is leftmost land hex
+            initEdgeMapAux(1, 12, 11, 15, 0x31);
+            initEdgeMapAux(2, 15, 10, 18, 0x51);
+            initEdgeMapAux(3, 18, 9, 21, 0x71);  // Bottom row: 0x71 is first land hex of this row
         } else {
-            initEdgeMapAux(4, 3, 9, 6, 0x37);    // Top row: 0x37 is first land hex of this row
-            initEdgeMapAux(3, 6, 10, 9, 0x35);
-            initEdgeMapAux(2, 9, 11, 12, 0x33);  // Middle row: 0x33 is leftmost land hex
-            initEdgeMapAux(3, 12, 10, 15, 0x53);
-            initEdgeMapAux(4, 15, 9, 18, 0x73);  // Bottom row: 0x73 is first land hex of this row
+            initEdgeMapAux(4, 3, 10, 6, 0x37);    // Top row: 0x37 is first land hex of this row
+            initEdgeMapAux(3, 6, 11, 9, 0x35);
+            initEdgeMapAux(2, 9, 12, 12, 0x33);  // Middle row: 0x33 is leftmost land hex
+            initEdgeMapAux(3, 12, 11, 15, 0x53);
+            initEdgeMapAux(4, 15, 10, 18, 0x73);  // Bottom row: 0x73 is first land hex of this row
         }
 
         // init node map
@@ -1905,27 +1905,46 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int hexNum, roadX[], roadY[];
         if (edgeNum == -1)
             edgeNum = 0x00;
+        int dy = 0;  // y-offset, if edge's hex would draw it off the map
 
         if ((((edgeNum & 0x0F) + (edgeNum >> 4)) % 2) == 0)
         { // If first and second digit 
-            hexNum = hexIDtoNum[edgeNum + 0x11]; // are even, then it is '|'.
+          // are even, then it is '|'.
+            hexNum = hexIDtoNum[edgeNum + 0x11];
             roadX = scaledVertRoadX;
             roadY = scaledVertRoadY;
         }
         else if (((edgeNum >> 4) % 2) == 0)
         { // If first digit is even,
-            hexNum = hexIDtoNum[edgeNum + 0x10]; // then it is '/'.
+          // then it is '/'.
+            if ((edgeNum >= 0x81) && (0 == ((edgeNum - 0x81) % 0x22)))
+            {
+                // hex is off the south edge of the board.
+                // move 2 hexes north and offset y.
+                hexNum = hexIDtoNum[edgeNum - 0x10 + 0x02];
+                dy = 2 * deltaY;
+            } else {
+                hexNum = hexIDtoNum[edgeNum + 0x10];
+            }
             roadX = scaledUpRoadX;
             roadY = scaledUpRoadY;
         }
         else
         { // Otherwise it is '\'.
-            hexNum = hexIDtoNum[edgeNum + 0x01];
+            if ((edgeNum >= 0x18) && (0 == ((edgeNum - 0x18) % 0x22)))
+            {
+                // hex is off the north edge of the board.
+                // move 2 hexes south and offset y.
+                hexNum = hexIDtoNum[edgeNum + 0x20 - 0x01];
+                dy = -2 * deltaY;
+            } else {
+                hexNum = hexIDtoNum[edgeNum + 0x01];
+            }
             roadX = scaledDownRoadX;
             roadY = scaledDownRoadY;
         }
         int hx = hexX[hexNum];
-        int hy = hexY[hexNum];
+        int hy = hexY[hexNum] + dy;
         if (isRotated)
         {
             // (cw):  P'=(panelMinBH-y, x)
