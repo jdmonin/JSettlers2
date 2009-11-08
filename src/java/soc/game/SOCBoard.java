@@ -384,27 +384,6 @@ public class SOCBoard implements Serializable, Cloneable
      */
     private int[] portsLayout;
 
-    /**
-     * Map of dice rolls to values in {@link #numberLayout}
-     */
-    private int[] boardNum2Num = { -1, -1, 0, 1, 2, 3, 4, -1, 5, 6, 7, 8, 9 };
- 
-    /**
-     * Map of values in {@link #numberLayout} to dice rolls:<pre>
-     *    -1 : robber
-     *     0 : 2
-     *     1 : 3
-     *     2 : 4
-     *     3 : 5
-     *     4 : 6
-     *     5 : 8 (7 is skipped)
-     *     6 : 9
-     *     7 : 10
-     *     8 : 11
-     *     9 : 12 </pre>
-     */
-    private int[] num2BoardNum = { 2, 3, 4, 5, 6, 8, 9, 10, 11, 12 };
-
     /*
        private int numberLayout[] = { -1, -1, -1, -1,
        -1, 8, 9, 6, -1,
@@ -415,10 +394,9 @@ public class SOCBoard implements Serializable, Cloneable
        -1, -1, -1, -1 };
      */
     /** Dice number from hex numbers.
-     *  For number value mapping, see {@link #num2BoardNum}.
      *  For coord mapping, see {@link #numToHexID}
      */
-    private int[] numberLayout = 
+    private int[] numberLayout =    // TODO largerboard: assumes hexLayout.length == 37
     {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -672,17 +650,41 @@ public class SOCBoard implements Serializable, Cloneable
                 is6player = false;
             }
         }
-        final int[] landHex = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
-        final int[] number = { 3, 0, 4, 1, 5, 7, 6, 9, 8, 2, 5, 7, 6, 2, 3, 4, 1, 8 };
-        final int[] numPath = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
+
+        final int[] landHex_v1 = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
+        final int[] landHex_6pl = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 
+            DESERT_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX,
+            WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX };
+        final int[] number_v1 = { 5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11 };
+        final int[] number_6pl =
+            {
+                2,   5,  4,  6 , 3, // A-E
+                9,   8, 11, 11, 10, // F-J
+                6,   3,  8,  4,  8, // K-O
+                10, 11, 12, 10,  5, // P-T
+                4,   9,  5,  9, 12, // U-Y
+                3,   2,  6          // Za-Zc        
+            };
+        final int[] numPath_v1 = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
+        final int[] numPath_6pl =
+        {
+           15, 9, 4, 0, 1, 2, 7, 13, 20, 26, 31, 35, 34, 33, 28, 22,  // outermost hexes
+           16, 10, 5, 6, 12, 19, 25, 30, 29, 23,  // middle ring of hexes
+           17, 11, 18, 24                         // center hexes
+        };
 
         SOCGameOption opt_breakClumps = (opts != null ? (SOCGameOption)opts.get("BC") : null);
 
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
-        makeNewBoard_placeHexes
-            (landHex, numPath, number, opt_breakClumps);
+        {
+            final int[] landHex = is6player ? landHex_6pl : landHex_v1;
+            final int[] numPath = is6player ? numPath_6pl : numPath_v1;
+            final int[] numbers = is6player ? number_6pl : number_v1;
+            makeNewBoard_placeHexes
+                (landHex, numPath, numbers, opt_breakClumps);
+        }
 
         // copy and shuffle the ports, and check vs game option BC
         final int[] portTypes = (is6player) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
@@ -1097,7 +1099,8 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return the number layout
+     * The dice-number layout of dice rolls at each hex number.
+     * @return the number layout; each element is valued 2-12.
      */
     public int[] getNumberLayout()
     {
@@ -1182,7 +1185,9 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * set the hexLayout
+     * set the hexLayout.
+     * Please call {@link #setBoardEncodingFormat(int)} first,
+     * unless the format is {@link #BOARD_ENCODING_ORIGINAL}.
      *
      * @param hl  the hex layout
      */
@@ -1199,8 +1204,11 @@ public class SOCBoard implements Serializable, Cloneable
         }
 
         /**
-         * fill in the port node information
+         * fill in the port node information, if it's part of the hex layout
          */
+        if (boardEncodingFormat != BOARD_ENCODING_ORIGINAL)
+            return;  // <---- port nodes are outside the hex layout ----
+
         if (nodeIDtoPortType == null)
         {
             nodeIDtoPortType = new int[MAXNODEPLUSONE];
@@ -1379,7 +1387,7 @@ public class SOCBoard implements Serializable, Cloneable
         }
         else
         {
-            return num2BoardNum[num];
+            return num;
         }
     }
 
