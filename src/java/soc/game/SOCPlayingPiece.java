@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,6 +22,7 @@
 package soc.game;
 
 import java.io.Serializable;
+import java.util.Vector;
 
 
 /**
@@ -51,6 +53,48 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Where this piece is on the board
      */
     protected int coord;
+
+    /**
+     * Board, for coordinate-related operations. Should be from same game as {@link #player}.
+     * @since 1.1.08
+     */
+    protected SOCBoard board;
+
+    /**
+     * Make a new piece.
+     *
+     * @param pl  player who owns the city
+     * @param co  coordinates
+     * @param board  board if known; otherwise will extract from <tt>pl</tt>.
+     *               Board should be from same game as <tt>pl</tt>.
+     * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
+     * @since 1.1.08
+     */
+    protected SOCPlayingPiece(final int ptype, SOCPlayer pl, final int co, SOCBoard pboard)
+        throws IllegalArgumentException
+    {
+        if (pl == null)
+            throw new IllegalArgumentException("player null");
+        pieceType = ptype;
+        player = pl;
+        coord = co;
+        if (pboard == null)
+        {
+            pboard = pl.getGame().getBoard();
+            if (pboard == null)
+                throw new IllegalArgumentException("player has null board");
+        }
+        board = pboard;       
+    }
+
+    /**
+     * Which edges touch this piece on the board?
+     * @return edges touching this piece, same format as {@link SOCBoard#getAdjacentEdgesToNode(int)}
+     */
+    public Vector getAdjacentEdges()
+    {
+        return board.getAdjacentEdgesToNode(coord);
+    }
 
     /**
      * @return  the type of piece
@@ -106,5 +150,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
         return ((this.pieceType == ((SOCPlayingPiece) other).pieceType)
             &&  (this.coord == ((SOCPlayingPiece) other).coord)
             &&  (this.player == ((SOCPlayingPiece) other).player));
+
+        // board is based on player; no need to check board too.
     }
 }

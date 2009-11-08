@@ -30,40 +30,25 @@ import java.util.Vector;
 public class SOCSettlement extends SOCPlayingPiece
 {
     /**
-     * Board, for coordinate-related operations
-     * @since 1.1.08
-     */
-    private SOCBoard board;
-
-    /**
      * Make a new settlement
      *
      * @param pl  player who owns the city
      * @param co  coordinates
+     * @param board  board if known; otherwise will extract from <tt>pl</tt>
+     * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
      */
     public SOCSettlement(SOCPlayer pl, int co, SOCBoard board)
+        throws IllegalArgumentException
     {
-        pieceType = SOCPlayingPiece.SETTLEMENT;
-        player = pl;
-        coord = co;
-        if (board == null)
-            board = pl.getGame().getBoard();
-        this.board = board;
+        super(SOCPlayingPiece.SETTLEMENT, pl, co, board);
     }
 
     /**
-     * @return the hexes touching this settlement
+     * @return the hexes touching this settlement, same format as {@link SOCBoard#getAdjacentHexesToNode(int)}
      */
     public Vector getAdjacentHexes()
     {
         return SOCBoard.getAdjacentHexesToNode(coord);
     }
 
-    /**
-     * @return edges touching this settlement
-     */
-    public Vector getAdjacentEdges()
-    {
-        return board.getAdjacentEdgesToNode(coord);
-    }
 }

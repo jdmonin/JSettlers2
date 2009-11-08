@@ -30,42 +30,26 @@ import java.util.Vector;
 public class SOCRoad extends SOCPlayingPiece
 {
     /**
-     * Board, for coordinate-related operations
-     * @since 1.1.08
-     */
-    private SOCBoard board;
-
-    /**
      * Make a new road
      *
      * @param pl  player who owns the city
      * @param co  coordinates
      * @param board  board if known; otherwise will extract from <tt>pl</tt>
+     * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
      */
     public SOCRoad(SOCPlayer pl, int co, SOCBoard board)
+        throws IllegalArgumentException
     {
-        pieceType = SOCPlayingPiece.ROAD;
-        player = pl;
-        coord = co;
-        if (board == null)
-            board = pl.getGame().getBoard();
-        this.board = board;
+        super(SOCPlayingPiece.ROAD, pl, co, board);
     }
 
     /**
      * The 2 nodes touching this road.
-     * @return the 2 nodes touching this road
+     * @return the 2 nodes touching this road, same format as {@link SOCBoard#getAdjacentNodesToEdge_arr(int)}
      */
     public int[] getAdjacentNodes()
     {
         return board.getAdjacentNodesToEdge_arr(coord);
     }
 
-    /**
-     * @return edges touching this road
-     */
-    public Vector getAdjacentEdges()
-    {
-        return board.getAdjacentEdgesToEdge(coord);
-    }
 }
