@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,9 +42,9 @@ public class SOCOldLRStats
     public SOCOldLRStats(SOCGame ga)
     {
         D.ebugPrintln("&&&& SOCOldLRStats constructor");
-        lrLengths = new int[SOCGame.MAXPLAYERS];
+        lrLengths = new int[ga.maxPlayers];
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < ga.maxPlayers; i++)
         {
             lrLengths[i] = ga.getPlayer(i).getLongestRoadLength();
             D.ebugPrintln("&&& lrLengths[" + i + "] = " + lrLengths[i]);
@@ -70,7 +71,7 @@ public class SOCOldLRStats
     {
         D.ebugPrintln("&&&& restoreOldStats");
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < ga.maxPlayers; i++)
         {
             ga.getPlayer(i).setLongestRoadLength(lrLengths[i]);
             D.ebugPrintln("&&& lrLengths[" + i + "] = " + lrLengths[i]);

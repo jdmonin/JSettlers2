@@ -202,8 +202,9 @@ public class SOCGame implements Serializable, Cloneable
     public static final int VOTE_NO   = 2;
 
     /**
-     * maximum number of players in a game
+     * maximum number of players in a game, in this version
      * @see #maxPlayers
+     * @see #MAXPLAYERS_STANDARD
      */
     public static final int MAXPLAYERS = 4;
 
@@ -775,7 +776,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * How many seats are vacant and available for players?
      * Based on {@link #isSeatVacant(int)}, and game
-     * option "PL" (maximum players) or {@link #MAXPLAYERS}.
+     * option "PL" (maximum players) or {@link #maxPlayers}.
      *
      * @return number of available vacant seats
      * @see #isSeatVacant(int)
@@ -787,9 +788,9 @@ public class SOCGame implements Serializable, Cloneable
         if (isGameOptionDefined("PL"))
             availSeats = getGameOptionIntValue("PL");
         else
-            availSeats = MAXPLAYERS;
+            availSeats = maxPlayers;
 
-        for (int i = 0; i < MAXPLAYERS; ++i)
+        for (int i = 0; i < maxPlayers; ++i)
             if (seats[i] == OCCUPIED)
                 --availSeats;
 
@@ -829,7 +830,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * @return the player object for a player id; never null if pn is in range
      *
-     * @param pn  the player number, in range 0 to {@link #MAXPLAYERS}-1
+     * @param pn  the player number, in range 0 to {@link #maxPlayers}-1
      */
     public SOCPlayer getPlayer(int pn)
     {
@@ -846,7 +847,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (nn != null)
         {
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 if ((nn.equals(players[i].getName())) && ! isSeatVacant(i))
                 {
@@ -1360,14 +1361,14 @@ public class SOCGame implements Serializable, Cloneable
 
         if (currentPlayerNumber < 0)
         {
-            currentPlayerNumber = MAXPLAYERS - 1;
+            currentPlayerNumber = maxPlayers - 1;
         }
         while (isSeatVacant (currentPlayerNumber))
         {
             --currentPlayerNumber;
             if (currentPlayerNumber < 0)
             {
-                currentPlayerNumber = MAXPLAYERS - 1;
+                currentPlayerNumber = maxPlayers - 1;
             }
             if (currentPlayerNumber == prevCPN)
             {
@@ -1393,14 +1394,14 @@ public class SOCGame implements Serializable, Cloneable
         forcingEndTurn = false;
         currentPlayerNumber++;
 
-        if (currentPlayerNumber == MAXPLAYERS)
+        if (currentPlayerNumber == maxPlayers)
         {
             currentPlayerNumber = 0;
         }
         while (isSeatVacant (currentPlayerNumber))
         {
             ++currentPlayerNumber;
-            if (currentPlayerNumber == MAXPLAYERS)
+            if (currentPlayerNumber == maxPlayers)
             {
                 currentPlayerNumber = 0;
             }
@@ -1427,7 +1428,7 @@ public class SOCGame implements Serializable, Cloneable
          * call putPiece() on every player so that each
          * player's updatePotentials() function gets called
          */
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             players[i].putPiece(pp);
         }
@@ -1441,7 +1442,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
 
-            for (int i = 0; i < MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 players[i].removePiece(se);
             }
@@ -1514,11 +1515,10 @@ public class SOCGame implements Serializable, Cloneable
             else
             {
                 /**
-                 * this is a settlement, check if it cut anyone elses road
+                 * this is a settlement, check if it cut anyone else's road
                  */
-                int[] roads = new int[MAXPLAYERS];
-
-                for (int i = 0; i < MAXPLAYERS; i++)
+                int[] roads = new int[maxPlayers];
+                for (int i = 0; i < maxPlayers; i++)
                 {
                     roads[i] = 0;
                 }
@@ -1550,7 +1550,7 @@ public class SOCGame implements Serializable, Cloneable
                  * down has 2 roads adjacent to it, then we need to recalculate
                  * their longest road
                  */
-                for (int i = 0; i < MAXPLAYERS; i++)
+                for (int i = 0; i < maxPlayers; i++)
                 {
                     if ((i != pp.getPlayer().getPlayerNumber()) && (roads[i] == 2))
                     {
@@ -1601,14 +1601,14 @@ public class SOCGame implements Serializable, Cloneable
             {
                 int tmpCPN = currentPlayerNumber + 1;
     
-                if (tmpCPN >= MAXPLAYERS)
+                if (tmpCPN >= maxPlayers)
                 {
                     tmpCPN = 0;
                 }
                 while (isSeatVacant (tmpCPN))
                 {
                     ++tmpCPN;
-                    if (tmpCPN >= MAXPLAYERS)
+                    if (tmpCPN >= maxPlayers)
                     {
                         tmpCPN = 0;
                     }
@@ -1641,14 +1641,14 @@ public class SOCGame implements Serializable, Cloneable
                 // who places next? same algorithm as advanceTurnBackwards.
                 if (tmpCPN < 0)
                 {
-                    tmpCPN = MAXPLAYERS - 1;
+                    tmpCPN = maxPlayers - 1;
                 }
                 while (isSeatVacant (tmpCPN))
                 {
                     --tmpCPN;
                     if (tmpCPN < 0)
                     {
-                        tmpCPN = MAXPLAYERS - 1;
+                        tmpCPN = maxPlayers - 1;
                     }
                 }
     
@@ -1709,7 +1709,7 @@ public class SOCGame implements Serializable, Cloneable
          * call putPiece() on every player so that each
          * player's updatePotentials() function gets called
          */
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             players[i].putPiece(pp);
         }
@@ -1723,7 +1723,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
 
-            for (int i = 0; i < MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 players[i].removePiece(se);
             }
@@ -1748,9 +1748,8 @@ public class SOCGame implements Serializable, Cloneable
                 /**
                  * this is a settlement, check if it cut anyone else's road
                  */
-                int[] roads = new int[MAXPLAYERS];
-
-                for (int i = 0; i < MAXPLAYERS; i++)
+                int[] roads = new int[maxPlayers];
+                for (int i = 0; i < maxPlayers; i++)
                 {
                     roads[i] = 0;
                 }
@@ -1782,7 +1781,7 @@ public class SOCGame implements Serializable, Cloneable
                  * down has 2 roads adjacent to it, then we need to recalculate
                  * their longest road
                  */
-                for (int i = 0; i < MAXPLAYERS; i++)
+                for (int i = 0; i < maxPlayers; i++)
                 {
                     if ((i != pp.getPlayer().getPlayerNumber()) && (roads[i] == 2))
                     {
@@ -1812,7 +1811,7 @@ public class SOCGame implements Serializable, Cloneable
         // call undoPutPiece() on every player so that 
         // they can update their potentials
         //
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             players[i].undoPutPiece(pp);   // If state START2B, will also zero resources
         }
@@ -1824,7 +1823,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
 
-            for (int i = 0; i < MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 players[i].putPiece(se);
             }
@@ -1956,7 +1955,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         do
         {
-            currentPlayerNumber = Math.abs(rand.nextInt() % MAXPLAYERS);
+            currentPlayerNumber = Math.abs(rand.nextInt() % maxPlayers);
         } while (isSeatVacant(currentPlayerNumber));
         setFirstPlayer(currentPlayerNumber);
     }
@@ -1978,14 +1977,14 @@ public class SOCGame implements Serializable, Cloneable
 
         if (lastPlayerNumber < 0)
         {
-            lastPlayerNumber = MAXPLAYERS - 1;
+            lastPlayerNumber = maxPlayers - 1;
         }
         while (isSeatVacant (lastPlayerNumber))
         {
             --lastPlayerNumber;
             if (lastPlayerNumber < 0)
             {
-                lastPlayerNumber = MAXPLAYERS - 1;
+                lastPlayerNumber = maxPlayers - 1;
             }
             if (lastPlayerNumber == firstPlayerNumber)
             {
@@ -2459,7 +2458,7 @@ public class SOCGame implements Serializable, Cloneable
              * if there are players with too many cards, wait for
              * them to discard
              */
-            for (int i = 0; i < MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 if (players[i].getResources().getTotal() > 7)
                 {
@@ -2484,7 +2483,7 @@ public class SOCGame implements Serializable, Cloneable
             /**
              * distribute resources
              */
-            for (int i = 0; i < MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 if (! isSeatVacant(i))
                 {
@@ -2665,7 +2664,7 @@ public class SOCGame implements Serializable, Cloneable
         gameState = PLACING_ROBBER;  // assumes oldGameState set already
         placingRobberForKnightCard = false;  // known because robber doesn't trigger discard
 
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             if (players[i].getNeedToDiscard())
             {
@@ -2817,9 +2816,9 @@ public class SOCGame implements Serializable, Cloneable
      */
     public Vector getPlayersOnHex(int hex)
     {
-        Vector playerList = new Vector(MAXPLAYERS);
+        Vector playerList = new Vector(maxPlayers);
 
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             Vector settlements = players[i].getSettlements();
             Vector cities = players[i].getCities();
@@ -3720,9 +3719,9 @@ public class SOCGame implements Serializable, Cloneable
     public int[] doMonopolyAction(final int rtype)
     {
         int sum = 0;
-        int[] monoResult = new int[MAXPLAYERS];
+        int[] monoResult = new int[maxPlayers];
 
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             if ((i != currentPlayerNumber) && ! isSeatVacant(i))
             {
@@ -3760,7 +3759,7 @@ public class SOCGame implements Serializable, Cloneable
             size = players[playerWithLargestArmy].getNumKnights();
         }
 
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             if (players[i].getNumKnights() > size)
             {
@@ -3811,7 +3810,7 @@ public class SOCGame implements Serializable, Cloneable
         players[pn].calcLongestRoad2();
         longestLength = 0;
 
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             playerLength = players[i].getLongestRoadLength();
 
@@ -3836,7 +3835,7 @@ public class SOCGame implements Serializable, Cloneable
             ///
             int playersWithLR = 0;
 
-            for (int i = 0; i < MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 if (players[i].getLongestRoadLength() == longestLength)
                 {
@@ -3877,7 +3876,7 @@ public class SOCGame implements Serializable, Cloneable
     public void checkForWinner()
     {
         int pn = currentPlayerNumber;
-        if ((pn >= 0) && (pn < MAXPLAYERS)
+        if ((pn >= 0) && (pn < maxPlayers)
             && (players[pn].getTotalVP() >= VP_WINNER))
         {
             gameState = OVER;
@@ -3895,7 +3894,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void destroyGame()
     {
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             if (players[i] != null)
             {
@@ -3944,7 +3943,7 @@ public class SOCGame implements Serializable, Cloneable
         cp.clientVersionMinRequired = clientVersionMinRequired;
 
         // Per-player state
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             boolean wasRobot = false;
             if ((seats[i] != VACANT) && (players[i] != null) && (players[i].getName() != null))
@@ -3996,7 +3995,7 @@ public class SOCGame implements Serializable, Cloneable
              if (boardResetVoteRequester != -1)
                  throw new IllegalStateException("Already voting");
              boardResetVoteRequester = reqPN;
-             for (int i = 0; i < MAXPLAYERS; ++i)
+             for (int i = 0; i < maxPlayers; ++i)
              {
                  if (i != reqPN)
                  {
@@ -4122,7 +4121,7 @@ public class SOCGame implements Serializable, Cloneable
         synchronized (boardResetVotes)
         {
             boardResetVotesWaiting = 0;
-            for (int i = 0; i < MAXPLAYERS; ++i)
+            for (int i = 0; i < maxPlayers; ++i)
                 players[i].setAskedBoardReset(false);
         }
     }
@@ -4144,7 +4143,7 @@ public class SOCGame implements Serializable, Cloneable
                 throw new IllegalStateException("Voting is still active");
 
             vyes = true;  // Assume no "no" votes
-            for (int i = 0; i < MAXPLAYERS; ++i)
+            for (int i = 0; i < maxPlayers; ++i)
                 if (boardResetVotes[i] == VOTE_NO)
                 {
                     vyes = false;

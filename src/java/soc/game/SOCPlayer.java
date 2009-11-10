@@ -2296,7 +2296,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
          * we need to get all pieces so that we have an accurate potential
          * building map
          */
-        for (int pnum = 0; pnum < SOCGame.MAXPLAYERS; pnum++)
+        for (int pnum = 0; pnum < game.maxPlayers; pnum++)
         {
             if (pnum != this.getPlayerNumber())
             {

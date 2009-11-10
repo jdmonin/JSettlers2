@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -63,9 +64,10 @@ public class SOCTradeOffer implements Serializable, Cloneable
     {
         game = offer.game;
         from = offer.from;
-        to = new boolean[SOCGame.MAXPLAYERS];
+        final int maxPlayers = offer.to.length;
+        to = new boolean[maxPlayers];
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             to[i] = offer.to[i];
         }
@@ -121,7 +123,7 @@ public class SOCTradeOffer implements Serializable, Cloneable
     {
         String str = "game=" + game + "|from=" + from + "|to=" + to[0];
 
-        for (int i = 1; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 1; i < to.length; i++)
         {
             str += ("," + to[i]);
         }
