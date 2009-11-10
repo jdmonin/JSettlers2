@@ -34,11 +34,41 @@ import java.util.StringTokenizer;
  * original game, {@link soc.game.SOCBoard#BOARD_ENCODING_ORIGINAL}. 
  * As of version 1.1.08, there is a newer board layout for
  * game expansions.  See the new message type {@link SOCBoardLayout2 BOARDLAYOUT2}.
+ *<P>
+ * Unlike {@link SOCBoardLayout2}, the dice numbers are mapped before sending
+ * over the network, and unmapped when received.  This is because of a change in
+ * {@link soc.game.SOCBoard#getNumberLayout()} in 1.1.08, the version which
+ * introduced <tt>SOCBoardLayout2</tt>.  Older clients/servers will still need the
+ * mapping done, so it's now done here instead of in SOCBoard.
  *
  * @author Robert S. Thomas
  */
 public class SOCBoardLayout extends SOCMessage
 {
+    /**
+     * Map of dice rolls to values in {@link #numberLayout}. Formerly in SOCBoard.
+     * @since 1.1.08
+     */
+    private static final int[] boardNum2sentNum = { -1, -1, 0, 1, 2, 3, 4, -1, 5, 6, 7, 8, 9 };
+
+    /**
+     * Map of values in {@link #numberLayout} to dice rolls:<pre>
+     *    -1 : robber
+     *     0 : 2
+     *     1 : 3
+     *     2 : 4
+     *     3 : 5
+     *     4 : 6
+     *     5 : 8 (7 is skipped)         
+     *     6 : 9
+     *     7 : 10
+     *     8 : 11
+     *     9 : 12 </pre>
+     * Formerly in SOCBoard.
+     * @since 1.1.08
+     */
+    private static final int[] sentNum2BoardNum = { 2, 3, 4, 5, 6, 8, 9, 10, 11, 12 };
+
     /**
      * Name of game
      */
@@ -50,7 +80,7 @@ public class SOCBoardLayout extends SOCMessage
     private int[] hexLayout;
 
     /**
-     * The number layout
+     * The dice number layout; a mapping/unmapping step is done in constructor/{@link #getNumberLayout()}.
      */
     private int[] numberLayout;
 
@@ -69,10 +99,37 @@ public class SOCBoardLayout extends SOCMessage
      */
     public SOCBoardLayout(String ga, int[] hl, int[] nl, int rh)
     {
+        this(ga, hl, nl, rh, false);
+    }
+
+    /**
+     * Create a SOCBoardLayout message
+     *
+     * @param ga   the name of the game
+     * @param hl   the hex layout
+     * @param nl   the number layout
+     * @param rh   the robber hex
+     * @param alreadyMappedNL  has the number layout already been mapped?
+     * @since 1.1.08
+     */
+    private SOCBoardLayout(String ga, int[] hl, int[] nl, int rh, boolean alreadyMappedNL)
+    {
         messageType = BOARDLAYOUT;
         game = ga;
         hexLayout = hl;
-        numberLayout = nl;
+        if (alreadyMappedNL)
+        {
+            numberLayout = nl;
+        } else {
+            numberLayout = new int[nl.length];
+            for (int i = nl.length - 1; i >= 0; --i)
+            {
+                int n = nl[i];
+                if (n != -1)
+                    n = boardNum2sentNum[n];
+                numberLayout[i] = n;
+            }
+        }
         robberHex = rh;
     }
 
@@ -97,7 +154,20 @@ public class SOCBoardLayout extends SOCMessage
      */
     public int[] getNumberLayout()
     {
-        return numberLayout;
+        int[] nl = new int[numberLayout.length];
+        for (int i = nl.length - 1; i >= 0; --i)
+        {
+            int n = numberLayout[i];
+            if (n != -1)
+                n = sentNum2BoardNum[n];
+            else
+                n = 0;  // 0, not -1, in 1.1.07 SOCBoard.getNumberOnHexFromNumber
+            nl[i] = n;
+        }
+        return nl;
+
+        // This getter is called only once for the object,
+        // so there's no need to remember the new int[].
     }
 
     /**
@@ -181,7 +251,7 @@ public class SOCBoardLayout extends SOCMessage
             return null;
         }
 
-        return new SOCBoardLayout(ga, hl, nl, rh);
+        return new SOCBoardLayout(ga, hl, nl, rh, true);
     }
 
     /**

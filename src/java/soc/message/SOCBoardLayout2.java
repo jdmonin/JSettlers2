@@ -39,6 +39,8 @@ import java.util.StringTokenizer;
  * RH: The robber hex, from {@link SOCBoard#getRobberHex()}
  * PL: The ports, from {@link SOCBoard#getPortsLayout()}
  *</UL>
+ * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
+ * <tt>SOCBoardLayout</tt> required a mapping/unmapping step. 
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @see SOCBoardLayout
@@ -46,6 +48,12 @@ import java.util.StringTokenizer;
  */
 public class SOCBoardLayout2 extends SOCMessage
 {
+    /**
+     * Minimum version (1.1.08) of client/server which recognize
+     * and send VERSION_FOR_BOARDLAYOUT2.
+     */
+    public static final int VERSION_FOR_BOARDLAYOUT2 = 1108;
+
     /**
      * Name of game
      */
