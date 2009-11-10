@@ -203,8 +203,16 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * maximum number of players in a game
+     * @see #maxPlayers
      */
     public static final int MAXPLAYERS = 4;
+
+    /**
+     * maximum number of players in a standard game
+     * @see #maxPlayers
+     * @since 1.1.08
+     */
+    public static final int MAXPLAYERS_STANDARD = 4;
 
     /**
      * minimum number of players in a game (was assumed ==MAXPLAYERS in standard 1.0.6).
@@ -381,6 +389,13 @@ public class SOCGame implements Serializable, Cloneable
      * the last player to place the first settlement
      */
     private int lastPlayerNumber;
+
+    /**
+     * maxPlayers is 4 for the standard game,
+     * or 6 if this game is on the 6-player board, with corresponding rules.
+     * @since 1.1.08
+     */
+    public final int maxPlayers;
 
     /**
      * the current dice result. -1 at start of game, 0 during player's turn before roll (state {@link #PLAY}).
@@ -564,12 +579,22 @@ public class SOCGame implements Serializable, Cloneable
         inUse = false;
         name = n;
         board = new SOCBoard(op);
-        players = new SOCPlayer[MAXPLAYERS];
-        seats = new int[MAXPLAYERS];
-        seatLocks = new boolean[MAXPLAYERS];
-        boardResetVotes = new int[MAXPLAYERS];
+        if (op != null)
+        {
+           SOCGameOption maxpl = (SOCGameOption) op.get("PL");
+           if ((maxpl != null) && (maxpl.getIntValue() > 4))
+               maxPlayers = MAXPLAYERS;
+           else
+               maxPlayers = 4;
+        } else {
+            maxPlayers = 4;
+        }
+        players = new SOCPlayer[maxPlayers];
+        seats = new int[maxPlayers];
+        seatLocks = new boolean[maxPlayers];
+        boardResetVotes = new int[maxPlayers];
 
-        for (int i = 0; i < MAXPLAYERS; i++)
+        for (int i = 0; i < maxPlayers; i++)
         {
             players[i] = new SOCPlayer(i, this);
             seats[i] = VACANT;
