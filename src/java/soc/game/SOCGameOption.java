@@ -114,6 +114,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *   can use any client version.)  If this is the case and your option type
      *   is {@link #OTYPE_ENUM} or {@link #OTYPE_ENUMBOOL}, also update
      *   {@link #getMaxEnumValueForVersion(String, int)}.
+     *   Otherwise, update {@link #getMaxIntValueForVersion(String, int)}.
      *<LI> Create the option by calling opt.put here in initAllOptions.
      *   Use the current version for the "last modified" field.
      *<LI> Within {@link SOCGame}, don't add any object fields due to the new option;
@@ -171,8 +172,11 @@ public class SOCGameOption implements Cloneable, Comparable
      *   the current game version. Otherwise the server can't tell the client what has
      *   changed about the option.
      *<LI> If new values require a newer minimum client version, add code to {@link #getMinVersion()}.
-     *   If adding a new enum value for {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL},
-     *   also add code to {@link #getMaxEnumValueForVersion(String, int)}.
+     *<LI> If adding a new enum value for {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL},
+     *   add code to {@link #getMaxEnumValueForVersion(String, int)}.
+     *<LI> If increasing the maximum value of an int-valued parameter, and the new maximum
+     *   requires a certain version, add code to {@link #getMaxIntValueForVersion(String, int)}.
+     *   For example, versions below 1.1.08 limit "max players" to 4.
      *<LI> Search the entire source tree for its key name, to find places which may need an update.
      *<LI> Consider if any other places listed above (for add) need adjustment.
      *</UL>
@@ -191,7 +195,7 @@ public class SOCGameOption implements Cloneable, Comparable
         Hashtable opt = new Hashtable();
 
         opt.put("PL", new SOCGameOption
-                ("PL", -1, 1107, 4, 2, 4, "Maximum # players"));
+                ("PL", -1, 1108, 4, 2, 6, "Maximum # players"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
@@ -561,10 +565,10 @@ public class SOCGameOption implements Cloneable, Comparable
 
     /**
      * Create a new game option - common constructor.
-     * @param key     Alphanumeric 2-character code for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param otype   Option type; use caution, as this is unvalidated against
      *                {@link #OTYPE_MIN} or {@link #OTYPE_MAX}.
+     * @param key     Alphanumeric 2-character code for this option;
+     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
@@ -654,6 +658,26 @@ public class SOCGameOption implements Cloneable, Comparable
     }
 
     /**
+     * Copy constructor for int-valued types ({@link #OTYPE_INT}, {@link #OTYPE_INTBOOL}),
+     * for restricting (trimming) max value for a certain client version.
+     * @param intOpt  Option object to copy.  If its <tt>defaultIntValue</tt> is greater than
+     *                <tt>maxIntValue</tt>, the default will be reduced to that.
+     * @param maxIntValue  Maximum value to keep, in the copy
+     * @see #getMaxIntValueForVersion(String, int)
+     * @see #optionsNewerThanVersion(int, boolean, boolean, Hashtable)
+     * @since 1.1.08
+     */
+    protected SOCGameOption(SOCGameOption intOpt, final int maxIntValue)
+    {
+        // OTYPE_* - If int-valued, add to javadoc.
+        this(intOpt.optType, intOpt.optKey, intOpt.minVersion, intOpt.lastModVersion,
+             intOpt.defaultBoolValue,
+             intOpt.defaultIntValue <= maxIntValue ? intOpt.defaultIntValue : maxIntValue,
+             intOpt.minIntValue, maxIntValue, intOpt.dropIfUnused,
+             null, intOpt.optDesc);
+    }
+
+    /**
      * Is this option set, if this option's type has a boolean component?
      * @return current boolean value of this option
      */
@@ -740,6 +764,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      * @see #optionsMinimumVersion(Hashtable)
      * @see #getMaxEnumValueForVersion(String, int)
+     * @see #getMaxIntValueForVersion(String, int)
      */
     public int getMinVersion()
     {
@@ -766,6 +791,11 @@ public class SOCGameOption implements Cloneable, Comparable
         */
         // END OF SAMPLE CODE.
 
+        if (optKey.equals("PL") && (intValue > 4))
+        {
+            return 1108;  // 5 or 6 players
+        }
+
         return minVersion;
     }
 
@@ -776,7 +806,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * and send only the permitted values to an older client.
      *
      * @param optKey Option's keyname
-     * @param vers   Version of client
+     * @param vers   Version of client, same format as {@link SOCVersion#getVersionNumber()}
      * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
      *          if this option has no restriction.
      *          Enum values range from 1 to n, not from 0 to n-1.
@@ -794,6 +824,31 @@ public class SOCGameOption implements Cloneable, Comparable
         }
         */
         // END OF SAMPLE CODE.
+
+        return Integer.MAX_VALUE;
+    }
+
+    /**
+     * For use at server, for int options where some values require a newer client version.
+     * For example, versions below 1.1.08 limit "max players" to 4.
+     * Given the option's keyname and a version, what is the maximum permitted int value?
+     * The server, when giving option info to a connecting client, can remove the too-new values.
+     *
+     * @param optKey Option's keyname
+     * @param vers   Version of client, same format as {@link SOCVersion#getVersionNumber()}
+     * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
+     *          if this option has no restriction.
+     * @since 1.1.08
+     */
+    public static final int getMaxIntValueForVersion(final String optKey, final int vers)
+    {
+        if (optKey.equals("PL"))  // Max players
+        {
+            if (vers >= 1108)
+                return Integer.MAX_VALUE;
+            else
+                return 4;
+        }
 
         return Integer.MAX_VALUE;
     }
@@ -1220,14 +1275,23 @@ public class SOCGameOption implements Cloneable, Comparable
             }
 
             if (trimEnums && (opt != null)
-                && (opt.minVersion <= vers)  // vers is new enough to use this opt
-                && (opt.enumVals != null))
+                && (opt.minVersion <= vers))  // vers is new enough to use this opt
             {
-                // Possibly trim enum values. (OTYPE_ENUM, OTYPE_ENUMBOOL)
-                // OTYPE_* - Add here in comment if enum-valued option type
-                final int ev = getMaxEnumValueForVersion(opt.optKey, vers);
-                if (ev < opt.enumVals.length)
-                    opt = trimEnumForVersion(opt, vers);
+                if (opt.enumVals != null)
+                {
+                    // Possibly trim enum values. (OTYPE_ENUM, OTYPE_ENUMBOOL)
+                    // OTYPE_* - Add here in comment if enum-valued option type
+                    final int ev = getMaxEnumValueForVersion(opt.optKey, vers);
+                    if (ev < opt.enumVals.length)
+                        opt = trimEnumForVersion(opt, vers);
+                } else if (opt.maxIntValue != opt.minIntValue)
+                {
+                    // Possibly trim max int value. (OTYPE_INT, OTYPE_INTBOOL)
+                    // OTYPE_* - Add here in comment if int-valued option type
+                    final int iv = getMaxIntValueForVersion(opt.optKey, vers);
+                    if ((iv != opt.maxIntValue) && (iv != Integer.MAX_VALUE))
+                        opt = new SOCGameOption(opt, iv);
+                }
             }
 
             if (opt != null)
