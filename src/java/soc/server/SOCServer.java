@@ -7384,7 +7384,8 @@ public class SOCServer extends Server
     /**
      * put together the board layout message.
      * Message type will be {@link SOCBoardLayout} or {@link SOCBoardLayout2},
-     * depending on {@link SOCBoard#getBoardEncodingFormat() ga.getBoard().getBoardEncodingFormat()}.
+     * depending on {@link SOCBoard#getBoardEncodingFormat() ga.getBoard().getBoardEncodingFormat()}
+     * and {@link SOCGame#getClientVersionMinRequired()}.
      *
      * @param  ga   the game
      * @return   a board layout message
@@ -7401,8 +7402,8 @@ public class SOCServer extends Server
         numbers = board.getNumberLayout();
         robber = board.getRobberHex();
         int bef = board.getBoardEncodingFormat();
-        if (bef == 1)
-        {    
+        if ((bef == 1) && (ga.getClientVersionMinRequired() < SOCBoardLayout2.VERSION_FOR_BOARDLAYOUT2))
+        {
             return new SOCBoardLayout(ga.getName(), hexes, numbers, robber);
         } else {
             return new SOCBoardLayout2(ga.getName(), bef, hexes, numbers, board.getPortsLayout(), robber);
