@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Some documentation javadocs here are Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,13 +25,18 @@ package soc.game;
 /**
  * This is a list of constants for representing
  * types of resources in Settlers of Catan.
+ *<P>
+ * Warning: Many pieces of code depend on these values and their count.
+ *          Clay is first (1), Wood is last (5), Unknown is after wood.
+ *          Those are the 5 resource types (count==5 is also assumed).
+ *          Adding a new resource type would require changes in many places.
  */
 public interface SOCResourceConstants
 {
     /**
      * Warning: Don't mess with these constants, other pieces
      *          of code depend on these numbers staying like this.
-     *          Clay is first, Wood is last, Unknown is after wood.
+     *          Clay is first (1), Wood is last (5), Unknown is after wood.
      */
     public static final int CLAY = 1;
     public static final int ORE = 2;
