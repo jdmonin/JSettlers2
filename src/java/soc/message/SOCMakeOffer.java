@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -95,7 +96,7 @@ public class SOCMakeOffer extends SOCMessage
 
         boolean[] to = of.getTo();
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < to.length; i++)  // length should be == game.maxPlayers
         {
             cmd += (sep2 + to[i]);
         }
@@ -133,7 +134,6 @@ public class SOCMakeOffer extends SOCMessage
         SOCResourceSet give; // the set of resources being asked for 
         SOCResourceSet get; // the set of resources that the offerer wants in exchange
 
-        to = new boolean[SOCGame.MAXPLAYERS];
         give = new SOCResourceSet();
         get = new SOCResourceSet();
 
@@ -143,8 +143,10 @@ public class SOCMakeOffer extends SOCMessage
         {
             ga = st.nextToken();
             from = Integer.parseInt(st.nextToken());
+            final int numPlayerTokens = st.countTokens() - (2 * 5);  // Should be == game.maxPlayers
+            to = new boolean[numPlayerTokens];
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < numPlayerTokens; i++)
             {
                 to[i] = (Boolean.valueOf(st.nextToken())).booleanValue();
             }

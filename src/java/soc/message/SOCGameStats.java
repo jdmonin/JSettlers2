@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,7 +41,7 @@ public class SOCGameStats extends SOCMessage
     private String game;
 
     /**
-     * The scores; always indexed 0 to {@link soc.game.SOCGame#MAXPLAYERS}-1,
+     * The scores; always indexed 0 to {@link soc.game.SOCGame#maxPlayers} - 1,
      *   regardless of number of players in the game.
      */
     private int[] scores;
@@ -55,7 +56,7 @@ public class SOCGameStats extends SOCMessage
      *
      * @param ga  the name of the game
      * @param sc  the scores; always indexed 0 to
-     *   {@link soc.game.SOCGame#MAXPLAYERS},
+     *   {@link soc.game.SOCGame#maxPlayers} - 1,
      *   regardless of number of players in the game
      * @param rb  where robots are sitting; indexed same as scores
      */
@@ -110,12 +111,12 @@ public class SOCGameStats extends SOCMessage
     {
         String cmd = GAMESTATS + sep + ga;
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < sc.length; i++)
         {
             cmd += (sep2 + sc[i]);
         }
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < rb.length; i++)
         {
             cmd += (sep2 + rb[i]);
         }
@@ -135,21 +136,21 @@ public class SOCGameStats extends SOCMessage
         int[] sc; // the scores
         boolean[] rb; // where robots are sitting
 
-        sc = new int[SOCGame.MAXPLAYERS];
-        rb = new boolean[SOCGame.MAXPLAYERS];
-
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
         {
             ga = st.nextToken();
+            final int maxPlayers = st.countTokens() / 2;
+            sc = new int[maxPlayers];
+            rb = new boolean[maxPlayers];
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 sc[i] = Integer.parseInt(st.nextToken());
             }
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < maxPlayers; i++)
             {
                 rb[i] = (Boolean.valueOf(st.nextToken())).booleanValue();
             }
@@ -167,18 +168,20 @@ public class SOCGameStats extends SOCMessage
      */
     public String toString()
     {
-        String text = "SOCGameStats:game=" + game;
-
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        StringBuffer text = new StringBuffer("SOCGameStats:game=");
+        text.append(game);
+        for (int i = 0; i < scores.length; i++)
         {
-            text += ("|" + scores[i]);
+            text.append("|");
+            text.append(scores[i]);
         }
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < robots.length; i++)
         {
-            text += ("|" + robots[i]);
+            text.append("|");
+            text.append(robots[i]);
         }
 
-        return text;
+        return text.toString();
     }
 }

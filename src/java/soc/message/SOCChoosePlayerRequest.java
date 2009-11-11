@@ -95,7 +95,7 @@ public class SOCChoosePlayerRequest extends SOCMessage
     {
         String mes = CHOOSEPLAYERREQUEST + sep + ga;
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < ch.length; i++)
         {
             mes += (sep2 + ch[i]);
         }
@@ -113,7 +113,6 @@ public class SOCChoosePlayerRequest extends SOCMessage
     {
         String ga; // the game name
         boolean[] ch; // the choices
-        ch = new boolean[SOCGame.MAXPLAYERS];
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -121,6 +120,7 @@ public class SOCChoosePlayerRequest extends SOCMessage
         {
             ga = st.nextToken();
 
+            ch = new boolean[st.countTokens()];
             int count = 0;
 
             while (st.hasMoreTokens())
@@ -144,7 +144,7 @@ public class SOCChoosePlayerRequest extends SOCMessage
     {
         String mes = "SOCChoosePlayerRequest:game=" + game + "|choices=" + choices[0];
 
-        for (int i = 1; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 1; i < choices.length; i++)
         {
             mes += (", " + choices[i]);
         }
