@@ -36,7 +36,6 @@ import java.util.Vector;
  */
 public class SOCBuildPossibility
 {
-    public static int[] NOSPEEDUP = { 0, 0, 0, 0 };
     SOCPlayingPiece piece;
     boolean buyDevCard;
     int devCardType;
