@@ -1123,8 +1123,8 @@ public class SOCRobotDM {
     //
     // save the lr paths list to restore later
     //
-    Vector savedLRPaths[] = new Vector[SOCGame.MAXPLAYERS];
-    for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
+    Vector savedLRPaths[] = new Vector[game.maxPlayers];
+    for (int pn = 0; pn < game.maxPlayers; pn++) {
       savedLRPaths[pn] = (Vector)game.getPlayer(pn).getLRPaths().clone();
     }
     
@@ -1259,7 +1259,7 @@ public class SOCRobotDM {
     // restore the LRPath list
     //
     D.ebugPrintln("%%% RESTORING LRPATH LIST %%%");
-    for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
+    for (int pn = 0; pn < game.maxPlayers; pn++) {
       game.getPlayer(pn).setLRPaths(savedLRPaths[pn]);
     } 
     
@@ -1331,7 +1331,7 @@ public class SOCRobotDM {
     // restore the LRPath list
     //
     D.ebugPrintln("%%% RESTORING LRPATH LIST %%%");
-    for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
+    for (int pn = 0; pn < game.maxPlayers; pn++) {
       game.getPlayer(pn).setLRPaths(savedLRPaths[pn]);
     }  
     
@@ -1341,8 +1341,8 @@ public class SOCRobotDM {
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.CITY) > 0) {
       HashMap trackersCopy = SOCPlayerTracker.copyPlayerTrackers(playerTrackers);
       SOCPlayerTracker ourTrackerCopy = (SOCPlayerTracker)trackersCopy.get(new Integer(ourPlayerData.getPlayerNumber()));
-      int originalWGETAs[] = new int[SOCGame.MAXPLAYERS];	 
-      int WGETAdiffs[] = new int[SOCGame.MAXPLAYERS];	 
+      int originalWGETAs[] = new int[game.maxPlayers];	 
+      int WGETAdiffs[] = new int[game.maxPlayers];	 
       Vector leaders = new Vector();
       int bestWGETA = 1000;
       // int bonus = 0;
@@ -1751,8 +1751,8 @@ public class SOCRobotDM {
    */
   protected float calcWGETABonus(HashMap trackersBefore, HashMap trackersAfter) {
     D.ebugPrintln("^^^^^ calcWGETABonus");
-    int originalWGETAs[] = new int[SOCGame.MAXPLAYERS];	 
-    int WGETAdiffs[] = new int[SOCGame.MAXPLAYERS];	 
+    int originalWGETAs[] = new int[game.maxPlayers];	 
+    int WGETAdiffs[] = new int[game.maxPlayers];	 
     Vector leaders = new Vector();
     int bestWGETA = 1000;
     float bonus = 0;
@@ -1791,11 +1791,11 @@ public class SOCRobotDM {
    */
   public float calcWGETABonusAux(int[] originalWGETAs, HashMap trackersAfter, 
 				 Vector leaders) {
-    int WGETAdiffs[] = new int[SOCGame.MAXPLAYERS];	
+    int WGETAdiffs[] = new int[game.maxPlayers];	
     int bestWGETA = 1000;
     float bonus = 0;
 		
-    for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
+    for (int i = 0; i < game.maxPlayers; i++) {
       WGETAdiffs[i] = originalWGETAs[i];
       if (originalWGETAs[i] < bestWGETA) {
 	bestWGETA = originalWGETAs[i];
@@ -1809,8 +1809,8 @@ public class SOCRobotDM {
       D.ebugPrintln("$$$ win game ETA diff for player "+trackerAfter.getPlayer().getPlayerNumber()+" = "+WGETAdiffs[trackerAfter.getPlayer().getPlayerNumber()]);
       if (trackerAfter.getPlayer().getPlayerNumber() == ourPlayerData.getPlayerNumber()) {
 	if (trackerAfter.getWinGameETA() == 0) {
-	  D.ebugPrintln("$$$$ adding win game bonus : +"+(100 / SOCGame.MAXPLAYERS));
-	  bonus += (100.0f / (float)SOCGame.MAXPLAYERS);
+	  D.ebugPrintln("$$$$ adding win game bonus : +"+(100 / game.maxPlayers));
+	  bonus += (100.0f / (float) game.maxPlayers);
 	  if ((brain != null) && (brain.getDRecorder().isOn())) {
 	    brain.getDRecorder().record("Adding Win Game bonus :"+df1.format(bonus));
 	  } 
@@ -1828,7 +1828,7 @@ public class SOCRobotDM {
     //
     if ((originalWGETAs[ourPlayerData.getPlayerNumber()] > 0) &&
 	(bonus == 0)) {
-      bonus += ((100.0f / (float)SOCGame.MAXPLAYERS) * ((float)WGETAdiffs[ourPlayerData.getPlayerNumber()] / (float)originalWGETAs[ourPlayerData.getPlayerNumber()]));
+      bonus += ((100.0f / (float) game.maxPlayers) * ((float)WGETAdiffs[ourPlayerData.getPlayerNumber()] / (float)originalWGETAs[ourPlayerData.getPlayerNumber()]));
     }			
 		
     D.ebugPrintln("^^^^ our current bonus = "+bonus);
@@ -1840,21 +1840,21 @@ public class SOCRobotDM {
     //  try adding takedown bonus for all other players
     //  other than the leaders
     //
-    for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
+    for (int pn = 0; pn < game.maxPlayers; pn++) {
       Enumeration leadersEnum = leaders.elements();
       while (leadersEnum.hasMoreElements()) {
 	SOCPlayerTracker leader = (SOCPlayerTracker)leadersEnum.nextElement();
 	if ((pn != ourPlayerData.getPlayerNumber()) &&
 	    (pn != leader.getPlayer().getPlayerNumber())) {
 	  if (originalWGETAs[pn] > 0) {
-	    float takedownBonus = -1.0f * (100.0f / (float)SOCGame.MAXPLAYERS) * adversarialFactor * ((float)WGETAdiffs[pn] / (float)originalWGETAs[pn]) * ((float)bestWGETA / (float)originalWGETAs[pn]);
+	    float takedownBonus = -1.0f * (100.0f / (float) game.maxPlayers) * adversarialFactor * ((float)WGETAdiffs[pn] / (float)originalWGETAs[pn]) * ((float)bestWGETA / (float)originalWGETAs[pn]);
 	    bonus += takedownBonus;
 	    D.ebugPrintln("^^^^ added takedown bonus for player "+pn+" : "+takedownBonus);
 	    if (((brain != null) && (brain.getDRecorder().isOn())) && (takedownBonus != 0)) {
 	      brain.getDRecorder().record("Bonus for AI with "+pn+" : "+df1.format(takedownBonus));
 	    } 
 	  } else if (WGETAdiffs[pn] < 0) {
-	    float takedownBonus = (100.0f / (float)SOCGame.MAXPLAYERS) * adversarialFactor;
+	    float takedownBonus = (100.0f / (float) game.maxPlayers) * adversarialFactor;
 	    bonus += takedownBonus;
 	    D.ebugPrintln("^^^^ added takedown bonus for player "+pn+" : "+takedownBonus);
 	    if (((brain != null) && (brain.getDRecorder().isOn())) && (takedownBonus != 0)) {
@@ -1873,7 +1873,7 @@ public class SOCRobotDM {
       SOCPlayerTracker leader = (SOCPlayerTracker)leadersEnum.nextElement();
       if (leader.getPlayer().getPlayerNumber() != ourPlayerData.getPlayerNumber()) {
 	if (originalWGETAs[leader.getPlayer().getPlayerNumber()] > 0) {
-	  float takedownBonus = -1.0f * (100.0f / (float)SOCGame.MAXPLAYERS) * leaderAdversarialFactor * ((float)WGETAdiffs[leader.getPlayer().getPlayerNumber()] / (float)originalWGETAs[leader.getPlayer().getPlayerNumber()]);
+	  float takedownBonus = -1.0f * (100.0f / (float) game.maxPlayers) * leaderAdversarialFactor * ((float)WGETAdiffs[leader.getPlayer().getPlayerNumber()] / (float)originalWGETAs[leader.getPlayer().getPlayerNumber()]);
 	  bonus += takedownBonus;
 	  D.ebugPrintln("^^^^ added takedown bonus for leader "+leader.getPlayer().getPlayerNumber()+" : +"+takedownBonus);
 	  if (((brain != null) && (brain.getDRecorder().isOn())) && (takedownBonus != 0)){
@@ -1881,7 +1881,7 @@ public class SOCRobotDM {
 	  } 
 	  
 	} else if (WGETAdiffs[leader.getPlayer().getPlayerNumber()] < 0) {
-	  float takedownBonus = (100.0f / (float)SOCGame.MAXPLAYERS) * leaderAdversarialFactor;
+	  float takedownBonus = (100.0f / (float) game.maxPlayers) * leaderAdversarialFactor;
 	  bonus += takedownBonus;
 	  D.ebugPrintln("^^^^ added takedown bonus for leader "+leader.getPlayer().getPlayerNumber()+" : +"+takedownBonus);
 	  if (((brain != null) && (brain.getDRecorder().isOn())) && (takedownBonus != 0)) {
@@ -1906,8 +1906,8 @@ public class SOCRobotDM {
     D.ebugPrintln("$$$ devCardScore = +"+devCardScore);
     D.ebugPrintln("--- before [start] ---");
     // int ourCurrentWGETA = ourPlayerTracker.getWinGameETA();
-    int WGETAdiffs[] = new int[SOCGame.MAXPLAYERS];
-    int originalWGETAs[] = new int[SOCGame.MAXPLAYERS];	 
+    int WGETAdiffs[] = new int[game.maxPlayers];
+    int originalWGETAs[] = new int[game.maxPlayers];	 
     int bestWGETA = 1000;
     Vector leaders = new Vector();
     Iterator trackersIter = playerTrackers.values().iterator();

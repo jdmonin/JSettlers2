@@ -1428,11 +1428,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes)
     {
-        int[] choices = new int[SOCGame.MAXPLAYERS];
         boolean[] ch = mes.getChoices();
+        int[] choices = new int[ch.length];  // == SOCGame.maxPlayers
         int count = 0;
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < ch.length; i++)
         {
             if (ch[i])
             {

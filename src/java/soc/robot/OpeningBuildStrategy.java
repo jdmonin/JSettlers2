@@ -1140,7 +1140,7 @@ public class OpeningBuildStrategy {
                  */
                 pNum++;
 
-                if (pNum >= SOCGame.MAXPLAYERS)
+                if (pNum >= game.maxPlayers)
                 {
                     pNum = 0;
                 }
@@ -1165,7 +1165,7 @@ public class OpeningBuildStrategy {
 
             if (pNum < 0)
             {
-                pNum = SOCGame.MAXPLAYERS - 1;
+                pNum = game.maxPlayers - 1;
             }
 
             if ((pNum != game.getCurrentPlayerNumber()) && ! game.isSeatVacant (pNum))

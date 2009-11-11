@@ -86,8 +86,8 @@ public class SOCGameBoardReset
         oldGameState = oldGame.getGameState();
         hadRobots = false;
         oldRobotCount = 0;
-        wasRobot = new boolean[SOCGame.MAXPLAYERS];
-        for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)
+        wasRobot = new boolean[oldGame.maxPlayers];
+        for (int i = 0; i < oldGame.maxPlayers; ++i)
         {
             SOCPlayer pl = oldGame.getPlayer(i);
             boolean isRobot = pl.isRobot();
@@ -102,13 +102,13 @@ public class SOCGameBoardReset
         /**
          * Reset the game
          */
-        newGame = oldGame.resetAsCopy(); 
+        newGame = oldGame.resetAsCopy();   // TODO assert: verify maxPlayers is same for old,new
 
         /**
          * Gather connection information, cleanup member list
          */
-        humanConns = new StringConnection[SOCGame.MAXPLAYERS];
-        robotConns = new StringConnection[SOCGame.MAXPLAYERS];
+        humanConns = new StringConnection[oldGame.maxPlayers];
+        robotConns = new StringConnection[oldGame.maxPlayers];
         if (memberConns != null)
         {
             // Grab connection information for humans and robots.
@@ -117,7 +117,7 @@ public class SOCGameBoardReset
             sortPlayerConnections(newGame, oldGame, memberConns, humanConns, robotConns);
 
             // Remove robots from list of game members
-            for (int pn = 0; pn < SOCGame.MAXPLAYERS; ++pn)
+            for (int pn = 0; pn < oldGame.maxPlayers; ++pn)
             {
                 if (wasRobot[pn])
                     memberConns.remove(robotConns[pn]);
@@ -195,7 +195,7 @@ public class SOCGameBoardReset
         }
 
         // Check all player positions after enum
-        for (int pn = 0; pn < SOCGame.MAXPLAYERS; ++pn)
+        for (int pn = 0; pn < oldGame.maxPlayers; ++pn)
         {
             if (! newGame.isSeatVacant(pn))
             {

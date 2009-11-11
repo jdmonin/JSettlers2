@@ -463,9 +463,8 @@ public class SOCRobotBrain extends Thread
         moveRobberOnSeven = false;
         waitingForTradeResponse = false;
         doneTrading = false;
-        offerRejections = new boolean[SOCGame.MAXPLAYERS];
-
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        offerRejections = new boolean[game.maxPlayers];
+        for (int i = 0; i < game.maxPlayers; i++)
         {
             offerRejections[i] = false;
         }
@@ -639,7 +638,7 @@ public class SOCRobotBrain extends Thread
         playerTrackers = new HashMap();
         playerTrackers.put(new Integer(opn), ourPlayerTracker);
 
-        for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+        for (int pn = 0; pn < game.maxPlayers; pn++)
         {
             if ((pn != opn) && ! game.isSeatVacant(pn))
             {
@@ -748,8 +747,7 @@ public class SOCRobotBrain extends Thread
                             {
                                 if (getSet.getAmount(rsrcType) > 0)
                                 {
-                                    for (int pn = 0; pn < SOCGame.MAXPLAYERS;
-                                            pn++)
+                                    for (int pn = 0; pn < game.maxPlayers; pn++)
                                     {
                                         if (offeredTo[pn])
                                         {
@@ -1133,8 +1131,7 @@ public class SOCRobotBrain extends Thread
                                 {
                                     boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
 
-                                    for (int i = 0; i < SOCGame.MAXPLAYERS;
-                                            i++)
+                                    for (int i = 0; i < game.maxPlayers; i++)
                                     {
                                         D.ebugPrintln("offerRejections[" + i + "]=" + offerRejections[i]);
 
@@ -1248,7 +1245,7 @@ public class SOCRobotBrain extends Thread
 
                             boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
 
-                            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                            for (int i = 0; i < game.maxPlayers; i++)
                             {
                                 D.ebugPrintln("offerRejections[" + i + "]=" + offerRejections[i]);
 
@@ -1274,7 +1271,7 @@ public class SOCRobotBrain extends Thread
                             ///
                             D.ebugPrintln("%%%% ALT REJECT OFFER %%%%");
 
-                            for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+                            for (int pn = 0; pn < game.maxPlayers; pn++)
                             {
                                 SOCTradeOffer offer = game.getPlayer(pn).getCurrentOffer();
 
@@ -1498,8 +1495,7 @@ public class SOCRobotBrain extends Thread
                                 {
                                     client.sendText(game, "================================");
 
-                                    for (int i = 0; i < SOCGame.MAXPLAYERS;
-                                            i++)
+                                    for (int i = 0; i < game.maxPlayers; i++)
                                     {
                                         SOCResourceSet rsrcs = game.getPlayer(i).getResources();
                                         String resourceMessage = "PLAYER " + i + " RESOURCES: ";
@@ -3804,7 +3800,7 @@ public class SOCRobotBrain extends Thread
 
         int victimNum = -1;
 
-        for (int pnum = 0; pnum < SOCGame.MAXPLAYERS; pnum++)
+        for (int pnum = 0; pnum < game.maxPlayers; pnum++)
         {
             if (! game.isSeatVacant(pnum))
             {
@@ -4078,7 +4074,7 @@ public class SOCRobotBrain extends Thread
         /**
          * choose the player with the smallest WGETA
          */
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < game.maxPlayers; i++)
         {
             if (! game.isSeatVacant (i))
             {
@@ -4134,7 +4130,7 @@ public class SOCRobotBrain extends Thread
                  */
                 pNum++;
 
-                if (pNum >= SOCGame.MAXPLAYERS)
+                if (pNum >= game.maxPlayers)
                 {
                     pNum = 0;
                 }
@@ -4159,7 +4155,7 @@ public class SOCRobotBrain extends Thread
 
             if (pNum < 0)
             {
-                pNum = SOCGame.MAXPLAYERS - 1;
+                pNum = game.maxPlayers - 1;
             }
 
             if ((pNum != game.getCurrentPlayerNumber()) && ! game.isSeatVacant (pNum))
@@ -4570,7 +4566,7 @@ public class SOCRobotBrain extends Thread
             ///
             ///  reset the offerRejections flag
             ///
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < game.maxPlayers; i++)
             {
                 offerRejections[i] = false;
             }
@@ -4696,7 +4692,7 @@ public class SOCRobotBrain extends Thread
 
             int resourceTotal = 0;
 
-            for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+            for (int pn = 0; pn < game.maxPlayers; pn++)
             {
                 if (ourPlayerData.getPlayerNumber() != pn)
                 {
@@ -4816,7 +4812,7 @@ public class SOCRobotBrain extends Thread
     {
         if (D.ebugOn)
         {
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < game.maxPlayers; i++)
             {
                 SOCResourceSet rsrcs = game.getPlayer(i).getResources();
                 String resourceMessage = "PLAYER " + i + " RESOURCES: ";

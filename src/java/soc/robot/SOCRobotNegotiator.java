@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -80,15 +81,15 @@ public class SOCRobotNegotiator
         decisionMaker = brain.getDecisionMaker();
         game = brain.getGame();
 
-        isSellingResource = new boolean[SOCGame.MAXPLAYERS][SOCResourceConstants.MAXPLUSONE];
+        isSellingResource = new boolean[game.maxPlayers][SOCResourceConstants.MAXPLUSONE];
         resetIsSelling();
 
-        wantsAnotherOffer = new boolean[SOCGame.MAXPLAYERS][SOCResourceConstants.MAXPLUSONE];
+        wantsAnotherOffer = new boolean[game.maxPlayers][SOCResourceConstants.MAXPLUSONE];
         resetWantsAnotherOffer();
 
         offersMade = new Vector();
 
-        targetPieces = new SOCPossiblePiece[SOCGame.MAXPLAYERS];
+        targetPieces = new SOCPossiblePiece[game.maxPlayers];
         resetTargetPieces();
     }
 
@@ -99,7 +100,7 @@ public class SOCRobotNegotiator
     {
         D.ebugPrintln("*** resetTargetPieces ***");
 
-        for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+        for (int pn = 0; pn < game.maxPlayers; pn++)
         {
             targetPieces[pn] = null;
         }
@@ -148,7 +149,7 @@ public class SOCRobotNegotiator
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
         {
-            for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+            for (int pn = 0; pn < game.maxPlayers; pn++)
             {
                 if (( ! game.isSeatVacant(pn)) &&
                     (game.getPlayer(pn).getResources().getAmount(rsrcType) > 0))
@@ -169,7 +170,7 @@ public class SOCRobotNegotiator
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
         {
-            for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+            for (int pn = 0; pn < game.maxPlayers; pn++)
             {
                 wantsAnotherOffer[pn][rsrcType] = false;
             }
@@ -397,7 +398,7 @@ public class SOCRobotNegotiator
         {
             someoneIsSellingResource[rsrcType] = false;
 
-            for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+            for (int pn = 0; pn < game.maxPlayers; pn++)
             {
                 if ((pn != ourPlayerData.getPlayerNumber()) && (isSellingResource[pn][rsrcType]))
                 {
@@ -774,7 +775,7 @@ public class SOCRobotNegotiator
         if (!match)
         {
             int opn = ourPlayerData.getPlayerNumber();
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < game.maxPlayers; i++)
             {
                 if (i != opn)
                 {
@@ -800,7 +801,7 @@ public class SOCRobotNegotiator
             D.ebugPrintln("* this is a new offer");
 
             int numOfferedTo = 0;
-            boolean[] offeredTo = new boolean[SOCGame.MAXPLAYERS];
+            boolean[] offeredTo = new boolean[game.maxPlayers];
             int opn = ourPlayerData.getPlayerNumber();
 
             ///
@@ -812,7 +813,7 @@ public class SOCRobotNegotiator
                 /// only offer to players that are selling what we're asking for
                 /// and aren't too close to winning
                 ///
-                for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                for (int i = 0; i < game.maxPlayers; i++)
                 {
                     D.ebugPrintln("** isSellingResource[" + i + "][" + neededResource + "] = " + isSellingResource[i][neededResource]);
 
@@ -869,7 +870,7 @@ public class SOCRobotNegotiator
                 ///
                 boolean acceptable = false;
 
-                for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+                for (int pn = 0; pn < game.maxPlayers; pn++)
                 {
                     if (offeredTo[pn])
                     {
@@ -2393,9 +2394,9 @@ public class SOCRobotNegotiator
                 //D.ebugPrintln("Making bank trade:");
                 //D.ebugPrintln("give: "+give);
                 //D.ebugPrintln("get: "+get);
-                boolean[] to = new boolean[SOCGame.MAXPLAYERS];
+                boolean[] to = new boolean[game.maxPlayers];
 
-                for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                for (int i = 0; i < game.maxPlayers; i++)
                 {
                     to[i] = false;
                 }
@@ -2455,9 +2456,9 @@ public class SOCRobotNegotiator
                     //D.ebugPrintln("Making bank trade:");
                     //D.ebugPrintln("give: "+give);
                     //D.ebugPrintln("get: "+get);
-                    boolean[] to = new boolean[SOCGame.MAXPLAYERS];
+                    boolean[] to = new boolean[game.maxPlayers];
 
-                    for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                    for (int i = 0; i < game.maxPlayers; i++)
                     {
                         to[i] = false;
                     }
@@ -2487,9 +2488,9 @@ public class SOCRobotNegotiator
                     //D.ebugPrintln("Making bank trade:");
                     //D.ebugPrintln("give: "+give);
                     //D.ebugPrintln("get: "+get);
-                    boolean[] to = new boolean[SOCGame.MAXPLAYERS];
+                    boolean[] to = new boolean[game.maxPlayers];
 
-                    for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                    for (int i = 0; i < game.maxPlayers; i++)
                     {
                         to[i] = false;
                     }

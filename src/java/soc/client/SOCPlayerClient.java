@@ -2848,7 +2848,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
             pi.getBoardPanel().repaint();
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < ga.maxPlayers; i++)
             {
                 pi.getPlayerHandPanel(i).updateTakeOverButton();
             }
@@ -3232,11 +3232,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes)
     {
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        int[] choices = new int[SOCGame.MAXPLAYERS];
         boolean[] ch = mes.getChoices();
+        int[] choices = new int[ch.length];  // == SOCGame.maxPlayers
         int count = 0;
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < ch.length; i++)
         {
             if (ch[i])
             {
@@ -3534,7 +3534,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < ga.maxPlayers; i++)
             {
                 pi.getPlayerHandPanel(i).updateSeatLockButton();
                 pi.getPlayerHandPanel(i).updateTakeOverButton();
@@ -3893,7 +3893,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             {
                 String updatedString = gameName + STATSPREFEX;
 
-                for (int pn = 0; pn < (SOCGame.MAXPLAYERS - 1); pn++)
+                for (int pn = 0; pn < (scores.length - 1); pn++)
                 {
                     if (scores[pn] != -1)
                     {
@@ -3914,9 +3914,9 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                     }
                 }
 
-                if (scores[SOCGame.MAXPLAYERS - 1] != -1)
+                if (scores[scores.length - 1] != -1)
                 {
-                    if (robots[SOCGame.MAXPLAYERS - 1])
+                    if (robots[scores.length - 1])
                     {
                         updatedString += "#";
                     }
@@ -3925,7 +3925,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                         updatedString += "o";
                     }
 
-                    updatedString += (scores[SOCGame.MAXPLAYERS - 1] + "]");
+                    updatedString += (scores[scores.length - 1] + "]");
                 }
                 else
                 {

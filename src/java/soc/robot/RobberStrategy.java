@@ -77,7 +77,7 @@ public class RobberStrategy {
 
        int victimNum = -1;
 
-       for (int pnum = 0; pnum < SOCGame.MAXPLAYERS; pnum++)
+       for (int pnum = 0; pnum < game.maxPlayers; pnum++)
        {
            if (! game.isSeatVacant(pnum))
            {
@@ -162,7 +162,7 @@ public class RobberStrategy {
        /**
         * choose the player with the smallest WGETA
         */
-       for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+       for (int i = 0; i < game.maxPlayers; i++)
        {
            if (! game.isSeatVacant (i))
            {

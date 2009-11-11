@@ -680,7 +680,7 @@ public class SOCServer extends Server
             {
                 final String plName = (String) c.getData();  // Retain name, since will become null within game obj.
 
-                for (playerNumber = 0; playerNumber < SOCGame.MAXPLAYERS;
+                for (playerNumber = 0; playerNumber < cg.maxPlayers;
                         playerNumber++)
                 {
                     SOCPlayer player = cg.getPlayer(playerNumber);
@@ -731,9 +731,9 @@ public class SOCServer extends Server
                 /**
                  * check if there is at least one person playing the game
                  */
-                for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+                if (cg != null)
                 {
-                    if (cg != null)
+                    for (int pn = 0; pn < cg.maxPlayers; pn++)
                     {
                         SOCPlayer player = cg.getPlayer(pn);
 
@@ -762,7 +762,7 @@ public class SOCServer extends Server
                         //D.ebugPrintln("*** "+member.data+" is a member of "+gm);
                         boolean nameMatch = false;
 
-                        for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+                        for (int pn = 0; pn < cg.maxPlayers; pn++)
                         {
                             SOCPlayer player = cg.getPlayer(pn);
 
@@ -831,9 +831,9 @@ public class SOCServer extends Server
                             robotConn = (StringConnection) robots.get(robotIndexes[idx]);
                             nameMatch = false;
 
-                            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                            if (cg != null)
                             {
-                                if (cg != null)
+                                for (int i = 0; i < cg.maxPlayers; i++)
                                 {
                                     SOCPlayer pl = cg.getPlayer(i);
 
@@ -3984,7 +3984,7 @@ public class SOCServer extends Server
                         //
                         // count the number of unlocked empty seats
                         //
-                        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                        for (int i = 0; i < ga.maxPlayers; i++)
                         {
                             if (ga.isSeatVacant(i))
                             {
@@ -4145,7 +4145,7 @@ public class SOCServer extends Server
         else
         {
             // robotSeats not null: check length
-            if (robotSeats.length != SOCGame.MAXPLAYERS)
+            if (robotSeats.length != ga.maxPlayers)
                 throw new IllegalArgumentException("robotSeats Length must be MAXPLAYERS");
         }
 
@@ -4153,9 +4153,9 @@ public class SOCServer extends Server
         final Hashtable gopts = ga.getGameOptions();
         int seatsOpen = ga.getAvailableSeatCount();
         int idx = 0;
-        StringConnection[] robotSeatsConns = new StringConnection[SOCGame.MAXPLAYERS];
+        StringConnection[] robotSeatsConns = new StringConnection[ga.maxPlayers];
 
-        for (int i = 0; (i < SOCGame.MAXPLAYERS) && (seatsOpen > 0);
+        for (int i = 0; (i < ga.maxPlayers) && (seatsOpen > 0);
                 i++)
         {
             if (ga.isSeatVacant(i) && ! ga.isSeatLocked(i))
@@ -4200,7 +4200,7 @@ public class SOCServer extends Server
             robotJoinRequests.put(gname, robotRequests);
 
             // now, make the requests
-            for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)
+            for (int i = 0; i < ga.maxPlayers; ++i)
                 if (robotSeatsConns[i] != null)
                     robotSeatsConns[i].put(SOCJoinGameRequest.toCmd(gname, i, gopts));
         }
@@ -4250,7 +4250,7 @@ public class SOCServer extends Server
                             boolean noPlayersGained = true;
                             StringBuffer gainsText = new StringBuffer();
 
-                            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                            for (int i = 0; i < ga.maxPlayers; i++)
                             {
                                 if (! ga.isSeatVacant(i))
                                 {
@@ -4324,7 +4324,7 @@ public class SOCServer extends Server
                             /**
                              * player rolled 7
                              */
-                            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                            for (int i = 0; i < ga.maxPlayers; i++)
                             {
                                 if (( ! ga.isSeatVacant(i))
                                     && (ga.getPlayer(i).getResources().getTotal() > 7))
@@ -4527,7 +4527,7 @@ public class SOCServer extends Server
          * clear any trade offers
          */
         gameList.takeMonitorForGame(gname);
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < ga.maxPlayers; i++)
         {
             messageToGameWithMon(gname, new SOCClearOffer(gname, i));
         }
@@ -4735,7 +4735,7 @@ public class SOCServer extends Server
                          * clear all the trade messages because a new offer has been made
                          */
                         gameList.takeMonitorForGame(gaName);
-                        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                        for (int i = 0; i < ga.maxPlayers; i++)
                         {
                             messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
                         }
@@ -4779,7 +4779,7 @@ public class SOCServer extends Server
                     /**
                      * clear all the trade messages
                      */
-                    for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                    for (int i = 0; i < ga.maxPlayers; i++)
                     {
                         messageToGame(gaName, new SOCClearTradeMsg(gaName, i));
                     }
@@ -4857,7 +4857,7 @@ public class SOCServer extends Server
                             /**
                              * clear all offers
                              */
-                            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                            for (int i = 0; i < ga.maxPlayers; i++)
                             {
                                 ga.getPlayer(i).setCurrentOffer(null);
                                 messageToGame(ga.getName(), new SOCClearOffer(ga.getName(), i));
@@ -5475,7 +5475,7 @@ public class SOCServer extends Server
                              * just send all the player's resource counts for the
                              * monopolized resource
                              */
-                            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                            for (int i = 0; i < ga.maxPlayers; i++)
                             {
                                 /**
                                  * Note: This only works if SOCPlayerElement.CLAY == SOCResourceConstants.CLAY
@@ -5490,7 +5490,7 @@ public class SOCServer extends Server
                              * and tell the player how many they won.
                              */
                             int monoTotal = 0;
-                            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                            for (int i = 0; i < ga.maxPlayers; i++)
                             {
                                 int picked = monoPicks[i];
                                 if (picked == 0)
@@ -5639,8 +5639,8 @@ public class SOCServer extends Server
          * Is there more than one human player?
          * Grab connection information for humans and robots.
          */
-        StringConnection[] humanConns = new StringConnection[SOCGame.MAXPLAYERS];
-        StringConnection[] robotConns = new StringConnection[SOCGame.MAXPLAYERS];
+        StringConnection[] humanConns = new StringConnection[ga.maxPlayers];
+        StringConnection[] robotConns = new StringConnection[ga.maxPlayers];
         int numHuman = SOCGameBoardReset.sortPlayerConnections(ga, null, gameList.getMembers(gaName), humanConns, robotConns);
 
         final int reqPN = reqPlayer.getPlayerNumber();
@@ -5670,7 +5670,7 @@ public class SOCServer extends Server
 
             // First, Count number of other players who can vote (connected, version chk)
             int votingPlayers = 0;
-            for (int i = SOCGame.MAXPLAYERS-1; i>=0; --i)
+            for (int i = ga.maxPlayers - 1; i>=0; --i)
             {
                 if ((i != reqPN) && ! ga.isSeatVacant(i))
                 {
@@ -5700,7 +5700,7 @@ public class SOCServer extends Server
                 String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
                 ga.resetVoteBegin(reqPN);
                 gameList.releaseMonitorForGame(gaName);
-                for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)
+                for (int i = 0; i < ga.maxPlayers; ++i)
                     if (humanConns[i] != null)
                     {
                         if (humanConns[i].getVersion() >= 1100)
@@ -5995,7 +5995,7 @@ public class SOCServer extends Server
         }
 
         //c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < gameData.maxPlayers; i++)
         {
             /**
              * send the already-seated player information;
@@ -6020,7 +6020,7 @@ public class SOCServer extends Server
 
         c.put(getBoardLayoutMessage(gameData).toCmd());
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < gameData.maxPlayers; i++)
         {
             SOCPlayer pl = gameData.getPlayer(i);
 
@@ -6584,9 +6584,9 @@ public class SOCServer extends Server
 
             int count = 0;
             String message = "error at sendGameState()";
-            String[] names = new String[SOCGame.MAXPLAYERS];
+            String[] names = new String[ga.maxPlayers];
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < ga.maxPlayers; i++)
             {
                 if (ga.getPlayer(i).getNeedToDiscard())
                 {
@@ -6629,9 +6629,9 @@ public class SOCServer extends Server
             /**
              * get the choices from the game
              */
-            boolean[] choices = new boolean[SOCGame.MAXPLAYERS];
+            boolean[] choices = new boolean[ga.maxPlayers];
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < ga.maxPlayers; i++)
             {
                 choices[i] = false;
             }
@@ -6691,7 +6691,7 @@ public class SOCServer extends Server
         {
             // Should not happen: By rules FAQ, only current player can be winner.
             // This is fallback code.
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < ga.maxPlayers; i++)
             {
                 winPl = ga.getPlayer(i);        
                 if (winPl.getTotalVP() >= SOCGame.VP_WINNER)
@@ -6705,9 +6705,9 @@ public class SOCServer extends Server
         
         /// send a message with the revealed final scores
         {
-            int[] scores = new int[SOCGame.MAXPLAYERS];
-            boolean[] isRobot = new boolean[SOCGame.MAXPLAYERS];
-            for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)
+            int[] scores = new int[ga.maxPlayers];
+            boolean[] isRobot = new boolean[ga.maxPlayers];
+            for (int i = 0; i < ga.maxPlayers; ++i)
             {
                 scores[i] = ga.getPlayer(i).getTotalVP();
                 isRobot[i] = ga.getPlayer(i).isRobot();
@@ -6718,7 +6718,7 @@ public class SOCServer extends Server
         ///
         /// send a message saying what VP cards each player has
         ///
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < ga.maxPlayers; i++)
         {
             SOCPlayer pl = ga.getPlayer(i);
             SOCDevCardSet devCards = pl.getDevCards();
@@ -6817,7 +6817,7 @@ public class SOCServer extends Server
             else
                 connMsg = "You have been connected ";
 
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < ga.maxPlayers; i++)
             {
                 if (ga.isSeatVacant(i))
                     continue;
@@ -7154,7 +7154,7 @@ public class SOCServer extends Server
             /**
              * send the player info
              */            
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < ga.maxPlayers; i++)
             {
                 if (! ga.isSeatVacant(i))
                 {
@@ -7272,7 +7272,7 @@ public class SOCServer extends Server
          *    Humans will reset their copy of the game.
          *    Robots will leave the game, and soon will be requested to re-join.
          */
-        for (int pn = 0; pn < SOCGame.MAXPLAYERS; ++pn)
+        for (int pn = 0; pn < reGame.maxPlayers; ++pn)
         {
             SOCResetBoardAuth resetMsg = new SOCResetBoardAuth(gaName, pn, requestingPlayer);
             if (huConns[pn] != null)
@@ -7315,7 +7315,7 @@ public class SOCServer extends Server
         /**
          * 3. Send messages as if each human player has clicked "join" (except JoinGameAuth)
          */
-        for (int pn = 0; pn < SOCGame.MAXPLAYERS; ++pn)
+        for (int pn = 0; pn < reGame.maxPlayers; ++pn)
         {
             if (huConns[pn] != null)
                 joinGame(reGame, huConns[pn], true);
@@ -7324,7 +7324,7 @@ public class SOCServer extends Server
         /**
          * 4. Send as if each human player has clicked "sit here"
          */
-        for (int pn = 0; pn < SOCGame.MAXPLAYERS; ++pn)
+        for (int pn = 0; pn < reGame.maxPlayers; ++pn)
         {
             if (huConns[pn] != null)
                 sitDown(reGame, huConns[pn], pn, false /* isRobot*/, true /*isReset */ );

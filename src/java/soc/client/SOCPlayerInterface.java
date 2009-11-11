@@ -863,7 +863,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     public void resetBoardRejected()
     {
         textDisplay.append("** The board reset was rejected.\n");
-        for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)
+        for (int i = 0; i < hands.length; ++i)
         {
             // Clear all displayed votes
             try { hands[i].resetBoardSetMessage(null); }
@@ -1092,7 +1092,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
 
         if (n.equals(client.getNickname()))
         {
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < game.maxPlayers; i++)
             {
                 if (game.getPlayer(i).isRobot())
                 {
@@ -1148,7 +1148,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      */
     public void startGame()
     {
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < hands.length; i++)
         {
             hands[i].removeStartBut();
             // This button has two functions (and two labels).
@@ -1192,7 +1192,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     public void updateAtTurn(int pnum)
     {
         getPlayerHandPanel(pnum).updateDevCards();
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < hands.length; i++)
         {
             // hilight current player, update takeover button
             getPlayerHandPanel(i).updateAtTurn();
@@ -1395,7 +1395,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         }
     }
 
-    // TODO javadocs
+    /**
+     * Cancel any "discarding..." timer, and clear the message if showing.
+     */
     private void discardTimerClear()
     {
         synchronized (showingPlayerDiscards_lock)
@@ -1407,7 +1409,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             }
             if (showingPlayerDiscards)
             {
-                for (int i = SOCGame.MAXPLAYERS - 1; i >= 0; --i)
+                for (int i = hands.length - 1; i >= 0; --i)
                     hands[i].clearDiscardMsg();
                 showingPlayerDiscards = false;
             }
@@ -1651,7 +1653,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         // hp.setBounds also sets its blankStandIn's bounds.
 
         hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
-        if (SOCGame.MAXPLAYERS > 1)
+        if (game.maxPlayers > 1)
         {
             hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
             hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
@@ -1953,7 +1955,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 {
                     return;  // <--- Early return: No longer relevant ---
                 }
-                for (int i = SOCGame.MAXPLAYERS-1; i >=0; --i)
+                for (int i = pi.hands.length - 1; i >=0; --i)
                 {
                     hp = pi.hands[i];
                     if ((i != clientPN) &&
