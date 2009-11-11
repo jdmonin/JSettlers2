@@ -83,7 +83,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
     public static int AUTOROLL_TIME = 5;
 
-    /** Array of five zeroes; for {@link #sqPanel}. */
+    /** Array of five zeroes, one per resource type; for {@link #sqPanel}. */
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
     /** Before game starts, use {@link #pname} to show if a seat is no-robots-allowed. */
     protected static final String SITLOCKED = "Locked: No robot";
