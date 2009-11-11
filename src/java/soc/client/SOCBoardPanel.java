@@ -2097,16 +2097,42 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * draw the arrow that shows whose turn it is.
      *
      * @param g Graphics
-     * @param pnum Player position: 0 for top-left, 1 for top-right,
+     * @param pnum Current player number.
+     *             Player positions are clockwise from top-left:
+     *           <BR>
+     *             For the standard 4-player board:<BR>
+     *             0 for top-left, 1 for top-right,
      *             2 for bottom-right, 3 for bottom-left
+     *           <BR>
+     *             For the 6-player board:<BR>
+     *             0 for top-left, 1 for top-right, 2 for middle-right,
+     *             3 for bottom-right, 4 for bottom-left, 5 for middle-left.
      * @param diceResult Roll result to show, if rolled.
      *                   To show, diceResult must be at least 2,
      *                   and gamestate not SOCGame.PLAY.
      */
     private final void drawArrow(Graphics g, int pnum, int diceResult)
     {
-        int arrowX, arrowY, diceX, diceY;
+        int arrowX, arrowY, diceX, diceY;  // diceY always arrowY + 5
         boolean arrowLeft;
+
+        // Player numbers are clockwise, starting at upper-left.
+        // Since we have seats 0-3 in the corners already for 4-player,
+        // just change pnum for 6-player.  Seats 0 and 1 need no change.
+        // We'll use 4 for middle-right, and 5 for middle-left.
+
+        if (is6player)
+        {
+            switch (pnum)
+            {
+            case 2:  // middle-right
+                pnum = 4;  break;
+            case 3:  // lower-right
+                pnum = 2;  break;
+            case 4:  // lower-left
+                pnum = 3;  break;
+            }
+        }
 
         switch (pnum)
         {
@@ -2114,7 +2140,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // top left
             arrowX = 3;  arrowY = 5;
-            diceX = 13;  diceY = 10;
+            diceX = 13;
             arrowLeft = true;
 
             break;
@@ -2123,7 +2149,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // top right
             arrowX = minSize.width - 40;  arrowY = 5;
-            diceX = minSize.width - 40;  diceY = 10;
+            diceX = minSize.width - 40;
             arrowLeft = false;
 
             break;
@@ -2132,7 +2158,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // bottom right
             arrowX = minSize.width - 40;  arrowY = minSize.height - 42;
-            diceX = minSize.width - 40;  diceY = minSize.height - 37;
+            diceX = minSize.width - 40;
             arrowLeft = false;
 
             break;
@@ -2141,12 +2167,29 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // bottom left
             arrowX = 3;  arrowY = minSize.height - 42;
-            diceX = 13;  diceY = minSize.height - 37;
+            diceX = 13;
             arrowLeft = true;
 
             break;
 
+        case 4:
+
+            // middle right
+            arrowX = minSize.width - 40;  arrowY = minSize.height / 2 - 12;
+            diceX = minSize.width - 40;
+            arrowLeft = false;
+            break;
+
+        case 5:
+
+            // middle left
+            arrowX = 3;  arrowY = minSize.height / 2 - 12;
+            diceX = 13;
+            arrowLeft = true;
+            break;
         }
+
+        diceY = arrowY + 5;
 
         /**
          * Draw Arrow
