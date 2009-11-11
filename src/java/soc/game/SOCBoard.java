@@ -567,18 +567,24 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Create a new Settlers of Catan Board.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
+     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      */
-    public SOCBoard(Hashtable gameOpts)
+    public SOCBoard(Hashtable gameOpts, final int maxPlayers)
+        throws IllegalArgumentException
     {
+        if ((maxPlayers != 4) && (maxPlayers != 6))
+            throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
         boardWidth = 0x10;
         boardHeight = 0x10;
         final boolean is6player;
         if (gameOpts != null)
         {
             SOCGameOption opt_6player = (SOCGameOption) gameOpts.get("DEBUG56PLBOARD");
-            is6player = (opt_6player != null) && opt_6player.getBoolValue();
+            is6player = (maxPlayers == 6)
+              || ((opt_6player != null) && opt_6player.getBoolValue());
         } else {
-            is6player = false;
+            is6player = (maxPlayers == 6);
         }
         if (is6player)
         {
@@ -708,29 +714,14 @@ public class SOCBoard implements Serializable, Cloneable
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setHexLayout(int[])}.
-     * @param opts {@link SOCGameOption Game options}, which may affect board size and layout, or null
-     * @exception IllegalArgumentException if <tt>opts</tt> calls for a 6-player board, but
-     *        the current {@link #getBoardEncodingFormat()} is a larger value than {@link #BOARD_ENCODING_6PLAYER}.
+     * @param opts {@link SOCGameOption Game options}, which may affect
+     *          tile placement on board, or null.  <tt>opts</tt> must be
+     *          the same as passed to constructor, and thus give the same size and layout
+     *          (same {@link #getBoardEncodingFormat()}).
      */
     public void makeNewBoard(Hashtable opts)
     {
-        final boolean is6player;
-        {
-            if (opts != null)
-            {
-                SOCGameOption opt_6player = (SOCGameOption) opts.get("DEBUG56PLBOARD");
-                is6player = (opt_6player != null) && opt_6player.getBoolValue();
-                if (is6player)
-                {
-                    if (boardEncodingFormat > BOARD_ENCODING_6PLAYER)
-                        throw new IllegalArgumentException
-                            ("Cannot create 6-player when starting from a newer encoding");
-                    boardEncodingFormat = BOARD_ENCODING_6PLAYER;
-                }
-            } else {
-                is6player = false;
-            }
-        }
+        final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
         final int[] landHex_v1 = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
         final int[] landHex_6pl = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 

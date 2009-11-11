@@ -579,17 +579,17 @@ public class SOCGame implements Serializable, Cloneable
         active = a;
         inUse = false;
         name = n;
-        board = new SOCBoard(op);
         if (op != null)
         {
            SOCGameOption maxpl = (SOCGameOption) op.get("PL");
            if ((maxpl != null) && (maxpl.getIntValue() > 4))
-               maxPlayers = MAXPLAYERS;
+               maxPlayers = 6; // TODO = MAXPLAYERS;
            else
                maxPlayers = 4;
         } else {
             maxPlayers = 4;
         }
+        board = new SOCBoard(op, maxPlayers);
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
         seatLocks = new boolean[maxPlayers];
