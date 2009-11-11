@@ -202,11 +202,12 @@ public class SOCGame implements Serializable, Cloneable
     public static final int VOTE_NO   = 2;
 
     /**
-     * maximum number of players in a game, in this version
+     * Maximum number of players in a game, in this version.
+     * Was 4 before 1.1.08, now is 6.
      * @see #maxPlayers
      * @see #MAXPLAYERS_STANDARD
      */
-    public static final int MAXPLAYERS = 4;
+    public static final int MAXPLAYERS = 6;
 
     /**
      * maximum number of players in a standard game
