@@ -541,12 +541,12 @@ public class SOCHandPanel extends Panel implements ActionListener
             playerSend = null;
             playerSendMap = null;
         } else {
-            playerSend = new ColorSquare[SOCGame.MAXPLAYERS-1];
-            playerSendMap = new int[SOCGame.MAXPLAYERS-1];
+            playerSend = new ColorSquare[game.maxPlayers-1];
+            playerSendMap = new int[game.maxPlayers-1];
 
             // set the trade buttons correctly
             int cnt = 0;
-            for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++)
+            for (int pn = 0; pn < game.maxPlayers; pn++)
             {
                 if (pn != player.getPlayerNumber())
                 {
@@ -759,12 +759,12 @@ public class SOCHandPanel extends Panel implements ActionListener
                 else
                 {
                     // bool array elements begin as false
-                    boolean[] to = new boolean[SOCGame.MAXPLAYERS];
+                    boolean[] to = new boolean[game.maxPlayers];
                     boolean toAny = false;
 
                     if (game.getCurrentPlayerNumber() == player.getPlayerNumber())
                     {
-                        for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+                        for (int i = 0; i < (game.maxPlayers - 1); i++)
                         {
                             if (playerSend[i].getBoolValue() && ! game.isSeatVacant(playerSendMap[i]))
                             {
@@ -1097,7 +1097,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         if (! playerTradingDisabled)
         {
             offerBut.setVisible(false);  // also hides offerButTip if created
-            for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+            for (int i = 0; i < (game.maxPlayers - 1); i++)
             {
                 playerSend[i].setVisible(false);
             }
@@ -1254,7 +1254,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             if (! playerTradingDisabled)
             {
                 offerBut.setVisible(true);
-                for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+                for (int i = 0; i < (game.maxPlayers - 1); i++)
                 {
                     playerSend[i].setBoolValue(true);
                     playerSend[i].setEnabled(true);
@@ -1275,7 +1275,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             // If game still forming, can lock seats (for fewer players/robots).
             boolean gameForming = (game.getGameState() == SOCGame.NEW);
             int pnum = player.getPlayerNumber();
-            for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+            for (int i = 0; i < game.maxPlayers; i++)
             {
                 playerInterface.getPlayerHandPanel(i).removeTakeOverBut();
                 if (gameForming && (i != pnum) && game.isSeatVacant(i))
@@ -1663,7 +1663,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         // Update the player-trading checkboxes
         if (! playerTradingDisabled)
         {
-            for (int i = 0; i < (SOCGame.MAXPLAYERS - 1); i++)
+            for (int i = 0; i < (game.maxPlayers - 1); i++)
             {
                 boolean seatTaken = ! game.isSeatVacant(playerSendMap[i]);
                 playerSend[i].setBoolValue(seatTaken);

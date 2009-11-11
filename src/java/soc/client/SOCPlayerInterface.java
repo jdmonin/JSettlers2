@@ -81,6 +81,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     protected boolean boardIsScaled;
 
     /**
+     * Is this game using the 6-player board?
+     * Checks {@link SOCGame#maxPlayers}.
+     * @since 1.1.08
+     */
+    private boolean is6player;
+
+    /**
      * For perf/display-bugs during component layout (OSX firefox),
      * show only background color in {@link #update(Graphics)} when true.
      * @since 1.1.06
@@ -165,7 +172,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     protected SOCBuildingPanel buildingPanel;
 
     /**
-     * the display for the players' hands
+     * the display for the players' hands.
+     * Hands start at top-left and go clockwise.
      */
     protected SOCHandPanel[] hands;
     
@@ -183,7 +191,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     private int clientHandPlayerNum;
 
     /**
-     * the player colors. Indexes from 0 to {@link SOCGame#MAXPLAYERS} - 1.
+     * the player colors. Indexes from 0 to {@link SOCGame#maxPlayers} - 1.
+     * Initialized in constructor.
+     * @see #getPlayerColor(int, boolean)
      */
     protected Color[] playerColors, playerColorsGhost;
 
@@ -295,6 +305,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         gameIsStarting = false;
         clientHand = null;
         clientHandPlayerNum = -1;
+        is6player = (game.maxPlayers > 4);
 
         showingPlayerDiscards = false;
         showingPlayerDiscards_lock = new Object();
@@ -302,15 +313,19 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         /**
          * initialize the player colors
          */
-        playerColors = new Color[4];
-        playerColorsGhost = new Color[4];
-        // FIXME assumes game.MAXPLAYERS==4
-        //playerColors[0] = new Color( 10,  63, 172); // blue
+        playerColors = new Color[game.maxPlayers];
+        playerColorsGhost = new Color[game.maxPlayers];
         playerColors[0] = new Color(109, 124, 231); // grey-blue
         playerColors[1] = new Color(231,  35,  35); // red
         playerColors[2] = new Color(244, 238, 206); // off-white
         playerColors[3] = new Color(249, 128,  29); // orange
-        for (int i = 0; i < SOCGame.MAXPLAYERS; ++i)
+        if (is6player)
+        {
+            playerColors[4] = new Color(97, 151, 113); // same green as playerclient bg ("61AF71")
+            playerColors[5] = playerColors[3];  // orange
+            playerColors[3] = new Color(166, 88, 201);  // violet
+        }
+        for (int i = 0; i < game.maxPlayers; ++i)
         {
             playerColorsGhost[i] = makeGhostColor(playerColors[i]);
         }
@@ -342,12 +357,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener
          * more initialization stuff
          */
         setLocation(50, 50);
-        if (game.isGameOptionSet("DEBUG56PLBOARD"))
+        if (is6player)
             setSize((2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width, 650);
         else
             setSize(830, 650);
         validate();
-        
+
         if (didHideTemp)
         {
             setVisible(true);
@@ -374,16 +389,16 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         /**
          * initialize the player hand displays and add them to the interface
          */
-        hands = new SOCHandPanel[SOCGame.MAXPLAYERS];
+        hands = new SOCHandPanel[game.maxPlayers];
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < hands.length; i++)
         {
             SOCHandPanel hp = new SOCHandPanel(this, game.getPlayer(i));
             hands[i] = hp;
-            hp.setSize(180, 180);
+            hp.setSize(180, 120);
             add(hp);
             ColorSquare blank = hp.getBlankStandIn();
-            blank.setSize(180, 180);
+            blank.setSize(180, 120);
             add(blank);
         }
 
@@ -495,8 +510,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     }
 
     /**
-     * @return the "ghosted" color of a player
+     * @return the normal or "ghosted" color of a player
      * @param pn  the player number
+     * @param isGhost Do we want the "ghosted" color, not the normal color?
      */
     public Color getPlayerColor(int pn, boolean isGhost)
     {
@@ -568,7 +584,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         else
             updateType = SOCHandPanel.LARGESTARMY;
 
-        for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+        for (int i = 0; i < game.maxPlayers; i++)
         {
             hands[i].updateValue(updateType);
             hands[i].updateValue(SOCHandPanel.VICTORYPOINTS);
@@ -607,7 +623,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
 
     /**
      * Show the maximum and available number of player positions,
-     * if game parameter "PL" is less than {@link SOCGame#MAXPLAYERS}.
+     * if game parameter "PL" is less than {@link SOCGame#maxPlayers}.
      * Also, if show, and gamestate is {@link SOCGame#NEW}, check for game-is-full,
      * and hide or show "sit down" buttons if necessary.
      * If the game has already started, and the client is playing in this game,
@@ -628,7 +644,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             boardPanel.setSuperimposedText(null, null);
         }
         final int maxPl = game.getGameOptionIntValue("PL");
-        if (maxPl == SOCGame.MAXPLAYERS)
+        if (maxPl == game.maxPlayers)
             noTextOverlay = true;
         int availPl = game.getAvailableSeatCount();
         if (playerLeaving != -1)
@@ -646,7 +662,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 // No seats remain; remove all "sit here" buttons.
                 // (If client has already sat, will leave them
                 //  visible as robot "lock" buttons.)
-                for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                for (int i = 0; i < game.maxPlayers; i++)
                     hands[i].removeSitBut();
             }
             else if (playerLeaving != -1) 
@@ -658,7 +674,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 // The leaving player isn't vacant yet in the game data.
                 hands[playerLeaving].addSitButton(clientSatAlready);
                 if (availPl == 1)
-                    for (int i = 0; i < SOCGame.MAXPLAYERS; i++)
+                    for (int i = 0; i < game.maxPlayers; i++)
                         if (game.isSeatVacant(i))
                             hands[i].addSitButton(clientSatAlready);
             }
@@ -1605,19 +1621,28 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             }
         }
         boardIsScaled = canScaleBoard;  // set field, now that we know if it works
-        int hh = (dim.height - 12) / 2;
-        int kw = bw;
+        final int halfplayers = (is6player) ? 3 : 2;
+        final int hh = (dim.height - 12) / halfplayers;  // handpanel height
+        final int kw = bw;
 
         buildingPanel.setBounds(i.left + hw + 8, i.top + tah + tfh + bh + 12, kw, buildph);
 
-        hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);  // hp.setBounds also sets its blankStandIn's bounds
+        // Hands start at top-left, go clockwise;
+        // hp.setBounds also sets its blankStandIn's bounds.
 
+        hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
         if (SOCGame.MAXPLAYERS > 1)
         {
-            /* FIXME: Assumes MAXPLAYERS == 4 for layout */ 
             hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
             hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
-            hands[3].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
+            if (! is6player)
+            {
+                hands[3].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
+            } else {
+                hands[3].setBounds(i.left + hw + bw + 12, i.top + 2 * hh + 12, hw, hh);                
+                hands[4].setBounds(i.left + 4, i.top + 2 * hh + 12, hw, hh);
+                hands[5].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
+            }
         }
 
         int tdh, cdh;

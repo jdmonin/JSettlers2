@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file copyright (C) 2007-2008 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -193,7 +193,7 @@ public class SOCFaceButton extends Canvas
      * create a new SOCFaceButton, for a player's handpanel (standard mode). Face id DEFAULT_FACE.
      *
      * @param pi  the interface that this button is attached to
-     * @param pn  the number of the player that owns this button. Must be in range 0 to SOCGame.MAXPLAYERS-1.
+     * @param pn  the number of the player that owns this button. Must be in range 0 to ({@link SOCGame#maxPlayers} - 1).
      *
      * @throws IllegalArgumentException if pn is < -1 or >= SOCGame.MAXPLAYERS.
      */
@@ -221,11 +221,13 @@ public class SOCFaceButton extends Canvas
      * implement creation of a new SOCFaceButton (common to both modes)
      *
      * @param pi  the interface that this button is attached to
-     * @param pn  the number of the player that owns this button, or -1 if none
+     * @param pn  the number of the player that owns this button, or -1 if none;
+     *          if <tt>pn</tt> >= 0, <tt>pi.getGame()</tt> must not be null. 
      * @param bgColor  background color to use
      * @param width width,height in pixels; FACE_WIDTH_PX or FACE_WIDTH_BORDERED_PX
      *
-     * @throws IllegalArgumentException if pn is < -1 or >= SOCGame.MAXPLAYERS.
+     * @throws IllegalArgumentException if pn is < -1 or >= {@link SOCGame#maxPlayers},
+     *           or if <tt>pi.getGame()</tt> is null.
      */
     protected SOCFaceButton(SOCPlayerInterface pi, int pn, Color bgColor, int width)
         throws IllegalArgumentException
@@ -234,11 +236,15 @@ public class SOCFaceButton extends Canvas
 
         this.pi = pi;
         if (pn == -1)
+        {
             game = null;
-        else if ((pn >= 0) && (pn < SOCGame.MAXPLAYERS))
+        } else {
             game = pi.getGame();
-        else
-            throw new IllegalArgumentException("Player number out of range: " + pn);
+            if (game == null)
+                throw new IllegalArgumentException("null pi.getGgame");
+            if ((pn < 0) && (pn <= game.maxPlayers))
+                throw new IllegalArgumentException("Player number out of range: " + pn);
+        }
         pNumber = pn;
         faceChooser = null;
         hilightBorderShown = false;

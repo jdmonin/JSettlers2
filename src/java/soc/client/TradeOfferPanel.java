@@ -329,7 +329,7 @@ public class TradeOfferPanel extends Panel
 
             int cnt = 0;
 
-            for (; cnt < SOCGame.MAXPLAYERS; cnt++)
+            for (; cnt < ga.maxPlayers; cnt++)
             {
                 if (offerList[cnt] && ! ga.isSeatVacant(cnt))
                 {
@@ -343,7 +343,7 @@ public class TradeOfferPanel extends Panel
 
             int len = names1.length();
 
-            for (; cnt < SOCGame.MAXPLAYERS; cnt++)
+            for (; cnt < ga.maxPlayers; cnt++)
             {
                 if (offerList[cnt] && ! ga.isSeatVacant(cnt))
                 {
@@ -510,7 +510,7 @@ public class TradeOfferPanel extends Panel
                     else
                     {
                         // arrays of bools are initially false
-                        boolean[] to = new boolean[SOCGame.MAXPLAYERS];
+                        boolean[] to = new boolean[game.maxPlayers];
                         // offer to the player that made the original offer
                         to[from] = true;
 
