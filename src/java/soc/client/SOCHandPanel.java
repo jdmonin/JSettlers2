@@ -2235,7 +2235,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     public void doLayout()
     {
         Dimension dim = getSize();
-        int inset = 8;
+        int inset = 3;  // was 8 before 1.1.08
         int space = 2;
 
         FontMetrics fm = this.getFontMetrics(this.getFont());
@@ -2316,7 +2316,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                         playerSend[2].setBounds((tbX + tbW + space + tbW) - ColorSquare.WIDTH, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
                     } else {
                         // 6-player: 5 checkboxes
-                        int px = tbX + (2 * (space + tbW)) - ColorSquare.WIDTH;
+                        int px = tbX + (2 * (space + tbW)) - ColorSquare.WIDTH - 1;
                         for (int pi = 4; pi >=0; --pi, px -= (ColorSquare.WIDTH + 1))
                             playerSend[pi].setBounds(px, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
                     }
