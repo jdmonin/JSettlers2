@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Some documentation javadocs here are Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,7 +37,13 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
 {
     protected Vector necessaryRoads;
     protected Vector conflicts;
+
+    /**
+     * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
+     * to {@link SOCBuildingSpeedEstimate#MAXPLUSONE}.
+     */
     protected int[] speedup = { 0, 0, 0, 0 };
+
     protected int numberOfNecessaryRoads;
     protected Stack roadPath;
 
@@ -150,7 +157,8 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     }
 
     /**
-     * update the speedup that this settlement gives
+     * update the speedup that this settlement gives.
+     * This has been a do-nothing method (all code commented out) since March 2004 or earlier.
      */
     public void updateSpeedup()
     {
