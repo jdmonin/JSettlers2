@@ -304,7 +304,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private boolean hasCalledSetSize;
 
     /**
-     * The board is configured for 6-player mode (and is {@link #isRotated}) (game opt DEBUG56PLBOARD).
+     * The board is configured for 6-player mode (and is {@link #isRotated});
+     * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}.
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
      * The 6-player mode uses {@link #hexX_6pl} instead of {@link #hexX_st} for coordinates.
@@ -704,7 +705,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         board = game.getBoard();
         isScaled = false;
         scaledMissedImage = false;
-        is6player = game.isGameOptionSet("DEBUG56PLBOARD");
+        is6player = (board.getBoardEncodingFormat() == SOCBoard.BOARD_ENCODING_6PLAYER);
         isRotated = isScaledOrRotated = is6player || game.isGameOptionSet("DEBUGROTABOARD");
         if (isRotated)
         {
