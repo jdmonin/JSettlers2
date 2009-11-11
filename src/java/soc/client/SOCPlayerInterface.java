@@ -1099,6 +1099,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                     hands[i].addSittingRobotLockBut();
                 }
             }
+            if (is6player)
+            {
+                // handpanel sizes change when client sits
+                // in a 6-player game.
+                invalidate();
+                doLayout();
+            }
         }
 
         if (game.isGameOptionDefined("PL"))
@@ -1126,6 +1133,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         else
             hands[pn].addSitButton(clientHand != null);  // Is the client player already sitting down at this game?
 
+        if (is6player && (clientHand == null))
+        {
+            // handpanel sizes change when client leaves in a 6-player game.
+            invalidate();
+            doLayout();
+        }
     }
 
     /**
@@ -1541,7 +1554,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     }
     
     /**
-     * do the layout
+     * Arrange the custom layout. If a player sits down in a 6-player game, will need to
+     * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
      */
     public void doLayout()
     {
@@ -1569,6 +1583,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener
          * If board can be at least 15% larger than minimum board width,
          * without violating minimum handpanel width, scale it larger.
          * Otherwise, use minimum board width (widen handpanels instead).
+         * Handpanel height:
+         * - If 4-player, 1/2 of window height
+         * - If 6-player, 1/3 of window height, until client sits down.
+         *   (Column of 3 on left side, 3 on right side, of this frame)
+         *   Once sits down, that column's handpanel heights are
+         *   1/2 of window height for the player's hand, and 1/4 for others.
          */
         final int bMinW, bMinH;
         {
@@ -1642,6 +1662,38 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 hands[3].setBounds(i.left + hw + bw + 12, i.top + 2 * hh + 12, hw, hh);                
                 hands[4].setBounds(i.left + 4, i.top + 2 * hh + 12, hw, hh);
                 hands[5].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
+                if (clientHandPlayerNum != -1)
+                {
+                    // Sitting, during a 6-player game.  Re-calc position and
+                    // size of the column they're sitting in.
+                    final boolean isRight;
+                    final int[] hp_idx;
+                    final int hp_x;
+                    isRight = ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3));
+                    if (isRight)
+                    {
+                        final int[] idx_right = {1, 2, 3};
+                        hp_idx = idx_right;
+                        hp_x = i.left + hw + bw + 12;
+                    } else {
+                        final int[] idx_left = {0, 5, 4};
+                        hp_idx = idx_left;
+                        hp_x = i.left + 4;
+                    }
+                    for (int ihp = 0, hp_y = i.top + 4; ihp < 3; ++ihp)
+                    {
+                        SOCHandPanel hp = hands[hp_idx[ihp]];
+                        int hp_height;
+                        if (hp_idx[ihp] == clientHandPlayerNum)
+                            hp_height = (dim.height - 12) / 2;
+                        else
+                            hp_height = (dim.height - 12) / 4;
+                        hp.setBounds(hp_x, hp_y, hw, hp_height);
+                        hp.invalidate();
+                        hp.doLayout();
+                        hp_y += (hp_height + 4);
+                    }
+                }
             }
         }
 
