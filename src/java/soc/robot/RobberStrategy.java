@@ -36,15 +36,13 @@ public class RobberStrategy {
 	/** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
     private transient D log = new D();
-	
-	/**
-    *
-      /**
+
+   /**
     * move the robber
     */
    public int getBestRobberHex(SOCGame game, SOCPlayer ourPlayerData, HashMap playerTrackers)
    {
-	   Random rand = new Random();
+       Random rand = new Random();
        log.debug("%%% MOVEROBBER");
 
        final int[] hexes = game.getBoard().getHexLandCoords();
@@ -54,7 +52,7 @@ public class RobberStrategy {
        /**
         * decide which player we want to thwart
         */
-       int[] winGameETAs = { 100, 100, 100, 100 };
+       int[] winGameETAs = { 100, 100, 100, 100, 100, 100 };  // Length should be SOCGame.MAXPLAYERS
        Iterator trackersIter = playerTrackers.values().iterator();
 
        while (trackersIter.hasNext())

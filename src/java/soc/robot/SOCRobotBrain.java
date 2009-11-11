@@ -2302,9 +2302,9 @@ public class SOCRobotBrain extends Thread
         }
 
         ///
-        /// see if this settlement bisected someone elses road
+        /// see if this settlement bisected someone else's road
         ///
-        int[] roadCount = { 0, 0, 0, 0 };
+        int[] roadCount = { 0, 0, 0, 0, 0, 0 };  // Length should be SOCGame.MAXPLAYERS
         SOCBoard board = game.getBoard();
         Enumeration adjEdgeEnum = board.getAdjacentEdgesToNode(newSettlement.getCoordinates()).elements();
 
@@ -3777,7 +3777,7 @@ public class SOCRobotBrain extends Thread
         /**
          * decide which player we want to thwart
          */
-        int[] winGameETAs = { 100, 100, 100, 100 };
+        int[] winGameETAs = { 100, 100, 100, 100, 100, 100 };  // Length should be SOCGame.MAXPLAYERS
         Iterator trackersIter = playerTrackers.values().iterator();
 
         while (trackersIter.hasNext())
