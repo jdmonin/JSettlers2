@@ -1768,7 +1768,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             {
                 int pcurr = game.getCurrentPlayerNumber();  // current player number
                 boolean pIsCurr = (pcurr == player.getPlayerNumber());  // are we current? 
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < game.maxPlayers - 1; i++)
                 {
                     boolean canSend;
                     if (pIsCurr)
@@ -2298,15 +2298,28 @@ public class SOCHandPanel extends Panel implements ActionListener
                 int tbX = inset;
                 int tbY = tradeY + sqpDim.height + space;
                 if (offerBut != null)
-                    offerBut.setBounds(tbX, tbY, tbW, lineH);
+                {
+                    if (game.maxPlayers == 4)
+                        offerBut.setBounds(tbX, tbY, tbW, lineH);
+                    else  // 6-player: leave room for 5 checkboxes
+                        offerBut.setBounds(tbX, tbY, (2 * tbW) + space - (5 * (1 + ColorSquare.WIDTH)), lineH);
+                }
                 clearOfferBut.setBounds(tbX, tbY + lineH + space, tbW, lineH);
                 bankBut.setBounds(tbX + tbW + space, tbY + lineH + space, tbW, lineH);
 
                 if (! playerTradingDisabled)
                 {
-                    playerSend[0].setBounds(tbX + tbW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                    playerSend[1].setBounds(tbX + tbW + space + ((tbW - ColorSquare.WIDTH) / 2), tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                    playerSend[2].setBounds((tbX + tbW + space + tbW) - ColorSquare.WIDTH, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    if (game.maxPlayers == 4)
+                    {
+                        playerSend[0].setBounds(tbX + tbW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                        playerSend[1].setBounds(tbX + tbW + space + ((tbW - ColorSquare.WIDTH) / 2), tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                        playerSend[2].setBounds((tbX + tbW + space + tbW) - ColorSquare.WIDTH, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    } else {
+                        // 6-player: 5 checkboxes
+                        int px = tbX + (2 * (space + tbW)) - ColorSquare.WIDTH;
+                        for (int pi = 4; pi >=0; --pi, px -= (ColorSquare.WIDTH + 1))
+                            playerSend[pi].setBounds(px, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                    }
                 }
 
                 knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
