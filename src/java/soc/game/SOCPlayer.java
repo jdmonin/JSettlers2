@@ -30,6 +30,7 @@ import soc.util.NodeLenVis;
 import java.io.Serializable;
 
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -1609,23 +1610,16 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     {
         //D.ebugPrintln("&&& UPDATING POTENTIALS FOR "+piece);
         int tmp;
-        boolean ours;
+        final boolean ours;
         boolean blocked;
-        int id = piece.getCoordinates();
+        final int id = piece.getCoordinates();
         SOCBoard board = game.getBoard();
         Vector allPieces = board.getPieces();
 
         /**
          * check if this piece is ours
          */
-        if (piece.getPlayer().getPlayerNumber() == this.getPlayerNumber())
-        {
-            ours = true;
-        }
-        else
-        {
-            ours = false;
-        }
+        ours = (piece.getPlayer().getPlayerNumber() == this.getPlayerNumber());
 
         switch (piece.getType())
         {
@@ -1696,162 +1690,99 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
          */
         case SOCPlayingPiece.SETTLEMENT:
 
-            // remove non-potentials
+            // remove non-potentials:
+            // no settlement at this node coordinate,
+            // no settlement in its adjacent nodes.
             potentialSettlements[id] = false;
-            potentialSettlements[id - 0x11] = false;
-            potentialSettlements[id + 0x11] = false;
             legalSettlements[id] = false;
-            legalSettlements[id - 0x11] = false;
-            legalSettlements[id + 0x11] = false;
-
-            if (((id >> 4) % 2) == 0)
-            { // If first digit is even,
-                potentialSettlements[(id + 0x10) - 0x01] = false;
-                legalSettlements[(id + 0x10) - 0x01] = false;
-
-                if (ours)
-                { // only add potentials if it's our piece
-
-                    // add new potentials
-                    tmp = id - 0x11; // upper left '\' edge
-
-                    if (legalRoads[tmp]) // make sure the potential road is legal
-                    {
-                        potentialRoads[tmp] = true;
-                    }
-
-                    // upper right '/' edge
-                    if (legalRoads[id]) // make sure the potential road is legal
-                    {
-                        potentialRoads[id] = true;
-                    }
-
-                    tmp = id - 0x01; // lower middle '|' edge
-
-                    if (legalRoads[tmp]) // make sure the potential road is legal
-                    {
-                        potentialRoads[tmp] = true;
-                    }
-                }
-                else
+            int[] adjac = board.getAdjacentNodesToNode_arr(id);
+            for (int i = 0; i < 3; ++i)
+            {
+                if (adjac[i] != -1)
                 {
-                    // see if a road has been cut off
-                    Vector ourRoads = new Vector();
-                    Enumeration pEnum = (this.pieces).elements();
+                    potentialSettlements[adjac[i]] = false;
+                    legalSettlements[adjac[i]] = false;
+                }
+            }
 
-                    while (pEnum.hasMoreElements())
-                    {
-                        SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+            // if it's our piece, add potential roads and city.
+            // otherwise, check for cutoffs of our potential roads by this piece.
 
-                        if (p.getType() == SOCPlayingPiece.ROAD)
-                        {
-                            ourRoads.addElement(new Integer(p.getCoordinates()));
-                        }
-                    }
+            if (ours)
+            {
+                potentialCities[id] = true;
 
-                    tmp = id - 0x11; // upper left '\' edge
-
-                    if ((potentialRoads[tmp]) && // make sure the pot. road is still connected
-                            !(ourRoads.contains(new Integer(tmp - 0x10)) || ourRoads.contains(new Integer(tmp - 0x11))))
-                    {
-                        potentialRoads[tmp] = false;
-                    }
-
-                    tmp = id; // upper right '/' edge
-
-                    if ((potentialRoads[tmp]) && // make sure the pot. road is still connected
-                            !(ourRoads.contains(new Integer(tmp + 0x01)) || ourRoads.contains(new Integer(tmp + 0x11))))
-                    {
-                        potentialRoads[tmp] = false;
-                    }
-
-                    tmp = id - 0x01; // lower middle '|' edge
-
-                    if ((potentialRoads[tmp]) && // make sure the pot. road is still connected
-                            !(ourRoads.contains(new Integer(tmp - 0x01)) || ourRoads.contains(new Integer(tmp + 0x10))))
-                    {
-                        potentialRoads[tmp] = false;
-                    }
+                adjac = board.getAdjacentEdgesToNode_arr(id);
+                for (int i = 0; i < 3; ++i)
+                {
+                    tmp = adjac[i];
+                    if ((tmp != -1) && legalRoads[tmp])
+                        potentialRoads[tmp] = true;
                 }
             }
             else
             {
-                // we have an A node.
-                // continue removing non-potentials
-                potentialSettlements[id - 0x10 + 0x01] = false;
-                legalSettlements[id - 0x10 + 0x01] = false;
+                // see if a nearby potential road has been cut off:
+                // build vector of our road edge IDs placed so far.
+                // for each of 3 adjacent edges to node:
+                //  if we have potentialRoad(edge)
+                //    check ourRoads vs that edge's far-end (away from node of new settlement)
+                //    unless we have a road on far-end, this edge is no longer potential,
+                //      because we're not getting past opponent's new settlement (on this end
+                //      of the edge) to build it.
 
-                if (ours)
-                { // only add potentials if it's our piece
-
-                    // add new potentials
-                    tmp = id - 0x11; // lower left '/' edge
-
-                    if (legalRoads[tmp]) // make sure the potential road is legal
-                    {
-                        potentialRoads[tmp] = true;
-                    }
-
-                    // lower right '\' edge
-                    if (legalRoads[id]) // make sure the potential road is legal
-                    {
-                        potentialRoads[id] = true;
-                    }
-
-                    tmp = id - 0x10; // upper middle '|' edge
-
-                    if (legalRoads[tmp]) // make sure the potential road is legal
-                    {
-                        potentialRoads[tmp] = true;
-                    }
-                }
-                else
+                Hashtable ourRoads = new Hashtable();  // TODO more efficient way of looking this up, with fewer temp objs
+                Object hashDummy = new Object();   // a value is needed for hashtable
+                Enumeration pEnum = (this.pieces).elements();
+                while (pEnum.hasMoreElements())
                 {
-                    // see if a road has been cut off
-                    Vector ourRoads = new Vector();
-                    Enumeration pEnum = (this.pieces).elements();
+                    SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+                    if (p.getType() == SOCPlayingPiece.ROAD)
+                        ourRoads.put(new Integer(p.getCoordinates()), hashDummy);
+                }
 
-                    while (pEnum.hasMoreElements())
+                adjac = board.getAdjacentEdgesToNode_arr(id);
+                for (int i = 0; i < 3; ++i)
+                {
+                    tmp = adjac[i];  // edge coordinate
+                    if ((tmp == -1) || ! potentialRoads[tmp])
                     {
-                        SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+                        continue;  // We don't have a potential road here, so
+                                   // there's nothing to be potentially broken.
+                    }
 
-                        if (p.getType() == SOCPlayingPiece.ROAD)
+                    // find the far-end node coordinate
+                    final int farNode;
+                    {
+                        final int[] enodes = SOCBoard.getAdjacentNodesToEdge_arr(tmp);
+                        if (enodes[0] == id)
+                            farNode = enodes[1];
+                        else
+                            farNode = enodes[0];
+                    }
+
+                    // now find the 2 other edges from that node;
+                    // we may have actual roads on them already.
+                    // If so, we'll still be able to get to the edge (tmp)
+                    // that touches the new settlement's node.
+
+                    final int[] farEdges = board.getAdjacentEdgesToNode_arr(farNode);
+                    boolean foundOurRoad = false;
+                    for (int ie = 0; ie < 3; ++ie)
+                    {
+                        int farEdge = farEdges[ie];
+                        if ((farEdge != tmp) && ourRoads.contains(new Integer(farEdge)))
                         {
-                            ourRoads.addElement(new Integer(p.getCoordinates()));
+                            foundOurRoad = true;
+                            break;
                         }
                     }
-
-                    tmp = id - 0x11; // lower left '/' edge
-
-                    if ((potentialRoads[tmp]) && // make sure the pot. road is still connected
-                            !(ourRoads.contains(new Integer(tmp - 0x11)) || ourRoads.contains(new Integer(tmp - 0x01))))
+                    if (! foundOurRoad)
                     {
-                        potentialRoads[tmp] = false;
-                    }
-
-                    tmp = id; // lower right '\' edge
-
-                    if ((potentialRoads[tmp]) && // make sure the pot. road is still connected
-                            !(ourRoads.contains(new Integer(tmp + 0x11)) || ourRoads.contains(new Integer(tmp + 0x10))))
-                    {
-                        potentialRoads[tmp] = false;
-                    }
-
-                    tmp = id - 0x10; // upper middle '|' edge
-
-                    if ((potentialRoads[tmp]) && // make sure the pot. road is still connected
-                            !(ourRoads.contains(new Integer(tmp - 0x10)) || ourRoads.contains(new Integer(tmp + 0x01))))
-                    {
+                        // the potential road is no longer connected
                         potentialRoads[tmp] = false;
                     }
                 }
-            }
-
-            if (ours)
-            { // only add potentials if it's our piece
-
-                // continue adding new potentials
-                potentialCities[id] = true;
             }
 
             break;
