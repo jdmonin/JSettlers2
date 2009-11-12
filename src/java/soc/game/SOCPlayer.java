@@ -399,7 +399,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         // and has an extra row of land hexes at north and south end.
         final boolean is6player = (game.getBoard().getBoardEncodingFormat()
             == SOCBoard.BOARD_ENCODING_6PLAYER);
-        final int leftAdj = (is6player) ? 0x22 : 0x00;
+        final int westAdj = (is6player) ? 0x22 : 0x00;
 
         // Set each row of valid road (edge) coordinates:
         int i;
@@ -413,37 +413,37 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
                 legalRoads[i] = true;
         }
 
-        for (i = 0x27 - leftAdj; i <= 0x7C; i += 0x11)
+        for (i = 0x27 - westAdj; i <= 0x7C; i += 0x11)
             legalRoads[i] = true;
 
-        for (i = 0x26 - leftAdj; i <= 0x8C; i += 0x22)
+        for (i = 0x26 - westAdj; i <= 0x8C; i += 0x22)
             legalRoads[i] = true;
 
-        for (i = 0x25 - leftAdj; i <= 0x9C; i += 0x11)
+        for (i = 0x25 - westAdj; i <= 0x9C; i += 0x11)
             legalRoads[i] = true;
 
-        for (i = 0x24 - leftAdj; i <= 0xAC; i += 0x22)
+        for (i = 0x24 - westAdj; i <= 0xAC; i += 0x22)
             legalRoads[i] = true;
 
-        for (i = 0x23 - leftAdj; i <= 0xBC; i += 0x11)
+        for (i = 0x23 - westAdj; i <= 0xBC; i += 0x11)
             legalRoads[i] = true;
 
-        for (i = 0x22 - leftAdj; i <= 0xCC; i += 0x22)
+        for (i = 0x22 - westAdj; i <= 0xCC; i += 0x22)
             legalRoads[i] = true;
 
-        for (i = 0x32 - leftAdj; i <= 0xCB; i += 0x11)
+        for (i = 0x32 - westAdj; i <= 0xCB; i += 0x11)
             legalRoads[i] = true;
 
-        for (i = 0x42 - leftAdj; i <= 0xCA; i += 0x22)
+        for (i = 0x42 - westAdj; i <= 0xCA; i += 0x22)
             legalRoads[i] = true;
 
-        for (i = 0x52 - leftAdj; i <= 0xC9; i += 0x11)
+        for (i = 0x52 - westAdj; i <= 0xC9; i += 0x11)
             legalRoads[i] = true;
 
-        for (i = 0x62 - leftAdj; i <= 0xC8; i += 0x22)
+        for (i = 0x62 - westAdj; i <= 0xC8; i += 0x22)
             legalRoads[i] = true;
 
-        for (i = 0x72 - leftAdj; i <= 0xC7; i += 0x11)
+        for (i = 0x72 - westAdj; i <= 0xC7; i += 0x11)
             legalRoads[i] = true;
 
         if (is6player)
@@ -467,7 +467,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         // and has an extra row of land hexes at north and south end.
         final boolean is6player = (game.getBoard().getBoardEncodingFormat()
             == SOCBoard.BOARD_ENCODING_6PLAYER);
-        final int leftAdj = (is6player) ? 0x22 : 0x00;
+        final int westAdj = (is6player) ? 0x22 : 0x00;
 
         // Set each row of valid node coordinates:
         int i;
@@ -481,37 +481,37 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             }            
         }
 
-        for (i = 0x27 - leftAdj; i <= 0x8D; i += 0x11)
+        for (i = 0x27 - westAdj; i <= 0x8D; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x25 - leftAdj; i <= 0xAD; i += 0x11)
+        for (i = 0x25 - westAdj; i <= 0xAD; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x23 - leftAdj; i <= 0xCD; i += 0x11)
+        for (i = 0x23 - westAdj; i <= 0xCD; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x32 - leftAdj; i <= 0xDC; i += 0x11)
+        for (i = 0x32 - westAdj; i <= 0xDC; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x52 - leftAdj; i <= 0xDA; i += 0x11)
+        for (i = 0x52 - westAdj; i <= 0xDA; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
         }
 
-        for (i = 0x72 - leftAdj; i <= 0xD8; i += 0x11)
+        for (i = 0x72 - westAdj; i <= 0xD8; i += 0x11)
         {
             potentialSettlements[i] = true;
             legalSettlements[i] = true;
@@ -1857,7 +1857,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      */
     public boolean hasPotentialRoad()
     {
-        for (int i = 0x22; i <= 0xCC; i++)
+        // TODO efficiency; maybe a count variable instead?
+        for (int i = game.getBoard().getMinNode(); i <= SOCBoard.MAXNODE; i++)
         {
             if (potentialRoads[i])
             {
