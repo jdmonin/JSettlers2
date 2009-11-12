@@ -1933,12 +1933,45 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Get the valid edge coordinates adjacent to this node.
      * @return the edges touching this node, as a Vector of Integer coordinates
      */
-    public Vector getAdjacentEdgesToNode(int coord)
+    public Vector getAdjacentEdgesToNode(final int coord)
     {
         Vector edges = new Vector(3);
+        int[] edgea = getAdjacentEdgesToNode_arr(coord);
+        for (int i = edgea.length - 1; i>=0; --i)
+            if (edgea[i] != -1)
+                edges.addElement(new Integer(edgea[i]));
+        return edges;
+    }
+
+    /**
+     * Get the valid edge coordinates adjacent to this node.
+     * In the 6-player layout, valid land nodes/edges are
+     * found on the outer ring of the board coordinate
+     * system, but some of their adjacent nodes/edges may be
+     * "off the board" and thus invalid.
+     * @param coord  Node coordinate.  Is not checked for validity.
+     * @return the edges touching this node, as an array of 3 coordinates.
+     *    Unused elements of the array are set to -1.
+     * @since 1.1.08
+     */
+    public int[] getAdjacentEdgesToNode_arr(final int coord)
+    {
+        // See RST dissertation figures A.2 (nodes), A.3 (edges),
+        // and A.8 and A.10 (computing adjacent edges to a node).
+
+        int[] edges = new int[3];
         int tmp;
+
+        // Bounds checks:
+        // - For west and east edges of board:
+        //   minEdge,maxEdge can cover "tens" hex-digit.
+        //   Use 0x0F to check the units hex-digit.
+        // - For north and south edges of board:
+        //   Use % 0x22 to check.  (Coordinates of
+        //   nodes going east are +0x22 at each hex.)
 
         /**
          * if the coords are (even, odd), then
@@ -1946,79 +1979,113 @@ public class SOCBoard implements Serializable, Cloneable
          */
         if (((coord >> 4) % 2) == 0)
         {
+            // upper left '\' edge;
+            // minEdge covers bounds-check, units digit will never be 0 (since it's odd)
             tmp = coord - 0x11;
-
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(new Integer(tmp));
-            }
+                edges[0] = tmp;
+            else
+                edges[0] = -1;
 
+            // upper right '/' edge
             tmp = coord;
+            if (((coord & 0x0F) < 0x0D) && (tmp >= minEdge) && (tmp <= maxEdge))
+                edges[1] = tmp;
+            else
+                edges[1] = -1;
 
-            if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(new Integer(tmp));
-            }
-
+            // Southernmost row of Y-nodes stats at 0x81 and moves += 0x22 to the east.
+            // lower middle '|' edge
+            boolean hasSouthernEdge = (coord < 0x81) || (0 != ((coord - 0x81) % 0x22));
             tmp = coord - 0x01;
-
-            if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(new Integer(tmp));
-            }
+            if (hasSouthernEdge && (0 < (coord & 0x0F)) && (tmp >= minEdge) && (tmp <= maxEdge))
+                edges[2] = tmp;
+            else
+                edges[2] = -1;
         }
         else
         {
             /**
              * otherwise the coords are (odd, even),
-             * and the EDGE is 'upside down Y'.
+             * and the EDGE is 'upside down Y' (or 'A').
              */
+
+            // Northernmost row of A-nodes stats at 0x18 and moves += 0x22 to the east.
+            // upper middle '|' edge
+            boolean hasNorthernEdge = (coord < 0x18) || (coord > 0x7E)
+              || (0 != ((coord - 0x18) % 0x22));
             tmp = coord - 0x10;
+            if (hasNorthernEdge && (tmp >= minEdge) && (tmp <= maxEdge))
+                edges[0] = tmp;
+            else
+                edges[0] = -1;
 
-            if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(new Integer(tmp));
-            }
-
+            // lower right '\' edge; maxEdge covers the bounds-check
             tmp = coord;
-
             if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(new Integer(tmp));
-            }
+                edges[1] = tmp;
+            else
+                edges[1] = -1;
 
+            // lower left '/' edge
             tmp = coord - 0x11;
-
-            if ((tmp >= minEdge) && (tmp <= maxEdge))
-            {
-                edges.addElement(new Integer(tmp));
-            }
+            if (((coord & 0x0F) > 0) && (tmp >= minEdge) && (tmp <= maxEdge))
+                edges[2] = tmp;
+            else
+                edges[2] = -1;
         }
 
         return edges;
     }
 
     /**
+     * Get the valid node coordinates adjacent to this node.
      * @return the nodes adjacent to this node, as a Vector of Integer coordinates
      */
-    public Vector getAdjacentNodesToNode(int coord)
+    public Vector getAdjacentNodesToNode(final int coord)
     {
         Vector nodes = new Vector(3);
+        int[] nodea = getAdjacentNodesToNode_arr(coord);
+        for (int i = nodea.length - 1; i>=0; --i)
+            if (nodea[i] != -1)
+                nodes.addElement(new Integer(nodea[i]));
+        return nodes;
+    }
+
+    /**
+     * Get the valid node coordinates adjacent to this node.
+     * In the 6-player layout, valid land nodes/edges are
+     * found on the outer ring of the board coordinate
+     * system, but some of their adjacent nodes/edges may be
+     * "off the board" and thus invalid.
+     * @param coord  Node coordinate.  Is not checked for validity.
+     * @return the nodes touching this node, as an array of 3 coordinates.
+     *    Unused elements of the array are set to -1.
+     * @since 1.1.08
+     */
+    public int[] getAdjacentNodesToNode_arr(final int coord)
+    {
+        // See RST dissertation figures A.2 (nodes)
+        // and A.7 and A.7 (computing adjacent nodes to a node).
+
+        int nodes[] = new int[3];
         int tmp;
 
-        tmp = coord - 0x11;
+        // Both 'Y' nodes and 'A' nodes have adjacent nodes
+        // to east at (+1,+1) and west at (-1,-1).
+        // Offset to third adjacent node varies.
 
-        if ((tmp >= minNode) && (tmp <= MAXNODE))
-        {
-            nodes.addElement(new Integer(tmp));
-        }
+        tmp = coord - 0x11;
+        if ((tmp >= minNode) && (tmp <= MAXNODE) && ((coord & 0x0F) > 0))
+            nodes[0] = tmp;
+        else
+            nodes[0] = -1;
 
         tmp = coord + 0x11;
-
-        if ((tmp >= minNode) && (tmp <= MAXNODE))
-        {
-            nodes.addElement(new Integer(tmp));
-        }
+        if ((tmp >= minNode) && (tmp <= MAXNODE) && ((coord & 0x0F) < 0xD))
+            nodes[1] = tmp;
+        else
+            nodes[1] = -1;
 
         /**
          * if the coords are (even, odd), then
@@ -2026,25 +2093,30 @@ public class SOCBoard implements Serializable, Cloneable
          */
         if (((coord >> 4) % 2) == 0)
         {
+            // Node directly to south of coord.
+            // Southernmost row of Y-nodes stats at 0x81 and moves += 0x22 to the east.
+            boolean hasSouthernEdge = (coord < 0x81) || (0 != ((coord - 0x81) % 0x22));
             tmp = (coord + 0x10) - 0x01;
-
-            if ((tmp >= minNode) && (tmp <= MAXNODE))
-            {
-                nodes.addElement(new Integer((coord + 0x10) - 0x01));
-            }
+            if (hasSouthernEdge && (tmp >= minNode) && (tmp <= MAXNODE))
+                nodes[2] = tmp;
+            else
+                nodes[2] = -1;
         }
         else
         {
             /**
              * otherwise the coords are (odd, even),
-             * and the node is 'upside down Y'.
+             * and the node is 'upside down Y' ('A').
              */
+            // Node directly to north of coord.
+            // Northernmost row of A-nodes stats at 0x18 and moves += 0x22 to the east.
+            boolean hasNorthernEdge = (coord < 0x18) || (coord > 0x7E)
+              || (0 != ((coord - 0x18) % 0x22));
             tmp = coord - 0x10 + 0x01;
-
-            if ((tmp >= minNode) && (tmp <= MAXNODE))
-            {
-                nodes.addElement(new Integer(coord - 0x10 + 0x01));
-            }
+            if (hasNorthernEdge && (tmp >= minNode) && (tmp <= MAXNODE))
+                nodes[2] = tmp;
+            else
+                nodes[2] = -1;
         }
 
         return nodes;
