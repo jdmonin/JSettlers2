@@ -1635,7 +1635,6 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             if (ours)
             {
                 // only add potentials if it's our piece
-                // add new potentials
                 final int[] nodes = SOCBoard.getAdjacentNodesToEdge_arr(id);
 
                 for (int ni = 0; ni < 2; ++ni)
@@ -1663,16 +1662,12 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
                     if (!blocked)
                     {
-                        Enumeration edges = board.getAdjacentEdgesToNode(node).elements();
-
-                        while (edges.hasMoreElements())
+                        int[] edges = board.getAdjacentEdgesToNode_arr(node);
+                        for (int i = 0; i < 3; ++i)
                         {
-                            Integer edge = (Integer) edges.nextElement();
-
-                            if (legalRoads[edge.intValue()])
-                            {
-                                potentialRoads[edge.intValue()] = true;
-                            }
+                            int edge = edges[i];
+                            if ((edge != -1) && legalRoads[edge])
+                                potentialRoads[edge] = true;
                         }
 
                         if (legalSettlements[node])
