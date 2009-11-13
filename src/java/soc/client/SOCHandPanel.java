@@ -277,11 +277,23 @@ public class SOCHandPanel extends Panel implements ActionListener
      * Display other players' trade offers and related messages. Not used if playerIsClient.
      * Both offer and counter-offer display are part of this object.
      * Also used to display board-reset vote messages.
+     * When displaying a message, looks like a {@link SpeechBalloon}.
+     *<P>
+     * If the handpanel is not tall enough, other controls will be obscured by this one.
      *
      * @see #offerIsResetMessage
      * @see #offerIsDiscardMessage
      */
     protected TradeOfferPanel offer;
+
+    /**
+     * If true, the handpanel isn't tall enough, so when the {@link #offer} message panel
+     * is showing something from another player (not the client), we must hide other controls.
+     *
+     * @see #hideTradeMsgShowOthers(boolean)
+     * @since 1.1.08
+     */
+    private boolean offerHidesControls;
 
     /**
      * Board-reset voting: If true, {@link #offer} is holding a message related to a board-reset vote.
@@ -1298,6 +1310,11 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             knightsSq.setTooltipText("Size of this opponent's army");
 
+            // To see if client already sat down at this game,
+            // we can't call playerInterface.getClientHand() yet,
+            // because it may not have been set at this point.
+            // Use game.getPlayer(client.getNickname()) instead:
+
             if (player.isRobot() && (game.getPlayer(client.getNickname()) == null) && (!game.isSeatLocked(player.getPlayerNumber())))
             {
                 addTakeOverBut();
@@ -1700,6 +1717,8 @@ public class SOCHandPanel extends Panel implements ActionListener
                     {
                         offer.setOffer(currentOffer);
                         offer.setVisible(true);
+                        if (offerHidesControls)
+                            hideTradeMsgShowOthers(false);
                         offer.repaint();
                     }
                 }
@@ -1721,13 +1740,18 @@ public class SOCHandPanel extends Panel implements ActionListener
         if (playerIsClient)
             return;
         offer.setMessage("No thanks.");
+        if (offerHidesControls)
+            hideTradeMsgShowOthers(false);
         offer.setVisible(true);
         //validate();
         repaint();
     }
 
     /**
-     * DOCUMENT ME!
+     * If the trade-offer panel is showing a message
+     * (not a trade offer), clear and hide it.
+     * Assumes this hand's player is not the client.
+     * @see #tradeSetMessage(String)
      */
     public void clearTradeMsg()
     {
@@ -1735,7 +1759,51 @@ public class SOCHandPanel extends Panel implements ActionListener
             && ! (offerIsResetMessage || offerIsDiscardMessage))
         {
             offer.setVisible(false);
+            if (offerHidesControls)
+                hideTradeMsgShowOthers(true);
             repaint();
+        }
+    }
+
+    /**
+     * If handpanel isn't tall enough, when the {@link #offer}
+     * message panel is showing, we must hide other controls.
+     * This method does <b>not</b> hide/show the trade offer;
+     * other methods do that, and then call this method to show/hide
+     * the controls that would be obscured by it.
+     *
+     * @param hideTradeMsg Are we hiding, or showing, the trade offer message panel?
+     * @see #tradeSetMessage(String)
+     * @see #clearTradeMsg()
+     * @see #offerHidesControls
+     * @since 1.1.08
+     */
+    private void hideTradeMsgShowOthers(final boolean hideTradeMsg)
+    {
+        if (! offerHidesControls)
+            return;
+
+        knightsLab.setVisible(hideTradeMsg);
+        knightsSq.setVisible(hideTradeMsg);
+        resourceLab.setVisible(hideTradeMsg);
+        resourceSq.setVisible(hideTradeMsg);
+        developmentLab.setVisible(hideTradeMsg);
+        developmentSq.setVisible(hideTradeMsg);
+        roadSq.setVisible(hideTradeMsg);
+        roadLab.setVisible(hideTradeMsg);
+        settlementSq.setVisible(hideTradeMsg);
+        settlementLab.setVisible(hideTradeMsg);
+        citySq.setVisible(hideTradeMsg);
+        cityLab.setVisible(hideTradeMsg);
+
+        if (inPlay && player.isRobot())
+        {
+            final boolean clientAlreadySat = (null != playerInterface.getClientHand());
+
+            if (clientAlreadySat)
+                sittingRobotLockBut.setVisible(hideTradeMsg);
+            else if (! game.isSeatLocked(player.getPlayerNumber()))
+                takeOverBut.setVisible(hideTradeMsg);
         }
     }
 
@@ -1789,6 +1857,10 @@ public class SOCHandPanel extends Panel implements ActionListener
                 offerButTip.setTip(OFFERBUTTIP_DIS);
             }
         }
+        else if (offerHidesControls)
+        {
+            hideTradeMsgShowOthers(true);
+        }
         validate();
         repaint();
     }
@@ -1809,6 +1881,8 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             offerIsMessageWasTrade = (offer.isVisible() && (offer.getMode() == TradeOfferPanel.OFFER_MODE));
             offer.setMessage(message);
+            if (offerHidesControls)
+                hideTradeMsgShowOthers(false);
             offer.setVisible(true);
             repaint();
         }
@@ -2354,11 +2428,13 @@ public class SOCHandPanel extends Panel implements ActionListener
                 quitBut.setBounds(inset, dim.height - lineH - inset, bbW, lineH);
                 rollBut.setBounds(dim.width - (bbW + space + bbW + inset), dim.height - lineH - inset, bbW, lineH);
                 doneBut.setBounds(dim.width - inset - bbW, dim.height - lineH - inset, bbW, lineH);
+
+                offerHidesControls = false;  // since it won't ever be showing
             }
             else
             {
                 /* This is another player's hand */
-                int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);
+                int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
                 int dcardsW = fm.stringWidth("Dev._Cards:_");                //Bug in stringWidth does not give correct size for ' '
                 int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));  //Bug in stringWidth
 
@@ -2375,8 +2451,15 @@ public class SOCHandPanel extends Panel implements ActionListener
                     }
                 }
 
+                // Are we tall enough for room, after the offer, for other controls?
+                // If not, they will be hid when offer is visible.
+                offerHidesControls = (dim.height - (inset + faceW + space + balloonH))
+                    < (3 * (lineH + space));
+                if (offerHidesControls)
+                    offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), dim.height - (inset + faceW + 2 * space));
+                else
                     offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), balloonH);
-                    offer.doLayout();
+                offer.doLayout();
 
                 vpLab.setBounds(inset + faceW + inset, (inset + faceW) - lineH, vpW, lineH);
                 vpSq.setBounds(inset + faceW + inset + vpW + space, (inset + faceW) - lineH, ColorSquare.WIDTH, ColorSquare.HEIGHT);
