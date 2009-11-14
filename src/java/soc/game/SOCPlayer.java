@@ -676,7 +676,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * For 6-player mode's Special Building Phase, add this piece or dev card to the player's set.
      * When it's their turn to special build, this is what they want to build.
-     * Does not validate player has resources to build this piece.
+     * Does not validate player has resources to build this piece;
+     * use {@link SOCGame#askSpecialBuildAddPiece(int, int)} for that.
      *
      * @param pieceType Piece type to ask, from {@link SOCPlayingPiece} constants,
      *            or -2 if asking to buy a development card
@@ -690,6 +691,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      * @since 1.1.08
      */
     public void askSpecialBuildAddPiece(int pieceType)
+        throws IllegalStateException, IllegalArgumentException
     {
         if (askSpecialBuildPieces == null)
             throw new IllegalStateException("not 6-player");
@@ -711,6 +713,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     public void clearAskSpecialBuild()
     {
         askedSpecialBuild = false;
+        if (askSpecialBuildPieces == null)
+            return;
         for (int i = askSpecialBuildPieces.length - 1; i >= 0; --i)
             askSpecialBuildPieces[i] = 0;
     }

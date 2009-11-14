@@ -434,6 +434,27 @@ public class SOCGame implements Serializable, Cloneable
     private boolean forcingEndTurn;
 
     /**
+     * If true, it's a 6-player board and at least one player has requested to build
+     * during the Special Building Phase that occurs between turns.
+     * @since 1.1.08
+     */
+    private boolean specialBuildPhaseAsked;
+
+    /**
+     * For the 6-player board's Special Building Phase, the player number whose
+     * normal turn (roll, place, etc) has just ended.
+     * The Special Building Phase changes {@link #currentPlayerNumber}.
+     * So, it begins by calling {@link #advanceTurn()} to
+     * the next player, and continues clockwise until
+     * {@link #currentPlayerNumber} == {@link #specialBuildPhase_afterPlayerNumber}.
+     * At that point, the Special Building Phase is over,
+     * and it's the next player's turn as usual.
+     * @see #specialBuildPhaseAsked
+     * @since 1.1.08 
+     */
+    private int specialBuildPhase_afterPlayerNumber;
+
+    /**
      * the player with the largest army, or -1 if none
      */
     private int playerWithLargestArmy;
@@ -614,6 +635,7 @@ public class SOCGame implements Serializable, Cloneable
         turnCount = 0;
         roundCount = 0;
         forcingEndTurn = false;
+        specialBuildPhaseAsked = false;
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack();
 
@@ -4152,6 +4174,66 @@ public class SOCGame implements Serializable, Cloneable
                 }
         }
         return vyes;  
+    }
+
+    // ---------------------------------------
+    // Special Building Phase
+    // ---------------------------------------
+
+    /**
+     * For 6-player mode's Special Building Phase, add this piece or dev card to the player's set.
+     * When it's their turn to special build, this is what they want to build.
+     * Validates player currently has resources to build this piece.
+     *
+     * @param pieceType  Piece type to ask, from {@link SOCPlayingPiece} constants,
+     *            or -2 if asking to buy a development card
+     * @param pn  The player's number
+     * @throws IllegalStateException  if game is not 6-player, or is currently this player's turn
+     * @throws IllegalArgumentException  if <tt>pieceType</tt> is out of range
+     *            {@link SOCPlayingPiece#MIN} - {@link SOCPlayingPiece#MAXPLUSONE},
+     *            and isn't -2.  Or if pn is not a valid player (vacant seat, etc).
+     * @throws UnsupportedOperationException
+     *            if player doesn't have the resources for that piece type.
+     * @since 1.1.08
+     */
+    public void askSpecialBuildAddPiece(final int pieceType, final int pn)
+        throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException
+    {
+        if (maxPlayers <= 4)
+            throw new IllegalStateException("not 6-player");
+        if (pn == currentPlayerNumber)
+            throw new IllegalStateException("current player");
+        if ((pn < 0) || (pn >= maxPlayers))
+            throw new IllegalArgumentException("pn range");
+        SOCPlayer pl = players[pn];
+        if ((pl == null) || isSeatVacant(pn))
+            throw new IllegalArgumentException("pn not valid");
+
+        final SOCResourceSet needed;
+        switch (pieceType)
+        {
+            case SOCPlayingPiece.ROAD:
+                needed = ROAD_SET;  break;
+    
+            case SOCPlayingPiece.SETTLEMENT:
+                needed = SETTLEMENT_SET;  break;
+    
+            case SOCPlayingPiece.CITY:
+                needed = CITY_SET;  break;
+    
+            case -2:
+                // fall through
+            case SOCPlayingPiece.MAXPLUSONE:
+                needed = CARD_SET;  break;
+    
+            default:
+                throw new IllegalArgumentException("pieceType range");
+        }
+        if (! pl.getResources().contains(needed))
+            throw new UnsupportedOperationException("missing resource");
+
+        pl.askSpecialBuildAddPiece(pieceType);
+        specialBuildPhaseAsked = true;
     }
 
 }
