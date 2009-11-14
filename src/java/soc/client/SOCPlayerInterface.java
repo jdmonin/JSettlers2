@@ -1673,14 +1673,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                 ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3)))
             {
                 hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
-                hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
-                hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
+                hands[4].setBounds(i.left + 4, i.top + 2 * hh + 12, hw, hh);
+                hands[5].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
             }
             if ((clientHandPlayerNum < 1) || (clientHandPlayerNum > 3))
             {
+                hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
+                hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
                 hands[3].setBounds(i.left + hw + bw + 12, i.top + 2 * hh + 12, hw, hh);                
-                hands[4].setBounds(i.left + 4, i.top + 2 * hh + 12, hw, hh);
-                hands[5].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
             }
             if (clientHandPlayerNum != -1)
             {
