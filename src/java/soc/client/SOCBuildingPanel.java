@@ -305,9 +305,9 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
+     * Handle button clicks in this panel.
      *
-     * @param e DOCUMENT ME!
+     * @param e button click event
      */
     public void actionPerformed(ActionEvent e)
     {
@@ -323,25 +323,20 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (player != null)
         {
-            if (game.getCurrentPlayerNumber() == player.getPlayerNumber())
-            {
-                clickBuildingButton(game, pi.getClient(), target, false);
-            }
+            clickBuildingButton(game, pi.getClient(), target, false);
         }
         } catch (Throwable th) {
             pi.chatPrintStackTrace(th);
         }
     }
     
-    /** Handle a click on a building-panel button.
-     * Assumes client is current player.
-     * 
+    /** Handle a click (Buy or Cancel) on a building-panel button.
+     * Assumes client is currently allowed to build, and sends request to server.
+     *
      * @param game   The game, for status
      * @param client The client, for sending build or cancel request
      * @param target Button clicked, as returned by ActionEvent.getActionCommand
-     * @param doNotClearPopup Do not call SOCBoardPanel.popupClearBuildRequest()
-     * 
-     * @see SOCBoardPanel#popupClearBuildRequest()
+     * @param doNotClearPopup Do not call {@link SOCBoardPanel#popupClearBuildRequest()}
      */
     public void clickBuildingButton(SOCGame game, SOCPlayerClient client, String target, boolean doNotClearPopup)
     {
