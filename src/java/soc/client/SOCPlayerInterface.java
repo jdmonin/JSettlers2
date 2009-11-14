@@ -1652,49 +1652,65 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         // Hands start at top-left, go clockwise;
         // hp.setBounds also sets its blankStandIn's bounds.
 
-        hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
-        if (game.maxPlayers > 1)
+        if (! is6player)
         {
-            hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
-            hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
-            if (! is6player)
+            hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
+            if (game.maxPlayers > 1)
             {
+                hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
+                hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
                 hands[3].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
-            } else {
+            }
+        }
+        else
+        {
+            // 6-player layout:
+            // If client player isn't sitting yet, all handpanels are 1/3 height of window.
+            // Otherwise, they're 1/3 height in the column of 3 which doesn't contain the
+            // client. and roughly 1/4 or 1/2 height in the client's column.
+
+            if ((clientHandPlayerNum == -1) ||
+                ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3)))
+            {
+                hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
+                hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
+                hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
+            }
+            if ((clientHandPlayerNum < 1) || (clientHandPlayerNum > 3))
+            {
                 hands[3].setBounds(i.left + hw + bw + 12, i.top + 2 * hh + 12, hw, hh);                
                 hands[4].setBounds(i.left + 4, i.top + 2 * hh + 12, hw, hh);
                 hands[5].setBounds(i.left + 4, i.top + hh + 8, hw, hh);
-                if (clientHandPlayerNum != -1)
+            }
+            if (clientHandPlayerNum != -1)
+            {
+                // Lay out the column we're sitting in.
+                final boolean isRight;
+                final int[] hp_idx;
+                final int hp_x;
+                isRight = ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3));
+                if (isRight)
                 {
-                    // Sitting, during a 6-player game.  Re-calc position and
-                    // size of the column they're sitting in.
-                    final boolean isRight;
-                    final int[] hp_idx;
-                    final int hp_x;
-                    isRight = ((clientHandPlayerNum >= 1) && (clientHandPlayerNum <= 3));
-                    if (isRight)
-                    {
-                        final int[] idx_right = {1, 2, 3};
-                        hp_idx = idx_right;
-                        hp_x = i.left + hw + bw + 12;
-                    } else {
-                        final int[] idx_left = {0, 5, 4};
-                        hp_idx = idx_left;
-                        hp_x = i.left + 4;
-                    }
-                    for (int ihp = 0, hp_y = i.top + 4; ihp < 3; ++ihp)
-                    {
-                        SOCHandPanel hp = hands[hp_idx[ihp]];
-                        int hp_height;
-                        if (hp_idx[ihp] == clientHandPlayerNum)
-                            hp_height = (dim.height - 12) / 2 - (2 * ColorSquare.HEIGHT);
-                        else
-                            hp_height = (dim.height - 12) / 4 + ColorSquare.HEIGHT;
-                        hp.setBounds(hp_x, hp_y, hw, hp_height);
-                        hp.invalidate();
-                        hp.doLayout();
-                        hp_y += (hp_height + 4);
-                    }
+                    final int[] idx_right = {1, 2, 3};
+                    hp_idx = idx_right;
+                    hp_x = i.left + hw + bw + 12;
+                } else {
+                    final int[] idx_left = {0, 5, 4};
+                    hp_idx = idx_left;
+                    hp_x = i.left + 4;
+                }
+                for (int ihp = 0, hp_y = i.top + 4; ihp < 3; ++ihp)
+                {
+                    SOCHandPanel hp = hands[hp_idx[ihp]];
+                    int hp_height;
+                    if (hp_idx[ihp] == clientHandPlayerNum)
+                        hp_height = (dim.height - 12) / 2 - (2 * ColorSquare.HEIGHT);
+                    else
+                        hp_height = (dim.height - 12) / 4 + ColorSquare.HEIGHT;
+                    hp.setBounds(hp_x, hp_y, hw, hp_height);
+                    hp.invalidate();
+                    hp.doLayout();
+                    hp_y += (hp_height + 4);
                 }
             }
         }
