@@ -3405,6 +3405,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
     }
 
+    /**
+     * player decided to not build something, so cancel the {@link TimerTask}
+     * that's waiting to tell the server what they wanted to build.
+     * @since 1.1.00
+     */
     public void popupClearBuildRequest()
     {
         Timer piTimer = playerInterface.getEventTimer();

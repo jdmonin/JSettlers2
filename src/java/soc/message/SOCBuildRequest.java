@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,8 +25,7 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message says which player the current player wants to
- * steal from.
+ * This message, from client to server, says which piece type the current player wants to build.
  *
  * @author Robert S. Thomas
  */
@@ -45,7 +45,7 @@ public class SOCBuildRequest extends SOCMessage
      * Create a BuildRequest message.
      *
      * @param ga  the name of the game
-     * @param pt  the type of piece to build
+     * @param pt  the type of piece to build, from {@link soc.game.SOCPlayingPiece} constants
      */
     public SOCBuildRequest(String ga, int pt)
     {
@@ -63,7 +63,7 @@ public class SOCBuildRequest extends SOCMessage
     }
 
     /**
-     * @return the type of piece to build
+     * @return the type of piece to build, from {@link soc.game.SOCPlayingPiece} constants
      */
     public int getPieceType()
     {

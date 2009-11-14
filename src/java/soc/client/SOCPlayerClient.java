@@ -4100,7 +4100,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * request to build something
      *
      * @param ga     the game
-     * @param piece  the type of piece from SOCPlayingPiece
+     * @param piece  the type of piece, from {@link soc.game.SOCPlayingPiece} constants
      */
     public void buildRequest(SOCGame ga, int piece)
     {
@@ -4111,7 +4111,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * request to cancel building something
      *
      * @param ga     the game
-     * @param piece  the type of piece from SOCPlayingPiece
+     * @param piece  the type of piece, from SOCPlayingPiece constants
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
