@@ -584,7 +584,7 @@ public class SOCGame implements Serializable, Cloneable
         {
            SOCGameOption maxpl = (SOCGameOption) op.get("PL");
            if ((maxpl != null) && (maxpl.getIntValue() > 4))
-               maxPlayers = 6; // TODO = MAXPLAYERS;
+               maxPlayers = MAXPLAYERS;  // == 6
            else
                maxPlayers = 4;
         } else {
@@ -631,7 +631,7 @@ public class SOCGame implements Serializable, Cloneable
             clientVersionMinRequired = SOCGameOption.optionsMinimumVersion(op);
         }
 
-        if (isGameOptionSet("DEBUG56PLBOARD"))
+        if (maxPlayers > 4)
             numDevCards = NUM_DEVCARDS_6PLAYER;
         else
             numDevCards = NUM_DEVCARDS_STANDARD;
@@ -1891,7 +1891,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * shuffle the development cards
          */
-        if (isGameOptionSet("DEBUG56PLBOARD"))
+        if (maxPlayers > 4)
             devCardDeck = new int[NUM_DEVCARDS_6PLAYER];
         else
             devCardDeck = new int[NUM_DEVCARDS_STANDARD];
@@ -1925,7 +1925,7 @@ public class SOCGame implements Serializable, Cloneable
         devCardDeck[23] = SOCDevCardConstants.TEMP;
         devCardDeck[24] = SOCDevCardConstants.TOW;
 
-        if (isGameOptionSet("DEBUG56PLBOARD"))
+        if (maxPlayers > 4)
         {
             for (i = 25; i < 31; i++)
             {

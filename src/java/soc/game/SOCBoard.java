@@ -577,15 +577,8 @@ public class SOCBoard implements Serializable, Cloneable
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
         boardWidth = 0x10;
         boardHeight = 0x10;
-        final boolean is6player;
-        if (gameOpts != null)
-        {
-            SOCGameOption opt_6player = (SOCGameOption) gameOpts.get("DEBUG56PLBOARD");
-            is6player = (maxPlayers == 6)
-              || ((opt_6player != null) && opt_6player.getBoolValue());
-        } else {
-            is6player = (maxPlayers == 6);
-        }
+        final boolean is6player = (maxPlayers == 6);
+
         if (is6player)
         {
             boardEncodingFormat = BOARD_ENCODING_6PLAYER;
