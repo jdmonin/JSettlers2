@@ -1687,9 +1687,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
                         SOCHandPanel hp = hands[hp_idx[ihp]];
                         int hp_height;
                         if (hp_idx[ihp] == clientHandPlayerNum)
-                            hp_height = (dim.height - 12) / 2;
+                            hp_height = (dim.height - 12) / 2 - (2 * ColorSquare.HEIGHT);
                         else
-                            hp_height = (dim.height - 12) / 4;
+                            hp_height = (dim.height - 12) / 4 + ColorSquare.HEIGHT;
                         hp.setBounds(hp_x, hp_y, hw, hp_height);
                         hp.invalidate();
                         hp.doLayout();
