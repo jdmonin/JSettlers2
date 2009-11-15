@@ -928,7 +928,7 @@ public class SOCServer extends Server
                             {
                                 gameList.releaseMonitorForGame(gm);
                                 cg.takeMonitor();
-                                endGameTurn(cg);
+                                endGameTurn(cg, null);
                                 cg.releaseMonitor();
                                 gameList.takeMonitorForGame(gm);
                             } else {
@@ -1061,7 +1061,7 @@ public class SOCServer extends Server
      * Force this player (not current player) to discard, and report resources to all players.
      * Does not send gameState, which may have changed; see {@link SOCGame#discardPickRandom(SOCResourceSet, int, SOCResourceSet, Random)}.
      *<P>
-     * Assumes, as {@link #endGameTurn(SOCGame)} does:
+     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
      * <UL>
      * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
      * <LI> gamelist.takeMonitorForGame is NOT called, we do NOT have that monitor
@@ -4409,7 +4409,7 @@ public class SOCServer extends Server
                         {
                             sendGameState(ga);
                         } else {
-                            endGameTurn(ga);  // already did ga.takeMonitor()
+                            endGameTurn(ga, player);  // already did ga.takeMonitor()
                         }
                     }
                     else
@@ -4432,7 +4432,10 @@ public class SOCServer extends Server
     }
 
     /**
-     * handle "end turn" message
+     * handle "end turn" message.
+     * This normally ends a player's normal turn (phase {@link SOCGame#PLAY1}).
+     * On the 6-player board, it ends their placements during the 
+     * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -4469,7 +4472,7 @@ public class SOCServer extends Server
                 SOCPlayer pl = ga.getPlayer(plName);
                 if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
                 {
-                    endGameTurn(ga);
+                    endGameTurn(ga, pl);
                 }
                 else
                 {
@@ -4493,7 +4496,8 @@ public class SOCServer extends Server
      * Pre-checking already done, end the current player's turn in this game.
      * Alter game state and send messages to players.
      * Calls {@link SOCGame#endTurn()}.
-     * On the 6-player board, this may begin the {@link SOCGame#SPECIAL_BUILDING special building phase}.
+     * On the 6-player board, this may begin the {@link SOCGame#SPECIAL_BUILDING Special Building Phase},
+     * or end a player's placements during that phase.
      *<P>
      * Assumes:
      * <UL>
@@ -4502,14 +4506,27 @@ public class SOCServer extends Server
      * <LI> gamelist.takeMonitorForGame is NOT called, we do NOT have that monitor
      * </UL> 
      * @param ga Game to end turn
+     * @param pl Current player in <tt>ga</tt>, or null. Not needed except in SPECIAL_BUILDING.
+     *           If null, will be determined within this method.
      */
-    private void endGameTurn(SOCGame ga)
+    private void endGameTurn(SOCGame ga, SOCPlayer pl)
     {
         final String gname = ga.getName();
 
+        if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
+        {
+            final int cpn = ga.getCurrentPlayerNumber();
+            if (pl == null)
+                pl = ga.getPlayer(cpn);
+            pl.clearAskSpecialBuild();
+            messageToGame(gname, new SOCPlayerElement(gname, cpn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
+        }
+
         boolean hadBoardResetRequest = (-1 != ga.getResetVoteRequester());
+
         ga.endTurn();  // May set state to OVER, if new player has enough points to win.
-                       // May begin the Special Building Phase.
+                       // May begin or continue the Special Building Phase.
+
         if (hadBoardResetRequest)
         {
             // Cancel voting at end of turn
@@ -4541,10 +4558,10 @@ public class SOCServer extends Server
     /**
      * Try to force-end the current player's turn in this game.
      * Alter game state and send messages to players.
-     * Will call {@link #endGameTurn(SOCGame)} if appropriate.
+     * Will call {@link #endGameTurn(SOCGame, SOCPlayer)} if appropriate.
      * Will send gameState and current player (turn) to clients.
      *<P>
-     * Assumes, as {@link #endGameTurn(SOCGame)} does:
+     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
      * <UL>
      * <LI> ga.canEndTurn already called, returned false
      * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
@@ -4620,7 +4637,7 @@ public class SOCServer extends Server
          * players to send discard messages, and afterwards this turn can end.
          */
         if (ga.canEndTurn(cpn))
-            endGameTurn(ga);
+            endGameTurn(ga, null);
         else
             sendGameState(ga, false); 
     }
@@ -4931,7 +4948,10 @@ public class SOCServer extends Server
     }
 
     /**
-     * handle "build request" message
+     * handle "build request" message.
+     * If client is current player, they want to buy a {@link SOCPlayingPiece}.
+     * Otherwise, if 6-player board, they want to build during the
+     * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -4950,14 +4970,14 @@ public class SOCServer extends Server
         try
         {
             final boolean isCurrent = checkTurn(c, ga);
-            if (isCurrent || (ga.maxPlayers > 4))
+            SOCPlayer player = ga.getPlayer((String) c.getData());
+            final int pn = player.getPlayerNumber();
+            final int pieceType = mes.getPieceType();
+
+            if (isCurrent)
             {
                 if (ga.getGameState() == SOCGame.PLAY1)
                 {
-                    SOCPlayer player = ga.getPlayer((String) c.getData());
-                    final int pn = player.getPlayerNumber();
-                    final int pieceType = mes.getPieceType();
-
                     switch (pieceType)
                     {
                     case SOCPlayingPiece.ROAD:
@@ -5015,15 +5035,26 @@ public class SOCServer extends Server
                 }
                 else
                 {
-                    if (isCurrent)
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build now."));
-                    else
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't ask to build now."));
+                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build now."));
                 }
             }
             else
             {
-                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                if (ga.maxPlayers <= 4)
+                {
+                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                } else {
+                    // 6-player board: Special Building Phase
+                    try
+                    {
+                        ga.askSpecialBuildAddPiece(pieceType, pn);
+                        messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                    } catch (IllegalStateException e) {
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't ask to build now."));
+                    } catch (UnsupportedOperationException e) {
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You don't have resources for that."));
+                    }
+                }
             }
         }
         catch (Exception e)
