@@ -72,6 +72,18 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
+     * Make a resource set from an array
+     *
+     * @param rset resource set, of length 5 or 6 (clay, ore, sheep, wheat, wood, unknown).
+     *     If length is 5, unknown == 0.
+     * @since 1.1.08
+     */
+    public SOCResourceSet(int[] rset)
+    {
+        this(rset[0], rset[1], rset[2], rset[3], rset[4], (rset.length >= 6) ? rset[5] : 0);
+    }
+
+    /**
      * set the number of resources to zero
      */
     public void clear()
@@ -461,4 +473,5 @@ public class SOCResourceSet implements Serializable, Cloneable
         resources[SOCResourceConstants.WOOD]    = set.getAmount(SOCResourceConstants.WOOD);
         resources[SOCResourceConstants.UNKNOWN] = set.getAmount(SOCResourceConstants.UNKNOWN);
     }
+
 }
