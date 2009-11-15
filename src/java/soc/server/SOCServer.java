@@ -5188,11 +5188,11 @@ public class SOCServer extends Server
         try
         {
             final String gaName = ga.getName();
+            SOCPlayer player = ga.getPlayer((String) c.getData());
+            final int pn = player.getPlayerNumber();
+
             if (checkTurn(c, ga))
             {
-                SOCPlayer player = ga.getPlayer((String) c.getData());
-                final int pn = player.getPlayerNumber();
-
                 if ((ga.getGameState() == SOCGame.PLAY1) && (ga.couldBuyDevCard(pn)))
                 {
                     int card = ga.buyDevCard();
@@ -5236,7 +5236,21 @@ public class SOCServer extends Server
             }
             else
             {
-                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                if (ga.maxPlayers <= 4)
+                {
+                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                } else {
+                    // 6-player board: Special Building Phase
+                    try
+                    {
+                        ga.askSpecialBuildAddPiece(-2, pn);
+                        messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                    } catch (IllegalStateException e) {
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't ask to buy a card now."));
+                    } catch (UnsupportedOperationException e) {
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You don't have resources for that."));
+                    }
+                }
             }
         }
         catch (Exception e)
