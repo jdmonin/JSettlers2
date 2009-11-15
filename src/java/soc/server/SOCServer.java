@@ -3695,188 +3695,186 @@ public class SOCServer extends Server
      */
     private void handlePUTPIECE(StringConnection c, SOCPutPiece mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+        SOCGame ga = gameList.getGameData(mes.getGame());
+        if (ga == null)
+            return;
+
+        ga.takeMonitor();
+
+        try
         {
-            SOCGame ga = gameList.getGameData(mes.getGame());
+            SOCPlayer player = ga.getPlayer((String) c.getData());
 
-            if (ga != null)
+            /**
+             * make sure the player can do it
+             */
+            final String gaName = ga.getName();
+            if (checkTurn(c, ga))
             {
-                ga.takeMonitor();
-
-                try
+                boolean sendDenyReply = false;
+                /*
+                   if (D.ebugOn) {
+                   D.ebugPrintln("BEFORE");
+                   for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
+                   SOCPlayer tmpPlayer = ga.getPlayer(pn);
+                   D.ebugPrintln("Player # "+pn);
+                   for (int i = 0x22; i < 0xCC; i++) {
+                   if (tmpPlayer.isPotentialRoad(i))
+                   D.ebugPrintln("### POTENTIAL ROAD AT "+Integer.toHexString(i));
+                   }
+                   }
+                   }
+                 */
+                switch (mes.getPieceType())
                 {
-                    SOCPlayer player = ga.getPlayer((String) c.getData());
+                case SOCPlayingPiece.ROAD:
 
-                    /**
-                     * make sure the player can do it
-                     */
-                    final String gaName = ga.getName();
-                    if (checkTurn(c, ga))
+                    SOCRoad rd = new SOCRoad(player, mes.getCoordinates(), null);
+
+                    if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B) || (ga.getGameState() == SOCGame.PLACING_ROAD) || (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1) || (ga.getGameState() == SOCGame.PLACING_FREE_ROAD2))
                     {
-                        boolean sendDenyReply = false;
-                        /*
-                           if (D.ebugOn) {
-                           D.ebugPrintln("BEFORE");
-                           for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
-                           SOCPlayer tmpPlayer = ga.getPlayer(pn);
-                           D.ebugPrintln("Player # "+pn);
-                           for (int i = 0x22; i < 0xCC; i++) {
-                           if (tmpPlayer.isPotentialRoad(i))
-                           D.ebugPrintln("### POTENTIAL ROAD AT "+Integer.toHexString(i));
-                           }
-                           }
-                           }
-                         */
-                        switch (mes.getPieceType())
+                        if (player.isPotentialRoad(mes.getCoordinates()))
                         {
-                        case SOCPlayingPiece.ROAD:
+                            ga.putPiece(rd);  // Changes state and sometimes player
 
-                            SOCRoad rd = new SOCRoad(player, mes.getCoordinates(), null);
+                            /*
+                               if (D.ebugOn) {
+                               D.ebugPrintln("AFTER");
+                               for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
+                               SOCPlayer tmpPlayer = ga.getPlayer(pn);
+                               D.ebugPrintln("Player # "+pn);
+                               for (int i = 0x22; i < 0xCC; i++) {
+                               if (tmpPlayer.isPotentialRoad(i))
+                               D.ebugPrintln("### POTENTIAL ROAD AT "+Integer.toHexString(i));
+                               }
+                               }
+                               }
+                             */
+                            gameList.takeMonitorForGame(gaName);
+                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a road."));
+                            messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.ROAD, mes.getCoordinates()));
+                            gameList.releaseMonitorForGame(gaName);
+                            boolean toldRoll = sendGameState(ga, false);
+                            broadcastGameStats(ga);
 
-                            if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B) || (ga.getGameState() == SOCGame.PLACING_ROAD) || (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1) || (ga.getGameState() == SOCGame.PLACING_FREE_ROAD2))
+                            if (!checkTurn(c, ga))
                             {
-                                if (player.isPotentialRoad(mes.getCoordinates()))
-                                {
-                                    ga.putPiece(rd);  // Changes state and sometimes player
-
-                                    /*
-                                       if (D.ebugOn) {
-                                       D.ebugPrintln("AFTER");
-                                       for (int pn = 0; pn < SOCGame.MAXPLAYERS; pn++) {
-                                       SOCPlayer tmpPlayer = ga.getPlayer(pn);
-                                       D.ebugPrintln("Player # "+pn);
-                                       for (int i = 0x22; i < 0xCC; i++) {
-                                       if (tmpPlayer.isPotentialRoad(i))
-                                       D.ebugPrintln("### POTENTIAL ROAD AT "+Integer.toHexString(i));
-                                       }
-                                       }
-                                       }
-                                     */
-                                    gameList.takeMonitorForGame(gaName);
-                                    messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a road."));
-                                    messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.ROAD, mes.getCoordinates()));
-                                    gameList.releaseMonitorForGame(gaName);
-                                    boolean toldRoll = sendGameState(ga, false);
-                                    broadcastGameStats(ga);
-
-                                    if (!checkTurn(c, ga))
-                                    {
-                                        // Player changed (or play started), announce new player.
-                                        sendTurn(ga, true);
-                                    }
-                                    else if (toldRoll)
-                                    {
-                                        // When play starts, or after placing 2nd free road,
-                                        // announce even though player unchanged,
-                                        // to trigger auto-roll for the player.
-                                        // If the client is too old (1.0.6), it will ignore the prompt.
-                                        messageToGame(gaName, new SOCRollDicePrompt (gaName, player.getPlayerNumber()));
-                                    }
-                                }
-                                else
-                                {
-                                    D.ebugPrintln("ILLEGAL ROAD");
-                                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road there."));
-                                    sendDenyReply = true;                                   
-                                }
+                                // Player changed (or play started), announce new player.
+                                sendTurn(ga, true);
                             }
-                            else
+                            else if (toldRoll)
                             {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road right now."));
+                                // When play starts, or after placing 2nd free road,
+                                // announce even though player unchanged,
+                                // to trigger auto-roll for the player.
+                                // If the client is too old (1.0.6), it will ignore the prompt.
+                                messageToGame(gaName, new SOCRollDicePrompt (gaName, player.getPlayerNumber()));
                             }
-
-                            break;
-
-                        case SOCPlayingPiece.SETTLEMENT:
-
-                            SOCSettlement se = new SOCSettlement(player, mes.getCoordinates(), null);
-
-                            if ((ga.getGameState() == SOCGame.START1A) || (ga.getGameState() == SOCGame.START2A) || (ga.getGameState() == SOCGame.PLACING_SETTLEMENT))
-                            {
-                                if (player.isPotentialSettlement(mes.getCoordinates()))
-                                {
-                                    ga.putPiece(se);   // Changes game state and (if game start) player
-                                    gameList.takeMonitorForGame(gaName);
-                                    messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a settlement."));
-                                    messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.SETTLEMENT, mes.getCoordinates()));
-                                    gameList.releaseMonitorForGame(gaName);
-                                    broadcastGameStats(ga);
-                                    sendGameState(ga);
-
-                                    if (!checkTurn(c, ga))
-                                    {
-                                        sendTurn(ga, false);  // Announce new current player.
-                                    }
-                                }
-                                else
-                                {
-                                    D.ebugPrintln("ILLEGAL SETTLEMENT");
-                                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement there."));
-                                    sendDenyReply = true;
-                                }
-                            }
-                            else
-                            {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement right now."));
-                            }
-
-                            break;
-
-                        case SOCPlayingPiece.CITY:
-
-                            SOCCity ci = new SOCCity(player, mes.getCoordinates(), null);
-
-                            if (ga.getGameState() == SOCGame.PLACING_CITY)
-                            {
-                                if (player.isPotentialCity(mes.getCoordinates()))
-                                {
-                                    ga.putPiece(ci);  // changes game state and maybe player
-                                    gameList.takeMonitorForGame(gaName);
-                                    messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a city."));
-                                    messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.CITY, mes.getCoordinates()));
-                                    gameList.releaseMonitorForGame(gaName);
-                                    broadcastGameStats(ga);
-                                    sendGameState(ga);
-
-                                    if (!checkTurn(c, ga))
-                                    {
-                                        sendTurn(ga, false);  // announce new current player
-                                    }
-                                }
-                                else
-                                {
-                                    D.ebugPrintln("ILLEGAL CITY");
-                                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city there."));
-                                    sendDenyReply = true;
-                                }
-                            }
-                            else
-                            {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city right now."));
-                            }
-
-                            break;
-                        
-                        }  // switch (mes.getPieceType())
-                        
-                        if (sendDenyReply)
+                        }
+                        else
                         {
-                            messageToPlayer(c, new SOCCancelBuildRequest(gaName, mes.getPieceType()));
-                        }                       
+                            D.ebugPrintln("ILLEGAL ROAD");
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road there."));
+                            sendDenyReply = true;                                   
+                        }
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road right now."));
                     }
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception caught in handlePUTPIECE");
-                }
 
-                ga.releaseMonitor();
+                    break;
+
+                case SOCPlayingPiece.SETTLEMENT:
+
+                    SOCSettlement se = new SOCSettlement(player, mes.getCoordinates(), null);
+
+                    if ((ga.getGameState() == SOCGame.START1A) || (ga.getGameState() == SOCGame.START2A) || (ga.getGameState() == SOCGame.PLACING_SETTLEMENT))
+                    {
+                        if (player.isPotentialSettlement(mes.getCoordinates()))
+                        {
+                            ga.putPiece(se);   // Changes game state and (if game start) player
+                            gameList.takeMonitorForGame(gaName);
+                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a settlement."));
+                            messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.SETTLEMENT, mes.getCoordinates()));
+                            gameList.releaseMonitorForGame(gaName);
+                            broadcastGameStats(ga);
+                            sendGameState(ga);
+
+                            if (!checkTurn(c, ga))
+                            {
+                                sendTurn(ga, false);  // Announce new current player.
+                            }
+                        }
+                        else
+                        {
+                            D.ebugPrintln("ILLEGAL SETTLEMENT");
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement there."));
+                            sendDenyReply = true;
+                        }
+                    }
+                    else
+                    {
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement right now."));
+                    }
+
+                    break;
+
+                case SOCPlayingPiece.CITY:
+
+                    SOCCity ci = new SOCCity(player, mes.getCoordinates(), null);
+
+                    if (ga.getGameState() == SOCGame.PLACING_CITY)
+                    {
+                        if (player.isPotentialCity(mes.getCoordinates()))
+                        {
+                            ga.putPiece(ci);  // changes game state and maybe player
+                            gameList.takeMonitorForGame(gaName);
+                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a city."));
+                            messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.CITY, mes.getCoordinates()));
+                            gameList.releaseMonitorForGame(gaName);
+                            broadcastGameStats(ga);
+                            sendGameState(ga);
+
+                            if (!checkTurn(c, ga))
+                            {
+                                sendTurn(ga, false);  // announce new current player
+                            }
+                        }
+                        else
+                        {
+                            D.ebugPrintln("ILLEGAL CITY");
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city there."));
+                            sendDenyReply = true;
+                        }
+                    }
+                    else
+                    {
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city right now."));
+                    }
+
+                    break;
+                
+                }  // switch (mes.getPieceType())
+                
+                if (sendDenyReply)
+                {
+                    messageToPlayer(c, new SOCCancelBuildRequest(gaName, mes.getPieceType()));
+                }                       
+            }
+            else
+            {
+                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
             }
         }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught in handlePUTPIECE");
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
@@ -4441,56 +4439,54 @@ public class SOCServer extends Server
      */
     private void handleENDTURN(StringConnection c, SOCEndTurn mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+        SOCGame ga = gameList.getGameData(mes.getGame());
+        if (ga == null)
+            return;
+
+        final String gname = ga.getName();               
+        ga.takeMonitor();
+
+        try
         {
-            SOCGame ga = gameList.getGameData(mes.getGame());
-
-            if (ga != null)
+            final String plName = (String) c.getData();
+            if (ga.getGameState() == SOCGame.OVER)
             {
-                final String gname = ga.getName();               
-                ga.takeMonitor();
-
-                try
+                // Should not happen; is here just in case.
+                SOCPlayer pl = ga.getPlayer(plName);
+                if (pl != null)
                 {
-                    final String plName = (String) c.getData();
-                    if (ga.getGameState() == SOCGame.OVER)
-                    {
-                        // Should not happen; is here just in case.
-                        SOCPlayer pl = ga.getPlayer(plName);
-                        if (pl != null)
-                        {
-                            String msg = ga.gameOverMessageToPlayer(pl);
-                                // msg = "The game is over; you are the winner!";
-                                // msg = "The game is over; <someone> won.";
-                                // msg = "The game is over; no one won.";
-                            c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, msg));
-                        }
-                    }
-                    else if (checkTurn(c, ga))
-                    {
-                        SOCPlayer pl = ga.getPlayer(plName);
-                        if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
-                        {
-                            endGameTurn(ga);
-                        }
-                        else
-                        {
-                            c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, "You can't end your turn yet."));
-                        }
-                    }
-                    else
-                    {
-                        c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, "It's not your turn."));
-                    }
+                    String msg = ga.gameOverMessageToPlayer(pl);
+                        // msg = "The game is over; you are the winner!";
+                        // msg = "The game is over; <someone> won.";
+                        // msg = "The game is over; no one won.";
+                    c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, msg));
                 }
-                catch (Exception e)
+            }
+            else if (checkTurn(c, ga))
+            {
+                SOCPlayer pl = ga.getPlayer(plName);
+                if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
                 {
-                    D.ebugPrintStackTrace(e, "Exception caught");
+                    endGameTurn(ga);
                 }
-
-                ga.releaseMonitor();
+                else
+                {
+                    c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, "You can't end your turn yet."));
+                }
+            }
+            else
+            {
+                c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, "It's not your turn."));
             }
         }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught");
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
@@ -4942,97 +4938,95 @@ public class SOCServer extends Server
      */
     private void handleBUILDREQUEST(StringConnection c, SOCBuildRequest mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+        SOCGame ga = gameList.getGameData(mes.getGame());
+        if (ga == null)
+            return;
+
+        final String gaName = ga.getName();
+        ga.takeMonitor();
+
+        try
         {
-            SOCGame ga = gameList.getGameData(mes.getGame());
-
-            if (ga != null)
+            if (checkTurn(c, ga))
             {
-                final String gaName = ga.getName();
-                ga.takeMonitor();
-
-                try
+                if (ga.getGameState() == SOCGame.PLAY1)
                 {
-                    if (checkTurn(c, ga))
+                    SOCPlayer player = ga.getPlayer((String) c.getData());
+
+                    switch (mes.getPieceType())
                     {
-                        if (ga.getGameState() == SOCGame.PLAY1)
+                    case SOCPlayingPiece.ROAD:
+
+                        if (ga.couldBuildRoad(player.getPlayerNumber()))
                         {
-                            SOCPlayer player = ga.getPlayer((String) c.getData());
-
-                            switch (mes.getPieceType())
-                            {
-                            case SOCPlayingPiece.ROAD:
-
-                                if (ga.couldBuildRoad(player.getPlayerNumber()))
-                                {
-                                    ga.buyRoad(player.getPlayerNumber());
-                                    messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
-                                    messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
-                                    sendGameState(ga);
-                                }
-                                else
-                                {
-                                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road."));
-                                }
-
-                                break;
-
-                            case SOCPlayingPiece.SETTLEMENT:
-
-                                if (ga.couldBuildSettlement(player.getPlayerNumber()))
-                                {
-                                    ga.buySettlement(player.getPlayerNumber());
-                                    gameList.takeMonitorForGame(gaName);
-                                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
-                                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
-                                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
-                                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
-                                    gameList.releaseMonitorForGame(gaName);
-                                    sendGameState(ga);
-                                }
-                                else
-                                {
-                                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement."));
-                                }
-
-                                break;
-
-                            case SOCPlayingPiece.CITY:
-
-                                if (ga.couldBuildCity(player.getPlayerNumber()))
-                                {
-                                    ga.buyCity(player.getPlayerNumber());
-                                    messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 3));
-                                    messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 2));
-                                    sendGameState(ga);
-                                }
-                                else
-                                {
-                                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city."));
-                                }
-
-                                break;
-                            }
+                            ga.buyRoad(player.getPlayerNumber());
+                            messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
+                            messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                            sendGameState(ga);
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build now."));
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road."));
                         }
-                    }
-                    else
-                    {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
-                    }
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintln("Exception caught - " + e);
-                    e.printStackTrace();
-                }
 
-                ga.releaseMonitor();
+                        break;
+
+                    case SOCPlayingPiece.SETTLEMENT:
+
+                        if (ga.couldBuildSettlement(player.getPlayerNumber()))
+                        {
+                            ga.buySettlement(player.getPlayerNumber());
+                            gameList.takeMonitorForGame(gaName);
+                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
+                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
+                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                            gameList.releaseMonitorForGame(gaName);
+                            sendGameState(ga);
+                        }
+                        else
+                        {
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement."));
+                        }
+
+                        break;
+
+                    case SOCPlayingPiece.CITY:
+
+                        if (ga.couldBuildCity(player.getPlayerNumber()))
+                        {
+                            ga.buyCity(player.getPlayerNumber());
+                            messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 3));
+                            messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 2));
+                            sendGameState(ga);
+                        }
+                        else
+                        {
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city."));
+                        }
+
+                        break;
+                    }
+                }
+                else
+                {
+                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build now."));
+                }
+            }
+            else
+            {
+                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
             }
         }
+        catch (Exception e)
+        {
+            D.ebugPrintln("Exception caught - " + e);
+            e.printStackTrace();
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
