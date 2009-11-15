@@ -77,23 +77,28 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * The code reacts to (switches based on) game state in several places. 
      * The main places to check, if you add a game state:
-     * <PRE>
-        {@link soc.client.SOCBoardPanel#updateMode()}
-        {@link soc.client.SOCBuildingPanel#updateButtonStatus()}
-        {@link soc.client.SOCPlayerInterface#updateAtGameState()}
-        {@link soc.game.SOCGame#putPiece(SOCPlayingPiece)}
-        {@link soc.robot.SOCRobotBrain#run()}
-        {@link soc.server.SOCServer#sendGameState(SOCGame)}
-     * </PRE>
+     *<UL>
+     * <LI> {@link soc.client.SOCBoardPanel#updateMode()}
+     * <LI> {@link soc.client.SOCBuildingPanel#updateButtonStatus()}
+     * <LI> {@link soc.client.SOCPlayerInterface#updateAtGameState()}
+     * <LI> {@link #putPiece(SOCPlayingPiece)}
+     * <LI> {@link #advanceTurnStateAfterPutPiece()}
+     * <LI> {@link #forceEndTurn()}
+     * <LI> {@link soc.robot.SOCRobotBrain#run()}
+     * <LI> {@link soc.server.SOCServer#sendGameState(SOCGame)}
+     *</UL>
+     * Also, if your state is similar to an existing state, do a where-used search
+     * for that state, and decide where both states should be reacted to.
+     *<P>
      * Other places to check, if you add a game state:
-     * <PRE>
-        SOCBoardPanel.BoardPopupMenu.showBuild, showCancelBuild
-        SOCBoardPanel.drawBoard
-        SOCHandPanel.addPlayer, began, removePlayer, updateAtTurn, updateValue
-        SOCGame.addPlayer
-        SOCServer.handleSTARTGAME, leaveGame, sitDown, handleCANCELBUILDREQUEST, handlePUTPIECE
-        SOCPlayerClient.handleCANCELBUILDREQUEST, SOCDisplaylessPlayerClient.handleCANCELBUILDREQUEST
-     * </PRE>
+     *<UL>
+     * <LI> SOCBoardPanel.BoardPopupMenu.showBuild, showCancelBuild
+     * <LI> SOCBoardPanel.drawBoard
+     * <LI> SOCHandPanel.addPlayer, began, removePlayer, updateAtTurn, updateValue
+     * <LI> SOCGame.addPlayer
+     * <LI> SOCServer.handleSTARTGAME, leaveGame, sitDown, handleCANCELBUILDREQUEST, handlePUTPIECE
+     * <LI> SOCPlayerClient.handleCANCELBUILDREQUEST, SOCDisplaylessPlayerClient.handleCANCELBUILDREQUEST
+     *</UL>
      */
     public static final int NEW = 0; // Brand new game, players sitting down
 
@@ -169,6 +174,19 @@ public class SOCGame implements Serializable, Cloneable
     public static final int WAITING_FOR_CHOICE = 51; // Waiting for player to choose a player
     public static final int WAITING_FOR_DISCOVERY = 52; // Waiting for player to choose 2 resources
     public static final int WAITING_FOR_MONOPOLY = 53; // Waiting for player to choose a resource
+
+    /**
+     * The 6-player board's Special Building Phase.
+     * Takes place at the end of any player's normal turn (roll, place, etc).
+     * The Special Building Phase changes {@link #currentPlayerNumber}.
+     * So, it begins by calling {@link #advanceTurn()} to
+     * the next player, and continues clockwise until
+     * {@link #currentPlayerNumber} == {@link #specialBuildPhase_afterPlayerNumber}.
+     * At that point, the Special Building Phase is over,
+     * and it's the next player's turn as usual.
+     * @since 1.1.08
+     */
+    public static final int SPECIAL_BUILDING = 100;
 
     /**
      * The game is over.  A player has accumulated 10 ({@link #VP_WINNER}) victory points,
@@ -436,20 +454,22 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * If true, it's a 6-player board and at least one player has requested to build
      * during the Special Building Phase that occurs between turns.
+     * @see #specialBuildPhase_afterPlayerNumber
      * @since 1.1.08
      */
-    private boolean specialBuildPhaseAsked;
+    private boolean askedSpecialBuildPhase;
 
     /**
      * For the 6-player board's Special Building Phase, the player number whose
      * normal turn (roll, place, etc) has just ended.
+     * Game state is {@link #SPECIAL_BUILDING}.
      * The Special Building Phase changes {@link #currentPlayerNumber}.
      * So, it begins by calling {@link #advanceTurn()} to
      * the next player, and continues clockwise until
      * {@link #currentPlayerNumber} == {@link #specialBuildPhase_afterPlayerNumber}.
      * At that point, the Special Building Phase is over,
      * and it's the next player's turn as usual.
-     * @see #specialBuildPhaseAsked
+     * @see #askedSpecialBuildPhase
      * @since 1.1.08 
      */
     private int specialBuildPhase_afterPlayerNumber;
@@ -635,7 +655,7 @@ public class SOCGame implements Serializable, Cloneable
         turnCount = 0;
         roundCount = 0;
         forcingEndTurn = false;
-        specialBuildPhaseAsked = false;
+        askedSpecialBuildPhase = false;
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack();
 
@@ -1439,8 +1459,74 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * For the 6-player board, check whether we should either start
+     * or continue the {@link #SPECIAL_BUILDING Special Building Phase}.
+     * This method does 1 of 4 possible things:
+     *<UL>
+     *<LI> A: If this isn't a 6-player board, or no player has asked
+     *     to Special Build this turn, do nothing.
+     *<LI> B: If we haven't started Special Building yet (gameState still {@link #PLAY1})
+     *     but it's asked for: Set gameState to {@link #SPECIAL_BUILDING}.
+     *     Set {@link #specialBuildPhase_afterPlayerNumber} to current player number.
+     *     Then, set current player to the first player who wants to Special Build, 
+     *<LI> C: If we already did some players' Special Build this turn,
+     *     and some remain, set current player to the next player
+     *     who wants to Special Build.  gameState remains {@link #SPECIAL_BUILDING}.
+     *<LI> D: If we already did some players' Special Build this turn,
+     *     and no more players are left to special build, prepare to
+     *     end the turn normally: Set gameState to {@link #PLAY1}.
+     *     Set current player to the player whose turn is ending
+     *     ({@link #specialBuildPhase_afterPlayerNumber}).
+     *</UL>
+     * @return true if gamestate is now {@link #SPECIAL_BUILDING}
+     * @since 1.1.08
+     */
+    private boolean advanceTurnToSpecialBuilding()
+    {
+        if (! askedSpecialBuildPhase)
+            return false;  // case "A" part 1: not 6-player or not asked
+
+        final boolean alreadyInPhase = (gameState == SPECIAL_BUILDING);
+
+        // See if anyone can place.
+        // Set currentPlayerNumber if it's possible.
+
+        final int prevPlayer = currentPlayerNumber;
+        boolean anyPlayerWantsSB = false;
+        do
+        {
+            if (! advanceTurn())
+                return false;  // All players have left
+            anyPlayerWantsSB = players[currentPlayerNumber].hasAskedSpecialBuild();
+        } while ((prevPlayer != currentPlayerNumber) && ! anyPlayerWantsSB);
+
+        if (prevPlayer == currentPlayerNumber)
+        {
+            // No one is left to special build.
+            // Case "A" or "D".
+            if (alreadyInPhase)
+            {
+                currentPlayerNumber = specialBuildPhase_afterPlayerNumber;
+                gameState = PLAY1;  // case "D"
+            }
+            return false;
+        }
+
+        // Case "B" or "C".
+        if (! alreadyInPhase)
+        {
+            // case "B"
+            gameState = SPECIAL_BUILDING;
+            specialBuildPhase_afterPlayerNumber = prevPlayer;
+        }
+        // currentPlayerNumber is set already by advanceTurn.
+
+        return true;
+    }
+
+    /**
      * Put this piece on the board and update all related game state.
-     * May change current player.
+     * May change current player and gamestate.
      * If the piece is a city, putPiece removes the settlement there.
      *
      * @param pp the piece to put on the board
@@ -1591,7 +1677,8 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * check if the game is over
          */
-        checkForWinner();
+        if (oldGameState != SPECIAL_BUILDING)
+            checkForWinner();
 
         /**
          * update the state of the game, and possibly current player
@@ -1696,7 +1783,14 @@ public class SOCGame implements Serializable, Cloneable
         case PLACING_ROAD:
         case PLACING_SETTLEMENT:
         case PLACING_CITY:
-            gameState = PLAY1;
+            if (oldGameState != SPECIAL_BUILDING)
+            {
+                gameState = PLAY1;
+            }
+            else 
+            {
+                gameState = SPECIAL_BUILDING;
+            }
 
             break;
 
@@ -2064,6 +2158,9 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #setCurrentPlayerNumber(int)}.
      * endTurn() is not called before the first dice roll.
      * endTurn() will call {@link #updateAtTurn()}.
+     * In the 6-player game, calling endTurn() may begin
+     * the {@link #SPECIAL_BUILDING Special Building Phase}.
+     * [ TODO: does it continue it? or not ]
      *<P>
      * The winner check is needed because a player can win only
      * during their own turn; if they reach winning points ({@link #VP_WINNER}
@@ -2075,20 +2172,25 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void endTurn()
     {
-        gameState = PLAY;
-        if (advanceTurn())
+        if (! advanceTurnToSpecialBuilding())
         {
-            updateAtTurn();
-            players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
-            if (players[currentPlayerNumber].getTotalVP() >= VP_WINNER)
-                checkForWinner();
+            // "Normal" end-turn:
+            gameState = PLAY;
+            if (! advanceTurn())
+                return;
         }
+        updateAtTurn();
+        players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
+        if (players[currentPlayerNumber].getTotalVP() >= VP_WINNER)
+            checkForWinner();  // Will do nothing during Special Building Phase
     }
 
     /**
      * Update game state as needed when a player begins their turn (before dice are rolled).
      * Call this after {@link #setCurrentPlayerNumber(int)}.
      * May be called during initial placement.
+     * On the 6-player board, is called at the start of
+     * the {@link #SPECIAL_BUILDING Special Building Phase}.
      *<UL>
      *<LI> Set first player and last player, if they're currently -1
      *<LI> Set current dice to 0
@@ -3898,6 +4000,9 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void checkForWinner()
     {
+        if (gameState == SPECIAL_BUILDING)
+            return;  // Can't win in this state, it's not really anyone's turn
+
         int pn = currentPlayerNumber;
         if ((pn >= 0) && (pn < maxPlayers)
             && (players[pn].getTotalVP() >= VP_WINNER))
@@ -4188,7 +4293,8 @@ public class SOCGame implements Serializable, Cloneable
      * @param pieceType  Piece type to ask, from {@link SOCPlayingPiece} constants,
      *            or -2 if asking to buy a development card
      * @param pn  The player's number
-     * @throws IllegalStateException  if game is not 6-player, or is currently this player's turn
+     * @throws IllegalStateException  if game is not 6-player, or is currently this player's turn,
+     *            or if gamestate is {@link #PLAY} or earlier.
      * @throws IllegalArgumentException  if <tt>pieceType</tt> is out of range
      *            {@link SOCPlayingPiece#MIN} - {@link SOCPlayingPiece#MAXPLUSONE},
      *            and isn't -2.  Or if pn is not a valid player (vacant seat, etc).
@@ -4203,37 +4309,17 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("not 6-player");
         if (pn == currentPlayerNumber)
             throw new IllegalStateException("current player");
+        if (gameState < PLAY1)
+            throw new IllegalStateException("too early to ask");
         if ((pn < 0) || (pn >= maxPlayers))
             throw new IllegalArgumentException("pn range");
         SOCPlayer pl = players[pn];
         if ((pl == null) || isSeatVacant(pn))
             throw new IllegalArgumentException("pn not valid");
 
-        final SOCResourceSet needed;
-        switch (pieceType)
-        {
-            case SOCPlayingPiece.ROAD:
-                needed = ROAD_SET;  break;
-    
-            case SOCPlayingPiece.SETTLEMENT:
-                needed = SETTLEMENT_SET;  break;
-    
-            case SOCPlayingPiece.CITY:
-                needed = CITY_SET;  break;
-    
-            case -2:
-                // fall through
-            case SOCPlayingPiece.MAXPLUSONE:
-                needed = CARD_SET;  break;
-    
-            default:
-                throw new IllegalArgumentException("pieceType range");
-        }
-        if (! pl.getResources().contains(needed))
-            throw new UnsupportedOperationException("missing resource");
-
-        pl.askSpecialBuildAddPiece(pieceType);
-        specialBuildPhaseAsked = true;
+        pl.askSpecialBuildAddPiece(pieceType);  // May throw UnsupportedOperationException or
+                                                // IllegalArgumentException; pass to our caller.
+        askedSpecialBuildPhase = true;
     }
 
 }
