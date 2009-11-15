@@ -658,6 +658,18 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     }
 
     /**
+     * In 6-player mode's Special Building Phase, set the flag for this player asking to build.
+     *
+     * @param set  if the player has asked to build
+     * @see #askSpecialBuildAddPiece(int)
+     * @since 1.1.08
+     */
+    public void setAskedSpecialBuild(boolean set)
+    {
+        askedSpecialBuild = set;
+    }
+
+    /**
      * For 6-player mode's Special Building Phase, the player's set of pieces:
      * When it's their turn to special build, this is what they want to buy and build.
      * Does not imply player has resources to build these pieces.
