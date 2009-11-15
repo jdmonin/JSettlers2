@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +25,8 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that someone is joining a game
+ * This message conveys one part of the player's status, such as their number of
+ * settlements remaining.
  *
  * @author Robert S Thomas
  */
@@ -45,6 +47,14 @@ public class SOCPlayerElement extends SOCMessage
     public static final int NUMKNIGHTS = 15;
 
     /**
+     * For the 6-player board, player element type for asking to build
+     * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     * This element is {@link #SET} to 1 or 0.
+     * @since 1.1.08
+     */
+    public static final int ASK_SPECIAL_BUILD = 16;
+
+    /**
      * player element actions
      */
     public static final int SET = 100;
@@ -62,12 +72,12 @@ public class SOCPlayerElement extends SOCMessage
     private int playerNumber;
 
     /**
-     * Player element type
+     * Player element type, such as {@link #SETTLEMENTS}
      */
     private int elementType;
 
     /**
-     * Action type
+     * Action type: {@link #SET}, {@link #GAIN}, or {@link #LOSE}
      */
     private int actionType;
 
@@ -81,8 +91,8 @@ public class SOCPlayerElement extends SOCMessage
      *
      * @param ga  name of the game
      * @param pn  the player number
-     * @param ac  the type of action
-     * @param et  the type of element
+     * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}
+     * @param et  the type of element, such as {@link #SETTLEMENTS}
      * @param va  the value of the element
      */
     public SOCPlayerElement(String ga, int pn, int ac, int et, int va)
