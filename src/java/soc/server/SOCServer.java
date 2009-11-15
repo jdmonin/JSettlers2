@@ -4949,21 +4949,24 @@ public class SOCServer extends Server
 
         try
         {
-            if (checkTurn(c, ga))
+            final boolean isCurrent = checkTurn(c, ga);
+            if (isCurrent || (ga.maxPlayers > 4))
             {
                 if (ga.getGameState() == SOCGame.PLAY1)
                 {
                     SOCPlayer player = ga.getPlayer((String) c.getData());
+                    final int pn = player.getPlayerNumber();
+                    final int pieceType = mes.getPieceType();
 
-                    switch (mes.getPieceType())
+                    switch (pieceType)
                     {
                     case SOCPlayingPiece.ROAD:
 
-                        if (ga.couldBuildRoad(player.getPlayerNumber()))
+                        if (ga.couldBuildRoad(pn))
                         {
-                            ga.buyRoad(player.getPlayerNumber());
-                            messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
-                            messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                            ga.buyRoad(pn);
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
                             sendGameState(ga);
                         }
                         else
@@ -4975,14 +4978,14 @@ public class SOCServer extends Server
 
                     case SOCPlayingPiece.SETTLEMENT:
 
-                        if (ga.couldBuildSettlement(player.getPlayerNumber()))
+                        if (ga.couldBuildSettlement(pn))
                         {
-                            ga.buySettlement(player.getPlayerNumber());
+                            ga.buySettlement(pn);
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
-                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
-                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
-                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1));
+                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
+                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
                             gameList.releaseMonitorForGame(gaName);
                             sendGameState(ga);
                         }
@@ -4995,11 +4998,11 @@ public class SOCServer extends Server
 
                     case SOCPlayingPiece.CITY:
 
-                        if (ga.couldBuildCity(player.getPlayerNumber()))
+                        if (ga.couldBuildCity(pn))
                         {
-                            ga.buyCity(player.getPlayerNumber());
-                            messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 3));
-                            messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 2));
+                            ga.buyCity(pn);
+                            messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 3));
+                            messageToGame(ga.getName(), new SOCPlayerElement(ga.getName(), pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 2));
                             sendGameState(ga);
                         }
                         else
@@ -5012,7 +5015,10 @@ public class SOCServer extends Server
                 }
                 else
                 {
-                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build now."));
+                    if (isCurrent)
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build now."));
+                    else
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't ask to build now."));
                 }
             }
             else
