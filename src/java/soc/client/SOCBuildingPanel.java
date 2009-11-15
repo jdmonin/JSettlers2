@@ -396,8 +396,9 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         {
             int pnum = player.getPlayerNumber();
             boolean isCurrent = (game.getCurrentPlayerNumber() == pnum);
-            int gstate = game.getGameState();
-            boolean currentCanBuy = isCurrent && (gstate == SOCGame.PLAY1);
+            final int gstate = game.getGameState();
+            boolean currentCanBuy = isCurrent &&
+              ((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING));
 
             if (isCurrent && (gstate == SOCGame.PLACING_ROAD))
             {

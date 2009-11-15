@@ -239,6 +239,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final Color ARROW_COLOR = new Color(106, 183, 183);
 
     /**
+     * Arrow color during {@link SOCGame#SPECIAL_BUILDING} phase of the 6-player game.
+     * @since 1.1.08
+     */
+    private static final Color ARROW_COLOR_PLACING = new Color(128, 255, 128);
+
+    /**
      * BoardPanel's {@link #mode}s. NONE is normal gameplay, or not the client's turn.
      * For correlation to game state, see {@link #updateMode()}.
      * If a mode is added, please also update {@link #clearModeAndHilight(int)}.
@@ -2194,6 +2200,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw Arrow
          */
+        final int gameState = game.getGameState();
         if (isScaled)
         {
             arrowX = scaleToActualX(arrowX);
@@ -2205,7 +2212,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         else
             scArrowX = scaledArrowXR;
         g.translate(arrowX, arrowY);
-        g.setColor(ARROW_COLOR);        
+        if (gameState != SOCGame.SPECIAL_BUILDING)
+            g.setColor(ARROW_COLOR);
+        else
+            g.setColor(ARROW_COLOR_PLACING);        
         g.fillPolygon(scArrowX, scaledArrowY, scArrowX.length);
         g.setColor(Color.BLACK);
         g.drawPolygon(scArrowX, scaledArrowY, scArrowX.length);
@@ -2214,7 +2224,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw Dice result number
          */
-        if ((diceResult >= 2) && (game.getGameState() != SOCGame.PLAY))
+        if ((diceResult >= 2) && (gameState != SOCGame.PLAY))
         {
             if (isScaled)
             {

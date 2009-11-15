@@ -676,7 +676,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * For 6-player mode's Special Building Phase, add this piece or dev card to the player's set.
      * When it's their turn to special build, this is what they want to build.
-     * Does not validate player has resources to build this piece;
+     * Validates player has resources to build this piece.
+     * Does not validate that they aren't current player;
      * use {@link SOCGame#askSpecialBuildAddPiece(int, int)} for that.
      *
      * @param pieceType Piece type to ask, from {@link SOCPlayingPiece} constants,
@@ -685,23 +686,71 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      * @throws IllegalArgumentException  if <tt>pieceType</tt> is out of range
      *            {@link SOCPlayingPiece#MIN} - {@link SOCPlayingPiece#MAXPLUSONE},
      *            and isn't -2.
+     * @throws UnsupportedOperationException
+     *            if player doesn't have the resources for that piece type.
      * @see #hasAskedSpecialBuild()
      * @see #getAskSpecialBuildPieces()
      * @see #clearAskSpecialBuild()
      * @since 1.1.08
      */
     public void askSpecialBuildAddPiece(int pieceType)
-        throws IllegalStateException, IllegalArgumentException
+        throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException
     {
         if (askSpecialBuildPieces == null)
             throw new IllegalStateException("not 6-player");
         if (pieceType == -2)
             pieceType = SOCPlayingPiece.MAXPLUSONE;
-        if ((pieceType < SOCPlayingPiece.MIN) || (pieceType > SOCPlayingPiece.MAXPLUSONE))
-            throw new IllegalArgumentException("pieceType range");
 
+        // Make sure they have resources to build it
+        SOCResourceSet needed = SOCPlayingPiece.getResourcesToBuild(pieceType);
+                                // May throw IllegalArgumentException for pieceType.
+        if (! resources.contains(needed))
+            throw new UnsupportedOperationException("missing resource");
+
+        // OK, they can build it.
         askedSpecialBuild = true;
         ++askSpecialBuildPieces[pieceType];
+
+        // Validate previous asks, adjust if needed.
+        // Start with the resource type they've just asked for, in case
+        // it's replacing a previous ask (due to resource changes).
+
+        SOCResourceSet checkRes = resources.copy();
+        checkRes.subtract(needed);  // ok to subtract, because we know it contains it
+        if (askSpecialBuildPieces[pieceType] > 1)
+        {
+            needed = SOCPlayingPiece.getResourcesToBuild(pieceType);
+            for (int i = 1; i < askSpecialBuildPieces[pieceType]; ++i)
+            {
+                if (! checkRes.contains(needed))
+                {
+                    askSpecialBuildPieces[pieceType] = i;  // fewer than count
+                    break;
+                }
+                checkRes.subtract(needed);
+            }            
+        }
+
+        // Start with road, then settlement, then city, because
+        // roads take a subset of settlement's resources.
+        for (int res = 0; res < askSpecialBuildPieces.length - 1; ++res)
+        {
+            if (res == pieceType)
+                continue;  // already checked
+            final int count = askSpecialBuildPieces[res];
+            if (count == 0)
+                continue;
+            needed = SOCPlayingPiece.getResourcesToBuild(res);
+            for (int i = 0; i < count; ++i)
+            {
+                if (! checkRes.contains(needed))
+                {
+                    askSpecialBuildPieces[res] = i;  // fewer than count
+                    break;
+                }
+                checkRes.subtract(needed);
+            }
+        }
     }
 
     /**
@@ -2305,7 +2354,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         return ports;
     }
 
-    /**
+    /** TODO this constructor is unused; is it worth maintaining? is it missing fields?
      * @return a copy of this player
      */
     public SOCPlayer copy()
@@ -2450,6 +2499,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
          *        playedDevCard flag
          *        robotFlag
          *        faceId
+         *        other recently added fields (TODO)
          */
         return copy;
     }
@@ -2482,5 +2532,6 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         potentialSettlements = null;
         potentialCities = null;
         currentOffer = null;
+        askSpecialBuildPieces = null;
     }
 }

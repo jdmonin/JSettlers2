@@ -4496,6 +4496,8 @@ public class SOCServer extends Server
     /**
      * Pre-checking already done, end the current player's turn in this game.
      * Alter game state and send messages to players.
+     * Calls {@link SOCGame#endTurn()}.
+     * On the 6-player board, this may begin the {@link SOCGame#SPECIAL_BUILDING special building phase}.
      *<P>
      * Assumes:
      * <UL>
@@ -4510,7 +4512,8 @@ public class SOCServer extends Server
         final String gname = ga.getName();
 
         boolean hadBoardResetRequest = (-1 != ga.getResetVoteRequester());
-        ga.endTurn();  // May set state to OVER, if new player has enough points to win
+        ga.endTurn();  // May set state to OVER, if new player has enough points to win.
+                       // May begin the Special Building Phase.
         if (hadBoardResetRequest)
         {
             // Cancel voting at end of turn
