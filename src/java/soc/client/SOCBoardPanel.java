@@ -242,7 +242,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Arrow color during {@link SOCGame#SPECIAL_BUILDING} phase of the 6-player game.
      * @since 1.1.08
      */
-    private static final Color ARROW_COLOR_PLACING = new Color(128, 255, 128);
+    private static final Color ARROW_COLOR_PLACING = new Color(255, 255, 60);
 
     /**
      * BoardPanel's {@link #mode}s. NONE is normal gameplay, or not the client's turn.

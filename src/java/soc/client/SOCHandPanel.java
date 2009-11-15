@@ -1408,8 +1408,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                 doneButIsRestart = false;
             }
             normalTurnStarting = normalTurnStarting && playerIsCurrent;
-            doneBut.setEnabled(normalTurnStarting || (gs <= SOCGame.START2B));  // "Done" at Normal turn,
-                // or "Restart" during game-start (label DONE_RESTART)
+            doneBut.setEnabled(normalTurnStarting || (gs <= SOCGame.START2B)
+                    || (playerIsCurrent && (gs == SOCGame.SPECIAL_BUILDING)));
+                // "Done" at Normal turn,
+                // or "Restart" during game-start (label DONE_RESTART),
+                // or "Done" during 6-player Special Building Phase.
             playCardBut.setEnabled(normalTurnStarting && (cardList.getItemCount() > 0));
             bankBut.disable();  // enabled by updateAtPlay1()
         }

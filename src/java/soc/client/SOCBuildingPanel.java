@@ -342,10 +342,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     {
         if (! doNotClearPopup)
             pi.getBoardPanel().popupClearBuildRequest();  // Just in case
-        
+
+        final boolean stateBuyOK = (game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING);
+
         if (target == ROAD)
         {
-            if ((game.getGameState() == SOCGame.PLAY1) && (roadBut.getLabel().equals("Buy")))
+            if (stateBuyOK && (roadBut.getLabel().equals("Buy")))
             {
                 client.buildRequest(game, SOCPlayingPiece.ROAD);
             }
@@ -356,7 +358,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == STLMT)
         {
-            if ((game.getGameState() == SOCGame.PLAY1) && (settlementBut.getLabel().equals("Buy")))
+            if (stateBuyOK && (settlementBut.getLabel().equals("Buy")))
             {
                 client.buildRequest(game, SOCPlayingPiece.SETTLEMENT);
             }
@@ -367,7 +369,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == CITY)
         {
-            if ((game.getGameState() == SOCGame.PLAY1) && (cityBut.getLabel().equals("Buy")))
+            if (stateBuyOK && (cityBut.getLabel().equals("Buy")))
             {
                 client.buildRequest(game, SOCPlayingPiece.CITY);
             }
@@ -378,7 +380,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == CARD)
         {
-            if ((game.getGameState() == SOCGame.PLAY1) && (cardBut.getLabel().equals("Buy")))
+            if (stateBuyOK && (cardBut.getLabel().equals("Buy")))
             {
                 client.buyDevCard(game);
             }
@@ -397,8 +399,8 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             int pnum = player.getPlayerNumber();
             boolean isCurrent = (game.getCurrentPlayerNumber() == pnum);
             final int gstate = game.getGameState();
-            boolean currentCanBuy = isCurrent &&
-              ((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING));
+            boolean currentCanBuy = (isCurrent || (game.maxPlayers > 4))
+              && ((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING));
 
             if (isCurrent && (gstate == SOCGame.PLACING_ROAD))
             {

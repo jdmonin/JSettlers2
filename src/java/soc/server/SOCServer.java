@@ -3727,13 +3727,15 @@ public class SOCServer extends Server
                    }
                    }
                  */
+
+                final int gameState = ga.getGameState();
                 switch (mes.getPieceType())
                 {
                 case SOCPlayingPiece.ROAD:
 
                     SOCRoad rd = new SOCRoad(player, mes.getCoordinates(), null);
 
-                    if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B) || (ga.getGameState() == SOCGame.PLACING_ROAD) || (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1) || (ga.getGameState() == SOCGame.PLACING_FREE_ROAD2))
+                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.PLACING_ROAD) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
                         if (player.isPotentialRoad(mes.getCoordinates()))
                         {
@@ -3791,7 +3793,7 @@ public class SOCServer extends Server
 
                     SOCSettlement se = new SOCSettlement(player, mes.getCoordinates(), null);
 
-                    if ((ga.getGameState() == SOCGame.START1A) || (ga.getGameState() == SOCGame.START2A) || (ga.getGameState() == SOCGame.PLACING_SETTLEMENT))
+                    if ((gameState == SOCGame.START1A) || (gameState == SOCGame.START2A) || (gameState == SOCGame.PLACING_SETTLEMENT))
                     {
                         if (player.isPotentialSettlement(mes.getCoordinates()))
                         {
@@ -3826,7 +3828,7 @@ public class SOCServer extends Server
 
                     SOCCity ci = new SOCCity(player, mes.getCoordinates(), null);
 
-                    if (ga.getGameState() == SOCGame.PLACING_CITY)
+                    if (gameState == SOCGame.PLACING_CITY)
                     {
                         if (player.isPotentialCity(mes.getCoordinates()))
                         {
@@ -4553,6 +4555,11 @@ public class SOCServer extends Server
          * send whose turn it is
          */
         sendTurn(ga, wantsRollPrompt);
+        if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
+            messageToGame(gname, new SOCGameTextMsg
+                (gname, SERVERNAME, "Special building phase: "
+                  + ga.getPlayer(ga.getCurrentPlayerNumber()).getName()
+                  + "'s turn to place."));
     }
 
     /**
@@ -4976,7 +4983,7 @@ public class SOCServer extends Server
 
             if (isCurrent)
             {
-                if (ga.getGameState() == SOCGame.PLAY1)
+                if ((ga.getGameState() == SOCGame.PLAY1) || (ga.getGameState() == SOCGame.SPECIAL_BUILDING))
                 {
                     switch (pieceType)
                     {
@@ -5193,7 +5200,8 @@ public class SOCServer extends Server
 
             if (checkTurn(c, ga))
             {
-                if ((ga.getGameState() == SOCGame.PLAY1) && (ga.couldBuyDevCard(pn)))
+                if (((ga.getGameState() == SOCGame.PLAY1) || (ga.getGameState() == SOCGame.SPECIAL_BUILDING))
+                    && (ga.couldBuyDevCard(pn)))
                 {
                     int card = ga.buyDevCard();
                     gameList.takeMonitorForGame(gaName);
