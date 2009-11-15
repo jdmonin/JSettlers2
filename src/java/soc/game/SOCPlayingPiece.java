@@ -26,12 +26,14 @@ import java.util.Vector;
 
 
 /**
- * Playing pieces for Settlers of Catan
+ * Playing pieces for Settlers of Catan.
+ * For the resources needed to build a piece type, see {@link #getResourcesToBuild(int)}.
  */
 public abstract class SOCPlayingPiece implements Serializable, Cloneable
 {
     /**
-     * Types of playing pieces
+     * Types of playing pieces.
+     * @see #getResourcesToBuild(int)
      */
     public static final int ROAD = 0;
     public static final int SETTLEMENT = 1;
@@ -63,9 +65,10 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * Make a new piece.
      *
-     * @param pl  player who owns the city
+     * @param ptype  the type of piece, such as {@link #SETTLEMENT}
+     * @param pl  player who owns the piece
      * @param co  coordinates
-     * @param board  board if known; otherwise will extract from <tt>pl</tt>.
+     * @param pboard  board if known; otherwise will extract from <tt>pl</tt>.
      *               Board should be from same game as <tt>pl</tt>.
      * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
      * @since 1.1.08
@@ -152,5 +155,33 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
             &&  (this.player == ((SOCPlayingPiece) other).player));
 
         // board is based on player; no need to check board too.
+    }
+
+    /**
+     * the set of resources a player needs to build a playing piece.
+     * @param pieceType The type of this playing piece, in range {@link #MIN} to ({@link #MAXPLUSONE} - 1).
+     *           Can also pass -2 or {@link #MAXPLUSONE} for {@link SOCGame#CARD_SET}.
+     * @return the set, such as {@link SOCGame#SETTLEMENT_SET}
+     * @throws IllegalArgumentException if <tt>pieceType</tt> is out of range
+     * @since 1.1.08
+     */
+    public static SOCResourceSet getResourcesToBuild(final int pieceType)
+        throws IllegalArgumentException 
+    {
+        switch (pieceType)
+        {
+        case ROAD:
+            return SOCGame.ROAD_SET;
+        case SETTLEMENT:
+            return SOCGame.SETTLEMENT_SET;
+        case CITY:
+            return SOCGame.CITY_SET;
+        case -2:
+            // fall through
+        case SOCPlayingPiece.MAXPLUSONE:
+            return SOCGame.CARD_SET;
+        default:
+            throw new IllegalArgumentException("pieceType");
+        }
     }
 }
