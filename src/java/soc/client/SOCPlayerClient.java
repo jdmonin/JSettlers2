@@ -2990,6 +2990,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                     (mes, pl, SOCResourceConstants.UNKNOWN);
                 hpan.updateValue(SOCHandPanel.NUMRESOURCES);
                 break;
+
+            case SOCPlayerElement.ASK_SPECIAL_BUILD:
+                pl.setAskedSpecialBuild(0 != mes.getValue());
+                hpan.updateValue(SOCHandPanel.ASK_SPECIAL_BUILD);
+                // for client player, hpan also refreshes BuildingPanel with this value.
+                break;
+
             }
 
             if (hpanUpdateRsrcType != -1)

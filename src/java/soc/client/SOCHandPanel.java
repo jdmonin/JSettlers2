@@ -32,6 +32,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
+import soc.message.SOCPlayerElement;
 
 import java.awt.Button;
 import java.awt.Color;
@@ -65,6 +66,9 @@ public class SOCHandPanel extends Panel implements ActionListener
     /** Minimum desired width, in pixels */
     public static final int WIDTH_MIN = 218;
 
+    /** Items to update via {@link #updateValue(int)};
+     * similar values to {@link soc.message.SOCPlayerElement}
+     */
     public static final int ROADS = 0;
     public static final int SETTLEMENTS = 1;
     public static final int CITIES = 2;
@@ -79,6 +83,12 @@ public class SOCHandPanel extends Panel implements ActionListener
     public static final int SHEEP = 11;
     public static final int WHEAT = 12;
     public static final int WOOD = 13;
+
+    /**
+     * Item flag for asked special build in {@link #updateValue(int)}.
+     * @since 1.1.08
+     */
+    public static final int ASK_SPECIAL_BUILD = 16;  // same as SOCPlayerElement.ASK_SPECIAL_BUILD
 
     /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
     public static int AUTOROLL_TIME = 5;
@@ -2162,6 +2172,14 @@ public class SOCHandPanel extends Panel implements ActionListener
             knightsSq.setIntValue(player.getNumKnights());
 
             break;
+
+        case ASK_SPECIAL_BUILD:
+            if (playerIsClient)
+                playerInterface.getBuildingPanel().updateButtonStatus();
+            else
+                ;  // TODO indicate somehow here
+            break;
+
         }
     }
 

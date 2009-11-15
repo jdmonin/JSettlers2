@@ -927,6 +927,11 @@ public class SOCRobotBrain extends Thread
                             handlePLAYERELEMENT_numRsrc
                                 ((SOCPlayerElement) mes, pl, SOCResourceConstants.UNKNOWN, "UNKNOWN");
                             break;
+
+                        case SOCPlayerElement.ASK_SPECIAL_BUILD:
+                            pl.setAskedSpecialBuild(0 != ((SOCPlayerElement) mes).getValue());
+                            break;
+
                         }
 
                         ///

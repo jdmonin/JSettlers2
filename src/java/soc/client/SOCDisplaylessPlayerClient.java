@@ -1125,6 +1125,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
                  */
                 handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.UNKNOWN);
                 break;
+
+            case SOCPlayerElement.ASK_SPECIAL_BUILD:
+                pl.setAskedSpecialBuild(0 != mes.getValue());
+                break;
+
             }
         }
     }
