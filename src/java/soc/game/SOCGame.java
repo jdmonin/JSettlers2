@@ -186,7 +186,7 @@ public class SOCGame implements Serializable, Cloneable
      * and it's the next player's turn as usual.
      * @since 1.1.08
      */
-    public static final int SPECIAL_BUILDING = 100;
+    public static final int SPECIAL_BUILDING = 100;  // see advanceTurnToSpecialBuilding()
 
     /**
      * The game is over.  A player has accumulated 10 ({@link #VP_WINNER}) victory points,
@@ -2129,8 +2129,8 @@ public class SOCGame implements Serializable, Cloneable
      *  year-of-plenty card, or discard if a 7 is rolled).
      * 
      * @param pn  player number of the player who wants to end the turn
-     * @return true if ok for this player to end the turn
-     *    (They are current player, game state is {@link #PLAY1})
+     * @return true if okay for this player to end the turn
+     *    (They are current player, game state is {@link #PLAY1} or {@link #SPECIAL_BUILDING})
      *
      * @see #endTurn()
      * @see #forceEndTurn()
@@ -2141,7 +2141,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             return false;
         }
-        else if (gameState != PLAY1)
+        else if ((gameState != PLAY1) && (gameState != SPECIAL_BUILDING))
         {
             return false;
         }
@@ -3513,6 +3513,7 @@ public class SOCGame implements Serializable, Cloneable
         SOCResourceSet resources = players[pn].getResources();
         resources.subtract(1, SOCResourceConstants.CLAY);
         resources.subtract(1, SOCResourceConstants.WOOD);
+        oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
         gameState = PLACING_ROAD;
     }
 
@@ -3528,6 +3529,7 @@ public class SOCGame implements Serializable, Cloneable
         resources.subtract(1, SOCResourceConstants.SHEEP);
         resources.subtract(1, SOCResourceConstants.WHEAT);
         resources.subtract(1, SOCResourceConstants.WOOD);
+        oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
         gameState = PLACING_SETTLEMENT;
     }
 
@@ -3541,6 +3543,7 @@ public class SOCGame implements Serializable, Cloneable
         SOCResourceSet resources = players[pn].getResources();
         resources.subtract(3, SOCResourceConstants.ORE);
         resources.subtract(2, SOCResourceConstants.WHEAT);
+        oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
         gameState = PLACING_CITY;
     }
 
@@ -3554,7 +3557,10 @@ public class SOCGame implements Serializable, Cloneable
         SOCResourceSet resources = players[pn].getResources();
         resources.add(1, SOCResourceConstants.CLAY);
         resources.add(1, SOCResourceConstants.WOOD);
-        gameState = PLAY1;
+        if (oldGameState != SPECIAL_BUILDING)
+            gameState = PLAY1;
+        else
+            gameState = SPECIAL_BUILDING;
     }
 
     /**
@@ -3569,7 +3575,10 @@ public class SOCGame implements Serializable, Cloneable
         resources.add(1, SOCResourceConstants.SHEEP);
         resources.add(1, SOCResourceConstants.WHEAT);
         resources.add(1, SOCResourceConstants.WOOD);
-        gameState = PLAY1;
+        if (oldGameState != SPECIAL_BUILDING)
+            gameState = PLAY1;
+        else
+            gameState = SPECIAL_BUILDING;
     }
 
     /**
@@ -3582,7 +3591,10 @@ public class SOCGame implements Serializable, Cloneable
         SOCResourceSet resources = players[pn].getResources();
         resources.add(3, SOCResourceConstants.ORE);
         resources.add(2, SOCResourceConstants.WHEAT);
-        gameState = PLAY1;
+        if (oldGameState != SPECIAL_BUILDING)
+            gameState = PLAY1;
+        else
+            gameState = SPECIAL_BUILDING;
     }
 
     /**
