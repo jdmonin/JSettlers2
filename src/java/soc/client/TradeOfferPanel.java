@@ -496,8 +496,8 @@ public class TradeOfferPanel extends Panel
                         getSum += get[i];
                     }
 
-                    SOCResourceSet giveSet = new SOCResourceSet(give[0], give[1], give[2], give[3], give[4], 0);
-                    SOCResourceSet getSet = new SOCResourceSet(get[0], get[1], get[2], get[3], get[4], 0);
+                    SOCResourceSet giveSet = new SOCResourceSet(give);
+                    SOCResourceSet getSet = new SOCResourceSet(get);
                     
                     if (!player.getResources().contains(giveSet))
                     {
