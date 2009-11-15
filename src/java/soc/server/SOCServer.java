@@ -5177,76 +5177,75 @@ public class SOCServer extends Server
      */
     private void handleBUYCARDREQUEST(StringConnection c, SOCBuyCardRequest mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+        SOCGame ga = gameList.getGameData(mes.getGame());
+        if (ga == null)
+            return;
+
+        ga.takeMonitor();
+
+        try
         {
-            SOCGame ga = gameList.getGameData(mes.getGame());
-
-            if (ga != null)
+            final String gaName = ga.getName();
+            if (checkTurn(c, ga))
             {
-                ga.takeMonitor();
+                SOCPlayer player = ga.getPlayer((String) c.getData());
+                final int pn = player.getPlayerNumber();
 
-                try
+                if ((ga.getGameState() == SOCGame.PLAY1) && (ga.couldBuyDevCard(pn)))
                 {
-                    final String gaName = ga.getName();
-                    if (checkTurn(c, ga))
+                    int card = ga.buyDevCard();
+                    gameList.takeMonitorForGame(gaName);
+                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 1));
+                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
+                    messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
+                    gameList.releaseMonitorForGame(gaName);
+                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, card));
+
+                    messageToGameExcept(gaName, c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                    messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " bought a development card."));
+
+                    if (ga.getNumDevCards() > 1)
                     {
-                        SOCPlayer player = ga.getPlayer((String) c.getData());
-
-                        if ((ga.getGameState() == SOCGame.PLAY1) && (ga.couldBuyDevCard(player.getPlayerNumber())))
-                        {
-                            int card = ga.buyDevCard();
-                            gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 1));
-                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
-                            messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
-                            messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
-                            gameList.releaseMonitorForGame(gaName);
-                            messageToPlayer(c, new SOCDevCard(gaName, player.getPlayerNumber(), SOCDevCard.DRAW, card));
-
-                            messageToGameExcept(gaName, c, new SOCDevCard(gaName, player.getPlayerNumber(), SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
-                            messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " bought a development card."));
-
-                            if (ga.getNumDevCards() > 1)
-                            {
-                                messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "There are " + ga.getNumDevCards() + " cards left."));
-                            }
-                            else if (ga.getNumDevCards() == 1)
-                            {
-                                messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "There is 1 card left."));
-                            }
-                            else
-                            {
-                                messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "There are no more Development cards."));
-                            }
-
-                            sendGameState(ga);
-                        }
-                        else
-                        {
-                            if (ga.getNumDevCards() == 0)
-                            {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "There are no more Development cards."));
-                            }
-                            else
-                            {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't buy a development card now."));
-                            }
-                        }
+                        messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "There are " + ga.getNumDevCards() + " cards left."));
+                    }
+                    else if (ga.getNumDevCards() == 1)
+                    {
+                        messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "There is 1 card left."));
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                        messageToGame(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "There are no more Development cards."));
+                    }
+
+                    sendGameState(ga);
+                }
+                else
+                {
+                    if (ga.getNumDevCards() == 0)
+                    {
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "There are no more Development cards."));
+                    }
+                    else
+                    {
+                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't buy a development card now."));
                     }
                 }
-                catch (Exception e)
-                {
-                    D.ebugPrintln("Exception caught - " + e);
-                    e.printStackTrace();
-                }
-
-                ga.releaseMonitor();
+            }
+            else
+            {
+                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
             }
         }
+        catch (Exception e)
+        {
+            D.ebugPrintln("Exception caught - " + e);
+            e.printStackTrace();
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
