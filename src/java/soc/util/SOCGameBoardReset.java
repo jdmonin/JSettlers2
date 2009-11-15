@@ -195,7 +195,7 @@ public class SOCGameBoardReset
         }
 
         // Check all player positions after enum
-        for (int pn = 0; pn < oldGame.maxPlayers; ++pn)
+        for (int pn = 0; pn < newGame.maxPlayers; ++pn)
         {
             if (! newGame.isSeatVacant(pn))
             {
