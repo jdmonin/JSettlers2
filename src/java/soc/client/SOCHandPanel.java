@@ -2807,7 +2807,7 @@ public class SOCHandPanel extends Panel implements ActionListener
          */
         public void show(int x, int y)
         {
-            setEnabledIfCanTrade(false);
+            setEnabledIfCanTrade(true);  // enable/disable each item
             super.show(resSq, x, y);
         }
 
