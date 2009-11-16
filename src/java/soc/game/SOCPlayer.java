@@ -692,12 +692,13 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
      * Does not validate that they aren't current player;
      * use {@link SOCGame#askSpecialBuildAddPiece(int, int)} for that.
      *
-     * @param pieceType Piece type to ask, from {@link SOCPlayingPiece} constants,
-     *            or -2 if asking to buy a development card
+     * @param pieceType Piece type to ask, from {@link SOCPlayingPiece} constants, <BR>
+     *            or -2 if asking to buy a development card, <BR>
+     *            or -1 to check state and set the flag, with no specific piece type.
      * @throws IllegalStateException  if game is not 6-player
      * @throws IllegalArgumentException  if <tt>pieceType</tt> is out of range
      *            {@link SOCPlayingPiece#MIN} - {@link SOCPlayingPiece#MAXPLUSONE},
-     *            and isn't -2.
+     *            and isn't -1 or -2.
      * @throws UnsupportedOperationException
      *            if player doesn't have the resources for that piece type.
      * @see #hasAskedSpecialBuild()
@@ -714,13 +715,23 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
             pieceType = SOCPlayingPiece.MAXPLUSONE;
 
         // Make sure they have resources to build it
-        SOCResourceSet needed = SOCPlayingPiece.getResourcesToBuild(pieceType);
-                                // May throw IllegalArgumentException for pieceType.
-        if (! resources.contains(needed))
-            throw new UnsupportedOperationException("missing resource");
+        SOCResourceSet needed;
+        if (pieceType != -1)
+        {
+            needed = SOCPlayingPiece.getResourcesToBuild(pieceType);
+                                    // May throw IllegalArgumentException for pieceType.
+            if (! resources.contains(needed))
+                throw new UnsupportedOperationException("missing resource");
+        } else {
+            needed = null;  // set to avoid compiler error
+        }
 
         // OK, they can build it.
         askedSpecialBuild = true;
+        if (pieceType == -1)
+        {
+            return;  // <--- Early return: no specific piece type requested ----
+        }
         ++askSpecialBuildPieces[pieceType];
 
         // Validate previous asks, adjust if needed.

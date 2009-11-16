@@ -4305,14 +4305,15 @@ public class SOCGame implements Serializable, Cloneable
      * When it's their turn to special build, this is what they want to build.
      * Validates player currently has resources to build this piece.
      *
-     * @param pieceType  Piece type to ask, from {@link SOCPlayingPiece} constants,
-     *            or -2 if asking to buy a development card
+     * @param pieceType Piece type to ask, from {@link SOCPlayingPiece} constants, <BR>
+     *            or -2 if asking to buy a development card, <BR>
+     *            or -1 to check state and set the flag, with no specific piece type.
      * @param pn  The player's number
      * @throws IllegalStateException  if game is not 6-player, or is currently this player's turn,
      *            or if gamestate is {@link #PLAY} or earlier.
      * @throws IllegalArgumentException  if <tt>pieceType</tt> is out of range
      *            {@link SOCPlayingPiece#MIN} - {@link SOCPlayingPiece#MAXPLUSONE},
-     *            and isn't -2.  Or if pn is not a valid player (vacant seat, etc).
+     *            and isn't -1 or -2.  Or if pn is not a valid player (vacant seat, etc).
      * @throws UnsupportedOperationException
      *            if player doesn't have the resources for that piece type.
      * @since 1.1.08
