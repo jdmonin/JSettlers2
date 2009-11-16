@@ -32,7 +32,6 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
-import soc.message.SOCPlayerElement;
 
 import java.awt.Button;
 import java.awt.Color;
@@ -2443,12 +2442,13 @@ public class SOCHandPanel extends Panel implements ActionListener
                 playCardBut.setBounds(((clW - pcW) / 2) + clX, cardsY + (4 * (lineH + space)), pcW, lineH);
 
                 int bbW = 50;
+                tbY = dim.height - lineH - inset;
                 // Label lines up over Roll button
-                rollPromptCountdownLab.setBounds(dim.width - (bbW + space + bbW + inset), dim.height - inset - (2 * (lineH + space)), dim.width - 2*inset, lineH);
+                rollPromptCountdownLab.setBounds(dim.width - (bbW + space + bbW + inset), tbY - lineH, dim.width - 2*inset, lineH);
                 // Bottom row of buttons
-                quitBut.setBounds(inset, dim.height - lineH - inset, bbW, lineH);
-                rollBut.setBounds(dim.width - (bbW + space + bbW + inset), dim.height - lineH - inset, bbW, lineH);
-                doneBut.setBounds(dim.width - inset - bbW, dim.height - lineH - inset, bbW, lineH);
+                quitBut.setBounds(inset, tbY, bbW, lineH);
+                rollBut.setBounds(dim.width - (bbW + space + bbW + inset), tbY, bbW, lineH);
+                doneBut.setBounds(dim.width - inset - bbW, tbY, bbW, lineH);
 
                 offerHidesControls = false;  // since it won't ever be showing
             }
