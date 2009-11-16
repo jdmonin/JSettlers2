@@ -423,7 +423,7 @@ public class NewGameOptionsFrame extends Frame
         // Any text to the left of placeholder in optDesc?
         if (placeholderIdx > 0)
         {
-            L = new Label(op.optDesc.substring(0, placeholderIdx - 1).trim());
+            L = new Label(op.optDesc.substring(0, placeholderIdx - 1));
             L.setForeground(LABEL_TXT_COLOR);
             optp.add(L);
             if (hasCB && ! readOnly)
@@ -456,7 +456,7 @@ public class NewGameOptionsFrame extends Frame
         // the text label if there is no placeholder (placeholderIdx == -1).
         if (placeholderIdx + 1 < op.optDesc.length())
         {
-            L = new Label(op.optDesc.substring(placeholderIdx + 1).trim());
+            L = new Label(op.optDesc.substring(placeholderIdx + 1));
             L.setForeground(LABEL_TXT_COLOR);
             optp.add(L);
             if (hasCB && ! readOnly)
