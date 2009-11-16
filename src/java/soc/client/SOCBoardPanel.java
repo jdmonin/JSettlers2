@@ -68,6 +68,9 @@ import java.util.Timer;
  * Before the game begins, the boardpanel is full of water hexes.
  * You can show a short message text of 1 or 2 lines by calling
  * {@link #setSuperimposedText(String, String)}.
+ *<P>
+ * During game play, you can show a short 1-line message text in the
+ * top-center part of the panel by calling {@link #setSuperimposedTopText(String)}.
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
@@ -282,7 +285,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected static int POPUP_MENU_IGNORE_MS = 150;
 
     /**
-     * Pixel spacing around {@link #superText1}, {@link #superText2}
+     * Pixel spacing around {@link #superText1}, {@link #superText2}, {@link #superTextTop}
      * @since 1.1.07
      */
     private static final int SUPERTEXT_INSET = 3, SUPERTEXT_PADDING_HORIZ = 2 * SUPERTEXT_INSET + 2;
@@ -568,7 +571,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected BoardPanelSendBuildTask buildReqTimerTask;
 
     /**
-     * Text to be displayed as 2 lines superimposed over the board graphic (during game setup).
+     * Text to be displayed as 2 lines superimposed over center
+     * of the board graphic (during game setup).
      * Either supertext2, or both, can be null to display nothing.
      * @see #setSuperimposedText(String, String)
      * @since 1.1.07
@@ -578,8 +582,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Width, height of {@link #superText1} and {@link #superText2} if known, or 0.
      * Calculated in {@link #drawSuperText(Graphics)}.
+     * @since 1.1.07
      */
-    private int superText1_w, superText_h, superText2_w, superTextBox_x, superTextBox_y, superTextBox_w, superTextBox_h;
+    private int superText1_w, superText_h, superText_des, superText2_w, superTextBox_x, superTextBox_y, superTextBox_w, superTextBox_h;
+
+    /**
+     * Text to be displayed as 1 line superimposed over the top-center
+     * of the board graphic (during game play).
+     * Can be null to display nothing.
+     * @see #setSuperimposedTopText(String)
+     * @since 1.1.08
+     */
+    private String superTextTop;
+
+    /**
+     * Width, height of {@link #superTextTop} if known, or 0.
+     * Calculated in {@link #drawSuperTextTop(Graphics)}.
+     * Y-position of top of this textbox is {@link #SUPERTEXT_INSET}.
+     * @since 1.1.08
+     */
+    private int superTextTop_w, superTextTop_h, superTextTopBox_x, superTextTopBox_w, superTextTopBox_h;
 
     /**
      * Edge or node being pointed to. When placing a road/settlement/city,
@@ -2492,6 +2514,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             drawSuperText(g);
         }
+        if (superTextTop != null)
+        {
+            drawSuperTextTop(g);
+        }
     }
 
     /**
@@ -2520,6 +2546,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         superText1_w = fm.stringWidth(superText1);
                         superText_h = fm.getHeight();
+                        superText_des = fm.getDescent();
                     }
                     if ((superText2 != null) && (superText2_w == 0))
                     {
@@ -2543,6 +2570,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
         }
+
         // adj from center
         g.setColor(Color.black);
         g.fillRoundRect(superTextBox_x, superTextBox_y, superTextBox_w, superTextBox_h, SUPERTEXT_INSET, SUPERTEXT_INSET);
@@ -2550,9 +2578,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.fillRoundRect(superTextBox_x + SUPERTEXT_INSET, superTextBox_y + SUPERTEXT_INSET,
              superTextBox_w - 2 * SUPERTEXT_INSET, superTextBox_h - 2 * SUPERTEXT_INSET, SUPERTEXT_INSET, SUPERTEXT_INSET);
         g.setColor(Color.black);
+
         // draw text at center
         int tx = (scaledPanelX - superText1_w) / 2;
-        int ty = superTextBox_y + SUPERTEXT_INSET + superText_h;
+        int ty = superTextBox_y + SUPERTEXT_INSET + superText_h - superText_des;
         g.drawString(superText1, tx, ty);
         if (superText2 != null)
         {
@@ -2560,6 +2589,57 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             ty += superText_h;
             g.drawString(superText2, tx, ty);
         }
+    }
+
+    /**
+     * Draw {@link #superTextTop}; if necessary, calculate {@link #superTextTop_w} and other fields.
+     * @since 1.1.08
+     */
+    private void drawSuperTextTop(Graphics g)
+    {
+        // Do we need to calculate the metrics?
+
+        if (superTextTop_w == 0)
+        {
+            final Font bpf = getFont();
+            if (bpf == null)
+            {
+                repaint();  // We'll have to try again
+                return;
+            }
+            final FontMetrics fm = getFontMetrics(bpf);
+            if (fm == null)
+            {
+                repaint();
+                return;  // We'll have to try again
+            }
+            if (superTextTop_w == 0)
+            {
+                superTextTop_w = fm.stringWidth(superTextTop);
+                superTextTop_h = fm.getHeight() - fm.getDescent();
+            }
+
+            // box size
+            superTextTopBox_w = superTextTop_w;
+            superTextTopBox_h = superTextTop_h;
+
+            superTextTopBox_w += 2 * SUPERTEXT_INSET + 2 * SUPERTEXT_PADDING_HORIZ;
+            superTextTopBox_h += SUPERTEXT_INSET + 2 * fm.getDescent();
+
+            superTextTopBox_x = (scaledPanelX - superTextTopBox_w) / 2;
+        }
+
+        // adj from center
+        g.setColor(Color.black);
+        g.fillRoundRect(superTextTopBox_x, SUPERTEXT_INSET, superTextTopBox_w, superTextTopBox_h, SUPERTEXT_INSET, SUPERTEXT_INSET);
+        g.setColor(Color.white);
+        g.fillRoundRect(superTextTopBox_x + SUPERTEXT_INSET, 2 * SUPERTEXT_INSET,
+             superTextTopBox_w - 2 * SUPERTEXT_INSET, superTextTopBox_h - 2 * SUPERTEXT_INSET, SUPERTEXT_INSET, SUPERTEXT_INSET);
+        g.setColor(Color.black);
+        // draw text at center
+        int tx = (scaledPanelX - superTextTop_w) / 2;
+        int ty = 2 * SUPERTEXT_INSET + superTextTop_h;
+        g.drawString(superTextTop, tx, ty);
     }
 
     /**
@@ -2677,10 +2757,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * update the type of interaction mode.
-     * Also calls {@link #updateHoverTipToMode()}.
+     * Also calls {@link #updateHoverTipToMode()} and
+     * (for 6-player board's Special Building Phase) updates top-center text.
      */
     public void updateMode()
     {
+        setSuperimposedTopText(null);  // assume not Special Building Phase
+
         if (player != null)
         {
             if (game.getCurrentPlayerNumber() == player.getPlayerNumber())
@@ -2737,6 +2820,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     break;
 
+                case SOCGame.SPECIAL_BUILDING:
+                    mode = NONE;
+                    setSuperimposedTopText("Special Building: " + player.getName());
+                    break;
+
                 default:
                     mode = NONE;
 
@@ -2746,6 +2834,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             else
             {
                 mode = NONE;
+
+                if (game.getGameState() == SOCGame.SPECIAL_BUILDING)
+                    setSuperimposedTopText("Special Building: " + player.getName());
             }
         }
         else
@@ -3449,7 +3540,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * Text to be displayed as 2 lines superimposed over the board graphic (during game setup).
+     * Text to be displayed as 2 lines superimposed over the
+     * center of the board graphic (during game setup).
      * Either text2, or both, can be null to display nothing.
      * Keep the text short, because boardPanel may not be very wide ({@link #PANELX} pixels).
      * Will trigger a repaint.
@@ -3471,6 +3563,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         superText1_w = 0;
         superText2_w = 0;
         superTextBox_w = 0;
+        repaint();
+    }
+
+    /**
+     * Text to be displayed as 1 lines superimposed over the
+     * top center of the board graphic (during game play).
+     * text can be null to display nothing.
+     * Keep the text short, because boardPanel may not be very wide ({@link #PANELX} pixels).
+     * Will trigger a repaint.
+     * @param text Line of text, or null
+     * @since 1.1.08
+     */
+    public void setSuperimposedTopText(String text)
+    {
+        superTextTop = text;
+        superTextTop_w = 0;
+        superTextTopBox_w = 0;
         repaint();
     }
 
