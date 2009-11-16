@@ -47,18 +47,19 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     static final String STLMT = "stlmt";
     static final String CITY = "city";
     static final String CARD = "card";
+    private static final String SBP = "sbp";  // Special Building Phase button; @since 1.1.08
     Label title;
     Button roadBut;
     Button settlementBut;
     Button cityBut;
     Button cardBut;
     Button optsBut;  // show SOCGameOptions; @since 1.1.07
-    Label roadT;
-    Label roadC;
+    Label roadT;  // text
+    Label roadC;  // cost
     ColorSquare roadWood;
     ColorSquare roadClay;
-    Label settlementT;
-    Label settlementC;
+    Label settlementT;  // text
+    Label settlementC;  // cost
     ColorSquare settlementWood;
     ColorSquare settlementClay;
     ColorSquare settlementWheat;
@@ -74,6 +75,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     ColorSquare cardSheep;
     ColorSquare cardOre;
     ColorSquare cardCount;
+    // For 6-player board: request Special Building Phase: @since 1.1.08
+    private Panel sbPanel;
+    private Button sbBut;
+    private Label sbLab;
+    private boolean sbIsHilight;  // Yellow, not grey, when true
+
     SOCPlayerInterface pi;
 
     /**
@@ -188,6 +195,23 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         cardCount.setTooltipLowWarningLevel("Almost out of development cards to buy", 3);
         cardCount.setTooltipZeroText("No more development cards available to buy");
         add(cardCount);
+
+        if (pi.getGame().maxPlayers > 4)
+        {
+            sbIsHilight = false;
+            sbPanel = new Panel();  // with default FlowLayout, alignment FlowLayout.CENTER.
+            sbPanel.setBackground(ColorSquare.GREY);
+            sbLab = new Label("Special Building Phase");
+            sbBut = new Button("Buy/Build");
+            sbBut.setEnabled(false);
+            sbBut.setActionCommand(SBP);
+            sbBut.addActionListener(this);
+            sbPanel.add(sbLab);
+            sbPanel.add(sbBut);
+            add(sbPanel);
+            new AWTToolTip("This phase allows building between player turns.", sbPanel);
+            new AWTToolTip("This phase allows building between player turns.", sbLab);
+        }
     }
 
     /**
@@ -197,15 +221,15 @@ public class SOCBuildingPanel extends Panel implements ActionListener
      */
     public void doLayout()
     {
-        Dimension dim = getSize();
+        final Dimension dim = getSize();
         int curY = 1;
         int curX;
         FontMetrics fm = this.getFontMetrics(this.getFont());
         final int lineH = ColorSquare.HEIGHT;
         final int rowSpaceH = lineH / 2;
-        int costW = fm.stringWidth("Cost:_");    //Bug in stringWidth does not give correct size for ' ' so use '_'
-        int butW = 50;
-        int margin = 2;
+        final int costW = fm.stringWidth("Cost:_");    //Bug in stringWidth does not give correct size for ' ' so use '_'
+        final int butW = 50;
+        final int margin = 2;
 
         final int settlementTW = fm.stringWidth(settlementT.getText());
         final int cityTW = fm.stringWidth(cityT.getText());
@@ -258,6 +282,16 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX += (ColorSquare.WIDTH + 3);
         settlementSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         settlementSheep.setLocation(curX, curY);
+
+        if (pi.getGame().maxPlayers > 4)
+        {
+            curX += (ColorSquare.WIDTH + 3);
+            sbPanel.setSize(dim.width - curX - margin, rowSpaceH + 2 * lineH);
+            sbPanel.setLocation(curX, curY);
+            // sbBut.setSize(dim.width - curX - margin - 2 * buttonMargin, lineH);
+            // (can't set size, FlowLayout will override it)
+        }
+
         curY += (rowSpaceH + lineH);
 
         cityT.setSize(cityTW, lineH);
@@ -384,7 +418,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 client.buyDevCard(game);
             }
-        }        
+        }
+        else if (target == SBP)
+        {
+            if (stateBuyOK && ! sbIsHilight)
+                client.buildRequest(game, -1);
+        }
     }
 
     /**
@@ -393,14 +432,17 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     public void updateButtonStatus()
     {
         SOCGame game = pi.getGame();
+        boolean anyLabelBuy = false;
 
         if (player != null)
         {
             int pnum = player.getPlayerNumber();
             boolean isCurrent = (game.getCurrentPlayerNumber() == pnum);
             final int gstate = game.getGameState();
-            boolean currentCanBuy = (isCurrent || (game.maxPlayers > 4))
-              && ((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING));
+            boolean currentCanBuy =
+                (isCurrent)
+                ? ((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING))
+                : ((game.maxPlayers > 4) && (gstate >= SOCGame.PLAY) && (gstate < SOCGame.OVER));
 
             if (isCurrent && (gstate == SOCGame.PLACING_ROAD))
             {
@@ -411,6 +453,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 roadBut.setEnabled(currentCanBuy);
                 roadBut.setLabel("Buy");
+                anyLabelBuy = true;
             }
             else
             {
@@ -429,6 +472,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 settlementBut.setEnabled(currentCanBuy);
                 settlementBut.setLabel("Buy");
+                anyLabelBuy = true;
             }
             else
             {
@@ -445,6 +489,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 cityBut.setEnabled(currentCanBuy);
                 cityBut.setLabel("Buy");
+                anyLabelBuy = true;
             }
             else
             {
@@ -456,11 +501,28 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 cardBut.setEnabled(currentCanBuy);
                 cardBut.setLabel("Buy");
+                anyLabelBuy = true;
             }
             else
             {
                 cardBut.setEnabled(false);
                 cardBut.setLabel("---");
+            }
+
+            if ((sbBut != null) && (player != null))
+            {
+                final boolean askedSB = player.hasAskedSpecialBuild();
+                if (askedSB != sbIsHilight)
+                {
+                    final Color want =
+                        (askedSB)
+                        ? ColorSquare.WARN_LEVEL_COLOR_BG_FROMGREY
+                        : ColorSquare.GREY;
+                    sbPanel.setBackground(want);
+                    sbLab.setBackground(want);
+                    sbIsHilight = askedSB;
+                }
+                sbBut.setEnabled(currentCanBuy && anyLabelBuy && ! (askedSB || isCurrent));
             }
         }
     }
