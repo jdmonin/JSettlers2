@@ -1498,9 +1498,12 @@ public class SOCGame implements Serializable, Cloneable
             if (! advanceTurn())
                 return false;  // All players have left
             anyPlayerWantsSB = players[currentPlayerNumber].hasAskedSpecialBuild();
-        } while ((prevPlayer != currentPlayerNumber) && ! anyPlayerWantsSB);
+        } while ((! anyPlayerWantsSB)
+                  && (currentPlayerNumber != prevPlayer)
+                  && ((! alreadyInPhase)
+                       || (currentPlayerNumber != specialBuildPhase_afterPlayerNumber)));
 
-        if (prevPlayer == currentPlayerNumber)
+        if (! anyPlayerWantsSB)
         {
             // No one is left to special build.
             // Case "A" or "D".
