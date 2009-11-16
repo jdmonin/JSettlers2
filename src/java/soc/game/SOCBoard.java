@@ -309,7 +309,7 @@ public class SOCBoard implements Serializable, Cloneable
      * largest coordinate value for an edge, in the v2 encoding
      * @since 1.1.08
      */
-    public static final int MAXEDGE_V2 = 0xEE;
+    public static final int MAXEDGE_V2 = 0xCC;
 
     /**
      * smallest coordinate value for an edge, in the v1 encoding
@@ -2202,7 +2202,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * The hex touching an edge in a given direction,
      * either along its length or at one end node.
-     * @param edgeCoord The edge's coordinate. {@link #MAXEDGE_V2} is 0xEE in v2 encoding.
+     * @param edgeCoord The edge's coordinate. {@link #maxEdge} is 0xCC in v1 and v2 encoding.
      * @param facing  Facing from edge; 1 to 6.
      *           This will be either a direction perpendicular to the edge,
      *           or towards one end. Each end has two facing directions angled
