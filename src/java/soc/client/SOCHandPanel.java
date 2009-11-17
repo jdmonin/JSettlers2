@@ -283,12 +283,14 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected int[] playerSendMap;
 
     /**
-     * Display other players' trade offers and related messages. Not used if playerIsClient.
+     * Display other players' trade offers and related messages.
+     * Does not apply to client's hand panel (<tt>playerIsClient</tt> == true).
      * Both offer and counter-offer display are part of this object.
      * Also used to display board-reset vote messages.
      * When displaying a message, looks like a {@link SpeechBalloon}.
      *<P>
      * If the handpanel is not tall enough, other controls will be obscured by this one.
+     * This low height is indicated by {@link #offerHidesControls} and possibly {@link #offerCounterHidesFace}.
      *
      * @see #offerIsResetMessage
      * @see #offerIsDiscardMessage
@@ -297,12 +299,20 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * If true, the handpanel isn't tall enough, so when the {@link #offer} message panel
-     * is showing something from another player (not the client), we must hide other controls.
+     * is showing something, we must hide other controls.
+     * Does not apply to client's hand panel.
      *
      * @see #hideTradeMsgShowOthers(boolean)
      * @since 1.1.08
      */
-    private boolean offerHidesControls;
+    private boolean offerHidesControls, offerCounterHidesFace;
+    
+    /**
+     * When handpanel isn't tall enough, are we currently in the situation described
+     * at {@link #offerHidesControls} or {@link #offerCounterHidesFace}?
+     * @since 1.1.08
+     */
+    private boolean offerHidingControls, offerCounterHidingFace;
 
     /**
      * Board-reset voting: If true, {@link #offer} is holding a message related to a board-reset vote.
@@ -1039,6 +1049,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * remove this player.
      * To prevent inconsistencies, call this <em>before</em> calling
      * {@link SOCGame#removePlayer(String)}.
+     * Also called from constructor, before {@link #doLayout()}.
      */
     public void removePlayer()
     {
@@ -1065,6 +1076,9 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         larmyLab.setVisible(false);
         lroadLab.setVisible(false);
+
+        offerHidingControls = false;  
+        offerCounterHidingFace = false;
 
         if (playerIsClient)
         {
@@ -1508,6 +1522,24 @@ public class SOCHandPanel extends Panel implements ActionListener
     }
 
     /**
+     * Callback from {@link TradeOfferPanel}.
+     * For players who aren't the client:
+     * If our {@link TradeOfferPanel} shows/hides the counter offer,
+     * may need to rearrange or hide controls under it.
+     * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
+     * not in {@link TradeOfferPanel#MESSAGE_MODE}.
+     *
+     * @param counterVisible Is the counter-offer showing?
+     * @since 1.1.08
+     */
+    public void offerCounterOfferVisibleChanged(final boolean counterVisible)
+    {
+        if (! offerCounterHidesFace)
+            return;
+        hideTradeMsgShowOthers(false);  // move 'offer' around if needed, hide/show faceImg.
+    }
+
+    /**
      * If the player (client) has no playable
      * cards, begin auto-roll countdown,
      * Otherwise, prompt them to roll or pick a card.
@@ -1780,9 +1812,13 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * If handpanel isn't tall enough, when the {@link #offer}
      * message panel is showing, we must hide other controls.
+     *<P>
      * This method does <b>not</b> hide/show the trade offer;
      * other methods do that, and then call this method to show/hide
      * the controls that would be obscured by it.
+     *<P>
+     * If {@link #offerCounterHidesFace}, will check {@link TradeOfferPanel#isCounterOfferMode()}
+     * and redo layout (to hide/move) if needed.
      *
      * @param hideTradeMsg Are we hiding, or showing, the trade offer message panel?
      * @see #tradeSetMessage(String)
@@ -1795,27 +1831,51 @@ public class SOCHandPanel extends Panel implements ActionListener
         if (! offerHidesControls)
             return;
 
-        knightsLab.setVisible(hideTradeMsg);
-        knightsSq.setVisible(hideTradeMsg);
-        resourceLab.setVisible(hideTradeMsg);
-        resourceSq.setVisible(hideTradeMsg);
-        developmentLab.setVisible(hideTradeMsg);
-        developmentSq.setVisible(hideTradeMsg);
-        roadSq.setVisible(hideTradeMsg);
-        roadLab.setVisible(hideTradeMsg);
-        settlementSq.setVisible(hideTradeMsg);
-        settlementLab.setVisible(hideTradeMsg);
-        citySq.setVisible(hideTradeMsg);
-        cityLab.setVisible(hideTradeMsg);
-
-        if (inPlay && player.isRobot())
+        if (offerHidingControls == hideTradeMsg)
         {
-            final boolean clientAlreadySat = (null != playerInterface.getClientHand());
+            knightsLab.setVisible(hideTradeMsg);
+            knightsSq.setVisible(hideTradeMsg);
+            resourceLab.setVisible(hideTradeMsg);
+            resourceSq.setVisible(hideTradeMsg);
+            developmentLab.setVisible(hideTradeMsg);
+            developmentSq.setVisible(hideTradeMsg);
+            roadSq.setVisible(hideTradeMsg);
+            roadLab.setVisible(hideTradeMsg);
+            settlementSq.setVisible(hideTradeMsg);
+            settlementLab.setVisible(hideTradeMsg);
+            citySq.setVisible(hideTradeMsg);
+            cityLab.setVisible(hideTradeMsg);
+    
+            if (inPlay && player.isRobot())
+            {
+                final boolean clientAlreadySat = (null != playerInterface.getClientHand());
+    
+                if (clientAlreadySat)
+                    sittingRobotLockBut.setVisible(hideTradeMsg);
+                else if (! game.isSeatLocked(player.getPlayerNumber()))
+                    takeOverBut.setVisible(hideTradeMsg);
+            }
 
-            if (clientAlreadySat)
-                sittingRobotLockBut.setVisible(hideTradeMsg);
-            else if (! game.isSeatLocked(player.getPlayerNumber()))
-                takeOverBut.setVisible(hideTradeMsg);
+            offerHidingControls = ! hideTradeMsg;
+        }
+
+        if (! offerCounterHidesFace)
+            return;
+
+        final boolean counterIsShowing = offer.isCounterOfferMode();
+        if (offerCounterHidingFace != counterIsShowing)
+        {
+            faceImg.setVisible(! counterIsShowing);
+            pname.setVisible(! counterIsShowing);
+            vpLab.setVisible(! counterIsShowing);
+            vpSq.setVisible(! counterIsShowing);
+            larmyLab.setVisible(! counterIsShowing);
+            lroadLab.setVisible(! counterIsShowing);
+
+            offerCounterHidingFace = counterIsShowing;
+            invalidate();
+            doLayout();  // must move offer panel
+            repaint();
         }
     }
 
@@ -2451,6 +2511,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 doneBut.setBounds(dim.width - inset - bbW, tbY, bbW, lineH);
 
                 offerHidesControls = false;  // since it won't ever be showing
+                offerCounterHidesFace = false;
             }
             else
             {
@@ -2477,9 +2538,26 @@ public class SOCHandPanel extends Panel implements ActionListener
                 offerHidesControls = (dim.height - (inset + faceW + space + balloonH))
                     < (3 * (lineH + space));
                 if (offerHidesControls)
-                    offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), dim.height - (inset + faceW + 2 * space));
-                else
+                {
+                    // This field is calculated based on height.
+                    offerCounterHidesFace =
+                        ((dim.height - TradeOfferPanel.OFFER_HEIGHT - TradeOfferPanel.OFFER_COUNTER_HEIGHT + TradeOfferPanel.OFFER_BUTTONS_HEIGHT)
+                        < faceW);
+
+                    // This is a dynamic flag, set by hideTradeMsgShowOthers
+                    // when the user clicks button to show/hide the counter-offer.
+                    // If true, hideTradeMsgShowOthers has already hid faceImg,
+                    // pname, vpLab and vpSq, to make room for it.
+                    if (offerCounterHidingFace)
+                    {
+                        offer.setBounds(inset, inset, dim.width - (2 * inset), dim.height - (2 * inset));
+                    } else {
+                        offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), dim.height - (inset + faceW + 2 * space));
+                    }
+                } else {
                     offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), balloonH);
+                    offerCounterHidesFace = false;
+                }
                 offer.doLayout();
 
                 vpLab.setBounds(inset + faceW + inset, (inset + faceW) - lineH, vpW, lineH);

@@ -54,6 +54,46 @@ public class TradeOfferPanel extends Panel
     public static final String OFFER_MODE = "offer";
     public static final String MESSAGE_MODE = "message";
 
+    /**
+     * Typical height of offer panel, when visible. (Includes
+     * {@link #OFFER_BUTTONS_HEIGHT}, but not {@link #OFFER_COUNTER_HEIGHT}.)
+     * For convenience of other classes' layout calculations.
+     * Actual height (buttons' y-positions + height) is set dynamically in OfferPanel.doLayout.
+     * @since 1.1.08
+     */
+    public static final int OFFER_HEIGHT
+        = (5 + 32 + (SquaresPanel.HEIGHT + 8)) + 18 + 10;
+        // As calculated in OfferPanel.doLayout():
+        //    top = between 5 and 18: = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 5
+        //    squaresHeight = squares.getBounds().height + 8
+        //    buttonY = top + 32 + squaresHeight
+        //    buttonH = 18
+        //    inset = 10
+        //    HEIGHT = buttonY + buttonH + inset
+
+    /**
+     * Additional height of offer (part of {@link #OFFER_HEIGHT})
+     * when the "offer"/"accept"/"reject" buttons are showing.
+     * That is, when not in counter-offer mode.
+     * For convenience of other classes' layout calculations.
+     * Based on calcuations within OfferPanel.doLayout.
+     * @since 1.1.08
+     */
+    public static final int OFFER_BUTTONS_HEIGHT = 26;
+
+    /**
+     * Typical height of counter-offer panel, when visible.
+     * For convenience of other classes' layout calculations.
+     * Actual height of counter-offer (offerBox) is set dynamically in OfferPanel.doLayout.
+     * @since 1.1.08
+     */
+    public static final int OFFER_COUNTER_HEIGHT
+        = SquaresPanel.HEIGHT + 24 + 20 + ColorSquareLarger.HEIGHT_L;
+        // As calculated in OfferPanel.doLayout():
+        //   squaresHeight = squares.getBounds().height + 24
+        //   lineH = ColorSquareLarger.HEIGHT_L
+        //   HEIGHT = squaresHeight + 20 + lineH
+
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
     static final String OFFER = "counter";
     static final String ACCEPT = "accept";
@@ -290,6 +330,9 @@ public class TradeOfferPanel extends Panel
 
         /**
          * Update the displayed offer.
+         * Should be called when already in {@link TradeOfferPanel#OFFER_MODE},
+         * or about to switch to it via {@link TradeOfferPanel#setOffer(SOCTradeOffer)}.
+         *
          * @param  offer  the trade offer, with set of resources being given and asked for
          */
         public void update(SOCTradeOffer offer)
@@ -398,6 +441,7 @@ public class TradeOfferPanel extends Panel
             int buttonW = 48;
             int buttonH = 18;
             int inset = 10;
+            // At initial call to doLayout: dim.width, .height == 0.
             int w = Math.min((2*(inset+5) + 3*buttonW), dim.width);
             int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L, dim.height);
             int top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 5;
@@ -432,6 +476,8 @@ public class TradeOfferPanel extends Panel
 
                 balloon.setBounds(0, 0, w, h);
                 offerBox.setBounds(0, top + 22 + squaresHeight, w, squaresHeight + 20 + lineH);
+
+                // If offerBox height calculation changes, please update OFFER_COUNTER_HEIGHT.
             }
             else
             {
@@ -455,6 +501,10 @@ public class TradeOfferPanel extends Panel
                 }
 
                 balloon.setBounds(0, 0, w, h);
+
+                // If rejectBut height calculation changes, please update OFFER_HEIGHT.
+                // If change in the height dfference of "offered" buttons showing/not showing,
+                // please update OFFER_BUTTONS_HEIGHT.
             }
         }
 
@@ -549,7 +599,11 @@ public class TradeOfferPanel extends Panel
             }            
         }
 
-        /** show or hide our counter-offer panel, below the trade-offer panel. */
+        /** 
+         * show or hide our counter-offer panel, below the trade-offer panel.
+         * This should be called when in {@link TradeOfferPanel#OFFER_MODE},
+         * not in {@link TradeOfferPanel#MESSAGE_MODE}.
+         */
         private void setCounterOfferVisible(boolean visible)
         {
             boolean haveResources = true;
@@ -579,6 +633,7 @@ public class TradeOfferPanel extends Panel
             offerBut.setVisible(offered && ! visible);
 
             counterOfferMode = visible;
+            hp.offerCounterOfferVisibleChanged(visible);
             validate();
         }
     }
@@ -628,6 +683,17 @@ public class TradeOfferPanel extends Panel
             invalidate();
         }
         repaint();
+    }
+
+    /**
+     * Is this offerpanel in counteroffer mode, with a trade offer
+     * and counter-offer showing?
+     * @return  true if in counter-offer mode
+     * @since 1.1.08
+     */
+    public boolean isCounterOfferMode()
+    {
+        return offerPanel.counterOfferMode;
     }
 
     /**
