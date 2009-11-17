@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007,2008 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +29,8 @@ import java.awt.event.MouseListener;
 /**
  * Display grid of give/get resources
  * for trade and bank/port offers.
+ * 2 rows of 5 columns:  1 column per resource
+ * type: Clay, ore, sheep, wheat, wood.
  *
  * @author Robert S Thomas
  *
@@ -37,6 +39,12 @@ import java.awt.event.MouseListener;
  */
 public class SquaresPanel extends Panel implements MouseListener, ColorSquareListener
 {
+    /**
+     * Height of this panel
+     * @since 1.1.08
+     */
+    public static final int HEIGHT = (2 * (ColorSquareLarger.HEIGHT_L - 1)) + 1;
+
     /**
      *  To change its value, each ColorSquare handles its own mouse events.
      *  We also add ourself as listeners to mouse and ColorSquare value changes. 
@@ -96,9 +104,11 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
             give[i].addMouseListener(this);
         }
 
-        int lineH = ColorSquareLarger.HEIGHT_L - 1;
+        // int lineH = ColorSquareLarger.HEIGHT_L - 1,
+        //    HEIGHT = (2 * lineH) + 1;
+
         int sqW = ColorSquareLarger.WIDTH_L - 1;
-        setSize((5 * sqW) + 1, (2 * lineH) + 1);
+        setSize((5 * sqW) + 1, HEIGHT);
     }
 
     /**
