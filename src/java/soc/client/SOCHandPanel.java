@@ -2554,6 +2554,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                     } else {
                         offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), dim.height - (inset + faceW + 2 * space));
                     }
+                    offer.setCounterHidesBalloonPoint(offerCounterHidingFace);
                 } else {
                     offer.setBounds(inset, inset + faceW + space, dim.width - (2 * inset), balloonH);
                     offerCounterHidesFace = false;

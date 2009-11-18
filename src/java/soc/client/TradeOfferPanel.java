@@ -48,6 +48,9 @@ import java.awt.event.ActionListener;
  *  <LI> Showing vote on a board reset request
  *  <LI> Showing the player is deciding what to discard
  *</UL>
+ *<P>
+ * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
+ * because it is overridden to also update a "compact mode" flag for counter-offer layout.
  */
 public class TradeOfferPanel extends Panel
 {
@@ -76,7 +79,7 @@ public class TradeOfferPanel extends Panel
      * when the "offer"/"accept"/"reject" buttons are showing.
      * That is, when not in counter-offer mode.
      * For convenience of other classes' layout calculations.
-     * Based on calcuations within OfferPanel.doLayout.
+     * Based on calculations within OfferPanel.doLayout.
      * @since 1.1.08
      */
     public static final int OFFER_BUTTONS_HEIGHT = 26;
@@ -88,11 +91,11 @@ public class TradeOfferPanel extends Panel
      * @since 1.1.08
      */
     public static final int OFFER_COUNTER_HEIGHT
-        = SquaresPanel.HEIGHT + 24 + 20 + ColorSquareLarger.HEIGHT_L;
+        = SquaresPanel.HEIGHT + 24 + 16 + ColorSquareLarger.HEIGHT_L;
         // As calculated in OfferPanel.doLayout():
         //   squaresHeight = squares.getBounds().height + 24
         //   lineH = ColorSquareLarger.HEIGHT_L
-        //   HEIGHT = squaresHeight + 20 + lineH
+        //   HEIGHT = squaresHeight + 16 + lineH
 
     protected static final int[] zero = { 0, 0, 0, 0, 0 };
     static final String OFFER = "counter";
@@ -110,6 +113,23 @@ public class TradeOfferPanel extends Panel
     CardLayout cardLayout;
     MessagePanel messagePanel;
     OfferPanel offerPanel;
+
+    /**
+     * If true, display counter-offer in a "compact mode" layout
+     * because the panel's height is too short for the normal arrangement.
+     * Calculated using {@link #OFFER_HEIGHT} + {@link #OFFER_COUNTER_HEIGHT}
+     *     - {@link #OFFER_BUTTONS_HEIGHT}.
+     * @since 1.1.08
+     */
+    private boolean counterCompactMode;
+
+    /**
+     * If true, hide the original offer's balloon point
+     * (see {@link SpeechBalloon#setBalloonPoint(boolean)})
+     * when the counter-offer is visible.
+     * @since 1.1.08 
+     */
+    private boolean counterHidesBalloonPoint;
 
     /**
      * Creates a new TradeOfferPanel object.
@@ -132,6 +152,9 @@ public class TradeOfferPanel extends Panel
         add(messagePanel, MESSAGE_MODE); // first added = first shown
         add(offerPanel, OFFER_MODE);
         mode = MESSAGE_MODE;
+
+        counterCompactMode = false;
+        counterHidesBalloonPoint = false;
     }
     
     private class MessagePanel extends Panel
@@ -307,12 +330,12 @@ public class TradeOfferPanel extends Panel
             offerSquares.setVisible(false);
             add(offerSquares);
 
-            giveLab2 = new Label("Give You: ");
+            giveLab2 = new Label("Give Them: ");
             giveLab2.setVisible(false);
             add(giveLab2);
             new AWTToolTip("Give to opponent", giveLab2);
 
-            getLab2 = new Label("You Give: ");
+            getLab2 = new Label("You Get: ");
             getLab2.setVisible(false);
             add(getLab2);
             new AWTToolTip("Opponent gives to you", getLab2);
@@ -355,7 +378,7 @@ public class TradeOfferPanel extends Panel
                     counterOfferToWhom.setBackground(ourPlayerColor);
                     offerBox.setInterior(ourPlayerColor);
                     counterOfferToWhom.setText
-                        ("Counter to " + hp.getPlayer().getName() + " ('you'):");
+                        ("Counter to " + hp.getPlayer().getName() + ":");
 
                     counterOffer_playerInit = true;
                 }                
@@ -432,15 +455,16 @@ public class TradeOfferPanel extends Panel
         }
 
         /**
-         * Custom layout for this panel
+         * Custom layout for this OfferPanel
          */
         public void doLayout()
         {
             FontMetrics fm = this.getFontMetrics(this.getFont());
             Dimension dim = getSize();
-            int buttonW = 48;
-            int buttonH = 18;
+            final int buttonW = 48;
+            final int buttonH = 18;
             int inset = 10;
+
             // At initial call to doLayout: dim.width, .height == 0.
             int w = Math.min((2*(inset+5) + 3*buttonW), dim.width);
             int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L, dim.height);
@@ -454,33 +478,70 @@ public class TradeOfferPanel extends Panel
                 h = Math.min(60 + 2 * ColorSquareLarger.HEIGHT_L, h);
                 top = (h / (int)(.5 * ColorSquareLarger.HEIGHT_L)) + 10;
 
-                int giveW = fm.stringWidth("You Give: ") + 2;
+                if (counterCompactMode)
+                {
+                    inset = 2;
+                    balloon.setBalloonPoint(false);
+                    top -= (h / 8);  // Shift everything up this far, since we
+                                     // don't need to leave room for balloon point.
+                } else {
+                    balloon.setBalloonPoint(! counterHidesBalloonPoint);
+                }
+
+                final int giveW = fm.stringWidth(giveLab2.getText()) + 1;
 
                 toWhom1.setBounds(inset, top, w - 20, 14);
                 toWhom2.setBounds(inset, top + 14, w - 20, 14);
+
                 giveLab.setBounds(inset, top + 32, giveW, lineH);
                 getLab.setBounds(inset, top + 32 + lineH, giveW, lineH);
                 squares.setLocation(inset + giveW, top + 32);
 
                 int squaresHeight = squares.getBounds().height + 24;
-                counterOfferToWhom.setBounds(inset, top + 32 + squaresHeight, w - 20, 14);
-                giveLab2.setBounds(inset, top + 32 + lineH + squaresHeight, giveW, lineH);
-                getLab2.setBounds(inset, top + 32 + 2*lineH + squaresHeight, giveW, lineH);
-                offerSquares.setLocation(inset + giveW, top + 32 + lineH + squaresHeight);
+                counterOfferToWhom.setBounds(inset + 7, top + 28 + squaresHeight, w - 33, 12);
+                giveLab2.setBounds(inset, top + 28 + lineH + squaresHeight, giveW, lineH);
+                getLab2.setBounds(inset, top + 28 + 2*lineH + squaresHeight, giveW, lineH);
+                offerSquares.setLocation(inset + giveW, top + 28 + lineH + squaresHeight);
                 offerSquares.doLayout();
 
-                int buttonY = top + 12 + (2 * squaresHeight) + lineH;
-                sendBut.setBounds(inset, buttonY, buttonW, buttonH);
-                clearBut.setBounds(inset + 5 + buttonW, buttonY, buttonW, buttonH);
-                cancelBut.setBounds(inset + (2 * (5 + buttonW)), buttonY, buttonW, buttonH);
+                if (counterCompactMode)
+                {
+                    // Buttons to right of counterOfferToWhom
+                    int buttonY = top + 28 + squaresHeight;
+                    final int buttonX = inset + giveW + squares.getBounds().width + 2;
 
-                balloon.setBounds(0, 0, w, h);
-                offerBox.setBounds(0, top + 22 + squaresHeight, w, squaresHeight + 20 + lineH);
+                    sendBut.setBounds(buttonX, buttonY, buttonW, buttonH);
+                    buttonY += buttonH + 2;
+                    clearBut.setBounds(buttonX, buttonY, buttonW, buttonH);
+                    buttonY += buttonH + 2;
+                    cancelBut.setBounds(buttonX, buttonY, buttonW, buttonH);
+
+                    if (w < (buttonX + buttonW + ShadowedBox.SHADOW_SIZE + 2))
+                        w = buttonX + buttonW + ShadowedBox.SHADOW_SIZE + 2;
+                } else {
+                    // Buttons below giveLab2, offerSquares
+                    final int buttonY = top + 8 + (2 * squaresHeight) + lineH;
+
+                    sendBut.setBounds(inset, buttonY, buttonW, buttonH);
+                    clearBut.setBounds(inset + 5 + buttonW, buttonY, buttonW, buttonH);
+                    cancelBut.setBounds(inset + (2 * (5 + buttonW)), buttonY, buttonW, buttonH);
+                }
+
+                if (counterCompactMode)
+                {
+                    // No balloon point, so top h/8 of its bounding box is empty
+                    balloon.setBounds(0, -h/8, w, h - (h/16));
+                } else {
+                    balloon.setBounds(0, 0, w, h);
+                }
+                offerBox.setBounds(0, top + 18 + squaresHeight, w, squaresHeight + 16 + lineH);
 
                 // If offerBox height calculation changes, please update OFFER_COUNTER_HEIGHT.
             }
             else
             {
+                balloon.setBalloonPoint(true);
+
                 int lineH = ColorSquareLarger.HEIGHT_L;
                 int giveW = fm.stringWidth("I Give: ") + 2;
 
@@ -704,4 +765,43 @@ public class TradeOfferPanel extends Panel
     public String getMode() {
         return mode;
     }
-}
+
+    /**
+     * If true, hide the original offer's balloon point
+     * (see {@link SpeechBalloon#setBalloonPoint(boolean)})
+     * when the counter-offer is visible.
+     * @since 1.1.08 
+     */
+    public boolean doesCounterHideBalloonPoint()
+    {
+        return counterHidesBalloonPoint;
+    }
+
+    /**
+     * If true, hide the original offer's balloon point
+     * (see {@link SpeechBalloon#setBalloonPoint(boolean)})
+     * when the counter-offer is visible.
+     * @param hide  Hide it during counter-offer?
+     * @since 1.1.08 
+     */
+    public void setCounterHidesBalloonPoint(final boolean hide)
+    {
+        if (counterHidesBalloonPoint == hide)
+            return;
+        counterHidesBalloonPoint = hide;
+        offerPanel.balloon.setBalloonPoint(! hide);
+    }
+
+    /**
+     * Move and/or resize this panel.
+     * Overriden to also update "compact mode" flag for counter-offer.
+     * @since 1.1.08
+     */
+    public void setBounds(final int x, final int y, final int width, final int height)
+    {
+        super.setBounds(x, y, width, height);
+        counterCompactMode =
+            (height < (OFFER_HEIGHT + OFFER_COUNTER_HEIGHT - OFFER_BUTTONS_HEIGHT));
+    }
+
+}  // TradeOfferPanel
