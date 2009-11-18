@@ -3,8 +3,10 @@
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 
     > 1.1.08 (build 200911xx)
+- 6-player board, with Special Building Phase rule
 - Smaller, cleaner building panel
 - Rotated-board mode, to make it easier to fit a larger board
+- Re-word counter offer text to: Give Them / You Get
 - BoardPanel javadocs explain nodeMap and initNodeMapAux
 
     > 1.1.07 (build 20091031)
