@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,15 +29,35 @@ import java.awt.Polygon;
 
 
 /**
- * This is a speech ballon shape for use in the hand panel
+ * This is a rectangular speech balloon shape for use in the hand panel.
+ * By default, it shows a point near the left side of its top edge:<PRE>
+ * __|\________________
+ * |                  | </PRE>
+ * Because of this point, the main rectangle of the balloon doesn't take up
+ * the entire height (as set by {@link #setSize(int, int)}} or
+ * {@link #setBounds(int, int, int, int)}), but begins at height / 8.
+ * Even when the point is hidden by {@link #setBalloonPoint(boolean) setBalloonPoint(false)},
+ * this is still the case.
  *
  * @author Robert S. Thomas
  */
 public class SpeechBalloon extends Canvas
 {
+    /**
+     * Size of the shadow appearing on the right and bottom sides, in pixels.
+     * @since 1.1.08
+     */
+    public static final int SHADOW_SIZE = 5;
+
     private static Color balloonColor = new Color(255, 230, 162);
     int height;
     int width;
+
+    /**
+     * Is the balloon's point showing? (If not, it's drawn as a rectangle)
+     * @since 1.1.08
+     */
+    private boolean balloonPoint;
 
     /**
      * constructor
@@ -50,22 +71,19 @@ public class SpeechBalloon extends Canvas
         width = 50;
         setBackground(bg);
         setForeground(Color.black);
+        balloonPoint = true;
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+     * Preferred (current) size for this SpeechBalloon.
      */
-    public Dimension getPreferedSize()
+    public Dimension getPreferredSize()
     {
         return new Dimension(width, height);
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+     * Minimum acceptable size for this SpeechBalloon.
      */
     public Dimension getMinimumSize()
     {
@@ -73,29 +91,62 @@ public class SpeechBalloon extends Canvas
     }
 
     /**
-     * DOCUMENT ME!
+     * Should this balloon display its point, along the top edge?
+     * Height of the balloon point is balloon height / 8.
+     * @since 1.1.08
+     */
+    public boolean getBalloonPoint()
+    {
+        return balloonPoint;
+    }
+
+    /**
+     * Should this balloon display its point, along the top edge?
+     * Even when hidden, the main rectangle is drawn beginning at height / 8.
+     * Triggers a repaint.
+     * @param point  true to display, false to hide
+     * @since 1.1.08
+     */
+    public void setBalloonPoint(final boolean point)
+    {
+        if (balloonPoint == point)
+            return;
+        balloonPoint = point;
+        repaint();
+    }
+
+    /**
+     * Draw this balloon.
      *
-     * @param g DOCUMENT ME!
+     * @param g Graphics
      */
     public void paint(Graphics g)
     {
-        Dimension dim = getSize();
-        int h = dim.height;
-        int w = dim.width;
-        int xm = 5;
-        int ym = 5;
-        Polygon balloon;
-        int[] xPoints = { 0, w / 8, w / 8, ((w / 8) + (w / 16)), w - xm, w - xm, 0, 0 };
-        int[] yPoints = { h / 8, h / 8, 0, h / 8, h / 8, h - ym, h - ym, h / 8 };
-        int i;
+        final Dimension dim = getSize();
+        final int h = dim.height;
+        final int w = dim.width;
+        final int xm = SHADOW_SIZE;
+        final int ym = SHADOW_SIZE;
 
-        balloon = new Polygon(xPoints, yPoints, 8);
         g.setPaintMode();
         g.setColor(balloonColor);
-        g.fillPolygon(balloon);
-        g.setColor(Color.black);
-        g.drawPolygon(balloon);
+        if (balloonPoint)
+        {
+            int[] xPoints = { 0, w / 8, w / 8, ((w / 8) + (w / 16)), w - xm, w - xm, 0, 0 };
+            int[] yPoints = { h / 8, h / 8, 0, h / 8, h / 8, h - ym, h - ym, h / 8 };
+    
+            Polygon balloon = new Polygon(xPoints, yPoints, 8);
+            g.fillPolygon(xPoints, yPoints, 8);
+            g.setColor(Color.black);
+            g.drawPolygon(xPoints, yPoints, 8);
+        } else {
+            final int hdiv8 = h / 8;
+            g.fillRect(0, hdiv8, w - xm, h - ym - hdiv8);
+            g.setColor(Color.black);
+            g.drawRect(0, hdiv8, w - xm, h - ym - hdiv8);            
+        }
 
+        int i;
         for (i = xm; i > 0; i--)
         {
             g.drawLine(ym, h - i, w, h - i);
