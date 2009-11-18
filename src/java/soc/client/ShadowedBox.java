@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +34,12 @@ import java.awt.Graphics;
  */
 public class ShadowedBox extends Canvas
 {
+    /**
+     * Size of the shadow, in pixels.
+     * @since 1.1.08
+     */
+    public static final int SHADOW_SIZE = 5;
+
     int height;
     int width;
     Color interior;
@@ -64,19 +71,15 @@ public class ShadowedBox extends Canvas
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+     * Preferred (current) size for this ShadowedBox.
      */
-    public Dimension getPreferedSize()
+    public Dimension getPreferredSize()
     {
         return new Dimension(width, height);
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @return DOCUMENT ME!
+     * Minimum acceptable size for this ShadowedBox.
      */
     public Dimension getMinimumSize()
     {
@@ -84,17 +87,17 @@ public class ShadowedBox extends Canvas
     }
 
     /**
-     * DOCUMENT ME!
+     * Draw this ShadowedBox.
      *
-     * @param g DOCUMENT ME!
+     * @param g Graphics
      */
     public void paint(Graphics g)
     {
         Dimension dim = getSize();
         int h = dim.height;
         int w = dim.width;
-        int xm = 5;
-        int ym = 5;
+        int xm = SHADOW_SIZE;
+        int ym = SHADOW_SIZE;
         int i;
 
         g.setPaintMode();
