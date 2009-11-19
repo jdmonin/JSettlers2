@@ -1718,6 +1718,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         {
             switch (mes.getType())
             {
+
+            /**
+             * echo the server ping, to ensure we're still connected.
+             * (ignored before version 1.1.08)
+             */
+            case SOCMessage.SERVERPING:
+                put(mes.toCmd(), isLocal);
+                break;
+
             /**
              * server's version message
              */

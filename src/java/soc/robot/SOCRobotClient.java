@@ -25,7 +25,6 @@ import soc.client.SOCDisplaylessPlayerClient;
 
 import soc.disableDebug.D;
 
-import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
@@ -642,11 +641,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * handle the server ping message
+     * handle the server ping message.
+     * Echo back to server, to ensure we're still connected.
+     * (ignored before version 1.1.08)
+     *
      * @param mes  the message
      */
     protected void handleSERVERPING(SOCServerPing mes)
     {
+        put(mes.toCmd());
         /*
            D.ebugPrintln("(*)(*) ServerPing message = "+mes);
            D.ebugPrintln("(*)(*) ServerPing sleepTime = "+mes.getSleepTime());

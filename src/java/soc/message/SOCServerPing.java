@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +23,13 @@ package soc.message;
 
 
 /**
- * This is a ping message from the server
+ * This is a ping message from the server, or its reply from the client.
+ *<P>
+ * In version 1.1.08 and higher, the client echoes
+ * the ping back to the server.  Server can use
+ * this to ensure the client is still connected.
+ * If another client attempts to connect with the same name,
+ * same host (IP address), the first client will be pinged.
  *
  * @author Robert S Thomas
  */
@@ -68,7 +75,7 @@ public class SOCServerPing extends SOCMessage
      * @param  st  the sleep time
      * @return the command String
      */
-    public String toCmd(int st)
+    public static String toCmd(int st)
     {
         return SERVERPING + sep + st;
     }
