@@ -2234,7 +2234,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         else
             scArrowX = scaledArrowXR;
         g.translate(arrowX, arrowY);
-        if (gameState != SOCGame.SPECIAL_BUILDING)
+        if (! game.isSpecialBuilding())
             g.setColor(ARROW_COLOR);
         else
             g.setColor(ARROW_COLOR_PLACING);        
@@ -2246,7 +2246,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw Dice result number
          */
-        if ((diceResult >= 2) && (gameState != SOCGame.PLAY))
+        if ((diceResult >= 2) && (gameState != SOCGame.PLAY) && (gameState != SOCGame.SPECIAL_BUILDING))
         {
             if (isScaled)
             {
