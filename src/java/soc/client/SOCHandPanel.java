@@ -1792,6 +1792,19 @@ public class SOCHandPanel extends Panel implements ActionListener
     }
 
     /**
+     * Client is rejecting the current offer from another player.
+     * Send to the server, hide the trade message, trigger a repaint.
+     * @since 1.1.08
+     */
+    public void rejectOfferAtClient()
+    {
+        client.rejectOffer(game);
+        if (offerHidesControls)
+            hideTradeMsgShowOthers(false);
+        repaint();        
+    }
+
+    /**
      * If the trade-offer panel is showing a message
      * (not a trade offer), clear and hide it.
      * Assumes this hand's player is not the client.

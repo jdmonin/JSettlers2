@@ -643,9 +643,8 @@ public class TradeOfferPanel extends Panel
 
             if (target == REJECT)
             {
-                hp.getClient().rejectOffer(hp.getGame());
                 setVisible(false);
-                hp.repaint();
+                hp.rejectOfferAtClient();
             }
 
             if (target == ACCEPT)
