@@ -1465,7 +1465,7 @@ public class SOCGame implements Serializable, Cloneable
      *<UL>
      *<LI> A: If this isn't a 6-player board, or no player has asked
      *     to Special Build this turn, do nothing.
-     *<LI> B: If we haven't started Special Building yet (gameState still {@link #PLAY1})
+     *<LI> B: If we haven't started Special Building yet (gameState not {@link #SPECIAL_BUILDING})
      *     but it's asked for: Set gameState to {@link #SPECIAL_BUILDING}.
      *     Set {@link #specialBuildPhase_afterPlayerNumber} to current player number.
      *     Then, set current player to the first player who wants to Special Build, 
@@ -3552,6 +3552,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * a player is UNbuying a road; return resources, set gameState PLAY1
+     * (or SPECIAL_BUILDING)
      *
      * @param pn  the number of the player
      */
@@ -3568,6 +3569,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * a player is UNbuying a settlement; return resources, set gameState PLAY1
+     * (or SPECIAL_BUILDING)
      *
      * @param pn  the number of the player
      */
@@ -3586,6 +3588,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * a player is UNbuying a city; return resources, set gameState PLAY1
+     * (or SPECIAL_BUILDING)
      *
      * @param pn  the number of the player
      */
@@ -4301,6 +4304,18 @@ public class SOCGame implements Serializable, Cloneable
     // ---------------------------------------
 
     /**
+     * During game play, are we in the {@link #SPECIAL_BUILDING Special Building Phase}?
+     * Includes game state {@link #SPECIAL_BUILDING}, and placement game states during this phase.
+     *
+     * @return true if in Special Building Phase
+     * @since 1.1.08
+     */
+    public boolean isSpecialBuilding()
+    {
+        return (gameState == SPECIAL_BUILDING) || (oldGameState == SPECIAL_BUILDING);
+    }
+
+    /**
      * For 6-player mode's Special Building Phase, add this piece or dev card to the player's set.
      * When it's their turn to special build, this is what they want to build.
      * Validates player currently has resources to build this piece.
@@ -4310,7 +4325,7 @@ public class SOCGame implements Serializable, Cloneable
      *            or -1 to check state and set the flag, with no specific piece type.
      * @param pn  The player's number
      * @throws IllegalStateException  if game is not 6-player, or is currently this player's turn,
-     *            or if gamestate is {@link #PLAY} or earlier.
+     *            or if gamestate is earlier than {@link #PLAY}, or >= {@link #OVER}.
      * @throws IllegalArgumentException  if <tt>pieceType</tt> is out of range
      *            {@link SOCPlayingPiece#MIN} - {@link SOCPlayingPiece#MAXPLUSONE},
      *            and isn't -1 or -2.  Or if pn is not a valid player (vacant seat, etc).
@@ -4325,8 +4340,8 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("not 6-player");
         if (pn == currentPlayerNumber)
             throw new IllegalStateException("current player");
-        if (gameState < PLAY1)
-            throw new IllegalStateException("too early to ask");
+        if ((gameState < PLAY) || (gameState >= OVER))
+            throw new IllegalStateException("cannot ask at this time");
         if ((pn < 0) || (pn >= maxPlayers))
             throw new IllegalArgumentException("pn range");
         SOCPlayer pl = players[pn];
