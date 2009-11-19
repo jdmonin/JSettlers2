@@ -55,6 +55,17 @@ public class SOCClientData
     public boolean isRobot;
 
     /**
+     * Are we considering a request to disconnect this client?
+     * If so, the time we sent a ping (and awaiting a reply).
+     * Same format as {@link System#currentTimeMillis()}.
+     * Value is 0 otherwise.
+     * Only client versions 1.1.08 and higher respond to
+     * the {@link SOCMessage#SERVERPING} message.
+     * @since 1.1.08
+     */
+    public long disconnectLastPingMillis;
+
+    /**
      * TimerTask for connect-time client-version timer
      * @since 1.1.06
      */
@@ -68,6 +79,7 @@ public class SOCClientData
         losses = 0;
         sentGameList = false;
         cliVersionTask = null;
+        disconnectLastPingMillis = 0L;
     }
 
     /**

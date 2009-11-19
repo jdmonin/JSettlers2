@@ -72,7 +72,11 @@ public class SOCStatusMessage extends SOCMessage
     public static final int SV_PW_WRONG = 3;
 
     /**
-     * This name is already logged in = 4
+     * This name is already logged in = 4.
+     * In version 1.1.08 and higher, a "take over" option is used for
+     * reconnect when a client loses connection, and server doesn't realize it.
+     * A new connection can "take over" the name after a minute's timeout.
+     * For actual timeouts, see SOCServer.checkNickname.
      * @since 1.1.06
      */
     public static final int SV_NAME_IN_USE = 4;

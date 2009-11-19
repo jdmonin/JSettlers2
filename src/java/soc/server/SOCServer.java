@@ -204,6 +204,33 @@ public class SOCServer extends Server
         = "Someone with that nickname is already logged into the system.";
 
     /**
+     * Status Message to send, nickname already logged into the system.
+     * Prepend to {@link #MSG_NICKNAME_ALREADY_IN_USE}.
+     * The "take over" option is used for reconnect when a client loses
+     * connection, and server doesn't realize it.
+     * A new connection can "take over" the name after a minute's timeout.
+     * @since 1.1.08
+     */
+    public static final String MSG_NICKNAME_ALREADY_IN_USE_WAIT_TRY_AGAIN
+        = " and try again. ";
+
+    /**
+     * Number of seconds before a connection is considered disconnected, and
+     * its nickname can be "taken over" by a new connection from the same IP.
+     * @see #checkNickname(String, StringConnection)
+     * @since 1.1.08
+     */
+    public static final int NICKNAME_TAKEOVER_SECONDS_SAME_IP = 30;
+
+    /**
+     * Number of seconds before a connection is considered disconnected, and
+     * its nickname can be "taken over" by a new connection from a different IP.
+     * @see #checkNickname(String, StringConnection)
+     * @since 1.1.08
+     */
+    public static final int NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP = 150;
+
+    /**
      * list of chat channels
      */
     protected SOCChannelList channelList = new SOCChannelList();
@@ -1955,30 +1982,108 @@ public class SOCServer extends Server
     }  // sendGameList
 
     /**
-     * check if a name is ok
+     * check if a name is ok.
      * a name is ok if it hasn't been used yet, isn't {@link #SERVERNAME the server's name},
      * and (since 1.1.07) passes {@link SOCMessage#isSingleLineAndSafe(String)}.
+     *<P>
+     * The "take over" option is used for reconnect when a client loses
+     * connection, and server doesn't realize it.
+     * A new connection can "take over" the name after a timeout.
+     * ({@link #NICKNAME_TAKEOVER_SECONDS_SAME_IP},
+     *  {@link #NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP})
      *
      * @param n  the name
-     * @return   true if the name is ok
+     * @param newc  A new incoming connection, asking for this name
+     * @return   0 if the name is ok; <BR>
+     *          -1 if not OK by rules (fails isSingleLineAndSafe); <BR>
+     *          or, the number of seconds after which <tt>newc</tt> can
+     *             take over this name's games.
+     * @see #checkNickname_getRetryText(int)
      */
-    private boolean checkNickname(String n)
+    private int checkNickname(String n, StringConnection newc)
     {
-        if (getConnection(n) != null)  // check conns hashtable
-        {
-            return false;
-        }
-
         if (n.equals(SERVERNAME))
         {
-            return false;
+            return -1;
         }
 
         if (! SOCMessage.isSingleLineAndSafe(n))
         {
-            return false;
+            return -1;
         }
-        return true;
+
+        // check conns hashtable
+        StringConnection c = getConnection(n); 
+        if (c == null)
+        {
+            return 0;
+        }
+
+        // Can we take over this one?
+        SOCClientData scd = (SOCClientData) c.getAppData();
+        if (scd == null)
+        {
+            return -1;  // Shouldn't happen; name and SCD are assigned at same time
+        }
+        final int timeoutNeeded;
+        if (newc.host().equals(c.host()))
+            // same IP address or hostname
+            timeoutNeeded = NICKNAME_TAKEOVER_SECONDS_SAME_IP;
+        else
+            timeoutNeeded = NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP;
+
+        final long now = System.currentTimeMillis();
+        if (scd.disconnectLastPingMillis != 0)
+        {
+            int secondsSincePing = (int) (((now - scd.disconnectLastPingMillis)) / 1000L);
+            if (secondsSincePing > timeoutNeeded)
+            {
+                // Already sent ping, timeout has expired.
+                // It's OK to take over this nickname.
+                // TODO how to transfer data from old conn, to new conn?
+                return 0;
+            } else {
+                // Already sent ping, timeout not yet expired.
+                return timeoutNeeded - secondsSincePing;
+            }
+        }
+
+        scd.disconnectLastPingMillis = now;
+        if (c.getVersion() >= 1108)
+        {
+            // Already-connected client should respond to ping.
+            // If not, consider them disconnected.
+            c.put(SOCServerPing.toCmd(timeoutNeeded));
+        }
+        return timeoutNeeded;
+    }
+
+    /**
+     * For a nickname that seems to be in use, build a text message with the
+     * number of seconds before someone can attempt to take over that nickname.
+     * Used for reconnect when a client loses connection, and server doesn't realize it. 
+     * A new connection can "take over" the name after a timeout.
+     * ({@link #NICKNAME_TAKEOVER_SECONDS_SAME_IP},
+     *  {@link #NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP})
+     *
+     * @param nameTimeout  Number of seconds before trying to reconnect
+     * @return
+     * @since 1.1.08
+     */
+    private final String checkNickname_getRetryText(final int nameTimeout)
+    {
+        StringBuffer sb = new StringBuffer("Please wait ");
+        if (nameTimeout <= 90)
+        {
+            sb.append(nameTimeout);
+            sb.append(" seconds");
+        } else {
+            sb.append((int) ((nameTimeout + 20) / 60));
+            sb.append(" minute(s)");
+        }
+        sb.append(MSG_NICKNAME_ALREADY_IN_USE_WAIT_TRY_AGAIN);
+        sb.append(MSG_NICKNAME_ALREADY_IN_USE);
+        return sb.toString();
     }
 
     /**
@@ -2044,6 +2149,13 @@ public class SOCServer extends Server
             {
                 switch (mes.getType())
                 {
+
+                /**
+                 * client's echo of a server ping
+                 */
+                case SOCMessage.SERVERPING:
+                    handleSERVERPING(c, (SOCServerPing) mes);
+                    break;
 
                 /**
                  * client's "version" message
@@ -2722,6 +2834,20 @@ public class SOCServer extends Server
     }
 
     /**
+     * Handle the client's echo of a {@link SOCMessage#SERVERPING}.
+     * @since 1.1.08
+     */
+    private void handleSERVERPING(StringConnection c, SOCServerPing mes)
+    {
+        SOCClientData cd = (SOCClientData) c.getAppData();
+        if (cd == null)
+            return;
+        cd.disconnectLastPingMillis = 0;
+
+        // TODO any other reaction or flags?
+    }
+
+    /**
      * Handle the "version" message, client's version report.
      * May ask to disconnect, if version is too old.
      * Otherwise send the game list.
@@ -2853,13 +2979,22 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
-            if ((c.getData() == null) && (!checkNickname(mes.getNickname())))
+            if (c.getData() == null) 
             {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                         MSG_NICKNAME_ALREADY_IN_USE));
-
-                return;
+                final int nameTimeout = checkNickname(mes.getNickname(), c);
+                if (nameTimeout == -1)
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                             MSG_NICKNAME_ALREADY_IN_USE));
+                    return;
+                } else if (nameTimeout > 0)
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                             checkNickname_getRetryText(nameTimeout)));
+                    return;
+                }
             }
 
             if ((c.getData() == null) && (!authenticateUser(c, mes.getNickname(), mes.getPassword())))
@@ -3012,7 +3147,7 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
-            if ((c.getData() == null) && (!checkNickname(mes.getNickname())))
+            if ((c.getData() == null) && (0 == checkNickname(mes.getNickname(), c)))
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
@@ -3306,11 +3441,18 @@ public class SOCServer extends Server
                              SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
                     return;
                 }
-                if (!checkNickname(msgUser))
+                final int nameTimeout = checkNickname(msgUser, c);
+                if (nameTimeout == -1)
                 {
                     c.put(SOCStatusMessage.toCmd
                             (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
-                             MSG_NICKNAME_ALREADY_IN_USE));    
+                             MSG_NICKNAME_ALREADY_IN_USE));
+                    return;
+                } else if (nameTimeout > 0)
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
+                             checkNickname_getRetryText(nameTimeout)));
                     return;
                 }
             }
