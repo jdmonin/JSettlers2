@@ -195,6 +195,41 @@ public class SOCGameListAtServer extends SOCGameList
     }
 
     /**
+     * Replace member from all games, with a new connection with same name (after a network problem).
+     *
+     * @param  oldConn  the member's old connection
+     * @param  oldConn  the member's new connection
+     * @throws IllegalArgumentException  if oldConn's keyname (via {@link StringConnection#getData() getData()})
+     *            differs from newConn's keyname
+     * @since 1.1.08
+     */
+    public synchronized void replaceMemberAllGames(StringConnection oldConn, StringConnection newConn)
+        throws IllegalArgumentException
+    {
+        if (! oldConn.getData().equals(newConn.getData()))
+            throw new IllegalArgumentException("keyname data");
+
+        final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion()); 
+        Enumeration allGa = getGames();
+        while (allGa.hasMoreElements())
+        {
+            final String gaName = (String) allGa.nextElement();
+            Vector members = (Vector) gameMembers.get(gaName);
+            if ((members != null) && members.contains(oldConn))
+            {
+                if (sameVersion)
+                {
+                    members.remove(oldConn);
+                    members.addElement(newConn);
+                } else {
+                    removeMember(oldConn, gaName);
+                    addMember(newConn, gaName);
+                }
+            }
+        }
+    }
+
+    /**
      * create a new game, and add to the list; game will expire in {@link #GAME_EXPIRE_MINUTES} minutes.
      * If a game already exists (per {@link #isGame(String)}), do nothing.
      *
