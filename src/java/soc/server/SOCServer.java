@@ -717,20 +717,20 @@ public class SOCServer extends Server
 
             boolean isPlayer = false;
             int playerNumber = 0;    // removing this player number
-            SOCGame cg = gameList.getGameData(gm);
+            SOCGame ga = gameList.getGameData(gm);
 
             boolean gameHasHumanPlayer = false;
             boolean gameHasObserver = false;
             boolean gameVotingActiveDuringStart = false;
 
-            if (cg != null)
+            if (ga != null)
             {
                 final String plName = (String) c.getData();  // Retain name, since will become null within game obj.
 
-                for (playerNumber = 0; playerNumber < cg.maxPlayers;
+                for (playerNumber = 0; playerNumber < ga.maxPlayers;
                         playerNumber++)
                 {
-                    SOCPlayer player = cg.getPlayer(playerNumber);
+                    SOCPlayer player = ga.getPlayer(playerNumber);
 
                     if ((player != null) && (player.getName() != null)
                         && (player.getName().equals(plName)))
@@ -743,17 +743,17 @@ public class SOCServer extends Server
                          * once they have left. So to keep the game moving,
                          * fabricate their response: vote No.
                          */
-                        if (cg.getResetVoteActive())
+                        if (ga.getResetVoteActive())
                         {
-                            if (cg.getGameState() <= SOCGame.START2B)
+                            if (ga.getGameState() <= SOCGame.START2B)
                                 gameVotingActiveDuringStart = true;
 
-                            if (cg.getResetPlayerVote(playerNumber) == SOCGame.VOTE_NONE)
+                            if (ga.getResetPlayerVote(playerNumber) == SOCGame.VOTE_NONE)
                             {
                                 gameList.releaseMonitorForGame(gm);
-                                cg.takeMonitor();
-                                resetBoardVoteNotifyOne(cg, playerNumber, plName, false);                
-                                cg.releaseMonitor();
+                                ga.takeMonitor();
+                                resetBoardVoteNotifyOne(ga, playerNumber, plName, false);                
+                                ga.releaseMonitor();
                                 gameList.takeMonitorForGame(gm);
                             }
                         }
@@ -761,7 +761,7 @@ public class SOCServer extends Server
                         /** 
                          * Remove the player.
                          */
-                        cg.removePlayer(plName);  // player obj name becomes null
+                        ga.removePlayer(plName);  // player obj name becomes null
 
                         //broadcastGameStats(cg);
                         break;
@@ -778,13 +778,13 @@ public class SOCServer extends Server
                 /**
                  * check if there is at least one person playing the game
                  */
-                if (cg != null)
+                if (ga != null)
                 {
-                    for (int pn = 0; pn < cg.maxPlayers; pn++)
+                    for (int pn = 0; pn < ga.maxPlayers; pn++)
                     {
-                        SOCPlayer player = cg.getPlayer(pn);
+                        SOCPlayer player = ga.getPlayer(pn);
 
-                        if ((player != null) && (player.getName() != null) && (!cg.isSeatVacant(pn)) && (!player.isRobot()))
+                        if ((player != null) && (player.getName() != null) && (!ga.isSeatVacant(pn)) && (!player.isRobot()))
                         {
                             gameHasHumanPlayer = true;
 
@@ -798,7 +798,7 @@ public class SOCServer extends Server
                 /**
                  * check if there is at least one person watching the game
                  */
-                if ((cg != null) && !gameHasHumanPlayer && !gameList.isGameEmpty(gm))
+                if ((ga != null) && !gameHasHumanPlayer && !gameList.isGameEmpty(gm))
                 {
                     Enumeration membersEnum = gameList.getMembers(gm).elements();
 
@@ -809,9 +809,9 @@ public class SOCServer extends Server
                         //D.ebugPrintln("*** "+member.data+" is a member of "+gm);
                         boolean nameMatch = false;
 
-                        for (int pn = 0; pn < cg.maxPlayers; pn++)
+                        for (int pn = 0; pn < ga.maxPlayers; pn++)
                         {
-                            SOCPlayer player = cg.getPlayer(pn);
+                            SOCPlayer player = ga.getPlayer(pn);
 
                             if ((player != null) && (player.getName() != null) && (player.getName().equals((String) member.getData())))
                             {
@@ -836,7 +836,7 @@ public class SOCServer extends Server
                  * if the leaving member was playing the game, and
                  * it wasn't a robot, and the game isn't over, then...
                  */
-                if (isPlayer && (gameHasHumanPlayer || gameHasObserver) && (cg != null) && (!cg.getPlayer(playerNumber).isRobot()) && (cg.getGameState() < SOCGame.OVER) && !(cg.getGameState() < SOCGame.START1A))
+                if (isPlayer && (gameHasHumanPlayer || gameHasObserver) && (ga != null) && (!ga.getPlayer(playerNumber).isRobot()) && (ga.getGameState() < SOCGame.OVER) && !(ga.getGameState() < SOCGame.START1A))
                 {
                     /**
                      * get a robot to replace this player;
@@ -852,12 +852,12 @@ public class SOCServer extends Server
                         messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Sorry, no robots on this server."));
                         foundNoRobots = true;
                     }
-                    else if (cg.getClientVersionMinRequired() > Version.versionNumber())
+                    else if (ga.getClientVersionMinRequired() > Version.versionNumber())
                     {
                         messageToGameWithMon(gm, new SOCGameTextMsg
                                 (gm, SERVERNAME,
                                  "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's "
-                                 + cg.getClientVersionMinRequired()));
+                                 + ga.getClientVersionMinRequired()));
                         foundNoRobots = true;                        
                     }
                     else
@@ -878,11 +878,11 @@ public class SOCServer extends Server
                             robotConn = (StringConnection) robots.get(robotIndexes[idx]);
                             nameMatch = false;
 
-                            if (cg != null)
+                            if (ga != null)
                             {
-                                for (int i = 0; i < cg.maxPlayers; i++)
+                                for (int i = 0; i < ga.maxPlayers; i++)
                                 {
-                                    SOCPlayer pl = cg.getPlayer(i);
+                                    SOCPlayer pl = ga.getPlayer(i);
 
                                     if (pl != null)
                                     {
@@ -925,14 +925,14 @@ public class SOCServer extends Server
                             }
                         }
 
-                        if (!nameMatch && (cg != null))
+                        if (!nameMatch && (ga != null))
                         {
                             /**
                              * make the request
                              */
                             D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
 
-                            robotConn.put(SOCJoinGameRequest.toCmd(gm, playerNumber, cg.getGameOptions()));
+                            robotConn.put(SOCJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
 
                             /**
                              * record the request
@@ -960,7 +960,7 @@ public class SOCServer extends Server
                      */
                     if (foundNoRobots)
                     {
-                        final int cpn = cg.getCurrentPlayerNumber();
+                        final int cpn = ga.getCurrentPlayerNumber();
 
                         if (playerNumber == cpn)
                         {
@@ -971,12 +971,12 @@ public class SOCServer extends Server
                              * To prevent deadlock, we must release gamelist's monitor for
                              * this game before calling endGameTurn.
                              */
-                            if (cg.canEndTurn(playerNumber))
+                            if (ga.canEndTurn(playerNumber))
                             {
                                 gameList.releaseMonitorForGame(gm);
-                                cg.takeMonitor();
-                                endGameTurn(cg, null);
-                                cg.releaseMonitor();
+                                ga.takeMonitor();
+                                endGameTurn(ga, null);
+                                ga.releaseMonitor();
                                 gameList.takeMonitorForGame(gm);
                             } else {
                                 /**
@@ -988,7 +988,7 @@ public class SOCServer extends Server
                                  * because canEndTurn returns false in those gameStates.
                                  */
                                 gameList.releaseMonitorForGame(gm);
-                                cg.takeMonitor();
+                                ga.takeMonitor();
                                 if (gameVotingActiveDuringStart)
                                 {
                                     /**
@@ -999,14 +999,14 @@ public class SOCServer extends Server
                                      * end when the turn ends.)
                                      */
                                     messageToGame(gm, new SOCResetBoardReject(gm));
-                                    cg.resetVoteClear();
+                                    ga.resetVoteClear();
                                 }
 
                                 /**
                                  * Force turn to end
                                  */
-                                forceEndGameTurn(cg, plName);
-                                cg.releaseMonitor();
+                                forceEndGameTurn(ga, plName);
+                                ga.releaseMonitor();
                                 gameList.takeMonitorForGame(gm);
                             }
                         }
@@ -1019,18 +1019,18 @@ public class SOCServer extends Server
                              * - Board-reset voting: Handled above.
                              * - Waiting for discard: Handle here.
                              */
-                            if ((cg.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-                                 && (cg.getPlayer(playerNumber).getNeedToDiscard()))
+                            if ((ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
+                                 && (ga.getPlayer(playerNumber).getNeedToDiscard()))
                             {
                                 /**
                                  * For discard, tell the discarding player's client that they discarded the resources,
                                  * tell everyone else that the player discarded unknown resources.
                                  */
                                 gameList.releaseMonitorForGame(gm);
-                                cg.takeMonitor();
-                                forceGamePlayerDiscard(cg, cpn, c, plName, playerNumber);
-                                sendGameState(cg, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER
-                                cg.releaseMonitor();
+                                ga.takeMonitor();
+                                forceGamePlayerDiscard(ga, cpn, c, plName, playerNumber);
+                                sendGameState(ga, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER
+                                ga.releaseMonitor();
                                 gameList.takeMonitorForGame(gm);
                             }
                         }  // current player?
@@ -3498,12 +3498,13 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
+            final int cliVers = c.getVersion();
             if (c.getData() == null)
             {
                 if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
                 {
                     c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, c.getVersion(),
+                            (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
                              SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
                     return;
                 }
@@ -3511,19 +3512,19 @@ public class SOCServer extends Server
                 if (nameTimeout == -1)
                 {
                     c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
+                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                              MSG_NICKNAME_ALREADY_IN_USE));
                     return;
                 } else if (nameTimeout <= -1000)
                 {
                     c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
+                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                              checkNickname_getVersionText(-nameTimeout)));
                     return;
                 } else if (nameTimeout > 0)
                 {
                     c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
+                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                              checkNickname_getRetryText(nameTimeout)));
                     return;
                 }
@@ -3540,7 +3541,7 @@ public class SOCServer extends Server
             if (! SOCMessage.isSingleLineAndSafe(gameName))
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, c.getVersion(),
+                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
                          SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
                   // "This game name is not permitted, please choose a different name."
 
@@ -3549,7 +3550,7 @@ public class SOCServer extends Server
             if (gameName.length() > GAME_NAME_MAX_LENGTH)
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, c.getVersion(),
+                        (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
                          SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
                 // Please choose a shorter name; maximum length: 20
 
@@ -3578,7 +3579,7 @@ public class SOCServer extends Server
                 if (gameList.isGame(gameName))
                 {
                     c.put(SOCStatusMessage.toCmd
-                          (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, c.getVersion(),
+                          (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers,
                            SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
                     // "A game with this name already exists, please choose a different name."
 
@@ -3588,7 +3589,7 @@ public class SOCServer extends Server
                 if (! SOCGameOption.adjustOptionsToKnown(gameOpts, null))
                 {
                     c.put(SOCStatusMessage.toCmd
-                          (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, c.getVersion(),
+                          (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers,
                            "Unknown game option(s) were requested, cannot create this game."));
 
                     return;  // <---- Early return ----
@@ -3624,7 +3625,7 @@ public class SOCServer extends Server
                 // Let them know they can't join; include the game's version.
                 // This cli asked to created it, otherwise gameOpts would be null.
                 c.put(SOCStatusMessage.toCmd
-                  (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, c.getVersion(),
+                  (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, cliVers,
                     "Cannot create game with these options; requires version "
                     + Integer.toString(e.gameOptsVersion)
                     + SOCMessage.sep2_char + gameName
@@ -3634,7 +3635,7 @@ public class SOCServer extends Server
                 // Let them know they can't join; include the game's version.
 
                 c.put(SOCStatusMessage.toCmd
-                  (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, c.getVersion(),
+                  (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, cliVers,
                     "Cannot join game; requires version "
                     + Integer.toString(gameList.getGameData(gameName).getClientVersionMinRequired())
                     + ": " + gameName));
@@ -5082,12 +5083,14 @@ public class SOCServer extends Server
 
                     if (player != null)
                     {
-                        int acceptingNumber = player.getPlayerNumber();
+                        final int acceptingNumber = player.getPlayerNumber();
+                        final int offeringNumber = mes.getOfferingNumber();
+                        final String gaName = ga.getName();
 
-                        if (ga.canMakeTrade(mes.getOfferingNumber(), acceptingNumber))
+                        if (ga.canMakeTrade(offeringNumber, acceptingNumber))
                         {
-                            ga.makeTrade(mes.getOfferingNumber(), acceptingNumber);
-                            reportTrade(ga, mes.getOfferingNumber(), acceptingNumber);
+                            ga.makeTrade(offeringNumber, acceptingNumber);
+                            reportTrade(ga, offeringNumber, acceptingNumber);
 
                             recordGameEvent(mes.getGame(), mes.toCmd());
 
@@ -5097,17 +5100,17 @@ public class SOCServer extends Server
                             for (int i = 0; i < ga.maxPlayers; i++)
                             {
                                 ga.getPlayer(i).setCurrentOffer(null);
-                                messageToGame(ga.getName(), new SOCClearOffer(ga.getName(), i));
+                                messageToGame(gaName, new SOCClearOffer(gaName, i));
                             }
 
                             /**
                              * send a message to the bots that the offer was accepted
                              */
-                            messageToGame(ga.getName(), mes);
+                            messageToGame(gaName, mes);
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, "You can't make that trade."));
+                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't make that trade."));
                         }
                     }
                 }
