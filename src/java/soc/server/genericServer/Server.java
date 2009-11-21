@@ -468,11 +468,19 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             if (cKey != null)
             {
-                if (null == conns.remove(cKey))
+                final StringConnection cKeyConn = (StringConnection) conns.get(cKey);
+                if (null == cKeyConn)
                 {
                     // Was not a member
                     return;
                 }
+                if (c == cKeyConn)
+                {
+                    conns.remove(cKey);
+                }
+                // else, was replaced by a
+                // different conn for cKey.
+                // don't remove the replacement.
             }
             else
             {
