@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,14 +33,20 @@ import java.util.Vector;
 
 
 /**
- * A class for tracking the chat channels
+ * A class for tracking the chat channels.
+ * The list itself, and each channel, has a monitor for synchronization.
  *
  * @author Robert S. Thomas
  */
 public class SOCChannelList
 {
+    /** key = string, value = Vector of MutexFlags */
     protected Hashtable channelMutexes;
+
+    /** key = string, value = Vector of StringConnections */
     protected Hashtable channelMembers;
+
+    /** track the monitor for this channel list */
     protected boolean inUse;
 
     /**
@@ -164,7 +171,7 @@ public class SOCChannelList
     }
 
     /**
-     * @return an enumeration of channel names
+     * @return an enumeration of channel names (Strings)
      */
     public Enumeration getChannels()
     {
@@ -235,6 +242,27 @@ public class SOCChannelList
         if ((members != null))
         {
             members.removeElement(conn);
+        }
+    }
+
+    /**
+     * Replace member from all chat channels, with a new connection (after a network problem).
+     *
+     * @param  oldConn  the member's old connection
+     * @param  oldConn  the member's new connection
+     * @since 1.1.08
+     */
+    public synchronized void replaceMemberAllChannels(StringConnection oldConn, StringConnection newConn)
+    {
+        Enumeration allCh = getChannels();
+        while (allCh.hasMoreElements())
+        {
+            Vector members = (Vector) channelMembers.get((String) allCh.nextElement());
+            if ((members != null) && members.contains(oldConn))
+            {
+                members.remove(oldConn);
+                members.addElement(newConn);
+            }
         }
     }
 
