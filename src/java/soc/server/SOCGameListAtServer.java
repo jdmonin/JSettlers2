@@ -30,6 +30,7 @@ import soc.util.SOCGameList;
 import soc.util.Version;
 
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -299,5 +300,42 @@ public class SOCGameListAtServer extends SOCGameList
         }        
         super.deleteGame(gaName);
     }
+
+    /**
+     * For the games this player is in, what's the
+     * minimum required client version?
+     * Checks {@link SOCGame#getClientVersionMinRequired()}.
+     *<P>
+     * This method helps determine if a client's connection can be
+     * "taken over" after a network problem.  It synchronizes on <tt>gameData</tt>.
+     *
+     * @param  plConn   the previous connection of the player, which might be taken over
+     * @return Minimum version, in same format as {@link SOCGame#getClientVersionMinRequired()},
+     *         or 0 if player isn't in any games.
+     * @since 1.1.08
+     */
+    public int playerGamesMinVersion(StringConnection plConn)
+    {
+        int minVers = 0;
+
+        synchronized(gameData)
+        {
+            Enumeration gdEnum = getGamesData();
+            while (gdEnum.hasMoreElements())
+            {
+                SOCGame ga = (SOCGame) gdEnum.nextElement();
+                Vector members = getMembers(ga.getName());
+                if ((members == null) || ! members.contains(plConn))
+                    continue;
+
+                // plConn is a member of this game.
+                int vers = ga.getClientVersionMinRequired();
+                if (vers > minVers)
+                    minVers = vers;
+            }
+        }
+
+        return minVers;
+    }
  
- }
+}
