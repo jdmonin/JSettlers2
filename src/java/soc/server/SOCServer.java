@@ -1638,7 +1638,7 @@ public class SOCServer extends Server
      */
     public void leaveConnection(StringConnection c)
     {
-        if (c != null)
+        if ((c != null) && (c.getData() != null))
         {
             leaveAllChannels(c);
             leaveAllGames(c);
