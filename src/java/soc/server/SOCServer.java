@@ -215,6 +215,26 @@ public class SOCServer extends Server
         = " and try again. ";
 
     /**
+     * Part 1 of Status Message to send, nickname already logged into the system
+     * with a newer client version.  Prepend to version number required.
+     * The "take over" option is used for reconnect when a client loses
+     * connection, and server doesn't realize it.
+     * @see #MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P2
+     * @since 1.1.08
+     */
+    public static final String MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P1
+        = "You need client version ";
+
+    /**
+     * Part 2 of Status Message to send, nickname already logged into the system
+     * with a newer client version.  Append to version number required.
+     * @see #MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P1
+     * @since 1.1.08
+     */
+    public static final String MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P2
+        = " or newer to take over this connection.";
+
+    /**
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from the same IP.
      * @see #checkNickname(String, StringConnection)
@@ -1991,11 +2011,15 @@ public class SOCServer extends Server
      * A new connection can "take over" the name after a timeout.
      * ({@link #NICKNAME_TAKEOVER_SECONDS_SAME_IP},
      *  {@link #NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP})
+     * When taking over, the new connection's client version must be able
+     * to join all games that the old connection is playing, as returned
+     * by {@link SOCGameListAtServer#playerGamesMinVersion(StringConnection) gameList.playerGamesMinVersion}.
      *
      * @param n  the name
      * @param newc  A new incoming connection, asking for this name
      * @return   0 if the name is ok; <BR>
      *          -1 if not OK by rules (fails isSingleLineAndSafe); <BR>
+     *          -vers if not OK by version (for takeover; will be -1000 lower); <BR>
      *          or, the number of seconds after which <tt>newc</tt> can
      *             take over this name's games.
      * @see #checkNickname_getRetryText(int)
@@ -2013,20 +2037,20 @@ public class SOCServer extends Server
         }
 
         // check conns hashtable
-        StringConnection c = getConnection(n); 
-        if (c == null)
+        StringConnection oldc = getConnection(n); 
+        if (oldc == null)
         {
             return 0;
         }
 
         // Can we take over this one?
-        SOCClientData scd = (SOCClientData) c.getAppData();
+        SOCClientData scd = (SOCClientData) oldc.getAppData();
         if (scd == null)
         {
             return -1;  // Shouldn't happen; name and SCD are assigned at same time
         }
         final int timeoutNeeded;
-        if (newc.host().equals(c.host()))
+        if (newc.host().equals(oldc.host()))
             // same IP address or hostname
             timeoutNeeded = NICKNAME_TAKEOVER_SECONDS_SAME_IP;
         else
@@ -2039,7 +2063,15 @@ public class SOCServer extends Server
             if (secondsSincePing > timeoutNeeded)
             {
                 // Already sent ping, timeout has expired.
-                // It's OK to take over this nickname.
+                // Re-check version just in case.
+                int minVersForGames = gameList.playerGamesMinVersion(oldc);
+                if (minVersForGames > newc.getVersion())
+                {
+                    if (minVersForGames < 1000)
+                        minVersForGames = 1000;
+                    return -minVersForGames;  // too old to play
+                }
+                // it's OK to take over this nickname.
                 // TODO how to transfer data from old conn, to new conn?
                 return 0;
             } else {
@@ -2048,29 +2080,37 @@ public class SOCServer extends Server
             }
         }
 
+        // Have not yet sent a ping.
+        int minVersForGames = gameList.playerGamesMinVersion(oldc);
+        if (minVersForGames > newc.getVersion())
+        {
+            if (minVersForGames < 1000)
+                minVersForGames = 1000;
+            return -minVersForGames;  // too old to play
+        }
         scd.disconnectLastPingMillis = now;
-        if (c.getVersion() >= 1108)
+        if (oldc.getVersion() >= 1108)
         {
             // Already-connected client should respond to ping.
             // If not, consider them disconnected.
-            c.put(SOCServerPing.toCmd(timeoutNeeded));
+            oldc.put(SOCServerPing.toCmd(timeoutNeeded));
         }
         return timeoutNeeded;
     }
 
     /**
      * For a nickname that seems to be in use, build a text message with the
-     * number of seconds before someone can attempt to take over that nickname.
+     * time remaining before someone can attempt to take over that nickname.
      * Used for reconnect when a client loses connection, and server doesn't realize it. 
      * A new connection can "take over" the name after a timeout.
      * ({@link #NICKNAME_TAKEOVER_SECONDS_SAME_IP},
      *  {@link #NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP})
      *
      * @param nameTimeout  Number of seconds before trying to reconnect
-     * @return
+     * @return message starting with "Please wait x seconds" or "Please wait x minute(s)"
      * @since 1.1.08
      */
-    private final String checkNickname_getRetryText(final int nameTimeout)
+    private static final String checkNickname_getRetryText(final int nameTimeout)
     {
         StringBuffer sb = new StringBuffer("Please wait ");
         if (nameTimeout <= 90)
@@ -2083,6 +2123,26 @@ public class SOCServer extends Server
         }
         sb.append(MSG_NICKNAME_ALREADY_IN_USE_WAIT_TRY_AGAIN);
         sb.append(MSG_NICKNAME_ALREADY_IN_USE);
+        return sb.toString();
+    }
+
+    /**
+     * For a nickname that seems to be in use, build a text message with the
+     * minimum version number needed to take over that nickname.
+     * Used for reconnect when a client loses connection, and server doesn't realize it. 
+     * A new connection can "take over" the name after a timeout.
+     *
+     * @param needsVersion Version number required to take it over;
+     *         a positive integer in the same format as {@link SOCGame#getClientVersionMinRequired()}
+     * @return string containing the version,
+     *         starting with {@link #MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P1}.
+     * @since 1.1.08
+     */
+    private static final String checkNickname_getVersionText(final int needsVersion)
+    {
+        StringBuffer sb = new StringBuffer(MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P1);
+        sb.append(needsVersion);
+        sb.append(MSG_NICKNAME_ALREADY_IN_USE_NEWER_VERSION_P2);
         return sb.toString();
     }
 
@@ -2988,6 +3048,12 @@ public class SOCServer extends Server
                             (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
                              MSG_NICKNAME_ALREADY_IN_USE));
                     return;
+                } else if (nameTimeout <= -1000)
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                             checkNickname_getVersionText(-nameTimeout)));
+                    return;
                 } else if (nameTimeout > 0)
                 {
                     c.put(SOCStatusMessage.toCmd
@@ -3447,6 +3513,12 @@ public class SOCServer extends Server
                     c.put(SOCStatusMessage.toCmd
                             (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
                              MSG_NICKNAME_ALREADY_IN_USE));
+                    return;
+                } else if (nameTimeout <= -1000)
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NAME_IN_USE, c.getVersion(),
+                             checkNickname_getVersionText(-nameTimeout)));
                     return;
                 } else if (nameTimeout > 0)
                 {
