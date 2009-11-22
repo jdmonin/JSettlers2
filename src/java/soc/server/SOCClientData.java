@@ -123,6 +123,19 @@ public class SOCClientData
     }
 
     /**
+     * Copy the client's win-loss record from another SOCClientData.
+     * ({@link #getWins()}, {@link #getLosses()}).
+     *
+     * @param source Copy from here
+     * @since 1.1.08
+     */
+    public void copyClientPlayerStats(SOCClientData source)
+    {
+        wins = source.wins;
+        losses = source.losses;
+    }
+
+    /**
      * Has the server's game list been sent to the client yet?
      * Please synchronize on {@link SOCGameList#takeMonitor()} / releaseMonitor.
      * @since 1.1.06
