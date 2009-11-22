@@ -1790,7 +1790,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * Draw the number
          */
         final int hnl = board.getNumberLayout()[hexNum];
-        if (hnl >= 0)
+        if (hnl > 0)
         {
             final int dx, dy;  // Offset of number graphic from upper-left corner of hex
             if (isRotated)
