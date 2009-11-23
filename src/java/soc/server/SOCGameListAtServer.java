@@ -136,6 +136,7 @@ public class SOCGameListAtServer extends SOCGameList
 
         if ((members != null) && (!members.contains(conn)))
         {
+            System.err.println("L139: game " + gaName + " add " + conn);  // JM TEMP
             members.addElement(conn);
 
             // Check version range
@@ -165,6 +166,7 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public synchronized void removeMember(StringConnection conn, String gaName)
     {
+        System.err.println("L139: game " + gaName + " remove " + conn);  // JM TEMP
         Vector members = getMembers(gaName);
 
         if ((members != null))
@@ -209,6 +211,7 @@ public class SOCGameListAtServer extends SOCGameList
         if (! oldConn.getData().equals(newConn.getData()))
             throw new IllegalArgumentException("keyname data");
 
+        System.err.println("L212: replaceMemberAllGames(" + oldConn + ", " + newConn + ")");  // JM TEMP
         final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion()); 
         Enumeration allGa = getGames();
         while (allGa.hasMoreElements())
@@ -217,9 +220,13 @@ public class SOCGameListAtServer extends SOCGameList
             Vector members = (Vector) gameMembers.get(gaName);
             if ((members != null) && members.contains(oldConn))
             {
+                System.err.println("L221: for game " + gaName + ":");  // JM TEMP
                 if (sameVersion)
                 {
-                    members.remove(oldConn);
+                    if (members.remove(oldConn))
+                        System.err.println("   OK");
+                    else
+                        System.err.println("   ** not found");
                     members.addElement(newConn);
                 } else {
                     removeMember(oldConn, gaName);
