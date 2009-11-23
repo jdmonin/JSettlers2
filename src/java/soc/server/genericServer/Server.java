@@ -586,6 +586,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
     /**
      * Name a current connection to the system.
+     * Call c.setData(name) just before calling this method.
      * Can be called once per connection (once named, cannot be changed).
      * Synchronized on unnamedConns.
      *<P>

@@ -881,8 +881,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the player object for a player nickname
-     * if there is no match, return null
+     * Get the player sitting in this game with this name.
+     * @return the player object for a player nickname.
+     *   if there is no match, return null
      *
      * @param nn  the nickname
      */

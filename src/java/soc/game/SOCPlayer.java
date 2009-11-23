@@ -830,7 +830,7 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     /**
      * set the face image id
      *
-     * @param id        the image id
+     * @param id        the image id. 1 is the first human face image; 0 is the robot.
      */
     public void setFaceId(int id)
     {
@@ -838,7 +838,8 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     }
 
     /**
-     * get the face image id
+     * get the face image id.
+     * @return  the face image id.  1 is the first human face image; 0 is the robot.
      */
     public int getFaceId()
     {

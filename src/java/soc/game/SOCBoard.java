@@ -1183,6 +1183,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * The dice-number layout of dice rolls at each hex number.
      * @return the number layout; each element is valued 2-12.
+     *     The robber hex is 0.  Water hexes are -1. 
      */
     public int[] getNumberLayout()
     {
