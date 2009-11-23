@@ -709,6 +709,7 @@ public class SOCServer extends Server
      */
     public boolean leaveGame(StringConnection c, String gm, boolean gameListLock)
     {
+        System.err.println("L712: leaveGame(" + c + ", " + gm + ")");  // JM TEMP
         boolean gameDestroyed = false;
 
         if (c != null)
@@ -1672,7 +1673,7 @@ public class SOCServer extends Server
      *
      * @see #addConnection(StringConnection)
      * @see #newConnection2(StringConnection)
-     * @see #nameConnection(StringConnection)
+     * @see #nameConnection(StringConnection, boolean)
      */
     public boolean newConnection1(StringConnection c)
     {
@@ -1801,6 +1802,47 @@ public class SOCServer extends Server
         } 
 
     }  // newConnection2
+
+    /**
+     * Name a current connection to the system, which may replace an older connection.
+     * Call c.setData(name) just before calling this method.
+     * Calls {@link Server#nameConnection(StringConnection)}.
+     * Will then adjust game list/channel list if <tt>isReplacing</tt>.
+     *
+     * @param c  Connected client; its key data ({@link StringConnection#getData()}) must not be null
+     * @param isReplacing  Are we replacing / taking over a current connection?
+     * @throws IllegalArgumentException If c isn't already connected, if c.getData() returns null,
+     *          or if nameConnection has previously been called for this connection.
+     * @since 1.1.08
+     */
+    private void nameConnection(StringConnection c, boolean isReplacing)
+        throws IllegalArgumentException
+    {
+        System.err.println("L1819: nameConn(" + c + ", " + isReplacing + ")");  // JM TEMP
+        StringConnection oldConn = null;
+        if (isReplacing)
+        {
+            Object cKey = c.getData();
+            if (cKey == null)
+                throw new IllegalArgumentException("null c.getData");
+            oldConn = (StringConnection) conns.get(cKey);
+            if (oldConn == null)
+                isReplacing = false;  // shouldn't happen, but fail gracefully
+        }
+
+        super.nameConnection(c);
+
+        if (isReplacing)
+        {
+            gameList.replaceMemberAllGames(oldConn, c);
+            channelList.replaceMemberAllChannels(oldConn, c);
+
+            SOCClientData scdNew = (SOCClientData) (c.getAppData());
+            SOCClientData scdOld = (SOCClientData) (oldConn.getAppData());
+            if ((scdNew != null) && (scdOld != null))
+                scdNew.copyClientPlayerStats(scdOld);
+        }
+    }
 
     /**
      * Send the entire list of games to this client; this is sent once per connecting client.
@@ -2008,17 +2050,19 @@ public class SOCServer extends Server
      *<P>
      * The "take over" option is used for reconnect when a client loses
      * connection, and server doesn't realize it.
-     * A new connection can "take over" the name after a timeout.
-     * ({@link #NICKNAME_TAKEOVER_SECONDS_SAME_IP},
-     *  {@link #NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP})
+     * A new connection can "take over" the name after a timeout; check
+     * the return value.
+     * (After {@link #NICKNAME_TAKEOVER_SECONDS_SAME_IP} or
+     *  {@link #NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP} seconds)
      * When taking over, the new connection's client version must be able
      * to join all games that the old connection is playing, as returned
      * by {@link SOCGameListAtServer#playerGamesMinVersion(StringConnection) gameList.playerGamesMinVersion}.
      *
      * @param n  the name
      * @param newc  A new incoming connection, asking for this name
-     * @return   0 if the name is ok; <BR>
-     *          -1 if not OK by rules (fails isSingleLineAndSafe); <BR>
+     * @return   0 if the name is okay; <BR>
+     *          -1 if OK <strong>and you are taking over a connection;</strong> <BR>
+     *          -2 if not OK by rules (fails isSingleLineAndSafe); <BR>
      *          -vers if not OK by version (for takeover; will be -1000 lower); <BR>
      *          or, the number of seconds after which <tt>newc</tt> can
      *             take over this name's games.
@@ -2028,26 +2072,26 @@ public class SOCServer extends Server
     {
         if (n.equals(SERVERNAME))
         {
-            return -1;
+            return -2;
         }
 
         if (! SOCMessage.isSingleLineAndSafe(n))
         {
-            return -1;
+            return -2;
         }
 
         // check conns hashtable
         StringConnection oldc = getConnection(n); 
         if (oldc == null)
         {
-            return 0;
+            return 0;  // OK: no player by that name already
         }
 
         // Can we take over this one?
         SOCClientData scd = (SOCClientData) oldc.getAppData();
         if (scd == null)
         {
-            return -1;  // Shouldn't happen; name and SCD are assigned at same time
+            return -2;  // Shouldn't happen; name and SCD are assigned at same time
         }
         final int timeoutNeeded;
         if (newc.host().equals(oldc.host()))
@@ -2071,9 +2115,9 @@ public class SOCServer extends Server
                         minVersForGames = 1000;
                     return -minVersForGames;  // too old to play
                 }
-                // it's OK to take over this nickname.
-                // TODO how to transfer data from old conn, to new conn?
-                return 0;
+                // it's OK to take over this nickname.  A call made soon
+                // to nameConnection(c,true) will transfer data from old conn, to new conn.
+                return -1;
             } else {
                 // Already sent ping, timeout not yet expired.
                 return timeoutNeeded - secondsSincePing;
@@ -3039,10 +3083,14 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
+            boolean isTakingOver = false;
             if (c.getData() == null) 
             {
                 final int nameTimeout = checkNickname(mes.getNickname(), c);
                 if (nameTimeout == -1)
+                {
+                    isTakingOver = true;
+                } else if (nameTimeout == -2)
                 {
                     c.put(SOCStatusMessage.toCmd
                             (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
@@ -3080,7 +3128,7 @@ public class SOCServer extends Server
             if (c.getData() == null)
             {
                 c.setData(mes.getNickname());
-                nameConnection(c);
+                nameConnection(c, isTakingOver);
                 numberOfUsers++;
             }
 
@@ -3213,7 +3261,7 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
-            if ((c.getData() == null) && (0 == checkNickname(mes.getNickname(), c)))
+            if ((c.getData() == null) && (0 != checkNickname(mes.getNickname(), c)))
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
@@ -3476,8 +3524,8 @@ public class SOCServer extends Server
      *      and this method will check that against cli's version.
      *  <LI> announce to all players using NEWGAMEWITHOPTIONS;
      *       older clients get NEWGAME, won't see the options
-     *  <LI> send JOINGAMEAUTH to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean)}
-     *  <LI> send game status details to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean)}
+     *  <LI> send JOINGAMEAUTH to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean, boolean)}
+     *  <LI> send game status details to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean, boolean)}
      *</UL>
      *
      * @param c connection requesting the game, must not be null
@@ -3499,6 +3547,7 @@ public class SOCServer extends Server
              * Check that the nickname is ok
              */
             final int cliVers = c.getVersion();
+            boolean isTakingOver = false;
             if (c.getData() == null)
             {
                 if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
@@ -3510,6 +3559,9 @@ public class SOCServer extends Server
                 }
                 final int nameTimeout = checkNickname(msgUser, c);
                 if (nameTimeout == -1)
+                {
+                    isTakingOver = true;
+                } else if (nameTimeout == -2)
                 {
                     c.put(SOCStatusMessage.toCmd
                             (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
@@ -3565,7 +3617,7 @@ public class SOCServer extends Server
                 if (c.getData() == null)
                 {
                     c.setData(msgUser);
-                    nameConnection(c);
+                    nameConnection(c, isTakingOver);
                     numberOfUsers++;
                 }
             }
@@ -3606,18 +3658,19 @@ public class SOCServer extends Server
              */
             try
             {
-                if (connectToGame(c, gameName, gameOpts))
+                if (isTakingOver || connectToGame(c, gameName, gameOpts))
                 {
                     /**
                      * send JOINGAMEAUTH to client,
                      * send the entire state of the game to client,
+                     * and unless isTakingOver,
                      * send client join event to other players of game
                      */
                     SOCGame gameData = gameList.getGameData(gameName);
 
                     if (gameData != null)
                     {
-                        joinGame(gameData, c, false);
+                        joinGame(gameData, c, false, isTakingOver);
                     }
                 }
             } catch (SOCGameOptionVersionException e)
@@ -3750,10 +3803,16 @@ public class SOCServer extends Server
                 requests.removeElement(req);
 
                 /**
-                 * let the person replacing the robot sit down
+                 * Taking over a robot spot: let the person replacing the robot sit down
                  */
                 SOCGame ga = gameList.getGameData(gaName);
-                sitDown(ga, req.getArriving(), req.getSitDownMessage().getPlayerNumber(), req.getSitDownMessage().isRobot(), false);
+                final int pn = req.getSitDownMessage().getPlayerNumber();
+                final boolean isRobot = req.getSitDownMessage().isRobot();
+                if (! isRobot)
+                {
+                    ga.getPlayer(pn).setFaceId(1);  // Don't keep the robot face icon
+                }
+                sitDown(ga, req.getArriving(), pn, isRobot, false);
             }
         }
     }
@@ -6242,8 +6301,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Client has been approved to join game; send the entire state of the game to client,
-     * send client join event to other players.
+     * Client has been approved to join game; send the entire state of the game to client.
+     * Unless <tt>isTakingOver</tt>, send client join event to other players.
      * Assumes NEWGAME (or NEWGAMEWITHOPTIONS) has already been sent out.
      * First message sent to connecting client is JOINGAMEAUTH, unless isReset.
      *<P>
@@ -6254,8 +6313,11 @@ public class SOCServer extends Server
      * @param gameData Game to join
      * @param c        The connection of joining client
      * @param isReset  Game is a board-reset of an existing game
+     * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
+     *                      is defunct because of a network problem.
+     *                      If <tt>isTakingOver</tt>, don't send anything to other players.
      */
-    private void joinGame(SOCGame gameData, StringConnection c, boolean isReset)
+    private void joinGame(SOCGame gameData, StringConnection c, boolean isReset, boolean isTakingOver)
     {
         String gameName = gameData.getName();
         if (! isReset)
@@ -6390,6 +6452,21 @@ public class SOCServer extends Server
 
         c.put(SOCLargestArmy.toCmd(gameName, laPlayerNum));
 
+        /**
+         * If we're rejoining and taking over a seat after a network problem,
+         * send our resource and hand information. 
+         */
+        if (isTakingOver)
+        {
+            SOCPlayer cliPl = gameData.getPlayer((String) c.getData());
+            if (cliPl != null)
+            {
+                int pn = cliPl.getPlayerNumber();
+                if ((pn != -1) && ! gameData.isSeatVacant(pn))
+                    this.sitDown_sendPrivateInfo(gameData, c, pn, gameName);
+            }
+        }
+
         String membersCommand = null;
         gameList.takeMonitorForGame(gameName);
 
@@ -6419,6 +6496,10 @@ public class SOCServer extends Server
         /**
          * Let everyone else know about the change
          */
+        if (isTakingOver)
+        {
+            return;
+        }
         messageToGame(gameName, new SOCJoinGame
             ((String)c.getData(), "", "dummyhost", gameName));
     }
@@ -6504,166 +6585,7 @@ public class SOCServer extends Server
                 /**
                  * send all the private information
                  */
-                SOCResourceSet resources = ga.getPlayer(pn).getResources();
-                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.CLAY, resources.getAmount(SOCPlayerElement.CLAY)));
-                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ORE, resources.getAmount(SOCPlayerElement.ORE)));
-                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SHEEP, resources.getAmount(SOCPlayerElement.SHEEP)));
-                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.WHEAT, resources.getAmount(SOCPlayerElement.WHEAT)));
-                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.WOOD, resources.getAmount(SOCPlayerElement.WOOD)));
-                messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, resources.getAmount(SOCPlayerElement.UNKNOWN)));
-
-                SOCDevCardSet devCards = ga.getPlayer(pn).getDevCards();
-
-                /**
-                 * remove the unknown cards
-                 */
-                int i;
-
-                for (i = 0; i < devCards.getTotal(); i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.KNIGHT));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.ROADS);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.ROADS));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.DISC);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.DISC));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.MONO);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.MONO));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.CAP));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.LIB);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.LIB));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.UNIV);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.UNIV));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.TEMP);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TEMP));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.TOW);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TOW));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.KNIGHT));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.ROADS));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.DISC));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.MONO));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.CAP);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.CAP));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.LIB);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.LIB));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.UNIV);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNIV));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.TEMP);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TEMP));
-                }
-
-                for (i = 0;
-                        i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.TOW);
-                        i++)
-                {
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TOW));
-                }
-
-                /**
-                 * send game state info such as requests for discards
-                 */
-                sendGameState(ga);
-
-                if ((ga.getCurrentDice() == 7) && ga.getPlayer(pn).getNeedToDiscard())
-                {
-                    messageToPlayer(c, new SOCDiscardRequest(gaName, ga.getPlayer(pn).getResources().getTotal() / 2));
-                }
-
-                /**
-                 * send what face this player is using
-                 */
-                messageToGame(gaName, new SOCChangeFace(gaName, pn, ga.getPlayer(pn).getFaceId()));
+                sitDown_sendPrivateInfo(ga, c, pn, gaName);
             }
             catch (Throwable e)
             {
@@ -6673,6 +6595,185 @@ public class SOCServer extends Server
 
             ga.releaseMonitor();
         }
+    }
+
+    /**
+     * When player has just sat down at a seat, send all the private information.
+     * Called from {@link #sitDown(SOCGame, StringConnection, int, boolean, boolean)}.
+     *<P>
+     * <b>Locks:</b> Assumes ga.takeMonitor() is held, and should remain held.
+     *
+     * @param ga     the game
+     * @param c      the connection for the player
+     * @param pn     which seat the player is taking
+     * @param gaName the game's name (for convenience)
+     * @since 1.1.08
+     */
+    private void sitDown_sendPrivateInfo(SOCGame ga, StringConnection c, int pn, final String gaName)
+    {
+        /**
+         * send all the private information
+         */
+        SOCResourceSet resources = ga.getPlayer(pn).getResources();
+        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.CLAY, resources.getAmount(SOCPlayerElement.CLAY)));
+        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ORE, resources.getAmount(SOCPlayerElement.ORE)));
+        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SHEEP, resources.getAmount(SOCPlayerElement.SHEEP)));
+        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.WHEAT, resources.getAmount(SOCPlayerElement.WHEAT)));
+        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.WOOD, resources.getAmount(SOCPlayerElement.WOOD)));
+        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, resources.getAmount(SOCPlayerElement.UNKNOWN)));
+
+        SOCDevCardSet devCards = ga.getPlayer(pn).getDevCards();
+
+        /**
+         * remove the unknown cards
+         */
+        int i;
+
+        for (i = 0; i < devCards.getTotal(); i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.KNIGHT));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.ROADS);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.ROADS));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.DISC);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.DISC));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.MONO);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.MONO));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.CAP));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.LIB);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.LIB));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.UNIV);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.UNIV));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.TEMP);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TEMP));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.TOW);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TOW));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.KNIGHT));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.ROADS));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.DISC));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.MONO));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.CAP);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.CAP));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.LIB);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.LIB));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.UNIV);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNIV));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.TEMP);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TEMP));
+        }
+
+        for (i = 0;
+                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.TOW);
+                i++)
+        {
+            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TOW));
+        }
+
+        /**
+         * send game state info such as requests for discards
+         */
+        sendGameState(ga);
+
+        if ((ga.getCurrentDice() == 7) && ga.getPlayer(pn).getNeedToDiscard())
+        {
+            messageToPlayer(c, new SOCDiscardRequest(gaName, ga.getPlayer(pn).getResources().getTotal() / 2));
+        }
+
+        /**
+         * send what face this player is using
+         */
+        messageToGame(gaName, new SOCChangeFace(gaName, pn, ga.getPlayer(pn).getFaceId()));
     }
 
     /**
@@ -7590,7 +7691,7 @@ public class SOCServer extends Server
         for (int pn = 0; pn < reGame.maxPlayers; ++pn)
         {
             if (huConns[pn] != null)
-                joinGame(reGame, huConns[pn], true);
+                joinGame(reGame, huConns[pn], true, false);
         }
 
         /**
