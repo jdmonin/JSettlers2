@@ -399,6 +399,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected boolean scaledMissedImage;
 
     /**
+     * Time of start of board repaint, as returned by {@link System#currentTimeMillis()}.
+     * Used in {@link #drawBoardEmpty(Graphics)} with {@link #scaledMissedImage}.
+     * @since 1.1.08
+     */
+    private long drawnEmptyAt;
+
+    /**
      * translate hex ID to number to get coords
      */
     private int[] hexIDtoNum;
@@ -682,9 +689,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private SOCPlayer otherPlayer;
 
     /**
-     * offscreen buffer
+     * offscreen buffer of everything (board, pieces, hovering pieces, tooltip), to prevent flicker.
+     * @see #emptyBoardBuffer
      */
     private Image buffer;
+
+    /**
+     * offscreen buffer of board without any pieces placed, to prevent flicker.
+     * If the board layout changes (at start of game, for example),
+     * call {@link #flushBoardLayoutAndRepaint()} to clear the buffered copy.
+     * @see #buffer
+     * @since 1.1.08
+     */
+    private Image emptyBoardBuffer;
 
     /**
      * Modes of interaction; for correlation to game state, see {@link #updateMode()}.
@@ -1341,6 +1358,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * Clear the board layout (as rendered in the
+     * empty-board buffer) and trigger a repaint.
+     * @since 1.1.08
+     */
+    public void flushBoardLayoutAndRepaint()
+    {
+        if (emptyBoardBuffer != null)
+        {
+            emptyBoardBuffer.flush();
+            emptyBoardBuffer = null;
+        }
+        if (isScaled)
+            scaledAt = System.currentTimeMillis();  // reset the image-scaling timeout 
+        repaint();
+    }
+
+    /**
      * Set the board fields to a new size, rescale graphics if needed.
      * Does not call repaint.  Does not call setSize.
      * Will update {@link #isScaledOrRotated}, {@link #scaledPanelX}, and other fields.
@@ -1376,6 +1410,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             buffer.flush();
             buffer = null;
+        }
+        if (emptyBoardBuffer != null)
+        {
+            emptyBoardBuffer.flush();
+            emptyBoardBuffer = null;
         }
 
         /**
@@ -1714,10 +1753,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
             g.translate(-x, -y);
 
-            if (isScaled && (7000 < (System.currentTimeMillis() - scaledAt)))
+            missedDraw = true;
+            if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
             {
-                missedDraw = true;
-
                 // rescale the image or give up
                 if (scaledHexFail[tmp])
                 {
@@ -1761,9 +1799,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (! g.drawImage(scaledPorts[tmp], x, y, this))
             {
                 g.drawImage(portis[tmp], x, y, null);  // show small port graphic, instead of a blank space
-                if (isScaled && (7000 < (System.currentTimeMillis() - scaledAt)))
+                missedDraw = true;
+                if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
                 {
-                    missedDraw = true;
                     if (scaledPortFail[tmp])
                     {
                         scaledPorts[tmp] = portis[tmp];  // fallback
@@ -1784,7 +1822,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         if (hexNum == -1)
-            return;  // <---- Early return: Not a valid hex number ----
+        {
+            if (missedDraw)
+            {
+                // drawBoard will check this field after all hexes are drawn.
+                scaledMissedImage = true;
+            }
+            return;  // <---- Early return: No dice number on this hex ----
+        }
 
         /**
          * Draw the number
@@ -1823,9 +1868,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (! g.drawImage(scaledNumbers[hnl], x, y, this))
             {
                 g.drawImage(numbers[hnl], x, y, null);  // must show a number, not a blank space
-                if (isScaled && (7000 < (System.currentTimeMillis() - scaledAt)))
+                missedDraw = true;
+                if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
                 {
-                    missedDraw = true;
                     if (scaledNumberFail[hnl])
                     {
                         scaledNumbers[hnl] = numbers[hnl];  // fallback
@@ -1837,6 +1882,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         int h = scaleToActualY(numbers[2].getHeight(null));                    
                         scaledNumbers[hnl] = numbers[hnl].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                     }
+                }
+            } else {
+                if (isScaled)
+                {
+                    // scaled-number draw succeeded: draw the smooth border around the # graphic.
+                    // (TODO) assumes radius is 10; draw text/fill oval instead
+                    final int dia = scaleToActualX(19); // scaledNumbers[hnl].getWidth(null));
+                    g.setColor(Color.BLACK);
+                    g.drawOval(x, y, dia+1, dia+1);
                 }
             }
         }
@@ -2354,38 +2408,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * draw the whole board
+     * draw the whole board, including pieces and tooltip if applicable.
+     * The basic board without pieces is drawn just once, then buffered.
+     * If the board layout changes (at start of game, for example),
+     * call {@link #flushBoardLayoutAndRepaint()} to clear the buffered copy.
+     *
+     * @see #drawBoardEmpty(Graphics)
      */
     private void drawBoard(Graphics g)
     {
+        if (scaledMissedImage || emptyBoardBuffer == null)
+        {
+            if (emptyBoardBuffer == null)
+                emptyBoardBuffer = createImage(scaledPanelX, scaledPanelY);
+
+            drawnEmptyAt = System.currentTimeMillis();
+            scaledMissedImage = false;    // drawBoardEmpty, drawHex will set this flag if missed
+            drawBoardEmpty(emptyBoardBuffer.getGraphics());
+
+            emptyBoardBuffer.flush();
+            if (scaledMissedImage && (7000 < (drawnEmptyAt - scaledAt)))
+                scaledMissedImage = false;  // eventually give up scaling it
+        }
+
         g.setPaintMode();
-
-        g.setColor(getBackground());
-        g.fillRect(0, 0, scaledPanelX, scaledPanelY);
-
-        scaledMissedImage = false;    // drawHex will set this flag if missed
-
-        // Draw hexes:
-        // Normal board draws all 37 hexes.
-        // The 6-player board skips the rightmost row (hexes 7D-DD-D7).
-        for (int i = 0; i < hexX.length; i++)
-        {
-            if ((inactiveHexNums == null) || ! inactiveHexNums[i])
-                drawHex(g, i);
-        }
-        if (is6player)
-            drawPortsRing(g);
-
-        if (scaledMissedImage)
-        {
-            // With recent board resize, one or more rescaled images still hasn't
-            // been completed after 7 seconds.  We've asked for a new scaled copy
-            // of this image.  Repaint now, and repaint 3 seconds later.
-            // (The delay gives time for the new scaling to complete.)
-            scaledAt = System.currentTimeMillis();
-            repaint();
-            new DelayedRepaint(this).start();            
-        }
+        g.drawImage(emptyBoardBuffer, 0, 0, this);
 
         int gameState = game.getGameState();
 
@@ -2517,6 +2564,45 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (superTextTop != null)
         {
             drawSuperTextTop(g);
+        }
+    }
+
+    /**
+     * Draw the whole board (water, hexes, ports, numbers) but no placed pieces.
+     * This is drawn once, then stored.
+     * If the board layout changes (at start of game, for example),
+     * call {@link #flushBoardLayoutAndRepaint()} to clear the buffered copy.
+     * @param g Graphics, typically from {@link #emptyBoardBuffer}
+     * @since 1.1.08
+     */
+    private void drawBoardEmpty(Graphics g)
+    {
+        g.setPaintMode();
+
+        g.setColor(getBackground());
+        g.fillRect(0, 0, scaledPanelX, scaledPanelY);
+
+        // Draw hexes:
+        // Normal board draws all 37 hexes.
+        // The 6-player board skips the rightmost row (hexes 7D-DD-D7).
+        // drawHex will set scaledMissedImage if missed.
+        for (int i = 0; i < hexX.length; i++)
+        {
+            if ((inactiveHexNums == null) || ! inactiveHexNums[i])
+                drawHex(g, i);
+        }
+        if (is6player)
+            drawPortsRing(g);
+
+        if (scaledMissedImage)
+        {
+            // With recent board resize, one or more rescaled images still hasn't
+            // been completed after 7 seconds.  We've asked for a new scaled copy
+            // of this image.  Repaint now, and repaint 3 seconds later.
+            // (The delay gives time for the new scaling to complete.)
+            scaledAt = System.currentTimeMillis();
+            repaint();
+            new DelayedRepaint(this).start();            
         }
     }
 
