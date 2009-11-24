@@ -21,7 +21,6 @@
  **/
 package soc.message;
 
-import soc.game.SOCGame;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;

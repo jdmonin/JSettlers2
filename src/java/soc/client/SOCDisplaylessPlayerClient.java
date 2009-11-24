@@ -2004,7 +2004,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     public static void main(String[] args)
     {
         SOCDisplaylessPlayerClient ex1 = new SOCDisplaylessPlayerClient(args[0], Integer.parseInt(args[1]), true);
-
-        //ex1.init();
+        new Thread(ex1).start();
+        Thread.yield();
     }
 }

@@ -715,13 +715,6 @@ public class SOCRobotBrain extends Thread
                         mesType = -1;
                     }
 
-                    if (mesType != SOCMessage.GAMETEXTMSG)
-                    {
-                        // Not the ping.
-                        int x = 0;  // JM
-                        D.ebugPrintln();
-                    }
-                    
                     if (waitingForTradeMsg && (counter > 10))
                     {
                         waitingForTradeMsg = false;

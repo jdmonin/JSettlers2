@@ -25,7 +25,6 @@ import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Polygon;
 
 
 /**
@@ -134,8 +133,7 @@ public class SpeechBalloon extends Canvas
         {
             int[] xPoints = { 0, w / 8, w / 8, ((w / 8) + (w / 16)), w - xm, w - xm, 0, 0 };
             int[] yPoints = { h / 8, h / 8, 0, h / 8, h / 8, h - ym, h - ym, h / 8 };
-    
-            Polygon balloon = new Polygon(xPoints, yPoints, 8);
+
             g.fillPolygon(xPoints, yPoints, 8);
             g.setColor(Color.black);
             g.drawPolygon(xPoints, yPoints, 8);

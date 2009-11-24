@@ -21,8 +21,6 @@
  **/
 package soc.game;
 
-import java.util.Vector;
-
 
 /**
  * A road playing piece
