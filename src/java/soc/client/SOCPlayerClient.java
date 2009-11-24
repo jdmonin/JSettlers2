@@ -1724,7 +1724,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
              * (ignored before version 1.1.08)
              */
             case SOCMessage.SERVERPING:
-                put(mes.toCmd(), isLocal);
+                handleSERVERPING((SOCServerPing) mes, isLocal);
                 break;
 
             /**
@@ -2784,7 +2784,24 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             bd.setRobberHex(mes.getRobberHex());
 
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            pi.getBoardPanel().repaint();
+            pi.getBoardPanel().flushBoardLayoutAndRepaint();
+        }
+    }
+
+    /**
+     * echo the server ping, to ensure we're still connected.
+     * (ignored before version 1.1.08)
+     * @since 1.1.08
+     */
+    private void handleSERVERPING(SOCServerPing mes, boolean isLocal)
+    {
+        int timeval = mes.getSleepTime();
+        if (timeval != -1)
+        {
+            put(mes.toCmd(), isLocal);
+        } else {
+            ex = new RuntimeException("Kicked by player with same name.");
+            destroy();
         }
     }
 
@@ -2808,7 +2825,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         if (portLayout != null)
             bd.setPortsLayout(portLayout);
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        pi.getBoardPanel().repaint();
+        pi.getBoardPanel().flushBoardLayoutAndRepaint();
     }
 
     /**
@@ -3304,7 +3321,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        pi.getPlayerHandPanel(mes.getPlayerNumber()).rejectOffer();
+        pi.getPlayerHandPanel(mes.getPlayerNumber()).rejectOfferShowNonClient();
     }
 
     /**
