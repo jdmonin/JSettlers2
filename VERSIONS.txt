@@ -4,6 +4,8 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 
     > 1.1.08 (build 200911xx)
 - 6-player board, with Special Building Phase rule
+- Can now sometimes reconnect after connection to server is lost,
+     when message "A player with that nickname is already logged in" appears.
 - Smaller, cleaner building panel
 - Rotated-board mode, to make it easier to fit a larger board
 - Re-word counter offer text to: Give Them / You Get
