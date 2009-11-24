@@ -7,6 +7,8 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 - Smaller, cleaner building panel
 - Rotated-board mode, to make it easier to fit a larger board
 - Re-word counter offer text to: Give Them / You Get
+- Cleaner scaled graphics: Draw hex dice-number circles on hex, instead of GIFs.
+- BoardPanel faster redraw: cache image of board without pieces
 - BoardPanel javadocs explain nodeMap and initNodeMapAux
 
     > 1.1.07 (build 20091031)
