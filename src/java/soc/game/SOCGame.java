@@ -2162,9 +2162,8 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #setCurrentPlayerNumber(int)}.
      * endTurn() is not called before the first dice roll.
      * endTurn() will call {@link #updateAtTurn()}.
-     * In the 6-player game, calling endTurn() may begin
-     * the {@link #SPECIAL_BUILDING Special Building Phase}.
-     * [ TODO: does it continue it? or not ]
+     * In the 6-player game, calling endTurn() may begin or
+     * continue the {@link #SPECIAL_BUILDING Special Building Phase}.
      *<P>
      * The winner check is needed because a player can win only
      * during their own turn; if they reach winning points ({@link #VP_WINNER}
