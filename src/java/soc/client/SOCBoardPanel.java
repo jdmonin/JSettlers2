@@ -497,24 +497,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private boolean[] scaledHexFail, scaledPortFail;
 
     /**
-     * dice-number pix (for hexes), original resolution.
-     * Range is 0-12 (0,1,7 unused).
-     */
-    private static Image[] numbers;
-
-    /**
-     * dice-number pix (for hexes), current scaled resolution
-     * Range is 0-12 (0,1,7 unused).
-     */
-    private Image[] scaledNumbers;
-
-    /**
-     * If an element is true, scaling that number's image previously failed.
-     * Don't re-try scaling to same size, instead use {@link #numbers}[i].
-     */
-    private boolean[] scaledNumberFail;
-
-    /**
      * dice number pix (for arrow). @see #DICE_SZ
      */
     private static Image[] dice;
@@ -970,7 +952,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // point to static images, unless we're later resized
         scaledHexes = new Image[hexes.length];
         scaledPorts = new Image[ports.length];
-        scaledNumbers = new Image[numbers.length];
         Image[] h, p;
         if (isRotated)
         {
@@ -984,11 +965,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledHexes[i] = h[i];
         for (i = ports.length - 1; i>=0; --i)
             scaledPorts[i] = p[i];
-        for (i = numbers.length - 1; i>=0; --i)
-            scaledNumbers[i] = numbers[i];
         scaledHexFail = new boolean[hexes.length];
         scaledPortFail = new boolean[ports.length];
-        scaledNumberFail = new boolean[numbers.length];
 
         // point to static coordinate arrays, unless we're later resized.
         // If this is the first instance, calculate arrowXR.
@@ -1481,8 +1459,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledHexes[i] = hex[i];
             for (i = ports.length - 1; i>=0; --i)
                 scaledPorts[i] = por[i];
-            for (i = numbers.length - 1; i>=0; --i)
-                scaledNumbers[i] = numbers[i];
         }
         else
         {
@@ -1500,15 +1476,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 scaledPorts[i] = por[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                 scaledPortFail[i] = false;
-            }
-
-            w = scaleToActualX(numbers[2].getWidth(null));
-            h = scaleToActualY(numbers[2].getHeight(null));
-            for (int i = scaledNumbers.length - 1; i>=0; --i)
-            {
-                if (numbers[i] != null)
-                    scaledNumbers[i] = numbers[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
-                scaledNumberFail[i] = false;
             }
         }
 
@@ -1908,19 +1875,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 x += scaleToActualX(dx);
                 y += scaleToActualY(dy);
-                if (scaledNumbers[hnl] == numbers[hnl])
-                {
-                    // recenterPrevMiss = true;
-                    int w = scaledNumbers[hnl].getWidth(null);
-                    int h = scaledNumbers[hnl].getHeight(null);
-                    xm = (scaleToActualX(w) - w) / 2;
-                    ym = (scaleToActualY(h) - h) / 2;
-                    x += xm;
-                    y += ym;
-                }
             }
 
-            // New way to draw:
+            // Draw the circle and dice number:
             int dia = DICE_NUMBER_CIRCLE_DIAMETER;
             if (isScaled)
                 dia = scaleToActualX(dia);
@@ -1945,38 +1902,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.setFont(diceNumberCircleFont);
             g.drawString(numstr, x, y);
             // g.drawString(numstr, x+1, y);
-
-            if (false)
-            {  // old way to draw
-            if (! g.drawImage(scaledNumbers[hnl], x, y, this))
-            {
-                g.drawImage(numbers[hnl], x, y, null);  // must show a number, not a blank space
-                missedDraw = true;
-                if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
-                {
-                    if (scaledNumberFail[hnl])
-                    {
-                        scaledNumbers[hnl] = numbers[hnl];  // fallback
-                    }
-                    else
-                    {
-                        scaledNumberFail[hnl] = true;
-                        int w = scaleToActualX(numbers[2].getWidth(null));
-                        int h = scaleToActualY(numbers[2].getHeight(null));                    
-                        scaledNumbers[hnl] = numbers[hnl].getScaledInstance(w, h, Image.SCALE_SMOOTH);
-                    }
-                }
-            } else {
-                if (isScaled)
-                {
-                    // scaled-number draw succeeded: draw the smooth border around the # graphic.
-                    // (TODO) assumes radius is 10; draw text/fill oval instead
-                    dia = scaleToActualX(19); // scaledNumbers[hnl].getWidth(null));
-                    g.setColor(Color.BLACK);
-                    g.drawOval(x, y, dia+1, dia+1);
-                }
-            }
-            }  // old way to draw
 
             }  // diceNumber fonts OK
         }
@@ -3889,28 +3814,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             MediaTracker tracker = new MediaTracker(c);
         
             hexes = new Image[13];
-            numbers = new Image[13];  // 0-12 (0,1,7 unused)
             ports = new Image[7];
             dice = new Image[14];
 
             loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz);
-
-            numbers[2] = tk.getImage(clazz.getResource(IMAGEDIR + "/two.gif"));
-            numbers[3] = tk.getImage(clazz.getResource(IMAGEDIR + "/three.gif"));
-            numbers[4] = tk.getImage(clazz.getResource(IMAGEDIR + "/four.gif"));
-            numbers[5] = tk.getImage(clazz.getResource(IMAGEDIR + "/five.gif"));
-            numbers[6] = tk.getImage(clazz.getResource(IMAGEDIR + "/six.gif"));
-            numbers[8] = tk.getImage(clazz.getResource(IMAGEDIR + "/eight.gif"));
-            numbers[9] = tk.getImage(clazz.getResource(IMAGEDIR + "/nine.gif"));
-            numbers[10] = tk.getImage(clazz.getResource(IMAGEDIR + "/ten.gif"));
-            numbers[11] = tk.getImage(clazz.getResource(IMAGEDIR + "/eleven.gif"));
-            numbers[12] = tk.getImage(clazz.getResource(IMAGEDIR + "/twelve.gif"));
-
-            for (int i = 2; i <= 12; i++)
-            {
-                if (numbers[i] != null)
-                    tracker.addImage(numbers[i], 0);
-            }
 
             for (int i = 2; i < 13; i++)
             {
