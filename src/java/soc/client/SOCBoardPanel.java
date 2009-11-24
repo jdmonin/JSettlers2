@@ -300,6 +300,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int HEXWIDTH = 55, HEXHEIGHT = 64;
 
     /**
+     * Diameter and font size (unscaled internal-pixels) for dice number circles on hexes.
+     * @since 1.1.08
+     */
+    private static final int DICE_NUMBER_CIRCLE_DIAMETER = 19, DICE_NUMBER_FONTPOINTS = 12;
+
+    /**
+     * Dice number circle background colors on hexes. <PRE>
+     * Index:  Dice:  Color:
+     *   0     2, 12  yellow
+     *   1     3, 11
+     *   2     4, 10  orange
+     *   3     5,  9
+     *   4     6,  8  red </PRE>
+     *
+     * @since 1.1.08
+     */
+    private static final Color[] DICE_NUMBER_CIRCLE_COLORS =
+        { Color.YELLOW,
+          new Color(255, 189, 0),
+          new Color(255, 125, 0),
+          new Color(255,  84, 0),
+          Color.RED
+        };
+
+    /**
      * Minimum required width and height, as determined by options and {@link #isRotated}.
      * Used by {@link #getMinimumSize()}.
      * @since 1.1.08
@@ -404,6 +429,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 1.1.08
      */
     private long drawnEmptyAt;
+
+    /**
+     * Font of dice-number circles appearing on hexes.
+     * @since 1.1.08
+     */
+    private Font diceNumberCircleFont;
+
+    /**
+     * FontMetrics of {@link #diceNumberCircleFont}.
+     * @since 1.1.08
+     */
+    private FontMetrics diceNumberCircleFM;
 
     /**
      * translate hex ID to number to get coords
@@ -1416,6 +1453,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             emptyBoardBuffer.flush();
             emptyBoardBuffer = null;
         }
+        diceNumberCircleFont = null;
+        diceNumberCircleFM = null;
 
         /**
          * Scale coordinate arrays for drawing pieces,
@@ -1828,7 +1867,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 // drawBoard will check this field after all hexes are drawn.
                 scaledMissedImage = true;
             }
-            return;  // <---- Early return: No dice number on this hex ----
+            return;  // <---- Early return: This hex isn't within hexLayout/numberLayout ----
         }
 
         /**
@@ -1837,6 +1876,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         final int hnl = board.getNumberLayout()[hexNum];
         if (hnl > 0)
         {
+            if (diceNumberCircleFont == null)
+            {
+                int fsize = DICE_NUMBER_FONTPOINTS;
+                if (isScaled)
+                    fsize = scaleToActualY(fsize);
+                diceNumberCircleFont = new Font("Dialog", Font.BOLD, fsize);
+            }
+            if ((diceNumberCircleFM == null) && (diceNumberCircleFont != null))
+            {
+                diceNumberCircleFM = getFontMetrics(diceNumberCircleFont);
+            }
+
+            if ((diceNumberCircleFM != null) && (diceNumberCircleFont != null))
+            {
+                
             final int dx, dy;  // Offset of number graphic from upper-left corner of hex
             if (isRotated)
             {
@@ -1865,6 +1919,35 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     y += ym;
                 }
             }
+
+            // New way to draw:
+            int dia = DICE_NUMBER_CIRCLE_DIAMETER;
+            if (isScaled)
+                dia = scaleToActualX(dia);
+            ++dia;
+
+            // Set background color:
+            {
+                int colorIdx;
+                if (hnl < 7)
+                    colorIdx = hnl - 2;
+                else
+                    colorIdx = 12 - hnl;
+                g.setColor(DICE_NUMBER_CIRCLE_COLORS[colorIdx]);
+            }
+            g.fillOval(x, y, dia, dia);
+            g.setColor(Color.BLACK);
+            g.drawOval(x, y, dia, dia);
+
+            final String numstr = Integer.toString(hnl);
+            x += (dia - diceNumberCircleFM.stringWidth(numstr)) / 2;
+            y += (dia + diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
+            g.setFont(diceNumberCircleFont);
+            g.drawString(numstr, x, y);
+            // g.drawString(numstr, x+1, y);
+
+            if (false)
+            {  // old way to draw
             if (! g.drawImage(scaledNumbers[hnl], x, y, this))
             {
                 g.drawImage(numbers[hnl], x, y, null);  // must show a number, not a blank space
@@ -1888,11 +1971,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     // scaled-number draw succeeded: draw the smooth border around the # graphic.
                     // (TODO) assumes radius is 10; draw text/fill oval instead
-                    final int dia = scaleToActualX(19); // scaledNumbers[hnl].getWidth(null));
+                    dia = scaleToActualX(19); // scaledNumbers[hnl].getWidth(null));
                     g.setColor(Color.BLACK);
                     g.drawOval(x, y, dia+1, dia+1);
                 }
             }
+            }  // old way to draw
+
+            }  // diceNumber fonts OK
         }
 
         if (missedDraw)
