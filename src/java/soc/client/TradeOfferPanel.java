@@ -181,11 +181,16 @@ public class TradeOfferPanel extends Panel
         }
         
         /**
-         * @param message message to display
+         * Update the text shown in this messagepanel.
+         * Does not show or hide the panel, only changes the label text.
+         * @param message message to display, or null for no text
          */
         public void update(String message)
         {
-            msg.setText(message);
+            if (message != null)
+                msg.setText(message);
+            else
+                msg.setText(" ");
         }
         
         /**
@@ -699,18 +704,26 @@ public class TradeOfferPanel extends Panel
     }
 
     /**
-     * Switch to the Message from another player.
+     * Switch to the Message from another player, or clear
+     * its most recent contents.
+     * If <tt>message</tt> is null, only clear the message text,
+     * don't change the visibility.
+     * Otherwise, set the message text and show the Message.
      * If an offer/counteroffer were visible, they are
      * not lost; call {@link #setOffer(SOCTradeOffer)} to
      * show them again.
      *
-     * @param  message  the message message to show
+     * @param  message  the message message to show, or null.
+     *      Null does not show or hide the panel, only clears the label text.
      */
     public void setMessage(String message)
     {
         messagePanel.update(message);
-        cardLayout.show(this, mode = MESSAGE_MODE);
-        validate();
+        if (message != null)
+        {
+            cardLayout.show(this, mode = MESSAGE_MODE);
+            validate();
+        }
     }
 
     /**

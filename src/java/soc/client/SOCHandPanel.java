@@ -1777,9 +1777,9 @@ public class SOCHandPanel extends Panel implements ActionListener
     }
 
     /**
-     * Show that this player has rejected another player's offer.
+     * Show that this player (who isn't the client) has rejected another player's offer.
      */
-    public void rejectOffer()
+    public void rejectOfferShowNonClient()
     {
         if (playerIsClient)
             return;
@@ -1815,6 +1815,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         if ((offer.getMode() == TradeOfferPanel.MESSAGE_MODE)
             && ! (offerIsResetMessage || offerIsDiscardMessage))
         {
+            offer.setMessage(null);
             offer.setVisible(false);
             if (offerHidesControls)
                 hideTradeMsgShowOthers(true);
