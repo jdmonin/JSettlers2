@@ -1841,6 +1841,11 @@ public class SOCServer extends Server
             SOCClientData scdOld = (SOCClientData) (oldConn.getAppData());
             if ((scdNew != null) && (scdOld != null))
                 scdNew.copyClientPlayerStats(scdOld);
+
+            // Let the old one know it's disconnected now,
+            // in case it ever does get its connection back.
+            if (oldConn.getVersion() >= 1108)
+                oldConn.put(SOCServerPing.toCmd(-1));
         }
     }
 

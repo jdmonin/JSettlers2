@@ -30,6 +30,10 @@ package soc.message;
  * this to ensure the client is still connected.
  * If another client attempts to connect with the same name,
  * same host (IP address), the first client will be pinged.
+ * If the client does not respond within a minute or so,
+ * it is replaced in all games by the newly connecting client.
+ * Server attempts to send a final SERVERPING to the old client,
+ * with sleepTime -1, to let it know it's no longer connected.
  *
  * @author Robert S Thomas
  */
