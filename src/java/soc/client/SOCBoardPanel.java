@@ -1857,54 +1857,52 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if ((diceNumberCircleFM != null) && (diceNumberCircleFont != null))
             {
-                
-            final int dx, dy;  // Offset of number graphic from upper-left corner of hex
-            if (isRotated)
-            {
-                dx = 22;  dy = 17;
-            } else {
-                dx = 17;  dy = 22;
-            }
-
-            if (! isScaled)
-            {
-                x += dx;
-                y += dy;
-            }
-            else
-            {
-                x += scaleToActualX(dx);
-                y += scaleToActualY(dy);
-            }
-
-            // Draw the circle and dice number:
-            int dia = DICE_NUMBER_CIRCLE_DIAMETER;
-            if (isScaled)
-                dia = scaleToActualX(dia);
-            ++dia;
-
-            // Set background color:
-            {
-                int colorIdx;
-                if (hnl < 7)
-                    colorIdx = hnl - 2;
+                final int dx, dy;  // Offset of number graphic from upper-left corner of hex
+                if (isRotated)
+                {
+                    dx = 22;  dy = 17;
+                } else {
+                    dx = 17;  dy = 22;
+                }
+    
+                if (! isScaled)
+                {
+                    x += dx;
+                    y += dy;
+                }
                 else
-                    colorIdx = 12 - hnl;
-                g.setColor(DICE_NUMBER_CIRCLE_COLORS[colorIdx]);
-            }
-            g.fillOval(x, y, dia, dia);
-            g.setColor(Color.BLACK);
-            g.drawOval(x, y, dia, dia);
+                {
+                    x += scaleToActualX(dx);
+                    y += scaleToActualY(dy);
+                }
+    
+                // Draw the circle and dice number:
+                int dia = DICE_NUMBER_CIRCLE_DIAMETER;
+                if (isScaled)
+                    dia = scaleToActualX(dia);
+                ++dia;
+    
+                // Set background color:
+                {
+                    int colorIdx;
+                    if (hnl < 7)
+                        colorIdx = hnl - 2;
+                    else
+                        colorIdx = 12 - hnl;
+                    g.setColor(DICE_NUMBER_CIRCLE_COLORS[colorIdx]);
+                }
+                g.fillOval(x, y, dia, dia);
+                g.setColor(Color.BLACK);
+                g.drawOval(x, y, dia, dia);
+    
+                final String numstr = Integer.toString(hnl);
+                x += (dia - diceNumberCircleFM.stringWidth(numstr)) / 2;
+                y += (dia + diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
+                g.setFont(diceNumberCircleFont);
+                g.drawString(numstr, x, y);
 
-            final String numstr = Integer.toString(hnl);
-            x += (dia - diceNumberCircleFM.stringWidth(numstr)) / 2;
-            y += (dia + diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
-            g.setFont(diceNumberCircleFont);
-            g.drawString(numstr, x, y);
-            // g.drawString(numstr, x+1, y);
-
-            }  // diceNumber fonts OK
-        }
+            }  // if (diceNumber fonts OK)
+        }  // if (hnl > 0)
 
         if (missedDraw)
         {
