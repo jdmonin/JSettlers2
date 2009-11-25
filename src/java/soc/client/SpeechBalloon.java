@@ -144,15 +144,8 @@ public class SpeechBalloon extends Canvas
             g.drawRect(0, hdiv8, w - xm, h - ym - hdiv8);            
         }
 
-        int i;
-        for (i = xm; i > 0; i--)
-        {
-            g.drawLine(ym, h - i, w, h - i);
-        }
-
-        for (i = ym; i > 0; i--)
-        {
-            g.drawLine(w - i, (h / 6) + xm, w - i, h);
-        }
+        // Draw the shadow
+        g.fillRect(ym, h - xm, w, h - 1);
+        g.fillRect(w - ym, (h / 6) + xm, w - 1, h);
     }
 }

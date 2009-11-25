@@ -96,8 +96,8 @@ public class ShadowedBox extends Canvas
         Dimension dim = getSize();
         int h = dim.height;
         int w = dim.width;
-        int xm = SHADOW_SIZE;
-        int ym = SHADOW_SIZE;
+        final int xm = SHADOW_SIZE;
+        final int ym = SHADOW_SIZE;
         int i;
 
         g.setPaintMode();
@@ -106,14 +106,8 @@ public class ShadowedBox extends Canvas
         g.setColor(Color.black);
         g.drawRect(0, 0, w - xm, h - ym);
 
-        for (i = xm; i > 0; i--)
-        {
-            g.drawLine(ym, h - i, w, h - i);
-        }
-
-        for (i = ym; i > 0; i--)
-        {
-            g.drawLine(w - i, xm, w - i, h);
-        }
+        // Draw the shadow
+        g.fillRect(ym, h - xm, w, h - 1);
+        g.fillRect(w - ym, xm, w - 1, h);
     }
 }
