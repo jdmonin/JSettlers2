@@ -2428,14 +2428,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (scaledMissedImage || emptyBoardBuffer == null)
         {
-            if (emptyBoardBuffer == null)
-                emptyBoardBuffer = createImage(scaledPanelX, scaledPanelY);
+            Image ebb = emptyBoardBuffer;  // Local copy, in case field becomes null in another thread
+                                           // during drawBoardEmpty. (this has happened)
+            if (ebb == null)
+            {
+                ebb = createImage(scaledPanelX, scaledPanelY);
+                emptyBoardBuffer = ebb;
+            }
 
             drawnEmptyAt = System.currentTimeMillis();
             scaledMissedImage = false;    // drawBoardEmpty, drawHex will set this flag if missed
-            drawBoardEmpty(emptyBoardBuffer.getGraphics());
+            drawBoardEmpty(ebb.getGraphics());
 
-            emptyBoardBuffer.flush();
+            ebb.flush();
             if (scaledMissedImage && (7000 < (drawnEmptyAt - scaledAt)))
                 scaledMissedImage = false;  // eventually give up scaling it
         }
