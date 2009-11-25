@@ -1211,8 +1211,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             }
         }
 
-        // No need for a buildingPanel.updateAtTurn;
-        //   its updateButtonStatus is called from client.handleGAMESTATE.
+        buildingPanel.updateButtonStatus();
     }
 
     /**

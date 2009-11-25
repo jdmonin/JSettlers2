@@ -377,7 +377,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         if (! doNotClearPopup)
             pi.getBoardPanel().popupClearBuildRequest();  // Just in case
 
-        final boolean stateBuyOK = (game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING);
+        final boolean isCurrent = (game.getCurrentPlayerNumber() == player.getPlayerNumber());
+        final int gstate = game.getGameState();
+        final boolean stateBuyOK =        // same as in updateButtonStatus. (TODO) refactor to SOCGame?
+            (isCurrent)
+            ? ((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING))
+            : ((game.maxPlayers > 4) && (gstate >= SOCGame.PLAY) && (gstate < SOCGame.OVER));
 
         if (target == ROAD)
         {
@@ -436,8 +441,8 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (player != null)
         {
-            int pnum = player.getPlayerNumber();
-            boolean isCurrent = (game.getCurrentPlayerNumber() == pnum);
+            final int pnum = player.getPlayerNumber();
+            final boolean isCurrent = (game.getCurrentPlayerNumber() == pnum);
             final int gstate = game.getGameState();
             boolean currentCanBuy =
                 (isCurrent)
