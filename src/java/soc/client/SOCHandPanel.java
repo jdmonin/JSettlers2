@@ -336,8 +336,6 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     protected boolean interactive;
 
-    private boolean chatExcepTested = true;  // JM: For testing with BANK button (TODO cleanup)
-
     /**
      * make a new hand panel
      *
@@ -740,21 +738,6 @@ public class SOCHandPanel extends Panel implements ActionListener
                     // msg = "The game is over; <someone> won.";
                     // msg = "The game is over; no one won.";
                 playerInterface.print("* " + msg);
-            }
-            if (! chatExcepTested)
-            {
-                try
-                {
-                    int z = Color.BLACK.getRed();
-                    int dz = 15 / z;  // Trigger divide-by-zero, to force an exception
-                    System.out.print(dz);
-                }
-                catch (Throwable th)
-                {
-                    playerInterface.chatPrint("-- test of stacktrace --\n");
-                    playerInterface.chatPrintStackTrace(th);
-                }
-                chatExcepTested = true;
             }
         }
         else if (target == SEND)
