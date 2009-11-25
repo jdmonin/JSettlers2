@@ -1077,7 +1077,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         textInput.setEditable(true);
         textInput.setText("");
         textInputSetToInitialPrompt(true);
-        textInput.requestFocus();
+        // Don't request focus for textInput; it should clear
+        // the prompt text when user clicks (focuses) it, so
+        // wait for user to do that.
     }
 
     /**
@@ -1905,13 +1907,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             {
                 return;
             }
-            if (pi.textInput.getText().length() == 0)
-            {
-                // Former contents were erased,
-                // show the prompt message.
-                // Do not trim here. (vs focusLost)
-                pi.textInputSetToInitialPrompt(true);
-            }
         }
 
         /**
@@ -1936,8 +1931,15 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             }
         }
 
-        /** Stub required for FocusListner. */
-        public void focusGained(FocusEvent e) {}
+        /** Clear the initial prompt message when textfield is entered or clicked on. */
+        public void focusGained(FocusEvent e)
+        {
+            if (! pi.textInputIsInitial)
+            {
+                return;
+            }
+            pi.textInputSetToInitialPrompt(false);
+        }
 
     }  // SOCPITextfieldListener
 
