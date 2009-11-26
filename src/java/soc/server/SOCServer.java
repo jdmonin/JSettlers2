@@ -6767,25 +6767,20 @@ public class SOCServer extends Server
             final String viName = vi.getName();
             final int pePN = pe.getPlayerNumber();
             final int viPN = vi.getPlayerNumber();
-            StringBuffer mes1 = new StringBuffer("You stole ");
-            StringBuffer mes2 = new StringBuffer(peName);  mes2.append(" stole ");
+            StringBuffer mes = new StringBuffer(" stole ");  // " stole a sheep resource from "
             SOCPlayerElement gainRsrc = null;
             SOCPlayerElement loseRsrc = null;
             SOCPlayerElement gainUnknown;
             SOCPlayerElement loseUnknown;
 
             final String aResource = SOCResourceConstants.aResName(rsrc);
-            mes1.append(aResource);  // "a clay"
-            mes2.append(aResource);
-            mes1.append(" ");
-            mes2.append(" ");
+            mes.append(aResource);  // "a clay"
 
             // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
             gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, rsrc, 1);
             loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1);
 
-            mes1.append("resource from ");  mes1.append(viName);  mes1.append('.');
-            mes2.append("resource from you.");
+            mes.append(" resource from "); 
 
             /**
              * send the game messages
@@ -6806,11 +6801,17 @@ public class SOCServer extends Server
             messageToGameExcept(gaName, exceptions, loseUnknown, true);
 
             /**
-             * send the text messages
+             * send the text messages:
+             * "You stole a sheep resource from viName."
+             * "peName stole a sheep resource from you."
+             * "peName stole a resource from viName."
              */
-            messageToPlayer(peCon, new SOCGameTextMsg(gaName, SERVERNAME, mes1.toString()));
-            messageToPlayer(viCon, new SOCGameTextMsg(gaName, SERVERNAME, mes2.toString()));
-            messageToGameExcept(gaName, exceptions, new SOCGameTextMsg(gaName, SERVERNAME, peName + " stole a resource from " + viName), true);
+            messageToPlayer(peCon, new SOCGameTextMsg(gaName, SERVERNAME,
+                "You" + mes.toString() + viName + '.'));
+            messageToPlayer(viCon, new SOCGameTextMsg(gaName, SERVERNAME,
+                peName + mes.toString() + "you."));
+            messageToGameExcept(gaName, exceptions, new SOCGameTextMsg(gaName, SERVERNAME,
+                peName + " stole a resource from " + viName), true);
         }
     }
 
