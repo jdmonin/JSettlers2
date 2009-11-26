@@ -620,9 +620,12 @@ public class NewGameOptionsFrame extends Frame
         if (cl.readValidNicknameAndPassword())
         {
             if (readOptsValuesFromControls(checkOptionsMinVers))
+            {
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
                 cl.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR
-            else
+            } else {
                 return;  // readOptsValues will put the err msg in dia's status line
+            }
         } else {
             // Nickname field is also checked before this dialog is displayed,
             // so the user must have gone back and changed it.
