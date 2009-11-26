@@ -30,8 +30,11 @@ package soc.game;
  *          Clay is first (1), Wood is last (5), Unknown is after wood.
  *          Those are the 5 resource types (count==5 is also assumed).
  *          Adding a new resource type would require changes in many places.
+ *<P>
+ * Before 1.1.08, this was an interface.  Changing to a class allowed adding
+ * methods such as {@link #typeName(int)}.
  */
-public interface SOCResourceConstants
+public class SOCResourceConstants
 {
     /**
      * Warning: Don't mess with these constants, other pieces
@@ -46,4 +49,35 @@ public interface SOCResourceConstants
     public static final int UNKNOWN = 6;
     public static final int MIN = 1;
     public static final int MAXPLUSONE = 7;
+
+    /**
+     * Get the resource type name for this resource type number,
+     * such as "clay" or "ore".
+     *
+     * @param rtype Resource type, as in {@link SOCResourceConstants}.
+     * @return Lowercase resource name, or null if rtype is out of range.
+     * @since 1.1.08
+     */
+    public static String typeName(int rtype)
+    {
+        String tname;
+        switch (rtype)
+        {
+        case CLAY:
+            tname = "clay";  break;
+        case ORE:
+            tname = "ore";   break;
+        case SHEEP:
+            tname = "sheep"; break;
+        case WHEAT:
+            tname = "wheat"; break;
+        case WOOD:
+            tname = "wood";  break;
+        default:
+            // Should not happen
+            tname = null;            
+        }
+        return tname;
+    }
+
 }
