@@ -37,11 +37,11 @@ import java.util.Vector;
 
 /**
  * A class for holding and manipulating player data.
- * The player exists within one SOCGame, not persistent between games like SOCClient.
+ * The player exists within one SOCGame, not persistent between games like SOCPlayerClient or SOCClientData.
  *
  * @author Robert S Thomas
  */
-public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Serializable, Cloneable
+public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 {
     /**
      * the name of the player
