@@ -4304,6 +4304,21 @@ public class SOCGame implements Serializable, Cloneable
     // ---------------------------------------
 
     /**
+     * Can the player either buy and place a piece (or development card) now,
+     * or can they ask now for the Special Building Phase (in a 6-player game)?
+     *
+     * @param pn  Player number
+     * @see #canAskSpecialBuild(int, boolean)
+     * @since 1.1.08
+     */
+    public boolean canBuyOrAskSpecialBuild(final int pn)
+    {
+        return (pn == currentPlayerNumber)
+            ? ((gameState == SOCGame.PLAY1) || (gameState == SOCGame.SPECIAL_BUILDING))
+            : canAskSpecialBuild(pn, false);
+    }
+
+    /**
      * During game play, are we in the {@link #SPECIAL_BUILDING Special Building Phase}?
      * Includes game state {@link #SPECIAL_BUILDING}, and placement game states during this phase.
      *
@@ -4313,6 +4328,50 @@ public class SOCGame implements Serializable, Cloneable
     public boolean isSpecialBuilding()
     {
         return (gameState == SPECIAL_BUILDING) || (oldGameState == SPECIAL_BUILDING);
+    }
+
+    /**
+     * For 6-player mode's {@link #SPECIAL_BUILDING Special Building Phase},
+     * can the player currently request to special build?
+     *
+     * @param pn  The player's number
+     * @throws IllegalStateException  if game is not 6-player, or pn is current player,
+     *            or if gamestate is earlier than {@link #PLAY}, or >= {@link #OVER}.
+     * @throws IllegalArgumentException  if pn is not a valid player (vacant seat, etc).
+     * @see #canBuyOrAskSpecialBuild(int)
+     * @since 1.1.08
+     */
+    public boolean canAskSpecialBuild(final int pn, final boolean throwExceptions)
+        throws IllegalStateException, IllegalArgumentException
+    {
+        if (maxPlayers <= 4)
+            if (throwExceptions)
+                throw new IllegalStateException("not 6-player");
+            else
+                return false;
+        if (pn == currentPlayerNumber)
+            if (throwExceptions)
+                throw new IllegalStateException("current player");
+            else
+                return false;
+        if ((gameState < PLAY) || (gameState >= OVER))
+            if (throwExceptions)
+                throw new IllegalStateException("cannot ask at this time");
+            else
+                return false;
+        if ((pn < 0) || (pn >= maxPlayers))
+            if (throwExceptions)
+                throw new IllegalArgumentException("pn range");
+            else
+                return false;
+        SOCPlayer pl = players[pn];
+        if ((pl == null) || isSeatVacant(pn))
+            if (throwExceptions)
+                throw new IllegalArgumentException("pn not valid");
+            else
+                return false;
+
+        return true;
     }
 
     /**
@@ -4336,21 +4395,14 @@ public class SOCGame implements Serializable, Cloneable
     public void askSpecialBuildAddPiece(final int pieceType, final int pn)
         throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException
     {
-        if (maxPlayers <= 4)
-            throw new IllegalStateException("not 6-player");
-        if (pn == currentPlayerNumber)
-            throw new IllegalStateException("current player");
-        if ((gameState < PLAY) || (gameState >= OVER))
-            throw new IllegalStateException("cannot ask at this time");
-        if ((pn < 0) || (pn >= maxPlayers))
-            throw new IllegalArgumentException("pn range");
-        SOCPlayer pl = players[pn];
-        if ((pl == null) || isSeatVacant(pn))
-            throw new IllegalArgumentException("pn not valid");
+        if (canAskSpecialBuild(pn, true))
+        {
+            // May throw UnsupportedOperationException or
+            // IllegalArgumentException; pass to our caller.
 
-        pl.askSpecialBuildAddPiece(pieceType);  // May throw UnsupportedOperationException or
-                                                // IllegalArgumentException; pass to our caller.
-        askedSpecialBuildPhase = true;
+            players[pn].askSpecialBuildAddPiece(pieceType);  
+            askedSpecialBuildPhase = true;
+        }
     }
 
 }
