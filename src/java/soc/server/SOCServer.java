@@ -6774,48 +6774,15 @@ public class SOCServer extends Server
             SOCPlayerElement gainUnknown;
             SOCPlayerElement loseUnknown;
 
-            switch (rsrc)
-            {
-            case SOCResourceConstants.CLAY:
-                mes1.append("a clay ");
-                mes2.append("a clay ");
-                gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1);
-                loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, SOCPlayerElement.CLAY, 1);
+            final String aResource = SOCResourceConstants.aResName(rsrc);
+            mes1.append(aResource);  // "a clay"
+            mes2.append(aResource);
+            mes1.append(" ");
+            mes2.append(" ");
 
-                break;
-
-            case SOCResourceConstants.ORE:
-                mes1.append("an ore ");
-                mes2.append("an ore ");
-                gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 1);
-                loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, SOCPlayerElement.ORE, 1);
-
-                break;
-
-            case SOCResourceConstants.SHEEP:
-                mes1.append("a sheep ");
-                mes2.append("a sheep ");
-                gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1);
-                loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1);
-
-                break;
-
-            case SOCResourceConstants.WHEAT:
-                mes1.append("a wheat ");
-                mes2.append("a wheat ");
-                gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1);
-                loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1);
-
-                break;
-
-            case SOCResourceConstants.WOOD:
-                mes1.append("a wood ");
-                mes2.append("a wood ");
-                gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1);
-                loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1);
-
-                break;
-            }
+            // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
+            gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, rsrc, 1);
+            loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1);
 
             mes1.append("resource from ");  mes1.append(viName);  mes1.append('.');
             mes2.append("resource from you.");
@@ -7348,7 +7315,7 @@ public class SOCServer extends Server
 
         for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
         {
-            // This works because SOCPlayerElement.ORE == SOCResourceConstants.ORE.
+            // This works because SOCPlayerElement.SHEEP == SOCResourceConstants.SHEEP.
 
             final int amt = rset.getAmount(res);
             if (amt <= 0)

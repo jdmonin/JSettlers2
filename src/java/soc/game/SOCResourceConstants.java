@@ -82,4 +82,23 @@ public class SOCResourceConstants
         return tname;
     }
 
+    /**
+     * Get the indefinite article of the resource type name for this number,
+     * such as "a clay" or "an ore".
+     *
+     * @param rtype Resource type, such as {@link #CLAY} or {@link #SHEEP}.
+     * @return Lowercase resource name, or "a null" if rtype is out of range
+     *              ({@link #CLAY} - {@link #WOOD})
+     * @since 1.1.08
+     */
+    public static String aResName(final int rtype)
+    {
+        StringBuffer sb = new StringBuffer();
+        if (rtype == ORE)
+            sb.append("an ");
+        else
+            sb.append("a ");
+        sb.append(resName(rtype));
+        return sb.toString();
+    }
 }
