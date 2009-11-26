@@ -5768,37 +5768,9 @@ public class SOCServer extends Server
 
                             final String monoPlayerName = (String) c.getData();
 
-                            String message = monoPlayerName + " monopolized";
-                            String resName = null;  // will incl leading ' ', trailing '.'
-
-                            switch (mes.getResource())
-                            {
-                            case SOCResourceConstants.CLAY:
-                                resName = " clay.";
-
-                                break;
-
-                            case SOCResourceConstants.ORE:
-                                resName = " ore.";
-
-                                break;
-
-                            case SOCResourceConstants.SHEEP:
-                                resName = " sheep.";
-
-                                break;
-
-                            case SOCResourceConstants.WHEAT:
-                                resName = " wheat.";
-
-                                break;
-
-                            case SOCResourceConstants.WOOD:
-                                resName = " wood.";
-
-                                break;
-                            }
-                            message += resName;
+                            String resName
+                                = " " + SOCResourceConstants.resName(mes.getResource()) + ".";
+                            String message = monoPlayerName + " monopolized " + resName;
 
                             gameList.takeMonitorForGame(gaName);
                             messageToGameExcept(gaName, c, new SOCGameTextMsg(gaName, SERVERNAME, message), false);
@@ -7370,100 +7342,31 @@ public class SOCServer extends Server
         final int losegain  = isLoss ? SOCPlayerElement.LOSE : SOCPlayerElement.GAIN;  // for pnA
         final int gainlose  = isLoss ? SOCPlayerElement.GAIN : SOCPlayerElement.LOSE;  // for pnB
 
-        final int cl = rset.getAmount(SOCResourceConstants.CLAY);
-        final int or = rset.getAmount(SOCResourceConstants.ORE);
-        final int sh = rset.getAmount(SOCResourceConstants.SHEEP);
-        final int wh = rset.getAmount(SOCResourceConstants.WHEAT);
-        final int wo = rset.getAmount(SOCResourceConstants.WOOD);
-
         boolean needComma = false;  // Has a resource already been appended to message?
 
         gameList.takeMonitorForGame(gaName);
 
-        if (cl > 0)
+        for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
         {
-            if (playerConn != null)
-                messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.CLAY, cl));
-            else
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.CLAY, cl));
-            if (tradingPlayer != -1)
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, SOCPlayerElement.CLAY, cl));
-            if (message != null)
-            {
-                message.append(cl);
-                message.append(" clay");
-                needComma = true;
-            }
-        }
+            // This works because SOCPlayerElement.ORE == SOCResourceConstants.ORE.
 
-        if (or > 0)
-        {
+            final int amt = rset.getAmount(res);
+            if (amt <= 0)
+                continue;
             if (playerConn != null)
-                messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.ORE, or));
+                messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt));
             else
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.ORE, or));
+                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, res, amt));
             if (tradingPlayer != -1)
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, SOCPlayerElement.ORE, or));
+                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, res, amt));
             if (message != null)
             {
                 if (needComma)
                     message.append(", ");
-                message.append(or);
-                message.append(" ore");
+                message.append(amt);
+                message.append(" ");
+                message.append(SOCResourceConstants.resName(res));
                 needComma = true;
-            }
-        }
-
-        if (sh > 0)
-        {
-            if (playerConn != null)
-                messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.SHEEP, sh));
-            else
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.SHEEP, sh));
-            if (tradingPlayer != -1)
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, SOCPlayerElement.SHEEP, sh));
-            if (message != null)
-            {
-                if (needComma)
-                    message.append(", ");
-                message.append(sh);
-                message.append(" sheep");
-                needComma = true;
-            }
-        }
-
-        if (wh > 0)
-        {
-            if (playerConn != null)
-                messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.WHEAT, wh));
-            else
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.WHEAT, wh));
-            if (tradingPlayer != -1)
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, SOCPlayerElement.WHEAT, wh));
-            if (message != null)
-            {
-                if (needComma)
-                    message.append(", ");
-                message.append(wh);
-                message.append(" wheat");
-                needComma = true;
-            }
-        }
-
-        if (wo > 0)
-        {
-            if (playerConn != null)
-                messageToPlayer(playerConn, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.WOOD, wo));
-            else
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, mainPlayer, losegain, SOCPlayerElement.WOOD, wo));
-            if (tradingPlayer != -1)
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, tradingPlayer, gainlose, SOCPlayerElement.WOOD, wo));
-            if (message != null)
-            {
-                if (needComma)
-                    message.append(", ");
-                message.append(wo);
-                message.append(" wood");
             }
         }
 

@@ -2662,8 +2662,8 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             super( (shortText
                     ? "For 1 "
-                    : ("Trade " + numFrom + " " + typeName(typeFrom) + " for 1 "))
-                   + typeName(typeTo));
+                    : ("Trade " + numFrom + " " + SOCResourceConstants.resName(typeFrom) + " for 1 "))
+                   + SOCResourceConstants.resName(typeTo));
             tradeNum = numFrom;
             tradeFrom = typeFrom;
             tradeTo = typeTo;
@@ -2683,10 +2683,10 @@ public class SOCHandPanel extends Panel implements ActionListener
                 return;
             tradeNum = numFrom;
             if (shortTxt)
-                setLabel("For 1 " + typeName(tradeTo));
+                setLabel("For 1 " + SOCResourceConstants.resName(tradeTo));
             else
-                setLabel("Trade " + numFrom + " " + typeName(tradeFrom)
-                        + " for 1 " + typeName(tradeTo));
+                setLabel("Trade " + numFrom + " " + SOCResourceConstants.resName(tradeFrom)
+                        + " for 1 " + SOCResourceConstants.resName(tradeTo));
         }
 
         /**
@@ -2737,35 +2737,6 @@ public class SOCHandPanel extends Panel implements ActionListener
             SOCResourceSet giveSet = new SOCResourceSet(give);
             SOCResourceSet getSet = new SOCResourceSet(get);
             hp.getClient().bankTrade(game, giveSet, getSet);
-        }
-
-        /**
-         * Get the resource type name for this resource type number,
-         * such as "clay" or "ore".
-         *
-         * @param rtype Resource type, as in {@link SOCResourceConstants}.
-         * @return Lowercase resource name, or null if rtype is out of range.
-         */
-        public static String typeName(int rtype)
-        {
-            String tname;
-            switch (rtype)
-            {
-            case SOCResourceConstants.CLAY:
-                tname = "clay";  break;
-            case SOCResourceConstants.ORE:
-                tname = "ore";   break;
-            case SOCResourceConstants.SHEEP:
-                tname = "sheep"; break;
-            case SOCResourceConstants.WHEAT:
-                tname = "wheat"; break;
-            case SOCResourceConstants.WOOD:
-                tname = "wood";  break;
-            default:
-                // Should not happen
-                tname = null;            
-            }
-            return tname;
         }
 
     }  // ResourceTradeMenuItem
@@ -2858,7 +2829,7 @@ public class SOCHandPanel extends Panel implements ActionListener
           isForThree1 = forThree1;
           if (forThree1)
               setLabel("Trade " + costFrom + " "
-                  + ResourceTradeMenuItem.typeName(typeFrom) + " ");
+                  + SOCResourceConstants.resName(typeFrom) + " ");
 
           if (resSq != null)
           {

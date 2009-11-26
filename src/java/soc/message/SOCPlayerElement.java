@@ -33,7 +33,9 @@ import java.util.StringTokenizer;
 public class SOCPlayerElement extends SOCMessage
 {
     /**
-     * player element types
+     * player element types.  CLAY has same value
+     * as {@link soc.game.SOCResourceConstants#CLAY};
+     * ORE, SHEEP, WHEAT and WOOD also match SOCResourceConstants.
      */
     public static final int CLAY = 1;
     public static final int ORE = 2;

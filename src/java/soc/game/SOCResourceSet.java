@@ -346,7 +346,8 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
-     * Human-readable form of the set, with format "5 clay, 1 ore, 3 wood"
+     * Human-readable form of the set, with format "5 clay, 1 ore, 3 wood".
+     * Unknown resources aren't mentioned.
      * @param sb Append into this buffer.
      * @return true if anything was appended, false if sb unchanged (this resource set is empty).
      * @see #toFriendlyString()
@@ -355,53 +356,19 @@ public class SOCResourceSet implements Serializable, Cloneable
     {
         boolean needComma = false;  // Has a resource already been appended to sb?
         int amt;
-        
-        amt = resources[SOCResourceConstants.CLAY];
-        if (amt > 0)
-        {
-            sb.append(amt);
-            sb.append(" clay");
-            needComma = true;
-        }
 
-        amt = resources[SOCResourceConstants.ORE];
-        if (amt > 0)
+        for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
         {
+            amt = resources[res];
+            if (amt == 0)
+                continue;
+
             if (needComma)
                 sb.append(", ");
-            sb.append(amt);
-            sb.append(" ore");
+            sb.append(amt);                
+            sb.append(" ");
+            sb.append(SOCResourceConstants.resName(res));
             needComma = true;
-        }
-
-        amt = resources[SOCResourceConstants.SHEEP];
-        if (amt > 0)
-        {
-            if (needComma)
-                sb.append(", ");
-            sb.append(amt);
-            sb.append(" sheep");
-            needComma = true;
-        }
-
-        amt = resources[SOCResourceConstants.WHEAT];
-        if (amt > 0)
-        {
-            if (needComma)
-                sb.append(", ");
-            sb.append(amt);
-            sb.append(" wheat");
-            needComma = true;
-        }
-
-        amt = resources[SOCResourceConstants.WOOD];
-        if (amt > 0)
-        {
-            if (needComma)
-                sb.append(", ");
-            sb.append(amt);
-            sb.append(" wood");
-            needComma = true;  // signal for return code
         }
 
         return needComma;  // Did we append anything?
