@@ -4799,7 +4799,7 @@ public class SOCServer extends Server
             final int cpn = ga.getCurrentPlayerNumber();
             if (pl == null)
                 pl = ga.getPlayer(cpn);
-            pl.clearAskSpecialBuild();
+            pl.setAskedSpecialBuild(false);
             messageToGame(gname, new SOCPlayerElement(gname, cpn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
         }
 
@@ -5335,12 +5335,10 @@ public class SOCServer extends Server
                     // 6-player board: Special Building Phase
                     try
                     {
-                        ga.askSpecialBuildAddPiece(pieceType, pn);
+                        ga.askSpecialBuild(pn);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't ask to build now."));
-                    } catch (UnsupportedOperationException e) {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You don't have resources for that."));
                     }
                 }
             }
@@ -5532,12 +5530,10 @@ public class SOCServer extends Server
                     // 6-player board: Special Building Phase
                     try
                     {
-                        ga.askSpecialBuildAddPiece(-2, pn);
+                        ga.askSpecialBuild(pn);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't ask to buy a card now."));
-                    } catch (UnsupportedOperationException e) {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You don't have resources for that."));
                     }
                 }
             }

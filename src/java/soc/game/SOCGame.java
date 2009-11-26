@@ -4375,32 +4375,21 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * For 6-player mode's Special Building Phase, add this piece or dev card to the player's set.
-     * When it's their turn to special build, this is what they want to build.
-     * Validates player currently has resources to build this piece.
+     * For 6-player mode's Special Building Phase, check state and
+     * set the flag for this player asking to build.
      *
-     * @param pieceType Piece type to ask, from {@link SOCPlayingPiece} constants, <BR>
-     *            or -2 if asking to buy a development card, <BR>
-     *            or -1 to check state and set the flag, with no specific piece type.
      * @param pn  The player's number
      * @throws IllegalStateException  if game is not 6-player, or is currently this player's turn,
      *            or if gamestate is earlier than {@link #PLAY}, or >= {@link #OVER}.
-     * @throws IllegalArgumentException  if <tt>pieceType</tt> is out of range
-     *            {@link SOCPlayingPiece#MIN} - {@link SOCPlayingPiece#MAXPLUSONE},
-     *            and isn't -1 or -2.  Or if pn is not a valid player (vacant seat, etc).
-     * @throws UnsupportedOperationException
-     *            if player doesn't have the resources for that piece type.
+     * @throws IllegalArgumentException  if pn is not a valid player (vacant seat, etc).
      * @since 1.1.08
      */
-    public void askSpecialBuildAddPiece(final int pieceType, final int pn)
-        throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException
+    public void askSpecialBuild(final int pn)
+        throws IllegalStateException, IllegalArgumentException
     {
         if (canAskSpecialBuild(pn, true))
         {
-            // May throw UnsupportedOperationException or
-            // IllegalArgumentException; pass to our caller.
-
-            players[pn].askSpecialBuildAddPiece(pieceType);  
+            players[pn].setAskedSpecialBuild(true);
             askedSpecialBuildPhase = true;
         }
     }

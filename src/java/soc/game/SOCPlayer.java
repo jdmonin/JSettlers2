@@ -206,22 +206,9 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
 
     /**
      * In 6-player mode, is the player asking to build during the Special Building Phase?
-     * @see #askSpecialBuildPieces
      * @since 1.1.08
      */
     private boolean askedSpecialBuild;
-
-    /**
-     * In 6-player mode, the pieces of each type the player has asked to build
-     * during the Special Building Phase, including development cards.
-     * Indexed from {@link SOCPlayingPiece#MIN} to {@link SOCPlayingPiece#MAXPLUSONE}
-     * (this is the index used for development card purchases).
-     * Does not imply player has resources to build these pieces.
-     * Null if not 6-player mode.
-     * @see #askedSpecialBuild
-     * @since 1.1.08
-     */
-    private int[] askSpecialBuildPieces;
 
     /**
      * this is true if this player is a robot
@@ -274,7 +261,6 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         needToDiscard = player.needToDiscard;
         boardResetAskedThisTurn = player.boardResetAskedThisTurn;
         askedSpecialBuild = player.askedSpecialBuild;
-        askSpecialBuildPieces = player.askSpecialBuildPieces;
         robotFlag = player.robotFlag;
         faceId = player.faceId;
         ourNumbers = new SOCPlayerNumbers(player.ourNumbers);
@@ -360,10 +346,6 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         needToDiscard = false;
         boardResetAskedThisTurn = false;
         askedSpecialBuild = false;
-        if (game.maxPlayers > 4)
-            askSpecialBuildPieces = new int[1 + SOCPlayingPiece.MAXPLUSONE];
-        else
-            askSpecialBuildPieces = null;
         robotFlag = false;
         faceId = 1;
         SOCBoard board = ga.getBoard();
@@ -658,137 +640,17 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
     }
 
     /**
-     * In 6-player mode's Special Building Phase, set the flag for this player asking to build.
+     * In 6-player mode's Special Building Phase, set or clear the flag
+     * for this player asking to build.
+     * Does not validate that they are currently allowed to ask;
+     * use {@link SOCGame#canAskSpecialBuild(int, boolean)} for that.
      *
      * @param set  if the player has asked to build
-     * @see #askSpecialBuildAddPiece(int)
      * @since 1.1.08
      */
     public void setAskedSpecialBuild(boolean set)
     {
         askedSpecialBuild = set;
-    }
-
-    /**
-     * For 6-player mode's Special Building Phase, the player's set of pieces:
-     * When it's their turn to special build, this is what they want to buy and build.
-     * Does not imply player has resources to build these pieces.
-     *
-     * @return special build pieces, or null if not a 6-player game.
-     *    Indexed from {@link SOCPlayingPiece#MIN} to {@link SOCPlayingPiece#MAXPLUSONE}
-     *    (this is the index used for development card purchases).
-     * @see #askSpecialBuildAddPiece(int)
-     * @since 1.1.08
-     */
-    public int[] getAskSpecialBuildPieces()
-    {
-        return askSpecialBuildPieces;
-    }
-
-    /**
-     * For 6-player mode's Special Building Phase, add this piece or dev card to the player's set.
-     * When it's their turn to special build, this is what they want to build.
-     * Validates player has resources to build this piece.
-     * Does not validate that they aren't current player;
-     * use {@link SOCGame#askSpecialBuildAddPiece(int, int)} for that.
-     *
-     * @param pieceType Piece type to ask, from {@link SOCPlayingPiece} constants, <BR>
-     *            or -2 if asking to buy a development card, <BR>
-     *            or -1 to check state and set the flag, with no specific piece type.
-     * @throws IllegalStateException  if game is not 6-player
-     * @throws IllegalArgumentException  if <tt>pieceType</tt> is out of range
-     *            {@link SOCPlayingPiece#MIN} - {@link SOCPlayingPiece#MAXPLUSONE},
-     *            and isn't -1 or -2.
-     * @throws UnsupportedOperationException
-     *            if player doesn't have the resources for that piece type.
-     * @see #hasAskedSpecialBuild()
-     * @see #getAskSpecialBuildPieces()
-     * @see #clearAskSpecialBuild()
-     * @since 1.1.08
-     */
-    public void askSpecialBuildAddPiece(int pieceType)
-        throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException
-    {
-        if (askSpecialBuildPieces == null)
-            throw new IllegalStateException("not 6-player");
-        if (pieceType == -2)
-            pieceType = SOCPlayingPiece.MAXPLUSONE;
-
-        // Make sure they have resources to build it
-        SOCResourceSet needed;
-        if (pieceType != -1)
-        {
-            needed = SOCPlayingPiece.getResourcesToBuild(pieceType);
-                                    // May throw IllegalArgumentException for pieceType.
-            if (! resources.contains(needed))
-                throw new UnsupportedOperationException("missing resource");
-        } else {
-            needed = null;  // set to avoid compiler error
-        }
-
-        // OK, they can build it.
-        askedSpecialBuild = true;
-        if (pieceType == -1)
-        {
-            return;  // <--- Early return: no specific piece type requested ----
-        }
-        ++askSpecialBuildPieces[pieceType];
-
-        // Validate previous asks, adjust if needed.
-        // Start with the resource type they've just asked for, in case
-        // it's replacing a previous ask (due to resource changes).
-
-        SOCResourceSet checkRes = resources.copy();
-        checkRes.subtract(needed);  // ok to subtract, because we know it contains it
-        if (askSpecialBuildPieces[pieceType] > 1)
-        {
-            needed = SOCPlayingPiece.getResourcesToBuild(pieceType);
-            for (int i = 1; i < askSpecialBuildPieces[pieceType]; ++i)
-            {
-                if (! checkRes.contains(needed))
-                {
-                    askSpecialBuildPieces[pieceType] = i;  // fewer than count
-                    break;
-                }
-                checkRes.subtract(needed);
-            }            
-        }
-
-        // Start with road, then settlement, then city, because
-        // roads take a subset of settlement's resources.
-        for (int res = 0; res < askSpecialBuildPieces.length - 1; ++res)
-        {
-            if (res == pieceType)
-                continue;  // already checked
-            final int count = askSpecialBuildPieces[res];
-            if (count == 0)
-                continue;
-            needed = SOCPlayingPiece.getResourcesToBuild(res);
-            for (int i = 0; i < count; ++i)
-            {
-                if (! checkRes.contains(needed))
-                {
-                    askSpecialBuildPieces[res] = i;  // fewer than count
-                    break;
-                }
-                checkRes.subtract(needed);
-            }
-        }
-    }
-
-    /**
-     * For 6-player mode's Special Building Phase, clear the flag and the
-     * piece set that indicate what this player wants to build.
-     * @see #hasAskedSpecialBuild()
-     * @since 1.1.08 
-     */
-    public void clearAskSpecialBuild()
-    {
-        askedSpecialBuild = false;
-        if (askSpecialBuildPieces == null)
-            return;
-        for (int i = askSpecialBuildPieces.length - 1; i >= 0; --i)
-            askSpecialBuildPieces[i] = 0;
     }
 
     /**
@@ -2556,6 +2418,5 @@ public class SOCPlayer implements SOCResourceConstants, SOCDevCardConstants, Ser
         potentialSettlements = null;
         potentialCities = null;
         currentOffer = null;
-        askSpecialBuildPieces = null;
     }
 }
