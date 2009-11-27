@@ -1552,13 +1552,19 @@ public class SOCRobotBrain extends Thread
                                  */
                                 if (!expectPLACING_ROBBER && (buildingPlan.empty()) && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
                                 {
-                                    decisionMaker.planStuff(robotParameters.getStrategyType());
+                                    planBuilding();
 
+                                    /*
+                                     * planBuilding takes these actions:
+                                     *
+                                    decisionMaker.planStuff(robotParameters.getStrategyType());
+                            
                                     if (!buildingPlan.empty())
                                     {
                                         lastTarget = (SOCPossiblePiece) buildingPlan.peek();
                                         negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), (SOCPossiblePiece) buildingPlan.peek());
                                     }
+                                     */
                                 }
 
                                 //D.ebugPrintln("DONE PLANNING");
@@ -2194,6 +2200,29 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Plan the next building plan and target.
+     * Should be called from {@link #run()} under these conditions: <BR>
+     * (!expectPLACING_ROBBER && (buildingPlan.empty()) && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+     *<P>
+     * Sets these fields/actions: <BR>
+     *  {@link SOCRobotDM#planStuff(int)} <BR>
+     *  {@link #buildingPlan} <BR>
+     *  {@link #lastTarget} <BR>
+     *  {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
+     *
+     * @since 1.1.08
+     */
+    private final void planBuilding()
+    {
+        decisionMaker.planStuff(robotParameters.getStrategyType());
+
+        if (!buildingPlan.empty())
+        {
+            lastTarget = (SOCPossiblePiece) buildingPlan.peek();
+            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), (SOCPossiblePiece) buildingPlan.peek());
+        }
+    }
+
     /**
      * Update a player's amount of a resource.
      *<ul>
