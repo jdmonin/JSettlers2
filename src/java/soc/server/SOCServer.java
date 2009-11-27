@@ -1448,6 +1448,22 @@ public class SOCServer extends Server
     }
 
     /**
+     * Send a {@link SOCGameTextMsg} game text message to a player.
+     * Equivalent to: messageToPlayer(conn, new {@link SOCGameTextMsg}(ga, {@link #SERVERNAME}, txt));
+     *
+     * @param c   the player connection
+     * @param ga  game name
+     * @param txt the message text to send
+     * @since 1.1.08
+     */
+    public void messageToPlayer(StringConnection c, final String ga, final String txt)
+    {
+        if (c == null)
+            return;
+        c.put(SOCGameTextMsg.toCmd(ga, SERVERNAME, txt));
+    }
+
+    /**
      * Send a message to the given game
      *
      * @param ga  the name of the game
@@ -2709,7 +2725,7 @@ public class SOCServer extends Server
         if (dcmd.startsWith("*HELP*") || dcmd.startsWith("*help"))
         {
             for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
-                messageToPlayer(debugCli, new SOCGameTextMsg(ga, SERVERNAME, DEBUG_COMMANDS_HELP[i]));
+                messageToPlayer(debugCli, ga, DEBUG_COMMANDS_HELP[i]);
             return;
         }
 
@@ -3375,8 +3391,8 @@ public class SOCServer extends Server
         }
         else if (cmdText.startsWith("*VERSION*"))
         {
-            messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME,
-                    "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum()));
+            messageToPlayer(c, gaName,
+                "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
         }
         else if (cmdText.startsWith("*WHO*"))
         {
@@ -3456,8 +3472,8 @@ public class SOCServer extends Server
     {
         if (gameData == null)
             return;
-        messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "-- Game statistics: --"));
-        messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "Rounds played: " + gameData.getRoundCount()));
+        messageToPlayer(c, gaName, "-- Game statistics: --");
+        messageToPlayer(c, gaName, "Rounds played: " + gameData.getRoundCount());
         // time
         Date gstart = gameData.getStartTime();
         if (gstart != null)
@@ -3465,11 +3481,11 @@ public class SOCServer extends Server
             long gameSeconds = ((new Date().getTime() - gstart.getTime())+500L) / 1000L;
             long gameMinutes = (gameSeconds+29L)/60L;
             String gLengthMsg = "This game started " + gameMinutes + " minutes ago.";
-            messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, gLengthMsg));
+            messageToPlayer(c, gaName, gLengthMsg);
             // Ignore possible "1 minutes"; that game is too short to worry about.
         }
         String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
-        messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, expireMsg));
+        messageToPlayer(c, gaName, expireMsg);
     }
 
     /**
@@ -3959,7 +3975,7 @@ public class SOCServer extends Server
                     {
                         c.put(SOCRobotDismiss.toCmd(gaName));
                     } else if (gameIsFull) {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "This game is full, you cannot sit down."));
+                        messageToPlayer(c, gaName, "This game is full, you cannot sit down.");
                     }
                 }
             }
@@ -4057,13 +4073,13 @@ public class SOCServer extends Server
                         else
                         {
                             D.ebugPrintln("ILLEGAL ROAD");
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road there."));
+                            messageToPlayer(c, gaName, "You can't build a road there.");
                             sendDenyReply = true;                                   
                         }
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road right now."));
+                        messageToPlayer(c, gaName, "You can't build a road right now.");
                     }
 
                     break;
@@ -4092,13 +4108,13 @@ public class SOCServer extends Server
                         else
                         {
                             D.ebugPrintln("ILLEGAL SETTLEMENT");
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement there."));
+                            messageToPlayer(c, gaName, "You can't build a settlement there.");
                             sendDenyReply = true;
                         }
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement right now."));
+                        messageToPlayer(c, gaName, "You can't build a settlement right now.");
                     }
 
                     break;
@@ -4127,13 +4143,13 @@ public class SOCServer extends Server
                         else
                         {
                             D.ebugPrintln("ILLEGAL CITY");
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city there."));
+                            messageToPlayer(c, gaName, "You can't build a city there.");
                             sendDenyReply = true;
                         }
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city right now."));
+                        messageToPlayer(c, gaName, "You can't build a city right now.");
                     }
 
                     break;
@@ -4147,7 +4163,7 @@ public class SOCServer extends Server
             }
             else
             {
-                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                messageToPlayer(c, gaName, "It's not your turn.");
             }
         }
         catch (Exception e)
@@ -4219,7 +4235,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't move the robber."));
+                        messageToPlayer(c, gaName, "You can't move the robber.");
                     }
                 }
                 catch (Exception e)
@@ -4620,7 +4636,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gn, SERVERNAME, "You can't roll right now."));
+                        messageToPlayer(c, gn, "You can't roll right now.");
                     }
                 }
                 catch (Exception e)
@@ -4696,9 +4712,9 @@ public class SOCServer extends Server
                     else
                     {
                         /**
-                         * there could be a better feedback message here
+                         * (TODO) there could be a better feedback message here
                          */
-                        c.put(SOCGameTextMsg.toCmd(gn, SERVERNAME, "You can't discard that many cards."));
+                        messageToPlayer(c, gn, "You can't discard that many cards.");
                     }
                 }
                 catch (Throwable e)
@@ -4745,7 +4761,7 @@ public class SOCServer extends Server
                         // msg = "The game is over; you are the winner!";
                         // msg = "The game is over; <someone> won.";
                         // msg = "The game is over; no one won.";
-                    c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, msg));
+                    messageToPlayer(c, gname, msg);
                 }
             }
             else if (checkTurn(c, ga))
@@ -4757,12 +4773,12 @@ public class SOCServer extends Server
                 }
                 else
                 {
-                    c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, "You can't end your turn yet."));
+                    messageToPlayer(c, gname, "You can't end your turn yet.");
                 }
             }
             else
             {
-                c.put(SOCGameTextMsg.toCmd(gname, SERVERNAME, "It's not your turn."));
+                messageToPlayer(c, gname, "It's not your turn.");
             }
         }
         catch (Exception e)
@@ -4956,12 +4972,12 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, "You can't steal from that player."));
+                            messageToPlayer(c, ga.getName(), "You can't steal from that player.");
                         }
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, "It's not your turn."));
+                        messageToPlayer(c, ga.getName(), "It's not your turn.");
                     }
                 }
                 catch (Exception e)
@@ -4992,7 +5008,7 @@ public class SOCServer extends Server
                 final String gaName = ga.getName();
                 if (ga.isGameOptionSet("NT"))
                 {
-                    messageToPlayer(c, new SOCGameTextMsg(gaName, SERVERNAME, "Trading is not allowed in this game."));
+                    messageToPlayer(c, gaName, "Trading is not allowed in this game.");
                     return;  // <---- Early return: No Trading ----
                 }
 
@@ -5174,7 +5190,7 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't make that trade."));
+                            messageToPlayer(c, gaName, "You can't make that trade.");
                         }
                     }
                 }
@@ -5216,12 +5232,12 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, "You can't make that trade."));
+                            messageToPlayer(c, ga.getName(), "You can't make that trade.");
                         }
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(ga.getName(), SERVERNAME, "It's not your turn."));
+                        messageToPlayer(c, ga.getName(), "It's not your turn.");
                     }
                 }
                 catch (Exception e)
@@ -5279,7 +5295,7 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a road."));
+                            messageToPlayer(c, gaName, "You can't build a road.");
                         }
 
                         break;
@@ -5299,7 +5315,7 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a settlement."));
+                            messageToPlayer(c, gaName, "You can't build a settlement.");
                         }
 
                         break;
@@ -5315,7 +5331,7 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build a city."));
+                            messageToPlayer(c, gaName, "You can't build a city.");
                         }
 
                         break;
@@ -5323,14 +5339,14 @@ public class SOCServer extends Server
                 }
                 else
                 {
-                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't build now."));
+                    messageToPlayer(c, gaName, "You can't build now.");
                 }
             }
             else
             {
                 if (ga.maxPlayers <= 4)
                 {
-                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                    messageToPlayer(c, gaName, "It's not your turn.");
                 } else {
                     // 6-player board: Special Building Phase
                     try
@@ -5338,7 +5354,7 @@ public class SOCServer extends Server
                         ga.askSpecialBuild(pn);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't ask to build now."));
+                        messageToPlayer(c, gaName, "You can't ask to build now.");
                     }
                 }
             }
@@ -5388,7 +5404,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You didn't buy a road."));
+                                messageToPlayer(c, gaName, "You didn't buy a road.");
                             }
 
                             break;
@@ -5417,7 +5433,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You didn't buy a settlement."));
+                                messageToPlayer(c, gaName, "You didn't buy a settlement.");
                             }
 
                             break;
@@ -5433,7 +5449,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You didn't buy a city."));
+                                messageToPlayer(c, gaName, "You didn't buy a city.");
                             }
 
                             break;
@@ -5441,7 +5457,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                        messageToPlayer(c, gaName, "It's not your turn.");
                     }
                 }
                 catch (Exception e)
@@ -5513,11 +5529,11 @@ public class SOCServer extends Server
                 {
                     if (ga.getNumDevCards() == 0)
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "There are no more Development cards."));
+                        messageToPlayer(c, gaName, "There are no more Development cards.");
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't buy a development card now."));
+                        messageToPlayer(c, gaName, "You can't buy a development card now.");
                     }
                 }
             }
@@ -5525,7 +5541,7 @@ public class SOCServer extends Server
             {
                 if (ga.maxPlayers <= 4)
                 {
-                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                    messageToPlayer(c, gaName, "It's not your turn.");
                 } else {
                     // 6-player board: Special Building Phase
                     try
@@ -5533,7 +5549,7 @@ public class SOCServer extends Server
                         ga.askSpecialBuild(pn);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't ask to buy a card now."));
+                        messageToPlayer(c, gaName, "You can't ask to buy a card now.");
                     }
                 }
             }
@@ -5588,7 +5604,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't play a Soldier card now."));
+                                messageToPlayer(c, gaName, "You can't play a Soldier card now.");
                             }
 
                             break;
@@ -5606,16 +5622,16 @@ public class SOCServer extends Server
                                 sendGameState(ga);
                                 if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
                                 {
-                                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You may place 2 roads."));
+                                    messageToPlayer(c, gaName, "You may place 2 roads.");
                                 }
                                 else
                                 {
-                                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You may place your 1 remaining road."));
+                                    messageToPlayer(c, gaName, "You may place your 1 remaining road.");
                                 }
                             }
                             else
                             {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't play a Road Building card now."));
+                                messageToPlayer(c, gaName, "You can't play a Road Building card now.");
                             }
 
                             break;
@@ -5634,7 +5650,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't play a Year of Plenty card now."));
+                                messageToPlayer(c, gaName, "You can't play a Year of Plenty card now.");
                             }
 
                             break;
@@ -5653,7 +5669,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't play a Monopoly card now."));
+                                messageToPlayer(c, gaName, "You can't play a Monopoly card now.");
                             }
 
                             break;
@@ -5672,7 +5688,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                        messageToPlayer(c, gaName, "It's not your turn.");
                     }
                 }
                 catch (Exception e)
@@ -5722,12 +5738,12 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "That is not a legal Year of Plenty pick."));
+                            messageToPlayer(c, gaName, "That is not a legal Year of Plenty pick.");
                         }
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                        messageToPlayer(c, gaName, "It's not your turn.");
                     }
                 }
                 catch (Exception e)
@@ -5803,22 +5819,21 @@ public class SOCServer extends Server
                                 String viName = ga.getPlayer(i).getName();
                                 StringConnection viCon = getConnection(viName);
                                 if (viCon != null)
-                                    viCon.put(SOCGameTextMsg.toCmd
-                                        (gaName, SERVERNAME,
-                                         monoPlayerName + "'s Monopoly took your " + picked + resName));
+                                    messageToPlayer(viCon, gaName,
+                                        monoPlayerName + "'s Monopoly took your " + picked + resName);
                             }
 
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You monopolized " + monoTotal + resName));
+                            messageToPlayer(c, gaName, "You monopolized " + monoTotal + resName);
                             sendGameState(ga);
                         }
                         else
                         {
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You can't do a Monopoly pick now."));
+                            messageToPlayer(c, gaName, "You can't do a Monopoly pick now.");
                         }
                     }
                     else
                     {
-                        c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "It's not your turn."));
+                        messageToPlayer(c, gaName, "It's not your turn.");
                     }
                 }
                 catch (Exception e)
@@ -6507,7 +6522,7 @@ public class SOCServer extends Server
                     {
                         // Maybe already seated? (network lag)
                         if (! robot)
-                            c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, "You cannot sit down here."));
+                            messageToPlayer(c, gaName, "You cannot sit down here.");
                         ga.releaseMonitor();
                         return;  // <---- Early return: cannot sit down ----
                     }
@@ -6806,10 +6821,10 @@ public class SOCServer extends Server
              * "peName stole a sheep resource from you."
              * "peName stole a resource from viName."
              */
-            messageToPlayer(peCon, new SOCGameTextMsg(gaName, SERVERNAME,
-                "You" + mes.toString() + viName + '.'));
-            messageToPlayer(viCon, new SOCGameTextMsg(gaName, SERVERNAME,
-                peName + mes.toString() + "you."));
+            messageToPlayer(peCon, gaName,
+                "You" + mes.toString() + viName + '.');
+            messageToPlayer(viCon, gaName, 
+                peName + mes.toString() + "you.");
             messageToGameExcept(gaName, exceptions, new SOCGameTextMsg(gaName, SERVERNAME,
                 peName + " stole a resource from " + viName), true);
         }
@@ -7164,7 +7179,7 @@ public class SOCServer extends Server
                         cLengthMsg.append(" minute.");
                     else
                         cLengthMsg.append(" minutes.");
-                    messageToPlayer(plConn, new SOCGameTextMsg(gname, SERVERNAME, cLengthMsg.toString()));
+                    messageToPlayer(plConn, gname, cLengthMsg.toString());
 
                     // Send client's win-loss count for this session,
                     // if more than 1 game has been played
@@ -7199,7 +7214,7 @@ public class SOCServer extends Server
                                 winLossMsg.append(" game");
                         }
                         winLossMsg.append(" since connecting.");
-                        messageToPlayer(plConn, new SOCGameTextMsg(gname, SERVERNAME, winLossMsg.toString()));
+                        messageToPlayer(plConn, gname, winLossMsg.toString());
                     }
                 }
             }  // for each player
