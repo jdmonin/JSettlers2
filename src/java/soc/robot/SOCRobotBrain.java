@@ -152,7 +152,7 @@ public class SOCRobotBrain extends Thread
     protected SOCPlayingPiece whatWeWantToBuild;
 
     /**
-     * This is our current building plan
+     * This is our current building plan, a stack of {@link SOCPossiblePiece}.
      */
     protected Stack buildingPlan;
 
@@ -672,6 +672,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Here is the run method.  Just keep receiving game events
      * and deal with each one.
+     * Remember that we're sent a {@link SOCGameTextMsg}(<tt>"*PING*"</tt>) once per second.
      */
     public void run()
     {
