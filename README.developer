@@ -38,6 +38,7 @@ Current TODO list: (Work on these items not yet begun)
 		instead, currently see road of players on either side
 	- Rename SOCGame.isLocal to .isPractice
 	- Show # VP in SOCChoosePlayerDialog
+	- Show # VP when choosing where to sit, if game is in progress
 	- Occasionally an image does not re-scale when board is stretched.
 		Instead of giving up (SOCBoardPanel.scaledHexFail, etc),
 		try re-scaling again, but increase width or height by 1 pixel.
@@ -53,9 +54,10 @@ Current TODO list: (Work on these items not yet begun)
 	- Board coordinate-representation for larger board (seafarers)
 	- Refactor: combine the cli/displayless/robot endturn-like methods
 		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
-	- refactor: resource-type strings consolidate somewhere (Clay, Wheat, etc)
+	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
 		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
 	- refactor: name of dev-cards consolidate
+	- refactor: SOCPlayerClient gui to separate class (mainpanel)
 
 The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
 
