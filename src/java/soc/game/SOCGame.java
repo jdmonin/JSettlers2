@@ -1214,12 +1214,20 @@ public class SOCGame implements Serializable, Cloneable
      * If the new state is {@link #OVER}, and no playerWithWin yet determined, call checkForWinner.
      * For general information about what states are expected when,
      * please see the javadoc for {@link #NEW}.
+     *<P>
+     * This method is generally called at the client, due to messages from the server
+     * based on the server's complete game data.
      *
      * @param gs  the game state
      * @see #checkForWinner()
      */
     public void setGameState(int gs)
     {
+        if ((gs == PLAY) && (gameState == SPECIAL_BUILDING))
+            oldGameState = PLAY1;  // Needed for isSpecialBuilding() to work at client
+        else
+            oldGameState = gameState;
+
         gameState = gs;
         if ((gameState == OVER) && (playerWithWin == -1))
             checkForWinner();
