@@ -1464,13 +1464,15 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a message to the given game
+     * Send a message to the given game.
+     * <b>Locks:<b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
      *
      * @param ga  the name of the game
      * @param mes the message to send. If mes is a SOCGameTextMsg whose
      *            text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
      *            (See {@link #messageToGameUrgent(String, String)})
+     * @see #messageToGameWithMon(String, SOCMessage)
      */
     public void messageToGame(String ga, SOCMessage mes)
     {
@@ -1513,6 +1515,7 @@ public class SOCServer extends Server
      *
      * @param ga  the name of the game
      * @param mes the message to send
+     * @see #messageToGame(String, SOCMessage)
      */
     public void messageToGameWithMon(String ga, SOCMessage mes)
     {
