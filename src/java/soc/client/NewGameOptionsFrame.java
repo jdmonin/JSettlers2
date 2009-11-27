@@ -622,7 +622,7 @@ public class NewGameOptionsFrame extends Frame
             if (readOptsValuesFromControls(checkOptionsMinVers))
             {
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
-                cl.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR
+                cl.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR, in main client frame
             } else {
                 return;  // readOptsValues will put the err msg in dia's status line
             }

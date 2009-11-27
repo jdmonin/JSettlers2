@@ -298,7 +298,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         super(TITLEBAR_GAME + title +
               (ga.isLocal ? "" : " [" + cl.getNickname() + "]"));
         setResizable(true);
-        layoutNotReadyYet = true;
+        layoutNotReadyYet = true;  // will set to false at end of doLayout
 
         client = cl;
         game = ga;
@@ -367,15 +367,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         {
             setVisible(true);
         }
-        layoutNotReadyYet = false;
         repaint();
 
         /**
-         * complete - reset mouse cursor from hourglass to normal
-         * (set in SOCPlayerClient.startPracticeGame or .guardedActionPerform)
+         * init is almost complete - when window appears and doLayout is called,
+         * it will reset mouse cursor from WAIT_CURSOR to normal (WAIT_CURSOR is
+         * set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
          */
-        client.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-
     }
 
     /**
@@ -1559,6 +1557,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     /**
      * Arrange the custom layout. If a player sits down in a 6-player game, will need to
      * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
+     * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
      */
     public void doLayout()
     {
@@ -1744,6 +1743,17 @@ public class SOCPlayerInterface extends Frame implements ActionListener
 
         //chatDisplay.setMaximumLines(nrows);
         boardPanel.doLayout();
+
+        /**
+         * Reset mouse cursor from WAIT_CURSOR to normal
+         * (set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
+         */
+        if (layoutNotReadyYet)
+        {
+            client.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            layoutNotReadyYet = false;
+            repaint();
+        }
     }
 
     /**
