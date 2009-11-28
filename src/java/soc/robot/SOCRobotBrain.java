@@ -845,7 +845,8 @@ public class SOCRobotBrain extends Thread
                     {
                         waitingForOurTurn = false;
                         
-                        // Clear per-turn variables.
+                        // Clear some per-turn variables.
+                        // For others, find the code which calls game.updateAtTurn().
                         whatWeFailedToBuild = null;
                         failedBuildingAttempts = 0;
                     }
@@ -1481,6 +1482,8 @@ public class SOCRobotBrain extends Thread
 
                     if ((game.getGameState() == SOCGame.PLAY1) && (!waitingForGameState) && (!waitingForTradeMsg) && (!waitingForTradeResponse) && (!waitingForDevCard) && (!expectPLACING_ROAD) && (!expectPLACING_SETTLEMENT) && (!expectPLACING_CITY) && (!expectPLACING_ROBBER) && (!expectPLACING_FREE_ROAD1) && (!expectPLACING_FREE_ROAD2) && (!expectWAITING_FOR_DISCOVERY) && (!expectWAITING_FOR_MONOPOLY))
                     {
+                        // Time to decide to build, or take other normal actions.
+
                         expectPLAY1 = false;
 
                         if ((!waitingForOurTurn) && (ourTurn))
@@ -1570,6 +1573,8 @@ public class SOCRobotBrain extends Thread
                                 //D.ebugPrintln("DONE PLANNING");
                                 if (!expectPLACING_ROBBER && !buildingPlan.empty())
                                 {
+                                    // Time to build something.
+
                                     /**
                                      * check to see if this is a Road Building plan
                                      */
@@ -1623,33 +1628,11 @@ public class SOCRobotBrain extends Thread
                                         ///
                                         /// figure out what resources we need
                                         ///
-                                        SOCResourceSet targetResources = null;
                                         SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.peek();
+                                        SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
 
                                         //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
                                         //D.ebugPrintln("^^^ ourResources = "+ourPlayerData.getResources());
-                                        switch (targetPiece.getType())
-                                        {
-                                        case SOCPossiblePiece.CARD:
-                                            targetResources = SOCGame.CARD_SET;
-
-                                            break;
-
-                                        case SOCPossiblePiece.ROAD:
-                                            targetResources = SOCGame.ROAD_SET;
-
-                                            break;
-
-                                        case SOCPossiblePiece.SETTLEMENT:
-                                            targetResources = SOCGame.SETTLEMENT_SET;
-
-                                            break;
-
-                                        case SOCPossiblePiece.CITY:
-                                            targetResources = SOCGame.CITY_SET;
-
-                                            break;
-                                        }
 
                                         negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
 
