@@ -1205,12 +1205,6 @@ public class SOCRobotBrain extends Thread
                             {
                                 counter = 0;
 
-                                /**
-                                 * If we're in SPECIAL_BUILDING (not PLAY1),
-                                 * can't trade or play development cards.
-                                 */
-                                final boolean gameStatePLAY1 = (game.getGameState() == SOCGame.PLAY1);
-
                                 //D.ebugPrintln("DOING PLAY1");
                                 if (D.ebugOn)
                                 {
@@ -1224,9 +1218,11 @@ public class SOCRobotBrain extends Thread
                                 /**
                                  * if we haven't played a dev card yet,
                                  * and we have a knight, and we can get
-                                 * largest army, play the knight
+                                 * largest army, play the knight.
+                                 * If we're in SPECIAL_BUILDING (not PLAY1),
+                                 * can't trade or play development cards.
                                  */
-                                if (gameStatePLAY1 && ! ourPlayerData.hasPlayedDevCard())
+                                if ((game.getGameState() == SOCGame.PLAY1) && ! ourPlayerData.hasPlayedDevCard())
                                 {
                                     SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
 
@@ -1284,162 +1280,9 @@ public class SOCRobotBrain extends Thread
                                 {
                                     // Time to build something.
 
-                                    /**
-                                     * check to see if this is a Road Building plan
-                                     */
-                                    boolean roadBuildingPlan = false;
-
-                                    if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
-                                    {
-                                        //D.ebugPrintln("** Checking for Road Building Plan **");
-                                        SOCPossiblePiece topPiece = (SOCPossiblePiece) buildingPlan.pop();
-
-                                        //D.ebugPrintln("$ POPPED "+topPiece);
-                                        if ((topPiece != null) && (topPiece.getType() == SOCPossiblePiece.ROAD) && (!buildingPlan.empty()))
-                                        {
-                                            SOCPossiblePiece secondPiece = (SOCPossiblePiece) buildingPlan.peek();
-
-                                            //D.ebugPrintln("secondPiece="+secondPiece);
-                                            if ((secondPiece != null) && (secondPiece.getType() == SOCPossiblePiece.ROAD))
-                                            {
-                                                roadBuildingPlan = true;
-                                                whatWeWantToBuild = new SOCRoad(ourPlayerData, topPiece.getCoordinates(), null);
-                                                if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
-                                                {
-                                                    waitingForGameState = true;
-                                                    counter = 0;
-                                                    expectPLACING_FREE_ROAD1 = true;
-
-                                                    //D.ebugPrintln("!! PLAYING ROAD BUILDING CARD");
-                                                    client.playDevCard(game, SOCDevCardConstants.ROADS);
-                                                } else {
-                                                    // We already tried to build this.
-                                                    roadBuildingPlan = false;
-                                                    cancelWrongPiecePlacementLocal(whatWeWantToBuild);
-                                                    // cancel sets whatWeWantToBuild = null;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                //D.ebugPrintln("$ PUSHING "+topPiece);
-                                                buildingPlan.push(topPiece);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            //D.ebugPrintln("$ PUSHING "+topPiece);
-                                            buildingPlan.push(topPiece);
-                                        }
-                                    }
-
-                                    if (!roadBuildingPlan)
-                                    {
-                                        ///
-                                        /// figure out what resources we need
-                                        ///
-                                        SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.peek();
-                                        SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
-
-                                        //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
-                                        //D.ebugPrintln("^^^ ourResources = "+ourPlayerData.getResources());
-
-                                        negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
-
-                                        ///
-                                        /// if we have a 2 free resources card and we need
-                                        /// at least 2 resources, play the card
-                                        ///
-                                        if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) > 0))
-                                        {
-                                            SOCResourceSet ourResources = ourPlayerData.getResources();
-                                            int numNeededResources = 0;
-
-                                            for (int resource = SOCResourceConstants.CLAY;
-                                                    resource <= SOCResourceConstants.WOOD;
-                                                    resource++)
-                                            {
-                                                int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);
-
-                                                if (diff > 0)
-                                                {
-                                                    numNeededResources += diff;
-                                                }
-                                            }
-
-                                            if (numNeededResources == 2)
-                                            {
-                                                chooseFreeResources(targetResources);
-
-                                                ///
-                                                /// play the card
-                                                ///
-                                                expectWAITING_FOR_DISCOVERY = true;
-                                                waitingForGameState = true;
-                                                counter = 0;
-                                                client.playDevCard(game, SOCDevCardConstants.DISC);
-                                                pause(1500);
-                                            }
-                                        }
-
-                                        if (!expectWAITING_FOR_DISCOVERY)
-                                        {
-                                            ///
-                                            /// if we have a monopoly card, play it
-                                            /// and take what there is most of
-                                            ///
-                                            if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) > 0) && chooseMonopoly())
-                                            {
-                                                ///
-                                                /// play the card
-                                                ///
-                                                expectWAITING_FOR_MONOPOLY = true;
-                                                waitingForGameState = true;
-                                                counter = 0;
-                                                client.playDevCard(game, SOCDevCardConstants.MONO);
-                                                pause(1500);
-                                            }
-
-                                            if (!expectWAITING_FOR_MONOPOLY)
-                                            {
-                                                if (gameStatePLAY1 && (!doneTrading) && (!ourPlayerData.getResources().contains(targetResources)))
-                                                {
-                                                    waitingForTradeResponse = false;
-
-                                                    if (robotParameters.getTradeFlag() == 1)
-                                                    {
-                                                        makeOffer(targetPiece);
-                                                        // makeOffer will set waitingForTradeResponse or doneTrading.
-                                                    }
-                                                }
-
-                                                if (gameStatePLAY1 && !waitingForTradeResponse)
-                                                {
-                                                    /**
-                                                     * trade with the bank/ports
-                                                     */
-                                                    if (tradeToTarget2(targetResources))
-                                                    {
-                                                        counter = 0;
-                                                        waitingForTradeMsg = true;
-                                                        pause(1500);
-                                                    }
-                                                }
-
-                                                ///
-                                                /// build if we can
-                                                ///
-                                                if (!waitingForTradeMsg && !waitingForTradeResponse && ourPlayerData.getResources().contains(targetResources))
-                                                {
-                                                    // Calls buildingPlan.pop().
-                                                    // Checks against whatWeFailedToBuild to see if server has rejected this already.
-                                                    // Calls client.buyDevCard or client.buildRequest.
-                                                    // Sets waitingForDevCard, or waitingForGameState and expectPLACING_SETTLEMENT (etc).
-
-                                                    buildRequestPlannedPiece(targetPiece);
-                                                }
-                                            }
-                                        }
-                                    }
+                                    // Either ask to build a piece, or use trading or development
+                                    // cards to get resources to build it.  See javadoc for flags set.
+                                    buildOrGetResourceByTradeOrCard();
                                 }
 
                                 /**
@@ -1773,6 +1616,196 @@ public class SOCRobotBrain extends Thread
         playerTrackers = null;
         pinger.stopPinger();
         pinger = null;
+    }
+
+    /**
+     * Either ask to build a piece, or use trading or development cards to get resources to build it.
+     * Examines {@link #buildingPlan} for the next piece wanted.
+     *<P>
+     * Call when these conditions are all true:
+     * <UL>
+     *<LI> gameState {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}
+     *<LI> <tt>waitingFor...</tt> flags all false ({@link #waitingForGameState}, etc) except possibly {@link #waitingForSpecialBuild}
+     *<LI> <tt>expect...</tt> flags all false ({@link #expectPLACING_ROAD}, etc)
+     *<LI> ! {@link #waitingForOurTurn}
+     *<LI> {@link #ourTurn}
+     *<LI> ! ({@link #expectPLAY} && (counter < 4000))
+     *<LI> ! {@link #buildingPlan}.empty()
+     *</UL>
+     *<P>
+     * May set any of these flags:
+     * <UL>
+     *<LI> {@link #waitingForGameState}, and {@link #expectWAITING_FOR_DISCOVERY} or {@link #expectWAITING_FOR_MONOPOLY}
+     *<LI> {@link #waitingForTradeMsg} or {@link #waitingForTradeResponse} or {@link #doneTrading}
+     *<LI> {@link #waitingForDevCard}, or {@link #waitingForGameState} and {@link #expectPLACING_SETTLEMENT} (etc).
+     *</UL>
+     *
+     * @since 1.1.08
+     */
+    private void buildOrGetResourceByTradeOrCard()
+    {
+        /**
+         * If we're in SPECIAL_BUILDING (not PLAY1),
+         * can't trade or play development cards.
+         */
+        final boolean gameStatePLAY1 = (game.getGameState() == SOCGame.PLAY1);
+
+        /**
+         * check to see if this is a Road Building plan
+         */
+        boolean roadBuildingPlan = false;
+
+        if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
+        {
+            //D.ebugPrintln("** Checking for Road Building Plan **");
+            SOCPossiblePiece topPiece = (SOCPossiblePiece) buildingPlan.pop();
+
+            //D.ebugPrintln("$ POPPED "+topPiece);
+            if ((topPiece != null) && (topPiece.getType() == SOCPossiblePiece.ROAD) && (!buildingPlan.empty()))
+            {
+                SOCPossiblePiece secondPiece = (SOCPossiblePiece) buildingPlan.peek();
+
+                //D.ebugPrintln("secondPiece="+secondPiece);
+                if ((secondPiece != null) && (secondPiece.getType() == SOCPossiblePiece.ROAD))
+                {
+                    roadBuildingPlan = true;
+                    whatWeWantToBuild = new SOCRoad(ourPlayerData, topPiece.getCoordinates(), null);
+                    if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
+                    {
+                        waitingForGameState = true;
+                        counter = 0;
+                        expectPLACING_FREE_ROAD1 = true;
+
+                        //D.ebugPrintln("!! PLAYING ROAD BUILDING CARD");
+                        client.playDevCard(game, SOCDevCardConstants.ROADS);
+                    } else {
+                        // We already tried to build this.
+                        roadBuildingPlan = false;
+                        cancelWrongPiecePlacementLocal(whatWeWantToBuild);
+                        // cancel sets whatWeWantToBuild = null;
+                    }
+                }
+                else
+                {
+                    //D.ebugPrintln("$ PUSHING "+topPiece);
+                    buildingPlan.push(topPiece);
+                }
+            }
+            else
+            {
+                //D.ebugPrintln("$ PUSHING "+topPiece);
+                buildingPlan.push(topPiece);
+            }
+        }
+
+        if (! roadBuildingPlan)
+        {
+            ///
+            /// figure out what resources we need
+            ///
+            SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.peek();
+            SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+
+            //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
+            //D.ebugPrintln("^^^ ourResources = "+ourPlayerData.getResources());
+
+            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+
+            ///
+            /// if we have a 2 free resources card and we need
+            /// at least 2 resources, play the card
+            ///
+            if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) > 0))
+            {
+                SOCResourceSet ourResources = ourPlayerData.getResources();
+                int numNeededResources = 0;
+
+                for (int resource = SOCResourceConstants.CLAY;
+                        resource <= SOCResourceConstants.WOOD;
+                        resource++)
+                {
+                    int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);
+
+                    if (diff > 0)
+                    {
+                        numNeededResources += diff;
+                    }
+                }
+
+                if (numNeededResources == 2)
+                {
+                    chooseFreeResources(targetResources);
+
+                    ///
+                    /// play the card
+                    ///
+                    expectWAITING_FOR_DISCOVERY = true;
+                    waitingForGameState = true;
+                    counter = 0;
+                    client.playDevCard(game, SOCDevCardConstants.DISC);
+                    pause(1500);
+                }
+            }
+
+            if (!expectWAITING_FOR_DISCOVERY)
+            {
+                ///
+                /// if we have a monopoly card, play it
+                /// and take what there is most of
+                ///
+                if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) > 0) && chooseMonopoly())
+                {
+                    ///
+                    /// play the card
+                    ///
+                    expectWAITING_FOR_MONOPOLY = true;
+                    waitingForGameState = true;
+                    counter = 0;
+                    client.playDevCard(game, SOCDevCardConstants.MONO);
+                    pause(1500);
+                }
+
+                if (!expectWAITING_FOR_MONOPOLY)
+                {
+                    if (gameStatePLAY1 && (!doneTrading) && (!ourPlayerData.getResources().contains(targetResources)))
+                    {
+                        waitingForTradeResponse = false;
+
+                        if (robotParameters.getTradeFlag() == 1)
+                        {
+                            makeOffer(targetPiece);
+                            // makeOffer will set waitingForTradeResponse or doneTrading.
+                        }
+                    }
+
+                    if (gameStatePLAY1 && !waitingForTradeResponse)
+                    {
+                        /**
+                         * trade with the bank/ports
+                         */
+                        if (tradeToTarget2(targetResources))
+                        {
+                            counter = 0;
+                            waitingForTradeMsg = true;
+                            pause(1500);
+                        }
+                    }
+
+                    ///
+                    /// build if we can
+                    ///
+                    if (!waitingForTradeMsg && !waitingForTradeResponse && ourPlayerData.getResources().contains(targetResources))
+                    {
+                        // Calls buildingPlan.pop().
+                        // Checks against whatWeFailedToBuild to see if server has rejected this already.
+                        // Calls client.buyDevCard or client.buildRequest.
+                        // Sets waitingForDevCard, or waitingForGameState and expectPLACING_SETTLEMENT (etc).
+
+                        buildRequestPlannedPiece(targetPiece);
+                    }
+                }
+            }
+        }
     }
 
     /**
