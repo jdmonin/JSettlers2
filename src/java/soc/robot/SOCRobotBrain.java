@@ -1014,100 +1014,12 @@ public class SOCRobotBrain extends Thread
 
                     else if (mesType == SOCMessage.PUTPIECE)
                     {
-                        D.ebugPrintln("*** PUTPIECE for game ***");
-
-                        SOCPlayer pl = game.getPlayer(((SOCPutPiece) mes).getPlayerNumber());
-
-                        switch (((SOCPutPiece) mes).getPieceType())
-                        {
-                        case SOCPlayingPiece.ROAD:
-
-                            if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
-                            {
-                                //
-                                // Before processing this road, track the settlement that goes with it.
-                                // This was deferred until road placement, in case a human player decides
-                                // to cancel their settlement and place it elsewhere.
-                                //
-                                SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
-                                    (new Integer(((SOCPutPiece) mes).getPlayerNumber()));
-                                SOCSettlement se = tr.getPendingInitSettlement();
-                                if (se != null)
-                                    trackNewSettlement(se, false);
-                            }
-                            SOCRoad rd = new SOCRoad(pl, ((SOCPutPiece) mes).getCoordinates(), null);
-                            game.putPiece(rd);
-
-                            break;
-
-                        case SOCPlayingPiece.SETTLEMENT:
-
-                            SOCSettlement se = new SOCSettlement(pl, ((SOCPutPiece) mes).getCoordinates(), null);
-                            game.putPiece(se);
-
-                            break;
-
-                        case SOCPlayingPiece.CITY:
-
-                            SOCCity ci = new SOCCity(pl, ((SOCPutPiece) mes).getCoordinates(), null);
-                            game.putPiece(ci);
-
-                            break;
-                        }
+                        handlePUTPIECE((SOCPutPiece) mes);
                     }
 
                     else if (mesType == SOCMessage.CANCELBUILDREQUEST)
                     {
-                        int gstate = game.getGameState(); 
-                        //
-                        // During game startup (START1B or START2B):
-                        //    When sent from server to client, CANCELBUILDREQUEST means the current
-                        //    player wants to undo the placement of their initial settlement.  
-                        //
-                        // During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
-                        //                         PLACING_FREE_ROAD1, or PLACING_FREE_ROAD2):
-                        //    When sent from server to client, CANCELBUILDREQUEST means the player
-                        //    has sent an illegal PUTPIECE (bad building location). 
-                        //    Humans can probably decide a better place to put their road,
-                        //    but robots must cancel the build request and decide on a new plan.
-                        //
-                        switch (gstate)
-                        {
-                        case SOCGame.START1B:
-                        case SOCGame.START2B:
-                            int pnum = game.getCurrentPlayerNumber();
-                            SOCPlayer pl = game.getPlayer(pnum);
-                            SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
-                            game.undoPutInitSettlement(pp);
-                            //
-                            // "forget" to track this cancelled initial settlement.
-                            // Wait for human player to place a new one.
-                            //
-                            SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
-                                (new Integer(pnum));
-                            tr.setPendingInitSettlement(null);
-                            
-                            break;
-                            
-                        case SOCGame.PLACING_ROAD:
-                        case SOCGame.PLACING_SETTLEMENT:
-                        case SOCGame.PLACING_CITY:
-                        case SOCGame.PLACING_FREE_ROAD1:  // JM TODO how to break out?
-                        case SOCGame.PLACING_FREE_ROAD2:  // JM TODO how to break out?
-                            //
-                            // We've asked for an illegal piece placement.
-                            // (Must be a bug.) Cancel and invalidate this
-                            // planned piece, make a new plan.
-                            //
-                            cancelWrongPiecePlacement((SOCCancelBuildRequest) mes);
-                            
-                            break;
-                            
-                        default:
-                            // Should not occur
-                            D.ebugPrintln("Unexpected CANCELBUILDREQUEST at state " + gstate);
-                        
-                        }  // switch (gameState)
+                        handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
                     }
 
                     else if (mesType == SOCMessage.MOVEROBBER)
@@ -1123,125 +1035,7 @@ public class SOCRobotBrain extends Thread
 
                     else if ((robotParameters.getTradeFlag() == 1) && (mesType == SOCMessage.MAKEOFFER))
                     {
-                        SOCTradeOffer offer = ((SOCMakeOffer) mes).getOffer();
-                        game.getPlayer(offer.getFrom()).setCurrentOffer(offer);
-
-                        ///
-                        /// if another player makes an offer, that's the
-                        /// same as a rejection, but still wants to deal
-                        ///				
-                        if ((offer.getFrom() != ourPlayerData.getPlayerNumber()))
-                        {
-                            ///
-                            /// record that this player wants to sell me the stuff
-                            ///
-                            SOCResourceSet giveSet = offer.getGiveSet();
-
-                            for (int rsrcType = SOCResourceConstants.CLAY;
-                                    rsrcType <= SOCResourceConstants.WOOD;
-                                    rsrcType++)
-                            {
-                                if (giveSet.getAmount(rsrcType) > 0)
-                                {
-                                    D.ebugPrintln("%%% player " + offer.getFrom() + " wants to sell " + rsrcType);
-                                    negotiator.markAsWantsAnotherOffer(offer.getFrom(), rsrcType);
-                                }
-                            }
-
-                            ///
-                            /// record that this player is not selling the resources 
-                            /// he is asking for
-                            ///
-                            SOCResourceSet getSet = offer.getGetSet();
-
-                            for (int rsrcType = SOCResourceConstants.CLAY;
-                                    rsrcType <= SOCResourceConstants.WOOD;
-                                    rsrcType++)
-                            {
-                                if (getSet.getAmount(rsrcType) > 0)
-                                {
-                                    D.ebugPrintln("%%% player " + offer.getFrom() + " wants to buy " + rsrcType + " and therefore does not want to sell it");
-                                    negotiator.markAsNotSelling(offer.getFrom(), rsrcType);
-                                }
-                            }
-
-                            if (waitingForTradeResponse)
-                            {
-                                offerRejections[offer.getFrom()] = true;
-
-                                boolean everyoneRejected = true;
-                                D.ebugPrintln("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
-
-                                if (ourPlayerData.getCurrentOffer() != null)
-                                {
-                                    boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
-
-                                    for (int i = 0; i < game.maxPlayers; i++)
-                                    {
-                                        D.ebugPrintln("offerRejections[" + i + "]=" + offerRejections[i]);
-
-                                        if (offeredTo[i] && !offerRejections[i])
-                                        {
-                                            everyoneRejected = false;
-                                        }
-                                    }
-                                }
-
-                                D.ebugPrintln("everyoneRejected=" + everyoneRejected);
-
-                                if (everyoneRejected)
-                                {
-                                    negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
-                                    client.clearOffer(game);
-                                    waitingForTradeResponse = false;
-                                }
-                            }
-
-                            ///
-                            /// consider the offer
-                            ///
-                            int ourResponseToOffer = considerOffer(offer);
-
-                            D.ebugPrintln("%%% ourResponseToOffer = " + ourResponseToOffer);
-
-                            if (ourResponseToOffer >= 0)
-                            {
-                                int delayLength = Math.abs(rand.nextInt() % 500) + 3500;
-                                pause(delayLength);
-
-                                switch (ourResponseToOffer)
-                                {
-                                case SOCRobotNegotiator.ACCEPT_OFFER:
-                                    client.acceptOffer(game, offer.getFrom());
-
-                                    ///
-                                    /// clear our building plan, so that we replan
-                                    ///
-                                    buildingPlan.clear();
-                                    negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), null);
-
-                                    break;
-
-                                case SOCRobotNegotiator.REJECT_OFFER:
-
-                                    if (!waitingForTradeResponse)
-                                    {
-                                        client.rejectOffer(game);
-                                    }
-
-                                    break;
-
-                                case SOCRobotNegotiator.COUNTER_OFFER:
-
-                                    if (!makeCounterOffer(offer))
-                                    {
-                                        client.rejectOffer(game);
-                                    }
-
-                                    break;
-                                }
-                            }
-                        }
+                        handleMAKEOFFER((SOCMakeOffer) mes);
                     }
 
                     else if ((robotParameters.getTradeFlag() == 1) && (mesType == SOCMessage.CLEAROFFER))
@@ -1259,92 +1053,7 @@ public class SOCRobotBrain extends Thread
 
                     else if ((robotParameters.getTradeFlag() == 1) && (mesType == SOCMessage.REJECTOFFER))
                     {
-                        ///
-                        /// see if everyone has rejected our offer
-                        ///
-                        int rejector = ((SOCRejectOffer) mes).getPlayerNumber();
-
-                        if ((ourPlayerData.getCurrentOffer() != null) && (waitingForTradeResponse))
-                        {
-                            D.ebugPrintln("%%%%%%%%% REJECT OFFER %%%%%%%%%%%%%");
-
-                            ///
-                            /// record which player said no
-                            ///
-                            SOCResourceSet getSet = ourPlayerData.getCurrentOffer().getGetSet();
-
-                            for (int rsrcType = SOCResourceConstants.CLAY;
-                                    rsrcType <= SOCResourceConstants.WOOD;
-                                    rsrcType++)
-                            {
-                                if ((getSet.getAmount(rsrcType) > 0) && (!negotiator.wantsAnotherOffer(rejector, rsrcType)))
-                                {
-                                    negotiator.markAsNotSelling(rejector, rsrcType);
-                                }
-                            }
-
-                            offerRejections[((SOCRejectOffer) mes).getPlayerNumber()] = true;
-
-                            boolean everyoneRejected = true;
-                            D.ebugPrintln("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
-
-                            boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
-
-                            for (int i = 0; i < game.maxPlayers; i++)
-                            {
-                                D.ebugPrintln("offerRejections[" + i + "]=" + offerRejections[i]);
-
-                                if (offeredTo[i] && !offerRejections[i])
-                                {
-                                    everyoneRejected = false;
-                                }
-                            }
-
-                            D.ebugPrintln("everyoneRejected=" + everyoneRejected);
-
-                            if (everyoneRejected)
-                            {
-                                negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
-                                client.clearOffer(game);
-                                waitingForTradeResponse = false;
-                            }
-                        }
-                        else
-                        {
-                            ///
-                            /// we also want to watch rejections of other players' offers
-                            ///
-                            D.ebugPrintln("%%%% ALT REJECT OFFER %%%%");
-
-                            for (int pn = 0; pn < game.maxPlayers; pn++)
-                            {
-                                SOCTradeOffer offer = game.getPlayer(pn).getCurrentOffer();
-
-                                if (offer != null)
-                                {
-                                    boolean[] offeredTo = offer.getTo();
-
-                                    if (offeredTo[rejector])
-                                    {
-                                        //
-                                        // I think they were rejecting this offer
-                                        // mark them as not selling what was asked for
-                                        //
-                                        SOCResourceSet getSet = offer.getGetSet();
-
-                                        for (int rsrcType = SOCResourceConstants.CLAY;
-                                                rsrcType <= SOCResourceConstants.WOOD;
-                                                rsrcType++)
-                                        {
-                                            if ((getSet.getAmount(rsrcType) > 0) && (!negotiator.wantsAnotherOffer(rejector, rsrcType)))
-                                            {
-                                                negotiator.markAsNotSelling(rejector, rsrcType);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        handleREJECTOFFER((SOCRejectOffer) mes);
                     }
 
                     else if (mesType == SOCMessage.DEVCARDCOUNT)
@@ -2283,6 +1992,322 @@ public class SOCRobotBrain extends Thread
         playerTrackers = null;
         pinger.stopPinger();
         pinger = null;
+    }
+
+    /**
+     * Handle a PUTPIECE for this game.
+     * For initial roads, track their initial settlement in SOCPlayerTracker.
+     * @since 1.1.08
+     */
+    private void handlePUTPIECE(SOCPutPiece mes)
+    {
+        final SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
+        final int coord = mes.getCoordinates();
+
+        switch (mes.getPieceType())
+        {
+        case SOCPlayingPiece.ROAD:
+
+            if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
+            {
+                //
+                // Before processing this road, track the settlement that goes with it.
+                // This was deferred until road placement, in case a human player decides
+                // to cancel their settlement and place it elsewhere.
+                //
+                SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
+                    (new Integer(mes.getPlayerNumber()));
+                SOCSettlement se = tr.getPendingInitSettlement();
+                if (se != null)
+                    trackNewSettlement(se, false);
+            }
+            SOCRoad rd = new SOCRoad(pl, coord, null);
+            game.putPiece(rd);
+            break;
+
+        case SOCPlayingPiece.SETTLEMENT:
+
+            SOCSettlement se = new SOCSettlement(pl, coord, null);
+            game.putPiece(se);
+            break;
+
+        case SOCPlayingPiece.CITY:
+
+            SOCCity ci = new SOCCity(pl, coord, null);
+            game.putPiece(ci);
+            break;
+        }
+    }
+
+    /**
+     * Handle a CANCELBUILDREQUEST for this game.
+     *<P>
+     *<b> During game startup</b> (START1B or START2B): <BR>
+     *    When sent from server to client, CANCELBUILDREQUEST means the current
+     *    player wants to undo the placement of their initial settlement.
+     *<P>
+     *<b> During piece placement</b> (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
+     *                         PLACING_FREE_ROAD1, or PLACING_FREE_ROAD2): <BR>
+     *    When sent from server to client, CANCELBUILDREQUEST means the player
+     *    has sent an illegal PUTPIECE (bad building location). 
+     *    Humans can probably decide a better place to put their road,
+     *    but robots must cancel the build request and decide on a new plan.
+     *
+     * @since 1.1.08
+     */
+    private void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
+    {
+        final int gstate = game.getGameState();
+        switch (gstate)
+        {
+        case SOCGame.START1B:
+        case SOCGame.START2B:
+            int pnum = game.getCurrentPlayerNumber();
+            SOCPlayer pl = game.getPlayer(pnum);
+            SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
+            game.undoPutInitSettlement(pp);
+            //
+            // "forget" to track this cancelled initial settlement.
+            // Wait for human player to place a new one.
+            //
+            SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
+                (new Integer(pnum));
+            tr.setPendingInitSettlement(null);
+            
+            break;
+            
+        case SOCGame.PLACING_ROAD:
+        case SOCGame.PLACING_SETTLEMENT:
+        case SOCGame.PLACING_CITY:
+        case SOCGame.PLACING_FREE_ROAD1:  // JM TODO how to break out?
+        case SOCGame.PLACING_FREE_ROAD2:  // JM TODO how to break out?
+            //
+            // We've asked for an illegal piece placement.
+            // (Must be a bug.) Cancel and invalidate this
+            // planned piece, make a new plan.
+            //
+            cancelWrongPiecePlacement(mes);
+            
+            break;
+            
+        default:
+            // Should not occur
+            D.ebugPrintln("Unexpected CANCELBUILDREQUEST at state " + gstate);
+        
+        }  // switch (gameState)
+    }
+
+    /**
+     * Handle a MAKEOFFER for this game.
+     * if another player makes an offer, that's the
+     * same as a rejection, but still wants to deal.
+     * Call {@link #considerOffer(SOCTradeOffer)}, and if
+     * we accept, clear our {@link #buildingPlan} so we'll replan it.
+     * Ignore our own MAKEOFFERs echoed from server.
+     * @since 1.1.08
+     */
+    private void handleMAKEOFFER(SOCMakeOffer mes)
+    {
+        SOCTradeOffer offer = mes.getOffer();
+        game.getPlayer(offer.getFrom()).setCurrentOffer(offer);
+
+        if ((offer.getFrom() == ourPlayerData.getPlayerNumber()))
+        {
+            return;  // <---- Ignore our own offers ----
+        }
+
+        ///
+        /// record that this player wants to sell me the stuff
+        ///
+        SOCResourceSet giveSet = offer.getGiveSet();
+
+        for (int rsrcType = SOCResourceConstants.CLAY;
+                rsrcType <= SOCResourceConstants.WOOD;
+                rsrcType++)
+        {
+            if (giveSet.getAmount(rsrcType) > 0)
+            {
+                D.ebugPrintln("%%% player " + offer.getFrom() + " wants to sell " + rsrcType);
+                negotiator.markAsWantsAnotherOffer(offer.getFrom(), rsrcType);
+            }
+        }
+
+        ///
+        /// record that this player is not selling the resources 
+        /// he is asking for
+        ///
+        SOCResourceSet getSet = offer.getGetSet();
+
+        for (int rsrcType = SOCResourceConstants.CLAY;
+                rsrcType <= SOCResourceConstants.WOOD;
+                rsrcType++)
+        {
+            if (getSet.getAmount(rsrcType) > 0)
+            {
+                D.ebugPrintln("%%% player " + offer.getFrom() + " wants to buy " + rsrcType + " and therefore does not want to sell it");
+                negotiator.markAsNotSelling(offer.getFrom(), rsrcType);
+            }
+        }
+
+        if (waitingForTradeResponse)
+        {
+            offerRejections[offer.getFrom()] = true;
+
+            boolean everyoneRejected = true;
+            D.ebugPrintln("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
+
+            if (ourPlayerData.getCurrentOffer() != null)
+            {
+                boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
+
+                for (int i = 0; i < game.maxPlayers; i++)
+                {
+                    D.ebugPrintln("offerRejections[" + i + "]=" + offerRejections[i]);
+
+                    if (offeredTo[i] && !offerRejections[i])
+                        everyoneRejected = false;
+                }
+            }
+
+            D.ebugPrintln("everyoneRejected=" + everyoneRejected);
+
+            if (everyoneRejected)
+            {
+                negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
+                client.clearOffer(game);
+                waitingForTradeResponse = false;
+            }
+        }
+
+        ///
+        /// consider the offer
+        ///
+        int ourResponseToOffer = considerOffer(offer);
+
+        D.ebugPrintln("%%% ourResponseToOffer = " + ourResponseToOffer);
+
+        if (ourResponseToOffer < 0)
+            return;
+
+        int delayLength = Math.abs(rand.nextInt() % 500) + 3500;
+        pause(delayLength);
+
+        switch (ourResponseToOffer)
+        {
+        case SOCRobotNegotiator.ACCEPT_OFFER:
+            client.acceptOffer(game, offer.getFrom());
+
+            ///
+            /// clear our building plan, so that we replan
+            ///
+            buildingPlan.clear();
+            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), null);
+
+            break;
+
+        case SOCRobotNegotiator.REJECT_OFFER:
+
+            if (!waitingForTradeResponse)
+                client.rejectOffer(game);
+
+            break;
+
+        case SOCRobotNegotiator.COUNTER_OFFER:
+
+            if (!makeCounterOffer(offer))
+                client.rejectOffer(game);
+
+            break;
+        }
+    }
+
+    /**
+     * Handle a REJECTOFFER for this game.
+     * watch rejections of other players' offers, and of our offers.
+     * @since 1.1.08
+     */
+    private void handleREJECTOFFER(SOCRejectOffer mes)
+    {
+        ///
+        /// see if everyone has rejected our offer
+        ///
+        int rejector = mes.getPlayerNumber();
+
+        if ((ourPlayerData.getCurrentOffer() != null) && (waitingForTradeResponse))
+        {
+            D.ebugPrintln("%%%%%%%%% REJECT OFFER %%%%%%%%%%%%%");
+
+            ///
+            /// record which player said no
+            ///
+            SOCResourceSet getSet = ourPlayerData.getCurrentOffer().getGetSet();
+
+            for (int rsrcType = SOCResourceConstants.CLAY;
+                    rsrcType <= SOCResourceConstants.WOOD;
+                    rsrcType++)
+            {
+                if ((getSet.getAmount(rsrcType) > 0) && (!negotiator.wantsAnotherOffer(rejector, rsrcType)))
+                    negotiator.markAsNotSelling(rejector, rsrcType);
+            }
+
+            offerRejections[mes.getPlayerNumber()] = true;
+
+            boolean everyoneRejected = true;
+            D.ebugPrintln("ourPlayerData.getCurrentOffer() = " + ourPlayerData.getCurrentOffer());
+
+            boolean[] offeredTo = ourPlayerData.getCurrentOffer().getTo();
+
+            for (int i = 0; i < game.maxPlayers; i++)
+            {
+                D.ebugPrintln("offerRejections[" + i + "]=" + offerRejections[i]);
+
+                if (offeredTo[i] && !offerRejections[i])
+                    everyoneRejected = false;
+            }
+
+            D.ebugPrintln("everyoneRejected=" + everyoneRejected);
+
+            if (everyoneRejected)
+            {
+                negotiator.addToOffersMade(ourPlayerData.getCurrentOffer());
+                client.clearOffer(game);
+                waitingForTradeResponse = false;
+            }
+        }
+        else
+        {
+            ///
+            /// we also want to watch rejections of other players' offers
+            ///
+            D.ebugPrintln("%%%% ALT REJECT OFFER %%%%");
+
+            for (int pn = 0; pn < game.maxPlayers; pn++)
+            {
+                SOCTradeOffer offer = game.getPlayer(pn).getCurrentOffer();
+
+                if (offer != null)
+                {
+                    boolean[] offeredTo = offer.getTo();
+
+                    if (offeredTo[rejector])
+                    {
+                        //
+                        // I think they were rejecting this offer
+                        // mark them as not selling what was asked for
+                        //
+                        SOCResourceSet getSet = offer.getGetSet();
+
+                        for (int rsrcType = SOCResourceConstants.CLAY;
+                                rsrcType <= SOCResourceConstants.WOOD;
+                                rsrcType++)
+                        {
+                            if ((getSet.getAmount(rsrcType) > 0) && (!negotiator.wantsAnotherOffer(rejector, rsrcType)))
+                                negotiator.markAsNotSelling(rejector, rsrcType);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**

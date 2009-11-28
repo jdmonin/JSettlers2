@@ -13,6 +13,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 - Chat text prompt ("type here to chat") cleared when clicked (D Campbell idea)
 - BoardPanel faster redraw: cache image of board without pieces
 - BoardPanel javadocs explain nodeMap and initNodeMapAux
+- SOCRobotBrain refactor some message-handlers out of run() (C McNeil idea)
 
     > 1.1.07 (build 20091031)
 - Per-game options framework, including these options:
