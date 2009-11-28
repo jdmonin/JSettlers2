@@ -734,6 +734,9 @@ public class SOCRobotBrain extends Thread
                     {
                         mesType = mes.getType();
                         D.ebugPrintln("mes - " + mes);
+
+                        // Debug aid: when looking at message contents: avoid pings:
+                        // check here for (mesType != SOCMessage.GAMETEXTMSG).
                     }
                     else
                     {
@@ -4659,7 +4662,7 @@ public class SOCRobotBrain extends Thread
         return response;
     }
 
-    /***
+    /**
      * make an offer to another player
      *
      * @param target  the resources that we want
