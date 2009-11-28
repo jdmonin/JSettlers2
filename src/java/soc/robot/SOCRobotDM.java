@@ -184,7 +184,10 @@ public class SOCRobotDM {
   }
 
   /**
-   * make some building plans
+   * make some building plans.
+   * Calls either {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}.
+   * Both of these will check whether this is our normal turn, or if
+   * it's the 6-player board's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
    *
    * @param strategy  an integer that determines which strategy is used (SMART_STRATEGY | FAST_STRATEGY)
    */
@@ -422,8 +425,15 @@ public class SOCRobotDM {
    *
    * @param buildingETAs  the etas for building something
    */
-  protected void dumbFastGameStrategy(int[] buildingETAs) {
+  protected void dumbFastGameStrategy(int[] buildingETAs)
+  {
     D.ebugPrintln("***** dumbFastGameStrategy *****");
+
+    // If this game is on the 6-player board, check whether we're planning for
+    // the Special Building Phase.  Can't buy cards or trade in that phase.
+    final boolean forSpecialBuildingPhase =
+        game.isSpecialBuilding() || (game.getCurrentPlayerNumber() != ourPlayerData.getPlayerNumber());
+
     int bestETA = 500;
     SOCBuildingSpeedEstimate ourBSE = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
 
@@ -526,14 +536,15 @@ public class SOCRobotDM {
 	//
 	// we can't build a settlement or city
 	//
-	if (game.getNumDevCards() > 0) {
-	  //
-	  // buy a card if there are any left
-	  //
-	  D.ebugPrintln("Buy a card");
-	  SOCPossibleCard posCard = new SOCPossibleCard(ourPlayerData, buildingETAs[SOCBuildingSpeedEstimate.CARD]);
-	  buildingPlan.push(posCard);
-	}
+        if ((game.getNumDevCards() > 0) && ! forSpecialBuildingPhase)
+        {
+            //
+            // buy a card if there are any left
+            //
+            D.ebugPrintln("Buy a card");
+            SOCPossibleCard posCard = new SOCPossibleCard(ourPlayerData, buildingETAs[SOCBuildingSpeedEstimate.CARD]);
+            buildingPlan.push(posCard);
+        }
       }
     } else {
       //
@@ -591,7 +602,8 @@ public class SOCRobotDM {
 	/// not enough dev cards left
 	///
       }
-      if (laETA < bestETA) {
+      if ((laETA < bestETA) && ! forSpecialBuildingPhase)
+      {
 	bestETA = laETA;
 	choice = LA_CHOICE;
       }
@@ -738,12 +750,16 @@ public class SOCRobotDM {
       //
       switch (choice) {
       case LA_CHOICE:
-	D.ebugPrintln("Picked LA");
-	for (int i = 0; i < knightsToBuy; i++) {
-	  SOCPossibleCard posCard = new SOCPossibleCard(ourPlayerData, 1);
-	  buildingPlan.push(posCard);
-	}
-	break;
+        D.ebugPrintln("Picked LA");
+        if (! forSpecialBuildingPhase)
+        {
+            for (int i = 0; i < knightsToBuy; i++)
+            {
+                SOCPossibleCard posCard = new SOCPossibleCard(ourPlayerData, 1);
+                buildingPlan.push(posCard);
+            }
+        }
+        break;
 	
       case LR_CHOICE:
 	D.ebugPrintln("Picked LR");
@@ -1117,8 +1133,14 @@ public class SOCRobotDM {
    *
    * @param buildingETAs  the etas for building something
    */
-  protected void smartGameStrategy(int[] buildingETAs) {
+  protected void smartGameStrategy(int[] buildingETAs)
+  {
     D.ebugPrintln("***** smartGameStrategy *****");
+
+    // If this game is on the 6-player board, check whether we're planning for
+    // the Special Building Phase.  Can't buy cards or trade in that phase.
+    final boolean forSpecialBuildingPhase =
+        game.isSpecialBuilding() || (game.getCurrentPlayerNumber() != ourPlayerData.getPlayerNumber());
 
     //
     // save the lr paths list to restore later
@@ -1498,7 +1520,8 @@ public class SOCRobotDM {
     //
     // see how buying a card improves our win game ETA
     //
-    if (game.getNumDevCards() > 0) {
+    if ((game.getNumDevCards() > 0) && ! forSpecialBuildingPhase)
+    {
       if ((brain != null) && (brain.getDRecorder().isOn())) {
 	brain.getDRecorder().startRecording("DEVCARD");
 	brain.getDRecorder().record("Estimate value of a dev card");
