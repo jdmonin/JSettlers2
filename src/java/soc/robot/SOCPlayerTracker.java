@@ -1471,6 +1471,9 @@ public class SOCPlayerTracker
      */
     protected void removeFromNecessaryRoads(SOCPossibleSettlement ps)
     {
+        if (ps == null)
+            return;    // just in case; should not happen
+
         //D.ebugPrintln("%%% remove settlement from necessary roads");
         Enumeration nrEnum = ps.getNecessaryRoads().elements();
 
@@ -1492,6 +1495,9 @@ public class SOCPlayerTracker
      */
     public void cancelWrongCity(SOCCity city)
     {
+        if (city == null)
+            return;      // just in case; should not happen
+
         /**
          * There is no addTheirNewCity method.
          * Just remove our potential city, since it was wrongly placed.
