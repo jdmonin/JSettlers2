@@ -127,6 +127,12 @@ public class SOCRobotBrain extends Thread
     protected SOCGame game;
 
     /**
+     * The {@link #game} we're playing is on the 6-player board.
+     * @since 1.1.08
+     */
+    final private boolean gameIs6Player;
+
+    /**
      * Our player data
      */
     protected SOCPlayer ourPlayerData;
@@ -145,6 +151,21 @@ public class SOCRobotBrain extends Thread
      * A counter used to measure passage of time
      */
     protected int counter;
+
+    /**
+     * During this turn, which is another player's turn,
+     * have we yet decided whether to do the Special Building phase
+     * (for the 6-player board)?
+     * @since 1.1.08
+     */
+    private boolean decidedIfSpecialBuild;
+
+    /**
+     * true when we're waiting for our requested Special Building phase
+     * (for the 6-player board).
+     * @since 1.1.08
+     */
+    private boolean waitingForSpecialBuild;
 
     /**
      * This is what we want to build
@@ -430,6 +451,7 @@ public class SOCRobotBrain extends Thread
         client = rc;
         robotParameters = params.copyIfOptionChanged(ga.getGameOptions());
         game = ga;
+        gameIs6Player = (ga.maxPlayers > 4);
         gameEventQ = mq;
         alive = true;
         counter = 0;
@@ -460,6 +482,8 @@ public class SOCRobotBrain extends Thread
         waitingForOurTurn = false;
         waitingForTradeMsg = false;
         waitingForDevCard = false;
+        waitingForSpecialBuild = false;
+        decidedIfSpecialBuild = false;
         moveRobberOnSeven = false;
         waitingForTradeResponse = false;
         doneTrading = false;
@@ -826,10 +850,28 @@ public class SOCRobotBrain extends Thread
                         negotiator.resetOffersMade();
 
                         //
-                        // reset any plans we had
+                        // check or reset any special-building-phase decisions
                         //
-                        buildingPlan.clear();
+                        decidedIfSpecialBuild = false;
+                        if (game.getGameState() == SOCGame.SPECIAL_BUILDING)
+                        {
+                            if (waitingForSpecialBuild && ! buildingPlan.isEmpty())
+                            {
+                                // Keep the building plan.
+                                // Will ask during loop body to build.
+                            } else {
+                                // We have no plan, can't do anything.
+                                // Will fall through to bottom of loop,
+                                // where it will end our Special Building turn.
+                            }
+                        } else {
+                            //
+                            // reset any plans we had
+                            //
+                            buildingPlan.clear();
+                        }
                         negotiator.resetTargetPieces();
+                        waitingForSpecialBuild = false;
                     }
 
                     if (game.getCurrentPlayerNumber() == ourPlayerData.getPlayerNumber())
@@ -1480,17 +1522,75 @@ public class SOCRobotBrain extends Thread
                         }
                     }
 
-                    if ((game.getGameState() == SOCGame.PLAY1) && (!waitingForGameState) && (!waitingForTradeMsg) && (!waitingForTradeResponse) && (!waitingForDevCard) && (!expectPLACING_ROAD) && (!expectPLACING_SETTLEMENT) && (!expectPLACING_CITY) && (!expectPLACING_ROBBER) && (!expectPLACING_FREE_ROAD1) && (!expectPLACING_FREE_ROAD2) && (!expectWAITING_FOR_DISCOVERY) && (!expectWAITING_FOR_MONOPOLY))
+                    if (((game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING))
+                        && (!waitingForGameState) && (!waitingForTradeMsg) && (!waitingForTradeResponse) && (!waitingForDevCard)
+                        && (!expectPLACING_ROAD) && (!expectPLACING_SETTLEMENT) && (!expectPLACING_CITY) && (!expectPLACING_ROBBER) && (!expectPLACING_FREE_ROAD1) && (!expectPLACING_FREE_ROAD2) && (!expectWAITING_FOR_DISCOVERY) && (!expectWAITING_FOR_MONOPOLY))
                     {
                         // Time to decide to build, or take other normal actions.
 
                         expectPLAY1 = false;
+
+                        // 6-player: check Special Building Phase
+                        // during other players' turns.
+                        if ((! ourTurn) && waitingForOurTurn && gameIs6Player
+                             && (! decidedIfSpecialBuild) && (!expectPLACING_ROBBER))
+                        {
+                            decidedIfSpecialBuild = true;
+
+                            /**
+                             * It's not our turn.  We're not doing anything else right now.
+                             * Gamestate has passed PLAY, so we know what resources to expect.
+                             * Do we want to Special Build?  Check the same conditions as during our turn.
+                             * Make a plan if we don't have one,
+                             * and if we haven't given up building
+                             * attempts this turn.
+                             */
+
+                            if ((buildingPlan.empty()) && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+                            {
+                                planBuilding();
+
+                                /*
+                                 * planBuilding takes these actions:
+                                 *
+                                decisionMaker.planStuff(robotParameters.getStrategyType());
+
+                                if (!buildingPlan.empty())
+                                {
+                                    lastTarget = (SOCPossiblePiece) buildingPlan.peek();
+                                    negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), (SOCPossiblePiece) buildingPlan.peek());
+                                }
+                                 */
+
+                                if ( ! buildingPlan.empty())
+                                {
+                                    // Do we have the resources right now?
+                                    final SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.peek();
+                                    final SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+
+                                    if ((ourPlayerData.getResources().contains(targetResources)))
+                                    {
+                                        // Ask server for the Special Building Phase.
+                                        // (TODO) if FAST_STRATEGY: Maybe randomly don't ask?
+                                        waitingForSpecialBuild = true;
+                                        client.buildRequest(game, -1);
+                                        pause(100);
+                                    }
+                                }
+                            }
+                        }
 
                         if ((!waitingForOurTurn) && (ourTurn))
                         {
                             if (!(expectPLAY && (counter < 4000)))
                             {
                                 counter = 0;
+
+                                /**
+                                 * If we're in SPECIAL_BUILDING (not PLAY1),
+                                 * can't trade or play development cards.
+                                 */
+                                final boolean gameStatePLAY1 = (game.getGameState() == SOCGame.PLAY1);
 
                                 //D.ebugPrintln("DOING PLAY1");
                                 if (D.ebugOn)
@@ -1517,7 +1617,7 @@ public class SOCRobotBrain extends Thread
                                  * and we have a knight, and we can get
                                  * largest army, play the knight
                                  */
-                                if (!ourPlayerData.hasPlayedDevCard())
+                                if (gameStatePLAY1 && ! ourPlayerData.hasPlayedDevCard())
                                 {
                                     SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
 
@@ -1561,7 +1661,7 @@ public class SOCRobotBrain extends Thread
                                      * planBuilding takes these actions:
                                      *
                                     decisionMaker.planStuff(robotParameters.getStrategyType());
-                            
+
                                     if (!buildingPlan.empty())
                                     {
                                         lastTarget = (SOCPossiblePiece) buildingPlan.peek();
@@ -1580,7 +1680,7 @@ public class SOCRobotBrain extends Thread
                                      */
                                     boolean roadBuildingPlan = false;
                                     
-                                    if (!ourPlayerData.hasPlayedDevCard() && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
+                                    if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
                                     {
                                         //D.ebugPrintln("** Checking for Road Building Plan **");
                                         SOCPossiblePiece topPiece = (SOCPossiblePiece) buildingPlan.pop();
@@ -1640,7 +1740,7 @@ public class SOCRobotBrain extends Thread
                                         /// if we have a 2 free resources card and we need
                                         /// at least 2 resources, play the card
                                         ///
-                                        if (!ourPlayerData.hasPlayedDevCard() && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) > 0))
+                                        if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) > 0))
                                         {
                                             SOCResourceSet ourResources = ourPlayerData.getResources();
                                             int numNeededResources = 0;
@@ -1678,7 +1778,7 @@ public class SOCRobotBrain extends Thread
                                             /// if we have a monopoly card, play it
                                             /// and take what there is most of
                                             ///
-                                            if (!ourPlayerData.hasPlayedDevCard() && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) > 0) && chooseMonopoly())
+                                            if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) > 0) && chooseMonopoly())
                                             {
                                                 ///
                                                 /// play the card
@@ -1692,7 +1792,7 @@ public class SOCRobotBrain extends Thread
 
                                             if (!expectWAITING_FOR_MONOPOLY)
                                             {
-                                                if ((!doneTrading) && (!ourPlayerData.getResources().contains(targetResources)))
+                                                if (gameStatePLAY1 && (!doneTrading) && (!ourPlayerData.getResources().contains(targetResources)))
                                                 {
                                                     waitingForTradeResponse = false;
 
@@ -1702,7 +1802,7 @@ public class SOCRobotBrain extends Thread
                                                     }
                                                 }
 
-                                                if (!waitingForTradeResponse)
+                                                if (gameStatePLAY1 && !waitingForTradeResponse)
                                                 {
                                                     /**
                                                      * trade with the bank/ports
