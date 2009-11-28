@@ -714,7 +714,7 @@ public class SOCRobotBrain extends Thread
             try
             {
                 //
-                // Along with actual game events, the pinger send a SOCGameTextMsg
+                // Along with actual game events, the pinger sends a SOCGameTextMsg
                 // once per second, to aid the robot's timekeeping counter.
                 //
 
@@ -728,7 +728,7 @@ public class SOCRobotBrain extends Thread
                     //} else {
                     //mes = null;
                     //}
-                    int mesType;
+                    final int mesType;
 
                     if (mes != null)
                     {
@@ -863,9 +863,11 @@ public class SOCRobotBrain extends Thread
                                 // Keep the building plan.
                                 // Will ask during loop body to build.
                             } else {
-                                // We have no plan, can't do anything.
-                                // Will fall through to bottom of loop,
-                                // where it will end our Special Building turn.
+                                // We have no plan, but will call planBuilding()
+                                // during the loop body.  If buildingPlan still empty,
+                                // bottom of loop will end our Special Building turn,
+                                // just as it would in gamestate PLAY1.  Otherwise,
+                                // will ask to build after planBuilding.
                             }
                         } else {
                             //
@@ -889,7 +891,7 @@ public class SOCRobotBrain extends Thread
                     if ((mesType == SOCMessage.TURN) && (ourTurn))
                     {
                         waitingForOurTurn = false;
-                        
+
                         // Clear some per-turn variables.
                         // For others, find the code which calls game.updateAtTurn().
                         whatWeFailedToBuild = null;
@@ -1015,6 +1017,7 @@ public class SOCRobotBrain extends Thread
                     else if (mesType == SOCMessage.PUTPIECE)
                     {
                         handlePUTPIECE((SOCPutPiece) mes);
+                        // For initial roads, also tracks their initial settlement in SOCPlayerTracker.
                     }
 
                     else if (mesType == SOCMessage.CANCELBUILDREQUEST)
@@ -1028,6 +1031,8 @@ public class SOCRobotBrain extends Thread
                         // Note: Don't call ga.moveRobber() because that will call the 
                         // functions to do the stealing.  We just want to set where 
                         // the robber moved, without seeing if something was stolen.
+                        // MOVEROBBER will be followed by PLAYERELEMENT messages to
+                        // report the gain/loss of resources.
                         //
                         moveRobberOnSeven = false;
                         game.getBoard().setRobberHex(((SOCMoveRobber) mes).getCoordinates());
@@ -1391,7 +1396,7 @@ public class SOCRobotBrain extends Thread
                                      * check to see if this is a Road Building plan
                                      */
                                     boolean roadBuildingPlan = false;
-                                    
+
                                     if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
                                     {
                                         //D.ebugPrintln("** Checking for Road Building Plan **");
@@ -1412,7 +1417,7 @@ public class SOCRobotBrain extends Thread
                                                     waitingForGameState = true;
                                                     counter = 0;
                                                     expectPLACING_FREE_ROAD1 = true;
-    
+
                                                     //D.ebugPrintln("!! PLAYING ROAD BUILDING CARD");
                                                     client.playDevCard(game, SOCDevCardConstants.ROADS);
                                                 } else {
@@ -1511,6 +1516,7 @@ public class SOCRobotBrain extends Thread
                                                     if (robotParameters.getTradeFlag() == 1)
                                                     {
                                                         makeOffer(targetPiece);
+                                                        // makeOffer will set waitingForTradeResponse or doneTrading.
                                                     }
                                                 }
 
@@ -1633,6 +1639,10 @@ public class SOCRobotBrain extends Thread
                             }
                         }
                     }
+
+                    /**
+                     * Placement: Make various putPiece calls; server has told us it's OK to buy them.
+                     */
 
                     if ((game.getGameState() == SOCGame.PLACING_SETTLEMENT) && (!waitingForGameState))
                     {
@@ -1788,6 +1798,10 @@ public class SOCRobotBrain extends Thread
                             }
                         }
                     }
+
+                    /**
+                     * End of various putPiece placement calls.
+                     */
 
                     /*
                        if (game.getGameState() == SOCGame.OVER) {
@@ -1995,8 +2009,8 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Handle a PUTPIECE for this game.
-     * For initial roads, track their initial settlement in SOCPlayerTracker.
+     * Handle a PUTPIECE for this game, by updating game data.
+     * For initial roads, also track their initial settlement in SOCPlayerTracker.
      * @since 1.1.08
      */
     private void handlePUTPIECE(SOCPutPiece mes)
@@ -4688,7 +4702,8 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * make an offer to another player
+     * make an offer to another player.
+     * Will set {@link #waitingForTradeResponse} or {@link #doneTrading}.
      *
      * @param target  the resources that we want
      * @return true if we made an offer
