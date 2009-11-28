@@ -904,6 +904,10 @@ public class SOCRobotBrain extends Thread
 
                         // If this during the PLAY state, also updates the
                         // negotiator's is-selling flags.
+
+                        // If our player is losing a resource needed for the buildingPlan, 
+                        // clear the plan if this is for the Special Building Phase (on the 6-player board).
+                        // In normal game play, we clear the building plan at the start of each turn.
                     }
 
                     else if (mesType == SOCMessage.RESOURCECOUNT)
@@ -2326,6 +2330,11 @@ public class SOCRobotBrain extends Thread
      *<P>
      * If this during the {@link SOCGame#PLAY} state, then update the
      * {@link SOCRobotNegotiator}'s is-selling flags.
+     *<P>
+     * If our player is losing a resource needed for the {@link #buildingPlan}, 
+     * clear the plan if this is for the Special Building Phase (on the 6-player board).
+     * In normal game play, we clear the building plan at the start of each turn.
+     *<P>
      * Otherwise, only the game data is updated, nothing brain-specific.
      *
      * @since 1.1.08
@@ -2431,6 +2440,10 @@ public class SOCRobotBrain extends Thread
      *     if they don't match already.
      *</ul>
      *<P>
+     * If our player is losing a resource needed for the {@link #buildingPlan}, 
+     * clear the plan if this is for the Special Building Phase (on the 6-player board).
+     * In normal game play, we clear the building plan at the start of each turn.
+     *<P>
      *
      * @param mes      Message with amount and action (SET/GAIN/LOSE)
      * @param pl       Player to update
@@ -2454,10 +2467,37 @@ public class SOCRobotBrain extends Thread
         }
 
         /**
-         * Avoid code duplication.
+         * Update game data.
          */
         SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
             (mes, pl, rtype);
+
+        /**
+         * Clear building plan, if we just lost a resource we need.
+         * Only necessary for Special Building Phase (6-player board),
+         * because in normal game play, we clear the building plan
+         * at the start of each turn.
+         */
+        if (waitingForSpecialBuild && (pl == ourPlayerData)
+            && (mes.getAction() != SOCPlayerElement.GAIN)
+            && ! buildingPlan.isEmpty())
+        {
+            final SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.peek();
+            final SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
+
+            if (! ourPlayerData.getResources().contains(targetResources))
+            {
+                buildingPlan.clear();
+
+                // The buildingPlan is clear, so we'll calculate
+                // a new plan when our Special Building turn begins.
+                // Don't clear decidedIfSpecialBuild flag, to prevent
+                // needless plan calculation before our turn begins,
+                // especially from multiple PLAYERELEMENT(LOSE),
+                // as may happen for a discard.
+            }
+        }
+
     }
 
     /**
