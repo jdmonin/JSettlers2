@@ -57,6 +57,9 @@ import java.util.Vector;
  *  to handle messages from the client.  Treat places them in a server-wide {@link #inQueue},
  *  which is processed in a server-wide single thread called the "treater".
  *<P>
+ *  To handle inbound messages from the clients, the server-wide "treater" thread
+ *  will call {@link #processCommand(String, StringConnection)} for each message.
+ *<P>
  *  The first processed message over the connection will be from the server to the client,
  *  in {@link #newConnection1(StringConnection)} or {@link #newConnection2(StringConnection)}.
  *  You can send out to the client there, but can't yet receive messages from it,
