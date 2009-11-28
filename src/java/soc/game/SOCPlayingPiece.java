@@ -178,10 +178,12 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
             return SOCGame.CITY_SET;
         case -2:
             // fall through
+        case 4:    // == SOCPossiblePiece.CARD (robots)
+            // fall through
         case SOCPlayingPiece.MAXPLUSONE:
             return SOCGame.CARD_SET;
         default:
-            throw new IllegalArgumentException("pieceType");
+            throw new IllegalArgumentException("pieceType: " + pieceType);
         }
     }
 }
