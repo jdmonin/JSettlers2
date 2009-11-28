@@ -876,12 +876,12 @@ public class SOCRobotBrain extends Thread
                             buildingPlan.clear();
                         }
                         negotiator.resetTargetPieces();
-                        waitingForSpecialBuild = false;
                     }
 
                     if (game.getCurrentPlayerNumber() == ourPlayerData.getPlayerNumber())
                     {
                         ourTurn = true;
+                        waitingForSpecialBuild = false;
                     }
                     else
                     {
@@ -1016,7 +1016,7 @@ public class SOCRobotBrain extends Thread
 
                     else if (mesType == SOCMessage.PUTPIECE)
                     {
-                        handlePUTPIECE((SOCPutPiece) mes);
+                        handlePUTPIECE_updateGameData((SOCPutPiece) mes);
                         // For initial roads, also tracks their initial settlement in SOCPlayerTracker.
                     }
 
@@ -1314,19 +1314,9 @@ public class SOCRobotBrain extends Thread
                                 {
                                     client.sendText(game, "================================");
 
-                                    for (int i = 0; i < game.maxPlayers; i++)
-                                    {
-                                        SOCResourceSet rsrcs = game.getPlayer(i).getResources();
-                                        String resourceMessage = "PLAYER " + i + " RESOURCES: ";
-                                        resourceMessage += (rsrcs.getAmount(SOCResourceConstants.CLAY) + " ");
-                                        resourceMessage += (rsrcs.getAmount(SOCResourceConstants.ORE) + " ");
-                                        resourceMessage += (rsrcs.getAmount(SOCResourceConstants.SHEEP) + " ");
-                                        resourceMessage += (rsrcs.getAmount(SOCResourceConstants.WHEAT) + " ");
-                                        resourceMessage += (rsrcs.getAmount(SOCResourceConstants.WOOD) + " ");
-                                        resourceMessage += (rsrcs.getAmount(SOCResourceConstants.UNKNOWN) + " ");
-                                        client.sendText(game, resourceMessage);
-                                        D.ebugPrintln(resourceMessage);
-                                    }
+                                    // for each player in game:
+                                    //    sendText and debug-prn game.getPlayer(i).getResources()
+                                    printResources();
                                 }
 
                                 /**
@@ -2013,7 +2003,7 @@ public class SOCRobotBrain extends Thread
      * For initial roads, also track their initial settlement in SOCPlayerTracker.
      * @since 1.1.08
      */
-    private void handlePUTPIECE(SOCPutPiece mes)
+    private void handlePUTPIECE_updateGameData(SOCPutPiece mes)
     {
         final SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
         final int coord = mes.getCoordinates();
@@ -4962,6 +4952,10 @@ public class SOCRobotBrain extends Thread
          */
     }
 
+    /**
+     * For each player in game:
+     * client.sendText, and debug-print to console, game.getPlayer(i).getResources()
+     */
     private void printResources()
     {
         if (D.ebugOn)
@@ -4976,6 +4970,7 @@ public class SOCRobotBrain extends Thread
                 resourceMessage += (rsrcs.getAmount(SOCResourceConstants.WHEAT) + " ");
                 resourceMessage += (rsrcs.getAmount(SOCResourceConstants.WOOD) + " ");
                 resourceMessage += (rsrcs.getAmount(SOCResourceConstants.UNKNOWN) + " ");
+                client.sendText(game, resourceMessage);
                 D.ebugPrintln(resourceMessage);
             }
         }
