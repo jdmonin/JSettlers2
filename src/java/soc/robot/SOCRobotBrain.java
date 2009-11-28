@@ -1012,41 +1012,12 @@ public class SOCRobotBrain extends Thread
 
                     if ((game.getGameState() == SOCGame.PLAY) && (!waitingForGameState))
                     {
-                        expectPLAY = false;
+                        rollOrPlayKnightOrExpectDice();
 
-                        if ((!waitingForOurTurn) && (ourTurn))
-                        {
-                            if (!expectPLAY1 && !expectDISCARD && !expectPLACING_ROBBER && !(expectDICERESULT && (counter < 4000)))
-                            {
-                                /**
-                                 * if we have a knight card and the robber
-                                 * is on one of our numbers, play the knight card
-                                 */
-                                if ((ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0) && (!(ourPlayerData.getNumbers().getNumberResourcePairsForHex(game.getBoard().getRobberHex())).isEmpty()))
-                                {
-                                    expectPLACING_ROBBER = true;
-                                    waitingForGameState = true;
-                                    counter = 0;
-                                    client.playDevCard(game, SOCDevCardConstants.KNIGHT);
-                                    pause(1500);
-                                }
-                                else
-                                {
-                                    expectDICERESULT = true;
-                                    counter = 0;
-
-                                    //D.ebugPrintln("!!! ROLLING DICE !!!");
-                                    client.rollDice(game);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            /**
-                             * not our turn
-                             */
-                            expectDICERESULT = true;
-                        }
+                        // On our turn, ask client to roll dice or play a knight;
+                        // on other turns, update flags to expect dice result.
+                        // Clears expectPLAY to false.
+                        // Sets either expectDICERESULT, or expectPLACING_ROBBER and waitingForGameState.
                     }
 
                     if ((game.getGameState() == SOCGame.PLACING_ROBBER) && (!waitingForGameState))
@@ -1616,6 +1587,57 @@ public class SOCRobotBrain extends Thread
         playerTrackers = null;
         pinger.stopPinger();
         pinger = null;
+    }
+
+    /**
+     * On our turn, ask client to roll dice or play a knight;
+     * on other turns, update flags to expect dice result.
+     *<P>
+     * Call when gameState {@link SOCGame#PLAY} && ! {@link #waitingForGameState}.
+     *<P>
+     * Clears {@link #expectPLAY} to false.
+     * Sets either {@link #expectDICERESULT}, or {@link #expectPLACING_ROBBER} and {@link #waitingForGameState}.
+     *
+     * @since 1.1.08
+     */
+    private void rollOrPlayKnightOrExpectDice()
+    {
+        expectPLAY = false;
+
+        if ((!waitingForOurTurn) && (ourTurn))
+        {
+            if (!expectPLAY1 && !expectDISCARD && !expectPLACING_ROBBER && !(expectDICERESULT && (counter < 4000)))
+            {
+                /**
+                 * if we have a knight card and the robber
+                 * is on one of our numbers, play the knight card
+                 */
+                if ((ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0)
+                    && ! (ourPlayerData.getNumbers().getNumberResourcePairsForHex(game.getBoard().getRobberHex())).isEmpty())
+                {
+                    expectPLACING_ROBBER = true;
+                    waitingForGameState = true;
+                    counter = 0;
+                    client.playDevCard(game, SOCDevCardConstants.KNIGHT);
+                    pause(1500);
+                }
+                else
+                {
+                    expectDICERESULT = true;
+                    counter = 0;
+
+                    //D.ebugPrintln("!!! ROLLING DICE !!!");
+                    client.rollDice(game);
+                }
+            }
+        }
+        else
+        {
+            /**
+             * not our turn
+             */
+            expectDICERESULT = true;
+        }
     }
 
     /**
