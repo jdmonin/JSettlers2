@@ -650,7 +650,7 @@ public class SOCBoard implements Serializable, Cloneable
          * See also SOCPlayer.initLegalAndPotentialSettlements.
          */
         final Boolean t = new Boolean(true);
-        final int leftAdj = (is6player) ? 0x22 : 0x00;
+        final int westAdj = (is6player) ? 0x22 : 0x00;
 
         if (is6player)
         {
@@ -658,22 +658,22 @@ public class SOCBoard implements Serializable, Cloneable
                 nodesOnBoard.put(new Integer(i), t);
         }
 
-        for (i = 0x27 - leftAdj; i <= 0x8D; i += 0x11)  //  Top horizontal row: each top corner across 3 hexes
+        for (i = 0x27 - westAdj; i <= 0x8D; i += 0x11)  //  Northernmost horizontal row: each north corner across 3 hexes
             nodesOnBoard.put(new Integer(i), t);
 
-        for (i = 0x25 - leftAdj; i <= 0xAD; i += 0x11)  // Next: each top corner of row of 4 / bottom corner of the top 3 hexes
+        for (i = 0x25 - westAdj; i <= 0xAD; i += 0x11)  // Next: each north corner of row of 4 / south corner of the northernmost 3 hexes
             nodesOnBoard.put(new Integer(i), t);
 
-        for (i = 0x23 - leftAdj; i <= 0xCD; i += 0x11)  // Next: top corners of middle row of 5 hexes
+        for (i = 0x23 - westAdj; i <= 0xCD; i += 0x11)  // Next: north corners of middle row of 5 hexes
             nodesOnBoard.put(new Integer(i), t);
 
-        for (i = 0x32 - leftAdj; i <= 0xDC; i += 0x11) // Next: bottom corners of middle row of 5 hexes
+        for (i = 0x32 - westAdj; i <= 0xDC; i += 0x11) // Next: south corners of middle row of 5 hexes
             nodesOnBoard.put(new Integer(i), t);
 
-        for (i = 0x52 - leftAdj; i <= 0xDA; i += 0x11)  // Bottom corners of row of 4 / top corners of the bottom 3 hexes
+        for (i = 0x52 - westAdj; i <= 0xDA; i += 0x11)  // South corners of row of 4 / north corners of the southernmost 3 hexes
             nodesOnBoard.put(new Integer(i), t);
 
-        for (i = 0x72 - leftAdj; i <= 0xD8; i += 0x11)  // Last horizontal row: each bottom corner across 3 hexes
+        for (i = 0x72 - westAdj; i <= 0xD8; i += 0x11)  // Southernmost horizontal row: each south corner across 3 hexes
             nodesOnBoard.put(new Integer(i), t);
 
         if (is6player)
@@ -685,7 +685,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Auxiliary method for initializing part of the hexIDtoNum array.
-     * Between begin and end, increment coord by 0x22, which moves 1 hex to the right.
+     * Between begin and end, increment coord by 0x22, which moves 1 hex to the east.
      * See dissertation figure A.1.
      * @param begin Beginning of coordinate range
      * @param end   Ending coordinate - same horizontal row as begin
