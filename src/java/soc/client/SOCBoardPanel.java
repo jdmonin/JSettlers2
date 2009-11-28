@@ -2866,7 +2866,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (player != null)
         {
-            if (game.getCurrentPlayerNumber() == player.getPlayerNumber())
+            final int cpn = game.getCurrentPlayerNumber();
+            if (cpn == player.getPlayerNumber())
             {
                 switch (game.getGameState())
                 {
@@ -2935,8 +2936,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 mode = NONE;
 
-                if (game.getGameState() == SOCGame.SPECIAL_BUILDING)
-                    setSuperimposedTopText("Special Building: " + player.getName());
+                if (game.isSpecialBuilding())
+                    setSuperimposedTopText("Special Building: " + game.getPlayer(cpn).getName());
             }
         }
         else
