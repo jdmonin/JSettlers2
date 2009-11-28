@@ -56,6 +56,8 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      */
     public SOCPossibleSettlement(SOCPlayer pl, int co, Vector nr)
     {
+        if (nr == null)
+            throw new IllegalArgumentException("nr null");
         pieceType = SOCPossiblePiece.SETTLEMENT;
         player = pl;
         coord = co;
