@@ -900,89 +900,10 @@ public class SOCRobotBrain extends Thread
 
                     if (mesType == SOCMessage.PLAYERELEMENT)
                     {
-                        SOCPlayer pl = game.getPlayer(((SOCPlayerElement) mes).getPlayerNumber());
+                        handlePLAYERELEMENT((SOCPlayerElement) mes);
 
-                        switch (((SOCPlayerElement) mes).getElementType())
-                        {
-                        case SOCPlayerElement.ROADS:
-
-                            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                                ((SOCPlayerElement) mes, pl, SOCPlayingPiece.ROAD);
-                            break;
-
-                        case SOCPlayerElement.SETTLEMENTS:
-
-                            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                                ((SOCPlayerElement) mes, pl, SOCPlayingPiece.SETTLEMENT);
-                            break;
-
-                        case SOCPlayerElement.CITIES:
-
-                            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
-                                ((SOCPlayerElement) mes, pl, SOCPlayingPiece.CITY);
-                            break;
-
-                        case SOCPlayerElement.NUMKNIGHTS:
-
-                            // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
-                            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
-                                ((SOCPlayerElement) mes, pl, game);
-                            break;
-
-                        case SOCPlayerElement.CLAY:
-
-                            handlePLAYERELEMENT_numRsrc
-                                ((SOCPlayerElement) mes, pl, SOCResourceConstants.CLAY, "CLAY");
-                            break;
-
-                        case SOCPlayerElement.ORE:
-                            
-                            handlePLAYERELEMENT_numRsrc
-                                ((SOCPlayerElement) mes, pl, SOCResourceConstants.ORE, "ORE");
-                            break;
-
-                        case SOCPlayerElement.SHEEP:
-
-                            handlePLAYERELEMENT_numRsrc
-                                ((SOCPlayerElement) mes, pl, SOCResourceConstants.SHEEP, "SHEEP");
-                            break;
-
-                        case SOCPlayerElement.WHEAT:
-
-                            handlePLAYERELEMENT_numRsrc
-                                ((SOCPlayerElement) mes, pl, SOCResourceConstants.WHEAT, "WHEAT");
-                            break;
-
-                        case SOCPlayerElement.WOOD:
-
-                            handlePLAYERELEMENT_numRsrc
-                                ((SOCPlayerElement) mes, pl, SOCResourceConstants.WOOD, "WOOD");
-                            break;
-
-                        case SOCPlayerElement.UNKNOWN:
-
-                            /**
-                             * Note: if losing unknown resources, we first
-                             * convert player's known resources to unknown resources,
-                             * then remove mes's unknown resources from player.
-                             */
-                            handlePLAYERELEMENT_numRsrc
-                                ((SOCPlayerElement) mes, pl, SOCResourceConstants.UNKNOWN, "UNKNOWN");
-                            break;
-
-                        case SOCPlayerElement.ASK_SPECIAL_BUILD:
-                            pl.setAskedSpecialBuild(0 != ((SOCPlayerElement) mes).getValue());
-                            break;
-
-                        }
-
-                        ///
-                        /// if this during the PLAY state, then update the is selling flags
-                        ///
-                        if (game.getGameState() == SOCGame.PLAY)
-                        {
-                            negotiator.resetIsSelling();
-                        }
+                        // If this during the PLAY state, also updates the
+                        // negotiator's is-selling flags.
                     }
 
                     else if (mesType == SOCMessage.RESOURCECOUNT)
@@ -1068,30 +989,7 @@ public class SOCRobotBrain extends Thread
 
                     else if (mesType == SOCMessage.DEVCARD)
                     {
-                        SOCPlayer player = game.getPlayer(((SOCDevCard) mes).getPlayerNumber());
-
-                        switch (((SOCDevCard) mes).getAction())
-                        {
-                        case SOCDevCard.DRAW:
-                            player.getDevCards().add(1, SOCDevCardSet.NEW, ((SOCDevCard) mes).getCardType());
-
-                            break;
-
-                        case SOCDevCard.PLAY:
-                            player.getDevCards().subtract(1, SOCDevCardSet.OLD, ((SOCDevCard) mes).getCardType());
-
-                            break;
-
-                        case SOCDevCard.ADDOLD:
-                            player.getDevCards().add(1, SOCDevCardSet.OLD, ((SOCDevCard) mes).getCardType());
-
-                            break;
-
-                        case SOCDevCard.ADDNEW:
-                            player.getDevCards().add(1, SOCDevCardSet.NEW, ((SOCDevCard) mes).getCardType());
-
-                            break;
-                        }
+                        handleDEVCARD((SOCDevCard) mes);
                     }
 
                     else if (mesType == SOCMessage.SETPLAYEDDEVCARD)
@@ -1528,71 +1426,12 @@ public class SOCRobotBrain extends Thread
                                                 ///
                                                 if (!waitingForTradeMsg && !waitingForTradeResponse && ourPlayerData.getResources().contains(targetResources))
                                                 {
-                                                    buildingPlan.pop();
-                                                    D.ebugPrintln("$ POPPED " + targetPiece);
-                                                    lastMove = targetPiece;
-                                                    currentDRecorder = (currentDRecorder + 1) % 2;
-                                                    negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+                                                    // Calls buildingPlan.pop().
+                                                    // Checks against whatWeFailedToBuild to see if server has rejected this already.
+                                                    // Calls client.buyDevCard or client.buildRequest.
+                                                    // Sets waitingForDevCard, or waitingForGameState and expectPLACING_SETTLEMENT (etc).
 
-                                                    switch (targetPiece.getType())
-                                                    {
-                                                    case SOCPossiblePiece.CARD:
-                                                        client.buyDevCard(game);
-                                                        waitingForDevCard = true;
-
-                                                        break;
-
-                                                    case SOCPossiblePiece.ROAD:
-                                                        waitingForGameState = true;
-                                                        counter = 0;
-                                                        expectPLACING_ROAD = true;
-                                                        whatWeWantToBuild = new SOCRoad(ourPlayerData, targetPiece.getCoordinates(), null);
-                                                        if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
-                                                        {
-                                                            D.ebugPrintln("!!! BUILD REQUEST FOR A ROAD AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
-                                                            client.buildRequest(game, SOCPlayingPiece.ROAD);
-                                                        } else {
-                                                            // We already tried to build this.
-                                                            cancelWrongPiecePlacementLocal(whatWeWantToBuild);
-                                                            // cancel sets whatWeWantToBuild = null;
-                                                        }
-                                                        
-                                                        break;
-
-                                                    case SOCPlayingPiece.SETTLEMENT:
-                                                        waitingForGameState = true;
-                                                        counter = 0;
-                                                        expectPLACING_SETTLEMENT = true;
-                                                        whatWeWantToBuild = new SOCSettlement(ourPlayerData, targetPiece.getCoordinates(), null);
-                                                        if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
-                                                        {
-                                                            D.ebugPrintln("!!! BUILD REQUEST FOR A SETTLEMENT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
-                                                            client.buildRequest(game, SOCPlayingPiece.SETTLEMENT);
-                                                        } else {
-                                                            // We already tried to build this.
-                                                            cancelWrongPiecePlacementLocal(whatWeWantToBuild);
-                                                            // cancel sets whatWeWantToBuild = null;
-                                                        }
-                                                        
-                                                        break;
-
-                                                    case SOCPlayingPiece.CITY:
-                                                        waitingForGameState = true;
-                                                        counter = 0;
-                                                        expectPLACING_CITY = true;
-                                                        whatWeWantToBuild = new SOCCity(ourPlayerData, targetPiece.getCoordinates(), null);
-                                                        if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
-                                                        {
-                                                            D.ebugPrintln("!!! BUILD REQUEST FOR A CITY " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
-                                                            client.buildRequest(game, SOCPlayingPiece.CITY);
-                                                        } else {
-                                                            // We already tried to build this.
-                                                            cancelWrongPiecePlacementLocal(whatWeWantToBuild);
-                                                            // cancel sets whatWeWantToBuild = null;
-                                                        }
-
-                                                        break;
-                                                    }
+                                                    buildRequestPlannedPiece(targetPiece);
                                                 }
                                             }
                                         }
@@ -1809,78 +1648,12 @@ public class SOCRobotBrain extends Thread
                      */
                     if (mesType == SOCMessage.PUTPIECE)
                     {
-                        D.ebugPrintln("*** PUTPIECE for playerTrackers ***");
+                        handlePUTPIECE_updateTrackers((SOCPutPiece) mes);
 
-                        switch (((SOCPutPiece) mes).getPieceType())
-                        {
-                        case SOCPlayingPiece.ROAD:
-
-                            SOCRoad newRoad = new SOCRoad(game.getPlayer(((SOCPutPiece) mes).getPlayerNumber()), ((SOCPutPiece) mes).getCoordinates(), null);
-                            trackNewRoad(newRoad, false);
-
-                            break;
-
-                        case SOCPlayingPiece.SETTLEMENT:
-
-                            /**
-                             * During initial placement, we delay tracking of the
-                             * settlement until after the corresponding road is placed.
-                             * This prevents the need for tracker "undo" work if a human
-                             * player changes their mind on where to place the settlement.
-                             */
-                            SOCPlayer newSettlementPl = game.getPlayer(((SOCPutPiece) mes).getPlayerNumber());
-                            SOCSettlement newSettlement = new SOCSettlement(newSettlementPl, ((SOCPutPiece) mes).getCoordinates(), null);
-                            if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
-                            {
-                                // Track it after the road is placed
-                                SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
-                                    (new Integer(newSettlementPl.getPlayerNumber()));
-                                tr.setPendingInitSettlement(newSettlement);
-                            }
-                            else
-                            {
-                                // Track it now
-                                trackNewSettlement(newSettlement, false);
-                            }                            
-
-                            break;
-
-                        case SOCPlayingPiece.CITY:
-
-                            SOCCity newCity = new SOCCity(game.getPlayer(((SOCPutPiece) mes).getPlayerNumber()), ((SOCPutPiece) mes).getCoordinates(), null);
-                            trackNewCity(newCity, false);
-
-                            break;
-                        }
-
-                        if (D.ebugOn)
-                        {
-                            SOCPlayerTracker.playerTrackersDebug(playerTrackers);
-                        }
-                    }
-
-                    if (expectPUTPIECE_FROM_START1A && (mesType == SOCMessage.PUTPIECE) && (((SOCPutPiece) mes).getPlayerNumber() == ourPlayerData.getPlayerNumber()) && (((SOCPutPiece) mes).getPieceType() == SOCPlayingPiece.SETTLEMENT) && (((SOCPutPiece) mes).getCoordinates() == ourPlayerData.getLastSettlementCoord()))
-                    {
-                        expectPUTPIECE_FROM_START1A = false;
-                        expectSTART1B = true;
-                    }
-
-                    if (expectPUTPIECE_FROM_START1B && (mesType == SOCMessage.PUTPIECE) && (((SOCPutPiece) mes).getPlayerNumber() == ourPlayerData.getPlayerNumber()) && (((SOCPutPiece) mes).getPieceType() == SOCPlayingPiece.ROAD) && (((SOCPutPiece) mes).getCoordinates() == ourPlayerData.getLastRoadCoord()))
-                    {
-                        expectPUTPIECE_FROM_START1B = false;
-                        expectSTART2A = true;
-                    }
-
-                    if (expectPUTPIECE_FROM_START2A && (mesType == SOCMessage.PUTPIECE) && (((SOCPutPiece) mes).getPlayerNumber() == ourPlayerData.getPlayerNumber()) && (((SOCPutPiece) mes).getPieceType() == SOCPlayingPiece.SETTLEMENT) && (((SOCPutPiece) mes).getCoordinates() == ourPlayerData.getLastSettlementCoord()))
-                    {
-                        expectPUTPIECE_FROM_START2A = false;
-                        expectSTART2B = true;
-                    }
-
-                    if (expectPUTPIECE_FROM_START2B && (mesType == SOCMessage.PUTPIECE) && (((SOCPutPiece) mes).getPlayerNumber() == ourPlayerData.getPlayerNumber()) && (((SOCPutPiece) mes).getPieceType() == SOCPlayingPiece.ROAD) && (((SOCPutPiece) mes).getCoordinates() == ourPlayerData.getLastRoadCoord()))
-                    {
-                        expectPUTPIECE_FROM_START2B = false;
-                        expectPLAY = true;
+                        // For initial placement of our own pieces, also checks
+                        // and clears expectPUTPIECE_FROM_START1A,
+                        // and sets expectSTART1B, etc.  The final initial putpiece
+                        // clears expectPUTPIECE_FROM_START2B and sets expectPLAY.
                     }
 
                     if (expectDICERESULT && (mesType == SOCMessage.DICERESULT))
@@ -2001,6 +1774,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Handle a PUTPIECE for this game, by updating game data.
      * For initial roads, also track their initial settlement in SOCPlayerTracker.
+     * In general, most tracking is done a bit later in {@link #handlePUTPIECE_updateTrackers(SOCPutPiece)}.
      * @since 1.1.08
      */
     private void handlePUTPIECE_updateGameData(SOCPutPiece mes)
@@ -2315,6 +2089,214 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Handle a DEVCARD for this game.
+     * No brain-specific action.
+     * @since 1.1.08
+     */
+    private void handleDEVCARD(SOCDevCard mes)
+    {
+        SOCDevCardSet plCards = game.getPlayer(mes.getPlayerNumber()).getDevCards();
+        final int cardType = mes.getCardType();
+
+        switch (mes.getAction())
+        {
+        case SOCDevCard.DRAW:
+            plCards.add(1, SOCDevCardSet.NEW, cardType);
+            break;
+
+        case SOCDevCard.PLAY:
+            plCards.subtract(1, SOCDevCardSet.OLD, cardType);
+            break;
+
+        case SOCDevCard.ADDOLD:
+            plCards.add(1, SOCDevCardSet.OLD, cardType);
+            break;
+
+        case SOCDevCard.ADDNEW:
+            plCards.add(1, SOCDevCardSet.NEW, cardType);
+            break;
+        }
+    }
+
+    /**
+     * Handle a PUTPIECE for this game, by updating {@link SOCPlayerTracker}s.
+     *<P>
+     * For initial placement of our own pieces, this method also checks
+     * and clears expectPUTPIECE_FROM_START1A, and sets expectSTART1B, etc.
+     * The final initial putpiece clears expectPUTPIECE_FROM_START2B and sets expectPLAY.
+     *<P>
+     * For initial settlements, won't track here:
+     * Delay tracking until the corresponding road is placed,
+     * in {@link #handlePUTPIECE_updateGameData(SOCPutPiece)}.
+     * This prevents the need for tracker "undo" work if a human
+     * player changes their mind on where to place the settlement.
+     *
+     * @since 1.1.08
+     */
+    private void handlePUTPIECE_updateTrackers(SOCPutPiece mes)
+    {
+        final int pn = mes.getPlayerNumber();
+        final int coord = mes.getCoordinates();
+        final int pieceType = mes.getPieceType();
+
+        switch (pieceType)
+        {
+        case SOCPlayingPiece.ROAD:
+
+            SOCRoad newRoad = new SOCRoad(game.getPlayer(pn), coord, null);
+            trackNewRoad(newRoad, false);
+
+            break;
+
+        case SOCPlayingPiece.SETTLEMENT:
+
+            SOCPlayer newSettlementPl = game.getPlayer(pn);
+            SOCSettlement newSettlement = new SOCSettlement(newSettlementPl, coord, null);
+            if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
+            {
+                // Track it after the road is placed
+                SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
+                    (new Integer(newSettlementPl.getPlayerNumber()));
+                tr.setPendingInitSettlement(newSettlement);
+            }
+            else
+            {
+                // Track it now
+                trackNewSettlement(newSettlement, false);
+            }                            
+
+            break;
+
+        case SOCPlayingPiece.CITY:
+
+            SOCCity newCity = new SOCCity(game.getPlayer(pn), coord, null);
+            trackNewCity(newCity, false);
+
+            break;
+        }
+
+        if (D.ebugOn)
+        {
+            SOCPlayerTracker.playerTrackersDebug(playerTrackers);
+        }
+
+        if (pn != ourPlayerData.getPlayerNumber())
+        {
+            return;  // <---- Not our piece ----
+        }
+
+        /**
+         * Update expect-vars during initial placement of our pieces.
+         */
+
+        if (expectPUTPIECE_FROM_START1A && (pieceType == SOCPlayingPiece.SETTLEMENT) && (mes.getCoordinates() == ourPlayerData.getLastSettlementCoord()))
+        {
+            expectPUTPIECE_FROM_START1A = false;
+            expectSTART1B = true;
+        }
+
+        if (expectPUTPIECE_FROM_START1B && (pieceType == SOCPlayingPiece.ROAD) && (mes.getCoordinates() == ourPlayerData.getLastRoadCoord()))
+        {
+            expectPUTPIECE_FROM_START1B = false;
+            expectSTART2A = true;
+        }
+
+        if (expectPUTPIECE_FROM_START2A && (pieceType == SOCPlayingPiece.SETTLEMENT) && (mes.getCoordinates() == ourPlayerData.getLastSettlementCoord()))
+        {
+            expectPUTPIECE_FROM_START2A = false;
+            expectSTART2B = true;
+        }
+
+        if (expectPUTPIECE_FROM_START2B && (pieceType == SOCPlayingPiece.ROAD) && (mes.getCoordinates() == ourPlayerData.getLastRoadCoord()))
+        {
+            expectPUTPIECE_FROM_START2B = false;
+            expectPLAY = true;
+        }
+
+    }
+
+    /**
+     * Have the client ask to build this piece, unless we've already
+     * been told by the server to not build it.
+     * Calls {@link #buildingPlan}.pop().
+     * Checks against {@link #whatWeFailedToBuild} to see if server has rejected this already.
+     * Calls <tt>client.buyDevCard()</tt> or <tt>client.buildRequest()</tt>.
+     * Sets {@link #waitingForDevCard}, or {@link #waitingForGameState} and
+     * {@link #expectPLACING_SETTLEMENT} (etc).
+     *
+     * @param targetPiece  This should be the top piece of {@link #buildingPlan}.
+     * @since 1.1.08
+     */
+    private void buildRequestPlannedPiece(SOCPossiblePiece targetPiece)
+    {
+        buildingPlan.pop();
+        D.ebugPrintln("$ POPPED " + targetPiece);
+        lastMove = targetPiece;
+        currentDRecorder = (currentDRecorder + 1) % 2;
+        negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+
+        switch (targetPiece.getType())
+        {
+        case SOCPossiblePiece.CARD:
+            client.buyDevCard(game);
+            waitingForDevCard = true;
+
+            break;
+
+        case SOCPossiblePiece.ROAD:
+            waitingForGameState = true;
+            counter = 0;
+            expectPLACING_ROAD = true;
+            whatWeWantToBuild = new SOCRoad(ourPlayerData, targetPiece.getCoordinates(), null);
+            if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
+            {
+                D.ebugPrintln("!!! BUILD REQUEST FOR A ROAD AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                client.buildRequest(game, SOCPlayingPiece.ROAD);
+            } else {
+                // We already tried to build this.
+                cancelWrongPiecePlacementLocal(whatWeWantToBuild);
+                // cancel sets whatWeWantToBuild = null;
+            }
+            
+            break;
+
+        case SOCPlayingPiece.SETTLEMENT:
+            waitingForGameState = true;
+            counter = 0;
+            expectPLACING_SETTLEMENT = true;
+            whatWeWantToBuild = new SOCSettlement(ourPlayerData, targetPiece.getCoordinates(), null);
+            if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
+            {
+                D.ebugPrintln("!!! BUILD REQUEST FOR A SETTLEMENT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                client.buildRequest(game, SOCPlayingPiece.SETTLEMENT);
+            } else {
+                // We already tried to build this.
+                cancelWrongPiecePlacementLocal(whatWeWantToBuild);
+                // cancel sets whatWeWantToBuild = null;
+            }
+            
+            break;
+
+        case SOCPlayingPiece.CITY:
+            waitingForGameState = true;
+            counter = 0;
+            expectPLACING_CITY = true;
+            whatWeWantToBuild = new SOCCity(ourPlayerData, targetPiece.getCoordinates(), null);
+            if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
+            {
+                D.ebugPrintln("!!! BUILD REQUEST FOR A CITY " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                client.buildRequest(game, SOCPlayingPiece.CITY);
+            } else {
+                // We already tried to build this.
+                cancelWrongPiecePlacementLocal(whatWeWantToBuild);
+                // cancel sets whatWeWantToBuild = null;
+            }
+
+            break;
+        }
+    }
+
+    /**
      * Plan the next building plan and target.
      * Should be called from {@link #run()} under these conditions: <BR>
      * (!expectPLACING_ROBBER && (buildingPlan.empty()) && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
@@ -2335,6 +2317,103 @@ public class SOCRobotBrain extends Thread
         {
             lastTarget = (SOCPossiblePiece) buildingPlan.peek();
             negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), (SOCPossiblePiece) buildingPlan.peek());
+        }
+    }
+
+    /**
+     * Handle a PLAYERELEMENT for this game.
+     * Update a player's amount of a resource or a building type.
+     *<P>
+     * If this during the {@link SOCGame#PLAY} state, then update the
+     * {@link SOCRobotNegotiator}'s is-selling flags.
+     * Otherwise, only the game data is updated, nothing brain-specific.
+     *
+     * @since 1.1.08
+     */
+    private void handlePLAYERELEMENT(SOCPlayerElement mes)
+    {
+        SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
+
+        switch (mes.getElementType())
+        {
+        case SOCPlayerElement.ROADS:
+
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                (mes, pl, SOCPlayingPiece.ROAD);
+            break;
+
+        case SOCPlayerElement.SETTLEMENTS:
+
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                (mes, pl, SOCPlayingPiece.SETTLEMENT);
+            break;
+
+        case SOCPlayerElement.CITIES:
+
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                (mes, pl, SOCPlayingPiece.CITY);
+            break;
+
+        case SOCPlayerElement.NUMKNIGHTS:
+
+            // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
+                (mes, pl, game);
+            break;
+
+        case SOCPlayerElement.CLAY:
+
+            handlePLAYERELEMENT_numRsrc
+                (mes, pl, SOCResourceConstants.CLAY, "CLAY");
+            break;
+
+        case SOCPlayerElement.ORE:
+            
+            handlePLAYERELEMENT_numRsrc
+                (mes, pl, SOCResourceConstants.ORE, "ORE");
+            break;
+
+        case SOCPlayerElement.SHEEP:
+
+            handlePLAYERELEMENT_numRsrc
+                (mes, pl, SOCResourceConstants.SHEEP, "SHEEP");
+            break;
+
+        case SOCPlayerElement.WHEAT:
+
+            handlePLAYERELEMENT_numRsrc
+                (mes, pl, SOCResourceConstants.WHEAT, "WHEAT");
+            break;
+
+        case SOCPlayerElement.WOOD:
+
+            handlePLAYERELEMENT_numRsrc
+                (mes, pl, SOCResourceConstants.WOOD, "WOOD");
+            break;
+
+        case SOCPlayerElement.UNKNOWN:
+
+            /**
+             * Note: if losing unknown resources, we first
+             * convert player's known resources to unknown resources,
+             * then remove mes's unknown resources from player.
+             */
+            handlePLAYERELEMENT_numRsrc
+                (mes, pl, SOCResourceConstants.UNKNOWN, "UNKNOWN");
+            break;
+
+        case SOCPlayerElement.ASK_SPECIAL_BUILD:
+            pl.setAskedSpecialBuild(0 != (mes.getValue()));
+            break;
+
+        }
+
+        ///
+        /// if this during the PLAY state, then update the is selling flags
+        ///
+        if (game.getGameState() == SOCGame.PLAY)
+        {
+            negotiator.resetIsSelling();
         }
     }
 
