@@ -4119,7 +4119,8 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            D.ebugPrintln("ILLEGAL ROAD");
+                            D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(mes.getCoordinates())
+                                + ": player " + player.getPlayerNumber());
                             messageToPlayer(c, gaName, "You can't build a road there.");
                             sendDenyReply = true;                                   
                         }
@@ -4154,7 +4155,8 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            D.ebugPrintln("ILLEGAL SETTLEMENT");
+                            D.ebugPrintln("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(mes.getCoordinates())
+                                + ": player " + player.getPlayerNumber());
                             messageToPlayer(c, gaName, "You can't build a settlement there.");
                             sendDenyReply = true;
                         }
@@ -4189,7 +4191,8 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            D.ebugPrintln("ILLEGAL CITY");
+                            D.ebugPrintln("ILLEGAL CITY: 0x" + Integer.toHexString(mes.getCoordinates())
+                                + ": player " + player.getPlayerNumber());
                             messageToPlayer(c, gaName, "You can't build a city there.");
                             sendDenyReply = true;
                         }
