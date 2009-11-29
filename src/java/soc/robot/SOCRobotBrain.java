@@ -2994,12 +2994,15 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * pause for a bit
+     * pause for a bit.
+     * In a 6-player game, pause only half as long, to shorten the overall game delay.
      *
      * @param msec  number of milliseconds to pause
      */
     public void pause(int msec)
     {
+        if (gameIs6Player)
+            msec /= 2;
         try
         {
             yield();
