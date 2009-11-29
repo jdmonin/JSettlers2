@@ -2701,13 +2701,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (superTextTop_w == 0)
         {
-            final Font bpf = getFont();
+            final Font bpf = g.getFont();
             if (bpf == null)
             {
                 repaint();  // We'll have to try again
                 return;
             }
-            final FontMetrics fm = getFontMetrics(bpf);
+            final FontMetrics fm = g.getFontMetrics(bpf);
             if (fm == null)
             {
                 repaint();
@@ -2740,6 +2740,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int tx = (scaledPanelX - superTextTop_w) / 2;
         int ty = 2 * SUPERTEXT_INSET + superTextTop_h;
         g.drawString(superTextTop, tx, ty);
+
+        /**
+         * To debug OSX stringwidth... temp/in progress (20091129)
+         *
+        // green == box
+        g.setColor(Color.green);
+        g.drawLine(superTextTopBox_x, 0, superTextTopBox_x, 20);
+        g.drawLine(superTextTopBox_x + superTextTopBox_w, 0, superTextTopBox_x + superTextTopBox_w, 20);
+        // red == text
+        g.setColor(Color.red);
+        g.drawLine(tx, 0, tx, 20);
+        g.drawLine(tx+superTextTop_w, 0, tx+superTextTop_w, 20);
+        */
     }
 
     /**
