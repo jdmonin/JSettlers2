@@ -2110,6 +2110,8 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * update the value of a player element.
+     * Call this after updating game data.
+     *<P>
      * If VICTORYPOINTS is updated, and game state is over, check for winner
      * and update (player name label, victory-points tooltip, disable bank/trade btn)
      *
@@ -2230,10 +2232,10 @@ public class SOCHandPanel extends Panel implements ActionListener
             break;
 
         case ASK_SPECIAL_BUILD:
+            if (player.hasAskedSpecialBuild())
+                playerInterface.print("* " + player.getName() + " wants to Special Build.");
             if (playerIsClient)
                 playerInterface.getBuildingPanel().updateButtonStatus();
-            else
-                ;  // TODO indicate somehow here
             break;
 
         }
