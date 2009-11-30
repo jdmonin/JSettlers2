@@ -2697,16 +2697,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private void drawSuperTextTop(Graphics g)
     {
+        // Force the font, so we know its metrics.
+        // This avoids an OSX fm.stringWidth bug.
+        final Font bpf = new Font("Dialog", Font.PLAIN, 10);
+
         // Do we need to calculate the metrics?
 
         if (superTextTop_w == 0)
         {
-            final Font bpf = g.getFont();
-            if (bpf == null)
-            {
-                repaint();  // We'll have to try again
-                return;
-            }
             final FontMetrics fm = g.getFontMetrics(bpf);
             if (fm == null)
             {
@@ -2739,6 +2737,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // draw text at center
         int tx = (scaledPanelX - superTextTop_w) / 2;
         int ty = 2 * SUPERTEXT_INSET + superTextTop_h;
+        g.setFont(bpf);
         g.drawString(superTextTop, tx, ty);
 
         /**
