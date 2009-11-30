@@ -1923,7 +1923,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         int hexNum = hexIDtoNum[hexID];
         int hx = hexX[hexNum] + 27;
-        int hy = hexY[hexNum] + 31;
+        int hy = hexY[hexNum] + 32;
         if (isRotated)
         {
             // (cw):  P'=(panelMinBH-y, x)
