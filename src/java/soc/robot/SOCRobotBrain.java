@@ -1470,6 +1470,9 @@ public class SOCRobotBrain extends Thread
                        }
                      */
 
+                    /**
+                     * Handle various message types here at bottom of loop.
+                     */
                     switch (mesType)
                     {
                     case SOCMessage.SETTURN:
