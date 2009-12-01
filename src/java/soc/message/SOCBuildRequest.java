@@ -26,6 +26,10 @@ import java.util.StringTokenizer;
 
 /**
  * This message, from client to server, says which piece type the current player wants to build.
+ *<P>
+ * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a build request during the player's turn.
+ * When sent during other game states, and other players' turns, this is a request
+ * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
  *
  * @author Robert S. Thomas
  */
@@ -37,7 +41,8 @@ public class SOCBuildRequest extends SOCMessage
     private String game;
 
     /**
-     * The type of piece to build
+     * The type of piece to build, from {@link soc.game.SOCPlayingPiece} constants,
+     * or -1 to request the Special Building Phase.
      */
     private int pieceType;
 
@@ -45,7 +50,8 @@ public class SOCBuildRequest extends SOCMessage
      * Create a BuildRequest message.
      *
      * @param ga  the name of the game
-     * @param pt  the type of piece to build, from {@link soc.game.SOCPlayingPiece} constants
+     * @param pt  the type of piece to build, from {@link soc.game.SOCPlayingPiece} constants,
+     *               or -1 to request the Special Building Phase.
      */
     public SOCBuildRequest(String ga, int pt)
     {
@@ -63,7 +69,8 @@ public class SOCBuildRequest extends SOCMessage
     }
 
     /**
-     * @return the type of piece to build, from {@link soc.game.SOCPlayingPiece} constants
+     * @return the type of piece to build, from {@link soc.game.SOCPlayingPiece} constants,
+     * or -1 to request the Special Building Phase.
      */
     public int getPieceType()
     {
@@ -84,7 +91,7 @@ public class SOCBuildRequest extends SOCMessage
      * BUILDREQUEST sep game sep2 pieceType
      *
      * @param ga  the name of the game
-     * @param pt  the type of piece to build
+     * @param pt  the type of piece to build, or -1 for Special Building Phase
      * @return the command string
      */
     public static String toCmd(String ga, int pt)

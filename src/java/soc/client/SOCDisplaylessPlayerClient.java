@@ -1742,7 +1742,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * request to build something
      *
      * @param ga     the game
-     * @param piece  the type of piece from SOCPlayingPiece
+     * @param piece  the type of piece, from {@link soc.game.SOCPlayingPiece} constants,
+     *               or -1 to request the Special Building Phase.
      */
     public void buildRequest(SOCGame ga, int piece)
     {
