@@ -898,8 +898,13 @@ public class SOCRobotBrain extends Thread
                         failedBuildingAttempts = 0;
                     }
 
-                    if (mesType == SOCMessage.PLAYERELEMENT)
+                    /**
+                     * Handle some message types early.
+                     */
+                    switch (mesType)
                     {
+                    case SOCMessage.PLAYERELEMENT:
+                        {
                         handlePLAYERELEMENT((SOCPlayerElement) mes);
 
                         // If this during the PLAY state, also updates the
@@ -908,10 +913,11 @@ public class SOCRobotBrain extends Thread
                         // If our player is losing a resource needed for the buildingPlan, 
                         // clear the plan if this is for the Special Building Phase (on the 6-player board).
                         // In normal game play, we clear the building plan at the start of each turn.
-                    }
+                        }
+                        break;
 
-                    else if (mesType == SOCMessage.RESOURCECOUNT)
-                    {
+                    case SOCMessage.RESOURCECOUNT:
+                        {
                         SOCPlayer pl = game.getPlayer(((SOCResourceCount) mes).getPlayerNumber());
 
                         if (((SOCResourceCount) mes).getCount() != pl.getResources().getTotal())
@@ -932,26 +938,24 @@ public class SOCRobotBrain extends Thread
                                 rsrcs.setAmount(((SOCResourceCount) mes).getCount(), SOCResourceConstants.UNKNOWN);
                             }
                         }
-                    }
+                        }
+                        break;
 
-                    else if (mesType == SOCMessage.DICERESULT)
-                    {
+                    case SOCMessage.DICERESULT:
                         game.setCurrentDice(((SOCDiceResult) mes).getResult());
-                    }
+                        break;
 
-                    else if (mesType == SOCMessage.PUTPIECE)
-                    {
+                    case SOCMessage.PUTPIECE:
                         handlePUTPIECE_updateGameData((SOCPutPiece) mes);
                         // For initial roads, also tracks their initial settlement in SOCPlayerTracker.
-                    }
+                        break;
 
-                    else if (mesType == SOCMessage.CANCELBUILDREQUEST)
-                    {
+                    case SOCMessage.CANCELBUILDREQUEST:
                         handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
-                    }
+                        break;
 
-                    else if (mesType == SOCMessage.MOVEROBBER)
-                    {
+                    case SOCMessage.MOVEROBBER:
+                        {
                         //
                         // Note: Don't call ga.moveRobber() because that will call the 
                         // functions to do the stealing.  We just want to set where 
@@ -961,52 +965,58 @@ public class SOCRobotBrain extends Thread
                         //
                         moveRobberOnSeven = false;
                         game.getBoard().setRobberHex(((SOCMoveRobber) mes).getCoordinates());
-                    }
-
-                    else if ((robotParameters.getTradeFlag() == 1) && (mesType == SOCMessage.MAKEOFFER))
-                    {
-                        handleMAKEOFFER((SOCMakeOffer) mes);
-                    }
-
-                    else if ((robotParameters.getTradeFlag() == 1) && (mesType == SOCMessage.CLEAROFFER))
-                    {
-                        game.getPlayer(((SOCClearOffer) mes).getPlayerNumber()).setCurrentOffer(null);
-                    }
-
-                    else if ((robotParameters.getTradeFlag() == 1) && (mesType == SOCMessage.ACCEPTOFFER))
-                    {
-                        if (((((SOCAcceptOffer) mes).getOfferingNumber() == ourPlayerData.getPlayerNumber()) || (((SOCAcceptOffer) mes).getAcceptingNumber() == ourPlayerData.getPlayerNumber())) && waitingForTradeResponse)
-                        {
-                            waitingForTradeResponse = false;
                         }
-                    }
+                        break;
 
-                    else if ((robotParameters.getTradeFlag() == 1) && (mesType == SOCMessage.REJECTOFFER))
-                    {
-                        handleREJECTOFFER((SOCRejectOffer) mes);
-                    }
+                    case SOCMessage.MAKEOFFER:
+                        if (robotParameters.getTradeFlag() == 1)
+                            handleMAKEOFFER((SOCMakeOffer) mes);
+                        break;
 
-                    else if (mesType == SOCMessage.DEVCARDCOUNT)
-                    {
+                    case SOCMessage.CLEAROFFER:
+                        if (robotParameters.getTradeFlag() == 1)
+                            game.getPlayer(((SOCClearOffer) mes).getPlayerNumber()).setCurrentOffer(null);
+                        break;
+
+                    case SOCMessage.ACCEPTOFFER:
+                        if (waitingForTradeResponse && (robotParameters.getTradeFlag() == 1))
+                        {
+                            if ((((SOCAcceptOffer) mes).getOfferingNumber() == ourPlayerData.getPlayerNumber())
+                                || (((SOCAcceptOffer) mes).getAcceptingNumber() == ourPlayerData.getPlayerNumber()))
+                            {
+                                waitingForTradeResponse = false;
+                            }
+                        }
+                        break;
+
+                    case SOCMessage.REJECTOFFER:
+                        if (robotParameters.getTradeFlag() == 1)
+                            handleREJECTOFFER((SOCRejectOffer) mes);
+                        break;
+
+                    case SOCMessage.DEVCARDCOUNT:
                         game.setNumDevCards(((SOCDevCardCount) mes).getNumDevCards());
-                    }
+                        break;
 
-                    else if (mesType == SOCMessage.DEVCARD)
-                    {
+                    case SOCMessage.DEVCARD:
                         handleDEVCARD((SOCDevCard) mes);
-                    }
+                        break;
 
-                    else if (mesType == SOCMessage.SETPLAYEDDEVCARD)
-                    {
+                    case SOCMessage.SETPLAYEDDEVCARD:
+                        {
                         SOCPlayer player = game.getPlayer(((SOCSetPlayedDevCard) mes).getPlayerNumber());
                         player.setPlayedDevCard(((SOCSetPlayedDevCard) mes).hasPlayedDevCard());
-                    }
+                        }
+                        break;
 
-                    else if (mesType == SOCMessage.POTENTIALSETTLEMENTS)
-                    {
+                    case SOCMessage.POTENTIALSETTLEMENTS:
+                        {
                         SOCPlayer player = game.getPlayer(((SOCPotentialSettlements) mes).getPlayerNumber());
                         player.setPotentialSettlements(((SOCPotentialSettlements) mes).getPotentialSettlements());
-                    }
+                        }
+                        break;
+
+                    }  // switch(mesType)
 
                     debugInfo();
 
