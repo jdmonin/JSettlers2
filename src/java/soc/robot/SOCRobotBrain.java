@@ -4272,30 +4272,7 @@ public class SOCRobotBrain extends Thread
             negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
 
             //D.ebugPrintln("targetPiece="+targetPiece);
-            SOCResourceSet targetResources = null;
-
-            switch (targetPiece.getType())
-            {
-            case SOCPossiblePiece.CARD:
-                targetResources = SOCGame.CARD_SET;
-
-                break;
-
-            case SOCPlayingPiece.ROAD:
-                targetResources = SOCGame.ROAD_SET;
-
-                break;
-
-            case SOCPlayingPiece.SETTLEMENT:
-                targetResources = SOCGame.SETTLEMENT_SET;
-
-                break;
-
-            case SOCPlayingPiece.CITY:
-                targetResources = SOCGame.CITY_SET;
-
-                break;
-            }
+            SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
 
             /**
              * figure out what resources are NOT the ones we need
