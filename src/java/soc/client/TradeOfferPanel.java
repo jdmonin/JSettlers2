@@ -395,6 +395,7 @@ public class TradeOfferPanel extends Panel
             }
         
             SOCGame ga = hp.getGame();
+            final int maxChars = (ga.maxPlayers > 4) ? 30 : 25;
             String names1 = "Offered to: ";
             String names2 = null;
 
@@ -421,7 +422,7 @@ public class TradeOfferPanel extends Panel
                     String name = ga.getPlayer(cnt).getName();
                     len += name.length();  // May be null if vacant
                     
-                    if (len < 25)
+                    if (len < maxChars)
                     {
                         names1 += ", ";
                         names1 += name;
