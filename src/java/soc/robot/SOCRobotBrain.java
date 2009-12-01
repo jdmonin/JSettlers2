@@ -2027,6 +2027,10 @@ public class SOCRobotBrain extends Thread
             return;
 
         int delayLength = Math.abs(rand.nextInt() % 500) + 3500;
+        if (gameIs6Player && ! waitingForTradeResponse)
+        {
+            delayLength *= 2;  // usually, pause is half-length in 6-player
+        }
         pause(delayLength);
 
         switch (ourResponseToOffer)
@@ -2995,13 +2999,14 @@ public class SOCRobotBrain extends Thread
 
     /**
      * pause for a bit.
-     * In a 6-player game, pause only half as long, to shorten the overall game delay.
+     * In a 6-player game, pause only half as long, to shorten the overall game delay,
+     * except if {@link #waitingForTradeResponse}.
      *
      * @param msec  number of milliseconds to pause
      */
     public void pause(int msec)
     {
-        if (gameIs6Player)
+        if (gameIs6Player && ! waitingForTradeResponse)
             msec /= 2;
         try
         {
