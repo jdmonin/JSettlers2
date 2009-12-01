@@ -1469,49 +1469,49 @@ public class SOCRobotBrain extends Thread
                        alive = false;
                        }
                      */
-                    if (mesType == SOCMessage.SETTURN)
-                    {
-                        game.setCurrentPlayerNumber(((SOCSetTurn) mes).getPlayerNumber());
-                    }
 
-                    /**
-                     * this is for player tracking
-                     */
-                    if (mesType == SOCMessage.PUTPIECE)
+                    switch (mesType)
                     {
+                    case SOCMessage.SETTURN:
+                        game.setCurrentPlayerNumber(((SOCSetTurn) mes).getPlayerNumber());
+                        break;
+
+                    case SOCMessage.PUTPIECE:
+                        /**
+                         * this is for player tracking
+                         */
                         handlePUTPIECE_updateTrackers((SOCPutPiece) mes);
 
                         // For initial placement of our own pieces, also checks
                         // and clears expectPUTPIECE_FROM_START1A,
                         // and sets expectSTART1B, etc.  The final initial putpiece
                         // clears expectPUTPIECE_FROM_START2B and sets expectPLAY.
-                    }
 
-                    if (expectDICERESULT && (mesType == SOCMessage.DICERESULT))
-                    {
-                        expectDICERESULT = false;
+                        break;
 
-                        if (((SOCDiceResult) mes).getResult() == 7)
+                    case SOCMessage.DICERESULT:
+                        if (expectDICERESULT)
                         {
-                            moveRobberOnSeven = true;
+                            expectDICERESULT = false;
+    
+                            if (((SOCDiceResult) mes).getResult() == 7)
+                            {
+                                moveRobberOnSeven = true;
+    
+                                if (ourPlayerData.getResources().getTotal() > 7)
+                                    expectDISCARD = true;
 
-                            if (ourPlayerData.getResources().getTotal() > 7)
-                            {
-                                expectDISCARD = true;
+                                else if (ourTurn)
+                                    expectPLACING_ROBBER = true;
                             }
-                            else if (ourTurn)
+                            else
                             {
-                                expectPLACING_ROBBER = true;
+                                expectPLAY1 = true;
                             }
                         }
-                        else
-                        {
-                            expectPLAY1 = true;
-                        }
-                    }
+                        break;
 
-                    if (mesType == SOCMessage.DISCARDREQUEST)
-                    {
+                    case SOCMessage.DISCARDREQUEST:
                         expectDISCARD = false;
 
                         /**
@@ -1533,24 +1533,29 @@ public class SOCRobotBrain extends Thread
                         discard(((SOCDiscardRequest) mes).getNumberOfDiscards());
 
                         //	}
-                    }
+                        break;
 
-                    if (mesType == SOCMessage.CHOOSEPLAYERREQUEST)
-                    {
+                    case SOCMessage.CHOOSEPLAYERREQUEST:
                         chooseRobberVictim(((SOCChoosePlayerRequest) mes).getChoices());
-                    }
+                        break;
 
-                    if ((mesType == SOCMessage.ROBOTDISMISS) && (!expectDISCARD) && (!expectPLACING_ROBBER))
-                    {
-                        client.leaveGame(game, "dismiss msg", false);
-                        alive = false;
-                    }
+                    case SOCMessage.ROBOTDISMISS:
+                        if ((!expectDISCARD) && (!expectPLACING_ROBBER))
+                        {
+                            client.leaveGame(game, "dismiss msg", false);
+                            alive = false;
+                        }
+                        break;
 
-                    if ((mesType == SOCMessage.GAMETEXTMSG) && (((SOCGameTextMsg) mes).getText().equals("*PING*")))
-                    {
-                        // Once-per-second message from the pinger thread
-                        counter++;
-                    }
+                    case SOCMessage.GAMETEXTMSG:
+                        if (((SOCGameTextMsg) mes).getText().equals("*PING*"))
+                        {
+                            // Once-per-second message from the pinger thread
+                            counter++;
+                        }
+                        break;
+
+                    }  // switch (mesType) - for some types, at bottom of loop body
 
                     if (counter > 15000)
                     {
