@@ -373,7 +373,7 @@ public class SOCRobotBrain extends Thread
      */
     protected boolean moveRobberOnSeven;
 
-    /*
+    /**
      * true if we're waiting for a response to our trade message
      */
     protected boolean waitingForTradeResponse;
