@@ -713,6 +713,9 @@ public class SOCRobotBrain extends Thread
 
             try
             {
+                /** Our player number */
+                final int ourPN = ourPlayerData.getPlayerNumber();
+
                 //
                 // Along with actual game events, the pinger sends a SOCGameTextMsg
                 // once per second, to aid the robot's timekeeping counter.
@@ -878,7 +881,7 @@ public class SOCRobotBrain extends Thread
                         negotiator.resetTargetPieces();
                     }
 
-                    if (game.getCurrentPlayerNumber() == ourPlayerData.getPlayerNumber())
+                    if (game.getCurrentPlayerNumber() == ourPN)
                     {
                         ourTurn = true;
                         waitingForSpecialBuild = false;
@@ -932,7 +935,7 @@ public class SOCRobotBrain extends Thread
                             //
                             //  fix it
                             //
-                            if (pl.getPlayerNumber() != ourPlayerData.getPlayerNumber())
+                            if (pl.getPlayerNumber() != ourPN)
                             {
                                 rsrcs.clear();
                                 rsrcs.setAmount(((SOCResourceCount) mes).getCount(), SOCResourceConstants.UNKNOWN);
@@ -981,8 +984,8 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.ACCEPTOFFER:
                         if (waitingForTradeResponse && (robotParameters.getTradeFlag() == 1))
                         {
-                            if ((((SOCAcceptOffer) mes).getOfferingNumber() == ourPlayerData.getPlayerNumber())
-                                || (((SOCAcceptOffer) mes).getAcceptingNumber() == ourPlayerData.getPlayerNumber()))
+                            if ((ourPN == (((SOCAcceptOffer) mes).getOfferingNumber()))
+                                || (ourPN == ((SOCAcceptOffer) mes).getAcceptingNumber()))
                             {
                                 waitingForTradeResponse = false;
                             }
@@ -1207,7 +1210,7 @@ public class SOCRobotBrain extends Thread
                                 {
                                     SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
 
-                                    if (((laPlayer != null) && (laPlayer.getPlayerNumber() != ourPlayerData.getPlayerNumber())) || (laPlayer == null))
+                                    if (((laPlayer != null) && (laPlayer.getPlayerNumber() != ourPN)) || (laPlayer == null))
                                     {
                                         int larmySize;
 
