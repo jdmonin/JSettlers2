@@ -5399,12 +5399,15 @@ public class SOCServer extends Server
                     messageToPlayer(c, gaName, "It's not your turn.");
                 } else {
                     // 6-player board: Special Building Phase
-                    try
+                    if (! ga.getPlayer(pn).hasAskedSpecialBuild())
                     {
-                        ga.askSpecialBuild(pn);
-                        messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
-                    } catch (IllegalStateException e) {
-                        messageToPlayer(c, gaName, "You can't ask to build now.");
+                        try
+                        {
+                            ga.askSpecialBuild(pn);
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                        } catch (IllegalStateException e) {
+                            messageToPlayer(c, gaName, "You can't ask to build now.");
+                        }
                     }
                 }
             }
