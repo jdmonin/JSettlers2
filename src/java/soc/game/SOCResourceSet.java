@@ -29,6 +29,9 @@ import java.io.Serializable;
  * clay, ore, sheep, wheat, and wood resources.
  * Unknown resources are also tracked here.
  * Although it's possible to store negative amounts of resources, it's discouraged.
+ *
+ * @see SOCResourceConstants
+ * @see SOCPlayingPiece#getResourcesToBuild(int)
  */
 public class SOCResourceSet implements Serializable, Cloneable
 {

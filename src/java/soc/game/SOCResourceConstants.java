@@ -35,6 +35,8 @@ package soc.game;
  *<P>
  * Before 1.1.08, this was an interface.  Changing to a class allowed adding
  * methods such as {@link #resName(int)}.
+ *
+ * @see SOCResourceSet
  */
 public class SOCResourceConstants
 {
