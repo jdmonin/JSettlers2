@@ -2244,6 +2244,11 @@ public class SOCGame implements Serializable, Cloneable
      * and if possible, sets state to {@link #PLAY1}, but does not call {@link #endTurn()}.
      * May be used if player loses connection, or robot does not respond.
      *<P>
+     * Called by controller of game (server).  The results are then reported to
+     * the other players as if the player had manually taken actions to
+     * end their turn.  (Resources are shown as returned to player's hand
+     * from Cancel Build Road, etc.)
+     *<P>
      * Since only the server calls {@link #endTurn()}, this method does not do so.
      * This method also does not check if a board-reset vote is in progress,
      * because endTurn will unconditionally cancel such a vote.
