@@ -2181,6 +2181,7 @@ public class SOCGame implements Serializable, Cloneable
      * endTurn() will call {@link #updateAtTurn()}.
      * In the 6-player game, calling endTurn() may begin or
      * continue the {@link #SPECIAL_BUILDING Special Building Phase}.
+     * Does not clear any player's {@link SOCPlayer#hasAskedSpecialBuild()} flag.
      *<P>
      * The winner check is needed because a player can win only
      * during their own turn; if they reach winning points ({@link #VP_WINNER}
@@ -2240,9 +2241,11 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * In an active game, force current turn to be able to be ended.
+     * May be used if player loses connection, or robot does not respond.
      * Takes whatever action needed to force current player to end their turn,
      * and if possible, sets state to {@link #PLAY1}, but does not call {@link #endTurn()}.
-     * May be used if player loses connection, or robot does not respond.
+     * If player was placing for {@link #SPECIAL_BUILDING}, will cancel that
+     * placement and set state to {@link #SPECIAL_BUILDING}.
      *<P>
      * Called by controller of game (server).  The results are then reported to
      * the other players as if the player had manually taken actions to
@@ -2252,13 +2255,16 @@ public class SOCGame implements Serializable, Cloneable
      * Since only the server calls {@link #endTurn()}, this method does not do so.
      * This method also does not check if a board-reset vote is in progress,
      * because endTurn will unconditionally cancel such a vote.
+     * Does not clear any player's {@link SOCPlayer#hasAskedSpecialBuild()} flag;
+     * do that at the server, and report it out to other players.
      *<P>
      * After calling forceEndTurn, usually the gameState will be {@link #PLAY1},  
      * and the caller should call {@link #endTurn()}.  The {@link #isForcingEndTurn()}
      * flag is also set.  The return value in this case is
      * {@link SOCForceEndTurnResult#FORCE_ENDTURN_NONE FORCE_ENDTURN_NONE}.
+     * The state in this case could also be {@link #SPECIAL_BUILDING}.
      *<P>
-     * Exceptions (caller should not call endTurn) are these return types:
+     * Exceptions (where caller should not call endTurn) are these return types:
      * <UL>
      * <LI> {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD_WAIT}
      *       - Have forced current player to discard randomly, must now
@@ -2327,6 +2333,9 @@ public class SOCGame implements Serializable, Cloneable
                 (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);
 
         case PLAY1:
+            // already can end it; fall through
+
+        case SPECIAL_BUILDING:
             // already can end it
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);

@@ -4928,9 +4928,17 @@ public class SOCServer extends Server
      */
     private void forceEndGameTurn(SOCGame ga, final String plName)
     {
-        final String gaName = ga.getName();        
-        final SOCForceEndTurnResult res = ga.forceEndTurn();  // State now hopefully PLAY1
+        final String gaName = ga.getName();
         final int cpn = ga.getCurrentPlayerNumber();
+
+        SOCPlayer cp = ga.getPlayer(cpn);
+        if (cp.hasAskedSpecialBuild())
+        {
+            cp.setAskedSpecialBuild(false);
+            messageToGame(gaName, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
+        }
+
+        final SOCForceEndTurnResult res = ga.forceEndTurn();  // State now hopefully PLAY1, or SPECIAL_BUILDING
 
         /**
          * report any resources lost, gained
