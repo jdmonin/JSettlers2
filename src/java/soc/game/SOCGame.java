@@ -2173,8 +2173,10 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * end the turn for the current player, and check for winner.
      * Check for gamestate >= {@link #OVER} after calling endTurn.
+     *<P>
      * endTurn() is called only at server - client instead calls
      * {@link #setCurrentPlayerNumber(int)}.
+     *<P>
      * endTurn() is not called before the first dice roll.
      * endTurn() will call {@link #updateAtTurn()}.
      * In the 6-player game, calling endTurn() may begin or
@@ -2248,7 +2250,9 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * After calling forceEndTurn, usually the gameState will be {@link #PLAY1},  
      * and the caller should call {@link #endTurn()}.  The {@link #isForcingEndTurn()}
-     * flag is also set.
+     * flag is also set.  The return value in this case is
+     * {@link SOCForceEndTurnResult#FORCE_ENDTURN_NONE FORCE_ENDTURN_NONE}.
+     *<P>
      * Exceptions (caller should not call endTurn) are these return types:
      * <UL>
      * <LI> {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD_WAIT}
