@@ -2865,20 +2865,17 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     protected void handleSETTURN(SOCSetTurn mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        final String gaName = mes.getGame();
+        SOCGame ga = (SOCGame) games.get(gaName);
+        if (ga == null)
+            return;  // <--- Early return: not playing in that one ----
 
-        if (ga != null)
-        {
-            ga.setCurrentPlayerNumber(mes.getPlayerNumber());
+        final int pn = mes.getPlayerNumber();
+        ga.setCurrentPlayerNumber(pn);
 
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            pi.getBoardPanel().repaint();
-
-            for (int i = 0; i < ga.maxPlayers; i++)
-            {
-                pi.getPlayerHandPanel(i).updateTakeOverButton();
-            }
-        }
+        // repaint board panel, update buttons' status, etc:
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+        pi.updateAtTurn(pn);
     }
 
     /**
