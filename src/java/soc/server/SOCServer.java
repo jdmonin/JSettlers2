@@ -2112,7 +2112,9 @@ public class SOCServer extends Server
     }  // sendGameList
 
     /**
-     * check if a name is ok.
+     * Check if a nickname is okay, and, if they're already logged in, whether a
+     * new replacement connection can "take over" the existing one.
+     *<P>
      * a name is ok if it hasn't been used yet, isn't {@link #SERVERNAME the server's name},
      * and (since 1.1.07) passes {@link SOCMessage#isSingleLineAndSafe(String)}.
      *<P>
@@ -3625,7 +3627,13 @@ public class SOCServer extends Server
                              SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
                     return;
                 }
+
+                /**
+                 * check if a nickname is okay, and, if they're already logged in,
+                 * whether a new replacement connection can "take over" the existing one.
+                 */
                 final int nameTimeout = checkNickname(msgUser, c);
+
                 if (nameTimeout == -1)
                 {
                     isTakingOver = true;
