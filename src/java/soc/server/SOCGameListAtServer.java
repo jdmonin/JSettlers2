@@ -203,6 +203,8 @@ public class SOCGameListAtServer extends SOCGameList
      * @param  oldConn  the member's new connection
      * @throws IllegalArgumentException  if oldConn's keyname (via {@link StringConnection#getData() getData()})
      *            differs from newConn's keyname
+     *
+     * @see #memberGames(StringConnection, String)
      * @since 1.1.08
      */
     public synchronized void replaceMemberAllGames(StringConnection oldConn, StringConnection newConn)
@@ -379,5 +381,52 @@ public class SOCGameListAtServer extends SOCGameList
 
         return minVers;
     }
- 
+
+    /**
+     * List of games containing this member.
+     *
+     * @param c  Connection 
+     * @param firstGameName  Game name that should be first element of list
+     *           (if <tt>newConn</tt> is a member of it), or null.
+     * @return The games, in no particular order (past firstGameName),
+     *           or a 0-length Vector, if member isn't in any game.
+     *
+     * @see #replaceMemberAllGames(StringConnection, StringConnection)
+     * @since 1.1.08
+     */
+    public Vector memberGames(StringConnection c, final String firstGameName)
+    {
+        Vector cGames = new Vector();
+
+        synchronized(gameData)
+        {
+            SOCGame firstGame = null;
+            if (firstGameName != null)
+            {
+                firstGame = getGameData(firstGameName);
+                if (firstGame != null)
+                {
+                    Vector members = getMembers(firstGameName);
+                    if ((members != null) && members.contains(c))
+                        cGames.addElement(firstGame);
+                }
+            }
+
+            Enumeration gdEnum = getGamesData();
+            while (gdEnum.hasMoreElements())
+            {
+                SOCGame ga = (SOCGame) gdEnum.nextElement();
+                if (ga == firstGame)
+                    continue;
+                Vector members = getMembers(ga.getName());
+                if ((members == null) || ! members.contains(c))
+                    continue;
+
+                cGames.addElement(ga);
+            }
+        }
+
+        return cGames;
+    }
+
 }

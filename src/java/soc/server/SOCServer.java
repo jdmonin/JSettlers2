@@ -3576,6 +3576,11 @@ public class SOCServer extends Server
      *<P>
      * Game name and player name have a maximum length and some disallowed characters; see parameters.
      *<P>
+     * If client is replacing/taking over their own lost connection,
+     * first tell them they're rejoining all their other games.
+     * That way, the requested game's window will appear last,
+     * not hidden behind the others.
+     *<P>
      *<b>Process if gameOpts != null:</b>
      *<UL>
      *  <LI> if game with this name already exists, respond with
@@ -3726,22 +3731,44 @@ public class SOCServer extends Server
              *<P>
              * If client's version is too low (based on game options, etc),
              * connectToGame will throw an exception; tell the client if that happens.
+             *<P>
+             * If rejoining after a lost connection, first rejoin all their other games.
              */
             try
             {
-                if (isTakingOver || connectToGame(c, gameName, gameOpts))
+                if (isTakingOver)
+                {
+                    /**
+                     * Rejoin the requested game.
+                     * First, rejoin all other games of this client.
+                     * That way, the requested game's window will
+                     * appear last, not hidden behind the others.
+                     * For each game, calls joinGame to send JOINGAMEAUTH
+                     * and the entire state of the game to client.
+                     */
+                    Vector allConnGames = gameList.memberGames(c, gameName);
+                    if (allConnGames.size() == 0)
+                    {
+                        c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_OK,
+                                "You've taken over the connection, but aren't in any games."));
+                    } else {
+                        // Send list backwards: requested game will be sent last.
+                        for (int i = allConnGames.size() - 1; i >= 0; --i)
+                            joinGame((SOCGame) allConnGames.elementAt(i), c, false, true);
+                    }
+                }
+                else if (connectToGame(c, gameName, gameOpts))
                 {
                     /**
                      * send JOINGAMEAUTH to client,
                      * send the entire state of the game to client,
-                     * and unless isTakingOver,
                      * send client join event to other players of game
                      */
                     SOCGame gameData = gameList.getGameData(gameName);
 
                     if (gameData != null)
                     {
-                        joinGame(gameData, c, false, isTakingOver);
+                        joinGame(gameData, c, false, false);
                     }
                 }
             } catch (SOCGameOptionVersionException e)
