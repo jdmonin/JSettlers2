@@ -530,165 +530,163 @@ public class SOCServer extends Server
     public boolean connectToGame(StringConnection c, final String gaName, Hashtable gaOpts)
         throws SOCGameOptionVersionException, IllegalArgumentException
     {
+        if (c == null)
+        {
+            return false;  // shouldn't happen
+        }
+
         boolean result = false;
 
-        if (c != null)
+        final int cliVers = c.getVersion();
+        boolean gameExists = false;
+        gameList.takeMonitor();
+
+        try
         {
-            final int cliVers = c.getVersion();
-            boolean gameExists = false;
-            gameList.takeMonitor();
+            gameExists = gameList.isGame(gaName);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in connectToGame");
+        }
+
+        gameList.releaseMonitor();
+
+        if (gameExists)
+        {
+            boolean cliVersOld = false;
+            gameList.takeMonitorForGame(gaName);
+            SOCGame ga = gameList.getGameData(gaName);
 
             try
             {
-                gameExists = gameList.isGame(gaName);
+                if (gameList.isMember(c, gaName))
+                {
+                    result = false;
+                }
+                else
+                {
+                    if (ga.getClientVersionMinRequired() <= cliVers)
+                    {
+                        gameList.addMember(c, gaName);
+                        result = true;
+                    } else {
+                        cliVersOld = true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in connectToGame (isMember)");
+            }
+
+            gameList.releaseMonitorForGame(gaName);
+            if (cliVersOld)
+                throw new IllegalArgumentException("Client version");
+
+                // <---- Exception: Early return ----
+        }
+        else
+        {
+            /**
+             * the game did not exist, create it after checking options
+             */
+            final int gVers;
+            if (gaOpts == null)
+            {
+                gVers = -1;
+            } else {
+                gVers = SOCGameOption.optionsMinimumVersion(gaOpts);
+                if (gVers > cliVers)
+                {
+                    // Which option(s) are too new for client?
+                    Vector optsValuesTooNew =
+                        SOCGameOption.optionsNewerThanVersion(cliVers, true, false, gaOpts);
+                    throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
+
+                    // <---- Exception: Early return ----
+                }
+            }
+
+            gameList.takeMonitor();
+            boolean monitorReleased = false;
+
+            try
+            {
+                // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
+                gameList.createGame(gaName, gaOpts); 
+
+                // Add this (creating) player to the game
+                gameList.addMember(c, gaName);
+
+                // must release monitor before we broadcast
+                gameList.releaseMonitor();
+                monitorReleased = true;
+                result = true;
+
+                // check version before we broadcast
+                final int cversMin = getMinConnectedCliVersion();
+
+                if ((gVers <= cversMin) && (gaOpts == null))
+                {
+                    // All clients can join it, and no game options: use simplest message
+                    broadcast(SOCNewGame.toCmd(gaName));
+
+                } else {
+                    // Send messages, based on clients' version
+                    // and whether there are game options.
+
+                    if (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                    {
+                        // All cli can understand msg with version/options included
+                        broadcast
+                            (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers));
+                    } else {
+                        // Only some can understand msg with version/options included;
+                        // send at most 1 message to each connected client, split by client version.
+
+                        final int cversMax = getMaxConnectedCliVersion();
+                        int newgameMaxCliVers;
+                        if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                        {
+                            broadcastToVers
+                                (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers),
+                                 SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
+                            newgameMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
+                        } else {
+                            newgameMaxCliVers = Integer.MAX_VALUE;
+                        }
+
+                        // To older clients who can join, announce game without its options/version
+                        broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameMaxCliVers);
+
+                        // To older clients who can't join, announce game with cant-join prefix
+                        StringBuffer sb = new StringBuffer();
+                        sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+                        sb.append(gaName);
+                        broadcastToVers
+                            (SOCNewGame.toCmd(sb.toString()), SOCGames.VERSION_FOR_UNJOINABLE, gVers-1);
+                    }
+                }
+            }
+            catch (IllegalArgumentException e)
+            {
+                if (! monitorReleased)
+                    gameList.releaseMonitor();
+                throw e;  // caller handles it
             }
             catch (Exception e)
             {
                 D.ebugPrintStackTrace(e, "Exception in connectToGame");
             }
 
-            gameList.releaseMonitor();
-
-            if (gameExists)
+            if (!monitorReleased)
             {
-                boolean cliVersOld = false;
-                gameList.takeMonitorForGame(gaName);
-                SOCGame ga = gameList.getGameData(gaName);
-
-                try
-                {
-                    if (gameList.isMember(c, gaName))
-                    {
-                        result = false;
-                    }
-                    else
-                    {
-                        if (ga.getClientVersionMinRequired() <= cliVers)
-                        {
-                            gameList.addMember(c, gaName);
-                            result = true;
-                        } else {
-                            cliVersOld = true;
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in connectToGame (isMember)");
-                }
-
-                gameList.releaseMonitorForGame(gaName);
-                if (cliVersOld)
-                    throw new IllegalArgumentException("Client version");
-                // <---- Exception: Early return ----
-
+                gameList.releaseMonitor();
             }
-            else
-            {
-                /**
-                 * the game did not exist, create it after checking options
-                 */
-                final int gVers;
-                if (gaOpts == null)
-                {
-                    gVers = -1;
-                } else {
-                    gVers = SOCGameOption.optionsMinimumVersion(gaOpts);
-                    if (gVers > cliVers)
-                    {
-                        // Which option(s) are too new for client?
-                        Vector optsValuesTooNew =
-                            SOCGameOption.optionsNewerThanVersion(cliVers, true, false, gaOpts);
-                        throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
-
-                        // <---- Exception: Early return ----
-                    }
-                }
-
-                gameList.takeMonitor();
-                boolean monitorReleased = false;
-
-                try
-                {
-                    // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-                    gameList.createGame(gaName, gaOpts); 
-
-                    // Add this (creating) player to the game
-                    gameList.addMember(c, gaName);
-
-                    // must release monitor before we broadcast
-                    gameList.releaseMonitor();
-                    monitorReleased = true;
-                    result = true;
-
-                    // check version before we broadcast
-                    final int cversMin = getMinConnectedCliVersion();
-
-                    if ((gVers <= cversMin) && (gaOpts == null))
-                    {
-                        // All clients can join it, and no game options: use simplest message
-                        broadcast(SOCNewGame.toCmd(gaName));
-
-                    } else {
-                        // Send messages, based on clients' version
-                        // and whether there are game options.
-
-                        if (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                        {
-                            // All cli can understand msg with version/options included
-                            broadcast
-                                (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers));
-                        } else {
-                            // Only some can understand msg with version/options included;
-                            // send at most 1 message to each connected client, split by client version.
-
-                            final int cversMax = getMaxConnectedCliVersion();
-                            int newgameMaxCliVers;
-                            if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                            {
-                                broadcastToVers
-                                    (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers),
-                                     SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
-                                newgameMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
-                            } else {
-                                newgameMaxCliVers = Integer.MAX_VALUE;
-                            }
-
-                            // To older clients who can join, announce game without its options/version
-                            broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameMaxCliVers);
-
-                            // To older clients who can't join, announce game with cant-join prefix
-                            StringBuffer sb = new StringBuffer();
-                            sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
-                            sb.append(gaName);
-                            broadcastToVers
-                                (SOCNewGame.toCmd(sb.toString()), SOCGames.VERSION_FOR_UNJOINABLE, gVers-1);
-                        }
-                    }
-                }
-                catch (IllegalArgumentException e)
-                {
-                    if (! monitorReleased)
-                        gameList.releaseMonitor();
-                    throw e;  // caller handles it
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in connectToGame");
-                }
-
-                if (!monitorReleased)
-                {
-                    gameList.releaseMonitor();
-                }
-            }
-
-            return result;
         }
-        else
-        {
-            return false;
-        }
+
+        return result;
     }
 
     /**
@@ -3688,14 +3686,11 @@ public class SOCServer extends Server
             /**
              * Now that everything's validated, name this connection/user/player
              */
-            if (c != null)
+            if (c.getData() == null)
             {
-                if (c.getData() == null)
-                {
-                    c.setData(msgUser);
-                    nameConnection(c, isTakingOver);
-                    numberOfUsers++;
-                }
+                c.setData(msgUser);
+                nameConnection(c, isTakingOver);
+                numberOfUsers++;
             }
 
             /**
