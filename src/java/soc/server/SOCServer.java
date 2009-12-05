@@ -3616,181 +3616,184 @@ public class SOCServer extends Server
     private void createOrJoinGameIfUserOK
         (StringConnection c, final String msgUser, final String msgPass, final String gameName, Hashtable gameOpts)
     {
-            /**
-             * Check that the nickname is ok
-             */
-            final int cliVers = c.getVersion();
-            boolean isTakingOver = false;
-            if (c.getData() == null)
+        /**
+         * Check that the nickname is ok
+         */
+        final int cliVers = c.getVersion();
+        boolean isTakingOver = false;
+        if (c.getData() == null)
+        {
+            if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
             {
-                if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                             SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
-                    return;
-                }
-
-                /**
-                 * check if a nickname is okay, and, if they're already logged in,
-                 * whether a new replacement connection can "take over" the existing one.
-                 */
-                final int nameTimeout = checkNickname(msgUser, c);
-
-                if (nameTimeout == -1)
-                {
-                    isTakingOver = true;
-                } else if (nameTimeout == -2)
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                             MSG_NICKNAME_ALREADY_IN_USE));
-                    return;
-                } else if (nameTimeout <= -1000)
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                             checkNickname_getVersionText(-nameTimeout)));
-                    return;
-                } else if (nameTimeout > 0)
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                             checkNickname_getRetryText(nameTimeout)));
-                    return;
-                }
-            }
-
-            if ((c.getData() == null) && (!authenticateUser(c, msgUser, msgPass)))
-            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
                 return;
             }
 
             /**
-             * Check that the game name is ok
+             * check if a nickname is okay, and, if they're already logged in,
+             * whether a new replacement connection can "take over" the existing one.
              */
-            if (! SOCMessage.isSingleLineAndSafe(gameName))
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-                  // "This game name is not permitted, please choose a different name."
+            final int nameTimeout = checkNickname(msgUser, c);
 
-                  return;  // <---- Early return ----
-            }
-            if (gameName.length() > GAME_NAME_MAX_LENGTH)
+            if (nameTimeout == -1)
+            {
+                isTakingOver = true;
+            } else if (nameTimeout == -2)
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
-                // Please choose a shorter name; maximum length: 20
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                         MSG_NICKNAME_ALREADY_IN_USE));
+                return;
+            } else if (nameTimeout <= -1000)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                         checkNickname_getVersionText(-nameTimeout)));
+                return;
+            } else if (nameTimeout > 0)
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                         checkNickname_getRetryText(nameTimeout)));
+                return;
+            }
+        }
+
+        /**
+         * password check from database, if connected
+         */
+        if ((c.getData() == null) && (!authenticateUser(c, msgUser, msgPass)))
+        {
+            return;  // <---- Early return: Password auth failed ----
+        }
+
+        /**
+         * Check that the game name is ok
+         */
+        if (! SOCMessage.isSingleLineAndSafe(gameName))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+              // "This game name is not permitted, please choose a different name."
+
+              return;  // <---- Early return ----
+        }
+        if (gameName.length() > GAME_NAME_MAX_LENGTH)
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
+            // Please choose a shorter name; maximum length: 20
+
+            return;  // <---- Early return ----
+        }
+
+        /**
+         * Now that everything's validated, name this connection/user/player
+         */
+        if (c.getData() == null)
+        {
+            c.setData(msgUser);
+            nameConnection(c, isTakingOver);
+            numberOfUsers++;
+        }
+
+        /**
+         * If we have game options, we're being asked to create a new game.
+         * Validate them and ensure the game doesn't already exist.
+         */
+        if (gameOpts != null)
+        {
+            if (gameList.isGame(gameName))
+            {
+                c.put(SOCStatusMessage.toCmd
+                      (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers,
+                       SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
+                // "A game with this name already exists, please choose a different name."
 
                 return;  // <---- Early return ----
             }
 
-            /**
-             * Now that everything's validated, name this connection/user/player
-             */
-            if (c.getData() == null)
+            if (! SOCGameOption.adjustOptionsToKnown(gameOpts, null))
             {
-                c.setData(msgUser);
-                nameConnection(c, isTakingOver);
-                numberOfUsers++;
-            }
-
-            /**
-             * If we have game options, we're being asked to create a new game.
-             * Validate them and ensure the game doesn't already exist.
-             */
-            if (gameOpts != null)
-            {
-                if (gameList.isGame(gameName))
-                {
-                    c.put(SOCStatusMessage.toCmd
-                          (SOCStatusMessage.SV_NEWGAME_ALREADY_EXISTS, cliVers,
-                           SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS));
-                    // "A game with this name already exists, please choose a different name."
-
-                    return;  // <---- Early return ----
-                }
-
-                if (! SOCGameOption.adjustOptionsToKnown(gameOpts, null))
-                {
-                    c.put(SOCStatusMessage.toCmd
-                          (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers,
-                           "Unknown game option(s) were requested, cannot create this game."));
-
-                    return;  // <---- Early return ----
-                }
-            }
-
-            /**
-             * Try to add player to game, and tell the client that everything is ready;
-             * if game doesn't yet exist, it's created in connectToGame, and announced
-             * there to all clients.
-             *<P>
-             * If client's version is too low (based on game options, etc),
-             * connectToGame will throw an exception; tell the client if that happens.
-             *<P>
-             * If rejoining after a lost connection, first rejoin all their other games.
-             */
-            try
-            {
-                if (isTakingOver)
-                {
-                    /**
-                     * Rejoin the requested game.
-                     * First, rejoin all other games of this client.
-                     * That way, the requested game's window will
-                     * appear last, not hidden behind the others.
-                     * For each game, calls joinGame to send JOINGAMEAUTH
-                     * and the entire state of the game to client.
-                     */
-                    Vector allConnGames = gameList.memberGames(c, gameName);
-                    if (allConnGames.size() == 0)
-                    {
-                        c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_OK,
-                                "You've taken over the connection, but aren't in any games."));
-                    } else {
-                        // Send list backwards: requested game will be sent last.
-                        for (int i = allConnGames.size() - 1; i >= 0; --i)
-                            joinGame((SOCGame) allConnGames.elementAt(i), c, false, true);
-                    }
-                }
-                else if (connectToGame(c, gameName, gameOpts))
-                {
-                    /**
-                     * send JOINGAMEAUTH to client,
-                     * send the entire state of the game to client,
-                     * send client join event to other players of game
-                     */
-                    SOCGame gameData = gameList.getGameData(gameName);
-
-                    if (gameData != null)
-                    {
-                        joinGame(gameData, c, false, false);
-                    }
-                }
-            } catch (SOCGameOptionVersionException e)
-            {
-                // Let them know they can't join; include the game's version.
-                // This cli asked to created it, otherwise gameOpts would be null.
                 c.put(SOCStatusMessage.toCmd
-                  (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, cliVers,
-                    "Cannot create game with these options; requires version "
-                    + Integer.toString(e.gameOptsVersion)
-                    + SOCMessage.sep2_char + gameName
-                    + SOCMessage.sep2_char + e.problemOptionsList()));
-            } catch (IllegalArgumentException e)
-            {
-                // Let them know they can't join; include the game's version.
+                      (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers,
+                       "Unknown game option(s) were requested, cannot create this game."));
 
-                c.put(SOCStatusMessage.toCmd
-                  (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, cliVers,
-                    "Cannot join game; requires version "
-                    + Integer.toString(gameList.getGameData(gameName).getClientVersionMinRequired())
-                    + ": " + gameName));
+                return;  // <---- Early return ----
             }
+        }
+
+        /**
+         * Try to add player to game, and tell the client that everything is ready;
+         * if game doesn't yet exist, it's created in connectToGame, and announced
+         * there to all clients.
+         *<P>
+         * If client's version is too low (based on game options, etc),
+         * connectToGame will throw an exception; tell the client if that happens.
+         *<P>
+         * If rejoining after a lost connection, first rejoin all their other games.
+         */
+        try
+        {
+            if (isTakingOver)
+            {
+                /**
+                 * Rejoin the requested game.
+                 * First, rejoin all other games of this client.
+                 * That way, the requested game's window will
+                 * appear last, not hidden behind the others.
+                 * For each game, calls joinGame to send JOINGAMEAUTH
+                 * and the entire state of the game to client.
+                 */
+                Vector allConnGames = gameList.memberGames(c, gameName);
+                if (allConnGames.size() == 0)
+                {
+                    c.put(SOCStatusMessage.toCmd(SOCStatusMessage.SV_OK,
+                            "You've taken over the connection, but aren't in any games."));
+                } else {
+                    // Send list backwards: requested game will be sent last.
+                    for (int i = allConnGames.size() - 1; i >= 0; --i)
+                        joinGame((SOCGame) allConnGames.elementAt(i), c, false, true);
+                }
+            }
+            else if (connectToGame(c, gameName, gameOpts))
+            {
+                /**
+                 * send JOINGAMEAUTH to client,
+                 * send the entire state of the game to client,
+                 * send client join event to other players of game
+                 */
+                SOCGame gameData = gameList.getGameData(gameName);
+
+                if (gameData != null)
+                {
+                    joinGame(gameData, c, false, false);
+                }
+            }
+        } catch (SOCGameOptionVersionException e)
+        {
+            // Let them know they can't join; include the game's version.
+            // This cli asked to created it, otherwise gameOpts would be null.
+            c.put(SOCStatusMessage.toCmd
+              (SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW, cliVers,
+                "Cannot create game with these options; requires version "
+                + Integer.toString(e.gameOptsVersion)
+                + SOCMessage.sep2_char + gameName
+                + SOCMessage.sep2_char + e.problemOptionsList()));
+        } catch (IllegalArgumentException e)
+        {
+            // Let them know they can't join; include the game's version.
+
+            c.put(SOCStatusMessage.toCmd
+              (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, cliVers,
+                "Cannot join game; requires version "
+                + Integer.toString(gameList.getGameData(gameName).getClientVersionMinRequired())
+                + ": " + gameName));
+        }
 
     }  //  createOrJoinGameIfUserOK
 
