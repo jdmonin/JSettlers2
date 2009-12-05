@@ -57,12 +57,12 @@ public class SOCBoardLayout2 extends SOCMessage
     /**
      * Name of game
      */
-    private String game;
+    private final String game;
 
     /**
      * Board layout encoding version, from {@link SOCBoard#getBoardEncodingFormat()}.
      */
-    private int boardEncodingFormat;
+    private final int boardEncodingFormat;
 
     /**
      * Contents are int[] or String (which may be int).
@@ -252,14 +252,14 @@ public class SOCBoardLayout2 extends SOCMessage
     public static SOCBoardLayout2 parseDataStr(String s)
     {
         String ga; // game name
-        int gv;    // board encoding version
+        final int bef;   // board encoding format
         Hashtable parts = new Hashtable();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
         {
             ga = st.nextToken();
-            gv = Integer.parseInt(st.nextToken());
+            bef = Integer.parseInt(st.nextToken());
             while (st.hasMoreTokens())
             {
                 String pname = st.nextToken();
@@ -283,7 +283,7 @@ public class SOCBoardLayout2 extends SOCMessage
             return null;
         }
 
-        return new SOCBoardLayout2(ga, gv, parts);
+        return new SOCBoardLayout2(ga, bef, parts);
     }
 
     /**
