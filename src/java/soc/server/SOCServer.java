@@ -2172,7 +2172,7 @@ public class SOCServer extends Server
         if (scd.disconnectLastPingMillis != 0)
         {
             int secondsSincePing = (int) (((now - scd.disconnectLastPingMillis)) / 1000L);
-            if (secondsSincePing > timeoutNeeded)
+            if (secondsSincePing >= timeoutNeeded)
             {
                 // Already sent ping, timeout has expired.
                 // Re-check version just in case.
@@ -3662,7 +3662,7 @@ public class SOCServer extends Server
         }
 
         /**
-         * password check from database, if connected
+         * password check new connection from database, if possible
          */
         if ((c.getData() == null) && (!authenticateUser(c, msgUser, msgPass)))
         {
