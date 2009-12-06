@@ -236,7 +236,17 @@ public class SOCServer extends Server
 
     /**
      * Number of seconds before a connection is considered disconnected, and
+     * its nickname can be "taken over" by a new connection with the right password.
+     * Used only when a password is given by the new connection.
+     * @see #checkNickname(String, StringConnection)
+     * @since 1.1.08
+     */
+    public static final int NICKNAME_TAKEOVER_SECONDS_SAME_PASSWORD = 15;
+
+    /**
+     * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from the same IP.
+     * Used when no password is given by the new connection.
      * @see #checkNickname(String, StringConnection)
      * @since 1.1.08
      */
@@ -245,6 +255,7 @@ public class SOCServer extends Server
     /**
      * Number of seconds before a connection is considered disconnected, and
      * its nickname can be "taken over" by a new connection from a different IP.
+     * Used when no password is given by the new connection.
      * @see #checkNickname(String, StringConnection)
      * @since 1.1.08
      */
@@ -2128,6 +2139,7 @@ public class SOCServer extends Server
      *
      * @param n  the name
      * @param newc  A new incoming connection, asking for this name
+     * @param withPassword  Did the connection supply a password?
      * @return   0 if the name is okay; <BR>
      *          -1 if OK <strong>and you are taking over a connection;</strong> <BR>
      *          -2 if not OK by rules (fails isSingleLineAndSafe); <BR>
@@ -2136,7 +2148,7 @@ public class SOCServer extends Server
      *             take over this name's games.
      * @see #checkNickname_getRetryText(int)
      */
-    private int checkNickname(String n, StringConnection newc)
+    private int checkNickname(String n, StringConnection newc, final boolean withPassword)
     {
         if (n.equals(SERVERNAME))
         {
@@ -2162,7 +2174,9 @@ public class SOCServer extends Server
             return -2;  // Shouldn't happen; name and SCD are assigned at same time
         }
         final int timeoutNeeded;
-        if (newc.host().equals(oldc.host()))
+        if (withPassword)
+            timeoutNeeded = NICKNAME_TAKEOVER_SECONDS_SAME_PASSWORD;
+        else if (newc.host().equals(oldc.host()))
             // same IP address or hostname
             timeoutNeeded = NICKNAME_TAKEOVER_SECONDS_SAME_IP;
         else
@@ -2924,15 +2938,15 @@ public class SOCServer extends Server
     }
 
     /**
-     * authenticate the user
-     * see if the user is in the db, if so then check the password
-     * if they're not in the db, but they supplied a password
-     * then send a message
-     * if they're not in the db, and no password, then ok
+     * authenticate the user:
+     * see if the user is in the db, if so then check the password.
+     * if they're not in the db, but they supplied a password,
+     * then send a message (not OK).
+     * if they're not in the db, and no password, then ok.
      *
      * @param c         the user's connection
      * @param userName  the user's nickname
-     * @param password  the user's password
+     * @param password  the user's password; trim before calling
      * @return true if the user has been authenticated
      */
     private boolean authenticateUser(StringConnection c, String userName, String password)
@@ -2965,6 +2979,10 @@ public class SOCServer extends Server
         }
         else if (!password.equals(""))
         {
+            // No password found in database.
+            // (Or, no database connected.)
+            // If they supplied a password, it won't work here.
+
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NAME_NOT_FOUND, c.getVersion(),
                      "No user with the nickname '" + userName + "' is registered with the system."));
@@ -3134,7 +3152,7 @@ public class SOCServer extends Server
             boolean isTakingOver = false;
             if (c.getData() == null) 
             {
-                final int nameTimeout = checkNickname(mes.getNickname(), c);
+                final int nameTimeout = checkNickname(mes.getNickname(), c, (mes.getPassword() != null) && (mes.getPassword().trim().length() > 0));
                 if (nameTimeout == -1)
                 {
                     isTakingOver = true;
@@ -3309,7 +3327,7 @@ public class SOCServer extends Server
             /**
              * Check that the nickname is ok
              */
-            if ((c.getData() == null) && (0 != checkNickname(mes.getNickname(), c)))
+            if ((c.getData() == null) && (0 != checkNickname(mes.getNickname(), c, false)))
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
@@ -3614,8 +3632,11 @@ public class SOCServer extends Server
      * @since 1.1.07
      */
     private void createOrJoinGameIfUserOK
-        (StringConnection c, final String msgUser, final String msgPass, final String gameName, Hashtable gameOpts)
+        (StringConnection c, final String msgUser, String msgPass, final String gameName, Hashtable gameOpts)
     {
+        if (msgPass != null)
+            msgPass = msgPass.trim();
+
         /**
          * Check that the nickname is ok
          */
@@ -3635,7 +3656,7 @@ public class SOCServer extends Server
              * check if a nickname is okay, and, if they're already logged in,
              * whether a new replacement connection can "take over" the existing one.
              */
-            final int nameTimeout = checkNickname(msgUser, c);
+            final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
 
             if (nameTimeout == -1)
             {
