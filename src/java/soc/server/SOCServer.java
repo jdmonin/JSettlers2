@@ -8049,8 +8049,11 @@ public class SOCServer extends Server
                 {
                     //
                     //  Give people a few minutes' warning (they may have a few warnings)
-                    //                
+                    //
                     long minutes = ((gameExpir - currentTimeMillis) / 60000);
+                    if (minutes < 1L)
+                        minutes = 1;  // in case of rounding down
+
                     messageToGameUrgent(gameData.getName(), ">>> Less than "
                             + minutes + " minutes remaining.  Type *ADDTIME* to extend this game another 30 minutes.");
                 }
