@@ -2793,26 +2793,6 @@ public class SOCServer extends Server
             gameList.releaseMonitor();
             broadcast(SOCDeleteGame.toCmd(ga));
         }
-        else if (dcmd.startsWith("*STATS*"))
-        {
-            long diff = System.currentTimeMillis() - startTime;
-            long hours = diff / (60 * 60 * 1000);
-            long minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000);
-            long seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
-            Runtime rt = Runtime.getRuntime();
-            messageToGame(ga, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
-            messageToGame(ga, "> Total connections: " + numberOfConnections);
-            messageToGame(ga, "> Current connections: " + connectionCount());
-            messageToGame(ga, "> Total Users: " + numberOfUsers);
-            messageToGame(ga, "> Games started: " + numberOfGamesStarted);
-            messageToGame(ga, "> Games finished: " + numberOfGamesFinished);
-            messageToGame(ga, "> Total Memory: " + rt.totalMemory());
-            messageToGame(ga, "> Free Memory: " + rt.freeMemory());
-            messageToGame(ga, "> Version: "
-                + Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
-
-            processDebugCommand_checktime(debugCli, ga, gameList.getGameData(ga));
-        }
         else if (dcmd.startsWith("*GC*"))
         {
             Runtime rt = Runtime.getRuntime();
@@ -3440,6 +3420,26 @@ public class SOCServer extends Server
         {
             messageToPlayer(c, gaName,
                 "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+        }
+        else if (cmdText.startsWith("*STATS*"))
+        {
+            final long diff = System.currentTimeMillis() - startTime;
+            final long hours = diff / (60 * 60 * 1000),
+                  minutes = (diff - (hours * 60 * 60 * 1000)) / (60 * 1000),
+                  seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
+            Runtime rt = Runtime.getRuntime();
+            messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
+            messageToPlayer(c, gaName, "> Total connections: " + numberOfConnections);
+            messageToPlayer(c, gaName, "> Current connections: " + connectionCount());
+            messageToPlayer(c, gaName, "> Total Users: " + numberOfUsers);
+            messageToPlayer(c, gaName, "> Games started: " + numberOfGamesStarted);
+            messageToPlayer(c, gaName, "> Games finished: " + numberOfGamesFinished);
+            messageToPlayer(c, gaName, "> Total Memory: " + rt.totalMemory());
+            messageToPlayer(c, gaName, "> Free Memory: " + rt.freeMemory());
+            messageToPlayer(c, gaName, "> Version: "
+                + Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
+
+            processDebugCommand_checktime(c, gaName, ga);
         }
         else if (cmdText.startsWith("*WHO*"))
         {
