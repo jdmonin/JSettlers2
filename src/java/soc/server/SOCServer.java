@@ -3150,9 +3150,23 @@ public class SOCServer extends Server
              * Check that the nickname is ok
              */
             boolean isTakingOver = false;
+
+            final String msgUser = mes.getNickname().trim();
+            String msgPass = mes.getPassword();
+            if (msgPass != null)
+                msgPass = msgPass.trim();
+
             if (c.getData() == null) 
             {
-                final int nameTimeout = checkNickname(mes.getNickname(), c, (mes.getPassword() != null) && (mes.getPassword().trim().length() > 0));
+                if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
+                {
+                    c.put(SOCStatusMessage.toCmd
+                            (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
+                             SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
+                    return;
+                }
+
+                final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
                 if (nameTimeout == -1)
                 {
                     isTakingOver = true;
@@ -3177,7 +3191,7 @@ public class SOCServer extends Server
                 }
             }
 
-            if ((c.getData() == null) && (!authenticateUser(c, mes.getNickname(), mes.getPassword())))
+            if ((c.getData() == null) && (!authenticateUser(c, msgUser, msgPass)))
             {
                 return;
             }
@@ -3191,9 +3205,20 @@ public class SOCServer extends Server
                return;
                }
              */
+            final String ch = mes.getChannel().trim();
+            if (! SOCMessage.isSingleLineAndSafe(ch))
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+                  // "This game name is not permitted, please choose a different name."
+
+                  return;  // <---- Early return ----
+            }
+
             if (c.getData() == null)
             {
-                c.setData(mes.getNickname());
+                c.setData(msgUser);
                 nameConnection(c, isTakingOver);
                 numberOfUsers++;
             }
@@ -3201,14 +3226,13 @@ public class SOCServer extends Server
             /**
              * Tell the client that everything is good to go
              */
-            c.put(SOCJoinAuth.toCmd(mes.getNickname(), mes.getChannel()));
+            c.put(SOCJoinAuth.toCmd(msgUser, ch));
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK, "Welcome to Java Settlers of Catan!"));
 
             /**
              * Add the StringConnection to the channel
              */
-            String ch = mes.getChannel();
 
             if (channelList.takeMonitorForChannel(ch))
             {
@@ -3260,7 +3284,7 @@ public class SOCServer extends Server
             /**
              * let everyone know about the change
              */
-            messageToChannel(ch, new SOCJoin(mes.getNickname(), "", "dummyhost", ch));
+            messageToChannel(ch, new SOCJoin(msgUser, "", "dummyhost", ch));
         }
     }
 
@@ -3580,7 +3604,7 @@ public class SOCServer extends Server
             }
 
             createOrJoinGameIfUserOK
-                (c, mes.getNickname(), mes.getPassword(), mes.getGame(), null);
+                (c, mes.getNickname().trim(), mes.getPassword(), mes.getGame().trim(), null);
 
         }
     }
