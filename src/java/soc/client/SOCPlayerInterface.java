@@ -1189,9 +1189,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      *
      * @param pnum New current player number; should match game.getCurrentPlayerNumber()
      */
-    public void updateAtTurn(int pnum)
+    public void updateAtTurn(final int pnum)
     {
-        getPlayerHandPanel(pnum).updateDevCards();
+        if ((pnum >= 0) && (pnum < hands.length))
+            getPlayerHandPanel(pnum).updateDevCards();
+
         for (int i = 0; i < hands.length; i++)
         {
             // hilight current player, update takeover button
