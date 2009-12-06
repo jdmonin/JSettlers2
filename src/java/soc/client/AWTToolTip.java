@@ -448,8 +448,15 @@ public class AWTToolTip
 
 }  /* public class AWTToolTip */
 
-/*
- * $Log$
+/**
+ * Former cvs Log: AWTToolTip.java - log discontinued on 2009/12/06, see CVS for changes since then.
+ *
+ * Revision 1.7  2009/10/28 22:30:06  jdmonin
+ * discontinue cvs log within file; line-encoding of cvs-log comment to CRLF to match rest of project
+ *
+ * Revision 1.6  2009/10/28 22:30:06  jdmonin
+ * line-encoding to CRLF to match rest of project
+ *
  * Revision 1.5  2009/08/01 11:58:51  jdmonin
  * fix src line endings
  *
