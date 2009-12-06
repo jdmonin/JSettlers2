@@ -65,6 +65,14 @@ public class ColorSquare extends Canvas implements MouseListener
     /** Water hex color, for fallback if graphic is missing. @since 1.1.07 */
     public static final Color WATER = new Color(72, 97, 162);  // grey-blue; waterHex.gif average is actually (76, 102, 152)
 
+    /**
+     * Array of resource colors.
+     * 0 is {@link #CLAY}, 1 is {@link #ORE}, SHEEP, WHEAT, 4 is {@link #ORE}.
+     * @since 1.1.08
+     */
+    public static final Color[] RESOURCE_COLORS =
+        { CLAY, ORE, SHEEP, WHEAT, WOOD };
+
     public final static int NUMBER = 0;
     public final static int YES_NO = 1;
     public final static int CHECKBOX = 2;
