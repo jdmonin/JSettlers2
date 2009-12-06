@@ -21,6 +21,7 @@
  **/
 package soc.client;
 
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Panel;
 import java.awt.event.MouseEvent;
@@ -81,21 +82,12 @@ public class SquaresPanel extends Panel implements MouseListener, ColorSquareLis
         setFont(new Font("Helvetica", Font.PLAIN, 10));
 
         give = new ColorSquare[5];
-        give[0] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.CLAY);
-        give[1] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.ORE);
-        give[2] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.SHEEP);
-        give[3] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.WHEAT);
-        give[4] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.WOOD);
-
         get = new ColorSquare[5];
-        get[0] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.CLAY);
-        get[1] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.ORE);
-        get[2] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.SHEEP);
-        get[3] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.WHEAT);
-        get[4] = new ColorSquareLarger(ColorSquare.NUMBER, in, ColorSquare.WOOD);
-
         for (int i = 0; i < 5; i++)
         {
+            final Color sqColor = ColorSquare.RESOURCE_COLORS[i];
+            get[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqColor);
+            give[i] = new ColorSquareLarger(ColorSquare.NUMBER, in, sqColor);
             add(get[i]);
             add(give[i]);
             get[i].setSquareListener(this);
