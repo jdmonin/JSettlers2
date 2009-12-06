@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Some documentation javadocs here are Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -165,13 +166,13 @@ public class SOCDBHelper
     }
     
     /**
-     * DOCUMENT ME!
+     * Retrieve this user's password from the database.
      *
-     * @param sUserName DOCUMENT ME!
+     * @param sUserName Username who needs password
      *
-     * @return null if user account doesn't exist
+     * @return null if user account doesn't exist, or if no database is currently connected
      *
-     * @throws SQLException DOCUMENT ME!
+     * @throws SQLException if any unexpected database problem
      */
     public static String getUserPassword(String sUserName) throws SQLException
     {
