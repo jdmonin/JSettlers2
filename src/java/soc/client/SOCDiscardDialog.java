@@ -105,21 +105,26 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
             discardBut.disable();  // Must choose that many first
 
         keep = new ColorSquare[5];
-        keep[0] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, ColorSquare.CLAY);
-        keep[1] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, ColorSquare.ORE);
-        keep[2] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, ColorSquare.SHEEP);
-        keep[3] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, ColorSquare.WHEAT);
-        keep[4] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, ColorSquare.WOOD);
-
         disc = new ColorSquare[5];
-        disc[0] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, ColorSquare.CLAY);
-        disc[1] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, ColorSquare.ORE);
-        disc[2] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, ColorSquare.SHEEP);
-        disc[3] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, ColorSquare.WHEAT);
-        disc[4] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, ColorSquare.WOOD);
 
         for (int i = 0; i < 5; i++)
         {
+            // On OSX: We must use the wrong color, then change it, in order to
+            // not use AWTToolTips (redraw problem for button enable/disable).
+            Color sqColor;
+            if (SOCPlayerClient.isJavaOnOSX)
+                sqColor = Color.WHITE;
+            else
+                sqColor = ColorSquare.RESOURCE_COLORS[i];
+
+            keep[i] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, sqColor);
+            disc[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, sqColor);
+            if (SOCPlayerClient.isJavaOnOSX)
+            {
+                sqColor = ColorSquare.RESOURCE_COLORS[i];                
+                keep[i].setBackground(sqColor);
+                disc[i].setBackground(sqColor);
+            }
             add(keep[i]);
             add(disc[i]);
             keep[i].addMouseListener(this);
@@ -337,8 +342,6 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
         if (wantsRepaint)
         {
             discardBut.repaint();
-            // TODO: still not always updated in some circumstances,
-            //       depending on mouse position / AWTToolTip visibility
         }
 
         } catch (Throwable th) {

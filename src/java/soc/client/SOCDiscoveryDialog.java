@@ -84,14 +84,21 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
         // clearBut.disable();        
 
         rsrc = new ColorSquare[5];
-        rsrc[0] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, true, ColorSquare.CLAY, 2, 0);
-        rsrc[1] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, true, ColorSquare.ORE, 2, 0);
-        rsrc[2] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, true, ColorSquare.SHEEP, 2, 0);
-        rsrc[3] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, true, ColorSquare.WHEAT, 2, 0);
-        rsrc[4] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, true, ColorSquare.WOOD, 2, 0);
-
         for (int i = 0; i < 5; i++)
         {
+            // On OSX: We must use the wrong color, then change it, in order to
+            // not use AWTToolTips (redraw problem for button enable/disable).
+            Color sqColor;
+            if (SOCPlayerClient.isJavaOnOSX)
+                sqColor = Color.WHITE;
+            else
+                sqColor = ColorSquare.RESOURCE_COLORS[i];
+
+            rsrc[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, true, sqColor, 2, 0);
+            if (SOCPlayerClient.isJavaOnOSX)
+            {
+                rsrc[i].setBackground(ColorSquare.RESOURCE_COLORS[i]);
+            }
             add(rsrc[i]);
             rsrc[i].setSquareListener(this);
         }

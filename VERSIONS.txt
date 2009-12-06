@@ -2,7 +2,7 @@
 
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 
-    > 1.1.08 (build 200911xx)
+    > 1.1.08 (build 200912xx)
 - 6-player board, with Special Building Phase rule
 - Can now sometimes reconnect after connection to server is lost,
      when message "A player with that nickname is already logged in" appears.
@@ -11,6 +11,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 - Re-word counter offer text to: Give Them / You Get
 - Cleaner scaled graphics: Draw hex dice-number circles on hex, instead of GIFs.
 - Chat text prompt ("type here to chat") cleared when clicked (D Campbell idea)
+- Fix button redraw for Discard, Year of Plenty popups on OSX
 - BoardPanel faster redraw: cache image of board without pieces
 - BoardPanel javadocs explain nodeMap and initNodeMapAux
 - SOCRobotBrain refactor some message-handlers out of run() (C McNeil idea)
