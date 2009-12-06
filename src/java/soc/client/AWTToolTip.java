@@ -3,9 +3,10 @@
  *
  * (c)2000 IoS Gesellschaft fr innovative Softwareentwicklung mbH
  * http://www.IoS-Online.de    mailto:info@IoS-Online.de
- * Portions (c)2007,2008 Jeremy D Monin <jeremy@nand.net>
+ * Portions (c) 2007-2009 Jeremy D Monin <jeremy@nand.net>
+ *
  * originally from (GPL'd) de.ios.framework.gui.ExpandTooltip;
- * JM - using for jsettlers AWT tooltip
+ * using for jsettlers AWT tooltip
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
