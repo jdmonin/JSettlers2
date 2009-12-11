@@ -4130,12 +4130,13 @@ public class SOCServer extends Server
 
         try
         {
-            SOCPlayer player = ga.getPlayer((String) c.getData());
+            final String gaName = ga.getName();
+            final String plName = (String) c.getData();
+            SOCPlayer player = ga.getPlayer(plName);
 
             /**
              * make sure the player can do it
              */
-            final String gaName = ga.getName();
             if (checkTurn(c, ga))
             {
                 boolean sendDenyReply = false;
@@ -4154,15 +4155,16 @@ public class SOCServer extends Server
                  */
 
                 final int gameState = ga.getGameState();
+                final int coord = mes.getCoordinates();
                 switch (mes.getPieceType())
                 {
                 case SOCPlayingPiece.ROAD:
 
-                    SOCRoad rd = new SOCRoad(player, mes.getCoordinates(), null);
+                    SOCRoad rd = new SOCRoad(player, coord, null);
 
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.PLACING_ROAD) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
-                        if (player.isPotentialRoad(mes.getCoordinates()))
+                        if (player.isPotentialRoad(coord))
                         {
                             ga.putPiece(rd);  // Changes state and sometimes player
 
@@ -4180,8 +4182,8 @@ public class SOCServer extends Server
                                }
                              */
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a road."));
-                            messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.ROAD, mes.getCoordinates()));
+                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a road."));
+                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.ROAD, coord));
                             gameList.releaseMonitorForGame(gaName);
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);
@@ -4202,7 +4204,7 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(mes.getCoordinates())
+                            D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(coord)
                                 + ": player " + player.getPlayerNumber());
                             messageToPlayer(c, gaName, "You can't build a road there.");
                             sendDenyReply = true;                                   
@@ -4217,16 +4219,16 @@ public class SOCServer extends Server
 
                 case SOCPlayingPiece.SETTLEMENT:
 
-                    SOCSettlement se = new SOCSettlement(player, mes.getCoordinates(), null);
+                    SOCSettlement se = new SOCSettlement(player, coord, null);
 
                     if ((gameState == SOCGame.START1A) || (gameState == SOCGame.START2A) || (gameState == SOCGame.PLACING_SETTLEMENT))
                     {
-                        if (player.isPotentialSettlement(mes.getCoordinates()))
+                        if (player.isPotentialSettlement(coord))
                         {
                             ga.putPiece(se);   // Changes game state and (if game start) player
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a settlement."));
-                            messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.SETTLEMENT, mes.getCoordinates()));
+                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a settlement."));
+                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.SETTLEMENT, coord));
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
                             sendGameState(ga);
@@ -4238,7 +4240,7 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            D.ebugPrintln("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(mes.getCoordinates())
+                            D.ebugPrintln("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(coord)
                                 + ": player " + player.getPlayerNumber());
                             messageToPlayer(c, gaName, "You can't build a settlement there.");
                             sendDenyReply = true;
@@ -4253,16 +4255,16 @@ public class SOCServer extends Server
 
                 case SOCPlayingPiece.CITY:
 
-                    SOCCity ci = new SOCCity(player, mes.getCoordinates(), null);
+                    SOCCity ci = new SOCCity(player, coord, null);
 
                     if (gameState == SOCGame.PLACING_CITY)
                     {
-                        if (player.isPotentialCity(mes.getCoordinates()))
+                        if (player.isPotentialCity(coord))
                         {
                             ga.putPiece(ci);  // changes game state and maybe player
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, (String) c.getData() + " built a city."));
-                            messageToGameWithMon(gaName, new SOCPutPiece(mes.getGame(), player.getPlayerNumber(), SOCPlayingPiece.CITY, mes.getCoordinates()));
+                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a city."));
+                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.CITY, coord));
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
                             sendGameState(ga);
@@ -4274,7 +4276,7 @@ public class SOCServer extends Server
                         }
                         else
                         {
-                            D.ebugPrintln("ILLEGAL CITY: 0x" + Integer.toHexString(mes.getCoordinates())
+                            D.ebugPrintln("ILLEGAL CITY: 0x" + Integer.toHexString(coord)
                                 + ": player " + player.getPlayerNumber());
                             messageToPlayer(c, gaName, "You can't build a city there.");
                             sendDenyReply = true;
