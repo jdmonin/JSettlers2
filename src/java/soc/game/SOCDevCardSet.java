@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2009 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,15 +30,16 @@ import java.io.Serializable;
 public class SOCDevCardSet implements Serializable, Cloneable
 {
     /**
-     * age constants
+     * age constants. OLD == 0, NEW == 1 (guaranteed for use in loops).
      */
     public static final int OLD = 0;
     public static final int NEW = 1;
 
     /**
-     * the number of development cards
-     * [OLD] are the old cards
-     * [NEW] are recently bought cards
+     * the number of development cards of each type.
+     * [{@link #OLD}] are the old cards.
+     * [{@link #NEW}] are recently bought cards.
+     * Card types as in {@link SOCDevCardConstants}.
      */
     private int[][] devCards;
 
@@ -84,10 +85,12 @@ public class SOCDevCardSet implements Serializable, Cloneable
     /**
      * @return the number of a kind of development card
      *
-     * @param age  either OLD or NEW
+     * @param age  either {@link #OLD} or {@link #NEW}
      * @param ctype
      *        the type of development card as described
-     *        in SOCDevCardConstants
+     *        in {@link SOCDevCardConstants};
+     *        at least {@link SOCDevCardConstants#MIN}
+     *        and less than {@link SOCDevCardConstants#MAXPLUSONE}
      */
     public int getAmount(int age, int ctype)
     {
@@ -113,8 +116,9 @@ public class SOCDevCardSet implements Serializable, Cloneable
     /**
      * set the amount of a type of card
      *
-     * @param age   either OLD or NEW
-     * @param ctype the type of development card
+     * @param age   either {@link #OLD} or {@link #NEW}
+     * @param ctype the type of development card, at least
+     *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @param amt   the amount
      */
     public void setAmount(int amt, int age, int ctype)
@@ -125,8 +129,9 @@ public class SOCDevCardSet implements Serializable, Cloneable
     /**
      * add an amount to a type of card
      *
-     * @param age   either OLD or NEW
-     * @param ctype the type of development card
+     * @param age   either {@link #OLD} or {@link #NEW}
+     * @param ctype the type of development card, at least
+     *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @param amt   the amount
      */
     public void add(int amt, int age, int ctype)
@@ -137,8 +142,9 @@ public class SOCDevCardSet implements Serializable, Cloneable
     /**
      * subtract an amount from a type of card
      *
-     * @param age   either OLD or NEW
-     * @param ctype the type of development card
+     * @param age   either {@link #OLD} or {@link #NEW}
+     * @param ctype the type of development card, at least
+     *              {@link SOCDevCardConstants#MIN} and less than {@link SOCDevCardConstants#MAXPLUSONE}
      * @param amt   the amount
      */
     public void subtract(int amt, int age, int ctype)
