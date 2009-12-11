@@ -6597,7 +6597,7 @@ public class SOCServer extends Server
             {
                 int pn = cliPl.getPlayerNumber();
                 if ((pn != -1) && ! gameData.isSeatVacant(pn))
-                    this.sitDown_sendPrivateInfo(gameData, c, pn, gameName);
+                    sitDown_sendPrivateInfo(gameData, c, pn, gameName);
             }
         }
 
@@ -6768,131 +6768,77 @@ public class SOCServer extends Server
             messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN));
         }
 
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT);
-                i++)
+        /**
+         * send first all new cards, then all old cards
+         */
+        for (int dcAge = SOCDevCardSet.NEW; dcAge >= SOCDevCardSet.OLD; --dcAge)
         {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.KNIGHT));
-        }
+            final int addCmd = (dcAge == SOCDevCardSet.NEW) ? SOCDevCard.ADDNEW : SOCDevCard.ADDOLD;
 
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.ROADS);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.ROADS));
-        }
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.KNIGHT);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT));
+            }
+    
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.ROADS);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.ROADS));
+            }
+    
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.DISC);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.DISC));
+            }
+    
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.MONO);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.MONO));
+            }
+    
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.CAP);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.CAP));
+            }
+    
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.LIB);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.LIB));
+            }
+    
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.UNIV);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.UNIV));
+            }
+    
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.TEMP);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.TEMP));
+            }
+    
+            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.TOW);
+                 i > 0;
+                 --i)
+            {
+                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.TOW));
+            }
 
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.DISC);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.DISC));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.MONO);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.MONO));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.CAP);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.CAP));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.LIB);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.LIB));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.UNIV);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.UNIV));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.TEMP);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TEMP));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.TOW);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDNEW, SOCDevCardConstants.TOW));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.KNIGHT));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.ROADS));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.DISC));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.MONO));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.CAP);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.CAP));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.LIB);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.LIB));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.UNIV);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNIV));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.TEMP);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TEMP));
-        }
-
-        for (i = 0;
-                i < devCards.getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.TOW);
-                i++)
-        {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.ADDOLD, SOCDevCardConstants.TOW));
-        }
+        }  // for (dcAge)
 
         /**
          * send game state info such as requests for discards
