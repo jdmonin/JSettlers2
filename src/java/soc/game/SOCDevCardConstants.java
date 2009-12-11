@@ -25,15 +25,16 @@ package soc.game;
 /**
  * This is a list of constants for representing
  * types of development cards in Settlers of Catan.
- * {@link #MIN} is the lowest value, {@link #MAX_KNOWN} is highest "known",
+ * {@link #MIN} is the lowest value (lowest "known"), {@link #MAX_KNOWN} is highest "known",
  * and {@link #UNKNOWN} is higher than MAX_KNOWN.
+ *<P>
  * If you add values here, be sure to update javadocs at
  * server.giveDevCard,  .handleGAMETEXTMSG and .sendGameStateOVER ,
  * and handpanel.updateDevCards .
  */
 public interface SOCDevCardConstants
 {
-    /** Minimum valid card type */
+    /** Minimum valid card type ({@link #KNIGHT}). */
     public static final int MIN = 0;
 
     /** knight, robber card */
@@ -63,7 +64,7 @@ public interface SOCDevCardConstants
     /** tower, chapel VP card */
     public static final int TOW = 8;
 
-    /** Maximum valid card type */
+    /** Maximum valid card type ({@link #TOW}) */
     public static final int MAX_KNOWN = 8;
 
     /** Dev-card of unknown type, for reporting to other players */ 
