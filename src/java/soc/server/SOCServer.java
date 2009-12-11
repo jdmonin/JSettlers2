@@ -6775,68 +6775,20 @@ public class SOCServer extends Server
         {
             final int addCmd = (dcAge == SOCDevCardSet.NEW) ? SOCDevCard.ADDNEW : SOCDevCard.ADDOLD;
 
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.KNIGHT);
-                 i > 0;
-                 --i)
+            /**
+             * loop from KNIGHT to TOW (MIN to MAX_KNOWN)
+             */
+            for (int dcType = SOCDevCardConstants.MIN; dcType <= SOCDevCardConstants.MAX_KNOWN; ++dcType)
             {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT));
-            }
-    
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.ROADS);
-                 i > 0;
-                 --i)
-            {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.ROADS));
-            }
-    
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.DISC);
-                 i > 0;
-                 --i)
-            {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.DISC));
-            }
-    
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.MONO);
-                 i > 0;
-                 --i)
-            {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.MONO));
-            }
-    
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.CAP);
-                 i > 0;
-                 --i)
-            {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.CAP));
-            }
-    
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.LIB);
-                 i > 0;
-                 --i)
-            {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.LIB));
-            }
-    
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.UNIV);
-                 i > 0;
-                 --i)
-            {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.UNIV));
-            }
-    
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.TEMP);
-                 i > 0;
-                 --i)
-            {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.TEMP));
-            }
-    
-            for (i = devCards.getAmount(dcAge, SOCDevCardConstants.TOW);
-                 i > 0;
-                 --i)
-            {
-                messageToPlayer(c, new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.TOW));
-            }
+                int cardAmt = devCards.getAmount(dcAge, dcType);
+                if (cardAmt > 0)
+                {
+                    SOCDevCard addMsg = new SOCDevCard(gaName, pn, addCmd, dcType);
+                    for ( ; cardAmt > 0; --cardAmt)
+                        messageToPlayer(c, addMsg);
+                }
+
+            }  // for (dcType)
 
         }  // for (dcAge)
 
