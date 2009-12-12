@@ -959,7 +959,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
-     * Subclasses begin here
+     * Nested classes begin here
      * --------------------------------------------------------
      */
 
