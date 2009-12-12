@@ -42,6 +42,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
@@ -67,7 +69,7 @@ import java.io.StringWriter;
  *
  * @author Robert S. Thomas
  */
-public class SOCPlayerInterface extends Frame implements ActionListener
+public class SOCPlayerInterface extends Frame implements ActionListener, MouseListener
 {
     /**
      * the board display
@@ -93,6 +95,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener
      * @since 1.1.06
      */
     private boolean layoutNotReadyYet;
+
+    //========================================================
+    /**
+     * Text/chat fields begin here
+     */
+    //========================================================
 
     /**
      * where the player types in text
@@ -157,14 +165,45 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     protected SOCPITextfieldListener textInputListener;
 
     /**
-     * where text is displayed
+     * where text is displayed.
+     * In the 6-player layout, size expands when hovered over with mouse.
      */
     protected SnippingTextArea textDisplay;
 
     /**
-     * where chat text is displayed
+     * where chat text is displayed.
+     * In the 6-player layout, size expands when hovered over with mouse.
      */
     protected SnippingTextArea chatDisplay;
+
+    /**
+     * In the {@link #is6player 6-player} layout, the text display fields
+     * ({@link #textDisplay}, {@link #chatDisplay}) aren't as large.
+     * When this flag is set, they've temporarily been made larger.
+     * @see SOCPITextDisplaysLargerTask
+     * @since 1.1.08
+     */
+    private boolean textDisplaysLargerTemp;
+
+    /**
+     * When set, must return text display field sizes to normal in {@link #doLayout()}
+     * after a previous {@link #textDisplaysLargerTemp} flag set.
+     * @since 1.1.08
+     */
+    private boolean textDisplaysLargerTemp_needsLayout;
+
+    /**
+     * Mouse hover flags, for use with {@link #textDisplaysLargerTemp}.
+     * @see SOCPITextDisplaysLargerTask
+     * @since 1.1.08
+     */
+    private boolean textInputHasMouse, textDisplayHasMouse, chatDisplayHasMouse;
+
+    //========================================================
+    /**
+     * End of text/chat fields
+     */
+    //========================================================
 
     /**
      * interface for building pieces
@@ -385,6 +424,57 @@ public class SOCPlayerInterface extends Frame implements ActionListener
     protected void initInterfaceElements(boolean firstCall)
     {
         /**
+         * initialize the text input and display and add them to the interface.
+         * Moved first so they'll be at top of the z-order, for use with textDisplaysLargerTemp.
+         */
+
+        textDisplaysLargerTemp = false;
+        textDisplaysLargerTemp_needsLayout = false;
+        textInputHasMouse = false;
+        textDisplayHasMouse = false;
+        chatDisplayHasMouse = false;
+
+        textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
+        textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        textDisplay.setBackground(new Color(255, 230, 162));
+        textDisplay.setForeground(Color.black);
+        textDisplay.setEditable(false);
+        add(textDisplay);
+        if (is6player)
+            textDisplay.addMouseListener(this);
+        textDisplayRollExpected = 0;
+
+        chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
+        chatDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        chatDisplay.setBackground(new Color(255, 230, 162));
+        chatDisplay.setForeground(Color.black);
+        chatDisplay.setEditable(false);
+        if (is6player)
+            chatDisplay.addMouseListener(this);
+        add(chatDisplay);
+
+        textInput = new TextField();
+        textInput.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        textInputListener = new SOCPITextfieldListener(this); 
+        textInputHasSent = false;
+        textInputGreyCountdown = textInputGreyCountFrom;
+        textInput.addKeyListener(textInputListener);
+        textInput.addTextListener(textInputListener);
+        textInput.addFocusListener(textInputListener);
+
+        FontMetrics fm = this.getFontMetrics(textInput.getFont());
+        textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4);
+        textInput.setBackground(Color.white);  // new Color(255, 230, 162));
+        textInput.setForeground(Color.black);
+        textInput.setEditable(false);
+        textInputIsInitial = false;  // due to "please wait"
+        textInput.setText("Please wait...");
+        add(textInput);
+        textInput.addActionListener(this);
+        if (is6player)
+            textInput.addMouseListener(this);
+
+        /**
          * initialize the player hand displays and add them to the interface
          */
         hands = new SOCHandPanel[game.maxPlayers];
@@ -422,43 +512,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             updatePlayerLimitDisplay(true, -1);  // Player data may not be received yet;
                 // game is created empty, then SITDOWN messages are received from server.
         }
-
-        /**
-         * initialize the text input and display and add them to the interface
-         */
-        textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
-        textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        textDisplay.setBackground(new Color(255, 230, 162));
-        textDisplay.setForeground(Color.black);
-        textDisplay.setEditable(false);
-        add(textDisplay);
-        textDisplayRollExpected = 0;
-
-        chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
-        chatDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        chatDisplay.setBackground(new Color(255, 230, 162));
-        chatDisplay.setForeground(Color.black);
-        chatDisplay.setEditable(false);
-        add(chatDisplay);
-
-        textInput = new TextField();
-        textInput.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        textInputListener = new SOCPITextfieldListener(this); 
-        textInputHasSent = false;
-        textInputGreyCountdown = textInputGreyCountFrom;
-        textInput.addKeyListener(textInputListener);
-        textInput.addTextListener(textInputListener);
-        textInput.addFocusListener(textInputListener);
-
-        FontMetrics fm = this.getFontMetrics(textInput.getFont());
-        textInput.setSize(SOCBoardPanel.PANELX, fm.getHeight() + 4);
-        textInput.setBackground(Color.white);  // new Color(255, 230, 162));
-        textInput.setForeground(Color.black);
-        textInput.setEditable(false);
-        textInputIsInitial = false;  // due to "please wait"
-        textInput.setText("Please wait...");
-        add(textInput);
-        textInput.addActionListener(this);
 
         /** If player requests window close, ask if they're sure, leave game if so */
         if (firstCall)
@@ -1730,9 +1783,23 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             tdh = tah / 2;
             cdh = tah - tdh;
         }
-        textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);
-        chatDisplay.setBounds(i.left + hw + 8, i.top + 4 + tdh, bw, cdh);
-        textInput.setBounds(i.left + hw + 8, i.top + 4 + tah, bw, tfh);
+        if (textDisplaysLargerTemp_needsLayout && textDisplaysLargerTemp)
+        {
+            // expanded size (temporary)
+            final int x = i.left + (hw / 2);
+            final int w = dim.width - 2 * (hw - x);
+            int h = 3 * tdh;
+            textDisplay.setBounds(x, i.top + 4, w, h);
+            chatDisplay.setBounds(x, i.top + 4 + h, w, cdh + 20);
+            h += cdh + 20;
+            textInput.setBounds(x, i.top + 4 + h, w, tfh);            
+        } else {
+            // standard size
+            textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);
+            chatDisplay.setBounds(i.left + hw + 8, i.top + 4 + tdh, bw, cdh);
+            textInput.setBounds(i.left + hw + 8, i.top + 4 + tah, bw, tfh);
+        }
+        textDisplaysLargerTemp_needsLayout = false;
 
         npix = textDisplay.getPreferredSize().width;
         ncols = (int) ((((float) bw) * 100.0) / ((float) npix)) - 2;
@@ -1757,6 +1824,88 @@ public class SOCPlayerInterface extends Frame implements ActionListener
             repaint();
         }
     }
+
+    /**
+     * For 6-player board, make the text displays larger/smaller when mouse
+     * enters/exits them.
+     * Timer will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout().
+     * Wait 100 ms first, to avoid flicker in case of several related
+     * {@link #mouseExited(MouseEvent)}/{@link #mouseEntered(MouseEvent)} events
+     * (such as moving mouse from {@link #textDisplay} to {@link #chatDisplay}).
+     * @since 1.1.08
+     */
+    private void textDisplaysLargerSetResizeTimer()
+    {
+        getEventTimer().schedule(new SOCPITextDisplaysLargerTask(), 100 /* ms */ );
+    }
+
+    /**
+     * Track TextField mouse cursor entry on 6-player board (MouseListener).
+     * Listener is not added unless {@link #is6player}.
+     * For use by {@link #textDisplay}, {@link #chatDisplay}, {@link #textInput}.
+     * Calls {@link #textDisplaysLargerSetResizeTimer()}.
+     * @since 1.1.08
+     */
+    public void mouseEntered(MouseEvent e)
+    {
+        if (! is6player)
+            return;
+
+        if (e.getSource() == textDisplay)
+            textDisplayHasMouse = true;
+        else if (e.getSource() == chatDisplay)
+            chatDisplayHasMouse = true;
+        else if (e.getSource() == textInput)
+            textInputHasMouse = true;
+
+        // will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout()
+        textDisplaysLargerSetResizeTimer();
+    }
+
+    /**
+     * Track TextField mouse cursor exit on 6-player board (MouseListener).
+     * Same details as {@link #mouseEntered(MouseEvent)}.
+     * @since 1.1.08
+     */
+    public void mouseExited(MouseEvent e)
+    {
+        if (! is6player)
+            return;
+
+        if (e.getSource() == textDisplay)
+            textDisplayHasMouse = false;
+        else if (e.getSource() == chatDisplay)
+            chatDisplayHasMouse = false;
+        else if (e.getSource() == textInput)
+            textInputHasMouse = false;
+
+        // will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout()
+        textDisplaysLargerSetResizeTimer();
+    }
+
+    /**
+     * Stub for MouseListener.
+     * @since 1.1.08
+     */
+    public void mouseClicked(MouseEvent e) { }
+
+    /**
+     * Stub for MouseListener.
+     * @since 1.1.08
+     */
+    public void mousePressed(MouseEvent e) { }
+
+    /**
+     * Stub for MouseListener.
+     * @since 1.1.08
+     */
+    public void mouseReleased(MouseEvent e) { }
+
+    //========================================================
+    /**
+     * Nested classes begin here
+     */
+    //========================================================
 
     /**
      * This is the dialog to vote on another player's board reset request.
@@ -2000,4 +2149,36 @@ public class SOCPlayerInterface extends Frame implements ActionListener
         }
 
     }  // SOCPIDiscardMsgTask
+
+    /**
+     * For 6-player board, make the text displays larger/smaller when mouse
+     * enters/exits them. Wait 100 ms first, to avoid flicker in case of several related
+     * {@link #mouseExited(MouseEvent)}/{@link #mouseEntered(MouseEvent)} events
+     * (such as moving mouse from {@link #textDisplay} to {@link #chatDisplay}).
+     *<P>
+     * Used only when {@link SOCPlayerInterface#is6player} true.
+     * @author Jeremy D Monin <jeremy@nand.net>
+     * @since 1.1.08
+     */
+    private class SOCPITextDisplaysLargerTask extends TimerTask
+    {
+        /**
+         * Called when timer fires; see class javadoc for actions taken.
+         */
+        public void run()
+        {
+            final boolean wantsLarger =
+                textDisplayHasMouse || chatDisplayHasMouse || textInputHasMouse;
+
+            if (textDisplaysLargerTemp != wantsLarger)
+            {
+                textDisplaysLargerTemp = wantsLarger;
+                textDisplaysLargerTemp_needsLayout = true;
+                invalidate();
+                validate();
+            }
+        }
+
+    }  // SOCPITextDisplaysLargerTask
+
 }  // SOCPlayerInterface
