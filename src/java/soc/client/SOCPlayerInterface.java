@@ -1790,8 +1790,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             final int w = dim.width - 2 * (hw - x);
             int h = 3 * tdh;
             textDisplay.setBounds(x, i.top + 4, w, h);
-            chatDisplay.setBounds(x, i.top + 4 + h, w, cdh + 20);
-            h += cdh + 20;
+            if (! game.isLocal)
+                cdh += 20;
+            chatDisplay.setBounds(x, i.top + 4 + h, w, cdh);
+            h += cdh;
             textInput.setBounds(x, i.top + 4 + h, w, tfh);            
         } else {
             // standard size
