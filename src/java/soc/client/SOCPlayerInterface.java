@@ -1034,32 +1034,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             textDisplayRollExpected = 0;  // Reset for next call
         }
 
-        StringTokenizer st = new StringTokenizer(s, " \n", true);
-        String row = "";
-
+        StringTokenizer st = new StringTokenizer(s, "\n", false);
         while (st.hasMoreElements())
         {
-            String tk = st.nextToken();
-
-            if (tk.equals("\n"))
-            {
-                continue;
-            }
-
-            if ((row.length() + tk.length()) > ncols)
-            {
-                textDisplay.append(row + "\n");
-                row = tk;
-
-                continue;
-            }
-
-            row += tk;
-        }
-
-        if (row.trim().length() > 0)
-        {
-            textDisplay.append(row + "\n");
+            String tk = st.nextToken().trim();
+            textDisplay.append(tk + "\n");  // TextArea will soft-wrap within the line
         }
     }
 
@@ -1070,32 +1049,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     public void chatPrint(String s)
     {
-        StringTokenizer st = new StringTokenizer(s, " \n", true);
-        String row = "";
-
+        StringTokenizer st = new StringTokenizer(s, "\n", false);
         while (st.hasMoreElements())
         {
-            String tk = st.nextToken();
-
-            if (tk.equals("\n"))
-            {
-                continue;
-            }
-
-            if ((row.length() + tk.length()) > ncols)
-            {
-                chatDisplay.append(row + "\n");
-                row = tk;
-
-                continue;
-            }
-
-            row += tk;
-        }
-
-        if (row.trim().length() > 0)
-        {
-            chatDisplay.append(row + "\n");
+            String tk = st.nextToken().trim();
+            chatDisplay.append(tk + "\n");  // TextArea will soft-wrap within the line
         }
     }
 
