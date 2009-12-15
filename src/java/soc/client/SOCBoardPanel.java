@@ -769,7 +769,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         board = game.getBoard();
         isScaled = false;
         scaledMissedImage = false;
-        is6player = (board.getBoardEncodingFormat() == SOCBoard.BOARD_ENCODING_6PLAYER);
+        is6player = (board.getBoardEncodingFormat() == SOCBoard.BOARD_ENCODING_6PLAYER)
+            || (game.maxPlayers > 4);
         isRotated = isScaledOrRotated = is6player;
         if (isRotated)
         {
