@@ -349,7 +349,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected boolean is6player;
 
     /**
-     * The board is visually rotated 90 degrees clockwise (game opt DEBUGROTABOARD)
+     * The board is visually rotated 90 degrees clockwise (6-player: game opt PL > 4)
      * compared to the internal coordinates.
      *<P>
      * Use this for rotation:
@@ -770,7 +770,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         isScaled = false;
         scaledMissedImage = false;
         is6player = (board.getBoardEncodingFormat() == SOCBoard.BOARD_ENCODING_6PLAYER);
-        isRotated = isScaledOrRotated = is6player || game.isGameOptionSet("DEBUGROTABOARD");
+        isRotated = isScaledOrRotated = is6player;
         if (isRotated)
         {
             // scaledPanelX, scaledPanelY are on-screen minimum size.

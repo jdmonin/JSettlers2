@@ -205,10 +205,6 @@ public class SOCGameOption implements Cloneable, Comparable
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
 
-        // For testing rotated board (for 5,6-player board)
-        opt.put("DEBUGROTABOARD", new SOCGameOption
-                ("DEBUGROTABOARD", 1108, 1108, false, true, "Rotate board"));
-
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
 
