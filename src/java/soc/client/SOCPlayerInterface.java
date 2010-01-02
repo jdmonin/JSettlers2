@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@ import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -34,6 +35,7 @@ import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
@@ -177,6 +179,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected SnippingTextArea chatDisplay;
 
     /**
+     * Fix for win32 scrollbar access during {@link #textDisplaysLargerTemp}.  Null otherwise.
+     * Appears just to right of the text displays.
+     * @since 1.1.08
+     */
+    private SOCPIInvisibleColorSq textDisplaysLargerSBFix;
+
+    /**
      * In the {@link #is6player 6-player} layout, the text display fields
      * ({@link #textDisplay}, {@link #chatDisplay}) aren't as large.
      * When this flag is set, they've temporarily been made larger.
@@ -197,7 +206,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * @see SOCPITextDisplaysLargerTask
      * @since 1.1.08
      */
-    private boolean textInputHasMouse, textDisplayHasMouse, chatDisplayHasMouse;
+    private boolean textInputHasMouse, textDisplayHasMouse, chatDisplayHasMouse, sbFixHasMouse;
 
     //========================================================
     /**
@@ -433,6 +442,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         textInputHasMouse = false;
         textDisplayHasMouse = false;
         chatDisplayHasMouse = false;
+        sbFixHasMouse = false;
 
         textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
         textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
@@ -473,6 +483,21 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         textInput.addActionListener(this);
         if (is6player)
             textInput.addMouseListener(this);
+
+        if (is6player)
+        {
+            final String osName = System.getProperty("os.name");
+            final boolean isWindows = true; // (osName != null) && (osName.toLowerCase().indexOf("windows") > 0);
+
+            // TODO: initially invis
+            if (isWindows)
+            {
+                textDisplaysLargerSBFix = new SOCPIInvisibleColorSq();
+                textDisplaysLargerSBFix.setVisible(true);
+                add(textDisplaysLargerSBFix);
+                textDisplaysLargerSBFix.addMouseListener(this);
+            }
+        }
 
         /**
          * initialize the player hand displays and add them to the interface
@@ -1752,12 +1777,20 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 cdh += 20;
             chatDisplay.setBounds(x, i.top + 4 + h, w, cdh);
             h += cdh;
-            textInput.setBounds(x, i.top + 4 + h, w, tfh);            
+            textInput.setBounds(x, i.top + 4 + h, w, tfh);
         } else {
             // standard size
             textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);
             chatDisplay.setBounds(i.left + hw + 8, i.top + 4 + tdh, bw, cdh);
             textInput.setBounds(i.left + hw + 8, i.top + 4 + tah, bw, tfh);
+        }
+        if (textDisplaysLargerSBFix != null)
+        {
+            textDisplaysLargerSBFix.setVisible(textDisplaysLargerTemp);
+            final Rectangle bounds = textDisplay.getBounds();
+            final Rectangle tiBounds = textInput.getBounds();
+            textDisplaysLargerSBFix.setBounds
+                (bounds.x + bounds.width, bounds.y, 20, 100 + (tiBounds.y + tiBounds.height) - bounds.y + 1);
         }
         textDisplaysLargerTemp_needsLayout = false;
 
@@ -1811,12 +1844,15 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         if (! is6player)
             return;
 
-        if (e.getSource() == textDisplay)
+        final Object src = e.getSource(); 
+        if (src == textDisplay)
             textDisplayHasMouse = true;
-        else if (e.getSource() == chatDisplay)
+        else if (src == chatDisplay)
             chatDisplayHasMouse = true;
-        else if (e.getSource() == textInput)
+        else if (src == textInput)
             textInputHasMouse = true;
+        else if (src == textDisplaysLargerSBFix)
+            sbFixHasMouse = true;
 
         // will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout()
         textDisplaysLargerSetResizeTimer();
@@ -1832,12 +1868,15 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         if (! is6player)
             return;
 
-        if (e.getSource() == textDisplay)
+        final Object src = e.getSource(); 
+        if (src == textDisplay)
             textDisplayHasMouse = false;
-        else if (e.getSource() == chatDisplay)
+        else if (src == chatDisplay)
             chatDisplayHasMouse = false;
-        else if (e.getSource() == textInput)
+        else if (src == textInput)
             textInputHasMouse = false;
+        else if (src == textDisplaysLargerSBFix)
+            sbFixHasMouse = false;
 
         // will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout()
         textDisplaysLargerSetResizeTimer();
@@ -2128,7 +2167,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         public void run()
         {
             final boolean wantsLarger =
-                textDisplayHasMouse || chatDisplayHasMouse || textInputHasMouse;
+                textDisplayHasMouse || chatDisplayHasMouse || textInputHasMouse || sbFixHasMouse;
 
             if (textDisplaysLargerTemp != wantsLarger)
             {
@@ -2140,5 +2179,38 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
     }  // SOCPITextDisplaysLargerTask
+
+    /**
+     * For 6-player board, this invisible guard area ({@link SOCPlayerInterface#textDisplaysLargerSBFix})
+     * is next to the text-display scrollbars on win32.  Otherwise, the mouseover does not work. 
+     * Used only when {@link SOCPlayerInterface#is6player} true.
+     * @author Jeremy D Monin <jeremy@nand.net>
+     * @since 1.1.08
+     */
+    private static class SOCPIInvisibleColorSq extends ColorSquare  // Component
+    {
+        private Dimension sz = null;
+
+        public void setBounds(final int x, final int y, final int w, final int h)
+        {
+            sz = new Dimension(w, h);
+            super.setBounds(x, y, w, h);
+        }
+
+        public Dimension getPreferredSize()
+        {
+            if (sz == null)
+                sz = new Dimension(30, 30);
+            return sz;
+        }
+
+        public void update(Graphics g) { paint(g); }
+        public void paint(Graphics g) {
+            if (sz == null)
+                return;
+            g.setColor(Color.blue);
+            g.fillRect(0, 0, sz.width, sz.height);
+        }
+    }
 
 }  // SOCPlayerInterface
