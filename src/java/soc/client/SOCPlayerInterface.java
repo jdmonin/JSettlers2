@@ -72,6 +72,18 @@ import java.io.StringWriter;
 public class SOCPlayerInterface extends Frame implements ActionListener, MouseListener
 {
     /**
+     * System property os.name; For use by {@link #isPlatformWindows}.
+     * @since 1.1.08
+     */
+    private final static String SOCPI_osName = System.getProperty("os.name");
+
+    /**
+     * Are we running on the Windows platform, according to {@link #osName}?
+     * @since 1.1.08
+     */
+    private final static boolean SOCPI_isPlatformWindows = (SOCPI_osName != null) && (SOCPI_osName.toLowerCase().indexOf("windows") != -1);
+
+    /**
      * the board display
      */
     protected SOCBoardPanel boardPanel;
@@ -419,11 +431,18 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * more initialization stuff
          */
-        setLocation(50, 50);
+        int piHeight = 650;
+        if (is6player && SOCPI_isPlatformWindows)
+        {
+            setLocation(50, 40);
+            piHeight += 25;
+        } else {
+            setLocation(50, 50);
+        }
         if (is6player)
-            setSize((2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width, 650);
+            setSize((2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width, piHeight);
         else
-            setSize(830, 650);
+            setSize(830, piHeight);
         validate();
 
         if (didHideTemp)
@@ -552,10 +571,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          */
         if (is6player)
         {
-            final String osName = System.getProperty("os.name");
-            final boolean isWindows = (osName != null) && (osName.toLowerCase().indexOf("windows") > 0);
-
-            if (isWindows)
+            if (SOCPI_isPlatformWindows)
             {
                 sbFixNeeded = true;
                 hands[0].addMouseListener(this);  // upper-left
@@ -1786,6 +1802,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             // Game textarea larger than chat textarea
             cdh = (int) (2.2f * tfh);
             tdh = tah - cdh;
+            if (tdh < cdh)
+            {
+                tdh = cdh;
+                cdh = tah - cdh;
+            }
         }
         else
         {
@@ -1798,7 +1819,22 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             // expanded size (temporary)
             final int x = i.left + (hw / 2);
             final int w = dim.width - 2 * (hw - x);
-            int h = 3 * tdh;
+            int h = 5 * tfh;  // initial guess of height
+            if (h < boardPanel.getY() - tfh)
+                h = boardPanel.getY() - tfh;
+
+            // look for a better height;
+            // Use height of shortest handpanel as reference.
+            {
+                int hf = hands[0].getHeight();
+                int h1 = hands[1].getHeight();
+                if (h1 < hf)
+                    hf = h1;
+                hf = hf - cdh - tfh - 15;
+                if (hf > h)
+                    h = hf;
+            }
+
             textDisplay.setBounds(x, i.top + 4, w, h);
             if (! game.isLocal)
                 cdh += 20;
