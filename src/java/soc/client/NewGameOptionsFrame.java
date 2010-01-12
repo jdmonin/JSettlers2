@@ -105,6 +105,7 @@ public class NewGameOptionsFrame extends Frame
     private TextField msgText;
 
     // // TODO refactor; these are from connectorprac panel
+    private static final Color NGOF_BG = new Color(Integer.parseInt("61AF71",16));
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
 
@@ -152,7 +153,7 @@ public class NewGameOptionsFrame extends Frame
         }
 
         // same Frame setup as in SOCPlayerClient.main
-        setBackground(new Color(Integer.parseInt("61AF71",16)));
+        setBackground(NGOF_BG);
         setForeground(Color.black);
 
         addKeyListener(this);
@@ -195,6 +196,8 @@ public class NewGameOptionsFrame extends Frame
         GridBagConstraints gbc = new GridBagConstraints();
 
         Panel bp = new Panel(gbl);  // Actual button panel
+        bp.setForeground(getForeground());
+        bp.setBackground(NGOF_BG);  // If this is omitted, firefox 3.5+ applet uses themed bg-color (seen OS X)
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
