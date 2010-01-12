@@ -577,6 +577,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 hands[0].addMouseListener(this);  // upper-left
                 hands[1].addMouseListener(this);  // upper-right
                 boardPanel.addMouseListener(this);
+                // Note not just on firstCall,
+                // because hands[] is initialized above.
             }
         }
 
@@ -1732,7 +1734,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         // Hands start at top-left, go clockwise;
         // hp.setBounds also sets its blankStandIn's bounds.
+        // Note that any hands[] could be null, due to async adds, calls, invalidations.
 
+        try
+        {
         if (! is6player)
         {
             hands[0].setBounds(i.left + 4, i.top + 4, hw, hh);
@@ -1795,6 +1800,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 }
             }
         }
+        }
+        catch (NullPointerException e) {}
 
         int tdh, cdh;
         if (game.isLocal)
