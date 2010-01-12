@@ -27,7 +27,6 @@ import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -35,7 +34,6 @@ import java.awt.FontMetrics;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
@@ -2220,38 +2218,5 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
     }  // SOCPITextDisplaysLargerTask
-
-    /**
-     * For 6-player board, this invisible guard area ({@link SOCPlayerInterface#textDisplaysLargerSBFix})
-     * is next to the text-display scrollbars on win32.  Otherwise, the mouseover does not work. 
-     * Used only when {@link SOCPlayerInterface#is6player} true.
-     * @author Jeremy D Monin <jeremy@nand.net>
-     * @since 1.1.08
-     */
-    private static class SOCPIInvisibleColorSq extends ColorSquare  // Component
-    {
-        private Dimension sz = null;
-
-        public void setBounds(final int x, final int y, final int w, final int h)
-        {
-            sz = new Dimension(w, h);
-            super.setBounds(x, y, w, h);
-        }
-
-        public Dimension getPreferredSize()
-        {
-            if (sz == null)
-                sz = new Dimension(30, 30);
-            return sz;
-        }
-
-        public void update(Graphics g) { paint(g); }
-        public void paint(Graphics g) {
-            if (sz == null)
-                return;
-            g.setColor(Color.blue);
-            g.fillRect(0, 0, sz.width, sz.height);
-        }
-    }
 
 }  // SOCPlayerInterface
