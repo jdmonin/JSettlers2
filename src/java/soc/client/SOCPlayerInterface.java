@@ -1879,6 +1879,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             else if (src == hands[1])
                 sbFixRHasMouse = true;
         }
+        else
+        {
+            return;  // <-- Unknown source; don't trigger textDisplays resize ---
+        }
 
         // will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout()
         textDisplaysLargerSetResizeTimer();
@@ -1911,6 +1915,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 sbFixRHasMouse = false;
 
             return;  // <-- early return: no resize from exiting sbFix areas ---
+        }
+        else
+        {
+            return;  // <-- Unknown source; don't trigger textDisplays resize ---
         }
 
         // will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout()
