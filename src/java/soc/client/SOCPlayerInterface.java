@@ -179,13 +179,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected SnippingTextArea chatDisplay;
 
     /**
-     * Fix for win32 scrollbar access during {@link #textDisplaysLargerTemp}.  Null otherwise.
-     * Appears just to right of the text displays.
-     * @since 1.1.08
-     */
-    private SOCPIInvisibleColorSq textDisplaysLargerSBFix;
-
-    /**
      * In the {@link #is6player 6-player} layout, the text display fields
      * ({@link #textDisplay}, {@link #chatDisplay}) aren't as large.
      * When this flag is set, they've temporarily been made larger.
@@ -202,11 +195,35 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     private boolean textDisplaysLargerTemp_needsLayout;
 
     /**
-     * Mouse hover flags, for use with {@link #textDisplaysLargerTemp}.
+     * Mouse hover flags, for use on 6-player board with {@link #textDisplaysLargerTemp}.
+     *<P>
+     * Set/cleared in {@link #mouseEntered(MouseEvent)}, {@link #mouseExited(MouseEvent)}.
      * @see SOCPITextDisplaysLargerTask
      * @since 1.1.08
      */
-    private boolean textInputHasMouse, textDisplayHasMouse, chatDisplayHasMouse, sbFixHasMouse;
+    private boolean textInputHasMouse, textDisplayHasMouse, chatDisplayHasMouse;
+
+    /**
+     * In 6-player games, text areas temporarily zoom when the mouse is over them.
+     * On windows, the scrollbars aren't considered part of the text areas, so
+     * we get a mouseExited when user is trying to scroll the text area.
+     * Workaround: Instead of looking for mouseExited, look for mouseEntered on
+     * handpanels or boardpanel.
+     * @see #textDisplaysLargerTemp
+     * @see #sbFixBHasMouse
+     */
+    private boolean sbFixNeeded;
+
+    /**
+     * Mouse hover flags, for use on 6-player board with {@link #textDisplaysLargerTemp}
+     * and {@link #sbFixNeeded}. Used only on platforms (windows) where the scrollbar isn't
+     * considered part of the textarea and triggers a mouseExited.
+     *<P>
+     * Set/cleared in {@link #mouseEntered(MouseEvent)}, {@link #mouseExited(MouseEvent)}.
+     * @see SOCPITextDisplaysLargerTask
+     * @since 1.1.08
+     */
+    private boolean  sbFixLHasMouse, sbFixRHasMouse, sbFixBHasMouse;
 
     //========================================================
     /**
@@ -435,6 +452,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * initialize the text input and display and add them to the interface.
          * Moved first so they'll be at top of the z-order, for use with textDisplaysLargerTemp.
+         * In 6-player games, these text areas' sizes are "zoomed" larger temporarily when
+         * the mouse hovers over them, for better visibility.
          */
 
         textDisplaysLargerTemp = false;
@@ -442,7 +461,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         textInputHasMouse = false;
         textDisplayHasMouse = false;
         chatDisplayHasMouse = false;
-        sbFixHasMouse = false;
+        sbFixNeeded = false;
+        sbFixLHasMouse = false;
+        sbFixRHasMouse = false;
+        sbFixBHasMouse = false;
 
         textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
         textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
@@ -484,21 +506,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         if (is6player)
             textInput.addMouseListener(this);
 
-        if (is6player)
-        {
-            final String osName = System.getProperty("os.name");
-            final boolean isWindows = true; // (osName != null) && (osName.toLowerCase().indexOf("windows") > 0);
-
-            // TODO: initially invis
-            if (isWindows)
-            {
-                textDisplaysLargerSBFix = new SOCPIInvisibleColorSq();
-                textDisplaysLargerSBFix.setVisible(true);
-                add(textDisplaysLargerSBFix);
-                textDisplaysLargerSBFix.addMouseListener(this);
-            }
-        }
-
         /**
          * initialize the player hand displays and add them to the interface
          */
@@ -537,6 +544,28 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             updatePlayerLimitDisplay(true, -1);  // Player data may not be received yet;
                 // game is created empty, then SITDOWN messages are received from server.
         }
+
+        /**
+         * In 6-player games, text areas temporarily zoom when the mouse is over them.
+         * On windows, the scrollbars aren't considered part of the text areas, so
+         * we get a mouseExited when user is trying to scroll the text area.
+         * Workaround: Instead of looking for mouseExited, look for mouseEntered on
+         * handpanels or boardpanel. 
+         */
+        if (is6player)
+        {
+            final String osName = System.getProperty("os.name");
+            final boolean isWindows = (osName != null) && (osName.toLowerCase().indexOf("windows") > 0);
+
+            if (isWindows)
+            {
+                sbFixNeeded = true;
+                hands[0].addMouseListener(this);  // upper-left
+                hands[1].addMouseListener(this);  // upper-right
+                boardPanel.addMouseListener(this);
+            }
+        }
+
 
         /** If player requests window close, ask if they're sure, leave game if so */
         if (firstCall)
@@ -1784,14 +1813,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             chatDisplay.setBounds(i.left + hw + 8, i.top + 4 + tdh, bw, cdh);
             textInput.setBounds(i.left + hw + 8, i.top + 4 + tah, bw, tfh);
         }
-        if (textDisplaysLargerSBFix != null)
-        {
-            textDisplaysLargerSBFix.setVisible(textDisplaysLargerTemp);
-            final Rectangle bounds = textDisplay.getBounds();
-            final Rectangle tiBounds = textInput.getBounds();
-            textDisplaysLargerSBFix.setBounds
-                (bounds.x + bounds.width, bounds.y, 20, 100 + (tiBounds.y + tiBounds.height) - bounds.y + 1);
-        }
         textDisplaysLargerTemp_needsLayout = false;
 
         npix = textDisplay.getPreferredSize().width;
@@ -1851,8 +1872,15 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             chatDisplayHasMouse = true;
         else if (src == textInput)
             textInputHasMouse = true;
-        else if (src == textDisplaysLargerSBFix)
-            sbFixHasMouse = true;
+        else if (textDisplaysLargerTemp)
+        {
+            if (src == boardPanel)
+                sbFixBHasMouse = true;
+            else if (src == hands[0])
+                sbFixLHasMouse = true;
+            else if (src == hands[1])
+                sbFixRHasMouse = true;
+        }
 
         // will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout()
         textDisplaysLargerSetResizeTimer();
@@ -1875,8 +1903,17 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             chatDisplayHasMouse = false;
         else if (src == textInput)
             textInputHasMouse = false;
-        else if (src == textDisplaysLargerSBFix)
-            sbFixHasMouse = false;
+        else if (sbFixNeeded)
+        {
+            if (src == boardPanel)
+                sbFixBHasMouse = false;
+            else if (src == hands[0])
+                sbFixLHasMouse = false;
+            else if (src == hands[1])
+                sbFixRHasMouse = false;
+
+            return;  // <-- early return: no resize from exiting sbFix areas ---
+        }
 
         // will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout()
         textDisplaysLargerSetResizeTimer();
@@ -2166,8 +2203,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          */
         public void run()
         {
+            final boolean leftLarger =
+                sbFixNeeded 
+                    && (sbFixLHasMouse || sbFixRHasMouse || sbFixBHasMouse);
             final boolean wantsLarger =
-                textDisplayHasMouse || chatDisplayHasMouse || textInputHasMouse || sbFixHasMouse;
+                (textDisplayHasMouse || chatDisplayHasMouse || textInputHasMouse)
+                || (sbFixNeeded && textDisplaysLargerTemp && ! leftLarger);
 
             if (textDisplaysLargerTemp != wantsLarger)
             {
