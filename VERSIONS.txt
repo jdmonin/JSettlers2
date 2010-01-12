@@ -16,6 +16,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 - BoardPanel faster redraw: cache image of board without pieces
 - BoardPanel javadocs explain nodeMap and initNodeMapAux
 - SOCRobotBrain refactor some message-handlers out of run() (C McNeil idea)
+- Old version history (pre-sourceforge): Added file doc/old-updates-rsthomas.html found on web at http://jrh-xp.byu.edu/settlers/updates.htm
 
     > 1.1.07 (build 20091031)
 - Per-game options framework, including these options:
