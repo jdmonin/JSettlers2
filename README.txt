@@ -77,7 +77,10 @@ Setting up and testing
 
 From the command line, make sure you are in the JSettlers distribution
 directory which contains both JSettlers.jar, settlers-server.jar and the
-"lib" directory.  Start the server with the following command
+"lib" directory.  (If you have downloaded jsettlers-1.1.xx-full.tar.gz,
+look in the src/target directory for these files.)
+
+Start the server with the following command
 (server requires Java 1.4 or higher):
 
   java -jar JSettlersServer.jar 8880 10 dbUser dbPass
@@ -87,8 +90,8 @@ see a warning with the appropriate explanation:
 
   Warning: failed to initialize database: ....
 
-The server will function normally except that user accounts cannot be
-maintained.
+MySQL is not required: Without it, the server will function normally except
+that user accounts cannot be maintained.
 
 Now, from another command line window, start the player client with
 the following command:
