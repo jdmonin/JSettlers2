@@ -1,5 +1,6 @@
-README.developer - Notes and current status of 2008 JSettlers development (version 1.10 at nand.net)
+README.developer - Notes and current status of 2010 JSettlers development (version 1.1.xx at nand.net)
 	http://nand.net/jsettlers/devel/
+	http://sourceforge.net/projects/jsettlers2/
 
 The main server class is soc.server.SOCServer.
 The client communication is soc.client.SOCPlayerClient, and in-game interface is in soc.client.SOCPlayerInterface.
