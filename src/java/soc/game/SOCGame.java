@@ -311,6 +311,9 @@ public class SOCGame implements Serializable, Cloneable
      * client to route messages to appropriate connection.
      * NOT CURRENTLY SET AT SERVER.  Instead check if server's strSocketName != null,
      * or if connection instanceof LocalStringConnection.
+     *<P>
+     * Since 1.1.09: This flag is set at the server, only if the server is a local practice
+     * server whose stringport name is <tt>SOCServer.PRACTICE_STRINGPORT</tt>.
      */
     public boolean isLocal;
 
@@ -4339,6 +4342,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Can the player either buy and place a piece (or development card) now,
      * or can they ask now for the Special Building Phase (in a 6-player game)?
+     * Based on game state and current player number, not on resources available. 
      *
      * @param pn  Player number
      * @see #canAskSpecialBuild(int, boolean)

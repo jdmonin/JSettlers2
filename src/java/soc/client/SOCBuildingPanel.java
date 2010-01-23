@@ -524,7 +524,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
                     sbLab.setBackground(want);
                     sbIsHilight = askedSB;
                 }
-                sbBut.setEnabled(currentCanBuy && anyLabelBuy && ! (askedSB || isCurrent));
+                sbBut.setEnabled(currentCanBuy && ! (askedSB || isCurrent));
             }
         }
     }
