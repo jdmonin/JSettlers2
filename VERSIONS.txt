@@ -1,181 +1,264 @@
-[ The list of the different public versions of JSettlers ]
+Java Settlers - A web-based client-server version of Settlers of Catan
 
-Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
-and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
+Introduction
+------------
 
-    > 1.1.08 (build 20100112)
-- 6-player board, with Special Building Phase rule
-- Can now sometimes reconnect after connection to server is lost,
-     when message "A player with that nickname is already logged in" appears.
-- Smaller, cleaner building panel
-- Rotated-board mode, to make it easier to fit a larger board
-- Re-word counter offer text to: Give Them / You Get
-- Cleaner scaled graphics: Draw hex dice-number circles on hex, instead of GIFs.
-- Chat text prompt ("type here to chat") cleared when clicked (D Campbell idea)
-- Fix button redraw for Discard, Year of Plenty popups on OSX
-- Fix new-game options bg color on OSX Firefox 3.5+
-- BoardPanel faster redraw: cache image of board without pieces
-- BoardPanel javadocs explain nodeMap and initNodeMapAux
-- SOCRobotBrain refactor some message-handlers out of run() (C McNeil idea)
-- Old version history (pre-sourceforge): Added file src/docs/old-updates-rsthomas.html found on web at http://jrh-xp.byu.edu/settlers/updates.htm
+JSettlers is a web-based version of the board game Settlers of Catan
+written in Java. This client-server system supports multiple
+simultaneous games between people and computer-controlled
+opponents. Initially created as an AI research project.
 
-    > 1.1.07 (build 20091031)
-- Per-game options framework, including these options:
-	- PL  Maximum # players (2-4)
-	- RD  Robber can't return to the desert
-	- N7  Roll no 7s during first # rounds
-	- BC  Break up clumps of # or more same-type ports/hexes
-	- NT  No trading allowed
-- Re-word counter offer text
-- Hide trade offer after rejecting counteroffer (John F idea)
-- Allow debug commands in practice games
-- New applet parameter "nickname" for use with dynamic html (Rick Jones idea)
-- Framework for parsing "-" / "--" options at server commandline
-- Refactor per-turn resets from many places to new game.updateAtTurn()
-- GameList kept at server/client
-- Bugfix: Could sit down at 2 positions due to network lag
-- Rescaled board hex graphics now fall back to polygons if problem occurs
-- Removed unused hex graphics from soc/client/images (clay0-5.gif, misc0-5.gif, ore0-5, sheep0-5, wheat0-5, wood0-5)
-- Fewer disconnect-reconnect debug messages from robots during idle hours
-- Don't cover board with 'choose player' popup (Rowan H idea)
-- AskDialog supports multiple lines with "\n"
+The client may be run as a Java application, or as an applet when
+accessed from a web site which also hosts a JSettlers server.
 
-    > 1.1.06 (build 2009-06-01)
-- Based on 1.1.04's code
-- Monopoly reports (privately) number of resources stolen to each victim
-- Reset practice game, at end of game: New randomly-selected robots, instead of same robots each time
-- STATUSMESSAGE can now carry an integer status value
-- Track and understand client version starting from connect time, not just from joingame time.
-- Can deny entry to individual games based on client's version (ex. client too old to understand a recent game feature, like 6 players)
-- Fewer debug messages from robots during idle hours
-- Many javadocs added
-- Bugfix: Hangs on mac osx 10.5 after a few minutes (SnippingTextArea)
-- Bugfix: After disconnect/rejoin, trade offer panel overlays your controls
-- Bugfix: "Start a local server" ignored port-number textfield, was always default port
-- Bugfix: harmless NullPointerException in SOCBoardPanel.setHoverText for getFontMetrics
+The server may be configured to use a MySQL database to store account
+information.  A client applet to create user accounts is also
+provided.
 
-    > 1.1.05 (backed out)
-JSettlers 1.1.05 had been under development (build 2008-09-13) but its direction is being re-considered.
-Further development is based on 1.1.04.
-- Use Log4j 1.2, vs previous homegrown soc.debug/disableDebug
+JSettlers is an open-source project licensed under the GPL. The
+software is maintained at http://nand.net/jsettlers/devel/
 
-    > 1.1.04 (build 2008-09-06)
-- Bugfix: Cancelling 2nd initial settlement, other players lost resources (SOCPlayer)
-- Bugfix: Don't disable "play card" button after buying or playing a card (SOCHandPanel)
-- Bugfix: Sometimes, "hovering" road or settlement wouldn't show during initial placement (SOCBoardPanel)
-- Give player's win/loss count at end of game, unless first game (new class SOCClientData)
-- Add StringConnection.appData, to support SOCClientData
-- Javadoc adds/updates
+JSettlers was previously hosted at http://sourceforge.net/projects/jsettlers
+but this seems to be abandoned.  Forums for discussions and
+community-based support are available at SourceForge, but may
+not be checked on a frequent basis.
 
-    > 1.1.03 (build 2008-08-26)
-- Reset board: Bugfix: Practice games server version-check
-- Don't show hovering road/settlement/city unless player has the resources
-- "Play card" button: Disable after playing a card; Enable only at start of turn, not after buying a card
-- Bugfix: At end of game, client sometimes incorrectly showed player 0 (Blue) as winner
-- Javadocs clarify SOCPlayerClient local TCP vs practice server
-- Add minor items to TODO in README.developer
+                          -- The JSettlers Development Team
 
-    > 1.1.02 (build 2008-08-17)  http://nand.net/jsettlers/devel/
-- Reset board: If human leaves game before reset, lock their seat against robots
-- Bugfix: Robot disconnect/reconnect version reporting
-- Add minor items to TODO in README.developer
 
-    > 1.1.01 (build 2008-08-12)  http://nand.net/jsettlers/devel/
+Contents
+--------
 
-- Bugfix: If player loses connection while voting for board reset, the vote never completes
-- Bugfix: Reset vote message format (from recent refactoring)
-- Version number dynamic from properties file, not hardcoded in soc.util.Version
-- Utility method SOCMessage.getClassNameShort for cleaner debug-output in template classes' toString
+  Documentation
+  Requirements
+  Setting up and testing
+  Shutting down the server
+  Hosting a JSettlers Server
+  Database Setup
+  Development and Compiling
 
-    > 1.1.00 (build 2008-08-09)  http://nand.net/jsettlers/devel/
 
-- Development at new site, sourceforge project appeared abandoned in 2005
-- Much more visually responsive to game state
-- User-friendly
-	Can right-click on board to build, right-click ports or resource squares to trade  [sf patch 1905791]
-	Can right-click face to choose a new face [sf patch 1860920]
-	Popup dialog buttons wrap if window too narrow
-	Robber doesn't disappear when must be moved, it just "ghosts" [sf patch 1812912]
-	Other minor improvements
-- Local "practice-game" mode, if network connection or server is unavailable
-- Play with 2-4 players, no longer requires 4
-- Larger graphics on board, resizeable for higher-resolution screens [sf patch 1929452, based on images and code of rbrooks9's sf patch 1398331]
-- Ability to reset board, during or after game  [sf feature req. 1110481]
-- Can cancel and re-place initial settlement, if you haven't yet placed the road  [sf patch 1824441]
-- More robust handling if client's connection to server is lost, even if current player
-- Automatic dice roll after 5 seconds, if you have no playable card  [sf patch 1812254]
-- At end of game, show hidden VP cards for all players  [sf patch 1812497]
-- At end of game, give game duration and total connection time
-- Announce when longest road/largest army is stolen
-- Road-building allowed with 1 road [sf patch 1905080]
-- Can win only on your own turn; if not your turn, must wait
-- Less clutter in scrolling message area
-- Confirm quit before closing window
-- Show pieces when rejoining after lost connection
-- Attempt to end turn, if current player leaves the game
-- Client,server versioning; also add BUILDNUM property
-- Can double-click jar for local server hosting (or run w. no arguments); player GUI will ask for IP and port#
-- Robot bugfix, now will re-try if makes a bad piece placement
-- More advance warning when game will soon expire
-- Hilight who won when game is over
-- Reminder to place 2 roads with road-building card
-- Reminder to only play 1 card per turn
-- Reminder when VP cards are played
-- Trade offer's checkboxes track current player
-- New graphics: images/robot1.gif; Removed obsolete: images/arrowL.gif, arrowR.gif
-- Other sourceforge patches applied:
-	1816668 jdmonin AWT debug help
-	1816605 jdmonin Patch for #997263 cannot place road during game start
-	1816581 jdmonin Fix server treater startup race
-	1812257 jdmonin Debug help, minor comments
-	N/A     sfhonza (John Vicherek) "Swinging" number of resources, http://john.vicherek.com/jsettlers-1.0.6.swing_resources.patch
-	1088775 drichardson (Douglas Ryan Richardson) [1039250] Auto-rejecting impossible offers; Make accept button invisible when user cannot accept offer
+Documentation
+-------------
 
-    > 1.0.6 (build 2004-11-17)  http://sourceforge.net/projects/jsettlers
+User documentation for game play is available as .html pages located
+in "docs/users" directory. These can be put on a JSettlers server for
+its users using the applet.
 
-- Fixed the same PORT property error in the Account client
-- Fixed bug which could allow modified clients to invoke admin
-  commands (*STOP*, *KILLCHANNEL*, etc) (Lasse Vartiainen)
-- Fixed 920375, 1022157: mysql-connector-3.x fails: version 2.x works
-  (Mezryn)
-- Fixed 1060651: Bots crash if database backend is used (Jack Twilley)
-- Moved more SQL error handling and reconnecting from SOCServer to
-  SOCDBHelper correcting potential errors like 1060651
+Currently, this README is the only technical documentation for running
+the client or server, setup and other issues. Over time other more
+will be written. If you are interested in helping write documentation
+please contact the development team from the SourceForge site.
 
-    > 1.0.5 (build 2004-06-12)  http://sourceforge.net/projects/jsettlers
 
-- Fixed an error introduced into the applet initialization which kept
-  the PORT property from being read properly
+Requirements
+------------
 
-    > 1.0.4 (build 2004-06-10)  http://sourceforge.net/projects/jsettlers
+To play JSettlers by connecting to a remote server you will need the
+Java Runtime Version 1.4 or above (1.5 or later recommended). To connect as an
+applet, use any browser which is Java enabled (using the browser plug-in).
 
-- build.xml file added for Ant builds
-- soc.util.Version class added so both build files and source code get
-  version and copyright info from build.xml. Clients and server updated
-- Build process creates two jar files: one for client, one for server
-- README updated for jar file invocation, with additional sections for
-  intro, requirements, hosting a server, and development
-- Fix for inconsistent game state when players leave a game.
-- Divider in chat window cannot be moved off-screen
-- Text of game chat now correctly scrolls to bottom of text.
-- Rewrite of much of the display code to address continuing display
-  issues. Methods which directly manipulate GUI components can cause
-  race conditions, and are now never called from main networking
-  thread.
-- Removed calls to deprecated methods
-- Images can now be loaded from files (on server or not) or from
-  within jar.
+To Play JSettlers locally you need the Java Runtime 1.4 (or
+later). Remote clients started on the command line can connect
+directly to this server. To host a JSettlers server and provide a web
+applet for clients, you will need an http server such as Apache's
+httpd, available from http://httpd.apache.org.
 
-    > 1.0.3 (build 2004-03-29)
+The JSettlers.jar file can also run locally, as a server or to connect to other servers,
+without needing a web server.  The applet is considered more convenient,
+because you know everyone will have the same version.
 
-- Continuing to fix the display bug in the SOCPlayerClient
+To build JSettlers from source, you will need Apache Ant, available from
+http://ant.apache.org, or an IDE such as Eclipse which understands Ant's format.
 
-    > 1.0.2 (build 2004-03-26)
 
-- Fixed display bug (again) in the SOCPlayerClient when run as a stand
-  alone.
+Setting up and testing
+----------------------
 
-    > 1.0 (build 2004-03-14)
+From the command line, make sure you are in the JSettlers distribution
+directory which contains both JSettlers.jar, settlers-server.jar and the
+"lib" directory.  (If you have downloaded jsettlers-1.1.xx-full.tar.gz,
+look in the src/target directory for these files.)
 
-- First release. See the README file for how to setup a server and
-  robot clients.
+Start the server with the following command
+(server requires Java 1.4 or higher):
+
+  java -jar JSettlersServer.jar 8880 10 dbUser dbPass
+
+If MySQL is not installed and running (See "Database Setup"), you will
+see a warning with the appropriate explanation:
+
+  Warning: failed to initialize database: ....
+
+MySQL is not required: Without it, the server will function normally except
+that user accounts cannot be maintained.
+
+Now, from another command line window, start the player client with
+the following command:
+
+  java -jar JSettlers.jar localhost 8880
+
+In the player client window, enter "debug" in the Nickname field and
+create a new game.
+
+Type *STATS* into the chat part of the game window.  You should see
+something like the following in the chat display:
+
+  * > Uptime: 0:0:26
+  * > Total connections: 1
+  * > Current connections: 1
+  * > Total Users: 1
+  * > Games started: 0
+  * > Games finished: 0
+  * > Total Memory: 2031616
+  * > Free Memory: 1524112
+  * > Version: 1100 (1.1.00) build JM20080808
+
+If you do not, you might not have entered your nickname correctly.  It
+must be "debug" in order to use the administrative commands.
+
+Now you can add some robot players.  Enter the following commands in
+separate command line windows:
+
+  java -cp JSettlersServer.jar soc.robot.SOCRobotClient localhost 8880 robot1 passwd
+
+  java -cp JSettlersServer.jar soc.robot.SOCRobotClient localhost 8880 robot2 passwd
+
+  java -cp JSettlersServer.jar soc.robot.SOCRobotClient localhost 8880 robot3 passwd
+
+Now click on the "Sit Here" button and press "Start Game".  The robot
+players should automatically join the game and start playing.
+
+If you want other people to access your server, tell them your server
+IP address and port number (in this case 8880).  They can run the
+JSettlers.jar file by itself, and it will bring up a window to enter your IP
+and port number.  Or, they can enter the following command:
+
+  java -jar JSettlers.jar <host> <port_number>
+
+Where host is the IP address and port_number is the port number.
+
+If you would like to maintain accounts for your JSettlers server,
+start the database prior to starting the JSettlers Server. See the
+directions in "Database Setup".
+
+
+Shutting down the server
+------------------------
+
+To shut down the server enter *STOP* in the chat area of a game
+window.  This will stop the server and all connected clients will be
+disconnected.
+
+
+Hosting a JSettlers server
+--------------------------
+  - Start MySQL server (optional)
+  - Start JSettlers Server
+  - Start http server (optional)
+  - Copy JSettlers.jar jar and "web/*.html" server directory (optional)
+  - Copy "docs/users" to the server directory (optional)
+
+To host a JSettlers server, start the server as described in "Setup
+and Testing". To maintain user accounts, be sure to start the database
+first. Remote users can simply start their clients as described there,
+and specify your server as host.
+
+To provide a web page from which users can run the applet, you will
+need to set up an html server, such as Apache.  We assume you have
+installed it correctly, and will refer to "${docroot}" as a directory
+your web server is configured to provide.
+
+Copy the sample .html pages from "web" to ${docroot}. Edit them, to
+make sure the PORT parameter in "index.html" and "account.html" applet
+tags match the port of your JSettlers server.
+
+Next copy the client files to the server. Copy JSettlers.jar to
+${docroot}. This will allow users with Java version 1.2 or later
+installed to use the browser plug-in. Using the .jar like allows for
+faster downloads, and startup times, but does not allow browsers with
+Java version 1.1 to start the client.
+
+To allow browsers with old versions of Java (1.1) to use the applet,
+unpack JSettlers.jar and copy (recursively) the extracted "soc"
+and "resources" directories to ${docroot}. To unpack, use:
+
+    $ jar -xf JSettlers.jar
+
+You may also copy the "doc/users" directory (recursively) to the same
+directory as the sample .html pages to provide user documentation.
+
+Your web server directory structure should now contain:
+  ${docroot}/index.html
+  ${docroot}/*.html
+  ${docroot}/JSettlers.jar
+  ${docroot}/resources/...
+  ${docroot}/soc/...
+  ${docroot}/users/...
+
+Users should now be able to visit your web site to run the client
+version of JSettlers.
+
+
+Database Setup
+--------------
+
+If you want to maintain user accounts, you will need to set up a MySQL
+database. This will eliminate the "Problem connecting to database"
+errors from the server. We assume you have installed it correctly. 
+
+Run the following commands to create the database and configure its
+tables.
+
+CREATE DATABASE socdata;
+
+USE socdata;
+
+CREATE TABLE users (nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE);
+
+CREATE TABLE logins (nickname VARCHAR(20), host VARCHAR(50), lastlogin DATE);
+
+CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 TINYINT, score2 TINYINT, score3 TINYINT, score4 TINYINT, starttime TIMESTAMP);
+
+CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
+
+
+To create accounts, run the simple account creation client with the
+following command:
+
+  java -jar JSettlers.jar soc.client.SOCAccountClient localhost 8880
+
+
+Development and Compiling
+-------------------------
+
+Source code for JSettlers is available via tarballs.
+See the project website at http://nand.net/jsettlers/devel/
+for details. Patches against the latest version may be submitted there.
+
+Before building, make sure you have at least version 1.4 of the Java
+development kit installed.  If you simply want to run the client and
+server, you only need the Java Runtime (JRE). If you wish to maintain a user
+database for your server, you need MySQL installed, and configured.
+
+This package was designed to use the ANT tool available from
+http://ant.apache.org tools.  We assume you have installed it
+correctly.
+
+Check the "build.properties" file. There may be build variables you
+may want to change locally. These can also be changed from the command
+line when calling ant, by passing a "-Dname=value" parameter to ant.
+
+Now you are ready to invoke ant. There are several targets, here are
+the most useful ones:
+
+ build      Create project jar files. (default)
+ clean      Cleans the project of all generated files
+ compile    Compile class files into "target/classes"
+ dist       Build distribution tarballs and zips.
+ javadoc    Creates JavaDoc files in "target/docs/api"
+ src        Create a tarball of the source tree
+
+All files created by building are in the "target" directory, including
+Java .class files, and JavaDoc files. Distribution tarballs, zip
+files, and installation files are placed in "dist".

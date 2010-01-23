@@ -15,8 +15,8 @@
   <property name="name"      value="jsettlers" />
   <property name="Name"      value="JSettlers" />
   <!-- version under development, e.g. 1.1, 1.2-RC2, 2.0-SNAPSHOT -->
-  <property name="version"   value="1.1.08" />
-  <property name="versionnum" value="1108" />
+  <property name="version"   value="1.1.09" />
+  <property name="versionnum" value="1109" />
   <property name="copyright" value="2001-2004 Robb Thomas, portions 2007-2010 Jeremy D Monin" />
   <property name="url"       value="http://nand.net/jsettlers/devel/" />
 
