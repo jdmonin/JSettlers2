@@ -353,7 +353,9 @@ public class SOCServer extends Server
      * any option defaults require a minimum client version, or if 
      * {@link #hasSetGameOptions} is set.
      *
-     * @param s    the stringport that the server listens on
+     * @param s    the stringport that the server listens on.
+     *             If this is a "practice game" server on the user's local computer,
+     *             please use {@link #PRACTICE_STRINGPORT}.
      * @param mc   the maximum number of connections allowed
      * @param databaseUserName  the user name for accessing the database
      * @param databasePassword  the password for the user
@@ -625,7 +627,11 @@ public class SOCServer extends Server
             try
             {
                 // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-                gameList.createGame(gaName, gaOpts); 
+                gameList.createGame(gaName, gaOpts);
+                if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
+                {
+                    gameList.getGameData(gaName).isLocal = true;  // flag if practice game (set since 1.1.09)
+                }
 
                 // Add this (creating) player to the game
                 gameList.addMember(c, gaName);
@@ -3452,8 +3458,13 @@ public class SOCServer extends Server
             // changes to another timespan, please update the
             // warning text sent in checkForExpiredGames().
             // Use ">>>" in messageToGame to mark as urgent.
-            ga.setExpiration(ga.getExpiration() + (30 * 60 * 1000));
-            messageToGameUrgent(gaName, ">>> This game will expire in " + ((ga.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
+            if (ga.isLocal)
+            {
+                messageToGameUrgent(gaName, ">>> Practice games never expire.");
+            } else {
+                ga.setExpiration(ga.getExpiration() + (30 * 60 * 1000));
+                messageToGameUrgent(gaName, ">>> This game will expire in " + ((ga.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.");
+            }
         }
 
         ///
@@ -3578,8 +3589,11 @@ public class SOCServer extends Server
             messageToPlayer(c, gaName, gLengthMsg);
             // Ignore possible "1 minutes"; that game is too short to worry about.
         }
-        String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
-        messageToPlayer(c, gaName, expireMsg);
+        if (! gameData.isLocal)   // practice games don't expire
+        {
+            String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
+            messageToPlayer(c, gaName, expireMsg);
+        }
     }
 
     /**
@@ -7921,6 +7935,7 @@ public class SOCServer extends Server
     /**
      * check for games that have expired and destroy them.
      * If games are about to expire, send a warning.
+     * As of version 1.1.09, practice games ({@link SOCGame#isLocal} flag set) don't expire.
      *
      * @see #GAME_EXPIRE_WARN_MINUTES
      * @see SOCGameTimeoutChecker#run()
@@ -7940,6 +7955,9 @@ public class SOCServer extends Server
             for (Enumeration k = gameList.getGamesData(); k.hasMoreElements();)
             {
                 SOCGame gameData = (SOCGame) k.nextElement();
+                if (gameData.isLocal)
+                    continue;  // <--- Skip practice games, they don't expire ---
+
                 long gameExpir = gameData.getExpiration();
 
                 // Start our text messages with ">>>" to mark as urgent to the client.
