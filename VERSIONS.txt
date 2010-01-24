@@ -7,6 +7,7 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Practice games don't expire
 - When moving robber and choosing a victim, popup shows their # VPs
 - 6-player board: Always allow to request special build, even if no resources
+      Also allowed at start of own turn, only if not rolled or played card yet
 - 6-player robots: Slow down a little: Pause 75% of 4-player's pause duration, not 50%
 - Other changes: TBD ?
 

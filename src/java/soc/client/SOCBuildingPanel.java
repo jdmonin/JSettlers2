@@ -427,7 +427,11 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         else if (target == SBP)
         {
             if ((! sbIsHilight) && game.canAskSpecialBuild(player.getPlayerNumber(), false))
+            {
+                if (pi.clientIsCurrentPlayer())
+                    pi.getClientHand().setRollPrompt(null, true);  // clear the auto-roll countdown
                 client.buildRequest(game, -1);
+            }
         }
     }
 

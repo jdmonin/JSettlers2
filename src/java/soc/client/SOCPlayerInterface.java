@@ -813,6 +813,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     /** The client player's SOCHandPanel interface, if active in a game.
      * 
      * @return our player's hand interface, or null if not in a game.
+     * @see #clientIsCurrentPlayer()
      */ 
     public SOCHandPanel getClientHand()
     {
@@ -837,6 +838,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     
     /**
      * Is the client player active in this game, and the current player?
+     * Assertion: If this returns true, {@link #getClientHand()} will return non-null.
      * @see #getClientPlayerNumber()
      */
     public boolean clientIsCurrentPlayer()
@@ -852,6 +854,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * 
      * @return client's player ID, or -1.
      * @see #clientIsCurrentPlayer()
+     * @see #getClientHand()
      */
     public int getClientPlayerNumber()
     {
