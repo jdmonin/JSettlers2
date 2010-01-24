@@ -435,10 +435,8 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         {
             if (cardBut.getLabel().equals("Buy"))
             {
-                if (stateBuyOK)
+                if (stateBuyOK || canAskSBP)
                     client.buyDevCard(game);
-                else if (canAskSBP)
-                    sendBuildRequest = -1;
             }
         }
         else if (target == SBP)
