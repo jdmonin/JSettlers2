@@ -136,7 +136,7 @@
                 classpathref="ext.cp" />
   </target>
 
-  <!-- Not used: For later.... -->
+  <!-- Not used: For later installer.... see http://izpack.org/ -->
   <target name="check-izpack" depends="init">
       <available property="izpack.present" 
                  classname="com.izforge.izpack.ant.IzPackTask"
@@ -144,7 +144,7 @@
       <fail unless="izpack.present">
 
          The IzPack program is not available.  Download it from
-         http://www.izforge.com/izpack/.  Install it, and set the
+         http://izpack.org/.  Install it, and set the
          'izpack.home' property in build.properties.
       </fail>
   </target>
@@ -250,7 +250,7 @@
 
   <!-- Create installer (requires IzPack) -->
   <target name="installer" depends="check-izpack,build,docs"
-          description="Create installer (Need IzPack: http://www.izforge.com/izpack)">
+          description="Create installer (Need IzPack: http://izpack.org/)">
 
       <fail>An installation file has not yet been created.</fail>
       <mkdir dir="${dist}" />
