@@ -248,14 +248,27 @@
   <!-- Distribution targets -->
   <!-- ************************************** -->
 
+  <!-- Prevent build warning if IzPack not available -->
+  <macrodef name="taskdef-unchecked" description="create a taskdef, without warning when classname isn't available">
+	<attribute name="taskname" />
+	<attribute name="classname" />
+    <attribute name="cp-ref" />
+	<sequential>
+	<taskdef name="@{taskname}"
+		classname="@{classname}"
+		classpathref="{@cp-ref}" />
+	</sequential>
+  </macrodef>
+		
   <!-- Create installer (requires IzPack) -->
   <target name="installer" depends="check-izpack,build,docs"
+  	      if="izpack.present"
           description="Create installer (Need IzPack: http://izpack.org/)">
 
       <fail>An installation file has not yet been created.</fail>
       <mkdir dir="${dist}" />
-      <taskdef name="izpack" classname="com.izforge.izpack.ant.IzPackTask"
-               classpathref="installer.cp" />
+      <taskdef-unchecked taskname="izpack" classname="com.izforge.izpack.ant.IzPackTask"
+              classpathref="installer.cp" />
       <izpack input="${src}/installer/install.xml"
               output="${installer.jar}"
               installerType="standard"
