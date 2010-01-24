@@ -1483,8 +1483,12 @@ public class SOCGame implements Serializable, Cloneable
      *     to Special Build this turn, do nothing.
      *<LI> B: If we haven't started Special Building yet (gameState not {@link #SPECIAL_BUILDING})
      *     but it's asked for: Set gameState to {@link #SPECIAL_BUILDING}.
-     *     Set {@link #specialBuildPhase_afterPlayerNumber} to current player number.
-     *     Then, set current player to the first player who wants to Special Build, 
+     *     Set {@link #specialBuildPhase_afterPlayerNumber} to current player number,
+     *     because their turn is ending.
+     *     (Special case: if current player wants to special build at start of
+     *     their own turn, set _afterPlayerNumber to PREVIOUS player.)
+     *     Then, set current player to the first player who wants to Special Build
+     *     (it may be unchanged).
      *<LI> C: If we already did some players' Special Build this turn,
      *     and some remain, set current player to the next player
      *     who wants to Special Build.  gameState remains {@link #SPECIAL_BUILDING}.
@@ -1494,6 +1498,10 @@ public class SOCGame implements Serializable, Cloneable
      *     Set current player to the player whose turn is ending
      *     ({@link #specialBuildPhase_afterPlayerNumber}).
      *</UL>
+     *<P>
+     * In 1.1.09 and later, player is allowed to Special Build at start of their
+     * own turn, only if they haven't yet rolled or played a dev card.
+     *
      * @return true if gamestate is now {@link #SPECIAL_BUILDING}
      * @since 1.1.08
      */
@@ -1537,9 +1545,30 @@ public class SOCGame implements Serializable, Cloneable
         // Case "B" or "C".
         if (! alreadyInPhase)
         {
-            // case "B"
-            gameState = SPECIAL_BUILDING;
-            specialBuildPhase_afterPlayerNumber = prevPlayer;
+            // case "B":
+
+            // usually the current player can't call for SBP.
+            // unless, that is, it's the very start of their turn
+            // and they haven't rolled or played a card yet.
+
+            if (players[prevPlayer].hasAskedSpecialBuild()
+                && (gameState == PLAY)
+                && ! players[prevPlayer].hasPlayedDevCard())
+            {
+                // remember previous player, re-set current player:
+
+                gameState = SPECIAL_BUILDING;
+                currentPlayerNumber = prevPlayer;
+                if (! advanceTurnBackwards())
+                    return false;  // all players have left
+                specialBuildPhase_afterPlayerNumber = currentPlayerNumber;
+                currentPlayerNumber = prevPlayer;
+            } else {
+                // usual case: ending current player's turn.
+
+                gameState = SPECIAL_BUILDING;
+                specialBuildPhase_afterPlayerNumber = prevPlayer;
+            }
         }
         // currentPlayerNumber is set already by advanceTurn.
 
@@ -2189,6 +2218,10 @@ public class SOCGame implements Serializable, Cloneable
      * The winner check is needed because a player can win only
      * during their own turn; if they reach winning points ({@link #VP_WINNER}
      * or more) during another player's turn, they must wait.
+     *<P>
+     * In 1.1.09 and later, player is allowed to Special Build at start of their
+     * own turn, only if they haven't yet rolled or played a dev card.
+     * To do so, call {@link #askSpecialBuild(int)} and then {@link #endTurn()}.
      *
      * @see #checkForWinner()
      * @see #forceEndTurn()
@@ -4377,6 +4410,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * In 1.1.09 and later, player is allowed to Special Build at start of their
      * own turn, only if they haven't yet rolled or played a dev card.
+     * To do so, call {@link #askSpecialBuild(int)} and then {@link #endTurn()}.
      *
      * @param pn  The player's number
      * @throws IllegalStateException  if game is not 6-player, or pn is current player,
@@ -4394,7 +4428,9 @@ public class SOCGame implements Serializable, Cloneable
             else
                 return false;
         if ((pn == currentPlayerNumber)
-            && ((gameState != PLAY) || players[pn].hasPlayedDevCard()))
+            && ((gameState != PLAY)
+                || players[pn].hasPlayedDevCard())
+                || players[pn].hasAskedSpecialBuild())
             if (throwExceptions)
                 throw new IllegalStateException("current player");
             else
@@ -4422,6 +4458,10 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For 6-player mode's Special Building Phase, check state and
      * set the flag for this player asking to build.
+     *<P>
+     * In 1.1.09 and later, player is allowed to Special Build at start of their
+     * own turn, only if they haven't yet rolled or played a dev card.
+     * To do so, call {@link #askSpecialBuild(int)} and then {@link #endTurn()}.
      *
      * @param pn  The player's number
      * @throws IllegalStateException  if game is not 6-player, or is currently this player's turn,

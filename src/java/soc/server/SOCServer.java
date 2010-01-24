@@ -4950,7 +4950,11 @@ public class SOCServer extends Server
      * <LI> ga.canEndTurn already called, to validate player
      * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
      * <LI> gamelist.takeMonitorForGame is NOT called, we do NOT have that monitor
-     * </UL> 
+     * </UL>
+     *<P>
+     * As a special case, endTurn is used to begin the Special Building Phase during the
+     * start of a player's own turn, if permitted.  (Added in 1.1.09)
+     *
      * @param ga Game to end turn
      * @param pl Current player in <tt>ga</tt>, or null. Not needed except in SPECIAL_BUILDING.
      *           If null, will be determined within this method.
@@ -5494,6 +5498,19 @@ public class SOCServer extends Server
                         break;
                     }
                 }
+                else if ((pieceType == -1) && ga.canAskSpecialBuild(pn, false))
+                {
+                    // 6-player board: Special Building Phase
+                    // during start of own turn
+                    try
+                    {
+                        ga.askSpecialBuild(pn);
+                        messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
+                        endGameTurn(ga, player);  // triggers start of SBP
+                    } catch (IllegalStateException e) {
+                        messageToPlayer(c, gaName, "You can't ask to build now.");
+                    }
+                }
                 else
                 {
                     messageToPlayer(c, gaName, "You can't build now.");
@@ -5506,6 +5523,7 @@ public class SOCServer extends Server
                     messageToPlayer(c, gaName, "It's not your turn.");
                 } else {
                     // 6-player board: Special Building Phase
+                    // during other player's turn
                     if (! ga.getPlayer(pn).hasAskedSpecialBuild())
                     {
                         try
