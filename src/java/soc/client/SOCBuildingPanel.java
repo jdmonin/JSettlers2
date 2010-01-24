@@ -377,18 +377,26 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         if (! doNotClearPopup)
             pi.getBoardPanel().popupClearBuildRequest();  // Just in case
 
-        final boolean isCurrent = (game.getCurrentPlayerNumber() == player.getPlayerNumber());
+        final boolean isCurrent = pi.clientIsCurrentPlayer();
         final int gstate = game.getGameState();
-        final boolean stateBuyOK =        // same as in updateButtonStatus. (TODO) refactor to SOCGame?
+        final boolean canAskSBP =
+            game.canAskSpecialBuild(player.getPlayerNumber(), false)
+            && ! sbIsHilight;
+        final boolean stateBuyOK =        // same as in updateButtonStatus.
             (isCurrent)
             ? ((gstate == SOCGame.PLAY1) || (gstate == SOCGame.SPECIAL_BUILDING))
-            : ((game.maxPlayers > 4) && (gstate >= SOCGame.PLAY) && (gstate < SOCGame.OVER));
+            : canAskSBP;
+
+        int sendBuildRequest = -9;  // send client.buildRequest if this changes
 
         if (target == ROAD)
         {
-            if (stateBuyOK && (roadBut.getLabel().equals("Buy")))
+            if (roadBut.getLabel().equals("Buy"))
             {
-                client.buildRequest(game, SOCPlayingPiece.ROAD);
+                if (stateBuyOK)
+                    sendBuildRequest = SOCPlayingPiece.ROAD;
+                else if (canAskSBP)
+                    sendBuildRequest = -1;
             }
             else if (roadBut.getLabel().equals("Cancel"))
             {
@@ -397,9 +405,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == STLMT)
         {
-            if (stateBuyOK && (settlementBut.getLabel().equals("Buy")))
+            if (settlementBut.getLabel().equals("Buy"))  // && statebuyOK
             {
-                client.buildRequest(game, SOCPlayingPiece.SETTLEMENT);
+                if (stateBuyOK)
+                    sendBuildRequest = SOCPlayingPiece.SETTLEMENT;
+                else if (canAskSBP)
+                    sendBuildRequest = -1;
             }
             else if (settlementBut.getLabel().equals("Cancel"))
             {
@@ -408,9 +419,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == CITY)
         {
-            if (stateBuyOK && (cityBut.getLabel().equals("Buy")))
+            if (cityBut.getLabel().equals("Buy"))
             {
-                client.buildRequest(game, SOCPlayingPiece.CITY);
+                if (stateBuyOK)
+                    sendBuildRequest = SOCPlayingPiece.CITY;
+                else if (canAskSBP)
+                    sendBuildRequest = -1;
             }
             else if (cityBut.getLabel().equals("Cancel"))
             {
@@ -419,19 +433,26 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == CARD)
         {
-            if (stateBuyOK && (cardBut.getLabel().equals("Buy")))
+            if (cardBut.getLabel().equals("Buy"))
             {
-                client.buyDevCard(game);
+                if (stateBuyOK)
+                    client.buyDevCard(game);
+                else if (canAskSBP)
+                    sendBuildRequest = -1;
             }
         }
         else if (target == SBP)
         {
-            if ((! sbIsHilight) && game.canAskSpecialBuild(player.getPlayerNumber(), false))
-            {
-                if (pi.clientIsCurrentPlayer())
-                    pi.getClientHand().setRollPrompt(null, true);  // clear the auto-roll countdown
-                client.buildRequest(game, -1);
-            }
+            if (canAskSBP)
+                sendBuildRequest = -1;
+        }
+
+        if (sendBuildRequest != -9)
+        {
+            if (isCurrent && (sendBuildRequest == -1))
+                pi.getClientHand().setRollPrompt(null, true);  // clear the auto-roll countdown
+
+            client.buildRequest(game, sendBuildRequest);
         }
     }
 
