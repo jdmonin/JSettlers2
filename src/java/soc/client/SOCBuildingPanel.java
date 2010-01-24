@@ -437,7 +437,6 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     public void updateButtonStatus()
     {
         SOCGame game = pi.getGame();
-        boolean anyLabelBuy = false;
 
         if (player != null)
         {
@@ -455,7 +454,6 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 roadBut.setEnabled(currentCanBuy);
                 roadBut.setLabel("Buy");
-                anyLabelBuy = true;
             }
             else
             {
@@ -474,7 +472,6 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 settlementBut.setEnabled(currentCanBuy);
                 settlementBut.setLabel("Buy");
-                anyLabelBuy = true;
             }
             else
             {
@@ -491,7 +488,6 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 cityBut.setEnabled(currentCanBuy);
                 cityBut.setLabel("Buy");
-                anyLabelBuy = true;
             }
             else
             {
@@ -503,7 +499,6 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 cardBut.setEnabled(currentCanBuy);
                 cardBut.setLabel("Buy");
-                anyLabelBuy = true;
             }
             else
             {
