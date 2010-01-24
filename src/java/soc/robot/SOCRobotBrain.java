@@ -3029,7 +3029,7 @@ public class SOCRobotBrain extends Thread
     /**
      * pause for a bit.
      *<P>
-     * In a 6-player game, pause only half as long, to shorten the overall game delay,
+     * In a 6-player game, pause only 75% as long, to shorten the overall game delay,
      * except if {@link #waitingForTradeResponse}.
      * This is indicated by the {@link #pauseFaster} flag.
      *
@@ -3038,7 +3038,8 @@ public class SOCRobotBrain extends Thread
     public void pause(int msec)
     {
         if (pauseFaster && ! waitingForTradeResponse)
-            msec /= 2;
+            msec = (msec / 2) + (msec / 4);
+
         try
         {
             yield();
