@@ -107,6 +107,13 @@ public class SOCRobotBrain extends Thread
     protected int turnTime;
 
     /**
+     * {@link #pause(int) Pause} for less time;
+     * speeds up response in 6-player games.
+     * @since 1.1.09
+     */
+    private boolean pauseFaster;
+
+    /**
      * Our current state
      */
     protected int curState;
@@ -452,6 +459,7 @@ public class SOCRobotBrain extends Thread
         robotParameters = params.copyIfOptionChanged(ga.getGameOptions());
         game = ga;
         gameIs6Player = (ga.maxPlayers > 4);
+        pauseFaster = gameIs6Player;
         gameEventQ = mq;
         alive = true;
         counter = 0;
@@ -3020,14 +3028,16 @@ public class SOCRobotBrain extends Thread
 
     /**
      * pause for a bit.
+     *<P>
      * In a 6-player game, pause only half as long, to shorten the overall game delay,
      * except if {@link #waitingForTradeResponse}.
+     * This is indicated by the {@link #pauseFaster} flag.
      *
      * @param msec  number of milliseconds to pause
      */
     public void pause(int msec)
     {
-        if (gameIs6Player && ! waitingForTradeResponse)
+        if (pauseFaster && ! waitingForTradeResponse)
             msec /= 2;
         try
         {
