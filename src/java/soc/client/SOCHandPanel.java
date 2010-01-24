@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -246,7 +246,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected ColorSquare[] playerSend;
 
     /** displays auto-roll countdown, or prompts to roll/play card.
-     * @see #setRollPrompt(String)
+     * @see #setRollPrompt(String, boolean)
      */
     protected Label rollPromptCountdownLab;
     protected boolean rollPromptInUse;
@@ -828,7 +828,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         String item;
         int itemNum;  // Which one to play from list?
 
-        setRollPrompt(null);  // Clear prompt if Play Card clicked (vs Roll clicked)
+        setRollPrompt(null, false);  // Clear prompt if Play Card clicked (instead of Roll clicked)
         if (playerIsCurrent && player.hasPlayedDevCard())
         {
             playerInterface.print("*** You may play only one card per turn.");
@@ -943,7 +943,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     public void clickRollButton()
     {
         if (rollPromptInUse)
-            setRollPrompt(null);  // Clear it
+            setRollPrompt(null, false);  // Clear it
         client.rollDice(game);
         rollBut.setEnabled(false);  // Only one roll per turn
     }
@@ -1125,12 +1125,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         doneBut.setVisible(false);
         quitBut.setVisible(false);
 
-        setRollPrompt(null);  // Clear it
-        if (autoRollTimerTask != null)
-        {
-            autoRollTimerTask.cancel();
-            autoRollTimerTask = null;
-        }
+        setRollPrompt(null, true);  // Clear it, and cancel autoRollTimerTask if running
 
         /* other player's hand */
         resourceLab.setVisible(false);
@@ -1539,7 +1534,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         updateAtTurn();  // Game state may have changed
         if (player.hasUnplayedDevCards()
                 && ! player.hasPlayedDevCard())
-            setRollPrompt(ROLL_OR_PLAY_CARD);
+            setRollPrompt(ROLL_OR_PLAY_CARD, false);
         else
             autoRollSetupTimer();
     }
@@ -2343,8 +2338,9 @@ public class SOCHandPanel extends Panel implements ActionListener
     /** Set or clear the roll prompt / auto-roll countdown display.
      *
      * @param prompt The message to display, or null to clear it.
+     * @param cancelTimer Cancel {@link #autoRollTimerTask}, for use with null prompt
      */
-    protected void setRollPrompt(String prompt)
+    protected void setRollPrompt(String prompt, final boolean cancelTimer)
     {
         boolean wasUse = rollPromptInUse; 
         rollPromptInUse = (prompt != null);
@@ -2357,6 +2353,15 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             rollPromptCountdownLab.setText(" ");
             rollPromptCountdownLab.repaint();
+        }
+
+        if (cancelTimer)
+        {
+            if (autoRollTimerTask != null)
+            {
+                autoRollTimerTask.cancel();
+                autoRollTimerTask = null;
+            }            
         }
     }
 
@@ -2621,7 +2626,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             {
                 if (timeRemain > 0)
                 {
-                    setRollPrompt(AUTOROLL_COUNTDOWN + Integer.toString(timeRemain));
+                    setRollPrompt(AUTOROLL_COUNTDOWN + Integer.toString(timeRemain), false);
                 } else {
                     clickRollButton();  // Clear prompt, click Roll
                     cancel();  // End of countdown for this timer
