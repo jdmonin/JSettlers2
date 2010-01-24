@@ -103,8 +103,9 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
             add(buttons[i]);
             buttons[i].addActionListener(this);
 
-            int rescount = pl.getResources().getTotal();            
-            player_res_lbl[i] = new Label(rescount + " res.", Label.CENTER);
+            final int rescount = pl.getResources().getTotal();
+            final int vpcount = pl.getPublicVP();
+            player_res_lbl[i] = new Label(rescount + " res, " + vpcount + " VP", Label.CENTER);
             SOCHandPanel ph = pi.getPlayerHandPanel(players[i]);
             player_res_lbl[i].setBackground(ph.getBackground());
             player_res_lbl[i].setForeground(ph.getForeground());
