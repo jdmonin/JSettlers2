@@ -4343,6 +4343,9 @@ public class SOCGame implements Serializable, Cloneable
      * Can the player either buy and place a piece (or development card) now,
      * or can they ask now for the Special Building Phase (in a 6-player game)?
      * Based on game state and current player number, not on resources available. 
+     *<P>
+     * In 1.1.09 and later, player is allowed to Special Build at start of their
+     * own turn, only if they haven't yet rolled or played a dev card.
      *
      * @param pn  Player number
      * @see #canAskSpecialBuild(int, boolean)
@@ -4350,9 +4353,10 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canBuyOrAskSpecialBuild(final int pn)
     {
-        return (pn == currentPlayerNumber)
-            ? ((gameState == SOCGame.PLAY1) || (gameState == SOCGame.SPECIAL_BUILDING))
-            : canAskSpecialBuild(pn, false);
+        return
+          ((pn == currentPlayerNumber)
+            && ((gameState == SOCGame.PLAY1) || (gameState == SOCGame.SPECIAL_BUILDING)))
+          || canAskSpecialBuild(pn, false);
     }
 
     /**
@@ -4370,6 +4374,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For 6-player mode's {@link #SPECIAL_BUILDING Special Building Phase},
      * can the player currently request to special build?
+     *<P>
+     * In 1.1.09 and later, player is allowed to Special Build at start of their
+     * own turn, only if they haven't yet rolled or played a dev card.
      *
      * @param pn  The player's number
      * @throws IllegalStateException  if game is not 6-player, or pn is current player,
@@ -4386,7 +4393,8 @@ public class SOCGame implements Serializable, Cloneable
                 throw new IllegalStateException("not 6-player");
             else
                 return false;
-        if (pn == currentPlayerNumber)
+        if ((pn == currentPlayerNumber)
+            && ((gameState != PLAY) || players[pn].hasPlayedDevCard()))
             if (throwExceptions)
                 throw new IllegalStateException("current player");
             else

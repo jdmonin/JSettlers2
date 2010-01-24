@@ -426,7 +426,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
         else if (target == SBP)
         {
-            if (stateBuyOK && ! sbIsHilight)
+            if ((! sbIsHilight) && game.canAskSpecialBuild(player.getPlayerNumber(), false))
                 client.buildRequest(game, -1);
         }
     }
@@ -519,7 +519,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
                     sbLab.setBackground(want);
                     sbIsHilight = askedSB;
                 }
-                sbBut.setEnabled(currentCanBuy && ! (askedSB || isCurrent));
+                sbBut.setEnabled(game.canAskSpecialBuild(pnum, false) && ! askedSB);
             }
         }
     }
