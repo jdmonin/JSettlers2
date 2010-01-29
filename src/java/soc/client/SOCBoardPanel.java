@@ -2937,14 +2937,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         // N7: Roll no 7s during first # rounds.
                         // Show if we can roll a 7 yet.  (1.1.09)
 
-                        final int no7rounds = game.getGameOptionIntValue("N7");
-                        final int no7rleft = no7rounds - game.getRoundCount();
-                        if (no7rleft == 0)
+                        final int no7roundsleft = game.getGameOptionIntValue("N7") - game.getRoundCount();
+                        if (no7roundsleft == 0)
                         {
-                            setSuperimposedTopText("Last round with \"No 7s\"");
-                        } else if (no7rleft > 0)
+                            setSuperimposedTopText("Last round for \"No 7s\"");
+                        } else if (no7roundsleft > 0)
                         {
-                            setSuperimposedTopText( (1+no7rleft) + " rounds left for \"No 7s\"");
+                            setSuperimposedTopText( (1 + no7roundsleft) + " rounds left for \"No 7s\"");
                         }
                     }
                     break;
