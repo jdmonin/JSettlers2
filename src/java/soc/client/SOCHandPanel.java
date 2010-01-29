@@ -2329,10 +2329,29 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Is this panel showing the client's player,
      * and is that player the game's current player?
+     *<P>
+     * Note that because of the order of network messages,
+     * after this player's turn, there's a brief time when
+     * the state becomes PLAY again, before the current player
+     * is changed to the next player.  So, it appears that
+     * this player can roll again, but they cannot.
+     * To guard against this, use {@link #isClientAndCurrentlyCanRoll()} instead.
      */
     public boolean isClientAndCurrentPlayer()
     {
         return (playerIsClient && playerIsCurrent);
+    }
+
+    /**
+     * Is this panel showing the client's player,
+     * and is that player the game's current player,
+     * and are they able to roll the dice right now?
+     * @since 1.1.09
+     */
+    public boolean isClientAndCurrentlyCanRoll()
+    {
+        return playerIsClient && playerIsCurrent
+           && (rollBut != null) && rollBut.isEnabled();
     }
 
     /** Set or clear the roll prompt / auto-roll countdown display.
