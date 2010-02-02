@@ -2877,7 +2877,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     public void updateMode()
     {
-        setSuperimposedTopText(null);  // assume not Special Building Phase
+        String topText = null;  // assume not Special Building Phase
 
         if (player != null)
         {
@@ -2942,17 +2942,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         final int no7roundsleft = game.getGameOptionIntValue("N7") - game.getRoundCount();
                         if (no7roundsleft == 0)
                         {
-                            setSuperimposedTopText("Last round for \"No 7s\"");
+                            topText = "Last round for \"No 7s\"";
                         } else if (no7roundsleft > 0)
                         {
-                            setSuperimposedTopText( (1 + no7roundsleft) + " rounds left for \"No 7s\"");
+                            topText = (1 + no7roundsleft) + " rounds left for \"No 7s\"";
                         }
                     }
                     break;
 
                 case SOCGame.SPECIAL_BUILDING:
                     mode = NONE;
-                    setSuperimposedTopText("Special Building: " + player.getName());
+                    topText = "Special Building: " + player.getName();
                     break;
 
                 default:
@@ -2966,14 +2966,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 mode = NONE;
 
                 if (game.isSpecialBuilding())
-                    setSuperimposedTopText("Special Building: " + game.getPlayer(cpn).getName());
+                    topText = "Special Building: " + game.getPlayer(cpn).getName();
             }
         }
         else
         {
             mode = NONE;
         }
-                
+
+        setSuperimposedTopText(topText);  // usually null
         updateHoverTipToMode();
     }
     
