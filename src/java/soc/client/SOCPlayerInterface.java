@@ -1422,6 +1422,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             gameIsStarting = false;
             if (clientHand != null)
                 clientHand.updateAtTurn();
+            boardPanel.updateMode();
         }
 
         // React if waiting for players to discard,
