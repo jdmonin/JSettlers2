@@ -235,9 +235,9 @@ public class SOCGame implements Serializable, Cloneable
     public static final int MAXPLAYERS_STANDARD = 4;
 
     /**
-     * minimum number of players in a game (was assumed ==MAXPLAYERS in standard 1.0.6).
-     * Use isSeatVacant(i) to determine if a player is present;
-     * players[i] will be non-null although no player is there.
+     * minimum number of players in a game (was assumed =={@link #MAXPLAYERS} in standard 1.0.6).
+     * Use {@link #isSeatVacant(int)} to determine if a player is present;
+     * <tt>players[i]</tt> will be non-null although no player is there.
      */
     public static final int MINPLAYERS = 2;
 
@@ -264,6 +264,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * an empty set of resources.
+     * @see #SETTLEMENT_SET
      */
     public static final SOCResourceSet EMPTY_RESOURCES = new SOCResourceSet();
 
@@ -485,6 +486,11 @@ public class SOCGame implements Serializable, Cloneable
      * the player with the largest army, or -1 if none
      */
     private int playerWithLargestArmy;
+
+    /**
+     * To remember last {@link #playerWithLargestArmy} during
+     * {@link #saveLargestArmyState()} / {@link #restoreLargestArmyState()}.
+     */
     private int oldPlayerWithLargestArmy;
 
     /**
