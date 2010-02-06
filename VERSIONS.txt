@@ -10,6 +10,7 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 - 6-player board: Always allow to request special build, even if no resources
       Also allowed at start of own turn, only if not rolled or played card yet
 - 6-player robots: Slow down a little: Pause 75% of 4-player's pause duration, not 50%
+- Fix: Ask 2nd practice game options, when 1st is over but its window still showing
 - Other changes: TBD ?
 
     > 1.1.08 (build 20100112)

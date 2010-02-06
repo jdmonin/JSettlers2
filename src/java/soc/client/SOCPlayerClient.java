@@ -1213,8 +1213,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             // Is the game over yet?
             if (pi.getGame().getGameState() == SOCGame.OVER)
             {
-                // No point joining, just start a new one.
-                startPracticeGame();
+                // No point joining, just get options to start a new one.
+                gameWithOptionsBeginSetup(true);
             }
             else
             {
