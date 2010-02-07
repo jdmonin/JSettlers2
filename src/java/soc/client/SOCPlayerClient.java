@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -4812,7 +4812,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         // Set label
         versionOrlocalTCPPortLabel.setText("Port: " + tport);
-        new AWTToolTip ("You are running a server on TCP port " + tport + ".", versionOrlocalTCPPortLabel);
+        new AWTToolTip ("You are running a server on TCP port " + tport
+            + ". Version " + Version.version()
+            + " bld " + Version.buildnum(),
+            versionOrlocalTCPPortLabel);
 
         // Set titlebar, if present
         {
