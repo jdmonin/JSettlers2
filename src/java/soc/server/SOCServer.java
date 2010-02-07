@@ -4974,8 +4974,16 @@ public class SOCServer extends Server
 
         boolean hadBoardResetRequest = (-1 != ga.getResetVoteRequester());
 
+        /**
+         * End the Turn:
+         */
+
         ga.endTurn();  // May set state to OVER, if new player has enough points to win.
                        // May begin or continue the Special Building Phase.
+
+        /**
+         * Send the results out:
+         */
 
         if (hadBoardResetRequest)
         {
