@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -206,9 +206,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * In 6-player mode, is the player asking to build during the Special Building Phase?
+     * @see #hasSpecialBuiltThisTurn
      * @since 1.1.08
      */
     private boolean askedSpecialBuild;
+
+    /**
+     * In 6-player mode, has the player already built during the Special Building Phase?
+     * @see #askedSpecialBuild
+     * @since 1.1.09
+     */
+    private boolean hasSpecialBuiltThisTurn;
 
     /**
      * this is true if this player is a robot
@@ -261,6 +269,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         needToDiscard = player.needToDiscard;
         boardResetAskedThisTurn = player.boardResetAskedThisTurn;
         askedSpecialBuild = player.askedSpecialBuild;
+        hasSpecialBuiltThisTurn = player.hasSpecialBuiltThisTurn;
         robotFlag = player.robotFlag;
         faceId = player.faceId;
         ourNumbers = new SOCPlayerNumbers(player.ourNumbers);
@@ -346,6 +355,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         needToDiscard = false;
         boardResetAskedThisTurn = false;
         askedSpecialBuild = false;
+        hasSpecialBuiltThisTurn = false;
         robotFlag = false;
         faceId = 1;
         SOCBoard board = ga.getBoard();
@@ -629,9 +639,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * In 6-player mode's Special Building Phase, this player has asked to build.
+     * To set or clear this flag, use {@link #setAskedSpecialBuild(boolean)}.
      *
      * @return  if the player has asked to build
      * @see #getAskSpecialBuildPieces()
+     * @see #hasSpecialBuilt()
      * @since 1.1.08
      */
     public boolean hasAskedSpecialBuild()
@@ -644,11 +656,39 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * for this player asking to build.
      * Does not validate that they are currently allowed to ask;
      * use {@link SOCGame#canAskSpecialBuild(int, boolean)} for that.
+     * To read this flag, use {@link #hasAskedSpecialBuild()}.
      *
      * @param set  if the player has asked to build
      * @since 1.1.08
      */
     public void setAskedSpecialBuild(boolean set)
+    {
+        askedSpecialBuild = set;
+    }
+
+    /**
+     * In 6-player mode's Special Building Phase, this player has already built this turn.
+     * To set or clear this flag, use {@link #setSpecialBuilt(boolean)}.
+     *
+     * @return  if the player has built
+     * @see #hasAskedSpecialBuild()
+     * @since 1.1.09
+     */
+    public boolean hasSpecialBuilt()
+    {
+        return hasSpecialBuiltThisTurn;
+    }
+
+    /**
+     * In 6-player mode's Special Building Phase, set or clear the flag
+     * for this player already built this turn.
+     * Does not validate against current game conditions.
+     * To read this flag, use {@link #hasSpecialBuilt()}.
+     *
+     * @param set  if the player special-built this turn
+     * @since 1.1.09
+     */
+    public void setSpecialBuilt(boolean set)
     {
         askedSpecialBuild = set;
     }

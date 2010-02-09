@@ -4413,6 +4413,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * For 6-player mode's {@link #SPECIAL_BUILDING Special Building Phase},
      * can the player currently request to special build?
+     * See 'throws' for the conditions checked.
      *<P>
      * In 1.1.09 and later, player is allowed to Special Build at start of their
      * own turn, only if they haven't yet rolled or played a dev card.
@@ -4420,6 +4421,8 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  The player's number
      * @throws IllegalStateException  if game is not 6-player, or pn is current player,
+     *            or {@link SOCPlayer#hasAskedSpecialBuild() pn.hasAskedSpecialBuild()}
+     *            or {@link SOCPlayer#hasSpecialBuilt() pn.hasSpecialBuilt()} is true,
      *            or if gamestate is earlier than {@link #PLAY}, or >= {@link #OVER}.
      * @throws IllegalArgumentException  if pn is not a valid player (vacant seat, etc).
      * @see #canBuyOrAskSpecialBuild(int)
@@ -4436,6 +4439,7 @@ public class SOCGame implements Serializable, Cloneable
         if ((pn == currentPlayerNumber)
             && ((gameState != PLAY)
                 || players[pn].hasPlayedDevCard())
+                || players[pn].hasSpecialBuilt()
                 || players[pn].hasAskedSpecialBuild())
             if (throwExceptions)
                 throw new IllegalStateException("current player");
