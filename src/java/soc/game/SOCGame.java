@@ -1753,6 +1753,8 @@ public class SOCGame implements Serializable, Cloneable
      * Also used in {@link #forceEndTurn()} to continue the game
      * after a cancelled piece placement in {@link #START1A}..{@link #START2B} .
      * If the current player number changes here, {@link #isForcingEndTurn()} is cleared. 
+     *<P>
+     * In {@link #START2B}, calls {@link #updateAtTurn()} after last initial road placement.
      */
     private void advanceTurnStateAfterPutPiece()
     {
@@ -2212,8 +2214,9 @@ public class SOCGame implements Serializable, Cloneable
      * end the turn for the current player, and check for winner.
      * Check for gamestate >= {@link #OVER} after calling endTurn.
      *<P>
-     * endTurn() is called only at server - client instead calls
-     * {@link #setCurrentPlayerNumber(int)}.
+     * endTurn() is called <b>only at server</b> - client instead calls
+     * {@link #setCurrentPlayerNumber(int)}, then client calls {@link #updateAtTurn()}.
+     * endTurn() also calls {@link #updateAtTurn()}.
      *<P>
      * endTurn() is not called before the first dice roll.
      * endTurn() will call {@link #updateAtTurn()}.
@@ -2250,10 +2253,10 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Update game state as needed when a player begins their turn (before dice are rolled).
-     * Call this after {@link #setCurrentPlayerNumber(int)}.
+     *<P>
      * May be called during initial placement.
      * On the 6-player board, is called at the start of
-     * the {@link #SPECIAL_BUILDING Special Building Phase}.
+     * each player's {@link #SPECIAL_BUILDING Special Building Phase}.
      *<UL>
      *<LI> Set first player and last player, if they're currently -1
      *<LI> Set current dice to 0
@@ -2263,6 +2266,8 @@ public class SOCGame implements Serializable, Cloneable
      *     These include the current turn; they both are 1 during the first player's first turn.
      *</UL>
      * Called by server and client.
+     * At client, call this after {@link #setCurrentPlayerNumber(int)}.
+     * At server, this is called from within {@link #endTurn()}.
      * @since 1.1.07
      */
     public void updateAtTurn()
