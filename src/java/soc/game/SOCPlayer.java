@@ -690,7 +690,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void setSpecialBuilt(boolean set)
     {
-        askedSpecialBuild = set;
+        hasSpecialBuiltThisTurn = set;
     }
 
     /**
