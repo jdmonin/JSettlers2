@@ -3883,7 +3883,8 @@ public class SOCRobotBrain extends Thread
             resourceEstimates[0] = 0;
 
             // look at each hex
-            for (int i = 0; i < 37; i++)  // TODO: Largerboard: assumes 37 valid hexes
+            final int L = board.getNumberLayout().length;
+            for (int i = 0; i < L; i++)
             {
                 int hexNumber = board.getNumberOnHexFromNumber(i);
 

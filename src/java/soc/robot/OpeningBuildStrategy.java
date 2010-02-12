@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1053,7 +1053,8 @@ public class OpeningBuildStrategy {
             resourceEstimates[0] = 0;
 
             // look at each hex
-            for (int i = 0; i < 37; i++)  // TODO: Largerboard: assumes 37 valid hexes
+            final int L = board.getNumberLayout().length;
+            for (int i = 0; i < L; i++)
             {
                 int hexNumber = board.getNumberOnHexFromNumber(i);
 
