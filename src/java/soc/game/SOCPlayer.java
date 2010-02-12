@@ -659,6 +659,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * To read this flag, use {@link #hasAskedSpecialBuild()}.
      *
      * @param set  if the player has asked to build
+     * @see SOCGame#askSpecialBuild(int, boolean)
      * @since 1.1.08
      */
     public void setAskedSpecialBuild(boolean set)
