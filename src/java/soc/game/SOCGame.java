@@ -4466,21 +4466,6 @@ public class SOCGame implements Serializable, Cloneable
                 throw new IllegalStateException("not 6-player");
             else
                 return false;
-        if ((gameState < PLAY) || (gameState >= OVER)
-              || players[pn].hasSpecialBuilt()
-              || players[pn].hasAskedSpecialBuild())
-            if (throwExceptions)
-                throw new IllegalStateException("cannot ask at this time");
-            else
-                return false;
-        if ((pn == currentPlayerNumber)
-            && ((gameState != PLAY)
-                || (turnCount == 1)       // since SBP occurs @ end of each turn, not @ start
-                || players[pn].hasPlayedDevCard()))
-            if (throwExceptions)
-                throw new IllegalStateException("current player");
-            else
-                return false;
         if ((pn < 0) || (pn >= maxPlayers))
             if (throwExceptions)
                 throw new IllegalArgumentException("pn range");
@@ -4490,6 +4475,21 @@ public class SOCGame implements Serializable, Cloneable
         if ((pl == null) || isSeatVacant(pn))
             if (throwExceptions)
                 throw new IllegalArgumentException("pn not valid");
+            else
+                return false;
+        if ((gameState < PLAY) || (gameState >= OVER)
+              || pl.hasSpecialBuilt()
+              || pl.hasAskedSpecialBuild())
+            if (throwExceptions)
+                throw new IllegalStateException("cannot ask at this time");
+            else
+                return false;
+        if ((pn == currentPlayerNumber)
+            && ((gameState != PLAY)
+                || (turnCount == 1)       // since SBP occurs @ end of each turn, not @ start
+                || pl.hasPlayedDevCard()))
+            if (throwExceptions)
+                throw new IllegalStateException("current player");
             else
                 return false;
 
