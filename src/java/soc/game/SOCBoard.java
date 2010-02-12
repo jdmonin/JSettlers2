@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -427,7 +427,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * On the 6-player (v2 layout) board, each port's type.  Null otherwise.
      * Same value range as in {@link #hexLayout}.
-     * (In the standard (v1) board, these are part of {@link #hexLayout}.) 
+     * (In the standard (v1) board, these are part of {@link #hexLayout} instead.) 
      * 1 element per port. Same ordering as {@link #PORTS_FACING_V2}.
      * Initialized in {@link #makeNewBoard(Hashtable)}.
      * @see #ports
@@ -447,7 +447,7 @@ public class SOCBoard implements Serializable, Cloneable
     /** Dice number from hex numbers.
      *  For coord mapping, see {@link #numToHexID}
      */
-    private int[] numberLayout =    // TODO largerboard: assumes hexLayout.length == 37
+    private int[] numberLayout =    // TODO largerboard: assumes hexLayout.length == 37 (is valid for ORIGINAL, 6PLAYER encodings)
     {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1193,10 +1193,10 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
      * Same value range as in {@link #hexLayout}.
-     * (In the standard board (v1), these are part of {@link #hexLayout}.)
+     * (In the standard board (v1), these are part of {@link #hexLayout} instead.)
      * Same order as {@link #getPortsFacing()}: Clockwise from upper-left.
      *
-     * @return the ports layout, or null otherwise
+     * @return the ports layout, or null if not used in this board encoding format
      * @see #getPortTypeFromNodeCoord(int)
      * @see #getPortCoordinates(int)
      * @since 1.1.08

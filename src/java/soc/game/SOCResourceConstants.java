@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,8 +28,9 @@ package soc.game;
  *<P>
  * Warning: Many pieces of code depend on these values and their count.
  *          Clay is first (1), Wood is last (5), Unknown is after wood.
- *          Those are the 5 resource types (count==5 is also assumed).
+ *          Those are the 5 resource types (count==5 or ==6 (unknown) is also assumed).
  *          Adding a new resource type would require changes in many places.
+ *          SOCRobotBrain.estimateResourceRarity is one of many examples.
  * Constants in other places (like {@link soc.message.SOCPlayerElement#CLAY})
  * have the same hardcoded values.
  *<P>
