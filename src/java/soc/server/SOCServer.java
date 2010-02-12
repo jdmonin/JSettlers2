@@ -5506,13 +5506,13 @@ public class SOCServer extends Server
                         break;
                     }
                 }
-                else if ((pieceType == -1) && ga.canAskSpecialBuild(pn, false))
+                else if (pieceType == -1)
                 {
                     // 6-player board: Special Building Phase
                     // during start of own turn
                     try
                     {
-                        ga.askSpecialBuild(pn);
+                        ga.askSpecialBuild(pn, true);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                         endGameTurn(ga, player);  // triggers start of SBP
                     } catch (IllegalStateException e) {
@@ -5534,7 +5534,7 @@ public class SOCServer extends Server
                     // during other player's turn
                     try
                     {
-                        ga.askSpecialBuild(pn);  // will validate that they can build now
+                        ga.askSpecialBuild(pn, true);  // will validate that they can build now
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         messageToPlayer(c, gaName, "You can't ask to build now.");
@@ -5729,7 +5729,7 @@ public class SOCServer extends Server
                     // 6-player board: Special Building Phase
                     try
                     {
-                        ga.askSpecialBuild(pn);
+                        ga.askSpecialBuild(pn, true);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         messageToPlayer(c, gaName, "You can't ask to buy a card now.");

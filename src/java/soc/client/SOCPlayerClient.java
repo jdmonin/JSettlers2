@@ -3015,7 +3015,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 break;
 
             case SOCPlayerElement.ASK_SPECIAL_BUILD:
-                pl.setAskedSpecialBuild(0 != mes.getValue());
+                if (0 != mes.getValue())
+                {
+                    try {
+                        ga.askSpecialBuild(pn, false);  // set per-player, per-game flags
+                    }
+                    catch (RuntimeException e) {}
+                } else {
+                    pl.setAskedSpecialBuild(false);
+                }
                 hpan.updateValue(SOCHandPanel.ASK_SPECIAL_BUILD);
                 // for client player, hpan also refreshes BuildingPanel with this value.
                 break;

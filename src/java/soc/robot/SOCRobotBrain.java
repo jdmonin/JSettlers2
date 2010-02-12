@@ -2500,7 +2500,15 @@ public class SOCRobotBrain extends Thread
             break;
 
         case SOCPlayerElement.ASK_SPECIAL_BUILD:
-            pl.setAskedSpecialBuild(0 != (mes.getValue()));
+            if (0 != mes.getValue())
+            {
+                try {
+                    game.askSpecialBuild(pl.getPlayerNumber(), false);  // set per-player, per-game flags
+                }
+                catch (RuntimeException e) {}
+            } else {
+                pl.setAskedSpecialBuild(false);
+            }
             break;
 
         }

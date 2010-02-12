@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1127,7 +1127,15 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             case SOCPlayerElement.ASK_SPECIAL_BUILD:
-                pl.setAskedSpecialBuild(0 != mes.getValue());
+                if (0 != mes.getValue())
+                {
+                    try {
+                        ga.askSpecialBuild(pl.getPlayerNumber(), false);  // set per-player, per-game flags
+                    }
+                    catch (RuntimeException e) {}
+                } else {
+                    pl.setAskedSpecialBuild(false);
+                }
                 break;
 
             }
