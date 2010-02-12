@@ -8,7 +8,8 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Show rounds remaining for "roll no 7s during first n turns" (Rowan H idea)
 - When moving robber and choosing a victim, popup shows their # VPs
 - 6-player board: Always allow to request special build, even if no resources.
-     Also allowed at start of own turn, only if not rolled or played card yet
+     Also allowed at start of own turn, only if not rolled or played card yet,
+     and not when you are the first player taking your first turn.
 - 6-player: During Special Building Phase, a player can ask to Special Build after
      the phase has begun, even if this means we temporarily go
      backwards in turn order.  (Normal turn order resumes at the

@@ -4452,7 +4452,8 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalStateException  if game is not 6-player, or pn is current player,
      *            or {@link SOCPlayer#hasAskedSpecialBuild() pn.hasAskedSpecialBuild()}
      *            or {@link SOCPlayer#hasSpecialBuilt() pn.hasSpecialBuilt()} is true,
-     *            or if gamestate is earlier than {@link #PLAY}, or >= {@link #OVER}.
+     *            or if gamestate is earlier than {@link #PLAY}, or >= {@link #OVER},
+     *            or if the first player is asking before completing their first turn.
      * @throws IllegalArgumentException  if pn is not a valid player (vacant seat, etc).
      * @see #canBuyOrAskSpecialBuild(int)
      * @since 1.1.08
@@ -4474,6 +4475,7 @@ public class SOCGame implements Serializable, Cloneable
                 return false;
         if ((pn == currentPlayerNumber)
             && ((gameState != PLAY)
+                || (turnCount == 1)       // since SBP occurs @ end of each turn, not @ start
                 || players[pn].hasPlayedDevCard()))
             if (throwExceptions)
                 throw new IllegalStateException("current player");
