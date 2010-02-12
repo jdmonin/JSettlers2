@@ -4503,6 +4503,11 @@ public class SOCGame implements Serializable, Cloneable
      * To do so, call {@link #askSpecialBuild(int, boolean)} and then {@link #endTurn()}.
      *<P>
      * Also sets game's <tt>askedSpecialBuildPhase</tt> flag in 1.1.09 and later.
+     *<P>
+     * Note that this method only sets the flags, and cannot clear them.
+     * You can clear the player's flag via {@link SOCPlayer#setAskedSpecialBuild(boolean)},
+     * but cannot directly clear <tt>askedSpecialBuildPhase</tt>.
+     * Normal game flow does not need a way to do so.
      *
      * @param pn  The player's number
      * @param onlyIfCan  Check if player can do so, before setting player and game flags.
