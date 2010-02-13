@@ -7199,17 +7199,28 @@ public class SOCServer extends Server
         {
             Date now = new Date();
             Date gstart = ga.getStartTime();
-            String gLengthMsg;
+            final String gLengthMsg;
             if (gstart != null)
-            {                
+            {
+                StringBuffer sb = new StringBuffer("This game was ");
+                sb.append(ga.getRoundCount());
+                sb.append(" rounds, and took ");
                 long gameSeconds = ((now.getTime() - gstart.getTime())+500L) / 1000L;
                 long gameMinutes = gameSeconds/60L;
                 gameSeconds = gameSeconds % 60L;
+                sb.append(gameMinutes);
                 if (gameSeconds == 0)
-                    gLengthMsg = "This game took " + gameMinutes + " minutes.";
-                else
-                    gLengthMsg = "This game took " + gameMinutes + " minutes "
-                        + gameSeconds + " seconds.";
+                {
+                    sb.append(" minutes.");
+                } else if (gameSeconds == 1)
+                {
+                    sb.append(" minutes 1 second.");
+                } else {
+                    sb.append(" minutes ");
+                    sb.append(gameSeconds);
+                    sb.append(" seconds.");
+                }
+                gLengthMsg = sb.toString();
                 messageToGame(gname, gLengthMsg);
 
                 // Ignore possible "1 minutes"; that game is too short to worry about.
