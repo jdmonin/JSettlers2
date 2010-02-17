@@ -4143,7 +4143,9 @@ public class SOCRobotBrain extends Thread
         /**
          * decide which player we want to thwart
          */
-        int[] winGameETAs = { 100, 100, 100, 100, 100, 100 };  // Length should be SOCGame.MAXPLAYERS
+        int[] winGameETAs = new int[game.maxPlayers];
+        for (int i = game.maxPlayers - 1; i >= 0; --i)
+            winGameETAs[i] = 100;
         Iterator trackersIter = playerTrackers.values().iterator();
 
         while (trackersIter.hasNext())
