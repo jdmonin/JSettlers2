@@ -58,6 +58,29 @@ public class Version {
     minJREVersion();
   }
 
+  /**
+   * Given a version number integer such as 1109, return a human-readable string such as "1.1.09".
+   * @param  versionNumber  a version number, as returned by {@link #versionNumber()},
+   *           which should be 0 or an integer 1000 or higher
+   * @return  version as a human-readable string such as "1.1.09"
+   * @since 1.1.09
+   * @see #version()
+   */
+  public static String version(final int versionNumber)
+  {
+      if (versionNumber < 1000)
+          return Integer.toString(versionNumber);
+      else if (versionNumber < 1100)
+          return "1.0." + (versionNumber - 1000);  // 1006 -> 1.0.6
+      else
+      {
+          StringBuffer sb = new StringBuffer(Integer.toString(versionNumber));
+          sb.insert(2, '.');
+          sb.insert(1, '.');
+          return sb.toString();  // 1.1.09
+      }
+  }
+
   /** Return the current version string. @see #versionNumber() */
   public static String version() {
     return versionInfo.getProperty(VERSION);
@@ -68,6 +91,7 @@ public class Version {
    * @return Version integer; 1100 is version 1.1.00.
    *         If the version number cannot be read, 0 is returned.
    * @see #version()
+   * @see #version(int)
    */
   public static int versionNumber() {
     int vnum;
