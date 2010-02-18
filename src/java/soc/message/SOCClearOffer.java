@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,19 +25,28 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that the player is retracting an offer
+ * This message means that the player is retracting an offer.
+ *<P>
+ * Version 1.1.09: If <tt>playerNumber</tt> is -1, all players are clearing all offers (usually at end of turn).
+ * This is allowed only from server to client.
  *
  * @author Robert S. Thomas
  */
 public class SOCClearOffer extends SOCMessage
 {
     /**
+     * Minimum version (1.1.09) which supports playerNumber -1 for clear all.
+     * @since 1.1.09
+     */
+    public static final int VERSION_FOR_CLEAR_ALL = 1109;
+
+    /**
      * Name of game
      */
     private String game;
 
     /**
-     * The seat number
+     * The seat number, or -1 for all
      */
     private int playerNumber;
 
@@ -44,7 +54,7 @@ public class SOCClearOffer extends SOCMessage
      * Create a ClearOffer message.
      *
      * @param ga  the name of the game
-     * @param pn  the seat number
+     * @param pn  the seat number, or -1 for all (1.1.09 or newer only)
      */
     public SOCClearOffer(String ga, int pn)
     {
@@ -62,7 +72,7 @@ public class SOCClearOffer extends SOCMessage
     }
 
     /**
-     * @return the seat number
+     * @return the seat number, or -1 for all
      */
     public int getPlayerNumber()
     {
@@ -92,10 +102,10 @@ public class SOCClearOffer extends SOCMessage
     }
 
     /**
-     * Parse the command String into a StartGame message
+     * Parse the command String into a CLEAROFFER message
      *
      * @param s   the String to parse
-     * @return    a StartGame message, or null of the data is garbled
+     * @return    a CLEAROFFER message, or null of the data is garbled
      */
     public static SOCClearOffer parseDataStr(String s)
     {

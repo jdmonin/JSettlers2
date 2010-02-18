@@ -5001,9 +5001,12 @@ public class SOCServer extends Server
          * clear any trade offers
          */
         gameList.takeMonitorForGame(gname);
-        for (int i = 0; i < ga.maxPlayers; i++)
+        if (ga.clientVersionLowest >= SOCClearOffer.VERSION_FOR_CLEAR_ALL)
         {
-            messageToGameWithMon(gname, new SOCClearOffer(gname, i));
+            messageToGameWithMon(gname, new SOCClearOffer(gname, -1));            
+        } else {
+            for (int i = 0; i < ga.maxPlayers; i++)
+                messageToGameWithMon(gname, new SOCClearOffer(gname, i));
         }
         gameList.releaseMonitorForGame(gname);
 
@@ -5349,8 +5352,16 @@ public class SOCServer extends Server
                             for (int i = 0; i < ga.maxPlayers; i++)
                             {
                                 ga.getPlayer(i).setCurrentOffer(null);
-                                messageToGame(gaName, new SOCClearOffer(gaName, i));
                             }
+                            gameList.takeMonitorForGame(gaName);
+                            if (ga.clientVersionLowest >= SOCClearOffer.VERSION_FOR_CLEAR_ALL)
+                            {
+                                messageToGameWithMon(gaName, new SOCClearOffer(gaName, -1));            
+                            } else {
+                                for (int i = 0; i < ga.maxPlayers; i++)
+                                    messageToGameWithMon(gaName, new SOCClearOffer(gaName, i));
+                            }
+                            gameList.releaseMonitorForGame(gaName);
 
                             /**
                              * send a message to the bots that the offer was accepted

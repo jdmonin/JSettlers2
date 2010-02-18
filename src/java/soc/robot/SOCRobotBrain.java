@@ -986,7 +986,16 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.CLEAROFFER:
                         if (robotParameters.getTradeFlag() == 1)
-                            game.getPlayer(((SOCClearOffer) mes).getPlayerNumber()).setCurrentOffer(null);
+                        {
+                            final int pn = ((SOCClearOffer) mes).getPlayerNumber();
+                            if (pn != -1)
+                            {
+                                game.getPlayer(pn).setCurrentOffer(null);
+                            } else {
+                                for (int i = 0; i < game.maxPlayers; ++i)
+                                    game.getPlayer(i).setCurrentOffer(null);
+                            }
+                        }
                         break;
 
                     case SOCMessage.ACCEPTOFFER:

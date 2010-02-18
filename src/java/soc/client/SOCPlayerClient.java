@@ -3314,8 +3314,18 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         if (ga != null)
         {
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            ga.getPlayer(mes.getPlayerNumber()).setCurrentOffer(null);
-            pi.getPlayerHandPanel(mes.getPlayerNumber()).updateCurrentOffer();
+            final int pn = mes.getPlayerNumber();
+            if (pn != -1)
+            {
+                ga.getPlayer(pn).setCurrentOffer(null);
+                pi.getPlayerHandPanel(pn).updateCurrentOffer();
+            } else {
+                for (int i = 0; i < ga.maxPlayers; ++i)
+                {
+                    ga.getPlayer(i).setCurrentOffer(null);
+                    pi.getPlayerHandPanel(i).updateCurrentOffer();
+                }
+            }
         }
     }
 

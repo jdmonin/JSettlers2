@@ -1480,7 +1480,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         if (ga != null)
         {
-            ga.getPlayer(mes.getPlayerNumber()).setCurrentOffer(null);
+            final int pn = mes.getPlayerNumber();
+            if (pn != -1)
+            {
+                ga.getPlayer(pn).setCurrentOffer(null);
+            } else {
+                for (int i = 0; i < ga.maxPlayers; ++i)
+                    ga.getPlayer(i).setCurrentOffer(null);
+            }
         }
     }
 
