@@ -301,7 +301,20 @@ public class SOCBoardLayout2 extends SOCMessage
             sb.append("|");
             sb.append(okey);
             sb.append("=");
-            sb.append(layoutParts.get(okey).toString());
+            Object kv = layoutParts.get(okey);
+            if (kv instanceof int[])
+            {
+                int[] iv = (int[]) kv;
+                sb.append("{");
+                for (int i = 0; i < iv.length; ++i)
+                {
+                    sb.append(' ');
+                    sb.append(iv[i]);
+                }
+                sb.append(" }");
+            } else {
+                sb.append(kv.toString());
+            }
         }
         return sb.toString();
     }
