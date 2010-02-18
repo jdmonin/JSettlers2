@@ -199,3 +199,7 @@ Further development is based on 1.1.04.
 
 - First release. See the README file for how to setup a server and
   robot clients.
+
+    > For older version information:
+
+- see src/docs/old-updates-rsthomas.html for 5/3/00 through 03/15/04.
