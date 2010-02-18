@@ -4,6 +4,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 
     > 1.1.09 (build 20100xxx)
+- 4-player board: crisper graphics (images from 6-player board)
 - Practice games don't expire (Rowan H idea)
 - Show rounds remaining for "roll no 7s during first n turns" (Rowan H idea)
 - When moving robber and choosing a victim, popup shows their # VPs
@@ -16,6 +17,9 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
      end of the SBP.)  The board game does not allow this out-of-order building.
 - 6-player robots: Slow down a little: Pause 75% of 4-player's pause duration, not 50%
 - At end of game, show number of rounds along with time elapsed
+- Game options: Change of wording in minimum-version warning:
+	from: Client version 1107 or higher is required for these game options.
+	to :  Client version 1.1.07 or newer is required for these game options.
 - Fix: Ask 2nd practice game options, when 1st is over but its window still showing
 - Other changes: TBD ?
 

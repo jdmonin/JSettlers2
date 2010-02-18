@@ -54,6 +54,7 @@ import java.util.TreeSet;
 import soc.game.SOCGameOption;
 import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
+import soc.util.Version;
 
 /**
  * This is the dialog for options to set in a new game.
@@ -944,7 +945,7 @@ public class NewGameOptionsFrame extends Frame
         public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers)
         {
             super(cl, ngof, "Confirm options minimum version",
-                "Client version " + minVers + " or higher is required for these game options.\nOlder clients won't be able to join.",
+                "JSettlers " + Version.version(minVers) + " or newer is required for these game options.\nOlder clients won't be able to join.",
                 "Create with these options", "Change options", false, true);
         }
 

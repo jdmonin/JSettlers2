@@ -8259,8 +8259,8 @@ public class SOCServer extends Server
         if (optsVers > -1)
         {
             System.err.println
-                ("*** Note: Client version " + optsVers
-                 + " or higher is required for these game options. ***");
+                ("*** Note: Client version " + Version.version(optsVers)
+                 + " or newer is required for these game options. ***");
             System.err.println
                 ("          Games created with different options may not have this restriction.");
         }
