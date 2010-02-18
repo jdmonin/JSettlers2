@@ -2645,6 +2645,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 } else {
                     if (superText1_w == 0)
                     {
+                        if (superText1 == null)
+                            return;  // avoid NPE from multi-threading
                         superText1_w = fm.stringWidth(superText1);
                         superText_h = fm.getHeight();
                         superText_des = fm.getDescent();
@@ -2683,6 +2685,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // draw text at center
         int tx = (scaledPanelX - superText1_w) / 2;
         int ty = superTextBox_y + SUPERTEXT_INSET + superText_h - superText_des;
+        if (superText1 == null)
+            return;  // avoid NPE from multi-threading
         g.drawString(superText1, tx, ty);
         if (superText2 != null)
         {
@@ -2714,6 +2718,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             if (superTextTop_w == 0)
             {
+                if (superTextTop == null)
+                    return;  // avoid NPE from multi-threading
                 superTextTop_w = fm.stringWidth(superTextTop);
                 superTextTop_h = fm.getHeight() - fm.getDescent();
             }
@@ -2739,6 +2745,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int tx = (scaledPanelX - superTextTop_w) / 2;
         int ty = 2 * SUPERTEXT_INSET + superTextTop_h;
         g.setFont(bpf);
+        if (superTextTop == null)
+            return;  // avoid NPE from multi-threading
         g.drawString(superTextTop, tx, ty);
 
         /**
