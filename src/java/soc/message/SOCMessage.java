@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Documentation paragraphs and other portions of this file Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
+ * Documentation paragraphs and other portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -270,6 +270,25 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /** Simple human-readable representation, used for debug purposes. */
     public abstract String toString();
+
+    /**
+     * For use in toString: Append int array contents to stringbuffer,
+     * formatted as "{ 1 2 3 4 5 }".
+     * @param ia  int array to append. 0 length is allowed, null is not.
+     * @param sb  StringBuffer to which <tt>ia</tt> will be appended, as "{ 1 2 3 4 5 }"
+     * @throws NullPointerException if <tt>ia</tt> is null
+     * @since 1.1.09
+     */
+    protected static void arrayIntoSB(final int[] ia, StringBuffer sb)
+    {
+        sb.append("{");
+        for (int i = 0; i < ia.length; ++i)
+        {
+            sb.append(' ');
+            sb.append(ia[i]);
+        }
+        sb.append(" }");
+    }
 
     /**
      * Utility, get the short simple name of the class: SOCResetBoardVote, not soc.message.SOCResetBoardVote 
