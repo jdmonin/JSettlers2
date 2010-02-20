@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -137,21 +137,32 @@ public class SOCGameListAtServer extends SOCGameList
         if ((members != null) && (!members.contains(conn)))
         {
             System.err.println("L139: game " + gaName + " add " + conn);  // JM TEMP
+            final boolean firstMember = members.isEmpty();
             members.addElement(conn);
 
             // Check version range
             SOCGame ga = getGameData(gaName);
-            int cliLowestAlready  = ga.clientVersionLowest;
-            int cliHighestAlready = ga.clientVersionHighest;
             final int cliVers = conn.getVersion();
-            if (cliVers < cliLowestAlready)
+            if (firstMember)
             {
                 ga.clientVersionLowest = cliVers;
-                ga.hasOldClients = true;
-            }
-            if (cliVers > cliHighestAlready)
-            {
                 ga.clientVersionHighest = cliVers;
+                ga.hasOldClients = (cliVers < Version.versionNumber());
+            }
+            else 
+            {    
+                final int cliLowestAlready  = ga.clientVersionLowest;
+                final int cliHighestAlready = ga.clientVersionHighest;
+                if (cliVers < cliLowestAlready)
+                {
+                    ga.clientVersionLowest = cliVers;
+                    if (cliVers < Version.versionNumber())
+                        ga.hasOldClients = true;
+                }
+                if (cliVers > cliHighestAlready)
+                {
+                    ga.clientVersionHighest = cliVers;
+                }
             }
         }
     }
