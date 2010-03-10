@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -124,20 +125,9 @@ public class SOCChannels extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCChannels:channels=";
-
-        try
-        {
-            Enumeration clEnum = channels.elements();
-            s += (String) clEnum.nextElement();
-
-            while (clEnum.hasMoreElements())
-            {
-                s += ("," + (String) clEnum.nextElement());
-            }
-        }
-        catch (Exception e) {}
-
-        return s;
+        StringBuffer sb = new StringBuffer("SOCChannels:channels=");
+        if (channels != null)
+            enumIntoStringBuf(channels.elements(), sb);
+        return sb.toString();
     }
 }

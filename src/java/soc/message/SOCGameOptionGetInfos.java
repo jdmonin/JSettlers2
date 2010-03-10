@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -180,25 +180,11 @@ public class SOCGameOptionGetInfos extends SOCMessage
     public String toString()
     {
         StringBuffer sb = new StringBuffer("SOCGameOptionGetInfos:options=");
-
-	if (optkeys == null)
-	    sb.append("-");
-	else
-	{
-        try
-        {
-            Enumeration okEnum = optkeys.elements();
-            sb.append ((String) okEnum.nextElement());
-
-            while (okEnum.hasMoreElements())
-            {
-		sb.append(',');
-                sb.append((String) okEnum.nextElement());
-            }
-        }
-        catch (Exception e) {}
-	}
-
+        if (optkeys == null)
+            sb.append("-");
+        else
+            enumIntoStringBuf(optkeys.elements(), sb);
         return sb.toString();
     }
+
 }
