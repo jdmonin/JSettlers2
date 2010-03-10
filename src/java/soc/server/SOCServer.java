@@ -5457,6 +5457,7 @@ public class SOCServer extends Server
             SOCPlayer player = ga.getPlayer((String) c.getData());
             final int pn = player.getPlayerNumber();
             final int pieceType = mes.getPieceType();
+            boolean sendDenyReply = false;  // for robots' benefit
 
             if (isCurrent)
             {
@@ -5476,6 +5477,7 @@ public class SOCServer extends Server
                         else
                         {
                             messageToPlayer(c, gaName, "You can't build a road.");
+                            sendDenyReply = true;
                         }
 
                         break;
@@ -5496,6 +5498,7 @@ public class SOCServer extends Server
                         else
                         {
                             messageToPlayer(c, gaName, "You can't build a settlement.");
+                            sendDenyReply = true;
                         }
 
                         break;
@@ -5512,6 +5515,7 @@ public class SOCServer extends Server
                         else
                         {
                             messageToPlayer(c, gaName, "You can't build a city.");
+                            sendDenyReply = true;
                         }
 
                         break;
@@ -5528,11 +5532,13 @@ public class SOCServer extends Server
                         endGameTurn(ga, player);  // triggers start of SBP
                     } catch (IllegalStateException e) {
                         messageToPlayer(c, gaName, "You can't ask to build now.");
+                        sendDenyReply = true;
                     }
                 }
                 else
                 {
                     messageToPlayer(c, gaName, "You can't build now.");
+                    sendDenyReply = true;
                 }
             }
             else
@@ -5540,6 +5546,7 @@ public class SOCServer extends Server
                 if (ga.maxPlayers <= 4)
                 {
                     messageToPlayer(c, gaName, "It's not your turn.");
+                    sendDenyReply = true;
                 } else {
                     // 6-player board: Special Building Phase
                     // during other player's turn
@@ -5549,8 +5556,14 @@ public class SOCServer extends Server
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
                     } catch (IllegalStateException e) {
                         messageToPlayer(c, gaName, "You can't ask to build now.");
+                        sendDenyReply = true;
                     }
                 }
+            }
+
+            if (sendDenyReply && ga.getPlayer(pn).isRobot())
+            {
+                messageToPlayer(c, new SOCCancelBuildRequest(gaName, pieceType));
             }
         }
         catch (Exception e)
