@@ -4188,6 +4188,7 @@ public class SOCGame implements Serializable, Cloneable
         gameState = RESET_OLD;
 
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
+        cp.isLocal = isLocal;
 
         // Game min-version from options
         cp.clientVersionMinRequired = clientVersionMinRequired;
