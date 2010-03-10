@@ -157,7 +157,13 @@ public class SOCHandPanel extends Panel implements ActionListener
      *  @see #updateSeatLockButton()
      */
     protected boolean sitButIsLock;
+
+    /**
+     * Face icon; can right-click/triple-click for face chooser popup.
+     * @since 1.1.00
+     */
     protected SOCFaceButton faceImg;
+
     protected Label pname;
     protected Label vpLab;
     protected ColorSquare vpSq;

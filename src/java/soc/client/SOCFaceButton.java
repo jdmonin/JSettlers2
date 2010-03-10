@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -522,8 +522,8 @@ public class SOCFaceButton extends Canvas
 
             /**
              * either faceChooser or game will be non-null.
-             * faceChooser: Bordered mode
-             * game: Standard mode
+             * faceChooser: Bordered mode (within FaceChooserFrame)
+             * game: Standard mode (within SOCHandPanel)
              */
             if (faceChooser != null)
             {
@@ -537,6 +537,13 @@ public class SOCFaceButton extends Canvas
              */
             if ((game != null) && (popupMenu != null))
             {
+                if (evt.getClickCount() >= 3)  // Triple-click (not double-click)
+                {
+                    evt.consume();
+                    popupMenu.showFaceChooserFrame();  // Show FCF on triple-click. added in 1.1.09
+                    return;  // <--- Notify, nothing else to do ---
+                }
+
                 if (x < (FACE_WIDTH_PX / 2))
                 {
                     // if the click is on the left side, decrease the number
@@ -626,8 +633,20 @@ public class SOCFaceButton extends Canvas
         public void actionPerformed(ActionEvent e)
         {
             try {
-            if (e.getSource() != changeFaceItem)
-                return;
+                if (e.getSource() != changeFaceItem)
+                    return;
+                showFaceChooserFrame();
+            } catch (Throwable th) {
+                fb.pi.chatPrintStackTrace(th);
+            }
+        }
+
+        /**
+         * Create or show a face-chooser frame, from handpanel right-click or triple-click.
+         * @since 1.1.09
+         */
+        private void showFaceChooserFrame()
+        {
             if ((fsf == null) || ! fsf.isStillAvailable())
             {
                 fsf = new FaceChooserFrame
@@ -635,9 +654,6 @@ public class SOCFaceButton extends Canvas
                 fsf.pack();
             }
             fsf.show();
-            } catch (Throwable th) {
-                fb.pi.chatPrintStackTrace(th);
-            }
         }
 
         /**
