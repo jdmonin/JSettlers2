@@ -265,9 +265,9 @@ public class SOCBoardLayout extends SOCMessage
         StringBuffer sb = new StringBuffer("SOCBoardLayout:game=");
         sb.append(game);
         sb.append("|hexLayout=");
-        arrayIntoSB(hexLayout, sb);
+        arrayIntoStringBuf(hexLayout, sb);
         sb.append("|numberLayout=");
-        arrayIntoSB(numberLayout, sb);
+        arrayIntoStringBuf(numberLayout, sb);
         sb.append("|robberHex=0x");
         sb.append(Integer.toHexString(robberHex));
 

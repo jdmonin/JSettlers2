@@ -279,7 +279,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @throws NullPointerException if <tt>ia</tt> is null
      * @since 1.1.09
      */
-    protected static void arrayIntoSB(final int[] ia, StringBuffer sb)
+    protected static void arrayIntoStringBuf(final int[] ia, StringBuffer sb)
     {
         sb.append("{");
         for (int i = 0; i < ia.length; ++i)

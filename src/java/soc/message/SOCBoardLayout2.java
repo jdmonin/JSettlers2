@@ -304,7 +304,7 @@ public class SOCBoardLayout2 extends SOCMessage
             Object kv = layoutParts.get(okey);
             if (kv instanceof int[])
             {
-                arrayIntoSB((int[]) kv, sb);
+                arrayIntoStringBuf((int[]) kv, sb);
             } else {
                 sb.append(kv.toString());
             }
