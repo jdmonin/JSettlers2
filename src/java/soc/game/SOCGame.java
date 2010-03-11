@@ -2662,7 +2662,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * roll the dice.
+     * roll the dice.  Distribute resources, or (for 7) set gamestate to
+     * move robber or to wait for players to discard.
      * Checks game option N7: Roll no 7s during first # rounds
      */
     public IntPair rollDice()
@@ -2719,8 +2720,8 @@ public class SOCGame implements Serializable, Cloneable
             {
                 if (! isSeatVacant(i))
                 {
-                    SOCResourceSet newResources = getResourcesGainedFromRoll(players[i], currentDice);
-                    players[i].getResources().add(newResources);
+                    SOCPlayer pl = players[i]; 
+                    pl.addRolledResources(getResourcesGainedFromRoll(pl, currentDice));
                 }
             }
 
