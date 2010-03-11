@@ -109,6 +109,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCResourceSet resources;
 
     /**
+     * server-only total count of how many of each known resource the player has received this game.
+     * The used indexes match {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     * @since 1.1.09
+     */
+    private int[] resourceStats;
+
+    /**
      * how many of each type of development card this player has
      */
     private SOCDevCardSet devCards;
@@ -261,6 +268,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         longestRoadLength = player.longestRoadLength;
         lrPaths = (Vector) player.lrPaths.clone();
         resources = player.resources.copy();
+        resourceStats = new int[player.resourceStats.length];
+        System.arraycopy(player.resourceStats, 0, resourceStats, 0, player.resourceStats.length);
         devCards = new SOCDevCardSet(player.devCards);
         numKnights = player.numKnights;
         buildingVP = player.buildingVP;
@@ -348,6 +357,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         longestRoadLength = 0;
         lrPaths = new Vector();
         resources = new SOCResourceSet();
+        resourceStats = new int[SOCResourceConstants.UNKNOWN];
         devCards = new SOCDevCardSet();
         numKnights = 0;
         buildingVP = 0;
@@ -882,6 +892,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Add to this player's resources and resource-roll totals.
+     * @param rolled The resources gained by this roll, as from
+     *     {@link SOCGame#getResourcesGainedFromRoll(SOCPlayer, int)}
+     * @since 1.1.09
+     */
+    public void addRolledResources(SOCResourceSet rolled)
+    {
+        resources.add(rolled);
+        for (int rtype = SOCResourceConstants.CLAY; rtype < resourceStats.length; ++rtype)
+            resourceStats[rtype] += rolled.getAmount(rtype);
+    }
+
+    /**
      * @return the development card set
      */
     public SOCDevCardSet getDevCards()
@@ -1321,6 +1344,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             if (ours && (game.getGameState() == SOCGame.START2B))
             {
                 resources.clear();
+                // resourceStats[] is 0 already, because nothing's been rolled yet
             }
 
             break;
@@ -2393,6 +2417,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             copyResources.setAmount(resources.getAmount(rType), rType);
         }
+        copy.resourceStats = new int[resourceStats.length];
+        System.arraycopy(resourceStats, 0, copy.resourceStats, 0, resourceStats.length);
 
         /**
          * copy the dev cards
@@ -2447,6 +2473,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         cities.removeAllElements();
         cities = null;
         resources = null;
+        resourceStats = null;
         devCards = null;
         ourNumbers = null;
         ports = null;
