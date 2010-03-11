@@ -4698,7 +4698,8 @@ public class SOCServer extends Server
                             {
                                 if (! ga.isSeatVacant(i))
                                 {
-                                    SOCResourceSet rsrcs = ga.getResourcesGainedFromRoll(ga.getPlayer(i), ga.getCurrentDice());
+                                    SOCPlayer pli = ga.getPlayer(i);
+                                    SOCResourceSet rsrcs = ga.getResourcesGainedFromRoll(pli, ga.getCurrentDice());
     
                                     if (rsrcs.getTotal() != 0)
                                     {
@@ -4711,7 +4712,7 @@ public class SOCServer extends Server
                                             gainsText.append(" ");
                                         }
 
-                                        gainsText.append(ga.getPlayer(i).getName());
+                                        gainsText.append(pli.getName());
                                         gainsText.append(" gets ");
                                         // Send SOCPlayerElement messages,
                                         // build resource-text in gainsText.
@@ -4722,15 +4723,13 @@ public class SOCServer extends Server
                                     //
                                     //  send all resource info for accuracy
                                     //
-                                    StringConnection playerCon = getConnection(ga.getPlayer(i).getName());
+                                    StringConnection playerCon = getConnection(pli.getName());
                                     if (playerCon != null)
                                     {
-                                        SOCResourceSet resources = ga.getPlayer(i).getResources();
-                                        messageToPlayer(playerCon, new SOCPlayerElement(ga.getName(), i, SOCPlayerElement.SET, SOCPlayerElement.CLAY, resources.getAmount(SOCPlayerElement.CLAY)));
-                                        messageToPlayer(playerCon, new SOCPlayerElement(ga.getName(), i, SOCPlayerElement.SET, SOCPlayerElement.ORE, resources.getAmount(SOCPlayerElement.ORE)));
-                                        messageToPlayer(playerCon, new SOCPlayerElement(ga.getName(), i, SOCPlayerElement.SET, SOCPlayerElement.SHEEP, resources.getAmount(SOCPlayerElement.SHEEP)));
-                                        messageToPlayer(playerCon, new SOCPlayerElement(ga.getName(), i, SOCPlayerElement.SET, SOCPlayerElement.WHEAT, resources.getAmount(SOCPlayerElement.WHEAT)));
-                                        messageToPlayer(playerCon, new SOCPlayerElement(ga.getName(), i, SOCPlayerElement.SET, SOCPlayerElement.WOOD, resources.getAmount(SOCPlayerElement.WOOD)));
+                                        // CLAY, ORE, SHEEP, WHEAT, WOOD
+                                        SOCResourceSet resources = pli.getResources();
+                                        for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.WOOD; ++res)
+                                            messageToPlayer(playerCon, new SOCPlayerElement(ga.getName(), i, SOCPlayerElement.SET, res, resources.getAmount(res)));
                                         messageToGame(ga.getName(), new SOCResourceCount(ga.getName(), i, resources.getTotal()));
                                     }
                                 }  // if (! ga.isSeatVacant(i))
@@ -6810,12 +6809,9 @@ public class SOCServer extends Server
          * send all the private information
          */
         SOCResourceSet resources = ga.getPlayer(pn).getResources();
-        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.CLAY, resources.getAmount(SOCPlayerElement.CLAY)));
-        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ORE, resources.getAmount(SOCPlayerElement.ORE)));
-        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SHEEP, resources.getAmount(SOCPlayerElement.SHEEP)));
-        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.WHEAT, resources.getAmount(SOCPlayerElement.WHEAT)));
-        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.WOOD, resources.getAmount(SOCPlayerElement.WOOD)));
-        messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, resources.getAmount(SOCPlayerElement.UNKNOWN)));
+        // CLAY, ORE, SHEEP, WHEAT, WOOD, UNKNOWN
+        for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.UNKNOWN; ++res)
+            messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
 
         SOCDevCardSet devCards = ga.getPlayer(pn).getDevCards();
 
@@ -7928,33 +7924,8 @@ public class SOCServer extends Server
             rset.add(resources[resourceType], resourceType);
             outMes += (" " + resources[resourceType]);
 
-            switch (resourceType)
-            {
-            case SOCResourceConstants.CLAY:
-                messageToGame(game.getName(), new SOCPlayerElement(game.getName(), pnum, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, resources[resourceType]));
-
-                break;
-
-            case SOCResourceConstants.ORE:
-                messageToGame(game.getName(), new SOCPlayerElement(game.getName(), pnum, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, resources[resourceType]));
-
-                break;
-
-            case SOCResourceConstants.SHEEP:
-                messageToGame(game.getName(), new SOCPlayerElement(game.getName(), pnum, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, resources[resourceType]));
-
-                break;
-
-            case SOCResourceConstants.WHEAT:
-                messageToGame(game.getName(), new SOCPlayerElement(game.getName(), pnum, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, resources[resourceType]));
-
-                break;
-
-            case SOCResourceConstants.WOOD:
-                messageToGame(game.getName(), new SOCPlayerElement(game.getName(), pnum, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, resources[resourceType]));
-
-                break;
-            }
+            // SOCResourceConstants.CLAY == SOCPlayerElement.CLAY
+            messageToGame(game.getName(), new SOCPlayerElement(game.getName(), pnum, SOCPlayerElement.GAIN, resourceType, resources[resourceType]));
         }
 
         messageToGame(game.getName(), outMes);
