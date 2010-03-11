@@ -109,8 +109,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCResourceSet resources;
 
     /**
-     * server-only total count of how many of each known resource the player has received this game.
-     * The used indexes match {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     * server-only total count of how many of each known resource the player has received this game
+     * from dice rolls.
+     * The used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
      * @since 1.1.09
      */
     private int[] resourceStats;
@@ -889,6 +890,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public SOCResourceSet getResources()
     {
         return resources;
+    }
+
+    /**
+     * On server, get the current totals of resources received by dice rolls by this player.
+     * Please treat this as read-only.
+     *<P>
+     * Not currently tracked at client.
+     *
+     * @return array of resource counts from dice rolls;
+     *   the used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.
+     *   Index 0 is unused.
+     * @since 1.1.09
+     */
+    public int[] getResourceRollStats()
+    {
+        return resourceStats;
     }
 
     /**
