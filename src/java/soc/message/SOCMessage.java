@@ -191,6 +191,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** @since 1.1.08 */
     public static final int BOARDLAYOUT2 = 1084;  // 6-player board, 20091104
 
+    /** @since 1.1.09 */
+    public static final int PLAYERSTATS = 1085;  // per-player statistics, 20100312, v1.1.09
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -712,6 +715,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case BOARDLAYOUT2:      // 6-player board, 20091104, v1.1.08
                 return SOCBoardLayout2.parseDataStr(data);
+
+            case PLAYERSTATS:       // per-player statistics, 20100312, v1.1.09
+                return SOCPlayerStats.parseDataStr(multiData);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
