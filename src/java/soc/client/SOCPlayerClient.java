@@ -2180,6 +2180,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 handleGAMESWITHOPTIONS((SOCGamesWithOptions) mes, isLocal);
                 break;
 
+            /**
+             * player stats (as of 20100312 (v 1.1.09))
+             */
+            case SOCMessage.PLAYERSTATS:
+                handlePLAYERSTATS((SOCPlayerStats) mes);
+                break;
+
             }  // switch (mes.getType())               
         }
         catch (Exception e)
@@ -3826,6 +3833,37 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             String gaName = (String) gamesEnum.nextElement();
             addToGameList(gaName, msgGames.getGameOptionsString(gaName), false);
         }
+    }
+
+    /**
+     * handle the "player stats" message
+     * @since 1.1.09
+     */
+    private void handlePLAYERSTATS(SOCPlayerStats mes)
+    {
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        if (pi == null)
+            return;  // Not one of our games
+
+        final int stype = mes.getStatType();
+        if (stype != SOCPlayerStats.STYPE_RES_ROLL)
+            return;  // not recognized in this version
+
+        final int[] rstat = mes.getParams();
+
+        pi.print("Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)");
+        StringBuffer sb = new StringBuffer();
+        int total = 0;
+        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
+        {
+            total += rstat[rtype];
+            if (rtype > 1)
+                sb.append(", ");
+            sb.append(rstat[rtype]);
+        }
+        sb.append(". Total: ");
+        sb.append(total);
+        pi.print(sb.toString());
     }
 
     /**
