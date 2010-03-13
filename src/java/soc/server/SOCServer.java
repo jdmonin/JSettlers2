@@ -3569,6 +3569,7 @@ public class SOCServer extends Server
 
     /**
      * Print time-remaining and other game stats.
+     * Includes more detail beyond the end-game stats sent in {@link #sendGameStateOVER(SOCGame)}.
      * @param c  Client requesting the stats
      * @param gameData  Game to print stats
      * @since 1.1.07
@@ -7264,7 +7265,9 @@ public class SOCServer extends Server
 
             /**
              * Update each player's win-loss count for this session.
+             * Tell each player their resource roll totals.
              * Tell each player how long they've been connected.
+             * (Robot players aren't told this, it's not necessary.)
              */
             String connMsg;
             if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
@@ -7293,10 +7296,16 @@ public class SOCServer extends Server
                 }
 
                 if (pl.isRobot())
-                    continue;  // Don't bother to send win-loss or timing stats to robots
+                    continue;  // <-- Don't bother to send any stats text to robots --
 
                 if (plConn != null)
                 {
+                    if (plConn.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
+                    {
+                        // Send total resources rolled
+                        messageToPlayer(plConn, new SOCPlayerStats(pl, SOCPlayerStats.STYPE_RES_ROLL));
+                    }
+
                     long connTime = plConn.getConnectTime().getTime();
                     long connMinutes = (((now.getTime() - connTime)) + 30000L) / 60000L;                    
                     StringBuffer cLengthMsg = new StringBuffer(connMsg);
