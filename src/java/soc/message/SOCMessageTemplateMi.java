@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file Copyright (C) 2008-2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -186,7 +186,7 @@ public abstract class SOCMessageTemplateMi extends SOCMessageMulti
         {
             for (int i = 0; i < pa.length; ++i)
             {
-                sb.append("|param=");
+                sb.append("|p=");
                 sb.append(pa[i]);
             }
         }
