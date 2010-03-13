@@ -3579,6 +3579,15 @@ public class SOCServer extends Server
             return;
         messageToPlayer(c, gaName, "-- Game statistics: --");
         messageToPlayer(c, gaName, "Rounds played: " + gameData.getRoundCount());
+
+        // player's stats
+        if (c.getVersion() >= SOCPlayerStats.VERSION_FOR_RES_ROLL)
+        {
+            SOCPlayer cp = gameData.getPlayer((String) c.getData());
+            if (cp != null)
+                messageToPlayer(c, new SOCPlayerStats(cp, SOCPlayerStats.STYPE_RES_ROLL));
+        }
+
         // time
         Date gstart = gameData.getStartTime();
         if (gstart != null)
@@ -3589,6 +3598,7 @@ public class SOCServer extends Server
             messageToPlayer(c, gaName, gLengthMsg);
             // Ignore possible "1 minutes"; that game is too short to worry about.
         }
+
         if (! gameData.isLocal)   // practice games don't expire
         {
             String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
@@ -4673,7 +4683,11 @@ public class SOCServer extends Server
                     final SOCPlayer pl = ga.getPlayer(plName);
                     if ((pl != null) && ga.canRollDice(pl.getPlayerNumber()))
                     {
+                        /**
+                         * Roll dice, distribute resources in game
+                         */
                         IntPair dice = ga.rollDice();
+
                         /**
                          * Send roll results and then text to client.
                          * Client expects to see DiceResult first, then text message;
@@ -4700,7 +4714,7 @@ public class SOCServer extends Server
                                 {
                                     SOCPlayer pli = ga.getPlayer(i);
                                     SOCResourceSet rsrcs = ga.getResourcesGainedFromRoll(pli, ga.getCurrentDice());
-    
+
                                     if (rsrcs.getTotal() != 0)
                                     {
                                         if (noPlayersGained)
