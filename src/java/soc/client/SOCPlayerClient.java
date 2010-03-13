@@ -3851,8 +3851,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         final int[] rstat = mes.getParams();
 
-        pi.print("Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)");
-        StringBuffer sb = new StringBuffer();
+        pi.print("* Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)");
+        StringBuffer sb = new StringBuffer("* ");
         int total = 0;
         for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
         {
