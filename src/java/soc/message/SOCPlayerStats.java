@@ -27,7 +27,7 @@ import soc.game.SOCPlayer;
  * Design allows multiple types of stats.
  *<P>
  * Type 1: Resource roll stats: Introduced in 1.1.09;
- * check client version against {@link #VERSION_FOR_PLAYERSTATS_1}
+ * check client version against {@link #VERSION_FOR_RES_ROLL}
  * before sending this message.
  *<P>
  * Robot clients don't need to know about or handle this message type,
@@ -38,42 +38,65 @@ import soc.game.SOCPlayer;
  */
 public class SOCPlayerStats extends SOCMessageTemplateMi
 {
-    /** Constructor for server to tell client about a player stat */
+    /** Lowest-numbered stats type (1) */
+    public static final int STYPE_MIN = 1;
+
+    /** Stats type 1: Resource roll stats.
+     *  Check client version against {@link #VERSION_FOR_RES_ROLL}
+     *  before sending this message.
+     */
+    public static final int STYPE_RES_ROLL = 1;
+
+    /** Highest-numbered stat stype in this version (1) */
+    public static final int STYPE_MAX = 1;
+
+    /** Minimum client version for stats type 1 (resource roll stats). */
+    public static final int VERSION_FOR_RES_ROLL = 1109;
+
+    /**
+     * Constructor for server to tell client about a player stat.
+     * 
+     * @param pl  Player for these stats
+     * @param stype  Stats type.  Newer servers and clients may support
+     *           more types.  For each type (such as {@link #STYPE_RES_ROLL}),
+     *           check the corresponding VERSION_FOR_ field before sending.
+     * @throws IllegalArgumentException if <tt>stype</tt> < {@link #STYPE_MIN}
+     *           or > {@link #STYPE_MAX}
+     * @throws NullPointerException if <tt>pl</tt> null
+     */
     public SOCPlayerStats(SOCPlayer pl, int stype)
-        throws IllegalArgumentException
+        throws IllegalArgumentException, NullPointerException
     {
         super(PLAYERSTATS, pl.getGame().getName(),
             new int[6]);
-        // TODO validate stype; need function for length based on type
+        if ((stype < STYPE_MIN) || (stype > STYPE_MAX))
+            throw new IllegalArgumentException("stype out of range: " + stype);
 
-        pa[0] = stype;
-        final int[] rstats = pl.getResourceRollStats();
+        pa[0] = stype;        
+        final int[] rstats = pl.getResourceRollStats();  // rstats[0] is unused
         for (int i = 1; i <= 5; ++i)
-            pa[i] = rstats[i-1];
+            pa[i] = rstats[i];
     }
 
     /**
      * Constructor for client to parse message from server.
+     * Note that neither type, nor pa length, are validated,
+     * so that future stat types can be passed along.
      *
      * @param gameName Game name
      * @param pa Parameters of the option: <pre>
-     * pa[0] = type (only type 1 is defined for now)
+     * pa[0] = type (only type 1 is defined for now):
+     *         Use {@link #STYPE_RES_ROLL} for this parameter.
      * pa[1] = clay count
      * pa[2] = ore
      * pa[3] = sheep
      * pa[4] = wheat
      * pa[5] = wood count</pre>
-     *
-     * @throws IllegalArgumentException if pa.length != 6, or type is not valid
      */
     protected SOCPlayerStats(final String gameName, int[] pa)
         throws IllegalArgumentException
     {
 	super(PLAYERSTATS, gameName, pa);
-	if (pa.length != 6)
-	    throw new IllegalArgumentException("pa.length");
-
-	// TODO validate stype
     }
 
     /**
@@ -84,8 +107,12 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     public int getMinimumVersion() { return 1109; }
 
     /**
-     * @return the player stat type
-     * @see #getParams()
+     * Get the stat type.<P>
+     * For the actual statistic data. call {@link #getParams()} but
+     * remember that stats[i] will be in params[i+1],
+     * because params[0] is the stat type.
+     *
+     * @return the player stat type, such as {@link #STYPE_RES_ROLL}
      */
     public int getStatType()
     {
@@ -93,20 +120,16 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     }
 
     /**
-     * Parse the command String array into a SOCGameOptionInfo message. <pre>
-     * pa[0] = type (1)
-     * pa[1] = clay count
-     * pa[2] = ore
-     * pa[3] = sheep
-     * pa[4] = wheat
-     * pa[5] = wood count</pre>
+     * Parse the command String array into a SOCGameOptionInfo message.
+     * Calls {@link #SOCPlayerStats(String, int[])} constructor,
+     * see its javadoc for parameter details.
      *
-     * @param pa   the parameters
+     * @param pa   the parameters; length 2 or more required.
      * @return    a SOCPlayerStats message, or null if parsing errors
      */
     public static SOCPlayerStats parseDataStr(String[] pa)
     {
-        if ((pa == null) || (pa.length != 6))
+        if ((pa == null) || (pa.length < 2))
             return null;
         try
         {
