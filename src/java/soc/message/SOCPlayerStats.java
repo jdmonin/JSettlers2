@@ -18,11 +18,10 @@
  **/
 package soc.message;
 
-import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 
 /**
- * Information on one available {@link SOCGameOption game option}.
+ * Statistics of one type for one player.
  * Sent at end of game, or by player's request ("*STATS*" command).
  * Design allows multiple types of stats.
  *<P>
@@ -120,7 +119,7 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     }
 
     /**
-     * Parse the command String array into a SOCGameOptionInfo message.
+     * Parse the command String array into a SOCPlayerStats message.
      * Calls {@link #SOCPlayerStats(String, int[])} constructor,
      * see its javadoc for parameter details.
      *
