@@ -194,6 +194,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** @since 1.1.09 */
     public static final int PLAYERSTATS = 1085;  // per-player statistics, 20100312, v1.1.09
 
+    /** @since 1.1.09 */
+    public static final int PLAYERELEMENTS = 1086;  // multiple PLAYERELEMENT, 20100313, v1.1.09
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -718,6 +721,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case PLAYERSTATS:       // per-player statistics, 20100312, v1.1.09
                 return SOCPlayerStats.parseDataStr(multiData);
+
+            case PLAYERELEMENTS:    // multiple PLAYERELEMENT, 20100313, v1.1.09
+                return SOCPlayerElements.parseDataStr(multiData);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
