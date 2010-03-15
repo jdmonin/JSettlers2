@@ -31,6 +31,15 @@ package soc.message;
  */
 public class SOCPlayerElements extends SOCMessageTemplateMi
 {
+    /** Introduced in version 1.1.09 */
+    public static final int VERSION = 1109;
+
+    /**
+     * The original 5 named resources, for convenience:
+     * {@link SOCPlayerElement#CLAY}, ORE, SHEEP, WHEAT, {@link SOCPlayerElement#WOOD}.
+     */
+    public static final int[] NAMED_RESOURCES = {SOCPlayerElement.CLAY, SOCPlayerElement.ORE, SOCPlayerElement.SHEEP, SOCPlayerElement.WHEAT, SOCPlayerElement.WOOD};
+
     /**
      * Player number
      */
