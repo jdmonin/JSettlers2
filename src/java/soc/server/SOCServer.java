@@ -3434,8 +3434,11 @@ public class SOCServer extends Server
             c.setData(mes.getNickname());
             c.setHideTimeoutMessage(true);
             robots.addElement(c);
-            ((SOCClientData) c.getAppData()).isRobot = true;
-            ((SOCClientData) c.getAppData()).isBuiltInRobot = isBuiltIn;
+            SOCClientData scd = (SOCClientData) c.getAppData();
+            scd.isRobot = true;
+            scd.isBuiltInRobot = isBuiltIn;
+            if (! isBuiltIn)
+                scd.robot3rdPartyBrainClass = rbc;
             nameConnection(c);
         }
     }

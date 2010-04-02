@@ -57,10 +57,19 @@ public class SOCClientData
     /**
      * Is this robot connection the built-in robot (not a 3rd-party),
      * with the original AI?
+     * @see #robot3rdPartyBrainClass
      * @see soc.message.SOCImARobot
      * @since 1.1.09
      */
     public boolean isBuiltInRobot;
+
+    /**
+     * For 3rd-party robots, their type (brain class).
+     * When {@link #isBuiltInRobot}, this field is null,
+     * not {@link soc.message.SOCImARobot#RBCLASS_BUILTIN}.
+     * @since 1.1.09
+     */
+    public String robot3rdPartyBrainClass;
 
     /**
      * Are we considering a request to disconnect this client?
