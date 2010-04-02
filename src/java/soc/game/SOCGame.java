@@ -4204,7 +4204,7 @@ public class SOCGame implements Serializable, Cloneable
                 if (! wasRobot)
                 {
                     cp.addPlayer(players[i].getName(), i);
-                    cp.players[i].setRobotFlag (false);
+                    cp.players[i].setRobotFlag(false, false);
                     cp.players[i].setFaceId(players[i].getFaceId());
                 }
             }

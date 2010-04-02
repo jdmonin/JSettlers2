@@ -6747,8 +6747,9 @@ public class SOCServer extends Server
                     // If reset, player is already added and knows if robot.
                     try
                     {
+                        SOCClientData cd = (SOCClientData) c.getAppData();
                         ga.addPlayer((String) c.getData(), pn);
-                        ga.getPlayer(pn).setRobotFlag(robot);
+                        ga.getPlayer(pn).setRobotFlag(robot, (cd != null) && cd.isBuiltInRobot);
                     }
                     catch (IllegalStateException e)
                     {

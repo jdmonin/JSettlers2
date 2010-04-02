@@ -942,7 +942,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 /**
                  * set the robot flag
                  */
-                ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot());
+                ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
             }
             catch (Exception e)
             {

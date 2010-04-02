@@ -1116,7 +1116,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             /**
              * set the robot flag
              */
-            ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot());
+            ga.getPlayer(mes.getPlayerNumber()).setRobotFlag(mes.isRobot(), false);
 
             /**
              * let the robot brain find our player object if we sat down

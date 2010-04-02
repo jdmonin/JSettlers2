@@ -2711,7 +2711,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 /**
                  * set the robot flag
                  */
-                ga.getPlayer(mesPN).setRobotFlag(mes.isRobot());
+                ga.getPlayer(mesPN).setRobotFlag(mes.isRobot(), false);
             }
             catch (Exception e)
             {

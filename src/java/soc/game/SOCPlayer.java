@@ -232,6 +232,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean robotFlag;
 
     /**
+     * Is this robot connection the built-in robot (not a 3rd-party),
+     * with the original AI?
+     * @see soc.message.SOCImARobot
+     * @since 1.1.09
+     */
+    private boolean builtInRobotFlag;
+
+    /**
      * which face image this player is using
      */
     private int faceId;
@@ -281,6 +289,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         askedSpecialBuild = player.askedSpecialBuild;
         hasSpecialBuiltThisTurn = player.hasSpecialBuiltThisTurn;
         robotFlag = player.robotFlag;
+        builtInRobotFlag = player.builtInRobotFlag;
         faceId = player.faceId;
         ourNumbers = new SOCPlayerNumbers(player.ourNumbers);
         ports = new boolean[SOCBoard.WOOD_PORT + 1];
@@ -368,6 +377,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         askedSpecialBuild = false;
         hasSpecialBuiltThisTurn = false;
         robotFlag = false;
+        builtInRobotFlag = false;
         faceId = 1;
         SOCBoard board = ga.getBoard();
         ourNumbers = new SOCPlayerNumbers(board.getBoardEncodingFormat());
@@ -724,21 +734,38 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the robot flag
-     *
-     * @param value
+     * set the robot flags.
+     * @param isRobot  Is this player a robot?
+     * @param isBuiltIn  Is this player the built-in robot type?
+     *   Assume false if unknown, such as in SITDOWN message received at other clients.
      */
-    public void setRobotFlag(boolean value)
+    public void setRobotFlag(boolean isRobot, boolean isBuiltIn)
     {
-        robotFlag = value;
+        robotFlag = isRobot;
+        builtInRobotFlag = isBuiltIn;
     }
 
     /**
+     * Is this player a robot AI (built-in or 3rd-party)?
      * @return the value of the robot flag
+     * @see #isBuiltInRobot()
      */
     public boolean isRobot()
     {
         return robotFlag;
+    }
+
+    /**
+     * Is this robot player the built-in robot (not a 3rd-party),
+     * with the original AI?  False if unknown.
+     * @see #isRobot()
+     * @see soc.message.SOCImARobot
+     * @return the value of the built-in-robot flag
+     * @since 1.1.09
+     */
+    public boolean isBuiltInRobot()
+    {
+        return builtInRobotFlag;
     }
 
     /**
