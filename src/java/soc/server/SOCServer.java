@@ -3352,14 +3352,21 @@ public class SOCServer extends Server
             final String rbc = mes.getRBClass();
             final boolean isBuiltIn = (rbc == null)
                 || (rbc.equals(SOCImARobot.RBCLASS_BUILTIN));
-            if (isBuiltIn && (cliVers != srvVers))
+            if (isBuiltIn)
             {
-                String rejectMsg = "Sorry, robot client version does not match, version number "
-                    + Integer.toString(srvVers) + " is required.";
-                c.put(new SOCRejectConnection(rejectMsg).toCmd());
-                c.disconnectSoft();
-                System.out.println("Rejected robot " + mes.getNickname() + ": Version " + cliVers + " does not match server version");
-                return;  // <--- Early return: Robot client too old ---
+                if (cliVers != srvVers)
+                {
+                    String rejectMsg = "Sorry, robot client version does not match, version number "
+                        + Integer.toString(srvVers) + " is required.";
+                    c.put(new SOCRejectConnection(rejectMsg).toCmd());
+                    c.disconnectSoft();
+                    System.out.println("Rejected robot " + mes.getNickname() + ": Version " + cliVers + " does not match server version");
+                    return;  // <--- Early return: Robot client too old ---
+                } else {
+                    System.out.println("Robot arrived: " + mes.getNickname() + ": built-in type");
+                }
+            } else {
+                System.out.println("Robot arrived: " + mes.getNickname() + ": type " + rbc);
             }
 
             /**
