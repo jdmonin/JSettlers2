@@ -242,7 +242,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final Color ARROW_COLOR = new Color(106, 183, 183);
 
     /**
-     * Arrow color during {@link SOCGame#SPECIAL_BUILDING} phase of the 6-player game.
+     * Arrow color when game is over,
+     * and during {@link SOCGame#SPECIAL_BUILDING} phase of the 6-player game.
+     *<P>
+     * The game-over color was added in 1.1.09.  Previously, {@link #ARROW_COLOR} was used.
      * @since 1.1.08
      */
     private static final Color ARROW_COLOR_PLACING = new Color(255, 255, 60);
@@ -2298,7 +2301,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         else
             scArrowX = scaledArrowXR;
         g.translate(arrowX, arrowY);
-        if (! game.isSpecialBuilding())
+        if (! (game.isSpecialBuilding() || (gameState == SOCGame.OVER)))
             g.setColor(ARROW_COLOR);
         else
             g.setColor(ARROW_COLOR_PLACING);        

@@ -16,6 +16,7 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
      backwards in turn order.  (Normal turn order resumes at the
      end of the SBP.)  The board game does not allow this out-of-order building.
 - 6-player robots: Slow down a little: Pause 75% of 4-player's pause duration, not 50%
+- At end of game, hilight winner with yellow arrow
 - At end of game, show number of rounds along with time elapsed
 - Game options: Change of wording in minimum-version warning:
 	from: Client version 1107 or higher is required for these game options.
