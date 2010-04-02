@@ -3347,9 +3347,12 @@ public class SOCServer extends Server
             /**
              * Check the reported version; if none, assume 1000 (1.0.00)
              */
-            int srvVers = Version.versionNumber();
-            int cliVers = c.getVersion(); 
-            if (cliVers != srvVers)
+            final int srvVers = Version.versionNumber();
+            int cliVers = c.getVersion();
+            final String rbc = mes.getRBClass();
+            final boolean isBuiltIn = (rbc == null)
+                || (rbc.equals(SOCImARobot.RBCLASS_BUILTIN));
+            if (isBuiltIn && (cliVers != srvVers))
             {
                 String rejectMsg = "Sorry, robot client version does not match, version number "
                     + Integer.toString(srvVers) + " is required.";
@@ -3425,6 +3428,7 @@ public class SOCServer extends Server
             c.setHideTimeoutMessage(true);
             robots.addElement(c);
             ((SOCClientData) c.getAppData()).isRobot = true;
+            ((SOCClientData) c.getAppData()).isBuiltInRobot = isBuiltIn;
             nameConnection(c);
         }
     }

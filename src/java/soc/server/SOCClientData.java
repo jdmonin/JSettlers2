@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008-2009 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -53,6 +53,14 @@ public class SOCClientData
      * @since 1.1.07
      */
     public boolean isRobot;
+
+    /**
+     * Is this robot connection the built-in robot (not a 3rd-party),
+     * with the original AI?
+     * @see soc.message.SOCImARobot
+     * @since 1.1.09
+     */
+    public boolean isBuiltInRobot;
 
     /**
      * Are we considering a request to disconnect this client?

@@ -20,6 +20,7 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Game options: Change of wording in minimum-version warning:
 	from: Client version 1107 or higher is required for these game options.
 	to :  Client version 1.1.07 or newer is required for these game options.
+- Allow 3rd-party Robot AIs, via new param in IMAROBOT message, SOCClientData.isBuiltInRobot
 - Fix: Ask 2nd practice game options, when 1st is over but its window still showing
 - Fix: For game's 1st client, set game.clientVersionLowest (was always 0 before now)
 - Debug assist: SOCBoardLayout2 prints array contents
