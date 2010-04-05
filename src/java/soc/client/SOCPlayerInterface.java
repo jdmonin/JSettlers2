@@ -179,12 +179,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     /**
      * where text is displayed.
      * In the 6-player layout, size expands when hovered over with mouse.
+     * @see #textDisplaysLargerTemp
      */
     protected SnippingTextArea textDisplay;
 
     /**
      * where chat text is displayed.
      * In the 6-player layout, size expands when hovered over with mouse.
+     * @see #textDisplaysLargerTemp
      */
     protected SnippingTextArea chatDisplay;
 
@@ -233,7 +235,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * @see SOCPITextDisplaysLargerTask
      * @since 1.1.08
      */
-    private boolean  sbFixLHasMouse, sbFixRHasMouse, sbFixBHasMouse;
+    private boolean sbFixLHasMouse, sbFixRHasMouse, sbFixBHasMouse;
 
     //========================================================
     /**
