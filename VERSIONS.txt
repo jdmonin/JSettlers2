@@ -21,6 +21,7 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Game options: Change of wording in minimum-version warning:
 	from: Client version 1107 or higher is required for these game options.
 	to :  Client version 1.1.07 or newer is required for these game options.
+- Double-clicking your face icon brings up the Face Chooser
 - Allow 3rd-party Robot AIs, via new rbclass param in IMAROBOT message, SOCClientData.isBuiltInRobot
 	Print robot type on connect (built-in, or rbclass name)
 - Fix: Ask 2nd practice game options, when 1st is over but its window still showing

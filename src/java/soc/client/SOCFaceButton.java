@@ -537,10 +537,10 @@ public class SOCFaceButton extends Canvas
              */
             if ((game != null) && (popupMenu != null))
             {
-                if (evt.getClickCount() >= 3)  // Triple-click (not double-click)
+                if (evt.getClickCount() >= 2)  // Show FCF on double-click. added in 1.1.09
                 {
                     evt.consume();
-                    popupMenu.showFaceChooserFrame();  // Show FCF on triple-click. added in 1.1.09
+                    popupMenu.showFaceChooserFrame(); 
                     return;  // <--- Notify, nothing else to do ---
                 }
 
