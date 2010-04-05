@@ -1890,14 +1890,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * For 6-player board, make the text displays larger/smaller when mouse
      * enters/exits them.
      * Timer will set textDisplaysLargerTemp_needsLayout, invalidate(), doLayout().
-     * Wait 100 ms first, to avoid flicker in case of several related
+     * Wait 200 ms first, to avoid flicker in case of several related
      * {@link #mouseExited(MouseEvent)}/{@link #mouseEntered(MouseEvent)} events
      * (such as moving mouse from {@link #textDisplay} to {@link #chatDisplay}).
      * @since 1.1.08
      */
     private void textDisplaysLargerSetResizeTimer()
     {
-        getEventTimer().schedule(new SOCPITextDisplaysLargerTask(), 100 /* ms */ );
+        getEventTimer().schedule(new SOCPITextDisplaysLargerTask(), 200 /* ms */ );
     }
 
     /**
@@ -2243,11 +2243,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
     /**
      * For 6-player board, make the text displays larger/smaller when mouse
-     * enters/exits them. Wait 100 ms first, to avoid flicker in case of several related
+     * enters/exits them. Wait 200 ms first, to avoid flicker in case of several related
      * {@link #mouseExited(MouseEvent)}/{@link #mouseEntered(MouseEvent)} events
      * (such as moving mouse from {@link #textDisplay} to {@link #chatDisplay}).
      *<P>
      * Used only when {@link SOCPlayerInterface#is6player} true.
+     *<P>
+     * Delay was 100 ms in 1.1.08, increased to 200 ms in 1.1.09.
      * @author Jeremy D Monin <jeremy@nand.net>
      * @since 1.1.08
      */
