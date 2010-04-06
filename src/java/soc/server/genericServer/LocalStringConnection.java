@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>.
+ * Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,6 +51,7 @@ import soc.disableDebug.D;
  *                       wantsHideTimeoutMessage, setHideTimeoutMessage;
  *                       common constructor code moved to init().
  *  1.0.5.1- 2009-10-26- javadoc warnings fixed
+ *  1.0.5.2- 2010-04-05- add toString for debugging
  *</PRE>
  *
  * @author Jeremy D. Monin <jeremy@nand.net>
@@ -660,4 +661,20 @@ public class LocalStringConnection
             ourServer.removeConnection(this);
         }
     }
+
+    /**
+     * toString includes data.toString for debugging.
+     * @since 1.0.5.2
+     */
+    public String toString()
+    {
+        StringBuffer sb = new StringBuffer("LocalStringConnection[");
+        if (data != null)
+            sb.append(data.toString());
+        else
+            sb.append(super.hashCode());
+        sb.append(']');
+        return sb.toString();
+    }
+
 }

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -517,6 +517,23 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     public void setVersionTracking(boolean doTracking)
     {
         remoteVersionTrack = doTracking;
+    }
+
+    /**
+     * toString includes data.toString for debugging.
+     * @since 1.0.5.2
+     */
+    public String toString()
+    {
+        StringBuffer sb = new StringBuffer("Connection[");
+        if (data != null)
+            sb.append(data.toString());
+        else
+            sb.append(super.hashCode());
+        sb.append('-');
+        sb.append(getName());  // connection-hostname-portnumber
+        sb.append(']');
+        return sb.toString();
     }
 
     class Putter extends Thread
