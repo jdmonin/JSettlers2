@@ -2014,13 +2014,20 @@ public class SOCRobotBrain extends Thread
             // Sometimes happens if another player has placed since we
             // requested special building.  If our PUTPIECE request is
             // denied, server sends us CANCELBUILDREQUEST during SPECIAL_BUILDING.
+            // This will cancel the placement, and also will
+            // set variables to end our turn.
             //
-            cancelWrongPiecePlacement(mes);  // (TODO) it should call endOurTurn
+            cancelWrongPiecePlacement(mes);
             break;
 
         default:
-            // Should not occur
-            D.ebugPrintln("Unexpected CANCELBUILDREQUEST at state " + gstate);
+            if (game.isSpecialBuilding())
+            {
+                cancelWrongPiecePlacement(mes);
+            } else {
+                // Should not occur
+                D.ebugPrintln("Unexpected CANCELBUILDREQUEST at state " + gstate);
+            }
 
         }  // switch (gameState)
     }
@@ -2997,7 +3004,9 @@ public class SOCRobotBrain extends Thread
     /**
      *  We've asked for an illegal piece placement.
      *  Cancel and invalidate this planned piece, make a new plan.
-     *  
+     *  If {@link SOCGame#isSpecialBuilding()}, will set variables to
+     *  force the end of our special building turn.
+     *
      * @param mes Cancelmessage from server, including piece type
      */
     protected void cancelWrongPiecePlacement(SOCCancelBuildRequest mes)
@@ -3046,13 +3055,23 @@ public class SOCRobotBrain extends Thread
          * - wait for the play1 message, then can re-plan another piece.
          * - update javadoc of this method (TODO)
          */
-        // (TODO) end our special-building turn if (game.getGameState() == SOCGame.SPECIAL_BUILDING)
 
-        expectPLAY1 = true;
-        waitingForGameState = true;
-        counter = 0;
-        client.cancelBuildRequest(game, mes.getPieceType());
-        // Now wait for the play1 message, then can re-plan another piece.
+        if (game.isSpecialBuilding())
+        {
+            // End our confusion by waiting until our turn. Can re-plan at that point.
+            failedBuildingAttempts = MAX_DENIED_BUILDING_PER_TURN;
+            expectPLACING_ROAD = false;
+            expectPLACING_SETTLEMENT = false;
+            expectPLACING_CITY = false;
+            decidedIfSpecialBuild = true;
+            waitingForGameState = false;  // otherwise, will wait forever for PLACING_ state
+        } else {
+            expectPLAY1 = true;
+            waitingForGameState = true;
+            counter = 0;
+            client.cancelBuildRequest(game, mes.getPieceType());
+            // Now wait for the play1 message, then can re-plan another piece.
+        }
     }
 
     /**
