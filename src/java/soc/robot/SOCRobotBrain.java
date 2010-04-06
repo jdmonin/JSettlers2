@@ -1962,13 +1962,22 @@ public class SOCRobotBrain extends Thread
             // planned piece, make a new plan.
             //
             cancelWrongPiecePlacement(mes);
-            
             break;
-            
+
+        case SOCGame.SPECIAL_BUILDING:
+            //
+            // Same as above, but in special building.
+            // Sometimes happens if another player has placed since we
+            // requested special building.  If our PUTPIECE request is
+            // denied, server sends us CANCELBUILDREQUEST during SPECIAL_BUILDING.
+            //
+            cancelWrongPiecePlacement(mes);  // (TODO) it should call endOurTurn
+            break;
+
         default:
             // Should not occur
             D.ebugPrintln("Unexpected CANCELBUILDREQUEST at state " + gstate);
-        
+
         }  // switch (gameState)
     }
 
@@ -2987,6 +2996,8 @@ public class SOCRobotBrain extends Thread
          * - wait for the play1 message, then can re-plan another piece.
          * - update javadoc of this method (TODO)
          */
+        // (TODO) end our special-building turn if (game.getGameState() == SOCGame.SPECIAL_BUILDING)
+
         cancelWrongPiecePlacementLocal(cancelPiece);
         expectPLAY1 = true;
         waitingForGameState = true;
