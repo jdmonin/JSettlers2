@@ -40,11 +40,11 @@ import java.util.StringTokenizer;
  * - During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
  *                           PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2): <BR>
  *      Sent from server, CANCELBUILDREQUEST means the player has sent
- *      an illegal PUTPIECE (bad building location). Humans can probably
+ *      an illegal {@link SOCPutPiece PUTPIECE} (bad building location). Humans can probably
  *      decide a better place to put their road, but robots must cancel
  *      the build request and decide on a new plan. <BR>
  *<P>
- *  This can also be the reply if the client sends an illegal BUILDREQUEST
+ *  This can also be the reply if the client sends an illegal {@link SOCBuildRequest BUILDREQUEST}
  *      (no resources, not the right game state, etc.).
  *      In that case it's sent only to robot clients, not to humans.
  *      (Humans get a textual error message, and can understand that instead.)
