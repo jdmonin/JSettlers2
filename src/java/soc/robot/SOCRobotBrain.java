@@ -1513,100 +1513,106 @@ public class SOCRobotBrain extends Thread
      */
     private void placeIfExpectPlacing()
     {
-        if ((game.getGameState() == SOCGame.PLACING_SETTLEMENT) && (!waitingForGameState))
+        if (waitingForGameState)
+            return;
+
+        switch (game.getGameState())
         {
-            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_SETTLEMENT))
+            case SOCGame.PLACING_SETTLEMENT:
             {
-                expectPLACING_SETTLEMENT = false;
-                waitingForGameState = true;
-                counter = 0;
-                expectPLAY1 = true;
-
-                //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
-                pause(500);
-                client.putPiece(game, whatWeWantToBuild);
-                pause(1000);
-            }
-        }
-
-        if ((game.getGameState() == SOCGame.PLACING_ROAD) && (!waitingForGameState))
-        {
-            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_ROAD))
-            {
-                expectPLACING_ROAD = false;
-                waitingForGameState = true;
-                counter = 0;
-                expectPLAY1 = true;
-
-                //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
-                pause(500);
-                client.putPiece(game, whatWeWantToBuild);
-                pause(1000);
-            }
-        }
-
-        if ((game.getGameState() == SOCGame.PLACING_CITY) && (!waitingForGameState))
-        {
-            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_CITY))
-            {
-                expectPLACING_CITY = false;
-                waitingForGameState = true;
-                counter = 0;
-                expectPLAY1 = true;
-
-                //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
-                pause(500);
-                client.putPiece(game, whatWeWantToBuild);
-                pause(1000);
-            }
-        }
-
-        if ((game.getGameState() == SOCGame.PLACING_FREE_ROAD1) && (!waitingForGameState))
-        {
-            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD1))
-            {
-                expectPLACING_FREE_ROAD1 = false;
-                waitingForGameState = true;
-                counter = 0;
-                expectPLACING_FREE_ROAD2 = true;
-                D.ebugPrintln("!!! PUTTING PIECE 1 " + whatWeWantToBuild + " !!!");
-                pause(500);
-                client.putPiece(game, whatWeWantToBuild);
-                pause(1000);
-            }
-        }
-
-        if ((game.getGameState() == SOCGame.PLACING_FREE_ROAD2) && (!waitingForGameState))
-        {
-            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD2))
-            {
-                expectPLACING_FREE_ROAD2 = false;
-                waitingForGameState = true;
-                counter = 0;
-                expectPLAY1 = true;
-
-                SOCPossiblePiece posPiece = (SOCPossiblePiece) buildingPlan.pop();
-
-                if (posPiece.getType() == SOCPossiblePiece.ROAD)
+                if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_SETTLEMENT))
                 {
-                    D.ebugPrintln("posPiece = " + posPiece);
-                    whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
-                    D.ebugPrintln("$ POPPED OFF");
-                    D.ebugPrintln("!!! PUTTING PIECE 2 " + whatWeWantToBuild + " !!!");
+                    expectPLACING_SETTLEMENT = false;
+                    waitingForGameState = true;
+                    counter = 0;
+                    expectPLAY1 = true;
+    
+                    //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
                     pause(500);
                     client.putPiece(game, whatWeWantToBuild);
                     pause(1000);
                 }
             }
-        }
+            break;
 
-        if ((game.getGameState() == SOCGame.START1A) && (!waitingForGameState))
-        {
-            expectSTART1A = false;
-
-            if ((!waitingForOurTurn) && (ourTurn))
+            case SOCGame.PLACING_ROAD:
             {
-                if (!(expectPUTPIECE_FROM_START1A && (counter < 4000)))
+                if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_ROAD))
+                {
+                    expectPLACING_ROAD = false;
+                    waitingForGameState = true;
+                    counter = 0;
+                    expectPLAY1 = true;
+
+                    pause(500);
+                    client.putPiece(game, whatWeWantToBuild);
+                    pause(1000);
+                }
+            }
+            break;
+
+            case SOCGame.PLACING_CITY:
+            {
+                if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_CITY))
+                {
+                    expectPLACING_CITY = false;
+                    waitingForGameState = true;
+                    counter = 0;
+                    expectPLAY1 = true;
+
+                    pause(500);
+                    client.putPiece(game, whatWeWantToBuild);
+                    pause(1000);
+                }
+            }
+            break;
+
+            case SOCGame.PLACING_FREE_ROAD1:
+            {
+                if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD1))
+                {
+                    expectPLACING_FREE_ROAD1 = false;
+                    waitingForGameState = true;
+                    counter = 0;
+                    expectPLACING_FREE_ROAD2 = true;
+                    // D.ebugPrintln("!!! PUTTING PIECE 1 " + whatWeWantToBuild + " !!!");
+                    pause(500);
+                    client.putPiece(game, whatWeWantToBuild);
+                    pause(1000);
+                }
+            }
+            break;
+
+            case SOCGame.PLACING_FREE_ROAD2:
+            {
+                if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD2))
+                {
+                    expectPLACING_FREE_ROAD2 = false;
+                    waitingForGameState = true;
+                    counter = 0;
+                    expectPLAY1 = true;
+    
+                    SOCPossiblePiece posPiece = (SOCPossiblePiece) buildingPlan.pop();
+    
+                    if (posPiece.getType() == SOCPossiblePiece.ROAD)
+                    {
+                        // D.ebugPrintln("posPiece = " + posPiece);
+                        whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
+                        // D.ebugPrintln("$ POPPED OFF");
+                        // D.ebugPrintln("!!! PUTTING PIECE 2 " + whatWeWantToBuild + " !!!");
+                        pause(500);
+                        client.putPiece(game, whatWeWantToBuild);
+                        pause(1000);
+                    }
+                }
+            }
+            break;
+
+            case SOCGame.START1A:
+            {
+                expectSTART1A = false;
+    
+                if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START1A && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START1A = true;
                     counter = 0;
@@ -1615,15 +1621,13 @@ public class SOCRobotBrain extends Thread
                     placeFirstSettlement();
                 }
             }
-        }
+            break;
 
-        if ((game.getGameState() == SOCGame.START1B) && (!waitingForGameState))
-        {
-            expectSTART1B = false;
-
-            if ((!waitingForOurTurn) && (ourTurn))
+            case SOCGame.START1B:
             {
-                if (!(expectPUTPIECE_FROM_START1B && (counter < 4000)))
+                expectSTART1B = false;
+    
+                if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START1B && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START1B = true;
                     counter = 0;
@@ -1632,15 +1636,13 @@ public class SOCRobotBrain extends Thread
                     placeInitRoad();
                 }
             }
-        }
+            break;
 
-        if ((game.getGameState() == SOCGame.START2A) && (!waitingForGameState))
-        {
-            expectSTART2A = false;
-
-            if ((!waitingForOurTurn) && (ourTurn))
+            case SOCGame.START2A:
             {
-                if (!(expectPUTPIECE_FROM_START2A && (counter < 4000)))
+                expectSTART2A = false;
+    
+                if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START2A && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START2A = true;
                     counter = 0;
@@ -1649,15 +1651,13 @@ public class SOCRobotBrain extends Thread
                     placeSecondSettlement();
                 }
             }
-        }
+            break;
 
-        if ((game.getGameState() == SOCGame.START2B) && (!waitingForGameState))
-        {
-            expectSTART2B = false;
-
-            if ((!waitingForOurTurn) && (ourTurn))
+            case SOCGame.START2B:
             {
-                if (!(expectPUTPIECE_FROM_START2B && (counter < 4000)))
+                expectSTART2B = false;
+    
+                if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START2B && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START2B = true;
                     counter = 0;
@@ -1666,6 +1666,8 @@ public class SOCRobotBrain extends Thread
                     placeInitRoad();
                 }
             }
+            break;
+
         }
     }
 
@@ -3002,33 +3004,39 @@ public class SOCRobotBrain extends Thread
     {
         whatWeFailedToBuild = whatWeWantToBuild;
         ++failedBuildingAttempts;
-        
-        int coord = whatWeWantToBuild.getCoordinates();
-        SOCPlayingPiece cancelPiece;
-        
-        /**
-         * First, invalidate that piece in trackers, so we don't try again to
-         * build it. If we treat it like another player's new placement, we
-         * can remove any of our planned pieces depending on this one.
-         */
-        switch (mes.getPieceType())
+
+        if (whatWeWantToBuild != null)
         {
-        case SOCPlayingPiece.ROAD:
-            cancelPiece = new SOCRoad(dummyCancelPlayerData, coord, null);
-            break;
+            final int coord = whatWeWantToBuild.getCoordinates();
+            SOCPlayingPiece cancelPiece;
 
-        case SOCPlayingPiece.SETTLEMENT:
-            cancelPiece = new SOCSettlement(dummyCancelPlayerData, coord, null);
-            break;
+            /**
+             * First, invalidate that piece in trackers, so we don't try again to
+             * build it. If we treat it like another player's new placement, we
+             * can remove any of our planned pieces depending on this one.
+             */
+            switch (mes.getPieceType())
+            {
+            case SOCPlayingPiece.ROAD:
+                cancelPiece = new SOCRoad(dummyCancelPlayerData, coord, null);
+                break;
 
-        case SOCPlayingPiece.CITY:
-            cancelPiece = new SOCCity(dummyCancelPlayerData, coord, null);
-            break;
-            
-        default:
-            cancelPiece = null;  // To satisfy javac
+            case SOCPlayingPiece.SETTLEMENT:
+                cancelPiece = new SOCSettlement(dummyCancelPlayerData, coord, null);
+                break;
+
+            case SOCPlayingPiece.CITY:
+                cancelPiece = new SOCCity(dummyCancelPlayerData, coord, null);
+                break;
+
+            default:
+                cancelPiece = null;  // To satisfy javac
+            }
+
+            if (cancelPiece != null)
+                cancelWrongPiecePlacementLocal(cancelPiece);
         }
-        
+
         /**
          * we've invalidated that piece in trackers.
          * - clear whatWeWantToBuild, buildingPlan
@@ -3040,7 +3048,6 @@ public class SOCRobotBrain extends Thread
          */
         // (TODO) end our special-building turn if (game.getGameState() == SOCGame.SPECIAL_BUILDING)
 
-        cancelWrongPiecePlacementLocal(cancelPiece);
         expectPLAY1 = true;
         waitingForGameState = true;
         counter = 0;
