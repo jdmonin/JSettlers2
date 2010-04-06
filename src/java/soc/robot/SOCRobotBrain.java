@@ -762,41 +762,9 @@ public class SOCRobotBrain extends Thread
 
                     if (waitingForTradeResponse && (counter > 100))
                     {
-                        //D.ebugPrintln("NOT WAITING ANY MORE FOR TRADE RESPONSE");
-                        ///
-                        /// record which players said no by not saying anything
-                        ///
-                        SOCTradeOffer ourCurrentOffer = ourPlayerData.getCurrentOffer();
-
-                        if (ourCurrentOffer != null)
-                        {
-                            boolean[] offeredTo = ourCurrentOffer.getTo();
-                            SOCResourceSet getSet = ourCurrentOffer.getGetSet();
-
-                            for (int rsrcType = SOCResourceConstants.CLAY;
-                                    rsrcType <= SOCResourceConstants.WOOD;
-                                    rsrcType++)
-                            {
-                                if (getSet.getAmount(rsrcType) > 0)
-                                {
-                                    for (int pn = 0; pn < game.maxPlayers; pn++)
-                                    {
-                                        if (offeredTo[pn])
-                                        {
-                                            negotiator.markAsNotSelling(pn, rsrcType);
-                                            negotiator.markAsNotWantingAnotherOffer(pn, rsrcType);
-                                        }
-                                    }
-                                }
-                            }
-
-                            pause(1500);
-                            client.clearOffer(game);
-                            pause(500);
-                        }
-
-                        counter = 0;
-                        waitingForTradeResponse = false;
+                        // Remember other players' responses, call client.clearOffer,
+                        // clear waitingForTradeResponse and counter.
+                        tradeStopWaitingClearOffer();
                     }
 
                     if (waitingForGameState && (counter > 10000))
@@ -1319,161 +1287,16 @@ public class SOCRobotBrain extends Thread
 
                     /**
                      * Placement: Make various putPiece calls; server has told us it's OK to buy them.
+                     * Call client.putPiece.
+                     * Works when it's our turn and we have an expect flag set
+                     * (such as expectPLACING_SETTLEMENT, in these game states:
+                     * START1A - START2B
+                     * PLACING_SETTLEMENT, PLACING_ROAD, PLACING_CITY
+                     * PLACING_FREE_ROAD1, PLACING_FREE_ROAD2
                      */
-
-                    if ((game.getGameState() == SOCGame.PLACING_SETTLEMENT) && (!waitingForGameState))
+                    if (! waitingForGameState)
                     {
-                        if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_SETTLEMENT))
-                        {
-                            expectPLACING_SETTLEMENT = false;
-                            waitingForGameState = true;
-                            counter = 0;
-                            expectPLAY1 = true;
-
-                            //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
-                            pause(500);
-                            client.putPiece(game, whatWeWantToBuild);
-                            pause(1000);
-                        }
-                    }
-
-                    if ((game.getGameState() == SOCGame.PLACING_ROAD) && (!waitingForGameState))
-                    {
-                        if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_ROAD))
-                        {
-                            expectPLACING_ROAD = false;
-                            waitingForGameState = true;
-                            counter = 0;
-                            expectPLAY1 = true;
-
-                            //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
-                            pause(500);
-                            client.putPiece(game, whatWeWantToBuild);
-                            pause(1000);
-                        }
-                    }
-
-                    if ((game.getGameState() == SOCGame.PLACING_CITY) && (!waitingForGameState))
-                    {
-                        if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_CITY))
-                        {
-                            expectPLACING_CITY = false;
-                            waitingForGameState = true;
-                            counter = 0;
-                            expectPLAY1 = true;
-
-                            //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
-                            pause(500);
-                            client.putPiece(game, whatWeWantToBuild);
-                            pause(1000);
-                        }
-                    }
-
-                    if ((game.getGameState() == SOCGame.PLACING_FREE_ROAD1) && (!waitingForGameState))
-                    {
-                        if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD1))
-                        {
-                            expectPLACING_FREE_ROAD1 = false;
-                            waitingForGameState = true;
-                            counter = 0;
-                            expectPLACING_FREE_ROAD2 = true;
-                            D.ebugPrintln("!!! PUTTING PIECE 1 " + whatWeWantToBuild + " !!!");
-                            pause(500);
-                            client.putPiece(game, whatWeWantToBuild);
-                            pause(1000);
-                        }
-                    }
-
-                    if ((game.getGameState() == SOCGame.PLACING_FREE_ROAD2) && (!waitingForGameState))
-                    {
-                        if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD2))
-                        {
-                            expectPLACING_FREE_ROAD2 = false;
-                            waitingForGameState = true;
-                            counter = 0;
-                            expectPLAY1 = true;
-
-                            SOCPossiblePiece posPiece = (SOCPossiblePiece) buildingPlan.pop();
-
-                            if (posPiece.getType() == SOCPossiblePiece.ROAD)
-                            {
-                                D.ebugPrintln("posPiece = " + posPiece);
-                                whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
-                                D.ebugPrintln("$ POPPED OFF");
-                                D.ebugPrintln("!!! PUTTING PIECE 2 " + whatWeWantToBuild + " !!!");
-                                pause(500);
-                                client.putPiece(game, whatWeWantToBuild);
-                                pause(1000);
-                            }
-                        }
-                    }
-
-                    if ((game.getGameState() == SOCGame.START1A) && (!waitingForGameState))
-                    {
-                        expectSTART1A = false;
-
-                        if ((!waitingForOurTurn) && (ourTurn))
-                        {
-                            if (!(expectPUTPIECE_FROM_START1A && (counter < 4000)))
-                            {
-                                expectPUTPIECE_FROM_START1A = true;
-                                counter = 0;
-                                waitingForGameState = true;
-                                planInitialSettlements();
-                                placeFirstSettlement();
-                            }
-                        }
-                    }
-
-                    if ((game.getGameState() == SOCGame.START1B) && (!waitingForGameState))
-                    {
-                        expectSTART1B = false;
-
-                        if ((!waitingForOurTurn) && (ourTurn))
-                        {
-                            if (!(expectPUTPIECE_FROM_START1B && (counter < 4000)))
-                            {
-                                expectPUTPIECE_FROM_START1B = true;
-                                counter = 0;
-                                waitingForGameState = true;
-                                pause(1500);
-                                placeInitRoad();
-                            }
-                        }
-                    }
-
-                    if ((game.getGameState() == SOCGame.START2A) && (!waitingForGameState))
-                    {
-                        expectSTART2A = false;
-
-                        if ((!waitingForOurTurn) && (ourTurn))
-                        {
-                            if (!(expectPUTPIECE_FROM_START2A && (counter < 4000)))
-                            {
-                                expectPUTPIECE_FROM_START2A = true;
-                                counter = 0;
-                                waitingForGameState = true;
-                                planSecondSettlement();
-                                placeSecondSettlement();
-                            }
-                        }
-                    }
-
-                    if ((game.getGameState() == SOCGame.START2B) && (!waitingForGameState))
-                    {
-                        expectSTART2B = false;
-
-                        if ((!waitingForOurTurn) && (ourTurn))
-                        {
-                            if (!(expectPUTPIECE_FROM_START2B && (counter < 4000)))
-                            {
-                                expectPUTPIECE_FROM_START2B = true;
-                                counter = 0;
-                                waitingForGameState = true;
-                                pause(1500);
-                                placeInitRoad();
-                            }
-                        }
+                        placeIfExpectPlacing();
                     }
 
                     /**
@@ -1625,6 +1448,225 @@ public class SOCRobotBrain extends Thread
         playerTrackers = null;
         pinger.stopPinger();
         pinger = null;
+    }
+
+    /**
+     * Stop waiting for responses to a trade offer.
+     * Remember other players' responses,
+     * Call {@link SOCRobotClient#clearOffer(SOCGame) client.clearOffer},
+     * clear {@link #waitingForTradeResponse} and {@link #counter}.
+     * @since 1.1.09
+     */
+    private void tradeStopWaitingClearOffer()
+    {
+        ///
+        /// record which players said no by not saying anything
+        ///
+        SOCTradeOffer ourCurrentOffer = ourPlayerData.getCurrentOffer();
+
+        if (ourCurrentOffer != null)
+        {
+            boolean[] offeredTo = ourCurrentOffer.getTo();
+            SOCResourceSet getSet = ourCurrentOffer.getGetSet();
+
+            for (int rsrcType = SOCResourceConstants.CLAY;
+                    rsrcType <= SOCResourceConstants.WOOD;
+                    rsrcType++)
+            {
+                if (getSet.getAmount(rsrcType) > 0)
+                {
+                    for (int pn = 0; pn < game.maxPlayers; pn++)
+                    {
+                        if (offeredTo[pn])
+                        {
+                            negotiator.markAsNotSelling(pn, rsrcType);
+                            negotiator.markAsNotWantingAnotherOffer(pn, rsrcType);
+                        }
+                    }
+                }
+            }
+
+            pause(1500);
+            client.clearOffer(game);
+            pause(500);
+        }
+
+        counter = 0;
+        waitingForTradeResponse = false;
+    }
+
+    /**
+     * If it's our turn and we have an expect flag set
+     * (such as {@link #expectPLACING_SETTLEMENT}), then
+     * call {@link SOCRobotClient#putPiece(SOCGame, SOCPlayingPiece) client.putPiece}.
+     *<P>
+     * Looks for one of these game states:
+     *<UL>
+     * <LI> {@link SOCGame#START1A} - {@link SOCGame#START2B}
+     * <LI> {@link SOCGame#PLACING_SETTLEMENT}
+     * <LI> {@link SOCGame#PLACING_ROAD}
+     * <LI> {@link SOCGame#PLACING_CITY}
+     * <LI> {@link SOCGame#PLACING_FREE_ROAD1}
+     * <LI> {@link SOCGame#PLACING_FREE_ROAD2}
+     *</UL>
+     * @since 1.1.09
+     */
+    private void placeIfExpectPlacing()
+    {
+        if ((game.getGameState() == SOCGame.PLACING_SETTLEMENT) && (!waitingForGameState))
+        {
+            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_SETTLEMENT))
+            {
+                expectPLACING_SETTLEMENT = false;
+                waitingForGameState = true;
+                counter = 0;
+                expectPLAY1 = true;
+
+                //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
+                pause(500);
+                client.putPiece(game, whatWeWantToBuild);
+                pause(1000);
+            }
+        }
+
+        if ((game.getGameState() == SOCGame.PLACING_ROAD) && (!waitingForGameState))
+        {
+            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_ROAD))
+            {
+                expectPLACING_ROAD = false;
+                waitingForGameState = true;
+                counter = 0;
+                expectPLAY1 = true;
+
+                //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
+                pause(500);
+                client.putPiece(game, whatWeWantToBuild);
+                pause(1000);
+            }
+        }
+
+        if ((game.getGameState() == SOCGame.PLACING_CITY) && (!waitingForGameState))
+        {
+            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_CITY))
+            {
+                expectPLACING_CITY = false;
+                waitingForGameState = true;
+                counter = 0;
+                expectPLAY1 = true;
+
+                //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
+                pause(500);
+                client.putPiece(game, whatWeWantToBuild);
+                pause(1000);
+            }
+        }
+
+        if ((game.getGameState() == SOCGame.PLACING_FREE_ROAD1) && (!waitingForGameState))
+        {
+            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD1))
+            {
+                expectPLACING_FREE_ROAD1 = false;
+                waitingForGameState = true;
+                counter = 0;
+                expectPLACING_FREE_ROAD2 = true;
+                D.ebugPrintln("!!! PUTTING PIECE 1 " + whatWeWantToBuild + " !!!");
+                pause(500);
+                client.putPiece(game, whatWeWantToBuild);
+                pause(1000);
+            }
+        }
+
+        if ((game.getGameState() == SOCGame.PLACING_FREE_ROAD2) && (!waitingForGameState))
+        {
+            if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD2))
+            {
+                expectPLACING_FREE_ROAD2 = false;
+                waitingForGameState = true;
+                counter = 0;
+                expectPLAY1 = true;
+
+                SOCPossiblePiece posPiece = (SOCPossiblePiece) buildingPlan.pop();
+
+                if (posPiece.getType() == SOCPossiblePiece.ROAD)
+                {
+                    D.ebugPrintln("posPiece = " + posPiece);
+                    whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
+                    D.ebugPrintln("$ POPPED OFF");
+                    D.ebugPrintln("!!! PUTTING PIECE 2 " + whatWeWantToBuild + " !!!");
+                    pause(500);
+                    client.putPiece(game, whatWeWantToBuild);
+                    pause(1000);
+                }
+            }
+        }
+
+        if ((game.getGameState() == SOCGame.START1A) && (!waitingForGameState))
+        {
+            expectSTART1A = false;
+
+            if ((!waitingForOurTurn) && (ourTurn))
+            {
+                if (!(expectPUTPIECE_FROM_START1A && (counter < 4000)))
+                {
+                    expectPUTPIECE_FROM_START1A = true;
+                    counter = 0;
+                    waitingForGameState = true;
+                    planInitialSettlements();
+                    placeFirstSettlement();
+                }
+            }
+        }
+
+        if ((game.getGameState() == SOCGame.START1B) && (!waitingForGameState))
+        {
+            expectSTART1B = false;
+
+            if ((!waitingForOurTurn) && (ourTurn))
+            {
+                if (!(expectPUTPIECE_FROM_START1B && (counter < 4000)))
+                {
+                    expectPUTPIECE_FROM_START1B = true;
+                    counter = 0;
+                    waitingForGameState = true;
+                    pause(1500);
+                    placeInitRoad();
+                }
+            }
+        }
+
+        if ((game.getGameState() == SOCGame.START2A) && (!waitingForGameState))
+        {
+            expectSTART2A = false;
+
+            if ((!waitingForOurTurn) && (ourTurn))
+            {
+                if (!(expectPUTPIECE_FROM_START2A && (counter < 4000)))
+                {
+                    expectPUTPIECE_FROM_START2A = true;
+                    counter = 0;
+                    waitingForGameState = true;
+                    planSecondSettlement();
+                    placeSecondSettlement();
+                }
+            }
+        }
+
+        if ((game.getGameState() == SOCGame.START2B) && (!waitingForGameState))
+        {
+            expectSTART2B = false;
+
+            if ((!waitingForOurTurn) && (ourTurn))
+            {
+                if (!(expectPUTPIECE_FROM_START2B && (counter < 4000)))
+                {
+                    expectPUTPIECE_FROM_START2B = true;
+                    counter = 0;
+                    waitingForGameState = true;
+                    pause(1500);
+                    placeInitRoad();
+                }
+            }
+        }
     }
 
     /**
