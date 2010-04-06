@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Some documentation paragraphs in this file Copyright (C) 2007,2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,7 +42,12 @@ import java.util.StringTokenizer;
  *      Sent from server, CANCELBUILDREQUEST means the player has sent
  *      an illegal PUTPIECE (bad building location). Humans can probably
  *      decide a better place to put their road, but robots must cancel
- *      the build request and decide on a new plan.
+ *      the build request and decide on a new plan. <BR>
+ *<P>
+ *  This can also be the reply if the client sends an illegal BUILDREQUEST
+ *      (no resources, not the right game state, etc.).
+ *      In that case it's sent only to robot clients, not to humans.
+ *      (Humans get a textual error message, and can understand that instead.)
  *
  * @author Robert S. Thomas
  */
