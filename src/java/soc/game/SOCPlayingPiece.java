@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,17 +32,35 @@ import java.util.Vector;
 public abstract class SOCPlayingPiece implements Serializable, Cloneable
 {
     /**
-     * Types of playing pieces.
+     * Types of playing pieces: Road.
      * @see #getResourcesToBuild(int)
      */
     public static final int ROAD = 0;
+
+    /**
+     * Types of playing pieces: Settlement.
+     * @see #getResourcesToBuild(int)
+     */
     public static final int SETTLEMENT = 1;
+
+    /**
+     * Types of playing pieces: City.
+     * @see #getResourcesToBuild(int)
+     */
     public static final int CITY = 2;
+
+    /**
+     * Minimum type number of playing piece (currently Road).
+     */
     public static final int MIN = 0;
+
+    /**
+     * One past the maximum type number of playing piece.
+     */
     public static final int MAXPLUSONE = 3;
 
     /**
-     * The type of this playing piece
+     * The type of this playing piece, within range {@link #MIN} to ({@link #MAXPLUSONE} - 1)
      */
     protected int pieceType;
 
