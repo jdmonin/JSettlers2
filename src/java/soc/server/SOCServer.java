@@ -4327,9 +4327,9 @@ public class SOCServer extends Server
                     }
 
                     break;
-                
+
                 }  // switch (mes.getPieceType())
-                
+
                 if (sendDenyReply)
                 {
                     messageToPlayer(c, new SOCCancelBuildRequest(gaName, mes.getPieceType()));
@@ -5727,6 +5727,7 @@ public class SOCServer extends Server
             final String gaName = ga.getName();
             SOCPlayer player = ga.getPlayer((String) c.getData());
             final int pn = player.getPlayerNumber();
+            boolean sendDenyReply = false;  // for robots' benefit
 
             if (checkTurn(c, ga))
             {
@@ -5770,6 +5771,7 @@ public class SOCServer extends Server
                     {
                         messageToPlayer(c, gaName, "You can't buy a development card now.");
                     }
+                    sendDenyReply = true;
                 }
             }
             else
@@ -5787,6 +5789,12 @@ public class SOCServer extends Server
                         messageToPlayer(c, gaName, "You can't ask to buy a card now.");
                     }
                 }
+                sendDenyReply = true;
+            }
+
+            if (sendDenyReply && ga.getPlayer(pn).isRobot())
+            {
+                messageToPlayer(c, new SOCCancelBuildRequest(gaName, -2));
             }
         }
         catch (Exception e)

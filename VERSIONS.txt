@@ -25,6 +25,7 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Allow 3rd-party Robot AIs, via new rbclass param in IMAROBOT message, SOCClientData.isBuiltInRobot
 	Print robot type on connect (built-in, or rbclass name)
 - Fix: Ask 2nd practice game options, when 1st is over but its window still showing
+- Fix: robots: Handle CANCELBUILDREQUEST cleanly during states PLAY1 or SPECIAL_BUILDING
 - Fix: For game's 1st client, set game.clientVersionLowest (was always 0 before now)
 - 6-player window: Before expanding chat area when mouse enters it,
 	wait 200 ms (not 100 ms) in case mouse is just passing through.

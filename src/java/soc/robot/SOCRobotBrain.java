@@ -1992,10 +1992,10 @@ public class SOCRobotBrain extends Thread
             SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
                 (new Integer(pnum));
             tr.setPendingInitSettlement(null);
-            
             break;
-            
-        case SOCGame.PLACING_ROAD:
+
+        case SOCGame.PLAY1:  // asked to build, hasn't given location yet -> resources
+        case SOCGame.PLACING_ROAD:        // has given location -> is bad location
         case SOCGame.PLACING_SETTLEMENT:
         case SOCGame.PLACING_CITY:
         case SOCGame.PLACING_FREE_ROAD1:  // JM TODO how to break out?
@@ -3006,15 +3006,27 @@ public class SOCRobotBrain extends Thread
      *  Cancel and invalidate this planned piece, make a new plan.
      *  If {@link SOCGame#isSpecialBuilding()}, will set variables to
      *  force the end of our special building turn.
+     *  Also handles illegal requests to buy development cards
+     *  (piece type -2 in {@link SOCCancelBuildRequest}).
      *
      * @param mes Cancelmessage from server, including piece type
      */
     protected void cancelWrongPiecePlacement(SOCCancelBuildRequest mes)
     {
-        whatWeFailedToBuild = whatWeWantToBuild;
-        ++failedBuildingAttempts;
+        final boolean cancelBuyDevCard = (mes.getPieceType() == -2);
+        if (cancelBuyDevCard)
+        {
+            waitingForDevCard = false;
+        } else {
+            whatWeFailedToBuild = whatWeWantToBuild;
+            ++failedBuildingAttempts;
+        }
 
-        if (whatWeWantToBuild != null)
+        /**
+         * if true, server denied us due to resources, not due to building plan.
+         */
+        final boolean gameStateIsPLAY1 = (game.getGameState() == SOCGame.PLAY1);
+        if ((whatWeWantToBuild != null) && ! (gameStateIsPLAY1 || cancelBuyDevCard))
         {
             final int coord = whatWeWantToBuild.getCoordinates();
             SOCPlayingPiece cancelPiece;
@@ -3042,8 +3054,14 @@ public class SOCRobotBrain extends Thread
                 cancelPiece = null;  // To satisfy javac
             }
 
-            if (cancelPiece != null)
-                cancelWrongPiecePlacementLocal(cancelPiece);
+            cancelWrongPiecePlacementLocal(cancelPiece);
+        } else {
+            /**
+             *  stop trying to build it now, but don't prevent
+             *  us from trying later to build it.
+             */ 
+            whatWeWantToBuild = null;
+            buildingPlan.clear();
         }
 
         /**
@@ -3056,9 +3074,10 @@ public class SOCRobotBrain extends Thread
          * - update javadoc of this method (TODO)
          */
 
-        if (game.isSpecialBuilding())
+        if (gameStateIsPLAY1 || game.isSpecialBuilding())
         {
-            // End our confusion by waiting until our turn. Can re-plan at that point.
+            // Shouldn't have asked to build this piece at this time.
+            // End our confusion by ending our current turn. Can re-plan on next turn.
             failedBuildingAttempts = MAX_DENIED_BUILDING_PER_TURN;
             expectPLACING_ROAD = false;
             expectPLACING_SETTLEMENT = false;
@@ -3083,25 +3102,22 @@ public class SOCRobotBrain extends Thread
      */
     protected void cancelWrongPiecePlacementLocal(SOCPlayingPiece cancelPiece)
     {
-        switch (cancelPiece.getType())
+        if (cancelPiece != null)
         {
-        case SOCPlayingPiece.ROAD:
+            switch (cancelPiece.getType())
+            {
+            case SOCPlayingPiece.ROAD:
+                trackNewRoad((SOCRoad) cancelPiece, true);
+                break;
 
-            trackNewRoad((SOCRoad) cancelPiece, true);
+            case SOCPlayingPiece.SETTLEMENT:
+                trackNewSettlement((SOCSettlement) cancelPiece, true);
+                break;
 
-            break;
-
-        case SOCPlayingPiece.SETTLEMENT:
-
-            trackNewSettlement((SOCSettlement) cancelPiece, true);
-
-            break;
-
-        case SOCPlayingPiece.CITY:
-
-            trackNewCity((SOCCity) cancelPiece, true);
-
-            break;
+            case SOCPlayingPiece.CITY:
+                trackNewCity((SOCCity) cancelPiece, true);
+                break;
+            }
         }
 
         whatWeWantToBuild = null;
