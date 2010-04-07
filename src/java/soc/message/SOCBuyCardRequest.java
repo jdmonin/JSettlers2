@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,11 @@ package soc.message;
  * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a normal buy request.
  * When sent during other game states, and other players' turns, this is a request
  * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+ *<P>
+ * If there are no cards remaining to buy, or the player otherwise can't
+ * buy a card right now (not enough resources, for example), the server will
+ * send them a text response denying the buy.  For the robots' benefit,
+ * robot clients will be sent a {@link SOCCancelBuildRequest CANCELBUILDREQUEST(-2)} message.
  *
  * @author Robert S Thomas
  */

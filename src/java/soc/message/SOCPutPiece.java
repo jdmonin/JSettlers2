@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,9 +23,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
-
 /**
- * This message means that a player has placed a piece on the board
+ * This message means that a player is asking to place, or has placed, a piece on the board
  *
  * @author Robert S Thomas
  */
@@ -36,7 +36,7 @@ public class SOCPutPiece extends SOCMessage
     private String game;
 
     /**
-     * the type of piece being placed
+     * the type of piece being placed, such as {@link soc.game.SOCPlayingPiece#CITY}
      */
     private int pieceType;
 
@@ -54,7 +54,7 @@ public class SOCPutPiece extends SOCMessage
      * create a PutPiece message
      *
      * @param na  name of the game
-     * @param pt  type of playing piece
+     * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}
      * @param pn  player number
      * @param co  coordinates
      */
@@ -76,7 +76,7 @@ public class SOCPutPiece extends SOCMessage
     }
 
     /**
-     * @return the type of playing piece
+     * @return the type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}
      */
     public int getPieceType()
     {

@@ -23,7 +23,6 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
-
 /**
  *  This message type has three meanings, depending on game state and direction of send. 
  *<P>
@@ -48,6 +47,10 @@ import java.util.StringTokenizer;
  *      (no resources, not the right game state, etc.).
  *      In that case it's sent only to robot clients, not to humans.
  *      (Humans get a textual error message, and can understand that instead.)
+ *<P>
+ *  Piece type -2 is permitted from server to client only, as a way to tell robots
+ *  they can't buy a development card (insufficient resources, or no cards left).
+ *  (This was added in 1.1.09.)
  *
  * @author Robert S. Thomas
  */
@@ -59,7 +62,8 @@ public class SOCCancelBuildRequest extends SOCMessage
     private String game;
 
     /**
-     * The type of piece to build
+     * The type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}
+     * Can also pass -2 for server to reject request to buy a Development Card.
      */
     private int pieceType;
 
@@ -67,7 +71,8 @@ public class SOCCancelBuildRequest extends SOCMessage
      * Create a CancelBuildRequest message.
      *
      * @param ga  the name of the game
-     * @param pt  the type of piece to build
+     * @param pt  the type of piece to cancel build, such as {@link soc.game.SOCPlayingPiece#CITY}.
+     *          Can also pass -2 for server to reject request to buy a Development Card.
      */
     public SOCCancelBuildRequest(String ga, int pt)
     {
@@ -85,7 +90,8 @@ public class SOCCancelBuildRequest extends SOCMessage
     }
 
     /**
-     * @return the type of piece to build
+     * @return the type of piece to build, such as {@link soc.game.SOCPlayingPiece#CITY}.
+     *   Can also be -2 for server to reject request to buy a Development Card.
      */
     public int getPieceType()
     {
