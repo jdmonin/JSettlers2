@@ -2944,8 +2944,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 case SOCGame.PLAY:
                     mode = TURN_STARTING;
-                    if (game.isGameOptionSet("N7") && playerInterface.clientIsCurrentPlayer()
-                            && playerInterface.getClientHand().isClientAndCurrentlyCanRoll())
+                    if (game.isGameOptionSet("N7"))
                     {
                         // N7: Roll no 7s during first # rounds.
                         // Show if we can roll a 7 yet.  (1.1.09)
@@ -2956,7 +2955,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             topText = "Last round for \"No 7s\"";
                         } else if (no7roundsleft > 0)
                         {
-                            topText = (1 + no7roundsleft) + " rounds left for \"No 7s\"";
+                            if (playerInterface.clientIsCurrentPlayer()
+                              && playerInterface.getClientHand().isClientAndCurrentlyCanRoll())
+                                topText = (1 + no7roundsleft) + " rounds left for \"No 7s\"";
                         }
                     }
                     break;
@@ -2974,10 +2975,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             else
             {
+                // Not current player
                 mode = NONE;
 
                 if (game.isSpecialBuilding())
+                {
                     topText = "Special Building: " + game.getPlayer(cpn).getName();
+                }
+                else if (game.isGameOptionSet("N7"))
+                {
+                    // N7: Roll no 7s during first # rounds.
+                    // Show if we're about to be able to roll a 7.  (1.1.09)
+                    final int no7roundsleft = game.getGameOptionIntValue("N7") - game.getRoundCount();
+                    if (no7roundsleft == 0)
+                        topText = "Last round for \"No 7s\"";
+                }
             }
         }
         else
