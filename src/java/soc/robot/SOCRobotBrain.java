@@ -416,6 +416,13 @@ public class SOCRobotBrain extends Thread
     protected int secondSettlement;
 
     /**
+     * During START states, coordinate of our most recently placed road or settlement.
+     * Used to avoid repeats in {@link #cancelWrongPiecePlacement(SOCCancelBuildRequest)}.
+     * @since 1.1.09
+     */
+    private int lastStartingPieceCoord;
+
+    /**
      * a thread that sends ping messages to this one
      */
     protected SOCRobotPinger pinger;
@@ -1979,6 +1986,14 @@ public class SOCRobotBrain extends Thread
         final int gstate = game.getGameState();
         switch (gstate)
         {
+        case SOCGame.START1A:
+        case SOCGame.START2A:
+            if (ourTurn)
+            {
+                cancelWrongPiecePlacement(mes);
+            }
+            break;
+
         case SOCGame.START1B:
         case SOCGame.START2B:
             int pnum = game.getCurrentPlayerNumber();
@@ -3026,35 +3041,51 @@ public class SOCRobotBrain extends Thread
          * if true, server denied us due to resources, not due to building plan.
          */
         final boolean gameStateIsPLAY1 = (game.getGameState() == SOCGame.PLAY1);
-        if ((whatWeWantToBuild != null) && ! (gameStateIsPLAY1 || cancelBuyDevCard))
+        if (! (gameStateIsPLAY1 || cancelBuyDevCard))
         {
-            final int coord = whatWeWantToBuild.getCoordinates();
-            SOCPlayingPiece cancelPiece;
-
-            /**
-             * First, invalidate that piece in trackers, so we don't try again to
-             * build it. If we treat it like another player's new placement, we
-             * can remove any of our planned pieces depending on this one.
-             */
-            switch (mes.getPieceType())
+            int coord = -1;
+            switch (game.getGameState())
             {
-            case SOCPlayingPiece.ROAD:
-                cancelPiece = new SOCRoad(dummyCancelPlayerData, coord, null);
-                break;
-
-            case SOCPlayingPiece.SETTLEMENT:
-                cancelPiece = new SOCSettlement(dummyCancelPlayerData, coord, null);
-                break;
-
-            case SOCPlayingPiece.CITY:
-                cancelPiece = new SOCCity(dummyCancelPlayerData, coord, null);
+            case SOCGame.START1A:
+            case SOCGame.START1B:
+            case SOCGame.START2A:
+            case SOCGame.START2B:
+                coord = lastStartingPieceCoord;
                 break;
 
             default:
-                cancelPiece = null;  // To satisfy javac
+                if (whatWeWantToBuild != null)
+                    coord = whatWeWantToBuild.getCoordinates();
             }
-
-            cancelWrongPiecePlacementLocal(cancelPiece);
+            if (coord != -1)
+            {
+                SOCPlayingPiece cancelPiece;
+    
+                /**
+                 * First, invalidate that piece in trackers, so we don't try again to
+                 * build it. If we treat it like another player's new placement, we
+                 * can remove any of our planned pieces depending on this one.
+                 */
+                switch (mes.getPieceType())
+                {
+                case SOCPlayingPiece.ROAD:
+                    cancelPiece = new SOCRoad(dummyCancelPlayerData, coord, null);
+                    break;
+    
+                case SOCPlayingPiece.SETTLEMENT:
+                    cancelPiece = new SOCSettlement(dummyCancelPlayerData, coord, null);
+                    break;
+    
+                case SOCPlayingPiece.CITY:
+                    cancelPiece = new SOCCity(dummyCancelPlayerData, coord, null);
+                    break;
+    
+                default:
+                    cancelPiece = null;  // To satisfy javac
+                }
+    
+                cancelWrongPiecePlacementLocal(cancelPiece);
+            }
         } else {
             /**
              *  stop trying to build it now, but don't prevent
@@ -3084,6 +3115,18 @@ public class SOCRobotBrain extends Thread
             expectPLACING_CITY = false;
             decidedIfSpecialBuild = true;
             waitingForGameState = false;  // otherwise, will wait forever for PLACING_ state
+        }
+        else if (game.getGameState() <= SOCGame.START2B)
+        {
+            switch (game.getGameState())
+            {
+            case SOCGame.START1A:
+                expectPUTPIECE_FROM_START1A = false;
+                expectSTART1A = true;
+                break;
+            // TODO other states
+            }
+            waitingForGameState = false;
         } else {
             expectPLAY1 = true;
             waitingForGameState = true;
@@ -3703,6 +3746,7 @@ public class SOCRobotBrain extends Thread
     {
         //D.ebugPrintln("BUILD REQUEST FOR SETTLEMENT AT "+Integer.toHexString(firstSettlement));
         pause(500);
+        lastStartingPieceCoord = firstSettlement;
         client.putPiece(game, new SOCSettlement(ourPlayerData, firstSettlement, null));
         pause(1000);
     }
@@ -3714,12 +3758,13 @@ public class SOCRobotBrain extends Thread
     {
         //D.ebugPrintln("BUILD REQUEST FOR SETTLEMENT AT "+Integer.toHexString(secondSettlement));
         pause(500);
+        lastStartingPieceCoord = secondSettlement;
         client.putPiece(game, new SOCSettlement(ourPlayerData, secondSettlement, null));
         pause(1000);
     }
 
     /**
-     * place a road attached to the last initial settlement
+     * place a road attached to our most recently placed initial settlement
      */
     public void placeInitRoad()
     {
@@ -3963,6 +4008,7 @@ public class SOCRobotBrain extends Thread
         pause(500);
 
         //D.ebugPrintln("Trying to build a road at "+Integer.toHexString(roadEdge));
+        lastStartingPieceCoord = roadEdge;
         client.putPiece(game, new SOCRoad(ourPlayerData, roadEdge, null));
         pause(1000);
 
