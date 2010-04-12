@@ -504,7 +504,7 @@ public class SOCPlayerTracker
     }
     
     /**
-     * JM TODO javadoc comments
+     * Remove our incorrect road placement, it's been rejected by the server.
      * 
      * @param road Location of our bad road
      * 
@@ -894,10 +894,13 @@ public class SOCPlayerTracker
     }
 
     /**
-     * add another player's new road
+     * add another player's new road, or cancel our own bad road
+     * by acting as if another player has placed there.
+     * (That way, we won't decide to place there again.)
      *
      * @param road  the new road
-     * @param isCancel  JM TODO
+     * @param isCancel Is this our own robot's road placement, rejected by the server?
+     *     If so, this method call will cancel its placement within the tracker data.
      */
     public void addTheirNewRoad(SOCRoad road, boolean isCancel)
     {
@@ -1002,7 +1005,7 @@ public class SOCPlayerTracker
     }
 
     /**
-     * JM TODO javadoc comments
+     * Remove our incorrect settlement placement, it's been rejected by the server.
      * 
      * @param settlement Location of our bad settlement
      * 
@@ -1192,10 +1195,13 @@ public class SOCPlayerTracker
     }
 
     /**
-     * add  another player's new settlement
+     * add another player's new settlement, or cancel our own bad settlement
+     * by acting as if another player has placed there.
+     * (That way, we won't decide to place there again.)
      *
      * @param settlement  the new settlement
-     * @param isCancel JM TODO
+     * @param isCancel Is this our own robot's settlement placement, rejected by the server?
+     *     If so, this method call will cancel its placement within the tracker data.
      */
     public void addTheirNewSettlement(SOCSettlement settlement, boolean isCancel)
     {
@@ -1487,7 +1493,8 @@ public class SOCPlayerTracker
     }
 
     /**
-     * JM TODO javadoc comments
+     * Remove our incorrect city placement, it's been rejected by the server.
+     * Note, there is no addNewCity or addTheirNewCity method.
      * 
      * @param city Location of our bad city
      * 
@@ -1505,9 +1512,10 @@ public class SOCPlayerTracker
          */
         possibleCities.remove(new Integer(city.getCoordinates()));
     }
-    
+
     /**
-     * add one of our cities
+     * add one of our cities, by removing it from the possible-cities list if it's there.
+     * Note, there is no addNewCity or addTheirNewCity method.
      *
      * @param city  the new city
      */
