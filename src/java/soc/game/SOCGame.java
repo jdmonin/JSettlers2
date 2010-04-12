@@ -1593,6 +1593,15 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Put this piece on the board and update all related game state.
      * May change current player and gamestate.
+     *<P>
+     * For example, if game state when called is {@link #START2A},
+     * this is their second initial settlement, so give
+     * the player some resources, and call their {@link SOCPlayer#clearPotentialSettlements()}.
+     *<P>
+     * Calls {@link SOCBoard#putPiece(SOCPlayingPiece)} and {@link SOCPlayer#putPiece(SOCPlayingPiece)}.
+     * Updates longest road if necessary.
+     * Calls {@link #advanceTurnStateAfterPutPiece()}.
+     *<P>
      * If the piece is a city, putPiece removes the settlement there.
      *
      * @param pp the piece to put on the board
@@ -1626,8 +1635,8 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         /**
-         * if this the second initial settlement, give
-         * the player some resources
+         * if this their second initial settlement, give the
+         * player some resources, and clear potentialSettlements.
          */
         if ((gameState == START2A) && (pp.getType() == SOCPlayingPiece.SETTLEMENT))
         {

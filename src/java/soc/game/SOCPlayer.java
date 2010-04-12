@@ -38,6 +38,16 @@ import java.util.Vector;
 /**
  * A class for holding and manipulating player data.
  * The player exists within one SOCGame, not persistent between games like SOCPlayerClient or SOCClientData.
+ *<P>
+ * For more information about the "legal" and "potential" road/settlement/city terms,
+ * see page 61 of Robert S Thomas' dissertation.  Briefly:
+ * "Legal" locations are where pieces can be placed, according to the game rules.
+ * "Potential" locations are where pieces can be placed <em>soon</em>, based on the
+ * current state of the game board.  For example, every legal settlement location is
+ * also a potential settlement during initial placement (game state {@link SOCGame#START1A START1A}
+ * through {@link SOCGame#START2A START2A}.  Once the player's second settlement is placed,
+ * all potential settlement locations are cleared.  Only when they build 2 connected road
+ * segments, will another potential settlement location be set.
  *
  * @author Robert S Thomas
  */
@@ -180,6 +190,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * a list of nodes where a settlement could be
      * placed on the next turn.
+     * At start of the game, all {@link #legalSettlements} are also potential.
+     * When the second settlement is placed, this is cleared,
+     * and then re-set via {@link #updatePotentials(SOCPlayingPiece) updatePotentials(SOCRoad)}.
+     * @see #legalSettlements
      * @see SOCBoard#nodesOnBoard
      */
     private boolean[] potentialSettlements;
@@ -567,7 +581,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Set all nodes to not be potential settlements
+     * Set all nodes to not be potential settlements.
+     * Called by {@link SOCGame#putPiece(SOCPlayingPiece)}
+     * in state {@link SOCGame#START2A} after 2nd settlement placement.
+     * After they have placed another road, that road's
+     * {@link #putPiece(SOCPlayingPiece)} call will call
+     * {@link #updatePotentials(SOCPlayingPiece)}, which
+     * will set potentialSettlements at the road's new end node.
      */
     public void clearPotentialSettlements()
     {
@@ -1237,12 +1257,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * undo the putting of a piece
-     *
-     * @param piece         the piece to be put into play
-     *
+     * undo the putting of a piece.
+     *<P>
+     * Among other actions,
+     * Updates the potential building lists
+     * for removing settlements or cities.
+     * Updates port flags, this player's dice resource numbers, etc.
+     *<P>
+     * If the piece is ours, calls {@link #removePiece(SOCPlayingPiece)}.
+     *<P>
      * For removing second initial settlement (state START2B),
      *   will zero the player's resource cards. 
+     *
+     * @param piece         the piece placement to be undone.
+     *
      */
     public void undoPutPiece(SOCPlayingPiece piece)
     {
@@ -1550,13 +1578,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * remove a player's piece from the board2
-     * and put it back in the player's hand
-     *
+     * remove a player's piece from the board,
+     * and put it back in the player's hand.
+     *<P>
      * NOTE: Does NOT update the potential building lists
      *           for removing settlements or cities.
      *       DOES update potential road lists.
      *
+     * @see #undoPutPiece(SOCPlayingPiece)
      */
     public void removePiece(SOCPlayingPiece piece)
     {
