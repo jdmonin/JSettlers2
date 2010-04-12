@@ -1996,17 +1996,29 @@ public class SOCRobotBrain extends Thread
 
         case SOCGame.START1B:
         case SOCGame.START2B:
-            int pnum = game.getCurrentPlayerNumber();
-            SOCPlayer pl = game.getPlayer(pnum);
-            SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
-            game.undoPutInitSettlement(pp);
-            //
-            // "forget" to track this cancelled initial settlement.
-            // Wait for human player to place a new one.
-            //
-            SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
-                (new Integer(pnum));
-            tr.setPendingInitSettlement(null);
+            if (ourTurn)
+            {
+                cancelWrongPiecePlacement(mes);
+            }
+            else
+            {
+                //
+                // human player placed, then cancelled placement.
+                // Our robot wouldn't do that, and if it's ourTurn,
+                // the cancel happens only if we try an illegal placement.
+                //
+                final int pnum = game.getCurrentPlayerNumber();
+                SOCPlayer pl = game.getPlayer(pnum);
+                SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
+                game.undoPutInitSettlement(pp);
+                //
+                // "forget" to track this cancelled initial settlement.
+                // Wait for human player to place a new one.
+                //
+                SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
+                    (new Integer(pnum));
+                tr.setPendingInitSettlement(null);
+            }
             break;
 
         case SOCGame.PLAY1:  // asked to build, hasn't given location yet -> resources
@@ -3133,7 +3145,21 @@ public class SOCRobotBrain extends Thread
                 expectPUTPIECE_FROM_START1A = false;
                 expectSTART1A = true;
                 break;
-            // TODO other states
+
+            case SOCGame.START1B:
+                expectPUTPIECE_FROM_START1B = false;
+                expectSTART1B = true;
+                break;
+
+            case SOCGame.START2A:
+                expectPUTPIECE_FROM_START2A = false;
+                expectSTART2A = true;
+                break;
+
+            case SOCGame.START2B:
+                expectPUTPIECE_FROM_START2B = false;
+                expectSTART2B = true;
+                break;
             }
             waitingForGameState = false;
         } else {
@@ -3152,6 +3178,7 @@ public class SOCRobotBrain extends Thread
      * This method invalidates that piece in trackers, so we don't try again to
      * build it. Since we treat it like another player's new placement, we
      * can remove any of our planned pieces depending on this one.
+     *<P>
      * Also calls {@link SOCPlayer#clearPotentialSettlement(int)},
      * clearPotentialRoad, or clearPotentialCity.
      *
@@ -4127,7 +4154,7 @@ public class SOCRobotBrain extends Thread
      * that the player isn't touching yet are better than ones
      * that the player is already touching.
      *
-     * @param nodes    the table of nodes with scores
+     * @param nodes    the table of nodes with scores. key = Int node, value = Int score, to be modified in this method
      * @param player   the player that we are doing the rating for
      * @param weight   a number that is multiplied by the score
      */
