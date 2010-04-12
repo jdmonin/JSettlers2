@@ -3148,25 +3148,31 @@ public class SOCRobotBrain extends Thread
     /**
      * Remove our incorrect piece placement, it's been rejected by the server.
      * Take this piece out of trackers, without sending any response back to the server.
+     * Calls {@link SOCPlayer#clearPotentialSettlement(int)}, clearPotentialRoad, or clearPotentialCity.
      *
-     * @param cancelPiece
+     * @param cancelPiece Type and coordinates of the piece to cancel; null is allowed but not very useful.
      */
     protected void cancelWrongPiecePlacementLocal(SOCPlayingPiece cancelPiece)
     {
         if (cancelPiece != null)
         {
+            final int coord = cancelPiece.getCoordinates();
+
             switch (cancelPiece.getType())
             {
             case SOCPlayingPiece.ROAD:
                 trackNewRoad((SOCRoad) cancelPiece, true);
+                ourPlayerData.clearPotentialRoad(coord);
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
                 trackNewSettlement((SOCSettlement) cancelPiece, true);
+                ourPlayerData.clearPotentialSettlement(coord);
                 break;
 
             case SOCPlayingPiece.CITY:
                 trackNewCity((SOCCity) cancelPiece, true);
+                ourPlayerData.clearPotentialCity(coord);
                 break;
             }
         }

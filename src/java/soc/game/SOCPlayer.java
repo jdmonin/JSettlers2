@@ -1996,12 +1996,38 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Set this node to not be a potential settlement.
+     * For use (by robots) when the server denies our request to build at a certain spot.
+     *
+     * @param node  coordinates of a node on the board
+     * @see #isPotentialSettlement(int)
+     * @since 1.1.09
+     */
+    public void clearPotentialSettlement(final int node)
+    {
+        potentialSettlements[node] = false;
+    }
+
+    /**
      * @return true if this node is a potential city
      * @param node        the coordinates of a node on the board
      */
     public boolean isPotentialCity(int node)
     {
         return potentialCities[node];
+    }
+
+    /**
+     * Set this node to not be a potential city.
+     * For use (by robots) when the server denies our request to build at a certain spot.
+     *
+     * @param node  coordinates of a node on the board
+     * @see #isPotentialCity(int)
+     * @since 1.1.09
+     */
+    public void clearPotentialCity(final int node)
+    {
+        potentialSettlements[node] = false;
     }
 
     /**
@@ -2013,6 +2039,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (edge == -1)
             edge = 0x00;
         return potentialRoads[edge];
+    }
+
+    /**
+     * Set this edge to not be a potential road.
+     * For use (by robots) when the server denies our request to build at a certain spot.
+     *
+     * @param node  coordinates of a an edge on the board. Accepts -1 for edge 0x00.
+     * @see #isPotentialRoad(int)
+     * @since 1.1.09
+     */
+    public void clearPotentialRoad(int edge)
+    {
+        if (edge == -1)
+            edge = 0x00;
+        potentialRoads[edge] = false;
     }
 
     /**
