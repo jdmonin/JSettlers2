@@ -3146,10 +3146,9 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * JM TODO: javadoc
-     * 
-     * out of trackers, without sending anything to server
-     * 
+     * Remove our incorrect piece placement, it's been rejected by the server.
+     * Take this piece out of trackers, without sending any response back to the server.
+     *
      * @param cancelPiece
      */
     protected void cancelWrongPiecePlacementLocal(SOCPlayingPiece cancelPiece)
