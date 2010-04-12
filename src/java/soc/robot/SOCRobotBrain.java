@@ -3148,7 +3148,12 @@ public class SOCRobotBrain extends Thread
     /**
      * Remove our incorrect piece placement, it's been rejected by the server.
      * Take this piece out of trackers, without sending any response back to the server.
-     * Calls {@link SOCPlayer#clearPotentialSettlement(int)}, clearPotentialRoad, or clearPotentialCity.
+     *<P>
+     * This method invalidates that piece in trackers, so we don't try again to
+     * build it. Since we treat it like another player's new placement, we
+     * can remove any of our planned pieces depending on this one.
+     * Also calls {@link SOCPlayer#clearPotentialSettlement(int)},
+     * clearPotentialRoad, or clearPotentialCity.
      *
      * @param cancelPiece Type and coordinates of the piece to cancel; null is allowed but not very useful.
      */
