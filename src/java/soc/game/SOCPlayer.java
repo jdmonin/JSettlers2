@@ -177,6 +177,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a list of nodes where it is legal to place a
      * settlement.        a node is legal if a settlement
      * could eventually be placed there.
+     * @see #potentialSettlements
      * @see SOCBoard#nodesOnBoard
      */
     private boolean[] legalSettlements;
