@@ -3037,14 +3037,17 @@ public class SOCRobotBrain extends Thread
             ++failedBuildingAttempts;
         }
 
+        final int gameState = game.getGameState();
+
         /**
          * if true, server denied us due to resources, not due to building plan.
          */
-        final boolean gameStateIsPLAY1 = (game.getGameState() == SOCGame.PLAY1);
+        final boolean gameStateIsPLAY1 = (gameState == SOCGame.PLAY1);
+
         if (! (gameStateIsPLAY1 || cancelBuyDevCard))
         {
             int coord = -1;
-            switch (game.getGameState())
+            switch (gameState)
             {
             case SOCGame.START1A:
             case SOCGame.START1B:
@@ -3116,9 +3119,9 @@ public class SOCRobotBrain extends Thread
             decidedIfSpecialBuild = true;
             waitingForGameState = false;  // otherwise, will wait forever for PLACING_ state
         }
-        else if (game.getGameState() <= SOCGame.START2B)
+        else if (gameState <= SOCGame.START2B)
         {
-            switch (game.getGameState())
+            switch (gameState)
             {
             case SOCGame.START1A:
                 expectPUTPIECE_FROM_START1A = false;
