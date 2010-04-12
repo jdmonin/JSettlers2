@@ -2694,9 +2694,10 @@ public class SOCRobotBrain extends Thread
      * road's putPiece message arrives.
      *
      * @param newSettlement The newly placed settlement for the playerTrackers
-     * @param isCancel JM TODO docu
+     * @param isCancel Is this our own robot's settlement placement, rejected by the server?
+     *     If so, this method call will cancel its placement within the game data / robot data. 
      */
-    protected void trackNewSettlement(SOCSettlement newSettlement, boolean isCancel)
+    protected void trackNewSettlement(SOCSettlement newSettlement, final boolean isCancel)
     {
         Iterator trackersIter;
         trackersIter = playerTrackers.values().iterator();
@@ -2839,11 +2840,13 @@ public class SOCRobotBrain extends Thread
         }
     }
 
-    /** JM TODO: docu
-     * @param newCity
-     * @param isCancel
+    /**
+     * Run a newly placed city through the PlayerTrackers.
+     * @param newCity  The newly placed city
+     * @param isCancel Is this our own robot's city placement, rejected by the server?
+     *     If so, this method call will cancel its placement within the game data / robot data. 
      */
-    private void trackNewCity(SOCCity newCity, boolean isCancel)
+    private void trackNewCity(SOCCity newCity, final boolean isCancel)
     {
         Iterator trackersIter = playerTrackers.values().iterator();
 
@@ -2912,11 +2915,14 @@ public class SOCRobotBrain extends Thread
         }
     }
 
-    /** JM TODO: docu
-     * @param newRoad
-     * @param isCancel
+    /**
+     * Run a newly placed road through the playerTrackers.
+     * 
+     * @param newRoad  The newly placed road
+     * @param isCancel Is this our own robot's road placement, rejected by the server?
+     *     If so, this method call will cancel its placement within the game data / robot data. 
      */
-    protected void trackNewRoad(SOCRoad newRoad, boolean isCancel)
+    protected void trackNewRoad(SOCRoad newRoad, final boolean isCancel)
     {
         Iterator trackersIter = playerTrackers.values().iterator();
 
