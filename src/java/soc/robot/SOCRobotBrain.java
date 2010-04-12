@@ -423,6 +423,14 @@ public class SOCRobotBrain extends Thread
     private int lastStartingPieceCoord;
 
     /**
+     * During START1B and START2B states, coordinate of the potential settlement node
+     * towards which we're building, as calculated by {@link #placeInitRoad()}.
+     * Used to avoid repeats in {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}.
+     * @since 1.1.09
+     */
+    private int lastStartingRoadTowardsNode;
+
+    /**
      * a thread that sends ping messages to this one
      */
     protected SOCRobotPinger pinger;
@@ -3195,6 +3203,11 @@ public class SOCRobotBrain extends Thread
             case SOCPlayingPiece.ROAD:
                 trackNewRoad((SOCRoad) cancelPiece, true);
                 ourPlayerData.clearPotentialRoad(coord);
+                if (game.getGameState() <= SOCGame.START2B)
+                {
+                    // needed for placeInitRoad() calculations
+                    ourPlayerData.clearPotentialSettlement(lastStartingRoadTowardsNode);
+                }
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
@@ -3812,13 +3825,20 @@ public class SOCRobotBrain extends Thread
     /**
      * Plan and place a road attached to our most recently placed initial settlement,
      * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}.
+     *<P>
+     * Road choice is based on the best nearby potential settlements, and doesn't
+     * directly check {@link SOCPlayer#isPotentialRoad(int) ourPlayerData.isPotentialRoad(edgeCoord)}.
+     * If the server rejects our road choice, then {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
+     * will need to know which settlement node we were aiming for,
+     * and call {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}.
+     * The {@link #lastStartingRoadTowardsNode} field holds this coordinate.
      */
     public void placeInitRoad()
     {
         final int settlementNode = ourPlayerData.getLastSettlementCoord();
 
         /**
-         * Score the nearby nodes to build road towards: Key = coord Integer; value = score towards "best" node.
+         * Score the nearby nodes to build road towards: Key = coord Integer; value = Integer score towards "best" node.
          */
         Hashtable twoAway = new Hashtable();
 
@@ -3831,42 +3851,42 @@ public class SOCRobotBrain extends Thread
         SOCBoard board = game.getBoard();
         int tmp;
 
-        tmp = settlementNode - 0x20;
+        tmp = settlementNode - 0x20;  // NW direction (northwest)
 
         if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
-        tmp = settlementNode + 0x02;
+        tmp = settlementNode + 0x02;  // NE
 
         if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
-        tmp = settlementNode + 0x22;
+        tmp = settlementNode + 0x22;  // E
 
         if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
-        tmp = settlementNode + 0x20;
+        tmp = settlementNode + 0x20;  // SE
 
         if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
-        tmp = settlementNode - 0x02;
+        tmp = settlementNode - 0x02;  // SW
 
         if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
             twoAway.put(new Integer(tmp), new Integer(0));
         }
 
-        tmp = settlementNode - 0x22;
+        tmp = settlementNode - 0x22;  // W direction (west)
 
         if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
         {
@@ -4017,8 +4037,8 @@ public class SOCRobotBrain extends Thread
             }
         }
 
-        int roadEdge = 0;
-        int destination = bestNodePair.getNode();
+        final int destination = bestNodePair.getNode();  // coordinate of future settlement
+        final int roadEdge;
 
         /**
          * if the coords are (even, odd), then
@@ -4060,6 +4080,7 @@ public class SOCRobotBrain extends Thread
 
         //D.ebugPrintln("Trying to build a road at "+Integer.toHexString(roadEdge));
         lastStartingPieceCoord = roadEdge;
+        lastStartingRoadTowardsNode = destination;
         client.putPiece(game, new SOCRoad(ourPlayerData, roadEdge, null));
         pause(1000);
 
