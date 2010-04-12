@@ -401,7 +401,7 @@ public class SOCRobotBrain extends Thread
     protected int oldGameState;
 
     /**
-     * used to cache resource estiamtes for the board
+     * used to cache resource estimates for the board
      */
     protected int[] resourceEstimates;
 
@@ -3810,18 +3810,23 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * place a road attached to our most recently placed initial settlement
+     * Plan and place a road attached to our most recently placed initial settlement,
+     * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}.
      */
     public void placeInitRoad()
     {
-        int settlementNode = ourPlayerData.getLastSettlementCoord();
+        final int settlementNode = ourPlayerData.getLastSettlementCoord();
+
+        /**
+         * Score the nearby nodes to build road towards: Key = coord Integer; value = score towards "best" node.
+         */
         Hashtable twoAway = new Hashtable();
 
         D.ebugPrintln("--- placeInitRoad");
 
         /**
          * look at all of the nodes that are 2 away from the
-         * last settlement and pick the best one
+         * last settlement, and pick the best one
          */
         SOCBoard board = game.getBoard();
         int tmp;
@@ -4062,40 +4067,38 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * estimate the rarity of each resource
+     * Estimate the rarity of each resource, given this board's resource locations vs dice numbers.
+     * Cached after the first call.
      *
      * @return an array of rarity numbers where
-     *         estimates[SOCBoard.CLAY_HEX] == the clay rarity
+     *         estimates[SOCBoard.CLAY_HEX] == the clay rarity,
+     *         as an integer percentage 0-100 of dice rolls.
      */
     protected int[] estimateResourceRarity()
     {
         if (resourceEstimates == null)
         {
             SOCBoard board = game.getBoard();
-            int[] numberWeights = SOCNumberProbabilities.INT_VALUES;
+            final int[] numberWeights = SOCNumberProbabilities.INT_VALUES;
 
-            resourceEstimates = new int[6];
-
+            resourceEstimates = new int[SOCResourceConstants.UNKNOWN];  // uses 1 to 5 (CLAY to WOOD)
             resourceEstimates[0] = 0;
 
             // look at each hex
             final int L = board.getNumberLayout().length;
             for (int i = 0; i < L; i++)
             {
-                int hexNumber = board.getNumberOnHexFromNumber(i);
-
+                final int hexNumber = board.getNumberOnHexFromNumber(i);
                 if (hexNumber > 0)
-                {
                     resourceEstimates[board.getHexTypeFromNumber(i)] += numberWeights[hexNumber];
-                }
             }
         }
 
         //D.ebugPrint("Resource Estimates = ");
-        for (int i = 1; i < 6; i++)
-        {
+        //for (int i = 1; i < 6; i++)
+        //{
             //D.ebugPrint(i+":"+resourceEstimates[i]+" ");
-        }
+        //}
 
         //D.ebugPrintln();
         return resourceEstimates;
@@ -4743,12 +4746,13 @@ public class SOCRobotBrain extends Thread
      * to find which one is best for building a
      * settlement
      *
-     * @param nodes          a hashtable of nodes, the scores in the table will be modified
+     * @param nodes          a hashtable of nodes, the scores in the table will be modified.
+     *                            Key = coord Integer; value = score Integer.
      * @param numberWeight   the weight given to nodes on good numbers
      * @param miscPortWeight the weight given to nodes on 3:1 ports
      * @param portWeight     the weight given to nodes on good 2:1 ports
      */
-    protected void scoreNodesForSettlements(Hashtable nodes, int numberWeight, int miscPortWeight, int portWeight)
+    protected void scoreNodesForSettlements(Hashtable nodes, final int numberWeight, final int miscPortWeight, final int portWeight)
     {
         /**
          * favor spots with the most high numbers
@@ -4756,7 +4760,7 @@ public class SOCRobotBrain extends Thread
         bestSpotForNumbers(nodes, ourPlayerData, numberWeight);
 
         /**
-         * favor spots on good ports
+         * favor spots on good ports:
          */
         /**
          * check if this is on a 3:1 ports, only if we don't have one
