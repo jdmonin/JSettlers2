@@ -172,7 +172,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected Hashtable games = new Hashtable();
 
     /**
-     * Create a SOCDisplaylessPlayerClient
+     * Create a SOCDisplaylessPlayerClient, which would connect to localhost port 8889.
+     * Does not actually connect; subclass must connect, such as {@link soc.robot.SOCRobotClient#init()}
+     *<P>
+     * <b>Note:</b> The default JSettlers server port is 8880.
      */
     public SOCDisplaylessPlayerClient()
     {
