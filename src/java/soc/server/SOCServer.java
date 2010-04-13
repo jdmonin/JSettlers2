@@ -85,6 +85,17 @@ public class SOCServer extends Server
      */
     public static final int SOC_PORT_DEFAULT = 8880;
 
+    /** Property <tt>jsettlers.port</tt> to specify the port the server listens on.
+     * @since 1.1.09
+     */
+    public static final String PROP_JSETTLERS_PORT = "jsettlers.port";
+
+    /** Property <tt>jsettlers.connections</tt> to specify the maximum number of connections allowed.
+     * Remember that robots count against this limit.
+     * @since 1.1.09
+     */
+    public static final String PROP_JSETTLERS_CONNECTIONS = "jsettlers.connections";
+
     /**
      * Name used when sending messages from the server.
      */
