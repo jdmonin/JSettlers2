@@ -42,6 +42,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -182,6 +183,14 @@ public class SOCServer extends Server
      * Maximum number of connections allowed
      */
     protected int maxConnections;
+
+    /**
+     * Properties for the server, or empty if that constructor wasn't used.
+     * Property names are held in PROP_* and SOCDBHelper.PROP_* constants.
+     * @see #SOCServer(int, Properties)
+     * @since 1.1.09
+     */
+    private Properties props;
 
     /**
      * A list of robots connected to this server
@@ -345,14 +354,14 @@ public class SOCServer extends Server
     String databasePassword;
 
     /**
-     * Create a Settlers of Catan server listening on port p.
+     * Create a Settlers of Catan server listening on TCP port p.
      * You must start its thread yourself.
      *<P>
      * In 1.1.07 and later, will also print game options to stderr if
      * any option defaults require a minimum client version, or if 
      * {@link #hasSetGameOptions} is set.
      *
-     * @param p    the port that the server listens on
+     * @param p    the TCP port that the server listens on
      * @param mc   the maximum number of connections allowed
      * @param databaseUserName  the user name for accessing the database
      * @param databasePassword  the password for the user
@@ -363,6 +372,38 @@ public class SOCServer extends Server
         port = p;
         maxConnections = mc;
         initSocServer(databaseUserName, databasePassword);
+    }
+
+    /**
+     * Create a Settlers of Catan server listening on TCP port p.
+     * You must start its thread yourself.
+     *<P>
+     * The database properties are {@link SOCDBHelper#PROP_JSETTLERS_DB_USER}
+     * and {@link SOCDBHelper#PROP_JSETTLERS_DB_PASS}.
+     * 
+     * @param p    the TCP port that the server listens on
+     * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
+     *               and any other desired properties. 
+     * @since 1.1.09
+     */
+    public SOCServer(final int p, Properties props)
+    {
+        super(p);
+        this.props = props;
+        try
+        {
+            String mcs = props.getProperty(PROP_JSETTLERS_CONNECTIONS, "15");
+            if (mcs != null)
+                maxConnections = Integer.parseInt(mcs);
+            else
+                maxConnections = 15;
+        } catch (NumberFormatException e)
+        {
+            maxConnections = 15;
+        }
+        String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "dbuser");
+        String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "dbpass");
+        initSocServer(dbuser, dbpass);
     }
 
     /**
@@ -385,10 +426,11 @@ public class SOCServer extends Server
         super(s);
         maxConnections = mc;
         initSocServer(databaseUserName, databasePassword);
-    }    
+    }
 
     /**
-     * Common init for both constructors.
+     * Common init for all constructors.
+     * Unless {@link #props} is set before calling this method, the properties will be created empty.
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
@@ -403,6 +445,9 @@ public class SOCServer extends Server
             System.err.println("* Exiting due to network setup problem: " + error.toString());
             System.exit (1);
         }
+
+        if (props == null)
+            props = new Properties();
 
         try
         {
