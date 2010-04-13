@@ -8227,12 +8227,16 @@ public class SOCServer extends Server
      * {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}
      * is called to set them globally.
      * @param args args as passed to main
-     * @return Hashtable of args, or null for argument error.
+     * @return Properties collection of args, or null for argument error.
+     *     Will contain at least {@link #PROP_JSETTLERS_PORT},
+     *     {@link #PROP_JSETTLERS_CONNECTIONS},
+     *     {@link SOCDBHelper#PROP_JSETTLERS_DB_USER},
+     *     {@link SOCDBHelper#PROP_JSETTLERS_DB_PASS}.
      * @since 1.1.07
      */
-    public static Hashtable parseCmdline_DashedArgs(String[] args)
+    public static Properties parseCmdline_DashedArgs(String[] args)
     {
-        Hashtable argh = new Hashtable();
+        Properties argp = new Properties();
 
         int aidx = 0;
         while ((aidx < args.length) && (args[aidx].startsWith("-")))
@@ -8291,10 +8295,10 @@ public class SOCServer extends Server
             printUsage(false);
             return null;
         }
-        argh.put(PROP_JSETTLERS_PORT, args[aidx]);  ++aidx;
-        argh.put(PROP_JSETTLERS_CONNECTIONS, args[aidx]);  ++aidx;
-        argh.put(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
-        argh.put(SOCDBHelper.PROP_JSETTLERS_DB_PASS, args[aidx]);  ++aidx;
+        argp.setProperty(PROP_JSETTLERS_PORT, args[aidx]);  ++aidx;
+        argp.setProperty(PROP_JSETTLERS_CONNECTIONS, args[aidx]);  ++aidx;
+        argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
+        argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, args[aidx]);  ++aidx;
 
         if (aidx < args.length)
         {
@@ -8312,7 +8316,7 @@ public class SOCServer extends Server
         }
 
         // Done parsing.
-        return argh;
+        return argp;
     }
 
     /**
@@ -8425,33 +8429,28 @@ public class SOCServer extends Server
             return;
         }
 
-        Hashtable argh = parseCmdline_DashedArgs(args);
-        if (argh == null)
+        Properties argp = parseCmdline_DashedArgs(args);
+        if (argp == null)
         {
             printUsage(false);
             return;
         }
 
-        int port, mc;
-        String dbuser, dbpass;
         try
         {
-            port = Integer.parseInt((String) argh.get(PROP_JSETTLERS_PORT));
-            mc = Integer.parseInt((String) argh.get(PROP_JSETTLERS_CONNECTIONS));
-            dbuser = (String) argh.get(SOCDBHelper.PROP_JSETTLERS_DB_USER);
-            dbpass = (String) argh.get(SOCDBHelper.PROP_JSETTLERS_DB_PASS);
+            int port = Integer.parseInt(argp.getProperty(PROP_JSETTLERS_PORT));
+
+            // SOCServer constructor will also print game options if we've set them on
+            // commandline, or if any option defaults require a minimum client version.
+
+            SOCServer server = new SOCServer(port, argp);
+            server.setPriority(5);
+            server.start();  // <---- Start the Main SOCServer Thread ----
         }
         catch (Throwable e)
         {
             printUsage(false);
             return;
         }
-
-        SOCServer server = new SOCServer(port, mc, dbuser, dbpass);
-        server.setPriority(5);
-        server.start();
-
-        // SOCServer constructor will also print game options if we've set them on
-        // commandline, or if any option defaults require a minimum client version.
     }
 }
