@@ -8142,7 +8142,8 @@ public class SOCServer extends Server
     }
 
     /**
-     * Quick-and-dirty command line parsing of game options
+     * Quick-and-dirty command line parsing of game options.
+     * Calls {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}.
      * @param optNameValue Game option name+value, of form expected by
      *                     {@link SOCGameOption#parseOptionNameValue(String, boolean)}
      * @return true if OK, false if bad name or value
@@ -8175,12 +8176,19 @@ public class SOCServer extends Server
 
     /**
      * Quick-and-dirty parsing of command-line arguments with dashes.
+     *<P>
+     * If any game options are set ("-o", "--option"), then
+     * {@link #hasSetGameOptions} is set to true, and
+     * {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}
+     * is called to set them globally.
      * @param args args as passed to main
-     * @return args with any dashed arguments removed, or null for argument error.
+     * @return Hashtable of args, or null for argument error.
      * @since 1.1.07
      */
-    public static String[] parseCmdline_DashedArgs(String[] args)
+    public static Hashtable parseCmdline_DashedArgs(String[] args)
     {
+        Hashtable argh = new Hashtable();
+
         int aidx = 0;
         while ((aidx < args.length) && (args[aidx].startsWith("-")))
         {
@@ -8225,16 +8233,41 @@ public class SOCServer extends Server
             ++aidx;
         }
 
-        // Done parsing.  Return the remaining args.
-        if (aidx == 0)
+        // Done parsing flagged parameters.
+        // Look for the positional ones.
+        if ((args.length - aidx) < 4)
         {
-            return args;
-        } else {
-            final int numargs = args.length - aidx;
-            String[] newargs = new String[numargs];
-            System.arraycopy(args, aidx, newargs, 0, numargs);
-            return newargs;
+            if (! printedUsageAlready)
+            {
+                // Print this hint only if parsed OK up to now, and
+                // if we haven't responded to -h / --help already.
+                System.err.println("SOCServer: Some required command-line parameters are missing.");
+            }
+            printUsage(false);
+            return null;
         }
+        argh.put(PROP_JSETTLERS_PORT, args[aidx]);  ++aidx;
+        argh.put(PROP_JSETTLERS_CONNECTIONS, args[aidx]);  ++aidx;
+        argh.put(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
+        argh.put(SOCDBHelper.PROP_JSETTLERS_DB_PASS, args[aidx]);  ++aidx;
+
+        if (aidx < args.length)
+        {
+            if (! printedUsageAlready)
+            {
+                if (args[aidx].startsWith("-"))
+                {
+                    System.err.println("SOCServer: Options must appear before, not after, the port number.");
+                } else {
+                    System.err.println("SOCServer: Options must appear before the port number, not after dbpass.");
+                }
+                printUsage(false);
+            }
+            return null;
+        }
+
+        // Done parsing.
+        return argh;
     }
 
     /**
@@ -8335,19 +8368,6 @@ public class SOCServer extends Server
      */
     static public void main(String[] args)
     {
-        int port;
-        int mc;
-
-        if ((args.length >=1) && (args[0].startsWith("-")))
-        {
-            args = parseCmdline_DashedArgs(args);
-            if (args == null)
-            {
-                printUsage(false);
-                return;
-            }
-        }
-
         if (args.length < 4)
         {
             if (! printedUsageAlready)
@@ -8360,18 +8380,29 @@ public class SOCServer extends Server
             return;
         }
 
-        try
-        {
-            port = Integer.parseInt(args[0]);
-            mc = Integer.parseInt(args[1]);
-        }
-        catch (Exception e)
+        Hashtable argh = parseCmdline_DashedArgs(args);
+        if (argh == null)
         {
             printUsage(false);
             return;
         }
 
-        SOCServer server = new SOCServer(port, mc, args[2], args[3]);
+        int port, mc;
+        String dbuser, dbpass;
+        try
+        {
+            port = Integer.parseInt((String) argh.get(PROP_JSETTLERS_PORT));
+            mc = Integer.parseInt((String) argh.get(PROP_JSETTLERS_CONNECTIONS));
+            dbuser = (String) argh.get(SOCDBHelper.PROP_JSETTLERS_DB_USER);
+            dbpass = (String) argh.get(SOCDBHelper.PROP_JSETTLERS_DB_PASS);
+        }
+        catch (Throwable e)
+        {
+            printUsage(false);
+            return;
+        }
+
+        SOCServer server = new SOCServer(port, mc, dbuser, dbpass);
         server.setPriority(5);
         server.start();
 
