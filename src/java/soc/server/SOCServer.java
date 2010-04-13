@@ -914,130 +914,144 @@ public class SOCServer extends Server
 
         /**
          * if the leaving member was playing the game, and
-         * it wasn't a robot, and the game isn't over, then...
+         * the game isn't over, then decide:
+         * - Do we need to force-end the current turn?
+         * - Should we replace the leaving player with a robot?
          */
         if (isPlayer && (gameHasHumanPlayer || gameHasObserver)
-                && (!ga.getPlayer(playerNumber).isRobot())
                 && (ga.getPlayer(playerNumber).getPublicVP() > 0)
                 && (ga.getGameState() < SOCGame.OVER)
                 && !(ga.getGameState() < SOCGame.START1A))
         {
-            /**
-             * get a robot to replace this player;
-             * just in case, check game-version vs robots-version,
-             * like at new-game (readyGameAskRobotsJoin).
-             */
-            boolean foundNoRobots = false;
+            boolean foundNoRobots;
 
-            messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Fetching a robot player..."));
-
-            if (robots.isEmpty())
+            if (ga.getPlayer(playerNumber).isRobot())
             {
-                messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Sorry, no robots on this server."));
+                /**
+                 * don't replace bot with bot; force end-turn instead.
+                 */
                 foundNoRobots = true;
-            }
-            else if (ga.getClientVersionMinRequired() > Version.versionNumber())
-            {
-                messageToGameWithMon(gm, new SOCGameTextMsg
-                        (gm, SERVERNAME,
-                         "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's "
-                         + ga.getClientVersionMinRequired()));
-                foundNoRobots = true;                        
             }
             else
             {
                 /**
-                 * request a robot that isn't already playing this game or
-                 * is not already requested to play in this game
+                 * get a robot to replace this human player;
+                 * just in case, check game-version vs robots-version,
+                 * like at new-game (readyGameAskRobotsJoin).
                  */
-                boolean nameMatch = false;
-                StringConnection robotConn = null;
+                foundNoRobots = false;
 
-                final int[] robotIndexes = robotShuffleForJoin();  // Shuffle to distribute load
+                messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Fetching a robot player..."));
 
-                Vector requests = (Vector) robotJoinRequests.get(gm);
-
-                for (int idx = 0; idx < robots.size(); idx++)
+                if (robots.isEmpty())
                 {
-                    robotConn = (StringConnection) robots.get(robotIndexes[idx]);
-                    nameMatch = false;
-
-                    for (int i = 0; i < ga.maxPlayers; i++)
-                    {
-                        SOCPlayer pl = ga.getPlayer(i);
-
-                        if (pl != null)
-                        {
-                            String pname = pl.getName();
-
-                            // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
-
-                            if ((pname != null) && (pname.equals((String) robotConn.getData())))
-                            {
-                                nameMatch = true;
-
-                                break;
-                            }
-                        }
-                    }
-
-                    if ((!nameMatch) && (requests != null))
-                    {
-                        Enumeration requestsEnum = requests.elements();
-
-                        while (requestsEnum.hasMoreElements())
-                        {
-                            StringConnection tempCon = (StringConnection) requestsEnum.nextElement();
-
-                            // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
-
-                            if (tempCon == robotConn)
-                            {
-                                nameMatch = true;
-                            }
-
-                            break;
-                        }
-                    }
-
-                    if (!nameMatch)
-                    {
-                        break;
-                    }
+                    messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Sorry, no robots on this server."));
+                    foundNoRobots = true;
                 }
-
-                if (!nameMatch)
+                else if (ga.getClientVersionMinRequired() > Version.versionNumber())
                 {
-                    /**
-                     * make the request
-                     */
-                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
-
-                    robotConn.put(SOCJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
-
-                    /**
-                     * record the request
-                     */
-                    if (requests == null)
-                    {
-                        requests = new Vector();
-                        requests.addElement(robotConn);
-                        robotJoinRequests.put(gm, requests);
-                    }
-                    else
-                    {
-                        requests.addElement(robotConn);
-                    }
+                    messageToGameWithMon(gm, new SOCGameTextMsg
+                            (gm, SERVERNAME,
+                             "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's "
+                             + ga.getClientVersionMinRequired()));
+                    foundNoRobots = true;                        
                 }
                 else
                 {
-                    messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "*** Can't find a robot! ***"));
-                    foundNoRobots = true;
+                    /**
+                     * request a robot that isn't already playing this game or
+                     * is not already requested to play in this game
+                     */
+                    boolean nameMatch = false;
+                    StringConnection robotConn = null;
+    
+                    final int[] robotIndexes = robotShuffleForJoin();  // Shuffle to distribute load
+    
+                    Vector requests = (Vector) robotJoinRequests.get(gm);
+    
+                    for (int idx = 0; idx < robots.size(); idx++)
+                    {
+                        robotConn = (StringConnection) robots.get(robotIndexes[idx]);
+                        nameMatch = false;
+    
+                        for (int i = 0; i < ga.maxPlayers; i++)
+                        {
+                            SOCPlayer pl = ga.getPlayer(i);
+    
+                            if (pl != null)
+                            {
+                                String pname = pl.getName();
+    
+                                // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
+    
+                                if ((pname != null) && (pname.equals((String) robotConn.getData())))
+                                {
+                                    nameMatch = true;
+    
+                                    break;
+                                }
+                            }
+                        }
+    
+                        if ((!nameMatch) && (requests != null))
+                        {
+                            Enumeration requestsEnum = requests.elements();
+    
+                            while (requestsEnum.hasMoreElements())
+                            {
+                                StringConnection tempCon = (StringConnection) requestsEnum.nextElement();
+    
+                                // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
+    
+                                if (tempCon == robotConn)
+                                {
+                                    nameMatch = true;
+                                }
+    
+                                break;
+                            }
+                        }
+    
+                        if (!nameMatch)
+                        {
+                            break;
+                        }
+                    }
+    
+                    if (!nameMatch)
+                    {
+                        /**
+                         * make the request
+                         */
+                        D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
+    
+                        robotConn.put(SOCJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
+    
+                        /**
+                         * record the request
+                         */
+                        if (requests == null)
+                        {
+                            requests = new Vector();
+                            requests.addElement(robotConn);
+                            robotJoinRequests.put(gm, requests);
+                        }
+                        else
+                        {
+                            requests.addElement(robotConn);
+                        }
+                    }
+                    else
+                    {
+                        messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "*** Can't find a robot! ***"));
+                        foundNoRobots = true;
+                    }
                 }
-            }
+            }  // if (should try to find a robot)
 
             /**
              * What to do if no robot was found to fill their spot?
+             * Must keep the game going, might need to force-end current turn.
              */
             if (foundNoRobots)
             {
@@ -3495,8 +3509,6 @@ public class SOCServer extends Server
             SOCClientData scd = (SOCClientData) c.getAppData();
             scd.isRobot = true;
             scd.isBuiltInRobot = isBuiltIn;
-            if (0 == rand.nextInt(5))
-                scd.robotInitForceFails = 3;  // JM TEMP
             if (! isBuiltIn)
                 scd.robot3rdPartyBrainClass = rbc;
             nameConnection(c);
