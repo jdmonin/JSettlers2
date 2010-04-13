@@ -791,372 +791,364 @@ public class SOCServer extends Server
     public boolean leaveGame(StringConnection c, String gm, boolean gameListLock)
     {
         System.err.println("L712: leaveGame(" + c + ", " + gm + ")");  // JM TEMP
+        if (c == null)
+        {
+            return false;  // <---- Early return: no connection ----
+        }
+
         boolean gameDestroyed = false;
 
-        if (c != null)
+        gameList.removeMember(c, gm);
+
+        boolean isPlayer = false;
+        int playerNumber = 0;    // removing this player number
+        SOCGame ga = gameList.getGameData(gm);
+        if (ga == null)
         {
-            gameList.removeMember(c, gm);
+            return false;  // <---- Early return: no game ----
+        }
 
-            boolean isPlayer = false;
-            int playerNumber = 0;    // removing this player number
-            SOCGame ga = gameList.getGameData(gm);
+        boolean gameHasHumanPlayer = false;
+        boolean gameHasObserver = false;
+        boolean gameVotingActiveDuringStart = false;
 
-            boolean gameHasHumanPlayer = false;
-            boolean gameHasObserver = false;
-            boolean gameVotingActiveDuringStart = false;
+        final String plName = (String) c.getData();  // Retain name, since will become null within game obj.
 
-            if (ga != null)
+        for (playerNumber = 0; playerNumber < ga.maxPlayers;
+                playerNumber++)
+        {
+            SOCPlayer player = ga.getPlayer(playerNumber);
+
+            if ((player != null) && (player.getName() != null)
+                && (player.getName().equals(plName)))
             {
-                final String plName = (String) c.getData();  // Retain name, since will become null within game obj.
+                isPlayer = true;
 
-                for (playerNumber = 0; playerNumber < ga.maxPlayers;
-                        playerNumber++)
+                /**
+                 * About to remove this player from the game. Before doing so:
+                 * If a board-reset vote is in progress, they cannot vote
+                 * once they have left. So to keep the game moving,
+                 * fabricate their response: vote No.
+                 */
+                if (ga.getResetVoteActive())
                 {
-                    SOCPlayer player = ga.getPlayer(playerNumber);
+                    if (ga.getGameState() <= SOCGame.START2B)
+                        gameVotingActiveDuringStart = true;
 
-                    if ((player != null) && (player.getName() != null)
-                        && (player.getName().equals(plName)))
+                    if (ga.getResetPlayerVote(playerNumber) == SOCGame.VOTE_NONE)
                     {
-                        isPlayer = true;
+                        gameList.releaseMonitorForGame(gm);
+                        ga.takeMonitor();
+                        resetBoardVoteNotifyOne(ga, playerNumber, plName, false);                
+                        ga.releaseMonitor();
+                        gameList.takeMonitorForGame(gm);
+                    }
+                }
 
-                        /**
-                         * About to remove this player from the game. Before doing so:
-                         * If a board-reset vote is in progress, they cannot vote
-                         * once they have left. So to keep the game moving,
-                         * fabricate their response: vote No.
-                         */
-                        if (ga.getResetVoteActive())
-                        {
-                            if (ga.getGameState() <= SOCGame.START2B)
-                                gameVotingActiveDuringStart = true;
+                /** 
+                 * Remove the player.
+                 */
+                ga.removePlayer(plName);  // player obj name becomes null
 
-                            if (ga.getResetPlayerVote(playerNumber) == SOCGame.VOTE_NONE)
-                            {
-                                gameList.releaseMonitorForGame(gm);
-                                ga.takeMonitor();
-                                resetBoardVoteNotifyOne(ga, playerNumber, plName, false);                
-                                ga.releaseMonitor();
-                                gameList.takeMonitorForGame(gm);
-                            }
-                        }
+                //broadcastGameStats(cg);
+                break;
+            }
+        }
 
-                        /** 
-                         * Remove the player.
-                         */
-                        ga.removePlayer(plName);  // player obj name becomes null
+        SOCLeaveGame leaveMessage = new SOCLeaveGame(plName, c.host(), gm);
+        messageToGameWithMon(gm, leaveMessage);
+        recordGameEvent(gm, leaveMessage.toCmd());
 
-                        //broadcastGameStats(cg);
+        D.ebugPrintln("*** " + plName + " left the game " + gm);
+        messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, plName + " left the game"));
+
+        /**
+         * check if there is at least one person playing the game
+         */
+        for (int pn = 0; pn < ga.maxPlayers; pn++)
+        {
+            SOCPlayer player = ga.getPlayer(pn);
+
+            if ((player != null) && (player.getName() != null) && (!ga.isSeatVacant(pn)) && (!player.isRobot()))
+            {
+                gameHasHumanPlayer = true;
+                break;
+            }
+        }
+
+        //D.ebugPrintln("*** gameHasHumanPlayer = "+gameHasHumanPlayer+" for "+gm);
+
+        /**
+         * if no human players, check if there is at least one person watching the game
+         */
+        if (!gameHasHumanPlayer && !gameList.isGameEmpty(gm))
+        {
+            Enumeration membersEnum = gameList.getMembers(gm).elements();
+
+            while (membersEnum.hasMoreElements())
+            {
+                StringConnection member = (StringConnection) membersEnum.nextElement();
+
+                //D.ebugPrintln("*** "+member.data+" is a member of "+gm);
+                boolean nameMatch = false;
+
+                for (int pn = 0; pn < ga.maxPlayers; pn++)
+                {
+                    SOCPlayer player = ga.getPlayer(pn);
+
+                    if ((player != null) && (player.getName() != null) && (player.getName().equals((String) member.getData())))
+                    {
+                        nameMatch = true;
                         break;
                     }
                 }
 
-                SOCLeaveGame leaveMessage = new SOCLeaveGame(plName, c.host(), gm);
-                messageToGameWithMon(gm, leaveMessage);
-                recordGameEvent(gm, leaveMessage.toCmd());
-
-                D.ebugPrintln("*** " + plName + " left the game " + gm);
-                messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, plName + " left the game"));
-
-                /**
-                 * check if there is at least one person playing the game
-                 */
-                if (ga != null)
+                if (!nameMatch)
                 {
-                    for (int pn = 0; pn < ga.maxPlayers; pn++)
-                    {
-                        SOCPlayer player = ga.getPlayer(pn);
-
-                        if ((player != null) && (player.getName() != null) && (!ga.isSeatVacant(pn)) && (!player.isRobot()))
-                        {
-                            gameHasHumanPlayer = true;
-
-                            break;
-                        }
-                    }
+                    gameHasObserver = true;
+                    break;
                 }
+            }
+        }
+        //D.ebugPrintln("*** gameHasObserver = "+gameHasObserver+" for "+gm);
 
-                //D.ebugPrintln("*** gameHasHumanPlayer = "+gameHasHumanPlayer+" for "+gm);
+        /**
+         * if the leaving member was playing the game, and
+         * it wasn't a robot, and the game isn't over, then...
+         */
+        if (isPlayer && (gameHasHumanPlayer || gameHasObserver)
+                && (!ga.getPlayer(playerNumber).isRobot())
+                && (ga.getPlayer(playerNumber).getPublicVP() > 0)
+                && (ga.getGameState() < SOCGame.OVER)
+                && !(ga.getGameState() < SOCGame.START1A))
+        {
+            /**
+             * get a robot to replace this player;
+             * just in case, check game-version vs robots-version,
+             * like at new-game (readyGameAskRobotsJoin).
+             */
+            boolean foundNoRobots = false;
 
+            messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Fetching a robot player..."));
+
+            if (robots.isEmpty())
+            {
+                messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Sorry, no robots on this server."));
+                foundNoRobots = true;
+            }
+            else if (ga.getClientVersionMinRequired() > Version.versionNumber())
+            {
+                messageToGameWithMon(gm, new SOCGameTextMsg
+                        (gm, SERVERNAME,
+                         "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's "
+                         + ga.getClientVersionMinRequired()));
+                foundNoRobots = true;                        
+            }
+            else
+            {
                 /**
-                 * check if there is at least one person watching the game
+                 * request a robot that isn't already playing this game or
+                 * is not already requested to play in this game
                  */
-                if ((ga != null) && !gameHasHumanPlayer && !gameList.isGameEmpty(gm))
+                boolean nameMatch = false;
+                StringConnection robotConn = null;
+
+                final int[] robotIndexes = robotShuffleForJoin();  // Shuffle to distribute load
+
+                Vector requests = (Vector) robotJoinRequests.get(gm);
+
+                for (int idx = 0; idx < robots.size(); idx++)
                 {
-                    Enumeration membersEnum = gameList.getMembers(gm).elements();
+                    robotConn = (StringConnection) robots.get(robotIndexes[idx]);
+                    nameMatch = false;
 
-                    while (membersEnum.hasMoreElements())
+                    for (int i = 0; i < ga.maxPlayers; i++)
                     {
-                        StringConnection member = (StringConnection) membersEnum.nextElement();
+                        SOCPlayer pl = ga.getPlayer(i);
 
-                        //D.ebugPrintln("*** "+member.data+" is a member of "+gm);
-                        boolean nameMatch = false;
-
-                        for (int pn = 0; pn < ga.maxPlayers; pn++)
+                        if (pl != null)
                         {
-                            SOCPlayer player = ga.getPlayer(pn);
+                            String pname = pl.getName();
 
-                            if ((player != null) && (player.getName() != null) && (player.getName().equals((String) member.getData())))
+                            // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
+
+                            if ((pname != null) && (pname.equals((String) robotConn.getData())))
                             {
                                 nameMatch = true;
 
                                 break;
                             }
                         }
+                    }
 
-                        if (!nameMatch)
+                    if ((!nameMatch) && (requests != null))
+                    {
+                        Enumeration requestsEnum = requests.elements();
+
+                        while (requestsEnum.hasMoreElements())
                         {
-                            gameHasObserver = true;
+                            StringConnection tempCon = (StringConnection) requestsEnum.nextElement();
+
+                            // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
+
+                            if (tempCon == robotConn)
+                            {
+                                nameMatch = true;
+                            }
 
                             break;
                         }
                     }
+
+                    if (!nameMatch)
+                    {
+                        break;
+                    }
                 }
 
-                //D.ebugPrintln("*** gameHasObserver = "+gameHasObserver+" for "+gm);
-
-                /**
-                 * if the leaving member was playing the game, and
-                 * it wasn't a robot, and the game isn't over, then...
-                 */
-                if (isPlayer && (gameHasHumanPlayer || gameHasObserver)
-                        && (ga != null)
-                        && (!ga.getPlayer(playerNumber).isRobot())
-                        && (ga.getPlayer(playerNumber).getPublicVP() > 0)
-                        && (ga.getGameState() < SOCGame.OVER)
-                        && !(ga.getGameState() < SOCGame.START1A))
+                if (!nameMatch)
                 {
                     /**
-                     * get a robot to replace this player;
-                     * just in case, check game-version vs robots-version,
-                     * like at new-game (readyGameAskRobotsJoin).
+                     * make the request
                      */
-                    boolean foundNoRobots = false;
+                    D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
 
-                    messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Fetching a robot player..."));
+                    robotConn.put(SOCJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
 
-                    if (robots.isEmpty())
+                    /**
+                     * record the request
+                     */
+                    if (requests == null)
                     {
-                        messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Sorry, no robots on this server."));
-                        foundNoRobots = true;
-                    }
-                    else if (ga.getClientVersionMinRequired() > Version.versionNumber())
-                    {
-                        messageToGameWithMon(gm, new SOCGameTextMsg
-                                (gm, SERVERNAME,
-                                 "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's "
-                                 + ga.getClientVersionMinRequired()));
-                        foundNoRobots = true;                        
+                        requests = new Vector();
+                        requests.addElement(robotConn);
+                        robotJoinRequests.put(gm, requests);
                     }
                     else
                     {
-                        /**
-                         * request a robot that isn't already playing this game or
-                         * is not already requested to play in this game
-                         */
-                        boolean nameMatch = false;
-                        StringConnection robotConn = null;
-
-                        final int[] robotIndexes = robotShuffleForJoin();  // Shuffle to distribute load
-
-                        Vector requests = (Vector) robotJoinRequests.get(gm);
-
-                        for (int idx = 0; idx < robots.size(); idx++)
-                        {
-                            robotConn = (StringConnection) robots.get(robotIndexes[idx]);
-                            nameMatch = false;
-
-                            if (ga != null)
-                            {
-                                for (int i = 0; i < ga.maxPlayers; i++)
-                                {
-                                    SOCPlayer pl = ga.getPlayer(i);
-
-                                    if (pl != null)
-                                    {
-                                        String pname = pl.getName();
-
-                                        // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
-
-                                        if ((pname != null) && (pname.equals((String) robotConn.getData())))
-                                        {
-                                            nameMatch = true;
-
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if ((!nameMatch) && (requests != null))
-                            {
-                                Enumeration requestsEnum = requests.elements();
-
-                                while (requestsEnum.hasMoreElements())
-                                {
-                                    StringConnection tempCon = (StringConnection) requestsEnum.nextElement();
-
-                                    // D.ebugPrintln("CHECKING " + robotConn + " == " + tempCon);
-
-                                    if (tempCon == robotConn)
-                                    {
-                                        nameMatch = true;
-                                    }
-
-                                    break;
-                                }
-                            }
-
-                            if (!nameMatch)
-                            {
-                                break;
-                            }
-                        }
-
-                        if (!nameMatch && (ga != null))
-                        {
-                            /**
-                             * make the request
-                             */
-                            D.ebugPrintln("@@@ JOIN GAME REQUEST for " + (String) robotConn.getData());
-
-                            robotConn.put(SOCJoinGameRequest.toCmd(gm, playerNumber, ga.getGameOptions()));
-
-                            /**
-                             * record the request
-                             */
-                            if (requests == null)
-                            {
-                                requests = new Vector();
-                                requests.addElement(robotConn);
-                                robotJoinRequests.put(gm, requests);
-                            }
-                            else
-                            {
-                                requests.addElement(robotConn);
-                            }
-                        }
-                        else
-                        {
-                            messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "*** Can't find a robot! ***"));
-                            foundNoRobots = true;
-                        }
+                        requests.addElement(robotConn);
                     }
-
-                    /**
-                     * What to do if no robot was found to fill their spot?
-                     */
-                    if (foundNoRobots)
-                    {
-                        final int cpn = ga.getCurrentPlayerNumber();
-
-                        if (playerNumber == cpn)
-                        {
-                            /**
-                             * Rare condition:
-                             * No robot was found, but it was this player's turn.
-                             * End their turn just to keep the game limping along.
-                             * To prevent deadlock, we must release gamelist's monitor for
-                             * this game before calling endGameTurn.
-                             */
-                            if (ga.canEndTurn(playerNumber))
-                            {
-                                gameList.releaseMonitorForGame(gm);
-                                ga.takeMonitor();
-                                endGameTurn(ga, null);
-                                ga.releaseMonitor();
-                                gameList.takeMonitorForGame(gm);
-                            } else {
-                                /**
-                                 * Cannot easily end turn.
-                                 * Must back out something in progress.
-                                 * May or may not end turn; see javadocs
-                                 * of forceEndGameTurn and game.forceEndTurn.
-                                 * All start phases are covered here (START1A..START2B)
-                                 * because canEndTurn returns false in those gameStates.
-                                 */
-                                gameList.releaseMonitorForGame(gm);
-                                ga.takeMonitor();
-                                if (gameVotingActiveDuringStart)
-                                {
-                                    /**
-                                     * If anyone has requested a board-reset vote during
-                                     * game-start phases, we have to tell clients to cancel
-                                     * the vote request, because {@link soc.message.SOCTurn}
-                                     * isn't always sent during start phases.  (Voting must
-                                     * end when the turn ends.)
-                                     */
-                                    messageToGame(gm, new SOCResetBoardReject(gm));
-                                    ga.resetVoteClear();
-                                }
-
-                                /**
-                                 * Force turn to end
-                                 */
-                                forceEndGameTurn(ga, plName);
-                                ga.releaseMonitor();
-                                gameList.takeMonitorForGame(gm);
-                            }
-                        }
-                        else
-                        {
-                            /**
-                             * Check if game is waiting for input from the player who
-                             * is leaving, but who isn't current player.
-                             * To keep the game moving, fabricate their response.
-                             * - Board-reset voting: Handled above.
-                             * - Waiting for discard: Handle here.
-                             */
-                            if ((ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
-                                 && (ga.getPlayer(playerNumber).getNeedToDiscard()))
-                            {
-                                /**
-                                 * For discard, tell the discarding player's client that they discarded the resources,
-                                 * tell everyone else that the player discarded unknown resources.
-                                 */
-                                gameList.releaseMonitorForGame(gm);
-                                ga.takeMonitor();
-                                forceGamePlayerDiscard(ga, cpn, c, plName, playerNumber);
-                                sendGameState(ga, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER
-                                ga.releaseMonitor();
-                                gameList.takeMonitorForGame(gm);
-                            }
-                        }  // current player?
-                    }
+                }
+                else
+                {
+                    messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "*** Can't find a robot! ***"));
+                    foundNoRobots = true;
                 }
             }
 
             /**
-             * if the game has no players, or if they're all
-             * robots, then end the game and write the data
-             * to disk.
+             * What to do if no robot was found to fill their spot?
              */
-            boolean emptyGame = false;
-            emptyGame = gameList.isGameEmpty(gm);
-
-            if (emptyGame || (!gameHasHumanPlayer && !gameHasObserver))
+            if (foundNoRobots)
             {
-                if (gameListLock)
+                final int cpn = ga.getCurrentPlayerNumber();
+
+                if (playerNumber == cpn)
                 {
-                    destroyGame(gm);
+                    /**
+                     * Rare condition:
+                     * No robot was found, but it was this player's turn.
+                     * End their turn just to keep the game limping along.
+                     * To prevent deadlock, we must release gamelist's monitor for
+                     * this game before calling endGameTurn.
+                     */
+                    if (ga.canEndTurn(playerNumber))
+                    {
+                        gameList.releaseMonitorForGame(gm);
+                        ga.takeMonitor();
+                        endGameTurn(ga, null);
+                        ga.releaseMonitor();
+                        gameList.takeMonitorForGame(gm);
+                    } else {
+                        /**
+                         * Cannot easily end turn.
+                         * Must back out something in progress.
+                         * May or may not end turn; see javadocs
+                         * of forceEndGameTurn and game.forceEndTurn.
+                         * All start phases are covered here (START1A..START2B)
+                         * because canEndTurn returns false in those gameStates.
+                         */
+                        gameList.releaseMonitorForGame(gm);
+                        ga.takeMonitor();
+                        if (gameVotingActiveDuringStart)
+                        {
+                            /**
+                             * If anyone has requested a board-reset vote during
+                             * game-start phases, we have to tell clients to cancel
+                             * the vote request, because {@link soc.message.SOCTurn}
+                             * isn't always sent during start phases.  (Voting must
+                             * end when the turn ends.)
+                             */
+                            messageToGame(gm, new SOCResetBoardReject(gm));
+                            ga.resetVoteClear();
+                        }
+
+                        /**
+                         * Force turn to end
+                         */
+                        forceEndGameTurn(ga, plName);
+                        ga.releaseMonitor();
+                        gameList.takeMonitorForGame(gm);
+                    }
                 }
                 else
                 {
-                    gameList.takeMonitor();
-
-                    try
+                    /**
+                     * Check if game is waiting for input from the player who
+                     * is leaving, but who isn't current player.
+                     * To keep the game moving, fabricate their response.
+                     * - Board-reset voting: Handled above.
+                     * - Waiting for discard: Handle here.
+                     */
+                    if ((ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
+                         && (ga.getPlayer(playerNumber).getNeedToDiscard()))
                     {
-                        destroyGame(gm);
+                        /**
+                         * For discard, tell the discarding player's client that they discarded the resources,
+                         * tell everyone else that the player discarded unknown resources.
+                         */
+                        gameList.releaseMonitorForGame(gm);
+                        ga.takeMonitor();
+                        forceGamePlayerDiscard(ga, cpn, c, plName, playerNumber);
+                        sendGameState(ga, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER
+                        ga.releaseMonitor();
+                        gameList.takeMonitorForGame(gm);
                     }
-                    catch (Exception e)
-                    {
-                        D.ebugPrintStackTrace(e, "Exception in leaveGame (destroyGame)");
-                    }
+                }  // current player?
+            }
+        }
 
-                    gameList.releaseMonitor();
+        /**
+         * if the game has no players, or if they're all
+         * robots, then end the game and write the data
+         * to disk.
+         */
+        boolean emptyGame = false;
+        emptyGame = gameList.isGameEmpty(gm);
+
+        if (emptyGame || (!gameHasHumanPlayer && !gameHasObserver))
+        {
+            if (gameListLock)
+            {
+                destroyGame(gm);
+            }
+            else
+            {
+                gameList.takeMonitor();
+
+                try
+                {
+                    destroyGame(gm);
+                }
+                catch (Exception e)
+                {
+                    D.ebugPrintStackTrace(e, "Exception in leaveGame (destroyGame)");
                 }
 
-                gameDestroyed = true;
+                gameList.releaseMonitor();
             }
+
+            gameDestroyed = true;
         }
 
         //D.ebugPrintln("*** gameDestroyed = "+gameDestroyed+" for "+gm);
@@ -4266,6 +4258,18 @@ public class SOCServer extends Server
                 case SOCPlayingPiece.ROAD:
 
                     SOCRoad rd = new SOCRoad(player, coord, null);
+
+                    if ((gameState == SOCGame.START1B) && player.isRobot())
+                    {
+                        SOCClientData scd = (SOCClientData) c.getAppData();
+                        if (scd.robotInitForceFails > 0)
+                        {
+                            System.err.println("L4269: deny for robot pn "+ player.getPlayerNumber() + " " + player.getName() + " at 0x" + Integer.toHexString(coord));
+                            sendDenyReply = true;
+                            // --scd.robotInitForceFails;
+                            break;
+                        }
+                    }
 
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.PLACING_ROAD) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
