@@ -128,7 +128,13 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      */
     protected static final String GAMENAME_PREFIX_CANNOT_JOIN = "(cannot join) ";
 
-    /** Default tcp port number 8880 to listen, and to connect to remote server */
+    /**
+     * Default tcp port number 8880 to listen, and to connect to remote server.
+     * Should match SOCServer.SOC_PORT_DEFAULT.
+     *<P>
+     * 8880 is the default SOCPlayerClient port since jsettlers 1.0.4, per cvs history.
+     * @since 1.1.00
+     */
     public static final int SOC_PORT_DEFAULT = 8880;
 
     protected static final String STATSPREFEX = "  [";

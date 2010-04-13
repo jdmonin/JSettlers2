@@ -77,6 +77,15 @@ import java.util.Vector;
 public class SOCServer extends Server
 {
     /**
+     * Default tcp port number 8880 to listen, and for client to connect to remote server.
+     * Should match SOCPlayerClient.SOC_PORT_DEFAULT.
+     *<P>
+     * 8880 is the default SOCPlayerClient port since jsettlers 1.0.4, per cvs history.
+     * @since 1.1.09
+     */
+    public static final int SOC_PORT_DEFAULT = 8880;
+
+    /**
      * Name used when sending messages from the server.
      */
     public static final String SERVERNAME = "Server";
