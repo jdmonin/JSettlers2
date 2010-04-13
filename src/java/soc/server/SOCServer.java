@@ -3495,6 +3495,8 @@ public class SOCServer extends Server
             SOCClientData scd = (SOCClientData) c.getAppData();
             scd.isRobot = true;
             scd.isBuiltInRobot = isBuiltIn;
+            if (0 == rand.nextInt(5))
+                scd.robotInitForceFails = 3;  // JM TEMP
             if (! isBuiltIn)
                 scd.robot3rdPartyBrainClass = rbc;
             nameConnection(c);
@@ -4258,18 +4260,6 @@ public class SOCServer extends Server
                 case SOCPlayingPiece.ROAD:
 
                     SOCRoad rd = new SOCRoad(player, coord, null);
-
-                    if ((gameState == SOCGame.START1B) && player.isRobot())
-                    {
-                        SOCClientData scd = (SOCClientData) c.getAppData();
-                        if (scd.robotInitForceFails > 0)
-                        {
-                            System.err.println("L4269: deny for robot pn "+ player.getPlayerNumber() + " " + player.getName() + " at 0x" + Integer.toHexString(coord));
-                            sendDenyReply = true;
-                            // --scd.robotInitForceFails;
-                            break;
-                        }
-                    }
 
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.PLACING_ROAD) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
