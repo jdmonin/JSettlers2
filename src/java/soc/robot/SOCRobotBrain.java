@@ -190,6 +190,7 @@ public class SOCRobotBrain extends Thread
      * (due to a bug in our robot).
      * 
      * @see #whatWeWantToBuild
+     * @see #failedBuildingAttempts
      */
     protected SOCPlayingPiece whatWeFailedToBuild;
 
@@ -1419,6 +1420,15 @@ public class SOCRobotBrain extends Thread
                     {
                         // We've been waiting too long, commit suicide.
                         client.leaveGame(game, "counter 15000", false);
+                        alive = false;
+                    }
+
+                    if ((failedBuildingAttempts > (2 * MAX_DENIED_BUILDING_PER_TURN))
+                        && (game.getGameState() <= SOCGame.START2B))
+                    {
+                        // Apparently can't decide where we can initially place:
+                        // Leave the game.
+                        client.leaveGame(game, "failedBuildingAttempts at start", false);
                         alive = false;
                     }
 
@@ -3049,6 +3059,10 @@ public class SOCRobotBrain extends Thread
      *  force the end of our special building turn.
      *  Also handles illegal requests to buy development cards
      *  (piece type -2 in {@link SOCCancelBuildRequest}).
+     *<P>
+     *  This method increments {@link #failedBuildingAttempts},
+     *  but won't leave the game if we've failed too many times.
+     *  The brain's run loop should make that decision.
      *
      * @param mes Cancelmessage from server, including piece type
      */
@@ -3170,6 +3184,8 @@ public class SOCRobotBrain extends Thread
                 break;
             }
             waitingForGameState = false;
+            // The run loop will check if failedBuildingAttempts > (2 * MAX_DENIED_BUILDING_PER_TURN).
+            // This bot will leave the game there if it can't recover.
         } else {
             expectPLAY1 = true;
             waitingForGameState = true;
