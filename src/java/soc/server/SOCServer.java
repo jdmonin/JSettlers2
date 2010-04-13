@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
  * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -8276,6 +8277,46 @@ public class SOCServer extends Server
                     printGameOptions();
                     return null;
                 }
+            } else if (arg.startsWith("-D"))  // java-style props defines
+            {
+                // We get to here when a user uses -Dname=value. However, in
+                // some cases, the OS goes ahead and parses this out to args
+                //   {"-Dname", "value"}
+                // so instead of parsing on "=", we just make the "-D"
+                // characters go away and skip one argument forward.
+
+                String name;
+                if (arg.length() == 2) // "-D something"
+                {
+                    ++aidx;
+                    if (aidx < args.length)
+                    {
+                        name = args[aidx];
+                    } else {
+                        System.err.println("Missing property name after -D");
+                        return null;
+                    }
+                } else {
+                    name = arg.substring(2, arg.length());
+                }
+                String value = null;
+                int posEq = name.indexOf("=");
+                if (posEq > 0)
+                {
+                    value = name.substring(posEq + 1);
+                    name = name.substring(0, posEq);
+                }
+                else if (aidx < args.length - 1)
+                {
+                    ++aidx;
+                    value = args[aidx];
+                }
+                else {
+                    System.err.println("Missing value for property " + name);
+                    return null;
+                }
+                argp.setProperty(name, value);
+
             } else {
                 System.err.println("Unknown argument: " + arg);
             }
@@ -8349,6 +8390,7 @@ public class SOCServer extends Server
             System.err.println("       -V or --version    : print version information");
             System.err.println("       -h or --help or -? : print this screen");
             System.err.println("       -o or --option name=value : set per-game options' default values");
+            System.err.println("       -D name=value : set properties such as " + SOCDBHelper.PROP_JSETTLERS_DB_USER);
             printGameOptions();
         } else {
             System.err.println("       use java soc.server.SOCServer --help to see recognized options");            
