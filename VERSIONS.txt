@@ -29,6 +29,8 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Fix: For game's 1st client, set game.clientVersionLowest (was always 0 before now)
 - 6-player window: Before expanding chat area when mouse enters it,
 	wait 200 ms (not 100 ms) in case mouse is just passing through.
+- Command line: Error if dashed arguments appear after port/maxconns/db params
+- Command line: Allow -Djsettlers.option=value syntax (mchenryc)
 - Debug assist: SOCBoardLayout2 prints array contents
 - Debug assist: Connection, LocalStringConnection +toString()
 - Other changes: TBD ?
