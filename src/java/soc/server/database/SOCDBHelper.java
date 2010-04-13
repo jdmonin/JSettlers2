@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Some documentation javadocs here are Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -55,6 +55,16 @@ import java.util.Calendar;
  */
 public class SOCDBHelper
 {
+    /** Property <tt>jsettlers.db.user</tt> to specify the server's SQL database username.
+     * @since 1.1.09
+     */
+    public static final String PROP_JSETTLERS_DB_USER = "jsettlers.db.user";
+
+    /** Property <tt>jsettlers.db.pass</tt> to specify the server's SQL database password.
+     * @since 1.1.09
+     */
+    public static final String PROP_JSETTLERS_DB_PASS = "jsettlers.db.pass";
+
     private static Connection connection = null;
 
     /**
