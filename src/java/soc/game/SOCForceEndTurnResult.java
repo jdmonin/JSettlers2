@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008 Jeremy Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -53,6 +53,18 @@ public class SOCForceEndTurnResult
     private int devCardType;
 
     /**
+     * If true, game's {@link SOCGame#getFirstPlayer()} was changed.
+     * @since 1.1.09
+     */
+    private boolean updatedFP;
+
+    /**
+     * If true, game's  lastPlayer was changed.
+     * @since 1.1.09
+     */
+    private boolean updatedLP;
+
+    /**
      * {@link SOCGame#forceEndTurn()} return values. FORCE_ENDTURN_MIN is the lowest valid value.
      */
     public static final int FORCE_ENDTURN_MIN               = 1;  // Lowest possible
@@ -60,10 +72,16 @@ public class SOCForceEndTurnResult
     /** Since state is already {@link SOCGame#PLAY1}, already OK to end turn. No action was taken by forceEndTurn. */
     public static final int FORCE_ENDTURN_NONE              = 1;
 
-    /** Skip an initial road or settlement; current player has advanced forward, state changes to {@link SOCGame#START1A}. */
+    /**
+     * Skip an initial road or settlement; current player has advanced forward, state changes to {@link SOCGame#START1A}.
+     * May have changed game's firstPlayer or lastPlayer; check {@link #didUpdateFP()} and {@link #didUpdateLP()}.
+     */
     public static final int FORCE_ENDTURN_SKIP_START_ADV    = 2;
 
-    /** Skip an initial road or settlement; current player has advanced backward, state changes to {@link SOCGame#START2A}. */
+    /**
+     * Skip an initial road or settlement; current player has advanced backward, state changes to {@link SOCGame#START2A}.
+     * May have changed game's firstPlayer or lastPlayer; check {@link #didUpdateFP()} and {@link #didUpdateLP()}.
+     */
     public static final int FORCE_ENDTURN_SKIP_START_ADVBACK = 3;
 
     /** Skip an initial road or settlement; state changes to {@link SOCGame#PLAY1}, and {@link SOCGame#endTurn()} should be called. */
@@ -97,7 +115,23 @@ public class SOCForceEndTurnResult
      */
     public SOCForceEndTurnResult(int res)
     {
-        this(res, null, false);
+        this(res, null, false, false, false);
+    }
+
+    /**
+     * Creates a new SOCForceEndTurnResult object, from start states, possibly changing the game's firstplayer or lastplayer.
+     *
+     * @param res Result type, from constants in this class
+     *            ({@link #FORCE_ENDTURN_UNPLACE_ROBBER}, etc.)
+     * @param updateFirstPlayer Was {@link SOCGame#getFirstPlayer()} changed?
+     * @param updateLastPlayer  Was game's lastPlayer changed?
+     * @throws IllegalArgumentException If res is not in the range
+     *            {@link #FORCE_ENDTURN_MIN} to {@link #FORCE_ENDTURN_MAX}.
+     * @since 1.1.09
+     */
+    public SOCForceEndTurnResult(int res, final boolean updateFirstPlayer, final boolean updateLastPlayer)
+    {
+        this(res, null, false, updateFirstPlayer, updateLastPlayer);
     }
 
     /**
@@ -132,7 +166,7 @@ public class SOCForceEndTurnResult
      */
     public SOCForceEndTurnResult(int res, SOCResourceSet gained)
     {
-        this(res, gained, false);
+        this(res, gained, false, false, false);
     }
 
     /**
@@ -148,12 +182,33 @@ public class SOCForceEndTurnResult
      */
     public SOCForceEndTurnResult(int res, SOCResourceSet gainedLost, boolean isLoss)
     {
+        this(res, gainedLost, isLoss, false, false);
+    }
+
+    /**
+     * Creates a new SOCForceEndTurnResult object.
+     *
+     * @param res Result type, from constants in this class
+     *            ({@link #FORCE_ENDTURN_UNPLACE_ROBBER}, etc.)
+     * @param gainedLost Resources gained (returned to cancel piece
+     *            placement) or lost (discarded), or null.
+     * @param isLoss     Resources are lost (discarded), not gained (returned to player).
+     * @param updateFirstPlayer Was {@link SOCGame#getFirstPlayer()} changed?
+     * @param updateLastPlayer  Was game's lastPlayer changed?
+     * @throws IllegalArgumentException If res is not in the range
+     *            {@link #FORCE_ENDTURN_MIN} to {@link #FORCE_ENDTURN_MAX}.
+     */
+    private SOCForceEndTurnResult(int res, SOCResourceSet gainedLost, boolean isLoss,
+        final boolean updateFirstPlayer, final boolean updateLastPlayer)
+    {
         if ((res < FORCE_ENDTURN_MIN) || (res > FORCE_ENDTURN_MAX))
             throw new IllegalArgumentException("res out of range: " + res);
 
         result = res;
         gainLoss = gainedLost;
         rsrcLoss = isLoss;
+        updatedFP = updateFirstPlayer;
+        updatedLP = updateLastPlayer;
         devCardType = -1;
     }
 
@@ -188,6 +243,24 @@ public class SOCForceEndTurnResult
     public boolean isLoss()
     {
         return rsrcLoss; 
+    }
+
+    /**
+     * Did the game's {@link SOCGame#getFirstPlayer()} change?
+     * @since 1.1.09
+     */
+    public boolean didUpdateFP()
+    {
+        return updatedFP;
+    }
+
+    /**
+     * Did the game's lastPlayer change?
+     * @since 1.1.09
+     */
+    public boolean didUpdateLP()
+    {
+        return updatedLP;
     }
 
     /**

@@ -2355,11 +2355,13 @@ public class SOCGame implements Serializable, Cloneable
      *       - During initial placement, have skipped placement of
      *         a player's first settlement or road.
      *         gameState is {@link #START1A}, current player has changed.
+     *         Game's first or last player may have changed.
      * <LI> {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_ADVBACK}
      *       - During initial placement, have skipped placement of
      *         a player's second settlement or road. (Or, final player's
      *         first _and_ second settlement or road.)
      *         gameState is {@link #START2A}, current player has changed.
+     *         Game's first or last player may have changed.
      *       <P>
      *       Note that for the very last initial road placed, during normal
      *       gameplay, that player continues by rolling the first turn's dice.
@@ -2553,7 +2555,7 @@ public class SOCGame implements Serializable, Cloneable
         if (updateLastPlayer)
             lastPlayerNumber = currentPlayerNumber;
 
-        return new SOCForceEndTurnResult(cancelResType);
+        return new SOCForceEndTurnResult(cancelResType, updateFirstPlayer, updateLastPlayer);
     }
 
     /**
