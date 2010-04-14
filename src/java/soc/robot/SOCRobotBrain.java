@@ -3672,9 +3672,9 @@ public class SOCRobotBrain extends Thread
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
         int probTotal;
         int bestProbTotal;
-        int[] prob = SOCNumberProbabilities.INT_VALUES;
-        int firstNode = firstSettlement;
-        Integer firstNodeInt = new Integer(firstNode);
+        final int[] prob = SOCNumberProbabilities.INT_VALUES;
+        final int firstNode = firstSettlement;
+        final Integer firstNodeInt = new Integer(firstNode);
 
         bestProbTotal = 0;
         secondSettlement = -1;
@@ -3831,6 +3831,17 @@ public class SOCRobotBrain extends Thread
      */
     protected void placeSecondSettlement()
     {
+        if (secondSettlement == -1)
+        {
+            // This could mean that the server (incorrectly) asked us to
+            // place another second settlement, after we've cleared the
+            // potentialSettlements contents.
+            System.err.println("robot assert failed: secondSettlement -1, " + ourPlayerData.getName() + " leaving game " + game.getName());
+            failedBuildingAttempts = 2 + (2 * MAX_DENIED_BUILDING_PER_TURN);
+            waitingForGameState = false;
+            return;
+        }
+
         //D.ebugPrintln("BUILD REQUEST FOR SETTLEMENT AT "+Integer.toHexString(secondSettlement));
         pause(500);
         lastStartingPieceCoord = secondSettlement;
