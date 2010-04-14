@@ -2500,7 +2500,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         final int cpn = currentPlayerNumber;
         int cancelResType;  // Turn result type
-        boolean updateFirstPlayer;  // are we forcing the very first player's turn?
+        boolean updateFirstPlayer, updateLastPlayer;  // are we forcing the very first player's (or last player's) turn?
 
         /**
          * Set the state we're advancing "from";
@@ -2511,9 +2511,11 @@ public class SOCGame implements Serializable, Cloneable
         {
             gameState = START1B;
             updateFirstPlayer = (cpn == firstPlayerNumber);
+            updateLastPlayer = (cpn == lastPlayerNumber);
         } else {
             gameState = START2B;
             updateFirstPlayer = false;
+            updateLastPlayer = false;
         }
 
         advanceTurnStateAfterPutPiece();  // Changes state, may change current player
@@ -2545,8 +2547,11 @@ public class SOCGame implements Serializable, Cloneable
                 cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
         }
 
+        // update these so the game knows when to stop initial placement
         if (updateFirstPlayer)
             firstPlayerNumber = currentPlayerNumber;
+        if (updateLastPlayer)
+            lastPlayerNumber = currentPlayerNumber;
 
         return new SOCForceEndTurnResult(cancelResType);
     }
