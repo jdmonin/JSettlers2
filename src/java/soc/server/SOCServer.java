@@ -5127,6 +5127,9 @@ public class SOCServer extends Server
      * Will call {@link #endGameTurn(SOCGame, SOCPlayer)} if appropriate.
      * Will send gameState and current player (turn) to clients.
      *<P>
+     * If the current player has lost connection, send the {@link SOCLeaveGame LEAVEGAME}
+     * message out <b>before</b> calling this method.
+     *<P>
      * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
      * <UL>
      * <LI> ga.canEndTurn already called, returned false
@@ -5152,7 +5155,9 @@ public class SOCServer extends Server
             messageToGame(gaName, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
         }
 
-        final SOCForceEndTurnResult res = ga.forceEndTurn();  // State now hopefully PLAY1, or SPECIAL_BUILDING
+        final SOCForceEndTurnResult res = ga.forceEndTurn();
+            // State now hopefully PLAY1, or SPECIAL_BUILDING;
+            // also could be initial placement (START1A or START2A).
 
         /**
          * report any resources lost, gained
@@ -5202,6 +5207,11 @@ public class SOCServer extends Server
         {
             sendGameState(ga, false);
             sendTurn(ga, false);
+            if (res.didUpdateFP() || res.didUpdateLP())
+            {
+                // will cause clients to recalculate lastPlayer too
+                messageToGame(gaName, SOCFirstPlayer.toCmd(gaName, ga.getFirstPlayer()));
+            }
             return;  // <--- Early return ---
         }
 
