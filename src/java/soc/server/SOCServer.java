@@ -1601,8 +1601,12 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a text message to the given game.
-     * Equivalent to: messageToGame(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, txt)); <BR>
+     * Send a server text message to the given game.
+     * Equivalent to: messageToGame(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, txt));
+     *<P>
+     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
+     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
+     *<P>
      * <b>Locks:</b> Takes, releases {@link SOCGameList#takeMonitorForGame(String)}.
      *
      * @param ga  the name of the game
