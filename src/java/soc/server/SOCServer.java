@@ -922,7 +922,8 @@ public class SOCServer extends Server
          * - Should we replace the leaving player with a robot?
          */
         if (isPlayer && (gameHasHumanPlayer || gameHasObserver)
-                && (ga.getPlayer(playerNumber).getPublicVP() > 0)
+                && ((ga.getPlayer(playerNumber).getPublicVP() > 0)
+                    || (ga.getGameState() == SOCGame.START1A))
                 && (ga.getGameState() < SOCGame.OVER)
                 && !(ga.getGameState() < SOCGame.START1A))
         {
