@@ -5210,7 +5210,7 @@ public class SOCServer extends Server
             if (res.didUpdateFP() || res.didUpdateLP())
             {
                 // will cause clients to recalculate lastPlayer too
-                messageToGame(gaName, SOCFirstPlayer.toCmd(gaName, ga.getFirstPlayer()));
+                messageToGame(gaName, new SOCFirstPlayer(gaName, ga.getFirstPlayer()));
             }
             return;  // <--- Early return ---
         }
