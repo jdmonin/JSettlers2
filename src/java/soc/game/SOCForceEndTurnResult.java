@@ -59,7 +59,9 @@ public class SOCForceEndTurnResult
     private boolean updatedFP;
 
     /**
-     * If true, game's  lastPlayer was changed.
+     * If true, game's lastPlayer was changed.
+     * Calling {@link SOCGame#setFirstPlayer(int)} will also calculate
+     * its lastPlayer based on vacant seats and firstPlayer.
      * @since 1.1.09
      */
     private boolean updatedLP;
@@ -256,6 +258,8 @@ public class SOCForceEndTurnResult
 
     /**
      * Did the game's lastPlayer change?
+     * Calling {@link SOCGame#setFirstPlayer(int)} will also calculate
+     * its lastPlayer based on vacant seats and firstPlayer.
      * @since 1.1.09
      */
     public boolean didUpdateLP()
