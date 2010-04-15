@@ -800,7 +800,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * remove a player
+     * remove a player from their seat.
+     * <b>If they are the current player,</b>
+     * call this and then call {@link #canEndTurn(int)}.
+     * You'll need to then call {@link #endTurn()} or {@link #forceEndTurn()}.
      *
      * @param name  the player's name
      * @throws IllegalArgumentException if name isn't in this game.
