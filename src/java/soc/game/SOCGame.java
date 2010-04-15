@@ -2504,6 +2504,8 @@ public class SOCGame implements Serializable, Cloneable
         final int cpn = currentPlayerNumber;
         int cancelResType;  // Turn result type
         boolean updateFirstPlayer, updateLastPlayer;  // are we forcing the very first player's (or last player's) turn?
+        updateFirstPlayer = (cpn == firstPlayerNumber);
+        updateLastPlayer = (cpn == lastPlayerNumber);
 
         /**
          * Set the state we're advancing "from";
@@ -2513,12 +2515,8 @@ public class SOCGame implements Serializable, Cloneable
         if (advTurnForward)
         {
             gameState = START1B;
-            updateFirstPlayer = (cpn == firstPlayerNumber);
-            updateLastPlayer = (cpn == lastPlayerNumber);
         } else {
             gameState = START2B;
-            updateFirstPlayer = false;
-            updateLastPlayer = false;
         }
 
         advanceTurnStateAfterPutPiece();  // Changes state, may change current player
