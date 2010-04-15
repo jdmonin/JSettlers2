@@ -61,6 +61,9 @@ import java.io.StringWriter;
  * Contains {@link SOCBoardPanel board}, client's and other players' {@link SOCHandPanel hands},
  * chat interface, game message window, and the {@link SOCBuildingPanel building/buying panel}.
  *<P>
+ * Players' {@link SOCHandPanel hands} start with player 0 at top-left, and go clockwise;
+ * see {@link #doLayout()} for details.
+ *<P>
  * When we join a game, the client will update visible game state by calling methods here like
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
  * ready for interaction, the client calls {@link #began()}.
