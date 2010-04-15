@@ -2155,9 +2155,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * sets who the first player is
+     * Sets who the first player is.
+     * Based on <code>pn</code> and on vacant seats, also recalculates lastPlayer.
      *
-     * @param pn  the seat number of the first player
+     * @param pn  the seat number of the first player, or -1 if not set yet
      */
     public void setFirstPlayer(int pn)
     {
