@@ -181,7 +181,8 @@ public class SOCServer extends Server
     public int port;
 
     /**
-     * Maximum number of connections allowed
+     * Maximum number of connections allowed.
+     * Remember that robots count against this limit.
      */
     protected int maxConnections;
 
@@ -363,7 +364,8 @@ public class SOCServer extends Server
      * {@link #hasSetGameOptions} is set.
      *
      * @param p    the TCP port that the server listens on
-     * @param mc   the maximum number of connections allowed
+     * @param mc   the maximum number of connections allowed;
+     *            remember that robots count against this limit.
      * @param databaseUserName  the user name for accessing the database
      * @param databasePassword  the password for the user
      */
@@ -418,7 +420,8 @@ public class SOCServer extends Server
      * @param s    the stringport that the server listens on.
      *             If this is a "practice game" server on the user's local computer,
      *             please use {@link #PRACTICE_STRINGPORT}.
-     * @param mc   the maximum number of connections allowed
+     * @param mc   the maximum number of connections allowed;
+     *            remember that robots count against this limit.
      * @param databaseUserName  the user name for accessing the database
      * @param databasePassword  the password for the user
      */
