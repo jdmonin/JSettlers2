@@ -6171,10 +6171,9 @@ public class SOCServer extends Server
                             int[] monoPicks = ga.doMonopolyAction(mes.getResource());
 
                             final String monoPlayerName = (String) c.getData();
-
-                            String resName
+                            final String resName
                                 = " " + SOCResourceConstants.resName(mes.getResource()) + ".";
-                            String message = monoPlayerName + " monopolized " + resName;
+                            String message = monoPlayerName + " monopolized" + resName;
 
                             gameList.takeMonitorForGame(gaName);
                             messageToGameExcept(gaName, c, new SOCGameTextMsg(gaName, SERVERNAME, message), false);
