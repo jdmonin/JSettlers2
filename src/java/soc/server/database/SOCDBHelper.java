@@ -149,31 +149,37 @@ public class SOCDBHelper
     	dbURL = "jdbc:mysql://localhost/socdata";
     	if (props != null)
     	{
-    		String prop_dbURL = props.getProperty(PROP_JSETTLERS_DB_URL);
-    		String prop_driverclass = props.getProperty(PROP_JSETTLERS_DB_DRIVER);
-    		if (prop_dbURL != null)
-    		{
-    			dbURL = prop_dbURL;
-        		if (prop_driverclass != null)
-        			driverclass = prop_driverclass;
-        		else if (prop_dbURL.startsWith("jdbc:postgresql"))
-        			driverclass = "org.postgresql.Driver";
-        		else if (! prop_dbURL.startsWith("jdbc:mysql"))
-				{
-    				throw new SQLException("JDBC: URL property is set, but driver property is not: ("
-        				    + PROP_JSETTLERS_DB_URL + ", " + PROP_JSETTLERS_DB_DRIVER + ")");
-				}
-    		} else {
-        		if (prop_driverclass != null)
-        			driverclass = prop_driverclass;
+    	    String prop_dbURL = props.getProperty(PROP_JSETTLERS_DB_URL);
+    	    String prop_driverclass = props.getProperty(PROP_JSETTLERS_DB_DRIVER);
+    	    if (prop_dbURL != null)
+    	    {
+    	        dbURL = prop_dbURL;
+    	        if (prop_driverclass != null)
+    	            driverclass = prop_driverclass;
+    	        else if (prop_dbURL.startsWith("jdbc:postgresql"))
+    	            driverclass = "org.postgresql.Driver";
+    	        else if (! prop_dbURL.startsWith("jdbc:mysql"))
+    	        {
+    	            throw new SQLException("JDBC: URL property is set, but driver property is not: ("
+    	                + PROP_JSETTLERS_DB_URL + ", " + PROP_JSETTLERS_DB_DRIVER + ")");
+    	        }
+    	    } else {
+    	        if (prop_driverclass != null)
+    	            driverclass = prop_driverclass;
 
-        		// if it's mysql, use the mysql default url above.
-    			if (! driverclass.contains("mysql"))
-    			{
-    				throw new SQLException("JDBC: Driver property is set, but URL property is not: ("
-    				    + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
-    			}
-    		}
+    	        // if it's mysql, use the mysql default url above.
+    	        // if it's postgres, use that.
+    	        // otherwise, not sure what they have.
+    	        if (driverclass.contains("postgresql"))
+    	        {
+    	            dbURL = "jdbc:postgresql://localhost/socdata";
+    	        }
+    	        else if (! driverclass.contains("mysql"))
+    	        {
+    	            throw new SQLException("JDBC: Driver property is set, but URL property is not: ("
+    	                + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
+    	        }
+    	    }
     	}
 
     	try
