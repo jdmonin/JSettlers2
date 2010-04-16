@@ -843,6 +843,7 @@ public class SOCServer extends Server
         boolean gameHasObserver = false;
         boolean gameVotingActiveDuringStart = false;
 
+        final int gameState = ga.getGameState();
         final String plName = (String) c.getData();  // Retain name, since will become null within game obj.
 
         for (playerNumber = 0; playerNumber < ga.maxPlayers;
@@ -863,7 +864,7 @@ public class SOCServer extends Server
                  */
                 if (ga.getResetVoteActive())
                 {
-                    if (ga.getGameState() <= SOCGame.START2B)
+                    if (gameState <= SOCGame.START2B)
                         gameVotingActiveDuringStart = true;
 
                     if (ga.getResetPlayerVote(playerNumber) == SOCGame.VOTE_NONE)
@@ -952,10 +953,10 @@ public class SOCServer extends Server
          */
         if (isPlayer && (gameHasHumanPlayer || gameHasObserver)
                 && ((ga.getPlayer(playerNumber).getPublicVP() > 0)
-                    || (ga.getGameState() == SOCGame.START1A)
-                    || (ga.getGameState() == SOCGame.START1B))
-                && (ga.getGameState() < SOCGame.OVER)
-                && !(ga.getGameState() < SOCGame.START1A))
+                    || (gameState == SOCGame.START1A)
+                    || (gameState == SOCGame.START1B))
+                && (gameState < SOCGame.OVER)
+                && !(gameState < SOCGame.START1A))
         {
             boolean foundNoRobots;
 
@@ -1101,7 +1102,7 @@ public class SOCServer extends Server
                      * this game before calling endGameTurn.
                      */
 
-                    if (ga.getGameState() == SOCGame.START1B)
+                    if (gameState == SOCGame.START1B)
                     {
                         /**
                          * Cancel their initial settlement placement,
@@ -1164,7 +1165,7 @@ public class SOCServer extends Server
                      * - Board-reset voting: Handled above.
                      * - Waiting for discard: Handle here.
                      */
-                    if ((ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
+                    if ((gameState == SOCGame.WAITING_FOR_DISCARDS)
                          && (ga.getPlayer(playerNumber).getNeedToDiscard()))
                     {
                         /**
