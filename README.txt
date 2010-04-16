@@ -207,6 +207,10 @@ If you want to maintain user accounts, you will need to set up a MySQL
 database. This will eliminate the "Problem connecting to database"
 errors from the server. We assume you have installed it correctly. 
 
+The default JDBC driver is com.mysql.jdbc.Driver.  PostgreSQL is also
+recognized.  To use PostgreSQL, use this on the SOCServer command line:
+	-Djsettlers.db.driver=org.postgresql.Driver
+
 Run the following commands to create the database and configure its
 tables.
 
@@ -218,7 +222,7 @@ CREATE TABLE users (nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20)
 
 CREATE TABLE logins (nickname VARCHAR(20), host VARCHAR(50), lastlogin DATE);
 
-CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 TINYINT, score2 TINYINT, score3 TINYINT, score4 TINYINT, starttime TIMESTAMP);
+CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 SMALLINT, score2 SMALLINT, score3 SMALLINT, score4 SMALLINT, starttime TIMESTAMP);
 
 CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
 
