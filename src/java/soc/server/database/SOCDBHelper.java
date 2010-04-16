@@ -32,6 +32,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 import java.util.Calendar;
+import java.util.Properties;
 
 
 /**
@@ -44,18 +45,27 @@ import java.util.Calendar;
  */
 /**
  * This code assumes that you're using mySQL as your database.
+ * The default URL is "jdbc:mysql://localhost/socdata".
+ * The default driver is "com.mysql.jdbc.Driver".
+ * These can be changed by supplying properties to {@link #initialize(String, String, Properties)}
+ * for {@link #PROP_JSETTLERS_DB_URL} and {@link #PROP_JSETTLERS_DB_DRIVER}.
+ *<P>
  * It uses a database created with the following commands:
+ *<code>
  * CREATE DATABASE socdata;
  * USE socdata;
  * CREATE TABLE users (nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE);
  * CREATE TABLE logins (nickname VARCHAR(20), host VARCHAR(50), lastlogin DATE);
  * CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 TINYINT, score2 TINYINT, score3 TINYINT, score4 TINYINT, starttime TIMESTAMP);
  * CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
- *
+ *</code>
  */
 public class SOCDBHelper
 {
-    /** Property <tt>jsettlers.db.user</tt> to specify the server's SQL database username.
+    // If a new property is added, please add a PROP_JSETTLERS_DB_ constant
+    // and also add it to SOCServer.PROPS_LIST.
+
+	/** Property <tt>jsettlers.db.user</tt> to specify the server's SQL database username.
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_DB_USER = "jsettlers.db.user";
@@ -65,7 +75,27 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_PASS = "jsettlers.db.pass";
 
+    /** Property <tt>jsettlers.db.driver</tt> to specify the server's JDBC driver class.
+     * The default driver is "com.mysql.jdbc.Driver".
+     * If the {@link #PROP_JSETTLERS_DB_URL URL} begins with "jdbc:postgresql:",
+     * the driver will be "org.postgresql.Driver".
+     * @since 1.1.09
+     */
+    public static final String PROP_JSETTLERS_DB_DRIVER = "jsettlers.db.driver";
+
+    /** Property <tt>jsettlers.db.url</tt> to specify the server's URL.
+     * The default URL is "jdbc:mysql://localhost/socdata".
+     * @since 1.1.09
+     */
+    public static final String PROP_JSETTLERS_DB_URL = "jsettlers.db.url";
+
     private static Connection connection = null;
+
+    /**
+     * Retain the URL (default, or passed via props to {@link #initialize(String, String, Properties)}).
+     * @since 1.1.09
+     */
+    private static String dbURL = null;
 
     /**
      * This flag indicates that the connection should be valid, yet the last
@@ -79,7 +109,7 @@ public class SOCDBHelper
 
     /** Cached password used when reconnecting on error */
     private static String password;
-    
+
     private static String CREATE_ACCOUNT_COMMAND = "INSERT INTO users VALUES (?,?,?,?,?);";
     private static String RECORD_LOGIN_COMMAND = "INSERT INTO logins VALUES (?,?,?);";
     private static String USER_PASSWORD_QUERY = "SELECT password FROM users WHERE ( users.nickname = ? );";
@@ -99,29 +129,68 @@ public class SOCDBHelper
     /**
      * This makes a connection to the database
      * and initializes the prepared statements.
+     *<P>
+     * The default URL is "jdbc:mysql://localhost/socdata".
+     * The default driver is "com.mysql.jdbc.Driver".
+     * These can be changed by supplying <code>props</code>.
      *
      * @param user  the user name for accessing the database
      * @param pswd  the password for the user
+     * @param props  null, or properties containing {@link #PROP_JSETTLERS_DB_USER},
+     *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
      * @throws SQLException if an SQL command fails, or the db couldn't be
-     *         initialized
+     *         initialized;
+     *         or if the {@link #PROP_JSETTLERS_DB_DRIVER} property is non-mysql
+     *         but the {@link #PROP_JSETTLERS_DB_URL} property is not provided.
      */
-    public static void initialize(String user, String pswd) throws SQLException
+    public static void initialize(String user, String pswd, Properties props) throws SQLException
     {
-        try
+    	String driverclass = "com.mysql.jdbc.Driver";
+    	dbURL = "jdbc:mysql://localhost/socdata";
+    	if (props != null)
+    	{
+    		String prop_dbURL = props.getProperty(PROP_JSETTLERS_DB_URL);
+    		String prop_driverclass = props.getProperty(PROP_JSETTLERS_DB_DRIVER);
+    		if (prop_dbURL != null)
+    		{
+    			dbURL = prop_dbURL;
+        		if (prop_driverclass != null)
+        			driverclass = prop_driverclass;
+        		else if (prop_dbURL.startsWith("jdbc:postgresql"))
+        			driverclass = "org.postgresql.Driver";
+        		else if (! prop_dbURL.startsWith("jdbc:mysql"))
+				{
+    				throw new SQLException("JDBC: URL property is set, but driver property is not: ("
+        				    + PROP_JSETTLERS_DB_URL + ", " + PROP_JSETTLERS_DB_DRIVER + ")");
+				}
+    		} else {
+        		if (prop_driverclass != null)
+        			driverclass = prop_driverclass;
+
+        		// if it's mysql, use the mysql default url above.
+    			if (! driverclass.contains("mysql"))
+    			{
+    				throw new SQLException("JDBC: Driver property is set, but URL property is not: ("
+    				    + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
+    			}
+    		}
+    	}
+
+    	try
         {
-            // Load the mysql driver. Revisit exceptions when /any/ JDBC allowed
-            Class.forName("org.gjt.mm.mysql.Driver").newInstance();
+            // Load the JDBC driver. Revisit exceptions when /any/ JDBC allowed.
+            Class.forName(driverclass).newInstance();
 
             connect(user, pswd);
         }
         catch (ClassNotFoundException x)
         {
             SQLException sx =
-                new SQLException("MySQL driver is unavailable");
+                new SQLException("JDBC driver is unavailable: " + driverclass);
             sx.initCause(x);
             throw sx;
         }
-        catch (Exception x) // everything else
+        catch (Throwable x) // everything else
         {
             // InstantiationException & IllegalAccessException
             // should not be possible  for org.gjt.mm.mysql.Driver
@@ -155,9 +224,7 @@ public class SOCDBHelper
     private static boolean connect(String user, String pswd)
         throws SQLException
     {
-        String url = "jdbc:mysql://localhost/socdata";
-
-        connection = DriverManager.getConnection(url, user, pswd);
+        connection = DriverManager.getConnection(dbURL, user, pswd);
 
         errorCondition = false;
         userName = user;

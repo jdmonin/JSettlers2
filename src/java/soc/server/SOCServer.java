@@ -483,7 +483,7 @@ public class SOCServer extends Server
 
         try
         {
-            SOCDBHelper.initialize(databaseUserName, databasePassword);
+            SOCDBHelper.initialize(databaseUserName, databasePassword, props);
             System.err.println("User database initialized.");
         }
         catch (SQLException x) // just a warning
@@ -947,6 +947,7 @@ public class SOCServer extends Server
          * if the leaving member was playing the game, and
          * the game isn't over, then decide:
          * - Do we need to force-end the current turn?
+         * - Do we need to cancel their initial settlement placement?
          * - Should we replace the leaving player with a robot?
          */
         if (isPlayer && (gameHasHumanPlayer || gameHasObserver)
@@ -1680,10 +1681,11 @@ public class SOCServer extends Server
     }
 
     /**
-     * Send a message to the given game
-     *
-     * WARNING: MUST HAVE THE gameList.takeMonitorForGame(ga) before
-     * calling this method
+     * Send a message to the given game.
+     *<P>
+     *<b>Locks:</b> MUST HAVE THE
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
+     * before calling this method.
      *
      * @param ga  the name of the game
      * @param mes the message to send
