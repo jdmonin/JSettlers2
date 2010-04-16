@@ -952,7 +952,8 @@ public class SOCServer extends Server
          */
         if (isPlayer && (gameHasHumanPlayer || gameHasObserver)
                 && ((ga.getPlayer(playerNumber).getPublicVP() > 0)
-                    || (ga.getGameState() == SOCGame.START1A))
+                    || (ga.getGameState() == SOCGame.START1A)
+                    || (ga.getGameState() == SOCGame.START1B))
                 && (ga.getGameState() < SOCGame.OVER)
                 && !(ga.getGameState() < SOCGame.START1A))
         {
@@ -1099,6 +1100,22 @@ public class SOCServer extends Server
                      * To prevent deadlock, we must release gamelist's monitor for
                      * this game before calling endGameTurn.
                      */
+
+                    if (ga.getGameState() == SOCGame.START1B)
+                    {
+                        /**
+                         * Cancel their initial settlement placement,
+                         * and send that cancel to the other players.
+                         * Don't change gameState yet.
+                         */
+                        SOCPlayer pl = ga.getPlayer(playerNumber);
+                        SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
+                        ga.undoPutInitSettlement(pp);
+                        ga.setGameState(SOCGame.START1B);  // state was changed by undoPutInitSettlement
+                        messageToGameWithMon
+                          (ga.getName(), new SOCCancelBuildRequest(ga.getName(), SOCSettlement.SETTLEMENT));
+                    }
+
                     if (ga.canEndTurn(playerNumber))
                     {
                         gameList.releaseMonitorForGame(gm);
