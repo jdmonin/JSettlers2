@@ -405,6 +405,10 @@ public class SOCServer extends Server
      *<P>
      * The database properties are {@link SOCDBHelper#PROP_JSETTLERS_DB_USER}
      * and {@link SOCDBHelper#PROP_JSETTLERS_DB_PASS}.
+     *<P>
+     * Will also print game options to stderr if
+     * any option defaults require a minimum client version, or if 
+     * {@link #hasSetGameOptions} is set.
      * 
      * @param p    the TCP port that the server listens on
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
@@ -1102,19 +1106,22 @@ public class SOCServer extends Server
                      * this game before calling endGameTurn.
                      */
 
-                    if (gameState == SOCGame.START1B)
+                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B))
                     {
                         /**
-                         * Cancel their initial settlement placement,
+                         * Leaving during 1st or 2nd initial road placement.
+                         * Cancel the settlement they just placed,
                          * and send that cancel to the other players.
                          * Don't change gameState yet.
+                         * Note that their 2nd settlement is removed in START2B,
+                         * but not their 1st settlement. (This would impact the robots much more.)
                          */
                         SOCPlayer pl = ga.getPlayer(playerNumber);
                         SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
                         ga.undoPutInitSettlement(pp);
-                        ga.setGameState(SOCGame.START1B);  // state was changed by undoPutInitSettlement
+                        ga.setGameState(gameState);  // state was changed by undoPutInitSettlement
                         messageToGameWithMon
-                          (ga.getName(), new SOCCancelBuildRequest(ga.getName(), SOCSettlement.SETTLEMENT));
+                          (gm, new SOCCancelBuildRequest(gm, SOCSettlement.SETTLEMENT));
                     }
 
                     if (ga.canEndTurn(playerNumber))
@@ -5261,13 +5268,13 @@ public class SOCServer extends Server
         if ((forceRes == SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADV)
             || (forceRes == SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK))
         {
-            sendGameState(ga, false);
-            sendTurn(ga, false);
             if (res.didUpdateFP() || res.didUpdateLP())
             {
                 // will cause clients to recalculate lastPlayer too
                 messageToGame(gaName, new SOCFirstPlayer(gaName, ga.getFirstPlayer()));
             }
+            sendGameState(ga, false);
+            sendTurn(ga, false);
             return;  // <--- Early return ---
         }
 
