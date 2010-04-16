@@ -75,6 +75,9 @@ import java.util.Vector;
  * The version check timer is set in {@link SOCClientData#setVersionTimer(SOCServer, StringConnection)}.
  * Before 1.1.06, the server's response was first message,
  * and client version was then sent in reply to server's version.
+ *<P>
+ * Java properties (starting with "jsettlers.") were added in 1.1.09, with constant names
+ * starting with PROP_JSETTLERS_, and listed in {@link #PROPS_LIST}.
  */
 public class SOCServer extends Server
 {
@@ -87,6 +90,9 @@ public class SOCServer extends Server
      */
     public static final int SOC_PORT_DEFAULT = 8880;
 
+    // If a new property is added, please add a PROP_JSETTLERS_ constant
+    // and also add it to PROPS_LIST.
+
     /** Property <tt>jsettlers.port</tt> to specify the port the server listens on.
      * @since 1.1.09
      */
@@ -97,6 +103,21 @@ public class SOCServer extends Server
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_CONNECTIONS = "jsettlers.connections";
+
+    /**
+     * List of all available JSettlers {@link Properties properties},
+     * such as {@link #PROP_JSETTLERS_PORT} and {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}.
+     * @since 1.1.09
+     */
+    public static final String[] PROPS_LIST =
+    {
+    	PROP_JSETTLERS_PORT,
+    	PROP_JSETTLERS_CONNECTIONS,
+    	SOCDBHelper.PROP_JSETTLERS_DB_USER,
+    	SOCDBHelper.PROP_JSETTLERS_DB_PASS,
+    	SOCDBHelper.PROP_JSETTLERS_DB_URL,
+    	SOCDBHelper.PROP_JSETTLERS_DB_DRIVER
+    };
 
     /**
      * Name used when sending messages from the server.
@@ -190,6 +211,7 @@ public class SOCServer extends Server
      * Properties for the server, or empty if that constructor wasn't used.
      * Property names are held in PROP_* and SOCDBHelper.PROP_* constants.
      * @see #SOCServer(int, Properties)
+     * @see #PROPS_LIST
      * @since 1.1.09
      */
     private Properties props;
@@ -374,7 +396,7 @@ public class SOCServer extends Server
         super(p);
         port = p;
         maxConnections = mc;
-        initSocServer(databaseUserName, databasePassword);
+        initSocServer(databaseUserName, databasePassword, null);
     }
 
     /**
@@ -388,11 +410,11 @@ public class SOCServer extends Server
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
      *               and any other desired properties. 
      * @since 1.1.09
+     * @see #PROPS_LIST
      */
     public SOCServer(final int p, Properties props)
     {
         super(p);
-        this.props = props;
         try
         {
             String mcs = props.getProperty(PROP_JSETTLERS_CONNECTIONS, "15");
@@ -406,7 +428,7 @@ public class SOCServer extends Server
         }
         String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "dbuser");
         String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "dbpass");
-        initSocServer(dbuser, dbpass);
+        initSocServer(dbuser, dbpass, props);
     }
 
     /**
@@ -429,17 +451,19 @@ public class SOCServer extends Server
     {
         super(s);
         maxConnections = mc;
-        initSocServer(databaseUserName, databasePassword);
+        initSocServer(databaseUserName, databasePassword, null);
     }
 
     /**
      * Common init for all constructors.
-     * Unless {@link #props} is set before calling this method, the properties will be created empty.
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
+     * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
+     *       and any other desired properties. 
+     *       If <code>props</code> is null, the properties will be created empty.
      */
-    private void initSocServer(String databaseUserName, String databasePassword)
+    private void initSocServer(String databaseUserName, String databasePassword, Properties props)
     {
         printVersionText();
         
@@ -451,7 +475,11 @@ public class SOCServer extends Server
         }
 
         if (props == null)
-            props = new Properties();
+        {
+            this.props = new Properties();
+        } else {
+            this.props = props;
+        }
 
         try
         {
