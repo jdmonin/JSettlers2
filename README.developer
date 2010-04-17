@@ -45,6 +45,10 @@ Current TODO list: (Work on these items not yet begun)
 	- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 	- If try to start server in JSettlers.jar, but port already in use, currently ends program immediately
 		should instead show MessagePanel with option to practice, or even just show a message
+	- Properties for game option defaults for server startup
+		-Djsettlers.game.N7=y  instead of -O N7=y
+		allow lowercase too
+		probably best done at bottom of SOCServer.parseCmdline_DashedArgs
 	- Possible: Auto-add robots when needed as server runs, with server active-game count
 		only do it if jsettlers.startrobots property is set
 	- At board reset, game observers not currently handled properly
