@@ -58,8 +58,10 @@ import java.util.Vector;
  *<P>
  * For server command line options, use the --help option.
  *<P>
- * If the database is used (see {@link SOCDBHelper}), each user
- * requires a username & password in that database to log in and play.
+ * If the database is used (see {@link SOCDBHelper}), users can
+ * be set up with a username & password in that database to log in and play.
+ * Users without accounts can connect by leaving the password blank,
+ * as long as they aren't using a nickname which has a password in the database.
  *<P>
  *<b>Network traffic:</b>
  * The first message over the connection is the client's version

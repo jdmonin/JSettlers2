@@ -87,8 +87,10 @@ you will see a warning with the appropriate explanation:
   Warning: failed to initialize database: ....
 
 The database is not required: Without it, the server will function normally except
-that user accounts cannot be maintained.  If you do use the database, you'll need
-to give users an account before they are allowed to log in and play.
+that user accounts cannot be maintained.  If you do use the database, you can give
+users a nickname and password to use when they log in and play.
+People without accounts can still connect, by leaving the password field blank,
+as long as they aren't using a nickname which has a password in the database.
 
 Now, from another command line window, start the player client with
 the following command:
@@ -158,8 +160,8 @@ Hosting a JSettlers server
 
 To host a JSettlers server, start the server as described in "Setting up
 and Testing". To maintain user accounts, be sure to start the database
-first. (If you use a database, you'll need to give users an account
-before they are allowed to log in and play.)
+first. (If you use a database, you can give users an account; everyone else
+can still log in and play, by leaving the password field blank.)
 
 Remote users can simply start their clients as described there,
 and specify your server as host.
@@ -248,7 +250,9 @@ following command:
 
   java -jar JSettlers.jar soc.client.SOCAccountClient localhost 8880
 
-Until you create accounts, no one will be able to log into the server to play games.
+Users with accounts must type their password to log into the server to play.
+People without accounts can still connect, by leaving the password field blank,
+as long as they aren't using a nickname which has a password in the database.
 
 
 Development and Compiling
