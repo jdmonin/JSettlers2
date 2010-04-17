@@ -1293,18 +1293,8 @@ public class SOCServer extends Server
         for (int i = 0; i < numFast; ++i)
         {
             String rname = "droid " + (i+1);
-            if (strSocketName != null)
-                robo_fast[i] = new SOCRobotClient (strSocketName, rname, "pw");
-            else
-                robo_fast[i] = new SOCRobotClient ("localhost", port, rname, "pw");
-            new Thread(new SOCPlayerLocalRobotRunner(robo_fast[i])).start();
-            Thread.yield();
-            try
-            {
-                Thread.sleep(75);  // Let that robot go for a bit.
-                    // robot runner thread will call its init()
-            }
-            catch (InterruptedException ie) {}
+            SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
+                // includes yield() and sleep(75 ms) this thread.
         }
 
         try
@@ -1324,17 +1314,8 @@ public class SOCServer extends Server
         for (int i = 0; i < numSmart; ++i)
         {
             String rname = "robot " + (i+1+robo_fast.length);
-            if (strSocketName != null)
-                robo_smrt[i] = new SOCRobotClient (strSocketName, rname, "pw");
-            else
-                robo_smrt[i] = new SOCRobotClient ("localhost", port, rname, "pw");
-            new Thread(new SOCPlayerLocalRobotRunner(robo_smrt[i])).start();
-            Thread.yield();
-            try
-            {
-                Thread.sleep(75);  // Let that robot go for a bit.
-            }
-            catch (InterruptedException ie) {}
+            SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
+                // includes yield() and sleep(75 ms) this thread.
         }
 
         SOCServer.ROBOT_PARAMS_DEFAULT = prevSetting;
@@ -8683,6 +8664,38 @@ public class SOCServer extends Server
             Thread.currentThread().setName("robotrunner-" + rob.getNickname());
             rob.init();
         }
-    }
+
+        /**
+         * Create and start a robot client within a {@link SOCPlayerLocalRobotRunner} thread.
+         * After creating it, {@link Thread#yield() yield} the current thread and then sleep
+         * 75 milliseconds, to give the robot time to start itself up.
+         * @param rname  Name of robot
+         * @param strSocketName  Server's stringport socket name, or null
+         * @param port    Server's tcp port, if <tt>strSocketName</tt> is null
+         * @since 1.1.09
+         * @see SOCServer#setupLocalRobots(int, int)
+         */
+        public static void createAndStartRobotClientThread
+            (final String rname, final String strSocketName, final int port)
+        {
+            SOCRobotClient rcli;
+            if (strSocketName != null)
+                rcli = new SOCRobotClient (strSocketName, rname, "pw");
+            else
+                rcli = new SOCRobotClient ("localhost", port, rname, "pw");
+            Thread rth = new Thread(new SOCPlayerLocalRobotRunner(rcli));
+            rth.setDaemon(true);
+            rth.start();
+
+            Thread.yield();
+            try
+            {
+                Thread.sleep(75);  // Let that robot go for a bit.
+                    // robot runner thread will call its init()
+            }
+            catch (InterruptedException ie) {}
+        }
+
+    }  // nested static class SOCPlayerLocalRobotRunner
 
 }  // public class SOCServer
