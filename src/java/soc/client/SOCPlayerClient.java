@@ -4803,7 +4803,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
             // We need some opponents.
             // Let the server randomize whether we get smart or fast ones.
-            setupLocalRobots(0);
+            setupLocalRobots(0, 5, 2);
         }
         if (prCli == null)
         {
@@ -4870,7 +4870,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         // We need some opponents.
         // Let the server randomize whether we get smart or fast ones.
-        setupLocalRobots(tport);
+        setupLocalRobots(tport, 5, 2);
 
         // Set label
         versionOrlocalTCPPortLabel.setText("Port: " + tport);
@@ -4919,18 +4919,20 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      * {@link SOCServer#PRACTICE_STRINGPORT}.
      *
      * @param port Port number for tcp, or 0 for stringport
+     * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
+     * @param numSmart number of smart robots, with {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
      * @see #startPracticeGame()
      * @see #startLocalTCPServer(int)
      */
-    public void setupLocalRobots(int port)
+    public void setupLocalRobots(int port, final int numFast, final int numSmart)
     {
-        SOCRobotClient[] robo_fast = new SOCRobotClient[5];
-        SOCRobotClient[] robo_smrt = new SOCRobotClient[2];
+        SOCRobotClient[] robo_fast = new SOCRobotClient[numFast];
+        SOCRobotClient[] robo_smrt = new SOCRobotClient[numSmart];
 
         // ASSUMPTION: Server ROBOT_PARAMS_DEFAULT uses SOCRobotDM.FAST_STRATEGY.
 
         // Make some faster ones first.
-        for (int i = 0; i < 5; ++i)
+        for (int i = 0; i < numFast; ++i)
         {
             String rname = "droid " + (i+1);
             if (port == 0)
@@ -4961,7 +4963,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         SOCServer.ROBOT_PARAMS_DEFAULT = SOCServer.ROBOT_PARAMS_SMARTER;   // SOCRobotDM.SMART_STRATEGY
 
-        for (int i = 0; i < 2; ++i)
+        for (int i = 0; i < numSmart; ++i)
         {
             String rname = "robot " + (i+1+robo_fast.length);
             if (port == 0)
