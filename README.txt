@@ -258,14 +258,15 @@ as long as they aren't using a nickname which has a password in the database.
 Development and Compiling
 -------------------------
 
-Source code for JSettlers is available via tarballs.
+Source code for JSettlers is available via tarballs and CVS.
 See the project website at http://nand.net/jsettlers/devel/
+or http://sourceforge.net/projects/jsettlers2/
 for details. Patches against the latest version may be submitted there.
 
 Before building, make sure you have at least version 1.4 of the Java
 development kit installed.  If you simply want to run the client and
 server, you only need the Java Runtime (JRE). If you wish to maintain a user
-database for your server, you need MySQL installed, and configured.
+database for your server, you need MySQL or PostgreSQL installed, and configured.
 
 This package was designed to use the ANT tool available from
 http://ant.apache.org tools.  We assume you have installed it
