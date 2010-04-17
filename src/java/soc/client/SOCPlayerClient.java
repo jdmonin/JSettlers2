@@ -4803,7 +4803,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
             // We need some opponents.
             // Let the server randomize whether we get smart or fast ones.
-            setupLocalRobots(0, 5, 2);
+            practiceServer.setupLocalRobots(5, 2);
         }
         if (prCli == null)
         {
@@ -4870,7 +4870,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         // We need some opponents.
         // Let the server randomize whether we get smart or fast ones.
-        setupLocalRobots(tport, 5, 2);
+        localTCPServer.setupLocalRobots(5, 2);
 
         // Set label
         versionOrlocalTCPPortLabel.setText("Port: " + tport);
@@ -4907,77 +4907,6 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
         // Reset the cursor
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-    }
-
-
-
-    /**
-     * Set up some robot opponents for a locally running server (tcp or stringport).
-     * This lets the server randomize whether we play against smart or fast ones.
-     * (Some will be SOCRobotDM.FAST_STRATEGY, some SMART_STRATEGY).
-     * If the local server is stringport, it must be running as
-     * {@link SOCServer#PRACTICE_STRINGPORT}.
-     *
-     * @param port Port number for tcp, or 0 for stringport
-     * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
-     * @param numSmart number of smart robots, with {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
-     * @see #startPracticeGame()
-     * @see #startLocalTCPServer(int)
-     */
-    public void setupLocalRobots(int port, final int numFast, final int numSmart)
-    {
-        SOCRobotClient[] robo_fast = new SOCRobotClient[numFast];
-        SOCRobotClient[] robo_smrt = new SOCRobotClient[numSmart];
-
-        // ASSUMPTION: Server ROBOT_PARAMS_DEFAULT uses SOCRobotDM.FAST_STRATEGY.
-
-        // Make some faster ones first.
-        for (int i = 0; i < numFast; ++i)
-        {
-            String rname = "droid " + (i+1);
-            if (port == 0)
-                robo_fast[i] = new SOCRobotClient (SOCServer.PRACTICE_STRINGPORT, rname, "pw");
-            else
-                robo_fast[i] = new SOCRobotClient ("localhost", port, rname, "pw");
-            new Thread(new SOCPlayerLocalRobotRunner(robo_fast[i])).start();
-            Thread.yield();
-            try
-            {
-                Thread.sleep(75);  // Let that robot go for a bit.
-                    // robot runner thread will call its init()
-            }
-            catch (InterruptedException ie) {}
-        }
-
-        try
-        {
-            Thread.sleep(150);
-                // Wait for these robots' accept and UPDATEROBOTPARAMS,
-                // before we change the default params.
-        }
-        catch (InterruptedException ie) {}
-
-        // Make a few smarter ones now.
-        // Switch params to SMARTER for future new robots.
-        // This works because server is in the same JVM as client.
-
-        SOCServer.ROBOT_PARAMS_DEFAULT = SOCServer.ROBOT_PARAMS_SMARTER;   // SOCRobotDM.SMART_STRATEGY
-
-        for (int i = 0; i < numSmart; ++i)
-        {
-            String rname = "robot " + (i+1+robo_fast.length);
-            if (port == 0)
-                robo_smrt[i] = new SOCRobotClient (SOCServer.PRACTICE_STRINGPORT, rname, "pw");
-            else
-                robo_smrt[i] = new SOCRobotClient ("localhost", port, rname, "pw");
-            new Thread(new SOCPlayerLocalRobotRunner(robo_smrt[i])).start();
-            Thread.yield();
-            try
-            {
-                Thread.sleep(75);  // Let that robot go for a bit.
-            }
-            catch (InterruptedException ie) {}
-        }
     }
 
     /**
@@ -5278,25 +5207,6 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         }
     }
 
-    /**
-     * For local practice games, each robot gets its own thread.
-     * Equivalent to main thread in SOCRobotClient in network games.
-     */
-    protected static class SOCPlayerLocalRobotRunner implements Runnable
-    {
-        SOCRobotClient rob;
-
-        protected SOCPlayerLocalRobotRunner (SOCRobotClient rc)
-        {
-            rob = rc;
-        }
-
-        public void run()
-        {
-            Thread.currentThread().setName("robotrunner-" + rob.getNickname());
-            rob.init();
-        }
-    }
 
 
     /**

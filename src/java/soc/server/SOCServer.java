@@ -27,6 +27,7 @@ import soc.debug.D;  // JM
 import soc.game.*;
 import soc.message.*;
 
+import soc.robot.SOCRobotClient;
 import soc.server.database.SOCDBHelper;
 
 import soc.server.genericServer.LocalStringConnection;
@@ -1264,6 +1265,79 @@ public class SOCServer extends Server
             }
         }
         return robotIndexes;
+    }
+
+    /**
+     * Set up some robot opponents, running in our JVM for operator convenience.
+     * Set up more than needed; when a game is started, game setup will
+     * randomize whether its humans will play against smart or fast ones.
+     * (Some will be SOCRobotDM.FAST_STRATEGY, some SMART_STRATEGY).
+     *<P>
+     * Before 1.1.09, this method was part of SOCPlayerClient.
+     *
+     * @param port Port number for tcp, or 0 for stringport
+     * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
+     * @param numSmart number of smart robots, with {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
+     * @see #startPracticeGame()
+     * @see #startLocalTCPServer(int)
+     * @since 1.1.00
+     */
+    public void setupLocalRobots(final int numFast, final int numSmart)
+    {
+        SOCRobotClient[] robo_fast = new SOCRobotClient[numFast];
+        SOCRobotClient[] robo_smrt = new SOCRobotClient[numSmart];
+
+        // ASSUMPTION: Server ROBOT_PARAMS_DEFAULT uses SOCRobotDM.FAST_STRATEGY.
+
+        // Make some faster ones first.
+        for (int i = 0; i < numFast; ++i)
+        {
+            String rname = "droid " + (i+1);
+            if (strSocketName != null)
+                robo_fast[i] = new SOCRobotClient (strSocketName, rname, "pw");
+            else
+                robo_fast[i] = new SOCRobotClient ("localhost", port, rname, "pw");
+            new Thread(new SOCPlayerLocalRobotRunner(robo_fast[i])).start();
+            Thread.yield();
+            try
+            {
+                Thread.sleep(75);  // Let that robot go for a bit.
+                    // robot runner thread will call its init()
+            }
+            catch (InterruptedException ie) {}
+        }
+
+        try
+        {
+            Thread.sleep(150);
+                // Wait for these robots' accept and UPDATEROBOTPARAMS,
+                // before we change the default params.
+        }
+        catch (InterruptedException ie) {}
+
+        // Make a few smarter ones now:
+
+        // Switch params to SMARTER for future new robots.
+        SOCRobotParameters prevSetting = SOCServer.ROBOT_PARAMS_DEFAULT;
+        SOCServer.ROBOT_PARAMS_DEFAULT = SOCServer.ROBOT_PARAMS_SMARTER;   // SOCRobotDM.SMART_STRATEGY
+
+        for (int i = 0; i < numSmart; ++i)
+        {
+            String rname = "robot " + (i+1+robo_fast.length);
+            if (strSocketName != null)
+                robo_smrt[i] = new SOCRobotClient (strSocketName, rname, "pw");
+            else
+                robo_smrt[i] = new SOCRobotClient ("localhost", port, rname, "pw");
+            new Thread(new SOCPlayerLocalRobotRunner(robo_smrt[i])).start();
+            Thread.yield();
+            try
+            {
+                Thread.sleep(75);  // Let that robot go for a bit.
+            }
+            catch (InterruptedException ie) {}
+        }
+
+        SOCServer.ROBOT_PARAMS_DEFAULT = prevSetting;
     }
 
     /**
@@ -8585,5 +8659,30 @@ public class SOCServer extends Server
             printUsage(false);
             return;
         }
+    }  // main
+
+    /**
+     * Each local robot gets its own thread.
+     * Equivalent to main thread in SOCRobotClient in network games.
+     *<P>
+     * Before 1.1.09, this class was part of SOCPlayerClient.
+     * @see SOCServer#setupLocalRobots(int, int, int)
+     * @since 1.1.00
+     */
+    private static class SOCPlayerLocalRobotRunner implements Runnable
+    {
+        SOCRobotClient rob;
+
+        protected SOCPlayerLocalRobotRunner (SOCRobotClient rc)
+        {
+            rob = rc;
+        }
+
+        public void run()
+        {
+            Thread.currentThread().setName("robotrunner-" + rob.getNickname());
+            rob.init();
+        }
     }
-}
+
+}  // public class SOCServer
