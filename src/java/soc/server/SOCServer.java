@@ -111,6 +111,16 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_CONNECTIONS = "jsettlers.connections";
 
     /**
+     * Property <tt>jsettlers.startrobots</tt> to start some robots when the server starts.
+     * (The default is 0, no robots are started by default.)
+     *<P>
+     * 30% will be "smart" robots, the other 70% will be "fast" robots.
+     * Remember that robots count against the {@link #PROP_JSETTLERS_CONNECTIONS max connections} limit.
+     * @since 1.1.09
+     */
+    public static final String PROP_JSETTLERS_STARTROBOTS = "jsettlers.startrobots";
+
+    /**
      * List of all available JSettlers {@link Properties properties},
      * such as {@link #PROP_JSETTLERS_PORT} and {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}.
      * @since 1.1.09
@@ -201,11 +211,6 @@ public class SOCServer extends Server
      * So we can get random numbers.
      */
     private Random rand = new Random();
-
-    /**
-     * The TCP port we listen on.
-     */
-    public int port;
 
     /**
      * Maximum number of connections allowed.
@@ -400,7 +405,6 @@ public class SOCServer extends Server
     public SOCServer(int p, int mc, String databaseUserName, String databasePassword)
     {
         super(p);
-        port = p;
         maxConnections = mc;
         initSocServer(databaseUserName, databasePassword, null);
     }
@@ -466,6 +470,8 @@ public class SOCServer extends Server
 
     /**
      * Common init for all constructors.
+     * Starts all server threads except the main thread.
+     * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
@@ -542,6 +548,33 @@ public class SOCServer extends Server
         System.err.println("Java Settlers Server " + Version.version() +
                 ", build " + Version.buildnum() + ", " + Version.copyright());
         System.err.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+    }
+
+    /**
+     * Callback to take care of things when server comes up, after the server socket
+     * is bound and listening, in the main thread.
+     * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, start those {@link SOCRobotClient}s now.
+     * @since 1.1.09
+     */
+    public void serverUp()
+    {
+        /**
+         * If we have any STARTROBOTS, start them up now.
+         * Each bot will have its own thread and {@link SOCRobotClient}.
+         */
+        if ((props != null) && (props.containsKey(PROP_JSETTLERS_STARTROBOTS)))
+        {
+            try
+            {
+                int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
+                int fast30 = (int) (0.30f * rcount);
+                setupLocalRobots(fast30, rcount - fast30);  // each bot gets a thread
+            }
+            catch (NumberFormatException e)
+            {
+                System.err.println("Not starting robots: Bad number format, ignoring property " + PROP_JSETTLERS_STARTROBOTS);
+            }
+        }        
     }
 
     /**
@@ -1275,7 +1308,6 @@ public class SOCServer extends Server
      *<P>
      * Before 1.1.09, this method was part of SOCPlayerClient.
      *
-     * @param port Port number for tcp, or 0 for stringport
      * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
      * @param numSmart number of smart robots, with {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
      * @see #startPracticeGame()
@@ -8634,6 +8666,8 @@ public class SOCServer extends Server
             SOCServer server = new SOCServer(port, argp);
             server.setPriority(5);
             server.start();  // <---- Start the Main SOCServer Thread ----
+
+            // Most threads are started in the SOCServer constructor, via initSocServer.
         }
         catch (Throwable e)
         {

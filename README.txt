@@ -117,7 +117,7 @@ If you do not, you might not have entered your nickname correctly.  It
 must be "debug" in order to use the administrative commands.
 
 Now you can add some robot players.  Enter the following commands in
-separate command line windows:
+separate command line windows:  (See below for how to automate this.)
 
   java -cp JSettlersServer.jar soc.robot.SOCRobotClient localhost 8880 robot1 passwd
 
@@ -140,6 +140,14 @@ Where host is the IP address and port_number is the port number.
 If you would like to maintain accounts for your JSettlers server,
 start the database prior to starting the JSettlers Server. See the
 directions in "Database Setup".
+
+If you would like robots to automatically start when your server starts,
+without the need for a separate command line, add the "startrobots" property
+to your jsettlers java command line, BEFORE the port number:
+
+    java -jar JSettlersServer.jar -Djsettlers.startrobots=3 8880 10 dbUser dbPass
+
+This will start 3 robots on the server.
 
 
 Shutting down the server
