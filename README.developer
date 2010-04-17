@@ -71,6 +71,10 @@ The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
 
 Coding Style
 ------------
+This is the project's coding style, based on the original authors' style.
+Although we may not agree with every detail of it, for consistency's sake,
+please keep the conventions of the code that's already there.
+
 Use spaces, not tabs.  The basic indent is 4.  Place braces on their own line.
 
 Use 1 blank line between methods.  If you have nested classes, use 3 blank 
@@ -78,7 +82,7 @@ lines between them, and comment each one's closing brace with the class name.
 If you have a long method whose work can be divided into "sections",
 preface each section with a /** javadoc-style */ multi-line comment.
 
-In emacs, you can turn off tabs with this in your .emacs file:
+In emacs, you can place this in your .emacs file to use spaces instead of tabs:
 (setq-default c-basic-offset 4)
 (setq indent-tabs-mode nil)
 	[ courtesy http://www.jwz.org/doc/tabs-vs-spaces.html, which also mentions vi ]
