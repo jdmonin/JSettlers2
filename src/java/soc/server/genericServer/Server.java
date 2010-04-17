@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -293,6 +293,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         treater.start();  // Set "up" before starting treater (race condition)
 
+        serverUp();  // Any processing for child class to do after serversocket is bound, before the main loop begins
+
         while (isUp())
         {
             try
@@ -375,6 +377,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     {
         return false;
     }
+
+    /** 
+     * Placeholder (callback) for doing things when server comes up, after the server socket
+     * is bound and listening, in the main thread.
+     * @since 1.1.09
+     */
+    protected void serverUp() {}
 
     /** placeholder for doing things when server gets down */
     protected void serverDown() {}
