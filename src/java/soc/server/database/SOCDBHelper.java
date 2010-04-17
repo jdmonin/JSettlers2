@@ -490,6 +490,9 @@ public class SOCDBHelper
      */
     public static boolean saveGameScores(String gameName, String player1, String player2, String player3, String player4, short score1, short score2, short score3, short score4, java.util.Date startTime) throws SQLException
     {
+        // TODO 6-player: save their scores too, if
+        // those fields are in the database.
+
         // ensure that the JDBC connection is still valid
         if (checkConnection())
         {

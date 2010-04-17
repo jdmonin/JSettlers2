@@ -8044,6 +8044,8 @@ public class SOCServer extends Server
                 //if (ga.allOriginalPlayers()) {
                 try
                 {
+                    // TODO 6-player: save their scores too, if
+                    // those fields are in the database.
                     SOCDBHelper.saveGameScores(ga.getName(), ga.getPlayer(0).getName(), ga.getPlayer(1).getName(), ga.getPlayer(2).getName(), ga.getPlayer(3).getName(), (short) ga.getPlayer(0).getTotalVP(), (short) ga.getPlayer(1).getTotalVP(), (short) ga.getPlayer(2).getTotalVP(), (short) ga.getPlayer(3).getTotalVP(), ga.getStartTime());
                 }
                 catch (SQLException sqle)
