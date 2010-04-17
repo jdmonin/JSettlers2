@@ -11,17 +11,14 @@ opponents. Initially created as an AI research project.
 The client may be run as a Java application, or as an applet when
 accessed from a web site which also hosts a JSettlers server.
 
-The server may be configured to use a MySQL database to store account
-information.  A client applet to create user accounts is also
-provided.
+The server may be configured to use a database to store account
+information (details below).  A client applet to create user accounts
+is also provided.
 
 JSettlers is an open-source project licensed under the GPL. The
-software is maintained at http://nand.net/jsettlers/devel/
-
-JSettlers was previously hosted at http://sourceforge.net/projects/jsettlers
-but this seems to be abandoned.  Forums for discussions and
-community-based support are available at SourceForge, but may
-not be checked on a frequent basis.
+software is hosted at http://sourceforge.net/projects/jsettlers2
+and at http://nand.net/jsettlers/devel/ .  Questions, bugs, and
+patches can be posted at the sourceforge page.
 
                           -- The JSettlers Development Team
 
@@ -58,14 +55,13 @@ To play JSettlers by connecting to a remote server you will need the
 Java Runtime Version 1.4 or above (1.5 or later recommended). To connect as an
 applet, use any browser which is Java enabled (using the browser plug-in).
 
-To Play JSettlers locally you need the Java Runtime 1.4 (or
-later). Remote clients started on the command line can connect
-directly to this server. To host a JSettlers server and provide a web
-applet for clients, you will need an http server such as Apache's
-httpd, available from http://httpd.apache.org.
+To Play JSettlers locally you need the Java Runtime 1.4 or above.
+JSettlers-full.jar can connect directly to any server over TCP/IP
 
-The JSettlers.jar file can also run locally, as a server or to connect to other servers,
-without needing a web server.  The applet is considered more convenient,
+To host a JSettlers server that provides a web applet for clients, you will
+need an http server such as Apache's httpd, available from http://httpd.apache.org.
+The JSettlers-full.jar file can also run locally as a server, without
+needing a web server.  The applet is considered more convenient,
 because you know everyone will have the same version.
 
 To build JSettlers from source, you will need Apache Ant, available from
@@ -85,12 +81,12 @@ Start the server with the following command
 
   java -jar JSettlersServer.jar 8880 10 dbUser dbPass
 
-If MySQL is not installed and running (See "Database Setup"), you will
-see a warning with the appropriate explanation:
+If MySQL or another database is not installed and running (See "Database Setup"),
+you will see a warning with the appropriate explanation:
 
   Warning: failed to initialize database: ....
 
-MySQL is not required: Without it, the server will function normally except
+The database is not required: Without it, the server will function normally except
 that user accounts cannot be maintained.
 
 Now, from another command line window, start the player client with
@@ -204,12 +200,25 @@ Database Setup
 --------------
 
 If you want to maintain user accounts, you will need to set up a MySQL
-database. This will eliminate the "Problem connecting to database"
+or PostgreSQL database. This will eliminate the "Problem connecting to database"
 errors from the server. We assume you have installed it correctly. 
 
+The default name for the database is "socdata".  To use another name,
+you'll need to specify it as a JDBC URL on the command line, such as:
+	-Djsettlers.db.url=jdbc:mysql://localhost/socdata
+or
+	-Djsettlers.db.url=jdbc:postgresql://localhost/socdata
+
 The default JDBC driver is com.mysql.jdbc.Driver.  PostgreSQL is also
-recognized.  To use PostgreSQL, use this on the SOCServer command line:
+recognized.  To use PostgreSQL, use a postgresql url like the one shown above,
+or specify the driver on the SOCServer command line:
 	-Djsettlers.db.driver=org.postgresql.Driver
+
+Depending on your computer's setup, you may need to point JSettlers at the
+appropriate JDBC drivers, by placing them in your java classpath.
+	MySQL:   http://www.mysql.com/products/connector/
+	PostgreSQL:  http://jdbc.postgresql.org/download.html
+	SQLite:  http://www.zentus.com/sqlitejdbc/
 
 Run the following commands to create the database and configure its
 tables.
