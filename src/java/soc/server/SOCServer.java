@@ -58,6 +58,9 @@ import java.util.Vector;
  *<P>
  * For server command line options, use the --help option.
  *<P>
+ * If the database is used (see {@link SOCDBHelper}), each user
+ * requires a username & password in that database to log in and play.
+ *<P>
  *<b>Network traffic:</b>
  * The first message over the connection is the client's version
  * and the second is the server's response:

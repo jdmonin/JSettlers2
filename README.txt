@@ -87,7 +87,8 @@ you will see a warning with the appropriate explanation:
   Warning: failed to initialize database: ....
 
 The database is not required: Without it, the server will function normally except
-that user accounts cannot be maintained.
+that user accounts cannot be maintained.  If you do use the database, you'll need
+to give users an account before they are allowed to log in and play.
 
 Now, from another command line window, start the player client with
 the following command:
@@ -149,15 +150,18 @@ disconnected.
 
 Hosting a JSettlers server
 --------------------------
-  - Start MySQL server (optional)
+  - Start MySQL or PostgreSQL server (optional)
   - Start JSettlers Server
   - Start http server (optional)
   - Copy JSettlers.jar jar and "web/*.html" server directory (optional)
   - Copy "docs/users" to the server directory (optional)
 
-To host a JSettlers server, start the server as described in "Setup
+To host a JSettlers server, start the server as described in "Setting up
 and Testing". To maintain user accounts, be sure to start the database
-first. Remote users can simply start their clients as described there,
+first. (If you use a database, you'll need to give users an account
+before they are allowed to log in and play.)
+
+Remote users can simply start their clients as described there,
 and specify your server as host.
 
 To provide a web page from which users can run the applet, you will
@@ -218,6 +222,7 @@ or specify the driver on the SOCServer command line:
 
 Depending on your computer's setup, you may need to point JSettlers at the
 appropriate JDBC drivers, by placing them in your java classpath.
+Your database system's JDBC drivers can be downloaded at these locations:
 	MySQL:   http://www.mysql.com/products/connector/
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
 	SQLite:  http://www.zentus.com/sqlitejdbc/
@@ -242,6 +247,8 @@ To create accounts, run the simple account creation client with the
 following command:
 
   java -jar JSettlers.jar soc.client.SOCAccountClient localhost 8880
+
+Until you create accounts, no one will be able to log into the server to play games.
 
 
 Development and Compiling
