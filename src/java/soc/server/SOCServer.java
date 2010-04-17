@@ -494,6 +494,12 @@ public class SOCServer extends Server
         {
             System.err.println("No user database available: " +
                                x.getMessage());
+            Throwable cause = x.getCause();
+            while ((cause != null) && ! (cause instanceof ClassNotFoundException))
+            {
+                System.err.println("\t" + cause);
+                cause = cause.getCause();
+            }
             System.err.println("Users will not be authenticated.");
         }
 

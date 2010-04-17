@@ -3,9 +3,11 @@
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 
-    > 1.1.09 (build 20100xxx)
+    > 1.1.09 (build 201004xx)
 - Database: default jdbc driver changed to com.mysql.jdbc.Driver,
-     allow others via java properties
+	allow other db types via java properties (see README.txt)
+- Database: troubleshooting: print error message details when the driver is
+	available, but the database couldn't be accessed or loaded.
 - 4-player board: crisper graphics (images from 6-player board)
 - Practice games don't expire (Rowan H idea)
 - Show rounds remaining for "roll no 7s during first n turns" (Rowan H idea)
