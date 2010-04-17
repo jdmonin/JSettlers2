@@ -7,10 +7,13 @@ The client communication is soc.client.SOCPlayerClient, and in-game interface is
 Game state is held at the server in soc.game.SOCGame and its fields.  Partial game state is known at clients.
 Communication is described in soc.message.SOCMessage.
 Robots talk with the server like normal human clients.
+Most robot messages are per-game; instead of being handled in SOCRobotClient,
+these are handled in a loop in SOCRobotBrain.run().
 
 Coding is done in Java 1.4 for now, but should compile cleanly in newer JDKs.
 The build system is Ant, which is natively understood by Eclipse.  Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the code already there.
+(See "Coding Style" below for more details.)
 When adding new methods or fields, describe them in javadoc, including the @since marker
 and the one-sentence summary (even though some old methods don't have that summary).
 When submitting patches, please use unified diff (-ur) format.
@@ -64,6 +67,81 @@ Current TODO list: (Work on these items not yet begun)
 	- refactor: SOCPlayerClient gui to separate class (mainpanel)
 
 The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
+
+
+Coding Style
+------------
+Use spaces, not tabs.  The basic indent is 4.  Place braces on their own line.
+
+Use 1 blank line between methods.  If you have nested classes, use 3 blank 
+lines between them, and comment each one's closing brace with the class name.
+If you have a long method whose work can be divided into "sections",
+preface each section with a /** javadoc-style */ multi-line comment.
+
+In emacs, you can turn off tabs with this in your .emacs file:
+(setq-default c-basic-offset 4)
+(setq indent-tabs-mode nil)
+	[ courtesy http://www.jwz.org/doc/tabs-vs-spaces.html, which also mentions vi ]
+You will also want this to have this, which disables auto-reindenting:
+(setq-default c-electric-flag nil)
+
+
+In eclipse, here's how to set up the coding style:
+
+	preferences -> general -> editors -> text editors:
+	[x] insert spaces for tabs
+	displayed tab width: 8
+
+	prefs -> java -> code style -> formatter -> Click "Configure Project Specific Settings"
+		{
+		based on Eclipse built-in standard
+
+		Profile name: 'jsettlers' (apply)
+
+		(Indentation)
+		Tab policy: Spaces only
+		Indentation: 4
+		Tab size: 8
+		confirm is unchecked: [ ] Indent empty lines
+
+		(Brace positions)
+		All 'next line' except:
+		Blocks in case stmt: Next line indented
+		Array init: Next line indented
+		[X] Keep empty array initializer on one line
+
+		(Control Statements)
+		[X] New line before else in if
+		[X] New line before catch in try
+		[X] New line before finally in try
+		[ ] New line before while in do
+		[X] Keep 'else if' on one line
+		[ ] (all other options)
+
+		(All other tabs)
+		Take defaults
+
+		}
+
+		Hit OK
+		restart eclipse
+
+		go to prefs -> java -> code style -> formatter
+		  if it's not active: set active profile to jsettlers & restart eclipse
+
+		prefs -> java -> editor -> typing
+			Verify tab 8 spaces, indent 4 spaces:
+	   [x] Tab key adjusts indentation of current line
+	   "The tab display value (currently 8) and whether spaces are used to indent lines
+	    are configured on the formatter preference page.  The current indentation size
+	    is 4, using spaces."
+
+When you hit enter and insert a new line in Eclipse, watch the whitespace, it
+will add whitespace to the blank line to match the current indent.
+
+If desired, in Eclipse preferences, you can bind a key combination to Remove Trailing Whitespace.
+This will trim it from the entire file when the key is pressed.
+
 
 
 [The text below is obsolete, from the sourceforge jsettlers project.]
