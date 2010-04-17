@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -63,7 +63,7 @@ import java.net.Socket;
  * making user accounts.
  * If you want another connection port, you have to specify it as the "port"
  * argument in the html source. If you run this as a stand-alone, you have to
- * specify the port.
+ * specify the server's hostname and port on the command line.
  *
  * @author Robert S Thomas
  */
@@ -166,10 +166,22 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
 
         Label l;
 
+        l = new Label("To create an account, please enter your information.");
+        l.setAlignment(Label.CENTER);
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(l, c);
+        mainPane.add(l);
+
+        l = new Label();
+        c.gridwidth = GridBagConstraints.REMAINDER;
+        gbl.setConstraints(l, c);
+        mainPane.add(l);
+
         l = new Label("Your Nickname:");
         c.gridwidth = 1;
         gbl.setConstraints(l, c);
         mainPane.add(l);
+        new AWTToolTip("This will be your username.", l);
 
         c.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(nick, c);
