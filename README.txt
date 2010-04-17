@@ -208,6 +208,8 @@ you'll need to specify it as a JDBC URL on the command line, such as:
 	-Djsettlers.db.url=jdbc:mysql://localhost/socdata
 or
 	-Djsettlers.db.url=jdbc:postgresql://localhost/socdata
+or
+	-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
 
 The default JDBC driver is com.mysql.jdbc.Driver.  PostgreSQL is also
 recognized.  To use PostgreSQL, use a postgresql url like the one shown above,

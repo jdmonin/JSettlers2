@@ -79,6 +79,8 @@ public class SOCDBHelper
      * The default driver is "com.mysql.jdbc.Driver".
      * If the {@link #PROP_JSETTLERS_DB_URL URL} begins with "jdbc:postgresql:",
      * the driver will be "org.postgresql.Driver".
+     * If the <tt>URL</tt> begins with "jdbc:sqlite:",
+     * the driver will be "org.sqlite.JDBC".
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_DB_DRIVER = "jsettlers.db.driver";
@@ -140,7 +142,7 @@ public class SOCDBHelper
      *       {@link #PROP_JSETTLERS_DB_URL}, and any other desired properties.
      * @throws SQLException if an SQL command fails, or the db couldn't be
      *         initialized;
-     *         or if the {@link #PROP_JSETTLERS_DB_DRIVER} property is non-mysql
+     *         or if the {@link #PROP_JSETTLERS_DB_DRIVER} property is not mysql, not sqlite, not postgres,
      *         but the {@link #PROP_JSETTLERS_DB_URL} property is not provided.
      */
     public static void initialize(String user, String pswd, Properties props) throws SQLException
@@ -158,6 +160,8 @@ public class SOCDBHelper
     	            driverclass = prop_driverclass;
     	        else if (prop_dbURL.startsWith("jdbc:postgresql"))
     	            driverclass = "org.postgresql.Driver";
+    	        else if (prop_dbURL.startsWith("jdbc:sqlite:"))
+    	            driverclass = "org.sqlite.JDBC";
     	        else if (! prop_dbURL.startsWith("jdbc:mysql"))
     	        {
     	            throw new SQLException("JDBC: URL property is set, but driver property is not: ("
@@ -167,14 +171,18 @@ public class SOCDBHelper
     	        if (prop_driverclass != null)
     	            driverclass = prop_driverclass;
 
-    	        // if it's mysql, use the mysql default url above.
-    	        // if it's postgres, use that.
-    	        // otherwise, not sure what they have.
-    	        if (driverclass.contains("postgresql"))
-    	        {
-    	            dbURL = "jdbc:postgresql://localhost/socdata";
-    	        }
-    	        else if (! driverclass.contains("mysql"))
+                // if it's mysql, use the mysql default url above.
+                // if it's postgres or sqlite, use that.
+                // otherwise, not sure what they have.
+                if (driverclass.contains("postgresql"))
+                {
+                    dbURL = "jdbc:postgresql://localhost/socdata";
+                }
+                else if (driverclass.contains("sqlite"))
+                {
+                    dbURL = "jdbc:sqlite:socdata.sqlite";
+                }
+                else if (! driverclass.contains("mysql"))
     	        {
     	            throw new SQLException("JDBC: Driver property is set, but URL property is not: ("
     	                + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
