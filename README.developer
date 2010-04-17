@@ -38,7 +38,6 @@ Current TODO list: (Work on these items not yet begun)
 	- Hovering mouse at center of robber-hex, should be able to see tooltip with the dice #.
 		instead, currently see road of players on either side
 	- Rename SOCGame.isLocal to .isPractice
-	- Show # VP in SOCChoosePlayerDialog
 	- Show # VP when choosing where to sit, if game is in progress
 	- Occasionally an image does not re-scale when board is stretched.
 		Instead of giving up (SOCBoardPanel.scaledHexFail, etc),
@@ -46,8 +45,8 @@ Current TODO list: (Work on these items not yet begun)
 	- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 	- If try to start server in JSettlers.jar, but port already in use, currently ends program immediately
 		should instead show MessagePanel with option to practice, or even just show a message
-	- Easy robot startup command-line option in standalone server, add like in practice server
-		possibly w. way to add robots when needed as server runs, with server active-game count
+	- Possible: Auto-add robots when needed as server runs, with server active-game count
+		only do it if jsettlers.startrobots property is set
 	- At board reset, game observers not currently handled properly
 	- Game "owner" with extra powers (kick out player, etc)
 		what happens if owner loses connection?
