@@ -44,7 +44,8 @@ import java.util.Properties;
  * @author Robert S. Thomas
  */
 /**
- * This code assumes that you're using mySQL as your database.
+ * This code assumes that you're using mySQL as your database,
+ * but allows you to use other database types.
  * The default URL is "jdbc:mysql://localhost/socdata".
  * The default driver is "com.mysql.jdbc.Driver".
  * These can be changed by supplying properties to {@link #initialize(String, String, Properties)}
