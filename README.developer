@@ -96,6 +96,9 @@ In eclipse, here's how to set up the coding style:
 	[x] insert spaces for tabs
 	displayed tab width: 8
 
+	project properties -> java compiler -> configure workspace settings
+	  compiler compliance level: 1.4
+
 	prefs -> java -> code style -> formatter -> Click "Configure Project Specific Settings"
 		{
 		based on Eclipse built-in standard
