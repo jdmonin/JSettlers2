@@ -141,7 +141,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
     {
         char pwchar = SOCPlayerClient.isJavaOnOSX ? '\u2022' : '*';
 
-        setFont(new Font("Monaco", Font.PLAIN, 12));
+        setFont(new Font("SansSerif", Font.PLAIN, 12));
         
         nick = new TextField(20);
         pass = new TextField(10);
