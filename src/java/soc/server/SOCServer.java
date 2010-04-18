@@ -568,7 +568,12 @@ public class SOCServer extends Server
             {
                 int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
                 int fast30 = (int) (0.30f * rcount);
-                setupLocalRobots(fast30, rcount - fast30);  // each bot gets a thread
+                boolean loadSuccess = setupLocalRobots(fast30, rcount - fast30);  // each bot gets a thread
+                if (! loadSuccess)
+                {
+                    System.err.println("** Cannot start robots with this JAR.");
+                    System.err.println("** For robots, please use the Full JAR instead of the server-only JAR.");
+                }
             }
             catch (NumberFormatException e)
             {
@@ -1310,47 +1315,60 @@ public class SOCServer extends Server
      *
      * @param numFast number of fast robots, with {@link soc.robot.SOCRobotDM#FAST_STRATEGY FAST_STRATEGY}
      * @param numSmart number of smart robots, with {@link soc.robot.SOCRobotDM#SMART_STRATEGY SMART_STRATEGY}
+     * @return True if robots were set up, false if an exception occurred.
+     *     This typically happens if a robot class, or SOCDisplaylessClient,
+     *     can't be loaded, due to packaging of the server-only JAR.
      * @see #startPracticeGame()
      * @see #startLocalTCPServer(int)
      * @since 1.1.00
      */
-    public void setupLocalRobots(final int numFast, final int numSmart)
+    public boolean setupLocalRobots(final int numFast, final int numSmart)
     {
-        SOCRobotClient[] robo_fast = new SOCRobotClient[numFast];
-        SOCRobotClient[] robo_smrt = new SOCRobotClient[numSmart];
-
-        // ASSUMPTION: Server ROBOT_PARAMS_DEFAULT uses SOCRobotDM.FAST_STRATEGY.
-
-        // Make some faster ones first.
-        for (int i = 0; i < numFast; ++i)
-        {
-            String rname = "droid " + (i+1);
-            SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
-                // includes yield() and sleep(75 ms) this thread.
-        }
-
         try
         {
-            Thread.sleep(150);
-                // Wait for these robots' accept and UPDATEROBOTPARAMS,
-                // before we change the default params.
+            // ASSUMPTION: Server ROBOT_PARAMS_DEFAULT uses SOCRobotDM.FAST_STRATEGY.
+
+            // Make some faster ones first.
+            for (int i = 0; i < numFast; ++i)
+            {
+                String rname = "droid " + (i+1);
+                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
+                    // includes yield() and sleep(75 ms) this thread.
+            }
+
+            try
+            {
+                Thread.sleep(150);
+                    // Wait for these robots' accept and UPDATEROBOTPARAMS,
+                    // before we change the default params.
+            }
+            catch (InterruptedException ie) {}
+
+            // Make a few smarter ones now:
+
+            // Switch params to SMARTER for future new robots.
+            SOCRobotParameters prevSetting = SOCServer.ROBOT_PARAMS_DEFAULT;
+            SOCServer.ROBOT_PARAMS_DEFAULT = SOCServer.ROBOT_PARAMS_SMARTER;   // SOCRobotDM.SMART_STRATEGY
+
+            for (int i = 0; i < numSmart; ++i)
+            {
+                String rname = "robot " + (i+1+numFast);
+                SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
+                    // includes yield() and sleep(75 ms) this thread.
+            }
+
+            SOCServer.ROBOT_PARAMS_DEFAULT = prevSetting;
         }
-        catch (InterruptedException ie) {}
-
-        // Make a few smarter ones now:
-
-        // Switch params to SMARTER for future new robots.
-        SOCRobotParameters prevSetting = SOCServer.ROBOT_PARAMS_DEFAULT;
-        SOCServer.ROBOT_PARAMS_DEFAULT = SOCServer.ROBOT_PARAMS_SMARTER;   // SOCRobotDM.SMART_STRATEGY
-
-        for (int i = 0; i < numSmart; ++i)
+        catch (ClassNotFoundException e)
         {
-            String rname = "robot " + (i+1+robo_fast.length);
-            SOCPlayerLocalRobotRunner.createAndStartRobotClientThread(rname, strSocketName, port);
-                // includes yield() and sleep(75 ms) this thread.
+            return false;
+        }
+        catch (LinkageError e)
+        {
+            return false;
         }
 
-        SOCServer.ROBOT_PARAMS_DEFAULT = prevSetting;
+        return true;
     }
 
     /**
@@ -8708,9 +8726,13 @@ public class SOCServer extends Server
          * @param port    Server's tcp port, if <tt>strSocketName</tt> is null
          * @since 1.1.09
          * @see SOCServer#setupLocalRobots(int, int)
+         * @throws ClassNotFoundException  if a robot class, or SOCDisplaylessClient,
+         *           can't be loaded. This can happen due to packaging of the server-only JAR.
+         * @throws LinkageError  for same reason as ClassNotFoundException
          */
         public static void createAndStartRobotClientThread
             (final String rname, final String strSocketName, final int port)
+            throws ClassNotFoundException, LinkageError
         {
             SOCRobotClient rcli;
             if (strSocketName != null)
