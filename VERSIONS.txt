@@ -1,9 +1,9 @@
 [ The list of the different public versions of JSettlers ]
 
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
-and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
+and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
-    > 1.1.09 (build 201004xx)
+    > 1.1.09 (build 20100417)
 - Database: default jdbc driver changed to com.mysql.jdbc.Driver,
 	allow other db types via java properties (see README.txt)
 - Database: troubleshooting: print error message details when the driver is
@@ -21,7 +21,7 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
      end of the SBP.)  The board game does not allow this out-of-order building.
 - 6-player robots: Slow down a little: Pause 75% of 4-player's pause duration, not 50%
 - At end of game, hilight winner with yellow arrow
-- At end of game, show number of rounds along with time elapsed
+- At end of game, show number of rounds, along with time elapsed and your resources rolled
 - Game options: Change of wording in minimum-version warning:
 	from: Client version 1107 or higher is required for these game options.
 	to :  Client version 1.1.07 or newer is required for these game options.
@@ -33,13 +33,14 @@ and (most versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Fix: For game's 1st client, set game.clientVersionLowest (was always 0 before now)
 - 6-player window: Before expanding chat area when mouse enters it,
 	wait 200 ms (not 100 ms) in case mouse is just passing through.
+- Version numbers are displayed in "friendly" format (1.1.09), not numeric (1109)
+- When running local server: Main panel: Show version, buildnum in tooltip
 - Command line: Error if dashed arguments appear after port/maxconns/db params
 - Command line: Allow -Djsettlers.option=value syntax (mchenryc)
 - Command line: Auto-start robots when the server starts, with this parameter:
 	-Djsettlers.startrobots=7
 - Debug assist: SOCBoardLayout2 prints array contents
 - Debug assist: Connection, LocalStringConnection +toString()
-- Other changes: TBD ?
 
     > 1.1.08 (build 20100112)
 - 6-player board, with Special Building Phase rule
