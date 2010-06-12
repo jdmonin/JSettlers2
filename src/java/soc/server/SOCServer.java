@@ -200,6 +200,22 @@ public class SOCServer extends Server
     public static int PLAYER_NAME_MAX_LENGTH = 20;
 
     /**
+     * Maximum number of games that a client can create at the same time (default 5).
+     * Once this limit is reached, the client must delete a game before creating a new one.
+     * Set this to -1 to disable it; 0 will disallow any game creation.
+     * @since 1.1.10
+     */
+    public static int CLIENT_MAX_CREATE_GAMES = 5;
+
+    /**
+     * Maximum number of chat channels that a client can create at the same time (default 2).
+     * Once this limit is reached, the client must delete a channel before creating a new one.
+     * Set this to -1 to disable it; 0 will disallow any chat channel creation.
+     * @since 1.1.10
+     */
+    public static int CLIENT_MAX_CREATE_CHANNELS = 2;
+
+    /**
      * For local practice games (pipes, not TCP), the name of the pipe.
      * Used to distinguish practice vs "real" games.
      * 
