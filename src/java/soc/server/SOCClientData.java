@@ -38,8 +38,8 @@ public class SOCClientData
     /** Number of games won and lost since client connected */
     private int wins, losses;
 
-    /** Synchronization for win-loss count */
-    private Object winLossSync;
+    /** Synchronization for win-loss count and other counter fields */
+    private Object countFieldSync;
 
     /**
      * Has the server's game list been sent to the client yet?
@@ -91,7 +91,7 @@ public class SOCClientData
     public SOCClientData()
     {
         isRobot = false;
-        winLossSync = new Object();
+        countFieldSync = new Object();
         wins = 0;
         losses = 0;
         sentGameList = false;
@@ -105,7 +105,7 @@ public class SOCClientData
      */
     public void wonGame()
     {
-        synchronized (winLossSync)
+        synchronized (countFieldSync)
         {
             ++wins;
         }
@@ -117,7 +117,7 @@ public class SOCClientData
      */
     public void lostGame()
     {
-        synchronized (winLossSync)
+        synchronized (countFieldSync)
         {
             ++losses;
         }
