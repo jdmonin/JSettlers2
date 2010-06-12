@@ -38,6 +38,12 @@ public class SOCClientData
     /** Number of games won and lost since client connected */
     private int wins, losses;
 
+    /**
+     * Number of games/channels this client has created, which currently exist (not deleted)
+     * @since 1.1.10
+     */
+    private int currentCreatedGames, currentCreatedChannels;
+
     /** Synchronization for win-loss count and other counter fields */
     private Object countFieldSync;
 
@@ -124,6 +130,58 @@ public class SOCClientData
     }
 
     /**
+     * Client has created a game; update the count.
+     * Thread-safe; synchronizes on an internal object.
+     * @since 1.1.10
+     */
+    public void createdGame()
+    {
+        synchronized (countFieldSync)
+        {
+            ++currentCreatedGames;
+        }
+    }
+
+    /**
+     * Client has created a channel; update the count.
+     * Thread-safe; synchronizes on an internal object.
+     * @since 1.1.10
+     */
+    public void createdChannel()
+    {
+        synchronized (countFieldSync)
+        {
+            ++currentCreatedChannels;
+        }
+    }
+
+    /**
+     * Client has deleted a game they created; update the count.
+     * Thread-safe; synchronizes on an internal object.
+     * @since 1.1.10
+     */
+    public void deletedGame()
+    {
+        synchronized (countFieldSync)
+        {
+            --currentCreatedGames;
+        }
+    }
+
+    /**
+     * Client has deleted a channel they created; update the count.
+     * Thread-safe; synchronizes on an internal object.
+     * @since 1.1.10
+     */
+    public void deletedChannel()
+    {
+        synchronized (countFieldSync)
+        {
+            --currentCreatedChannels;
+        }
+    }
+
+    /**
      * @return Number of games won by this client in this session
      */
     public int getWins()
@@ -140,6 +198,24 @@ public class SOCClientData
     }
 
     /**
+     * @return Number of games this client has created, which currently exist (not deleted)
+     * @since 1.1.10
+     */
+    public int getCurrentCreatedGames()
+    {
+        return currentCreatedGames;
+    }
+
+    /**
+     * @return Number of channels this client has created, which currently exist (not deleted)
+     * @since 1.1.10
+     */
+    public int getcurrentCreatedChannels()
+    {
+        return currentCreatedChannels;
+    }
+
+    /**
      * Copy the client's win-loss record from another SOCClientData.
      * ({@link #getWins()}, {@link #getLosses()}).
      *
@@ -150,6 +226,8 @@ public class SOCClientData
     {
         wins = source.wins;
         losses = source.losses;
+        currentCreatedGames = source.currentCreatedGames;
+        currentCreatedChannels = source.currentCreatedChannels;
     }
 
     /**
