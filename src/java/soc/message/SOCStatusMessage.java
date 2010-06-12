@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -152,6 +152,21 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_NEWGAME_NAME_TOO_LONG = 13;
 
+    /**
+     * New game requested, but client already has created too many active games. 
+     * The text returned with this status shall indicate the max number. 
+     * @see soc.server.SOCServer#createOrJoinGameIfUserOK
+     * @since 1.1.10
+     */
+    public static final int SV_NEWGAME_TOO_MANY_CREATED = 14;
+
+    /**
+     * New chat channel requested, but client already has created too many active channels. 
+     * The text returned with this status shall indicate the max number. 
+     * @since 1.1.10
+     */
+    public static final int SV_NEWCHANNEL_TOO_MANY_CREATED = 15;
+
     // IF YOU ADD A STATUS VALUE:
     // Be sure to update statusValidAtVersion().
 
@@ -179,6 +194,22 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final String MSG_SV_NEWGAME_NAME_TOO_LONG
         = "Please choose a shorter name; maximum length: ";
+
+    /**
+     * Text for {@link #SV_NEWGAME_TOO_MANY_CREATED}.
+     * Maximum game count is appended to this after the trailing ":".
+     * @since 1.1.10
+     */
+    public static final String MSG_SV_NEWGAME_TOO_MANY_CREATED
+        = "Too many of your games still active; maximum: ";
+
+    /**
+     * Text for {@link #SV_NEWCHANNEL_TOO_MANY_CREATED}.
+     * Maximum channel count is appended to this after the trailing ":".
+     * @since 1.1.10
+     */
+    public static final String MSG_SV_NEWCHANNEL_TOO_MANY_CREATED
+        = "Too many of your chat channels still active; maximum: ";
 
     /**
      * Status message
@@ -315,13 +346,15 @@ public class SOCStatusMessage extends SOCMessage
             return (statusValue <= SV_ACCT_NOT_CREATED_ERR);
         case 1107:
             return (statusValue <= SV_NEWGAME_NAME_TOO_LONG);
+        case 1109:
+            return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);  // TODO SV_NEWGAME_NAME_TOO_LONG (pre-1.1.10)
         default:
             {
             if (cliVersion < 1106)
                 return (statusValue == 0);
             else
                 // newer; check vs highest constant that we know
-                return (statusValue <= SV_NEWGAME_ALREADY_EXISTS);
+                return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);
             }
         }
     }

@@ -807,6 +807,7 @@ public class SOCServer extends Server
                 gameList.releaseMonitor();
                 monitorReleased = true;
                 result = true;
+                ((SOCClientData) c.getAppData()).createdGame();
 
                 // check version before we broadcast
                 final int cversMin = getMinConnectedCliVersion();
@@ -3928,6 +3929,7 @@ public class SOCServer extends Server
      * Assumes client's version is already received or guessed.
      *<P>
      * Game name and player name have a maximum length and some disallowed characters; see parameters.
+     * Check the client's {@link SOCClientData#getCurrentCreatedGames()} vs {@link #CLIENT_MAX_CREATE_GAMES}.
      *<P>
      * If client is replacing/taking over their own lost connection,
      * first tell them they're rejoining all their other games.
@@ -4048,13 +4050,29 @@ public class SOCServer extends Server
         }
 
         /**
-         * Now that everything's validated, name this connection/user/player
+         * Now that everything's validated, name this connection/user/player.
+         * If isTakingOver, also copies their current game/channel count.
          */
         if (c.getData() == null)
         {
             c.setData(msgUser);
             nameConnection(c, isTakingOver);
             numberOfUsers++;
+        }
+
+        /**
+         * If creating a new game, ensure they are below their max game count.
+         */
+        if ((! gameList.isGame(gameName))
+            && (CLIENT_MAX_CREATE_GAMES >= 0)
+            && (CLIENT_MAX_CREATE_GAMES <= ((SOCClientData) c.getAppData()).getCurrentCreatedGames()))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_TOO_MANY_CREATED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_GAMES)));
+            // Too many of your games still active; maximum: 5
+
+            return;  // <---- Early return ----            
         }
 
         /**
@@ -4084,7 +4102,7 @@ public class SOCServer extends Server
         }
 
         /**
-         * Try to add player to game, and tell the client that everything is ready;
+         * Try to create or add player to game, and tell the client that everything is ready;
          * if game doesn't yet exist, it's created in connectToGame, and announced
          * there to all clients.
          *<P>
@@ -4116,7 +4134,7 @@ public class SOCServer extends Server
                         joinGame((SOCGame) allConnGames.elementAt(i), c, false, true);
                 }
             }
-            else if (connectToGame(c, gameName, gameOpts))
+            else if (connectToGame(c, gameName, gameOpts))  // join or create the game
             {
                 /**
                  * send JOINGAMEAUTH to client,
