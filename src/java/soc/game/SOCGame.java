@@ -114,7 +114,7 @@ public class SOCGame implements Serializable, Cloneable
     public static final int SETOPTIONS_EXCL = 2; // Future use: Game owner setting options, no one can yet connect
     public static final int SETOPTIONS_INCL = 3; // Future use: Game owner setting options, but anyone can connect
         // These are still unused in 1.1.07, even though we now have game options,
-        // because they are set before the SOCGame is created.
+        // because the options are set before the SOCGame is created.
 
     /**
      * This game object has just been created by a reset, but the old game contains robot players,
@@ -301,6 +301,16 @@ public class SOCGame implements Serializable, Cloneable
      * the name of the game
      */
     private String name;
+
+    /**
+     * For games at the server, the owner (creator) of the game.
+     * Will be the name of a player / server connection.
+     * Currently, if the game is reset, {@link #resetAsCopy()} copies ownerName,
+     * even if they aren't still connected to the game.
+     * NOT CURRENTLY SET AT CLIENT.
+     * @since 1.1.10 
+     */
+    private String ownerName;
 
     /**
      * true if this game is ACTIVE
@@ -760,6 +770,33 @@ public class SOCGame implements Serializable, Cloneable
     public void setExpiration(long ex)
     {
         expiration = ex;
+    }
+
+    /**
+     * For games at the server, the owner (creator) of the game.
+     * Will be the name of a player / server connection.
+     * Even if the owner leaves the game, their name may be retained here.
+     * @return the owner's player name, or null if {@link #setOwner(String)} was never called
+     * @since 1.1.10
+     */
+    public String getOwner()
+    {
+        return ownerName;
+    }
+
+    /**
+     * For games at the server, set the game owner (creator).
+     * Will be the name of a player / server connection.
+     * @param gameOwnerName The game owner's player name, or null to clear
+     * @since 1.1.10
+     * @throws IllegalStateException if <tt>gameOwnerName</tt> not null, but the game's owner is already set
+     */
+    public void setOwner(String gameOwnerName)
+        throws IllegalStateException
+    {
+        if ((ownerName != null) && (gameOwnerName != null))
+            throw new IllegalStateException("owner already set");
+        ownerName = gameOwnerName;
     }
 
     /**
@@ -4216,6 +4253,7 @@ public class SOCGame implements Serializable, Cloneable
 
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
         cp.isLocal = isLocal;
+        cp.ownerName = ownerName;
 
         // Game min-version from options
         cp.clientVersionMinRequired = clientVersionMinRequired;

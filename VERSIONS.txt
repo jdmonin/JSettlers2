@@ -3,6 +3,11 @@
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
+
+    > 1.1.10 (build 20100xxx)
+- Game owner name tracked at server
+- Security: Limit the maximum simultaneous games/chatrooms created per client
+
     > 1.1.09 (build 20100417)
 - 4-player board: crisper graphics (images from 6-player board)
 - Practice games don't expire (Rowan H idea)

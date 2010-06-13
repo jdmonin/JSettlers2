@@ -41,7 +41,7 @@ import java.util.Vector;
  * {@link SOCGame} object, and clients ({@link StringConnection}s).
  *<P>
  * In 1.1.07, parent class SOCGameList was refactored, with
- * some methods moved to this new subclass, such as {@link #createGame(String, Hashtable) createGame}.
+ * some methods moved to this new subclass, such as {@link #createGame(String, String, Hashtable) createGame}.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.07
@@ -52,7 +52,7 @@ public class SOCGameListAtServer extends SOCGameList
      * Number of minutes after which a game (created on the list) is expired.
      * Default is 90.
      *
-     * @see #createGame(String, Hashtable)
+     * @see #createGame(String, String, Hashtable)
      */
     public static int GAME_EXPIRE_MINUTES = 90;
 
@@ -254,12 +254,13 @@ public class SOCGameListAtServer extends SOCGameList
      * If a game already exists (per {@link #isGame(String)}), do nothing.
      *
      * @param gaName  the name of the game
+     * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)
      * @param gaOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *                Should already be validated, by calling
      *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
      * @return new game object, or null if it already existed
      */
-    public synchronized SOCGame createGame(final String gaName, Hashtable gaOpts)
+    public synchronized SOCGame createGame(final String gaName, final String gaOwner, Hashtable gaOpts)
     {
         if (isGame(gaName))
             return null;
@@ -268,6 +269,8 @@ public class SOCGameListAtServer extends SOCGameList
         gameMembers.put(gaName, members);
 
         SOCGame game = new SOCGame(gaName, gaOpts);
+        if (gaOwner != null)
+            game.setOwner(gaOwner);
 
         // set the expiration to 90 min. from now
         game.setExpiration(game.getStartTime().getTime() + (60 * 1000 * GAME_EXPIRE_MINUTES));

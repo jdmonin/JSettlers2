@@ -174,11 +174,10 @@ public class SOCServer extends Server
     /**
      * If game will expire in this or fewer minutes, warn the players. Default 10.
      * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
-     * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, Hashtable)}.
+     * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, String, Hashtable)}.
      *
      * @see #checkForExpiredGames()
      * @see SOCGameTimeoutChecker#run()
-     * @see SOCGameListAtServer#createGame(String, Hashtable)
      */
     public static int GAME_EXPIRE_WARN_MINUTES = 10;
 
@@ -794,7 +793,7 @@ public class SOCServer extends Server
             try
             {
                 // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-                gameList.createGame(gaName, gaOpts);
+                gameList.createGame(gaName, (String) c.getData(), gaOpts);
                 if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
                 {
                     gameList.getGameData(gaName).isLocal = true;  // flag if practice game (set since 1.1.09)

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2008-2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -341,7 +341,7 @@ public class SOCGameList
      *<P>
      * Client should instead call {@link #addGame(String, String, boolean)} because game options should
      * remain unparsed as late as possible.
-     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, Hashtable)}.
+     * Server should instead call {@link soc.server.SOCGameListAtServer#createGame(String, String, Hashtable)}.
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
