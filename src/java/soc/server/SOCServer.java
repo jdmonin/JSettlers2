@@ -121,6 +121,22 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_STARTROBOTS = "jsettlers.startrobots";
 
     /**
+     * Property <tt>jsettlers.client.maxcreategames</tt> to limit the amount of
+     * games that a client can create at once. (The default is 5.)
+     * Once a game is completed and deleted (all players leave), they can create another.
+     * @since 1.1.10
+     */
+    public static final String PROP_JSETTLERS_CLI_MAXCREATEGAMES = "jsettlers.client.maxcreategames";
+
+    /**
+     * Property <tt>jsettlers.client.maxcreatechannels</tt> to limit the amount of
+     * chat channels that a client can create at once. (The default is 2.)
+     * Once a channel is deleted (all members leave), they can create another.
+     * @since 1.1.10
+     */
+    public static final String PROP_JSETTLERS_CLI_MAXCREATECHANNELS = "jsettlers.client.maxcreatechannels";
+
+    /**
      * List of all available JSettlers {@link Properties properties},
      * such as {@link #PROP_JSETTLERS_PORT} and {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}.
      * @since 1.1.09
@@ -445,17 +461,9 @@ public class SOCServer extends Server
     public SOCServer(final int p, Properties props)
     {
         super(p);
-        try
-        {
-            String mcs = props.getProperty(PROP_JSETTLERS_CONNECTIONS, "15");
-            if (mcs != null)
-                maxConnections = Integer.parseInt(mcs);
-            else
-                maxConnections = 15;
-        } catch (NumberFormatException e)
-        {
-            maxConnections = 15;
-        }
+        maxConnections = init_getIntProperty(props, PROP_JSETTLERS_CONNECTIONS, 15);
+        CLIENT_MAX_CREATE_GAMES = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
+        CLIENT_MAX_CREATE_CHANNELS = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
         String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "dbuser");
         String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "dbpass");
         initSocServer(dbuser, dbpass, props);
@@ -553,6 +561,27 @@ public class SOCServer extends Server
 
             printGameOptions();
         }
+    }
+
+    /**
+     * For initialization, get and parse an integer property, or use its default instead.
+     * @param props  Properties to look in
+     * @param pName  Property name
+     * @param pDefault  Default value to use if not found or not parsable
+     * @return The property's parsed integer value, or <tt>pDefault</tt>
+     * @since 1.1.10
+     */
+    private static int init_getIntProperty(Properties props, final String pName, final int pDefault)
+    {
+        try
+        {
+            String mcs = props.getProperty(pName, Integer.toString(pDefault));
+            if (mcs != null)
+                return Integer.parseInt(mcs);
+        }
+        catch (NumberFormatException e) { }
+
+        return pDefault;
     }
 
     /**
