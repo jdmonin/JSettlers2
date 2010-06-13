@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,6 +46,12 @@ public class SOCChannelList
     /** key = string, value = Vector of StringConnections */
     protected Hashtable channelMembers;
 
+    /** Each channel's creator/owner name.
+     * key = string, value = Vector of Strings.
+     * @since 1.1.10
+     */
+    protected Hashtable channelOwners;
+
     /** track the monitor for this channel list */
     protected boolean inUse;
 
@@ -56,6 +62,7 @@ public class SOCChannelList
     {
         channelMutexes = new Hashtable();
         channelMembers = new Hashtable();
+        channelOwners = new Hashtable();
         inUse = false;
     }
 
@@ -179,6 +186,17 @@ public class SOCChannelList
     }
 
     /**
+     * Get a channel's owner name
+     * @param chName  channel name
+     * @return  owner's name, or null if <tt>chName</tt> isn't a channel
+     * @since 1.1.10
+     */
+    public synchronized String getOwner(final String chName)
+    {
+        return (String) channelOwners.get(chName);
+    }
+
+    /**
      * @param   chName  channel name
      * @return  list of members
      */
@@ -299,11 +317,14 @@ public class SOCChannelList
     }
 
     /**
-     * create a new channel
+     * create a new channel.  If channel already exists, do nothing.
      *
      * @param chName  the name of the channel
+     * @param chOwner the game owner/creator's player name (added in 1.1.10)
+     * @throws NullPointerException if <tt>chOwner</tt> null
      */
-    public synchronized void createChannel(String chName)
+    public synchronized void createChannel(final String chName, final String chOwner)
+        throws NullPointerException
     {
         if (!isChannel(chName))
         {
@@ -312,6 +333,8 @@ public class SOCChannelList
 
             Vector members = new Vector();
             channelMembers.put(chName, members);
+
+            channelOwners.put(chName, chOwner);  // throws NullPointerException
         }
     }
 

@@ -653,6 +653,8 @@ public class SOCServer extends Server
 
             if (channelList.isChannelEmpty(ch))
             {
+                final String chOwner = channelList.getOwner(ch);
+
                 if (channelListLock)
                 {
                     channelList.deleteChannel(ch);
@@ -672,6 +674,11 @@ public class SOCServer extends Server
 
                     channelList.releaseMonitor();
                 }
+
+                // Reduce the owner's channels-active count
+                StringConnection oConn = (StringConnection) conns.get(chOwner);
+                if (oConn != null)
+                    ((SOCClientData) oConn.getAppData()).deletedChannel();
 
                 result = true;
             }
@@ -3503,11 +3510,30 @@ public class SOCServer extends Server
                   return;  // <---- Early return ----
             }
 
+            /**
+             * Now that everything's validated, name this connection/user/player.
+             * If isTakingOver, also copies their current game/channel count.
+             */
             if (c.getData() == null)
             {
                 c.setData(msgUser);
                 nameConnection(c, isTakingOver);
                 numberOfUsers++;
+            }
+
+            /**
+             * If creating a new channel, ensure they are below their max channel count.
+             */
+            if ((! channelList.isChannel(ch))
+                && (CLIENT_MAX_CREATE_CHANNELS >= 0)
+                && (CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
+            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
+                         SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_CHANNELS)));
+                // Too many of your chat channels still active; maximum: 2
+
+                return;  // <---- Early return ----            
             }
 
             /**
@@ -3543,7 +3569,8 @@ public class SOCServer extends Server
 
                 try
                 {
-                    channelList.createChannel(ch);
+                    channelList.createChannel(ch, (String) c.getData());
+                    ((SOCClientData) c.getAppData()).createdChannel();
                 }
                 catch (Exception e)
                 {
