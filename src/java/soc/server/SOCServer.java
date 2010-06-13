@@ -1466,6 +1466,15 @@ public class SOCServer extends Server
             }
 
             gameList.deleteGame(gm);
+
+            // Reduce the owner's games-active count
+            final String gaOwner = cg.getOwner();
+            if (gaOwner != null)
+            {
+                StringConnection oConn = (StringConnection) conns.get(gaOwner);
+                if (oConn != null)
+                    ((SOCClientData) oConn.getAppData()).deletedGame();
+            }
         }
     }
 
