@@ -345,9 +345,11 @@ public class SOCStatusMessage extends SOCMessage
         case 1106:
             return (statusValue <= SV_ACCT_NOT_CREATED_ERR);
         case 1107:
-            return (statusValue <= SV_NEWGAME_NAME_TOO_LONG);
+        case 1108:
         case 1109:
-            return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);  // TODO SV_NEWGAME_NAME_TOO_LONG (pre-1.1.10)
+            return (statusValue <= SV_NEWGAME_NAME_TOO_LONG);
+        case 1110:
+            return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);
         default:
             {
             if (cliVersion < 1106)
