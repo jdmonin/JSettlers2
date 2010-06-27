@@ -2,6 +2,11 @@ README.developer - Notes and current status of 2010 JSettlers development (versi
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
 
+Scroll down a bit for the current TODO list.
+See VERSIONS.txt for recent changes.
+
+Overall structure:
+
 The main server class is soc.server.SOCServer.
 The client communication is soc.client.SOCPlayerClient, and in-game interface is in soc.client.SOCPlayerInterface.
 Game state is held at the server in soc.game.SOCGame and its fields.  Partial game state is known at clients.
@@ -18,7 +23,6 @@ When adding new methods or fields, describe them in javadoc, including the @sinc
 and the one-sentence summary (even though some old methods don't have that summary).
 When submitting patches, please use unified diff (-ur) format.
 
-See VERSIONS.txt for recent changes.
 
 Current partially-done work:
 	- Refactor SOCMessage classes to use templates
@@ -34,14 +38,16 @@ For debugging, if you want to inspect the game state at the server or robot:
 
 
 Current TODO list: (Work on these items not yet begun)
+	Ranked from easier, to more difficult.
 	You can also search the source for TODO for ideas.
-	- Keyboard shortcuts for "roll", "done" buttons
+
 	- User documentation is out of date; unsure if any user ever reads it anyway
 	- Visual reminder to player when they've made an offer
 	- Hovering mouse at center of robber-hex, should be able to see tooltip with the dice #.
 		instead, currently see road of players on either side
 	- Rename SOCGame.isLocal to .isPractice
 	- Show # VP when choosing where to sit, if game is in progress
+	- Keyboard shortcuts for "roll", "done" buttons
 	- Occasionally an image does not re-scale when board is stretched.
 		Instead of giving up (SOCBoardPanel.scaledHexFail, etc),
 		try re-scaling again, but increase width or height by 1 pixel.
@@ -58,7 +64,11 @@ Current TODO list: (Work on these items not yet begun)
 	- Game "owner" with extra powers (kick out player, etc)
 		what happens if owner loses connection?
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)
-	- Board coordinate-representation for larger board (seafarers)
+	- Seafarers support: Board coordinate-representation for larger board
+	- Cities & Knights support
+		- UI mock-ups
+		- state change / network message plans
+		- robot support
 	- Refactor: combine the cli/displayless/robot endturn-like methods
 		ex. search for ga.setCurrentDice(0), or newToOld, or ga.resetVoteClear
 	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
