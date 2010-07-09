@@ -185,6 +185,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * a list of edges where a road could be placed
      * on the next turn.
+     * At start of the game, this is clear/empty.
+     * Elements are set true when the player places adjacent settlements or roads, via
+     * {@link #updatePotentials(SOCPlayingPiece)}.
      */
     private boolean[] potentialRoads;
 
