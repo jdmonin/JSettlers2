@@ -4213,11 +4213,6 @@ public class SOCGame implements Serializable, Cloneable
         {
             gameState = OVER;
             playerWithWin = pn;
-            System.err.println("DEBUG: Set playerWithWin = " + pn
-                + " -- in thread: " + Thread.currentThread().getName() + " --");
-
-            // JM temp; will turn that debug-print off later.
-            //    Also displayed a locator stacktrace, from 2008-06-15 until 1.1.06 (removed 2009-05-29).
         }
     }
 
