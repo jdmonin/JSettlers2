@@ -1685,8 +1685,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     while (adjEdgesEnum.hasMoreElements())
                     {
                         Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
+                        final int adjEdgeID = adjEdge.intValue();
 
-                        if (potentialRoads[adjEdge.intValue()])
+                        if (potentialRoads[adjEdgeID])
                         {
                             boolean isPotentialRoad = false;
 
@@ -1694,7 +1695,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                              * check each adjacent node for blocking
                              * settlements or cities
                              */
-                            final int[] adjNodes = SOCBoard.getAdjacentNodesToEdge_arr(adjEdge.intValue());
+                            final int[] adjNodes = SOCBoard.getAdjacentNodesToEdge_arr(adjEdgeID);
 
                             for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni) 
                             {
@@ -1725,7 +1726,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                     {
                                         Integer adjAdjEdge = (Integer) adjAdjEdgesEnum.nextElement();
 
-                                        if (adjAdjEdge.intValue() != adjEdge.intValue())
+                                        if (adjAdjEdge.intValue() != adjEdgeID)
                                         {
                                             Enumeration ourRoadsEnum = roads.elements();
 
@@ -1748,7 +1749,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 }
                             }
 
-                            potentialRoads[adjEdge.intValue()] = isPotentialRoad;
+                            potentialRoads[adjEdgeID] = isPotentialRoad;
                         }
                     }
 
