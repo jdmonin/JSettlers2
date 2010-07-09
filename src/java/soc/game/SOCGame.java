@@ -1633,6 +1633,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Put this piece on the board and update all related game state.
      * May change current player and gamestate.
+     * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}.
      *<P>
      * For example, if game state when called is {@link #START2A},
      * this is their second initial settlement, so give
@@ -1813,8 +1814,11 @@ public class SOCGame implements Serializable, Cloneable
      * If the current player number changes here, {@link #isForcingEndTurn()} is cleared. 
      *<P>
      * In {@link #START2B}, calls {@link #updateAtTurn()} after last initial road placement.
+     *
+     * @return true if the turn advances, false if all players have left and
+     *          the gamestate has been changed here to {@link #OVER}.
      */
-    private void advanceTurnStateAfterPutPiece()
+    private boolean advanceTurnStateAfterPutPiece()
     {
         //D.ebugPrintln("CHANGING GAME STATE FROM "+gameState);
         switch (gameState)
@@ -1838,6 +1842,11 @@ public class SOCGame implements Serializable, Cloneable
                     if (tmpCPN >= maxPlayers)
                     {
                         tmpCPN = 0;
+                    }
+                    if (tmpCPN == currentPlayerNumber)
+                    {
+                        gameState = OVER;  // Looped around, no one is here
+                        return false;
                     }
                 }
     
@@ -1876,6 +1885,11 @@ public class SOCGame implements Serializable, Cloneable
                     if (tmpCPN < 0)
                     {
                         tmpCPN = maxPlayers - 1;
+                    }
+                    if (tmpCPN == currentPlayerNumber)
+                    {
+                        gameState = OVER;  // Looped around, no one is here
+                        return false;
                     }
                 }
     
@@ -1923,6 +1937,7 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         //D.ebugPrintln("  TO "+gameState);
+        return true;
     }
 
     /**
@@ -2531,6 +2546,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Special forceEndTurn() treatment for start-game states.
      * See {@link #forceEndTurn()} for description.
+     *<P>
+     * Check for gamestate >= {@link #OVER} after calling this method,
+     * in case all players have left the game.
      *
      * @param advTurnForward Should the next player be normal (placing first settlement),
      *                       or backwards (placing second settlement)?
@@ -2559,9 +2577,9 @@ public class SOCGame implements Serializable, Cloneable
             gameState = START2B;
         }
 
-        advanceTurnStateAfterPutPiece();  // Changes state, may change current player
+        final boolean stillActive = advanceTurnStateAfterPutPiece();  // Changes state, may change current player
 
-        if (cpn == currentPlayerNumber)
+        if ((cpn == currentPlayerNumber) && stillActive)
         {
             // Player didn't change.  This happens when the last player places
             // their first or second road.  But we're trying to end this player's

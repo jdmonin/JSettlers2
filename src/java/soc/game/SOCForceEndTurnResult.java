@@ -27,6 +27,9 @@ package soc.game;
  * Specifically, the resulting action type, and possibly list of discarded
  * or returned resources.
  *<P>
+ * <tt>forceEndTurn()</tt> may also set the game state to {@link SOCGame#OVER}.
+ * Check for that; it's not reported as part of this object.
+ *<P>
  * The result object isn't intended to be conveyed over a network to clients; the server
  * should translate it into standard SOCMessages which change game state.
  */
