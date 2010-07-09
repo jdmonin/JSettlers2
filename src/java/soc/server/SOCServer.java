@@ -1261,9 +1261,16 @@ public class SOCServer extends Server
                         /**
                          * Force turn to end
                          */
-                        forceEndGameTurn(ga, plName);
+                        final boolean gameStillActive = forceEndGameTurn(ga, plName);
                         ga.releaseMonitor();
-                        gameList.takeMonitorForGame(gm);
+                        if (gameStillActive)
+                        {
+                            gameList.takeMonitorForGame(gm);
+                        } else {
+                            // force game destruction below
+                            gameHasHumanPlayer = false;
+                            gameHasObserver = false;
+                        }
                     }
                 }
                 else
@@ -1298,8 +1305,7 @@ public class SOCServer extends Server
          * robots, then end the game and write the data
          * to disk.
          */
-        boolean emptyGame = false;
-        emptyGame = gameList.isGameEmpty(gm);
+        final boolean emptyGame = gameList.isGameEmpty(gm);
 
         if (emptyGame || (!gameHasHumanPlayer && !gameHasObserver))
         {
@@ -5418,10 +5424,13 @@ public class SOCServer extends Server
      * @param plName Current player's name. Needed because if they have been disconnected by
      *               {@link #leaveGame(StringConnection, String, boolean)},
      *               their name within game object is already null.
+     * @return true if the turn was ended and game is still active;
+     *          false if we find that all players have left and
+     *          the gamestate has been changed here to {@link #OVER}.
      *
      * @see SOCGame#forceEndTurn()
      */
-    private void forceEndGameTurn(SOCGame ga, final String plName)
+    private boolean forceEndGameTurn(SOCGame ga, final String plName)
     {
         final String gaName = ga.getName();
         final int cpn = ga.getCurrentPlayerNumber();
@@ -5436,6 +5445,8 @@ public class SOCServer extends Server
         final SOCForceEndTurnResult res = ga.forceEndTurn();
             // State now hopefully PLAY1, or SPECIAL_BUILDING;
             // also could be initial placement (START1A or START2A).
+        if (SOCGame.OVER == ga.getGameState())
+            return false;  // <--- Early return: All players have left ---
 
         /**
          * report any resources lost, gained
@@ -5490,7 +5501,7 @@ public class SOCServer extends Server
             }
             sendGameState(ga, false);
             sendTurn(ga, false);
-            return;  // <--- Early return ---
+            return true;  // <--- Early return ---
         }
 
         /**
@@ -5499,9 +5510,11 @@ public class SOCServer extends Server
          * players to send discard messages, and afterwards this turn can end.
          */
         if (ga.canEndTurn(cpn))
-            endGameTurn(ga, null);
+            endGameTurn(ga, null);  // could force gamestate to OVER, if a client leaves
         else
-            sendGameState(ga, false); 
+            sendGameState(ga, false);
+
+        return (ga.getGameState() != SOCGame.OVER);
     }
 
     /**
