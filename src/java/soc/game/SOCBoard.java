@@ -34,6 +34,10 @@ import java.util.Vector;
  * Board initialization is done in {@link #makeNewBoard(Hashtable)}; that method
  * has some internal comments on structures, coordinates, layout and values.
  *<P>
+ * Because some game variants may need different board layouts or features,
+ * you may need a subclass of SOCBoard: Use {@link #createBoard(Hashtable, int)}
+ * whenever you need to construct a new SOCBoard.
+ *<P>
  * Other methods to examine the board: {@link SOCGame#getPlayersOnHex(int)},
  * {@link SOCGame#putPiece(SOCPlayingPiece)}, etc.
  *<P>
@@ -565,12 +569,26 @@ public class SOCBoard implements Serializable, Cloneable
     protected Hashtable nodesOnBoard;
 
     /**
+     * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
+     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
+     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+     * @since 1.1.10
+     */
+    public static SOCBoard createBoard(Hashtable gameOpts, final int maxPlayers)
+        throws IllegalArgumentException
+    {
+        return new SOCBoard(gameOpts, maxPlayers);
+    }
+
+    /**
      * Create a new Settlers of Catan Board.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+     * @see #createBoard(Hashtable, int)
      */
-    public SOCBoard(Hashtable gameOpts, final int maxPlayers)
+    protected SOCBoard(Hashtable gameOpts, final int maxPlayers)
         throws IllegalArgumentException
     {
         if ((maxPlayers != 4) && (maxPlayers != 6))
