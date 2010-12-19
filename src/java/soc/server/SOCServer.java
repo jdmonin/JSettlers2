@@ -3071,6 +3071,18 @@ public class SOCServer extends Server
     }  // processCommand
 
     /**
+     * Used by {@link #DEBUG_COMMANDS_HELP}, etc.
+     */
+    private static final String DEBUG_COMMANDS_HELP_RSRCS
+        = "rsrcs: #cl #or #sh #wh #wo playername";
+
+    /**
+     * Used by {@link #DEBUG_COMMANDS_HELP}, etc.
+     */
+    private static final String DEBUG_COMMANDS_HELP_DEV
+        = "dev: #typ playername";
+
+    /**
      * Used by {@link #processDebugCommand(StringConnection, String, String)}}
      * when *HELP* is requested.
      * @since 1.1.07
@@ -3091,9 +3103,9 @@ public class SOCServer extends Server
         "*STATS*   server stats and current-game stats",
         "*STOP*  kill the server",
         "--- Debug Resources ---",
-        "rsrcs: #cl #or #sh #wh #wo playername",
+        DEBUG_COMMANDS_HELP_RSRCS,
         "Example  rsrcs: 0 3 0 2 0 Myname",
-        "dev: #typ playername",
+        DEBUG_COMMANDS_HELP_DEV,
         "Example  dev: 2 Myname",
         "Development card types are:",  // see SOCDevCardConstants
         "0 robber",
@@ -3113,14 +3125,15 @@ public class SOCServer extends Server
      */
     public void processDebugCommand(StringConnection debugCli, String ga, String dcmd)
     {
-        if (dcmd.startsWith("*HELP*") || dcmd.startsWith("*help"))
+        final String dcmdU = dcmd.toUpperCase();
+        if (dcmdU.startsWith("*HELP"))
         {
             for (int i = 0; i < DEBUG_COMMANDS_HELP.length; ++i)
                 messageToPlayer(debugCli, ga, DEBUG_COMMANDS_HELP[i]);
             return;
         }
 
-        if (dcmd.startsWith("*KILLGAME*"))
+        if (dcmdU.startsWith("*KILLGAME*"))
         {
             messageToGameUrgent(ga, ">>> ********** " + (String) debugCli.getData() + " KILLED THE GAME!!! ********** <<<");
             gameList.takeMonitor();
@@ -3137,27 +3150,27 @@ public class SOCServer extends Server
             gameList.releaseMonitor();
             broadcast(SOCDeleteGame.toCmd(ga));
         }
-        else if (dcmd.startsWith("*GC*"))
+        else if (dcmdU.startsWith("*GC*"))
         {
             Runtime rt = Runtime.getRuntime();
             rt.gc();
             messageToGame(ga, "> GARBAGE COLLECTING DONE");
             messageToGame(ga, "> Free Memory: " + rt.freeMemory());
         }
-        else if (dcmd.startsWith("*STOP*"))
+        else if (dcmd.startsWith("*STOP*"))  // dcmd to force case-sensitivity
         {
             String stopMsg = ">>> ********** " + (String) debugCli.getData() + " KILLED THE SERVER!!! ********** <<<";
             stopServer(stopMsg);
             System.exit(0);
         }
-        else if (dcmd.startsWith("*BCAST* "))
+        else if (dcmdU.startsWith("*BCAST* "))
         {
             ///
             /// broadcast to all chat channels and games
             ///
             broadcast(SOCBCastTextMsg.toCmd(dcmd.substring(8)));
         }
-        else if (dcmd.startsWith("*BOTLIST*"))
+        else if (dcmdU.startsWith("*BOTLIST*"))
         {
             Enumeration robotsEnum = robots.elements();
 
@@ -3168,7 +3181,7 @@ public class SOCServer extends Server
                 robotConn.put(SOCAdminPing.toCmd((ga)));
             }
         }
-        else if (dcmd.startsWith("*RESETBOT* "))
+        else if (dcmdU.startsWith("*RESETBOT* "))
         {
             String botName = dcmd.substring(11).trim();
             messageToGame(ga, "> botName = '" + botName + "'");
@@ -3193,7 +3206,7 @@ public class SOCServer extends Server
             if (! botFound)
                 D.ebugPrintln("L2590 Bot not found to reset: " + botName);
         }
-        else if (dcmd.startsWith("*KILLBOT* "))
+        else if (dcmdU.startsWith("*KILLBOT* "))
         {
             String botName = dcmd.substring(10).trim();
             messageToGame(ga, "> botName = '" + botName + "'");
@@ -3891,11 +3904,11 @@ public class SOCServer extends Server
             final String msgText = cmdText;
             if (cmdText.startsWith("rsrcs:"))
             {
-                giveResources(cmdText, ga);
+                giveResources(c, cmdText, ga);
             }
             else if (cmdText.startsWith("dev:"))
             {
-                giveDevCard(cmdText, ga);
+                giveDevCard(c, cmdText, ga);
             }
             else if (cmdText.charAt(0) == '*')
             {
@@ -8310,32 +8323,52 @@ public class SOCServer extends Server
      * this is a debugging command that gives resources to a player.
      * Format: rsrcs: #cl #or #sh #wh #wo playername
      */
-    protected void giveResources(String mes, SOCGame game)
+    protected void giveResources(StringConnection c, String mes, SOCGame game)
     {
         StringTokenizer st = new StringTokenizer(mes.substring(6));
         int[] resources = new int[SOCResourceConstants.WOOD + 1];
         int resourceType = SOCResourceConstants.CLAY;
         String name = "";
+        boolean parseError = false;
 
         while (st.hasMoreTokens())
         {
-            String token = st.nextToken();
-
             if (resourceType <= SOCResourceConstants.WOOD)
             {
-                resources[resourceType] = Integer.parseInt(token);
-                resourceType++;
+                String token = st.nextToken();
+                try
+                {
+                    resources[resourceType] = Integer.parseInt(token);
+                    resourceType++;
+                }
+                catch (NumberFormatException e)
+                {
+                    parseError = true;
+                    break;
+                }
             }
             else
             {
-                name = token;
-
+                // get all the of the line, in case there's a space in the player name ("robot 7"),
+                //  by choosing an unlikely separator character
+                name = st.nextToken(Character.toString( (char) 1 )).trim();
                 break;
             }
         }
 
-        SOCResourceSet rset = game.getPlayer(name).getResources();
-        int pnum = game.getPlayer(name).getPlayerNumber();
+        final SOCPlayer pl = game.getPlayer(name);
+        if ((pl == null) && ! parseError)
+        {
+            messageToPlayer(c, game.getName(), "### rsrcs: Player name not found: " + name);
+            parseError = true;
+        }
+        if (parseError)
+        {
+            messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_RSRCS);
+            return;  // <--- early return ---
+        }
+        SOCResourceSet rset = pl.getResources();
+        int pnum = pl.getPlayerNumber();
         String outMes = "### " + name + " gets";
 
         for (resourceType = SOCResourceConstants.CLAY;
@@ -8464,32 +8497,51 @@ public class SOCServer extends Server
      *  <PRE> dev: cardtype player </PRE>
      *  For card-types numbers, see {@link SOCDevCardConstants}
      */
-    protected void giveDevCard(String mes, SOCGame game)
+    protected void giveDevCard(StringConnection c, String mes, SOCGame game)
     {
         StringTokenizer st = new StringTokenizer(mes.substring(5));
         String name = "";
         int cardType = -1;
+        boolean parseError = false;
 
         while (st.hasMoreTokens())
         {
-            String token = st.nextToken();
-
             if (cardType < 0)
             {
-                cardType = Integer.parseInt(token);
+                try
+                {
+                    cardType = Integer.parseInt(st.nextToken());
+                }
+                catch (NumberFormatException e)
+                {
+                    parseError = true;
+                    break;
+                }
             }
             else
             {
-                name = token;
-
+                // get all the of the line, in case there's a space in the player name ("robot 7"),
+                //  by choosing an unlikely separator character
+                name = st.nextToken(Character.toString( (char) 1 )).trim();
                 break;
             }
         }
 
-        SOCDevCardSet dcSet = game.getPlayer(name).getDevCards();
+        final SOCPlayer pl = game.getPlayer(name);
+        if ((pl == null) && ! parseError)
+        {
+            messageToPlayer(c, game.getName(), "### dev: Player name not found: " + name);
+            parseError = true;
+        }
+        if (parseError)
+        {
+            messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_DEV);
+            return;  // <--- early return ---
+        }
+        SOCDevCardSet dcSet = pl.getDevCards();
         dcSet.add(1, SOCDevCardSet.NEW, cardType);
 
-        int pnum = game.getPlayer(name).getPlayerNumber();
+        int pnum = pl.getPlayerNumber();
         String outMes = "### " + name + " gets a " + cardType + " card.";
         messageToGame(game.getName(), new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, cardType));
         messageToGame(game.getName(), outMes);
