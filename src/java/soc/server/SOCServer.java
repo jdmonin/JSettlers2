@@ -76,6 +76,7 @@ import java.util.Vector;
  * when sent as chat messages by a user named "debug".
  * (Or, by the only user in a practice game.)
  * See {@link #processDebugCommand(StringConnection, String, String)}
+ * and {@link #handleGAMETEXTMSG(StringConnection, SOCGameTextMsg)}
  * for details.
  *<P>
  * The version check timer is set in {@link SOCClientData#setVersionTimer(SOCServer, StringConnection)}.
@@ -3818,9 +3819,10 @@ public class SOCServer extends Server
         /// please update the warning text sent in checkForExpiredGames().
         ///
         final String cmdText = gameTextMsgMes.getText();
-        if ((cmdText.startsWith("*ADDTIME*")) || (cmdText.startsWith("*addtime*")) || (cmdText.startsWith("ADDTIME")) || (cmdText.startsWith("addtime")))
+        final String cmdTxtUC = cmdText.toUpperCase();
+        if (cmdTxtUC.startsWith("*ADDTIME*") || cmdTxtUC.startsWith("ADDTIME"))
         {
-            // add 30 min. to the expiration time.  If this
+            // add 30 minutes to the expiration time.  If this
             // changes to another timespan, please update the
             // warning text sent in checkForExpiredGames().
             // Use ">>>" in messageToGame to mark as urgent.
@@ -3836,16 +3838,16 @@ public class SOCServer extends Server
         ///
         /// Check the time remaining for this game
         ///
-        if (cmdText.startsWith("*CHECKTIME*"))
+        if (cmdTxtUC.startsWith("*CHECKTIME*"))
         {
             processDebugCommand_checktime(c, gaName, ga);
         }
-        else if (cmdText.startsWith("*VERSION*"))
+        else if (cmdTxtUC.startsWith("*VERSION*"))
         {
             messageToPlayer(c, gaName,
                 "Java Settlers Server " +Version.versionNumber() + " (" + Version.version() + ") build " + Version.buildnum());
         }
-        else if (cmdText.startsWith("*STATS*"))
+        else if (cmdTxtUC.startsWith("*STATS*"))
         {
             final long diff = System.currentTimeMillis() - startTime;
             final long hours = diff / (60 * 60 * 1000),
@@ -3865,7 +3867,7 @@ public class SOCServer extends Server
 
             processDebugCommand_checktime(c, gaName, ga);
         }
-        else if (cmdText.startsWith("*WHO*"))
+        else if (cmdTxtUC.startsWith("*WHO*"))
         {
             Vector gameMembers = null;
             gameList.takeMonitorForGame(gaName);
@@ -3901,18 +3903,17 @@ public class SOCServer extends Server
         //
         if (c.getData().equals("debug") || (c instanceof LocalStringConnection))
         {
-            final String msgText = cmdText;
-            if (cmdText.startsWith("rsrcs:"))
+            if (cmdTxtUC.startsWith("RSRCS:"))
             {
                 giveResources(c, cmdText, ga);
             }
-            else if (cmdText.startsWith("dev:"))
+            else if (cmdTxtUC.startsWith("DEV:"))
             {
                 giveDevCard(c, cmdText, ga);
             }
             else if (cmdText.charAt(0) == '*')
             {
-                processDebugCommand(c, ga.getName(), msgText);
+                processDebugCommand(c, ga.getName(), cmdText);
             }
             else
             {

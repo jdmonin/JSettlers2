@@ -4,13 +4,15 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
-    > 1.1.10 (build 20100xxx)
+    > 1.1.10 (build 20101xxx)
 - Game owner name tracked at server
 - Security: Limit the maximum simultaneous games/chat channels created per client:
 	Once a game/channel is removed (all members leave), they can create another.
 	Defaults are 5 games, 2 channels.  Use these properties to change the default:
 	jsettlers.client.maxcreategames
 	jsettlers.client.maxcreatechannels
+- Fix infinite loop when robot leaves during game setup
+- Debug commands now case-insensitive 
 
     > 1.1.09 (build 20100417)
 - 4-player board: crisper graphics (images from 6-player board)
