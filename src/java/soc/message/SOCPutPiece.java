@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
  * @author Robert S Thomas
  */
 public class SOCPutPiece extends SOCMessage
+    implements SOCMessageForGame
 {
     /**
      * the name of the game

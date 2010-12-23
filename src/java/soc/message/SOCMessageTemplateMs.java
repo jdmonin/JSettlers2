@@ -56,6 +56,7 @@ package soc.message;
  * @author Jeremy D Monin <jeremy@nand.net>
  */
 public abstract class SOCMessageTemplateMs extends SOCMessageMulti
+    implements SOCMessageForGame
 {
     /**
      * Name of the game, or null if none.

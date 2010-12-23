@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +32,7 @@ import soc.game.SOCDevCardConstants;  // for javadoc's use
  * @author Robert S Thomas
  */
 public class SOCDevCard extends SOCMessage
+    implements SOCMessageForGame
 {
     /** dev card action DRAW: Add as new to player's hand */
     public static final int DRAW = 0;

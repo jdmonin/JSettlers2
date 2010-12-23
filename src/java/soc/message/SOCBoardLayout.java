@@ -44,6 +44,7 @@ import java.util.StringTokenizer;
  * @author Robert S. Thomas
  */
 public class SOCBoardLayout extends SOCMessage
+    implements SOCMessageForGame
 {
     /**
      * Map of dice rolls to values in {@link #numberLayout}. Formerly in SOCBoard.

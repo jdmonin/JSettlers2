@@ -65,6 +65,7 @@ import java.util.StringTokenizer;
  *      ({@link SOCDiceResult} and {@link SOCSetTurn} are good example subclasses.)
  *      Template parent-classes can help; the example subclasses extend them.
  *      Be sure to override the minimum version reported in {@link #getMinimumVersion()}.
+ * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
  * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServer.processCommand.
  *      Note the JSettlers version with a comment.
  *      <P>

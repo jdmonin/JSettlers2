@@ -64,6 +64,7 @@ Current TODO list: (Work on these items not yet begun)
 	- Game "owner" with extra powers (kick out player, etc)
 		what happens if owner loses connection?
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)
+	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
 	- Seafarers support: Board coordinate-representation for larger board
 	- Cities & Knights support
 		- UI mock-ups

@@ -47,6 +47,7 @@ import java.util.StringTokenizer;
  * @since 1.1.08
  */
 public class SOCBoardLayout2 extends SOCMessage
+    implements SOCMessageForGame
 {
     /**
      * Minimum version (1.1.08) of client/server which recognize

@@ -33,6 +33,7 @@ import java.util.StringTokenizer;
  * @author Robert S. Thomas
  */
 public class SOCClearOffer extends SOCMessage
+    implements SOCMessageForGame
 {
     /**
      * Minimum version (1.1.09) which supports playerNumber -1 for clear all.

@@ -37,6 +37,7 @@ package soc.message;
  * @author Robert S Thomas
  */
 public class SOCBuyCardRequest extends SOCMessage
+    implements SOCMessageForGame
 {
     /**
      * Name of game

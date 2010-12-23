@@ -40,6 +40,7 @@ import soc.game.SOCGameOption;
  * @see SOCJoinGameAuth
  */
 public class SOCJoinGameRequest extends SOCMessage
+    implements SOCMessageForGame
 {
     /**
      * Name of game

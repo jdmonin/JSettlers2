@@ -5,6 +5,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
     > 1.1.10 (build 20101xxx)
+- If robots place a bad piece, force their turn to end after 10 seconds of inactivity
 - Game owner name tracked at server
 - Security: Limit the maximum simultaneous games/chat channels created per client:
 	Once a game/channel is removed (all members leave), they can create another.
@@ -13,6 +14,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 	jsettlers.client.maxcreatechannels
 - Fix infinite loop when robot leaves during game setup
 - Debug commands now case-insensitive 
+- Per-game messages indicated by new interface SOCMessageForGame
 
     > 1.1.09 (build 20100417)
 - 4-player board: crisper graphics (images from 6-player board)
