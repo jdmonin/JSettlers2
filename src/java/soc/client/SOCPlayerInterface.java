@@ -2003,7 +2003,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     //========================================================
 
     /**
-     * This is the dialog to vote on another player's board reset request.
+     * This is the modal dialog to vote on another player's board reset request.
      * If game in progress, buttons are Reset and Continue Playing; default Continue.
      * If game is over, buttons are Restart and No thanks; default Restart.
      * Start a new thread to show, so message treating can continue as other players vote.

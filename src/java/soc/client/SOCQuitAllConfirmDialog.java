@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008,2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.client;
 
@@ -27,6 +25,7 @@ import java.awt.Frame;
 /**
  * This is the dialog to confirm when someone closes the client.
  * The quit action is to call client.putLeaveAll() and System.exit(0).
+ * The dialog is modal against {@link SOCPlayerClient}'s main frame.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */

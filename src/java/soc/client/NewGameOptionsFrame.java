@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.client;
 
@@ -929,7 +927,7 @@ public class NewGameOptionsFrame extends Frame
 
 
     /**
-     * This is the dialog to ask user if these options' required
+     * This is the modal dialog to ask user if these options' required
      * minimum client version is OK.
      *
      * @author Jeremy D Monin <jeremy@nand.net>
