@@ -3009,12 +3009,13 @@ public class SOCGame implements Serializable, Cloneable
      * Must be different from current robber coordinates.
      * Must not be a desert if {@link SOCGameOption game option} RD is set to true
      * ("Robber can't return to the desert").
-     * Must be current player.
+     * Must be current player.  Game state must be {@link #PLACING_ROBBER}.
      * 
      * @return true if the player can move the robber to the coordinates
      *
      * @param pn  the number of the player that is moving the robber
-     * @param co  the coordinates
+     * @param co  the new robber hex coordinates; not validated
+     * @see #moveRobber(int, int)
      */
     public boolean canMoveRobber(int pn, int co)
     {
@@ -3052,13 +3053,15 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * move the robber.
-     *
+     *<P>
      * If no victims (players to possibly steal from): State becomes oldGameState.
      * If just one victim: call stealFromPlayer, State becomes oldGameState.
      * If multiple possible victims: Player must choose a victim; State becomes WAITING_FOR_CHOICE.
+     *<P>
+     * Assumes {@link #canMoveRobber(int, int)} has been called already to validate the move.
      *
      * @param pn  the number of the player that is moving the robber
-     * @param co  the coordinates
+     * @param co  the new coordinates; not validated.
      *
      * @return returns a result that says if a resource was stolen, or
      *         if the player needs to make a choice.  It also returns
@@ -3126,7 +3129,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return a list of players touching a hex
+     * @return a list of {@link SOCPlayer players} touching a hex, or an empty Vector if none
      *
      * @param hex  the coordinates of the hex
      */
@@ -3351,7 +3354,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return a list of possible players to rob
+     * Given the robber's current position on the board,
+     * get the list of victims with adjacent settlements/cities.
+     * @return a list of possible players to rob, or an empty Vector
      */
     public Vector getPossibleVictims()
     {

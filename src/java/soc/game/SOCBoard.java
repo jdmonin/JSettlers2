@@ -1394,7 +1394,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * set where the robber is
      *
-     * @param rh  the robber hex coordinate
+     * @param rh  the robber hex coordinate; not validated
      */
     public void setRobberHex(int rh)
     {
