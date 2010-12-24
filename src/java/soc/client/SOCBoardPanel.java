@@ -695,12 +695,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private SOCBoard board;
 
     /**
-     * The player that is using this interface
+     * The player that is using this interface.
+     * @see #playerNumber
      */
     private SOCPlayer player;
     
     /**
-     * player number if in a game, or -1.
+     * player number of our {@link #player} if in a game, or -1.
      */
     private int playerNumber;
 
@@ -5140,5 +5141,104 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         
     }  // inner class BoardPanelSendBuildTask
-    
+
+
+
+    /**
+     * Modal dialog to confirm moving the robber next to our own settlement or city.
+     * Start a new thread to show, so message treating can continue while the dialog is showing.
+     * If the move is confirmed, call playerClient.moveRobber and clearModeAndHilight.
+     *
+     * @author Jeremy D Monin <jeremy@nand.net>
+     */
+    protected class MoveRobberConfirmDialog extends AskDialog implements Runnable
+    {
+        /** prevent serializable warning */
+        private static final long serialVersionUID = 1110L;
+
+        /** Runs in own thread, to not tie up client's message-treater thread. */
+        private Thread rdt;
+
+        private final SOCPlayer pl;
+        private final int robHex; 
+
+        /**
+         * Creates a new MoveRobberConfirmDialog.
+         * To display the dialog, call {@link #showInNewThread()}.
+         *
+         * @param cli     Player client interface
+         * @param gamePI  Current game's player interface
+         * @param player  Current player
+         * @param newRobHex  The new robber hex, if confirmed; not validated.
+         */
+        protected MoveRobberConfirmDialog(SOCPlayer player, int newRobHex)
+        {
+            super(playerInterface.getClient(), playerInterface,
+                "Move robber to your hex?",
+                "Are you sure you want to move the robber to your own hex?",
+                "Move Robber",
+                "Don't move there",
+                null, 2);
+            rdt = null;
+            pl = player;
+            robHex = newRobHex;
+        }
+
+        /**
+         * React to the Move Robber button. (call playerClient.moveRobber)
+         */
+        public void button1Chosen()
+        {
+            // ask server to move it
+            pcli.moveRobber(game, pl, robHex);
+            clearModeAndHilight(-1);
+        }
+
+        /**
+         * React to the Don't Move button.
+         */
+        public void button2Chosen() {}
+
+        /**
+         * React to the dialog window closed by user. (Don't move the robber)
+         */
+        public void windowCloseChosen() {}
+
+        /**
+         * Make a new thread and show() in that thread.
+         * Keep track of the thread, in case we need to dispose of it.
+         */
+        public void showInNewThread()
+        {
+            rdt = new Thread(this);
+            rdt.setDaemon(true);
+            rdt.setName("MoveRobberConfirmDialog");
+            rdt.start();  // run method will show the dialog
+        }
+
+        public void dispose()
+        {
+            if (rdt != null)
+            {
+                rdt.stop();
+                rdt = null;
+            }
+            super.dispose();
+        }
+
+        /**
+         * In new thread, show ourselves. Do not call
+         * directly; call {@link #showInNewThread()}.
+         */
+        public void run()
+        {
+            try
+            {
+                show();
+            }
+            catch (ThreadDeath e) {}
+        }
+
+    }  // nested class MoveRobberConfirmDialog
+
 }  // class SOCBoardPanel
