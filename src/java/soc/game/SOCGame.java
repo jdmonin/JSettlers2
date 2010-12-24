@@ -838,6 +838,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * remove a player from their seat.
+     * Player's name becomes null.  {@link #isSeatVacant(int) isSeatVacant(playerNum)} becomes true.
+     *<P>
      * <b>If they are the current player,</b>
      * call this and then call {@link #canEndTurn(int)}.
      * You'll need to then call {@link #endTurn()} or {@link #forceEndTurn()}.
@@ -4515,7 +4517,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean isSpecialBuilding()
     {
-        return (gameState == SPECIAL_BUILDING) || (oldGameState == SPECIAL_BUILDING);
+        return (gameState == SPECIAL_BUILDING) ||
+            ((oldGameState == SPECIAL_BUILDING) && (gameState < OVER));
     }
 
     /**
