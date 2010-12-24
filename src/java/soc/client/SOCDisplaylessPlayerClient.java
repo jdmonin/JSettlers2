@@ -1813,6 +1813,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void sendText(SOCGame ga, String me)
     {
+        if (ga == null)
+            return;
         put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me));
     }
 
