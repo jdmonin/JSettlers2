@@ -1061,10 +1061,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
-     * print text in the text window.
+     * print text in the text window, followed by a new line (<tt>'\n'</tt>).
      * For dice-roll message, combine lines to reduce clutter.
      *
-     * @param s  the text
+     * @param s  the text; you don't need to include "\n".
      */
     public void print(String s)
     {
@@ -1270,6 +1270,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             hands[i].updateValue(SOCHandPanel.VICTORYPOINTS);  // Also disables buttons, etc.
         setTitle(TITLEBAR_GAME_OVER + game.getName() +
                  (game.isLocal ? "" : " [" + client.getNickname() + "]"));
+        boardPanel.updateMode();
         repaint();
     }
 

@@ -105,7 +105,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected static final String ROLL = "Roll";
     protected static final String QUIT = "Quit";
     protected static final String DONE = "Done";
-    /** Text of Done button at end of game becomes Restart button */
+    /** Text of Done button at end of game becomes Restart button. If you set this, set {@link #doneButIsRestart}. */
     protected static final String DONE_RESTART = "Restart";
     protected static final String CLEAR = "Clear";
     protected static final String SEND = "Offer";
@@ -1405,7 +1405,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         updateTakeOverButton();
         if (playerIsClient)
         {
-            int gs = game.getGameState();
+            final int gs = game.getGameState();
             boolean normalTurnStarting = (gs == SOCGame.PLAY || gs == SOCGame.PLAY1);
             clearOffer(normalTurnStarting);  // Zero the square panel numbers, etc. (TODO) better descr.
                 // at any player's turn, not just when playerIsCurrent.
@@ -1416,7 +1416,8 @@ public class SOCHandPanel extends Panel implements ActionListener
             }
             normalTurnStarting = normalTurnStarting && playerIsCurrent;
             doneBut.setEnabled(normalTurnStarting || (gs <= SOCGame.START2B)
-                    || (playerIsCurrent && (gs == SOCGame.SPECIAL_BUILDING)));
+                    || (playerIsCurrent && (gs == SOCGame.SPECIAL_BUILDING))
+                    || doneButIsRestart );
                 // "Done" at Normal turn,
                 // or "Restart" during game-start (label DONE_RESTART),
                 // or "Done" during 6-player Special Building Phase.
