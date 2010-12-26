@@ -529,6 +529,13 @@ public class SOCBoard implements Serializable, Cloneable
     private int robberHex;
 
     /**
+     * the previous hex coordinate that the robber is in; -1 unless
+     * {@link #setRobberHex(int, boolean) setRobberHex(rh, true)} is called.
+     * @since 1.1.10
+     */
+    private int prevRobberHex;
+
+    /**
      * where the ports are; coordinates per port type.
      * Indexes are port types, {@link #MISC_PORT} to {@link #WOOD_PORT}.
      * @see #portsLayout
@@ -611,6 +618,7 @@ public class SOCBoard implements Serializable, Cloneable
         }
 
         robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
+        prevRobberHex = -1;
 
         /**
          * generic counter
@@ -1265,10 +1273,24 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * @return coordinate where the robber is
+     * @see #getPreviousRobberHex()
      */
     public int getRobberHex()
     {
         return robberHex;
+    }
+
+    /**
+     * If the robber has been moved by calling {@link #setRobberHex(int, boolean)}
+     * where <tt>rememberPrevious == true</tt>, get the previous coordinate
+     * of the robber.
+     * @return hex coordinate where the robber was, or -1
+     * @see #getRobberHex()
+     * @since 1.1.10
+     */
+    public int getPreviousRobberHex()
+    {
+        return prevRobberHex;
     }
 
     /**
@@ -1394,10 +1416,17 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * set where the robber is
      *
-     * @param rh  the robber hex coordinate; not validated
+     * @param rh  the new robber hex coordinate; not validated
+     * @param rememberPrevious  Should we remember the old robber hex? (added in 1.1.10)
+     * @see #getRobberHex()
+     * @see #getPreviousRobberHex()
      */
-    public void setRobberHex(int rh)
+    public void setRobberHex(final int rh, final boolean rememberPrevious)
     {
+        if (rememberPrevious)
+            prevRobberHex = robberHex;
+        else
+            prevRobberHex = -1;
         robberHex = rh;
     }
 

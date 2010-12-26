@@ -2794,7 +2794,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             SOCBoard bd = ga.getBoard();
             bd.setHexLayout(mes.getHexLayout());
             bd.setNumberLayout(mes.getNumberLayout());
-            bd.setRobberHex(mes.getRobberHex());
+            bd.setRobberHex(mes.getRobberHex(), false);
 
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
             pi.getBoardPanel().flushBoardLayoutAndRepaint();
@@ -2833,7 +2833,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         bd.setBoardEncodingFormat(mes.getBoardEncodingFormat());
         bd.setHexLayout(mes.getIntArrayPart("HL"));
         bd.setNumberLayout(mes.getIntArrayPart("NL"));
-        bd.setRobberHex(mes.getIntPart("RH"));
+        bd.setRobberHex(mes.getIntPart("RH"), false);
         int[] portLayout = mes.getIntArrayPart("PL");
         if (portLayout != null)
             bd.setPortsLayout(portLayout);
@@ -3261,7 +3261,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
              * functions to do the stealing.  We just want to say where
              * the robber moved without seeing if something was stolen.
              */
-            ga.getBoard().setRobberHex(mes.getCoordinates());
+            ga.getBoard().setRobberHex(mes.getCoordinates(), true);
             pi.getBoardPanel().repaint();
         }
     }

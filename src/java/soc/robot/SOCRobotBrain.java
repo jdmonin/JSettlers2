@@ -959,7 +959,7 @@ public class SOCRobotBrain extends Thread
                         // report the gain/loss of resources.
                         //
                         moveRobberOnSeven = false;
-                        game.getBoard().setRobberHex(((SOCMoveRobber) mes).getCoordinates());
+                        game.getBoard().setRobberHex(((SOCMoveRobber) mes).getCoordinates(), true);
                         }
                         break;
 

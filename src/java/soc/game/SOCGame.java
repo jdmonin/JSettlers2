@@ -3071,7 +3071,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         SOCMoveRobberResult result = new SOCMoveRobberResult();
 
-        board.setRobberHex(co);
+        board.setRobberHex(co, true);
 
         /**
          * do the robbing thing
