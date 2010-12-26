@@ -751,7 +751,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *  Index ranges from 0 to SOCBoard.MAX_ROBBER_HEX.
      *  
      *  @see soc.client.ColorSquare
-     *  @see #drawRobber(Graphics, int, boolean)
+     *  @see #drawRobber(Graphics, int, boolean, boolean)
      */
     protected Color[] robberGhostFill, robberGhostOutline;
 
@@ -1646,6 +1646,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Redraw the board using double buffering. Don't call this directly, use
      * {@link Component#repaint()} instead.
+     *<P>
+     * See {@link #drawBoard(Graphics)} for related painting methods.
      */
     public void paint(Graphics g)
     {
@@ -1654,7 +1656,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             buffer = this.createImage(scaledPanelX, scaledPanelY);
         }
-        drawBoard(buffer.getGraphics());
+        drawBoard(buffer.getGraphics());  // Do the actual drawing
         if (hoverTip.isVisible())
             hoverTip.paint(buffer.getGraphics());
         buffer.flush();
@@ -1921,10 +1923,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * 
      * @param g       Graphics context
      * @param hexID   Board hex encoded position
-     * @param fullNotGhost  Draw normally, not "ghost" of previous position
+     * @param fullNotGhost  Draw with normal colors, not faded-out "ghost"
      *                (as during PLACE_ROBBER movement)
+     * @param fillNotOutline  Fill the robber, not just outline
+     *                (as for previous robber position)
      */
-    private final void drawRobber(Graphics g, int hexID, boolean fullNotGhost)
+    private final void drawRobber
+        (Graphics g, final int hexID, final boolean fullNotGhost, final boolean fillNotOutline)
     {
         int hexNum = hexIDtoNum[hexID];
         int hx = hexX[hexNum] + 27;
@@ -1943,7 +1948,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         Color rFill, rOutline;
-        if (fullNotGhost)
+        if (fullNotGhost && fillNotOutline)
         {
             rFill = Color.lightGray;
             rOutline = Color.black;
@@ -1982,8 +1987,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }  // normal or ghost?
 
         g.translate(hx, hy);
-        g.setColor(rFill);
-        g.fillPolygon(scaledRobberX, scaledRobberY, 13);
+        if (fillNotOutline)
+        {
+            g.setColor(rFill);
+            g.fillPolygon(scaledRobberX, scaledRobberY, 13);
+        } else {
+            rOutline = rFill;  // stands out better against hex color
+        }
         g.setColor(rOutline);
         g.drawPolygon(scaledRobberX, scaledRobberY, 14);
         g.translate(-hx, -hy);
@@ -2457,7 +2467,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (board.getRobberHex() != -1)
         {
-            drawRobber(g, board.getRobberHex(), (gameState != SOCGame.PLACING_ROBBER));
+            drawRobber(g, board.getRobberHex(), (gameState != SOCGame.PLACING_ROBBER), true);
+        }
+        if (board.getPreviousRobberHex() != -1)
+        {
+            drawRobber(g, board.getPreviousRobberHex(), (gameState != SOCGame.PLACING_ROBBER), false);            
         }
 
         if (gameState != SOCGame.NEW)
@@ -2569,7 +2583,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawRobber(g, hilight, true);
+                drawRobber(g, hilight, true, true);
             }
 
             break;
@@ -4530,6 +4544,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             sb.append(num);
                         }
                         sb.append(" (ROBBER)");
+                    }
+                    else if (board.getPreviousRobberHex() == id)
+                    {
+                        int num = board.getNumberOnHexFromCoord(id);
+                        if (num > 0)
+                        {
+                            sb.append(": ");
+                            sb.append(num);
+                        }
+                        sb.append(" (robber was here)");
                     }
                     setHoverText(sb.toString());                     
                 }

@@ -530,7 +530,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * the previous hex coordinate that the robber is in; -1 unless
-     * {@link #setRobberHex(int, boolean) setRobberHex(rh, true)} is called.
+     * {@link #setRobberHex(int, boolean) setRobberHex(rh, true)} was called.
      * @since 1.1.10
      */
     private int prevRobberHex;

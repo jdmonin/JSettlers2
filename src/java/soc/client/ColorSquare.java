@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.client;
 
@@ -52,7 +50,7 @@ public class ColorSquare extends Canvas implements MouseListener
      * and also used for the robber's "ghost" when
      * moving the robber, and fallback for missing hex graphics.
      *
-     * @see soc.client.SOCBoardPanel#drawRobber(Graphics, int, boolean)
+     * @see soc.client.SOCBoardPanel#drawRobber(Graphics, int, boolean, boolean)
      * @see soc.client.SOCBoardPanel#drawHex(Graphics, int)
      */
     public final static Color CLAY = new Color(204, 102, 102);

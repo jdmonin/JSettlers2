@@ -6,6 +6,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
     > 1.1.10 (build 20101xxx)
 - Popup to confirm before you move the robber onto your own hex
+- Show robber's previous position on the board
 - Bugfix: "Restart" button wasn't enabled if game ends after special build
 - If robots place a bad piece, force their turn to end after 10 seconds of inactivity
 - Game owner name tracked at server
