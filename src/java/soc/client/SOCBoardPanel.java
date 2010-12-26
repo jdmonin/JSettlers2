@@ -641,14 +641,37 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Map grid sectors (from unscaled on-screen coordinates) to hex edges.
-     * The grid has 15 columns and 23 rows.
+     * The grid has 15 columns (each being 1/2 of a hex wide) and 23 rows
+     * (each 1/3 hex tall).
      * This maps graphical coordinates to the board coordinate system.
+     *<P>
+     * The edge coordinate number at grid (x,y) is in <tt>edgeMap</tt>[x + (y * 15)].
+     * If <tt>edgeMap</tt>[x,y] == 0, it's not a valid edge coordinate.
+     *<P>
+     * On the 4-player board, row 0 is the top of the topmost row of water
+     * hexes.  Here are the grid (x,y) values for the edges of the top-left
+     * <b>land</b> hex on the 4-player board, and to the right and down; its
+     * top is in y=3 of this grid:<PRE>
+     *             ^               ^
+     *       (4,3)   (5,3)   (6,3)   (7,3)
+     *     |               |
+     *   (4,4)           (6,4)
+     *   (4,5)           (6,5)
+     *     |               |
+     *(3,6)  (4,6)   (5,6)   (6,6)   (7,6)
+     *             v               v
+     *             |               |
+     *           (5,7)           (7,7)
+     *           (5,8)           (7,8) </PRE>
+     *<P>
+     * The 6-player board is similar to the 4-player layout, but its
+     * top-left land hex edges start at (3,0) instead of (4,3), and it is
+     * visually rotated 90 degrees on screen, but not rotated in this
+     * coordinate system, versus the 4-player board.
      *<P>
      * <b>Note:</b> For the 6-player board, edge 0x00 is a valid edge that
      * can be built on.  It is marked here as -1, since a value of 0 marks an
      * invalid edge in this map.
-     *<P>
-     * The edge number at grid (x,y) is in edgeMap[x + (y * 15)].
      *<P>
      * In {@link #is6player 6-player mode}, there is an extra ring of water/port hexes
      * on the outside, which isn't within the coordinate system.  So this grid is
@@ -978,6 +1001,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         rescaleCoordinateArrays();
     }
 
+    /**
+     * Initialize {@link #edgeMap}'s valid edges across 1 row of hexes,
+     * for use by {@link #findEdge(int, int)}.
+     *<P>
+     * For details of {@link #edgeMap}'s layout and usage, see its javadoc.
+     * For more details of the initialization algorithm used in this
+     * method, see comments within
+     * {@link #initNodeMapAux(int, int, int, int, int)}.
+     *
+     * @param x1  Leftmost x-value to init within edgeMap; the x-value
+     *    of the row's leftmost vertical edge
+     * @param y1  Topmost y-value to init within edgeMap; the y-value of
+     *    the upper angled edges of the hex (angled "/" and "\")
+     * @param x2  Rightmost x-value to init; the x-value of the
+     *    row's rightmost vertical edge
+     * @param y2  Bottommost y-value to init; the y-value of
+     *    the lower angled edges of the hex (angled "\" and "/"),
+     *    should be <tt>y1</tt> + 3.
+     * @param startHex  Hex coordinate of row's first valid hex;
+     *   this row's {@link #edgeMap}[x,y] values will be set to
+     *   edge coordinates offset from <tt>startHex</tt>.
+     */
     private final void initEdgeMapAux(int x1, int y1, int x2, int y2, int startHex)
     {
         int x;
@@ -987,7 +1032,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int hexNum;
         int edgeNum = 0;
 
-        for (y = y1; y <= y2; y++)
+        // See initNodeMapAux for comments on this algorithm.
+
+        for (y = y1; y <= y2; y++)  // Outer loop: each y
         {
             hexNum = startHex;
 
@@ -1026,7 +1073,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (edgeNum == 0x00)
                 edgeNum = -1;  // valid edge 0x00 is stored as -1 in map
 
-            for (x = x1; x <= x2; x++)
+            for (x = x1; x <= x2; x++)  // Inner: each x for this y
             {
                 edgeMap[x + (y * 15)] = edgeNum;
 
@@ -1117,6 +1164,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * All 6 nodes of each hex in range will be initialized within {@link #nodeMap}.
      *<P>
      * For node coordinates, see RST dissertation figure A2. For hex coordinates, see figure A1.
+     *<P>
+     * {@link #initEdgeMapAux(int, int, int, int, int)} uses a similar structure.
      *
      * @param x1 Starting x-coordinate within {@link #nodeMap}'s index;
      *           should correspond to left edge of <tt>startHex</tt>
@@ -3788,6 +3837,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         // find which grid section the pointer is in 
         // ( 46 is the y-distance between the centers of two hexes )
+        // See edgeMap javadocs for secY, secX meanings.
+
         //int sector = (x / 18) + ((y / 10) * 15);
         int secX, secY;
         if (is6player)
@@ -4170,6 +4221,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * is at (x,y) relative to the board.
          * @param x x-coordinate of mouse, actual screen pixels (not unscaled internal)
          * @param y y-coordinate of mouse, actual screen pixels (not unscaled internal)
+         * @see #setHoverText(String)
          */
         public void positionToMouse(int x, int y)
         {
@@ -4204,6 +4256,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Set the hover text (tooltip) based on where the mouse is now,
          * and repaint the board.
+         *<P>
+         * Calls {@link #positionToMouse(int, int) positionToMouse(mouseX,mouseY)}.
+         *
          * @param t Hover text contents, or null to clear that text (but
          *          not hovering pieces) and repaint
          * @see #hideHoverAndPieces()
