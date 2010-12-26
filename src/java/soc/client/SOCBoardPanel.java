@@ -1025,6 +1025,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void initEdgeMapAux(int x1, int y1, int x2, int y2, int startHex)
     {
+        final int hexVerticalXmod2 = x1 % 2;  // to find vertical-edge (vs middle) x-coordinates within each hex
         int x;
         int y;
         int facing = 0;
@@ -1073,8 +1074,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (edgeNum == 0x00)
                 edgeNum = -1;  // valid edge 0x00 is stored as -1 in map
 
+            final boolean inMiddleRowsOfHex = (y > y1) && (y < y2);
+
             for (x = x1; x <= x2; x++)  // Inner: each x for this y
             {
+                if (inMiddleRowsOfHex)
+                {
+                    // center of hex isn't a valid edge
+                    if ((x % 2) != hexVerticalXmod2)
+                        edgeNum = 0;
+                }
+
                 edgeMap[x + (y * 15)] = edgeNum;
 
                 switch (facing)
@@ -3843,8 +3853,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int secX, secY;
         if (is6player)
         {
-            secX = (x - HEXX_OFF_6PL) / 27;
             secY = (y - HEXY_OFF_6PL_FIND) / 15;
+            if ((secY % 3) != 0)
+                x += 8;  // middle part of hex: adjust sector boundary
+            secX = (x - HEXX_OFF_6PL) / 27;
         } else {
             secY = y / 15;
             if ((secY % 3) != 0)
