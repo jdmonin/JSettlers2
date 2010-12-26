@@ -3846,8 +3846,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             secX = (x - HEXX_OFF_6PL) / 27;
             secY = (y - HEXY_OFF_6PL_FIND) / 15;
         } else {
-            secX = x / 27;
             secY = y / 15;
+            if ((secY % 3) != 0)
+                x += 8;  // middle part of hex: adjust sector boundary
+            secX = x / 27;
         }
         int sector = secX + (secY * 15);
 
