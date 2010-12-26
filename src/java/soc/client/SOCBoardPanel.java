@@ -3510,8 +3510,32 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (hilight != board.getRobberHex())
                 {
-                    client.moveRobber(game, player, hilight);
-                    clearModeAndHilight(-1);
+                    // do we have an adjacent settlement/city?
+                    boolean cliAdjacent = false;
+                    {
+                        Enumeration plEnum = game.getPlayersOnHex(hilight).elements();
+                        while (plEnum.hasMoreElements())
+                        {
+                            SOCPlayer pl = (SOCPlayer) plEnum.nextElement();
+                            if (pl.getPlayerNumber() == playerNumber)
+                            {
+                                cliAdjacent = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (cliAdjacent)
+                    {
+                        // ask player to confirm first
+                        new MoveRobberConfirmDialog(player, hilight).showInNewThread();
+                    }
+                    else
+                    {
+                        // ask server to move it
+                        client.moveRobber(game, player, hilight);
+                        clearModeAndHilight(-1);
+                    }
                 }
 
                 break;
