@@ -38,6 +38,9 @@ import java.util.Vector;
  * you may need a subclass of SOCBoard: Use {@link #createBoard(Hashtable, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
+ * To identify nearby nodes, edges, hexes, etc, use the methods
+ * with names such as {@link #getAdjacentHexesToNode(int)}.
+ *<P>
  * Other methods to examine the board: {@link SOCGame#getPlayersOnHex(int)},
  * {@link SOCGame#putPiece(SOCPlayingPiece)}, etc.
  *<P>
@@ -297,34 +300,40 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * largest coordinate value for a hex, in the current encoding.
      */
-    public static final int MAXHEX = 0xDD;  // See also hardcoded checks in {@link #getAdjacentHexes_AddIfOK.
+    protected static final int MAXHEX = 0xDD;  // See also hardcoded checks in {@link #getAdjacentHexes_AddIfOK.
 
     /**
      * smallest coordinate value for a hex, in the current encoding.
      */
-    public static final int MINHEX = 0x11;
+    protected static final int MINHEX = 0x11;
 
     /**
-     * largest coordinate value for an edge, in the v1 encoding
+     * largest coordinate value for an edge, in the v1 encoding.
+     * Named <tt>MAXEDGE</tt> before v1.1.10 ; the name change is a
+     * reminder that {@link #MAXEDGE_V2} represents a different encoding.
+     * @since 1.1.10
      */
-    public static final int MAXEDGE = 0xCC;
+    protected static final int MAXEDGE_V1 = 0xCC;
 
     /**
      * largest coordinate value for an edge, in the v2 encoding
      * @since 1.1.08
      */
-    public static final int MAXEDGE_V2 = 0xCC;
+    protected static final int MAXEDGE_V2 = 0xCC;
 
     /**
-     * smallest coordinate value for an edge, in the v1 encoding
+     * smallest coordinate value for an edge, in the v1 encoding.
+     * Named <tt>MINEDGE</tt> before v1.1.10 ; the name change is a
+     * reminder that {@link #MINEDGE_V2} has a different value.
+     * @since 1.1.10
      */
-    public static final int MINEDGE = 0x22;
+    protected static final int MINEDGE_V1 = 0x22;
 
     /**
      * smallest coordinate value for an edge, in the v2 encoding
      * @since 1.1.08
      */
-    public static final int MINEDGE_V2 = 0x00;
+    protected static final int MINEDGE_V2 = 0x00;
 
     /**
      * largest coordinate value for a node on land, in the v1 and v2 encodings
@@ -332,9 +341,12 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAXNODE = 0xDC;
 
     /**
-     * smallest coordinate value for a node on land, in the v1 encoding
+     * smallest coordinate value for a node on land, in the v1 encoding.
+     * Named <tt>MINNODE</tt> before v1.1.10 ; the name change is a
+     * reminder that {@link #MINNODE_V2} has a different value.
+     * @since 1.1.10
      */
-    public static final int MINNODE = 0x23;
+    protected static final int MINNODE_V1 = 0x23;
 
     /**
      * largest coordinate value for a node on land plus one, in the v1 and v2 encodings
@@ -345,7 +357,7 @@ public class SOCBoard implements Serializable, Cloneable
      * smallest coordinate value for a node on land, in the v2 encoding
      * @since 1.1.08
      */
-    public static final int MINNODE_V2 = 0x01;
+    protected static final int MINNODE_V2 = 0x01;
 
     /**
      * Land-hex coordinates in standard board ({@link #BOARD_ENCODING_ORIGINAL}).
@@ -612,9 +624,9 @@ public class SOCBoard implements Serializable, Cloneable
             minNode = MINNODE_V2;
         } else {
             boardEncodingFormat = BOARD_ENCODING_ORIGINAL;  // See javadoc of boardEncodingFormat
-            minEdge = MINEDGE;
-            maxEdge = MAXEDGE;
-            minNode = MINNODE;
+            minEdge = MINEDGE_V1;
+            maxEdge = MAXEDGE_V1;
+            minNode = MINNODE_V1;
         }
 
         robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
@@ -1746,6 +1758,26 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Get the minimum edge coordinate in this board encoding format.
+     * @return minimum possible edge coordinate
+     * @since 1.1.10
+     */
+    public int getMinEdge()
+    {
+        return minEdge;
+    }
+
+    /**
+     * Get the maximum edge coordinate in this board encoding format.
+     * @return maximum possible edge coordinate
+     * @since 1.1.10
+     */
+    public int getMaxEdge()
+    {
+        return minEdge;
+    }
+
+    /**
      * Adjacent node coordinates to an edge, within range {@link #getMinNode()} to {@link #MAXNODE}.
      * @return the nodes that touch this edge, as a Vector of Integer coordinates
      * @see #getAdjacentNodesToEdge_arr(int)
@@ -1763,7 +1795,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Adjacent node coordinates to an edge.
-     * Does not check against range {@link #MINNODE} to {@link #MAXNODE},
+     * Does not check against range {@link #MINNODE_V1} to {@link #MAXNODE},
      * so nodes in the water (off the land board) may be returned.
      * @return the nodes that touch this edge, as an array of 2 integer coordinates
      * @see #getAdjacentNodesToEdge(int)

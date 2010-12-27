@@ -1997,6 +1997,9 @@ public class SOCPlayerTracker
         //
         int longest = 0;
         int numRoads = 500;
+        final SOCBoard board = player.getGame().getBoard();
+        final int MINEDGE = board.getMinEdge(),
+                  MAXEDGE = board.getMaxEdge();
         Stack pending = new Stack();
         pending.push(new NodeLenVis(startNode, pathLength, new Vector()));
 
@@ -2013,7 +2016,7 @@ public class SOCPlayerTracker
             //
             // check for road blocks 
             //
-            Enumeration pEnum = player.getGame().getBoard().getPieces().elements();
+            Enumeration pEnum = board.getPieces().elements();
 
             while (pEnum.hasMoreElements())
             {
@@ -2074,7 +2077,7 @@ public class SOCPlayerTracker
                 edge = new Integer(j);
                 match = false;
 
-                if ((j >= SOCBoard.MINEDGE) && (j <= SOCBoard.MAXEDGE) && (player.isLegalRoad(j)))
+                if ((j >= MINEDGE) && (j <= MAXEDGE) && (player.isLegalRoad(j)))
                 {
                     for (Enumeration ev = visited.elements();
                             ev.hasMoreElements();)
@@ -2104,7 +2107,7 @@ public class SOCPlayerTracker
                 edge = new Integer(j);
                 match = false;
 
-                if ((j >= SOCBoard.MINEDGE) && (j <= SOCBoard.MAXEDGE) && (player.isLegalRoad(j)))
+                if ((j >= MINEDGE) && (j <= MAXEDGE) && (player.isLegalRoad(j)))
                 {
                     for (Enumeration ev = visited.elements();
                             ev.hasMoreElements();)
@@ -2135,7 +2138,7 @@ public class SOCPlayerTracker
                 edge = new Integer(j);
                 match = false;
 
-                if ((j >= SOCBoard.MINEDGE) && (j <= SOCBoard.MAXEDGE) && (player.isLegalRoad(j)))
+                if ((j >= MINEDGE) && (j <= MAXEDGE) && (player.isLegalRoad(j)))
                 {
                     for (Enumeration ev = visited.elements();
                             ev.hasMoreElements();)
@@ -2166,7 +2169,7 @@ public class SOCPlayerTracker
                 edge = new Integer(j);
                 match = false;
 
-                if ((j >= SOCBoard.MINEDGE) && (j <= SOCBoard.MAXEDGE) && (player.isLegalRoad(j)))
+                if ((j >= MINEDGE) && (j <= MAXEDGE) && (player.isLegalRoad(j)))
                 {
                     for (Enumeration ev = visited.elements();
                             ev.hasMoreElements();)

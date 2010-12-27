@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -928,6 +928,9 @@ public class SOCRobotDM {
     int longest = 0;
     int numRoads = 500;
     Pair bestPathNode = null;
+    final SOCBoard board = game.getBoard();
+    final int MINEDGE = board.getMinEdge(),
+              MAXEDGE = board.getMaxEdge();
     Stack pending = new Stack();
     pending.push(new Pair(new NodeLenVis(startNode, pathLength, new Vector()), null));
 
@@ -943,7 +946,7 @@ public class SOCRobotDM {
       //
       // check for road blocks 
       //
-      Enumeration pEnum = game.getBoard().getPieces().elements();
+      Enumeration pEnum = board.getPieces().elements();
       while (pEnum.hasMoreElements()) {
 	SOCPlayingPiece p = (SOCPlayingPiece)pEnum.nextElement();
 	if ((len > 0) &&
@@ -997,7 +1000,7 @@ public class SOCRobotDM {
 	j = coord - 0x11;
 	edge = new Integer(j);
 	match = false;
-	if ((j >= SOCBoard.MINEDGE) && (j <= SOCBoard.MAXEDGE) &&
+	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
 	    (ourPlayerData.isLegalRoad(j))) {
 	  for (Enumeration ev = visited.elements();
 	       ev.hasMoreElements(); ) {
@@ -1018,7 +1021,7 @@ public class SOCRobotDM {
 	j = coord;
 	edge = new Integer(j);
 	match = false;
-	if ((j >= SOCBoard.MINEDGE) && (j <= SOCBoard.MAXEDGE) &&
+	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
 	    (ourPlayerData.isLegalRoad(j))) {
 	  for (Enumeration ev = visited.elements();
 	       ev.hasMoreElements(); ) {
@@ -1040,7 +1043,7 @@ public class SOCRobotDM {
 	j = coord - 0x01;
 	edge = new Integer(j);
 	match = false;
-	if ((j >= SOCBoard.MINEDGE) && (j <= SOCBoard.MAXEDGE) &&
+	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
 	    (ourPlayerData.isLegalRoad(j))) {
 	  for (Enumeration ev = visited.elements();
 	       ev.hasMoreElements(); ) {
@@ -1062,7 +1065,7 @@ public class SOCRobotDM {
 	j = coord - 0x10;
 	edge = new Integer(j);
 	match = false;
-	if ((j >= SOCBoard.MINEDGE) && (j <= SOCBoard.MAXEDGE) &&
+	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
 	    (ourPlayerData.isLegalRoad(j))) {
 	  for (Enumeration ev = visited.elements();
 	       ev.hasMoreElements(); ) {
@@ -1116,19 +1119,19 @@ public class SOCRobotDM {
 	test = coordA - coordB;
 	if (test == 0x11) {
 	  // it is a '\' road
-	  D.ebugPrintln(game.getBoard().nodeCoordToString(coordB));
+	  D.ebugPrintln(board.nodeCoordToString(coordB));
 	  posRoad = new SOCPossibleRoad(ourPlayerData, coordB, new Vector());
 	} else if (test == -0x11) {
 	  // it is a '/' road
-	  D.ebugPrintln(game.getBoard().nodeCoordToString(coordA));
+	  D.ebugPrintln(board.nodeCoordToString(coordA));
 	  posRoad = new SOCPossibleRoad(ourPlayerData, coordA, new Vector());
 	} else if (test == 0x0F) {
 	  // it is a '|' road for an A node
-	  D.ebugPrintln(game.getBoard().nodeCoordToString((coordA - 0x10)));
+	  D.ebugPrintln(board.nodeCoordToString((coordA - 0x10)));
 	  posRoad = new SOCPossibleRoad(ourPlayerData, (coordA - 0x10), new Vector());
 	} else {
 	  // it is a '|' road for a Y node
-	  D.ebugPrintln(game.getBoard().nodeCoordToString((coordA - 0x01)));
+	  D.ebugPrintln(board.nodeCoordToString((coordA - 0x01)));
 	  posRoad = new SOCPossibleRoad(ourPlayerData, (coordA - 0x01), new Vector());
 	}
 	temp.push(posRoad);
