@@ -3279,7 +3279,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 // Figure out if this is a legal road
                 // It must be attached to the last stlmt
                 if ((player == null) ||
-                     ! ((player.isPotentialRoad(edgeNum)) && ((edgeNum == initstlmt) || (edgeNum == (initstlmt - 0x11)) || (edgeNum == (initstlmt - 0x01)) || (edgeNum == (initstlmt - 0x10)))))
+                    ! (player.isPotentialRoad(edgeNum)
+                       && board.isEdgeAdjacentToNode
+                        (initstlmt,
+                         (edgeNum != -1) ? edgeNum : 0)))
                 {
                     edgeNum = 0;
                 }
@@ -3837,11 +3840,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * given a pixel on the board, find the edge that contains it
+     *<P>
+     * <b>Note:</b> For the 6-player board, edge 0x00 is a valid edge that
+     * can be built on.  It is found here as -1, since a value of 0 marks an
+     * invalid edge.
      *
      * @param x  x coordinate, in unscaled board, not actual pixels;
      *           use {@link #scaleFromActualX(int)} to convert
      * @param y  y coordinate, in unscaled board, not actual pixels
-     * @return the coordinates of the edge, or 0 if none
+     * @return the coordinates of the edge, or 0 if none; -1 for the 6-player
+     *     board's valid edge 0x00
      */
     private final int findEdge(int x, int y)
     {

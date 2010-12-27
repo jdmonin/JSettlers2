@@ -1646,8 +1646,12 @@ public class SOCGame implements Serializable, Cloneable
      * Calls {@link #advanceTurnStateAfterPutPiece()}.
      *<P>
      * If the piece is a city, putPiece removes the settlement there.
+     *<P>
+     *<b>Note:</b> Because <tt>pp</tt> is not checked for validity, please call
+     * methods such as {@link SOCPlayer#isPotentialSettlement(int)}
+     * to verify <tt>pp</tt> before calling this method.
      *
-     * @param pp the piece to put on the board
+     * @param pp the piece to put on the board; coordinates are not checked for validity
      */
     public void putPiece(SOCPlayingPiece pp)
     {

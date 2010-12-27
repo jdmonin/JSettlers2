@@ -1621,6 +1621,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * put a piece on the board
+     * @param pp  Piece to place on the board; coordinates are not checked for validity
      */
     public void putPiece(SOCPlayingPiece pp)
     {
@@ -1825,6 +1826,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * @param coord  Edge coordinate; for the 6-player encoding, use 0, not -1, for edge 0x00.
      * @return the adjacent edges to this edge, as a Vector of Integer coordinates
      */
     public Vector getAdjacentEdgesToEdge(int coord)
@@ -2109,6 +2111,35 @@ public class SOCBoard implements Serializable, Cloneable
         }
 
         return edges;
+    }
+
+    /**
+     * Determine if this node and edge are adjacent.
+     * Checking is not as strict as in {@link #getAdjacentEdgesToNode(int)},
+     * so there may be a false positive, but not a false negative.
+     *
+     * @param nodeCoord  Node coordinate; not bounds-checked
+     * @param edgeCoord  Edge coordinate; checked against minEdge, maxEdge.
+     *   For the 6-player encoding, use 0, not -1, to indicate edge 0x00.
+     * @return  is the edge adjacent?
+     * @since 1.1.10
+     */
+    public boolean isEdgeAdjacentToNode(final int nodeCoord, final int edgeCoord)
+    {
+        if ((edgeCoord < minEdge) || (edgeCoord > maxEdge))
+            return false;
+
+        // See dissertation figures A.8, A.10
+        if ((edgeCoord == nodeCoord) || (edgeCoord == (nodeCoord - 0x11)))
+            return true;
+        /**
+         * if the coords are (even, odd), then
+         * the node is 'Y' (figure A.8), otherwise is 'A' (figure A.10).
+         */
+        if (((nodeCoord & 0x0F) % 2) == 1)
+            return (edgeCoord == (nodeCoord - 0x01));  // (even, odd)
+        else
+            return (edgeCoord == (nodeCoord - 0x10));  // (odd, even)
     }
 
     /**

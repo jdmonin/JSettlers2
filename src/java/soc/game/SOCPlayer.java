@@ -1154,7 +1154,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * put a piece into play
      * note: placing a city automatically removes the settlement there
      *
-     * @param piece         the piece to be put into play
+     * @param piece         the piece to be put into play; coordinates are not checked for validity
      */
     public void putPiece(SOCPlayingPiece piece)
     {
@@ -1780,7 +1780,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * update the arrays that keep track of where
-     * this player can play a piece
+     * this player can play further pieces, after a
+     * piece has just been played.
      *
      * @param piece         a piece that has just been played
      */

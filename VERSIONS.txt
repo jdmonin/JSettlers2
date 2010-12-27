@@ -8,6 +8,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Popup to confirm before you move the robber onto your own hex
 - Show robber's previous position on the board
 - Bugfix: "Restart" button wasn't enabled if game ends after special build
+- Bugfix: Couldn't place initial road on 6-player's northernmost edge
 - If robots place a bad piece, force their turn to end after 10 seconds of inactivity
 - Game owner name tracked at server
 - Security: Limit the maximum simultaneous games/chat channels created per client:
