@@ -92,12 +92,12 @@ public class SOCRobotBrain extends Thread
     SOCRobotParameters robotParameters;
 
     /**
-     * Flag for wheather or not we're alive
+     * Flag for whether or not we're alive
      */
     protected boolean alive;
 
     /**
-     * Flag for wheather or not it is our turn
+     * Flag for whether or not it is our turn
      */
     protected boolean ourTurn;
 
@@ -3157,7 +3157,15 @@ public class SOCRobotBrain extends Thread
             expectPLACING_SETTLEMENT = false;
             expectPLACING_CITY = false;
             decidedIfSpecialBuild = true;
-            waitingForGameState = false;  // otherwise, will wait forever for PLACING_ state
+            if (cancelBuyDevCard)
+            {
+                waitingForGameState = false;  // don't wait for PLACING_ after buy dev card
+            } else {
+                // special building, currently in state PLACING_* ;
+                // get our resources back, get state PLAY1 or SPECIALBUILD
+                waitingForGameState = true;  
+                client.cancelBuildRequest(game, mes.getPieceType());
+            }
         }
         else if (gameState <= SOCGame.START2B)
         {
