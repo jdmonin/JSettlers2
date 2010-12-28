@@ -399,7 +399,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the players; never contains a null element, use {@link #isSeatVacant(int)}
-     * to see if a position is occupied.
+     * to see if a position is occupied.  Length is {@link #maxPlayers}.
      */
     private SOCPlayer[] players;
 
@@ -948,7 +948,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             for (int i = 0; i < maxPlayers; i++)
             {
-                if ((nn.equals(players[i].getName())) && ! isSeatVacant(i))
+                if ((! isSeatVacant(i)) && nn.equals(players[i].getName()))
                 {
                     return players[i];
                 }
@@ -1184,10 +1184,14 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      * @param pl  the player data
+     * @throws IllegalArgumentException if pl is null
      */
     protected void setPlayer(int pn, SOCPlayer pl)
     {
-        players[pn] = pl;
+        if (pl != null)
+            players[pn] = pl;
+        else
+            throw new IllegalArgumentException("null pl");
     }
 
     /**
