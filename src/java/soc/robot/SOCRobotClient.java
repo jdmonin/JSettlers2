@@ -58,6 +58,7 @@ import soc.message.SOCLeaveGame;
 import soc.message.SOCLongestRoad;
 import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
+import soc.message.SOCMessageForGame;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPotentialSettlements;
@@ -108,6 +109,60 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     public static final String CURRENT_RESOURCES = "RESOURCES";
 
     /**
+     * For debugging/regression testing, randomly pause responding
+     * for several seconds, to simulate a "stuck" robot brain.
+     *<P>
+     *<b>Note:</b> This debugging tool is not scalable to many simultaneous games,
+     * because it delays all messages, not just ones for a specific game / brain,
+     * and it won't be our turn in each of those games.
+     * @see #DEBUGRANDOMPAUSE_FREQ
+     * @see #debugRandomPauseActive
+     * @since 1.1.10
+     */
+    private static boolean debugRandomPause = false;  // set true to use this debug type
+
+    /**
+     * Is {@link #debugRandomPause} currently in effect for this client?
+     * If so, store messages into {@link #debugRandomPauseQueue} instead of
+     * sending them to {@link #robotBrains} immediately.
+     * The pause goes on until {@link #debugRandomPauseUntil} arrives.
+     * This is all handled within {@link #treat(SOCMessage)}.
+     * @since 1.1.10
+     */
+    private boolean debugRandomPauseActive = false;
+
+    /**
+     * When {@link #debugRandomPauseActive} is true, store incoming messages
+     * from the server into this queue until {@link #debugRandomPauseUntil}.
+     * Initialized in {@link #treat(SOCMessage)}.
+     * @since 1.1.10
+     */
+    private Vector debugRandomPauseQueue = null;
+
+    /**
+     * When {@link #debugRandomPauseActive} is true, resume at this time;
+     * same format as {@link System#currentTimeMillis()}.
+     * @see #DEBUGRANDOMPAUSE_SECONDS
+     * @since 1.1.10
+     */
+    private long debugRandomPauseUntil;
+
+    /**
+     * When {@link #debugRandomPause} is true but not {@link #debugRandomPauseActive},
+     * frequency of activating it; checked for each non-{@link SOCGameTextMsg}
+     * message received during our own turn. 
+     * @since 1.1.10
+     */
+    private static final double DEBUGRANDOMPAUSE_FREQ = .04;  // 4%
+
+    /**
+     * When {@link #debugRandomPauseActive} is activated, pause this many seconds
+     * before continuing.
+     * @see #debugRandomPauseUntil
+     */
+    private static final int DEBUGRANDOMPAUSE_SECONDS = 12;
+
+    /**
      * the thread the reads incoming messages
      */
     private Thread reader;
@@ -118,7 +173,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     private SOCRobotParameters currentRobotParameters;
 
     /**
-     * the robot's "brains" for different games
+     * the robot's "brains", 1 for each game this robot is currently playing.
+     * @see SOCDisplaylessPlayerClient#games
      */
     private Hashtable robotBrains = new Hashtable();
 
@@ -299,6 +355,74 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     {
         if (mes == null)
             return;  // Message syntax error or unknown type
+
+        // Using debugRandomPause?
+        if (debugRandomPause && (! robotBrains.isEmpty())
+            && (mes instanceof SOCMessageForGame)
+            && ! (mes instanceof SOCGameTextMsg))
+        {
+            final String ga = ((SOCMessageForGame) mes).getGame();
+            if (ga != null)
+            {
+                SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(ga);
+                if (brain != null)
+                {
+                    if (! debugRandomPauseActive)
+                    {
+                        // random chance of doing so
+                        if ((Math.random() < DEBUGRANDOMPAUSE_FREQ)
+                            && ((debugRandomPauseQueue == null)
+                                || (debugRandomPauseQueue.isEmpty())))
+                        {
+                            SOCGame gm = (SOCGame) games.get(ga);
+                            final int cpn = gm.getCurrentPlayerNumber();
+                            SOCPlayer rpl = gm.getPlayer(nickname);
+                            if ((rpl != null) && (cpn == rpl.getPlayerNumber())
+                                && (gm.getGameState() >= SOCGame.PLAY))
+                            {
+                                // we're current player, pause us
+                                debugRandomPauseActive = true;
+                                debugRandomPauseUntil = System.currentTimeMillis()
+                                    + (1000L * DEBUGRANDOMPAUSE_SECONDS);
+                                if (debugRandomPauseQueue == null)
+                                    debugRandomPauseQueue = new Vector();
+                                System.err.println("L379 -> do random pause: " + nickname);
+                                sendText(gm,
+                                    "debugRandomPauseActive for " + DEBUGRANDOMPAUSE_SECONDS + " seconds");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (debugRandomPause && debugRandomPauseActive)
+        {
+            if (System.currentTimeMillis() < debugRandomPauseUntil)
+            {
+                // time hasn't arrived yet
+                //   Add message to queue (even non-game and SOCGameTextMsg)
+                debugRandomPauseQueue.addElement(mes);
+
+                return;  // <--- Early return: debugRandomPauseActive ---
+            }
+            else
+            {
+                // time to resume the queue
+                debugRandomPauseActive = false;
+                while (! debugRandomPauseQueue.isEmpty())
+                {
+                    // calling ourself is safe, because
+                    //  ! queue.isEmpty; thus won't decide
+                    //  to set debugRandomPauseActive=true again.
+                    treat((SOCMessage) debugRandomPauseQueue.firstElement());
+                    debugRandomPauseQueue.removeElementAt(0);
+                }
+
+                // Don't return from this method yet,
+                // we still need to process mes.
+            }
+        }
 
         D.ebugPrintln("IN - " + mes);
 
