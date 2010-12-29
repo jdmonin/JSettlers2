@@ -49,10 +49,15 @@ import java.util.Vector;
  * updates clients' game state by sending messages such as
  * {@link soc.message.SOCGameState} and {@link soc.message.SOCSetPlayedDevCard}.
  *<P>
+ * Many methods assume you've already checked whether the move is valid,
+ * and won't check it a second time.  For example, {@link #canPlayKnight(int)}
+ * should be called to check before calling {@link #playKnight()}.
+ *<P>
  * For the board <b>coordinate system and terms</b> (hex, node, edge), see the
  * {@link SOCBoard} class javadoc.
  *<P>
- * {@link #putPiece(SOCPlayingPiece)} and other game-action methods update gameState.
+ * {@link #putPiece(SOCPlayingPiece)} and other game-action methods update <tt>gameState</tt>.
+ * {@link #updateAtTurn()}, <tt>putPiece</tt> and some other game-action methods update {@link #lastActionTime}.
  *
  * @author Robert S. Thomas
  */
@@ -544,9 +549,22 @@ public class SOCGame implements Serializable, Cloneable
     Date startTime;
 
     /**
-     * expiration time for this game in milliseconds
+     * expiration time for this game in milliseconds.
+     * Same format as {@link System#currentTimeMillis()}.
      */
     long expiration;
+
+    /**
+     * The last time a game action happened; can be used to check for game inactivity.
+     * Updated in {@link #updateAtTurn()}, {@link #putPiece(SOCPlayingPiece)},
+     * and a few other game action methods.
+     *<P>
+     * Same format as {@link System#currentTimeMillis()}.
+     * The server can set this field to 0 to tell itself to end a turn soon, but
+     * otherwise the value should be a recent time.
+     * @since 1.1.10
+     */
+    public long lastActionTime;
 
     /**
      * The number of normal turns (not rounds, not initial placements), including this turn.
@@ -703,6 +721,7 @@ public class SOCGame implements Serializable, Cloneable
 
         if (active)
             startTime = new Date();
+        lastActionTime = System.currentTimeMillis();
     }
 
     /**
@@ -1800,6 +1819,8 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
+        lastActionTime = System.currentTimeMillis();
+
         /**
          * check if the game is over
          */
@@ -2365,6 +2386,8 @@ public class SOCGame implements Serializable, Cloneable
         currentDice = 0;
         players[currentPlayerNumber].getDevCards().newToOld();
         resetVoteClear();
+        lastActionTime = System.currentTimeMillis();
+
         if (gameState == PLAY)
         {
             ++turnCount;
@@ -3517,6 +3540,8 @@ public class SOCGame implements Serializable, Cloneable
         acceptingPlayerResources.subtract(offer.getGetSet());
         offeringPlayerResources.add(offer.getGetSet());
         acceptingPlayerResources.add(offer.getGiveSet());
+
+        lastActionTime = System.currentTimeMillis();
     }
 
     /**
@@ -3652,6 +3677,7 @@ public class SOCGame implements Serializable, Cloneable
 
         playerResources.subtract(give);
         playerResources.add(get);
+        lastActionTime = System.currentTimeMillis();
     }
 
     /**
@@ -3805,7 +3831,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * the current player is buying a dev card
+     * the current player is buying a dev card.
+     *<P>
+     *<b>Note:</b> Not checked for validity; please call {@link #couldBuyDevCard(int)} first.
      *
      * @return the card that was drawn
      */
@@ -3819,6 +3847,7 @@ public class SOCGame implements Serializable, Cloneable
         resources.subtract(1, SOCResourceConstants.SHEEP);
         resources.subtract(1, SOCResourceConstants.WHEAT);
         players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.NEW, card);
+        lastActionTime = System.currentTimeMillis();
         checkForWinner();
 
         return (card);
@@ -3942,6 +3971,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void playKnight()
     {
+        lastActionTime = System.currentTimeMillis();
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
         players[currentPlayerNumber].incrementNumKnights();
@@ -3963,6 +3993,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void playRoadBuilding()
     {
+        lastActionTime = System.currentTimeMillis();
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
         oldGameState = gameState;
@@ -3979,6 +4010,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void playDiscovery()
     {
+        lastActionTime = System.currentTimeMillis();
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
         oldGameState = gameState;
@@ -3990,6 +4022,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void playMonopoly()
     {
+        lastActionTime = System.currentTimeMillis();
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
         oldGameState = gameState;
