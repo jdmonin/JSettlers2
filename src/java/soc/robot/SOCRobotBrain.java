@@ -2045,22 +2045,17 @@ public class SOCRobotBrain extends Thread
         case SOCGame.PLACING_CITY:
         case SOCGame.PLACING_FREE_ROAD1:  // JM TODO how to break out?
         case SOCGame.PLACING_FREE_ROAD2:  // JM TODO how to break out?
+        case SOCGame.SPECIAL_BUILDING:
             //
             // We've asked for an illegal piece placement.
             // (Must be a bug.) Cancel and invalidate this
             // planned piece, make a new plan.
             //
-            cancelWrongPiecePlacement(mes);
-            break;
-
-        case SOCGame.SPECIAL_BUILDING:
-            //
-            // Same as above, but in special building.
-            // Sometimes happens if another player has placed since we
-            // requested special building.  If our PUTPIECE request is
-            // denied, server sends us CANCELBUILDREQUEST during SPECIAL_BUILDING.
-            // This will cancel the placement, and also will
-            // set variables to end our turn.
+            // Can also happen in special building, if another
+            // player has placed since we requested special building.
+            // If our PUTPIECE request is denied, server sends us
+            // CANCELBUILDREQUEST.  We need to ask to cancel the
+            // placement, and also set variables to end our SBP turn.
             //
             cancelWrongPiecePlacement(mes);
             break;
@@ -3080,7 +3075,9 @@ public class SOCRobotBrain extends Thread
         final int gameState = game.getGameState();
 
         /**
-         * if true, server denied us due to resources, not due to building plan.
+         * if true, server likely denied us due to resources, not due to building plan
+         * being interrupted by another player's building before our special building phase.
+         * (Could also be due to a bug in the chosen building plan.)
          */
         final boolean gameStateIsPLAY1 = (gameState == SOCGame.PLAY1);
 
