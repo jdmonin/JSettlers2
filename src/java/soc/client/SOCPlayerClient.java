@@ -4041,7 +4041,10 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         if (ga == null)
             return;  // Not playing in that game
         if (ga.getGameState() != SOCGame.OVER)
+        {
+            System.err.println("L4044: pcli.updateGameEndStats called at state " + ga.getGameState());
             return;  // Should not have been sent; game is not yet over.
+        }
 
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(game);
         pi.updateAtOver(scores);

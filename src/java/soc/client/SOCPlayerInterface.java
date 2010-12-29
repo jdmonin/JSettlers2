@@ -1258,7 +1258,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     public void updateAtOver(int[] finalScores)
     {
         if (game.getGameState() != SOCGame.OVER)
+        {
+            System.err.println("L1264: pi.updateAtOver called at state " + game.getGameState());
             return;
+        }
 
         for (int i = 0; i < finalScores.length; ++i)
             game.getPlayer(i).forceFinalVP(finalScores[i]);
