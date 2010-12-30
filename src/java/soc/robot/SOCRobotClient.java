@@ -359,7 +359,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
         // Using debugRandomPause?
         if (debugRandomPause && (! robotBrains.isEmpty())
             && (mes instanceof SOCMessageForGame)
-            && ! (mes instanceof SOCGameTextMsg))
+            && ! (mes instanceof SOCGameTextMsg)
+            && ! (mes instanceof SOCTurn))
         {
             final String ga = ((SOCMessageForGame) mes).getGame();
             if (ga != null)
@@ -398,9 +399,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         if (debugRandomPause && debugRandomPauseActive)
         {
-            if (System.currentTimeMillis() < debugRandomPauseUntil)
+            if ((System.currentTimeMillis() < debugRandomPauseUntil)
+                && ! (mes instanceof SOCTurn))
             {
-                // time hasn't arrived yet
+                // time hasn't arrived yet, and still our turn:
                 //   Add message to queue (even non-game and SOCGameTextMsg)
                 debugRandomPauseQueue.addElement(mes);
 
