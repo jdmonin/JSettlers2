@@ -117,7 +117,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * and it won't be our turn in each of those games.
      * @see #DEBUGRANDOMPAUSE_FREQ
      * @see #debugRandomPauseActive
-     * @since 1.1.10
+     * @since 1.1.11
      */
     private static boolean debugRandomPause = false;  // set true to use this debug type
 
@@ -127,7 +127,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * sending them to {@link #robotBrains} immediately.
      * The pause goes on until {@link #debugRandomPauseUntil} arrives.
      * This is all handled within {@link #treat(SOCMessage)}.
-     * @since 1.1.10
+     * @since 1.1.11
      */
     private boolean debugRandomPauseActive = false;
 
@@ -135,7 +135,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * When {@link #debugRandomPauseActive} is true, store incoming messages
      * from the server into this queue until {@link #debugRandomPauseUntil}.
      * Initialized in {@link #treat(SOCMessage)}.
-     * @since 1.1.10
+     * @since 1.1.11
      */
     private Vector debugRandomPauseQueue = null;
 
@@ -143,7 +143,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * When {@link #debugRandomPauseActive} is true, resume at this time;
      * same format as {@link System#currentTimeMillis()}.
      * @see #DEBUGRANDOMPAUSE_SECONDS
-     * @since 1.1.10
+     * @since 1.1.11
      */
     private long debugRandomPauseUntil;
 
@@ -151,7 +151,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * When {@link #debugRandomPause} is true but not {@link #debugRandomPauseActive},
      * frequency of activating it; checked for each non-{@link SOCGameTextMsg}
      * message received during our own turn. 
-     * @since 1.1.10
+     * @since 1.1.11
      */
     private static final double DEBUGRANDOMPAUSE_FREQ = .04;  // 4%
 

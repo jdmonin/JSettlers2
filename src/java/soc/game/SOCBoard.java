@@ -309,9 +309,9 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * largest coordinate value for an edge, in the v1 encoding.
-     * Named <tt>MAXEDGE</tt> before v1.1.10 ; the name change is a
+     * Named <tt>MAXEDGE</tt> before v1.1.11 ; the name change is a
      * reminder that {@link #MAXEDGE_V2} represents a different encoding.
-     * @since 1.1.10
+     * @since 1.1.11
      */
     protected static final int MAXEDGE_V1 = 0xCC;
 
@@ -323,9 +323,9 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * smallest coordinate value for an edge, in the v1 encoding.
-     * Named <tt>MINEDGE</tt> before v1.1.10 ; the name change is a
+     * Named <tt>MINEDGE</tt> before v1.1.11 ; the name change is a
      * reminder that {@link #MINEDGE_V2} has a different value.
-     * @since 1.1.10
+     * @since 1.1.11
      */
     protected static final int MINEDGE_V1 = 0x22;
 
@@ -342,9 +342,9 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * smallest coordinate value for a node on land, in the v1 encoding.
-     * Named <tt>MINNODE</tt> before v1.1.10 ; the name change is a
+     * Named <tt>MINNODE</tt> before v1.1.11 ; the name change is a
      * reminder that {@link #MINNODE_V2} has a different value.
-     * @since 1.1.10
+     * @since 1.1.11
      */
     protected static final int MINNODE_V1 = 0x23;
 
@@ -543,7 +543,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * the previous hex coordinate that the robber is in; -1 unless
      * {@link #setRobberHex(int, boolean) setRobberHex(rh, true)} was called.
-     * @since 1.1.10
+     * @since 1.1.11
      */
     private int prevRobberHex;
 
@@ -592,7 +592,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
-     * @since 1.1.10
+     * @since 1.1.11
      */
     public static SOCBoard createBoard(Hashtable gameOpts, final int maxPlayers)
         throws IllegalArgumentException
@@ -1298,7 +1298,7 @@ public class SOCBoard implements Serializable, Cloneable
      * of the robber.
      * @return hex coordinate where the robber was, or -1
      * @see #getRobberHex()
-     * @since 1.1.10
+     * @since 1.1.11
      */
     public int getPreviousRobberHex()
     {
@@ -1429,7 +1429,7 @@ public class SOCBoard implements Serializable, Cloneable
      * set where the robber is
      *
      * @param rh  the new robber hex coordinate; not validated
-     * @param rememberPrevious  Should we remember the old robber hex? (added in 1.1.10)
+     * @param rememberPrevious  Should we remember the old robber hex? (added in 1.1.11)
      * @see #getRobberHex()
      * @see #getPreviousRobberHex()
      */
@@ -1761,7 +1761,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Get the minimum edge coordinate in this board encoding format.
      * @return minimum possible edge coordinate
-     * @since 1.1.10
+     * @since 1.1.11
      */
     public int getMinEdge()
     {
@@ -1771,7 +1771,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Get the maximum edge coordinate in this board encoding format.
      * @return maximum possible edge coordinate
-     * @since 1.1.10
+     * @since 1.1.11
      */
     public int getMaxEdge()
     {
@@ -2122,7 +2122,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param edgeCoord  Edge coordinate; checked against minEdge, maxEdge.
      *   For the 6-player encoding, use 0, not -1, to indicate edge 0x00.
      * @return  is the edge adjacent?
-     * @since 1.1.10
+     * @since 1.1.11
      */
     public boolean isEdgeAdjacentToNode(final int nodeCoord, final int edgeCoord)
     {

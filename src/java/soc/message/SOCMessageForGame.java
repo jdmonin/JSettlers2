@@ -29,7 +29,7 @@ package soc.message;
  * each of their own subclasses.  It's never intended that a specific message type
  * will sometimes hold a game name, and sometimes hold null.
  *
- * @since 1.1.10
+ * @since 1.1.11
  * @author Jeremy D Monin
  */
 public interface SOCMessageForGame

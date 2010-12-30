@@ -21,6 +21,7 @@ package soc.server;
 
 import java.util.TimerTask;
 
+import soc.message.SOCMessage;  // for javadoc
 import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameList;
 
@@ -101,8 +102,7 @@ public class SOCClientData
         wins = 0;
         losses = 0;
         sentGameList = false;
-        cliVersionTask = null;
-        disconnectLastPingMillis = 0L;
+        // other fields get their default java values (0 or null)
     }
 
     /**

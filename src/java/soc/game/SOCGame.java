@@ -568,7 +568,7 @@ public class SOCGame implements Serializable, Cloneable
      * in order to remove it from the {@link soc.server.SOCGameTimeoutChecker}
      * run loop.
      *
-     * @since 1.1.10
+     * @since 1.1.11
      */
     public long lastActionTime;
 

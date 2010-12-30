@@ -37,15 +37,15 @@ import soc.server.genericServer.StringConnection;
  */
 public class SOCServerRobotPinger extends Thread
 {
-    private final SOCServer srv;
     private Vector robotConnections;
     private int sleepTime = 150000;
     private SOCServerPing ping;
     private boolean alive;
     /**
      * Our server.
-     * @since 1.1.10
+     * @since 1.1.11
      */
+    private final SOCServer srv;
 
     /**
      * Create a server robot pinger
