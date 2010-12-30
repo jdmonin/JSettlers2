@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,22 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.server;
 
 
 /**
- * Wakes up every 5 minutes to check for games that have expired,
- * by calling {@link SOCServer#checkForExpiredGames()}.
+ * Wakes up every few seconds to check for turns that have expired,
+ * and every 5 minutes to check for games that have expired,
+ * by calling {@link SOCServer#checkForExpiredGames(long)}
+ * and {@link SOCServer#checkForExpiredTurns(long)}.
  *
  * @author Robert S Thomas
  */
 public class SOCGameTimeoutChecker extends Thread
 {
-    SOCServer server;
-    boolean alive;
+    private SOCServer server;
+    private boolean alive;
 
     /**
      * Create a game timeout checker
@@ -46,19 +47,37 @@ public class SOCGameTimeoutChecker extends Thread
     }
 
     /**
-     * Wakes up every 5 minutes to check for games that have expired
+     * Wakes up every few seconds to check for turns that have expired,
+     * and every 5 minutes to check for games that have expired.
      */
     public void run()
     {
+        // check every few seconds; should be about half of ROBOT_FORCE_ENDTURN_SECONDS
+        final int sleepMillis = SOCServer.ROBOT_FORCE_ENDTURN_SECONDS * 600;
+
+        // Holds time of next check for game expiry, not just turn expiry
+        long gameExpireCheckTime = 0L;
+
         while (alive)
         {
-            server.checkForExpiredGames();
+            long now = System.currentTimeMillis();
+            if (gameExpireCheckTime == 0L)
+                gameExpireCheckTime = now;
+            if (now >= gameExpireCheckTime)
+            {
+                server.checkForExpiredGames(now);
+
+                // check every 5 minutes; must be at most half of SOCServer.GAME_EXPIRE_WARN_MINUTES
+                gameExpireCheckTime = now + 300000;
+                yield();
+            }
+
+            server.checkForExpiredTurns(now);
             yield();
 
             try
             {
-                // check every 5 minutes; must be at most half of SOCServer.GAME_EXPIRE_WARN_MINUTES
-                sleep(300000);
+                sleep(sleepMillis);
             }
             catch (InterruptedException exc) {}
         }

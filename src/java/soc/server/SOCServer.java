@@ -69,8 +69,13 @@ import java.util.Vector;
  * and the second is the server's response:
  * Either {@link SOCRejectConnection}, or the lists of
  * channels and games ({@link SOCChannels}, {@link SOCGames}).
- * See {@link SOCMessage} for details of the client/server protocol.
- * See {@link Server} for details of the server threading and processing.
+ *<UL>
+ *<LI> See {@link SOCMessage} for details of the client/server protocol.
+ *<LI> See {@link Server} for details of the server threading and processing.
+ *<LI> To get a player's connection, use {@link #getConnection(Object) getConnection(plName)}.
+ *<LI> To send a message to all players in a game, use {@link #messageToGame(String, SOCMessage)}
+ *       and related methods.
+ *</UL>
  *<P>
  * The server supports several <b>debug commands</b> when enabled, and
  * when sent as chat messages by a user named "debug".
@@ -194,10 +199,27 @@ public class SOCServer extends Server
      * Must be at least twice the sleep-time in {@link SOCGameTimeoutChecker#run()}.
      * The game expiry time is set at game creation in {@link SOCGameListAtServer#createGame(String, String, Hashtable)}.
      *
-     * @see #checkForExpiredGames()
+     * @see #checkForExpiredGames(long)
      * @see SOCGameTimeoutChecker#run()
+     * @see SOCGameListAtServer#GAME_EXPIRE_MINUTES
      */
     public static int GAME_EXPIRE_WARN_MINUTES = 10;
+
+    /**
+     * Force robot to end their turn after this many seconds
+     * of inactivity.
+     * @see #checkForExpiredTurns(long)
+     * @since 1.1.11
+     */
+    public static int ROBOT_FORCE_ENDTURN_SECONDS = 8;
+
+    /**
+     * Force robot to end their turn after this much inactivity,
+     * while they've made a trade offer.
+     * @see #checkForExpiredTurns(long)
+     * @since 1.1.11
+     */
+    public static int ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS = 60;
 
     /**
      * Maximum permitted game name length, default 20 characters.
@@ -544,7 +566,7 @@ public class SOCServer extends Server
         numberOfGamesStarted = 0;
         numberOfGamesFinished = 0;
         numberOfUsers = 0;
-        serverRobotPinger = new SOCServerRobotPinger(robots);
+        serverRobotPinger = new SOCServerRobotPinger(this, robots);
         serverRobotPinger.start();
         gameTimeoutChecker = new SOCGameTimeoutChecker(this);
         gameTimeoutChecker.start();
@@ -914,8 +936,8 @@ public class SOCServer extends Server
     /**
      * the connection c leaves the game gm.  Clean up; if needed, call {@link #forceEndGameTurn(SOCGame, String)}.
      *<P>
-     * WARNING: MUST HAVE THE gameList.takeMonitorForGame(gm) before
-     * calling this method
+     * <B>Locks:</b> May or may not have the gameList.takeMonitorForGame(gm) before
+     * calling this method; should not have {@link SOCGame#takeMonitor()}.
      *
      * @param c  the connection; if c is being dropped because of an error,
      *           this method assumes that {@link StringConnection#disconnect()}
@@ -1198,106 +1220,13 @@ public class SOCServer extends Server
              */
             if (foundNoRobots)
             {
-                final int cpn = ga.getCurrentPlayerNumber();
-
-                if (playerNumber == cpn)
+                final boolean stillActive = endGameTurnOrForce(ga, playerNumber, plName, c, true);
+                if (! stillActive)
                 {
-                    /**
-                     * Rare condition:
-                     * No robot was found, but it was this player's turn.
-                     * End their turn just to keep the game limping along.
-                     * To prevent deadlock, we must release gamelist's monitor for
-                     * this game before calling endGameTurn.
-                     */
-
-                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B))
-                    {
-                        /**
-                         * Leaving during 1st or 2nd initial road placement.
-                         * Cancel the settlement they just placed,
-                         * and send that cancel to the other players.
-                         * Don't change gameState yet.
-                         * Note that their 2nd settlement is removed in START2B,
-                         * but not their 1st settlement. (This would impact the robots much more.)
-                         */
-                        SOCPlayer pl = ga.getPlayer(playerNumber);
-                        SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
-                        ga.undoPutInitSettlement(pp);
-                        ga.setGameState(gameState);  // state was changed by undoPutInitSettlement
-                        messageToGameWithMon
-                          (gm, new SOCCancelBuildRequest(gm, SOCSettlement.SETTLEMENT));
-                    }
-
-                    if (ga.canEndTurn(playerNumber))
-                    {
-                        gameList.releaseMonitorForGame(gm);
-                        ga.takeMonitor();
-                        endGameTurn(ga, null);
-                        ga.releaseMonitor();
-                        gameList.takeMonitorForGame(gm);
-                    } else {
-                        /**
-                         * Cannot easily end turn.
-                         * Must back out something in progress.
-                         * May or may not end turn; see javadocs
-                         * of forceEndGameTurn and game.forceEndTurn.
-                         * All start phases are covered here (START1A..START2B)
-                         * because canEndTurn returns false in those gameStates.
-                         */
-                        gameList.releaseMonitorForGame(gm);
-                        ga.takeMonitor();
-                        if (gameVotingActiveDuringStart)
-                        {
-                            /**
-                             * If anyone has requested a board-reset vote during
-                             * game-start phases, we have to tell clients to cancel
-                             * the vote request, because {@link soc.message.SOCTurn}
-                             * isn't always sent during start phases.  (Voting must
-                             * end when the turn ends.)
-                             */
-                            messageToGame(gm, new SOCResetBoardReject(gm));
-                            ga.resetVoteClear();
-                        }
-
-                        /**
-                         * Force turn to end
-                         */
-                        final boolean gameStillActive = forceEndGameTurn(ga, plName);
-                        ga.releaseMonitor();
-                        if (gameStillActive)
-                        {
-                            gameList.takeMonitorForGame(gm);
-                        } else {
-                            // force game destruction below
-                            gameHasHumanPlayer = false;
-                            gameHasObserver = false;
-                        }
-                    }
+                    // force game destruction below
+                    gameHasHumanPlayer = false;
+                    gameHasObserver = false;
                 }
-                else
-                {
-                    /**
-                     * Check if game is waiting for input from the player who
-                     * is leaving, but who isn't current player.
-                     * To keep the game moving, fabricate their response.
-                     * - Board-reset voting: Handled above.
-                     * - Waiting for discard: Handle here.
-                     */
-                    if ((gameState == SOCGame.WAITING_FOR_DISCARDS)
-                         && (ga.getPlayer(playerNumber).getNeedToDiscard()))
-                    {
-                        /**
-                         * For discard, tell the discarding player's client that they discarded the resources,
-                         * tell everyone else that the player discarded unknown resources.
-                         */
-                        gameList.releaseMonitorForGame(gm);
-                        ga.takeMonitor();
-                        forceGamePlayerDiscard(ga, cpn, c, plName, playerNumber);
-                        sendGameState(ga, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER
-                        ga.releaseMonitor();
-                        gameList.takeMonitorForGame(gm);
-                    }
-                }  // current player?
             }
         }
 
@@ -1335,6 +1264,169 @@ public class SOCServer extends Server
 
         //D.ebugPrintln("*** gameDestroyed = "+gameDestroyed+" for "+gm);
         return gameDestroyed;
+    }
+
+    /**
+     * End this player's turn cleanly, or force-end if needed.
+     *<P>
+     * Can be called for a player still in the game, or for a player
+     * who has left ({@link SOCGame#removePlayer(String)} has been called).
+     *<P>
+     * <b>Locks:</b> Must not have ga.takeMonitor() when calling this method.
+     * May or may not have <tt>gameList.takeMonitorForGame(ga)</tt>;
+     * use <tt>hasMonitorFromGameList</tt> to indicate.
+     *<P>
+     * Not public, but package visibility, for use by {@link SOCGameTimeoutChecker}. 
+     *
+     * @param ga   The game to end turn
+     * @param plNumber  player.getNumber; may or may not be current player
+     * @param plName    player.getName
+     * @param plConn    player's client connection
+     * @param hasMonitorFromGameList  if false, have not yet called
+     *          {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)};
+     *          if false, this method will take this monitor at its start,
+     *          and release it before returning.
+     * @return true if the turn was ended and game is still active;
+     *          false if we find that all players have left and
+     *          the gamestate has been changed here to {@link #OVER}.
+     */
+    boolean endGameTurnOrForce(SOCGame ga, final int plNumber, final String plName, StringConnection plConn, final boolean hasMonitorFromGameList)
+    {
+        boolean gameStillActive = true;
+
+        final String gm = ga.getName();
+        if (! hasMonitorFromGameList)
+        {
+            gameList.takeMonitorForGame(gm);
+        }
+        final int cpn = ga.getCurrentPlayerNumber();
+        final int gameState = ga.getGameState();
+
+        /**
+         * Is a board-reset vote is in progress?
+         * If they're still a sitting player, to keep the game
+         * moving, fabricate their response: vote No.
+         */
+        boolean gameVotingActiveDuringStart = false;
+
+        if (ga.getResetVoteActive())
+        {
+            if (gameState <= SOCGame.START2B)
+                gameVotingActiveDuringStart = true;
+
+            if ((! ga.isSeatVacant(plNumber))
+                && (ga.getResetPlayerVote(plNumber) == SOCGame.VOTE_NONE))
+            {
+                gameList.releaseMonitorForGame(gm);
+                ga.takeMonitor();
+                resetBoardVoteNotifyOne(ga, plNumber, plName, false);                
+                ga.releaseMonitor();
+                gameList.takeMonitorForGame(gm);
+            }
+        }
+
+        /**
+         * Now end their turn, or handle any needed responses if not current player.
+         */
+        if (plNumber == cpn)
+        {
+            /**
+             * End their turn just to keep the game limping along.
+             * To prevent deadlock, we must release gamelist's monitor for
+             * this game before calling endGameTurn.
+             */
+
+            if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B))
+            {
+                /**
+                 * Leaving during 1st or 2nd initial road placement.
+                 * Cancel the settlement they just placed,
+                 * and send that cancel to the other players.
+                 * Don't change gameState yet.
+                 * Note that their 2nd settlement is removed in START2B,
+                 * but not their 1st settlement. (This would impact the robots much more.)
+                 */
+                SOCPlayer pl = ga.getPlayer(plNumber);
+                SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
+                ga.undoPutInitSettlement(pp);
+                ga.setGameState(gameState);  // state was changed by undoPutInitSettlement
+                messageToGameWithMon
+                  (gm, new SOCCancelBuildRequest(gm, SOCSettlement.SETTLEMENT));
+            }
+
+            if (ga.canEndTurn(plNumber))
+            {
+                gameList.releaseMonitorForGame(gm);
+                ga.takeMonitor();
+                endGameTurn(ga, null);
+                ga.releaseMonitor();
+                gameList.takeMonitorForGame(gm);
+            } else {
+                /**
+                 * Cannot easily end turn.
+                 * Must back out something in progress.
+                 * May or may not end turn; see javadocs
+                 * of forceEndGameTurn and game.forceEndTurn.
+                 * All start phases are covered here (START1A..START2B)
+                 * because canEndTurn returns false in those gameStates.
+                 */
+                gameList.releaseMonitorForGame(gm);
+                ga.takeMonitor();
+                if (gameVotingActiveDuringStart)
+                {
+                    /**
+                     * If anyone has requested a board-reset vote during
+                     * game-start phases, we have to tell clients to cancel
+                     * the vote request, because {@link soc.message.SOCTurn}
+                     * isn't always sent during start phases.  (Voting must
+                     * end when the turn ends.)
+                     */
+                    messageToGame(gm, new SOCResetBoardReject(gm));
+                    ga.resetVoteClear();
+                }
+
+                /**
+                 * Force turn to end
+                 */
+                gameStillActive = forceEndGameTurn(ga, plName);
+                ga.releaseMonitor();
+                if (gameStillActive)
+                {
+                    gameList.takeMonitorForGame(gm);
+                }
+            }
+        }
+        else
+        {
+            /**
+             * Check if game is waiting for input from the player who
+             * is leaving, but who isn't current player.
+             * To keep the game moving, fabricate their response.
+             * - Board-reset voting: Handled above.
+             * - Waiting for discard: Handle here.
+             */
+            if ((gameState == SOCGame.WAITING_FOR_DISCARDS)
+                 && (ga.getPlayer(plNumber).getNeedToDiscard()))
+            {
+                /**
+                 * For discard, tell the discarding player's client that they discarded the resources,
+                 * tell everyone else that the player discarded unknown resources.
+                 */
+                gameList.releaseMonitorForGame(gm);
+                ga.takeMonitor();
+                forceGamePlayerDiscard(ga, cpn, plConn, plName, plNumber);
+                sendGameState(ga, false);  // WAITING_FOR_DISCARDS or MOVING_ROBBER
+                ga.releaseMonitor();
+                gameList.takeMonitorForGame(gm);
+            }
+        }  // current player?
+
+        if (! hasMonitorFromGameList)
+        {
+            gameList.releaseMonitorForGame(gm);
+        }
+
+        return gameStillActive;
     }
 
     /**
@@ -4616,7 +4708,7 @@ public class SOCServer extends Server
                             D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(coord)
                                 + ": player " + player.getPlayerNumber());
                             messageToPlayer(c, gaName, "You can't build a road there.");
-                            sendDenyReply = true;                                   
+                            sendDenyReply = true;
                         }
                     }
                     else
@@ -4703,6 +4795,11 @@ public class SOCServer extends Server
                 if (sendDenyReply)
                 {
                     messageToPlayer(c, new SOCCancelBuildRequest(gaName, mes.getPieceType()));
+                    if (player.isRobot())
+                    {
+                        // Set the "force end turn soon" field
+                        ga.lastActionTime = 0L;
+                    }
                 }                       
             }
             else
@@ -5339,9 +5436,11 @@ public class SOCServer extends Server
     /**
      * Pre-checking already done, end the current player's turn in this game.
      * Alter game state and send messages to players.
-     * Calls {@link SOCGame#endTurn()}.
+     * Calls {@link SOCGame#endTurn()}, which may also end the game.
      * On the 6-player board, this may begin the {@link SOCGame#SPECIAL_BUILDING Special Building Phase},
      * or end a player's placements during that phase.
+     * Otherwise, calls {@link #sendTurn(SOCGame, boolean)} and begins
+     * the next player's turn.
      *<P>
      * Assumes:
      * <UL>
@@ -5442,6 +5541,7 @@ public class SOCServer extends Server
      *          false if we find that all players have left and
      *          the gamestate has been changed here to {@link #OVER}.
      *
+     * @see #endPlayerTurnOrForce(SOCGame, int, String)
      * @see SOCGame#forceEndTurn()
      */
     private boolean forceEndGameTurn(SOCGame ga, final String plName)
@@ -5828,6 +5928,10 @@ public class SOCServer extends Server
                         else
                         {
                             messageToPlayer(c, ga.getName(), "You can't make that trade.");
+                            SOCClientData scd = (SOCClientData) c.getAppData();
+                            if ((scd != null) && scd.isRobot)
+                                D.ebugPrintln("ILLEGAL BANK TRADE: " + c.getData()
+                                  + ": give " + mes.getGiveSet() + ", get " + mes.getGetSet());
                         }
                     }
                     else
@@ -8161,7 +8265,7 @@ public class SOCServer extends Server
     }  // resetBoardAndNotify_finish
 
     /**
-     * send whose turn it is. Optionally also send a prompt to roll.
+     * send {@link SOCTurn whose turn it is}. Optionally also send a prompt to roll.
      * If the client is too old (1.0.6), it will ignore the prompt.
      *
      * @param ga  the game
@@ -8420,10 +8524,12 @@ public class SOCServer extends Server
      * If games are about to expire, send a warning.
      * As of version 1.1.09, practice games ({@link SOCGame#isLocal} flag set) don't expire.
      *
+     * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #GAME_EXPIRE_WARN_MINUTES
+     * @see #checkForExpiredTurns(long)
      * @see SOCGameTimeoutChecker#run()
      */
-    public void checkForExpiredGames()
+    public void checkForExpiredGames(final long currentTimeMillis)
     {
         Vector expired = new Vector();
 
@@ -8434,7 +8540,6 @@ public class SOCServer extends Server
 
         try
         {
-            final long currentTimeMillis = System.currentTimeMillis();
             for (Enumeration k = gameList.getGamesData(); k.hasMoreElements();)
             {
                 SOCGame gameData = (SOCGame) k.nextElement();
@@ -8491,6 +8596,70 @@ public class SOCServer extends Server
 
             gameList.releaseMonitor();
             broadcast(SOCDeleteGame.toCmd(ga));
+        }
+    }
+
+    /**
+     * Check for robot turns that have expired, and end them.
+     * They may end from inactivity or from an illegal placement.
+     * Checks the {@link SOCGame#lastActionTime} field.
+     *
+     * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
+     * @see #ROBOT_FORCE_ENDTURN_SECONDS
+     * @see SOCGameTimeoutChecker#run()
+     * @see #checkForExpiredGames(long)
+     * @since 1.1.11
+     */
+    public void checkForExpiredTurns(final long currentTimeMillis)
+    {
+        // Because nothing's currently happening in such a turn,
+        // and we force the end in another thread,
+        // we shouldn't need to worry about locking.
+        // So, we don't need gameList.takeMonitor().
+
+        final long inactiveTime = currentTimeMillis - (1000L * ROBOT_FORCE_ENDTURN_SECONDS); 
+
+        try
+        {
+            for (Enumeration k = gameList.getGamesData(); k.hasMoreElements();)
+            {
+                SOCGame ga = (SOCGame) k.nextElement();
+
+                // lastActionTime is a recent time, or might be 0 to force end
+                long lastActionTime = ga.lastActionTime;
+                if (lastActionTime > inactiveTime)
+                    continue;
+                if (SOCGame.OVER <= ga.getGameState())
+                {
+                    // bump out that time, so we don't see
+                    // it again every few seconds
+                    ga.lastActionTime
+                        += (1000L * 60L * SOCGameListAtServer.GAME_EXPIRE_MINUTES);
+                    continue;
+                }
+                final int cpn = ga.getCurrentPlayerNumber();
+                if (cpn == -1)
+                    continue;  // not started yet
+                SOCPlayer pl = ga.getPlayer(cpn);
+                if (! pl.isRobot())
+                    continue;
+
+                if (pl.getCurrentOffer() != null)
+                {
+                    // Robot is waiting for response to a trade offer;
+                    // check against that longer timeout.
+                    final long tradeInactiveTime
+                        = currentTimeMillis - (1000L * ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS);
+                    if (lastActionTime > tradeInactiveTime)
+                        continue;
+                }
+
+                new ForceEndTurnThread(ga, pl).start();
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintln("Exception in checkForExpiredTurns - " + e);
         }
     }
 
@@ -8918,5 +9087,43 @@ public class SOCServer extends Server
         }
 
     }  // nested static class SOCPlayerLocalRobotRunner
+
+    /**
+     * Force-end this robot's turn.
+     * Done in a separate thread in case of deadlocks.
+     * Created from {@link SOCGameTimeoutChecker#run()}.
+     * @author Jeremy D Monin
+     * @since 1.1.11
+     */
+    private class ForceEndTurnThread extends Thread
+    {
+        private SOCGame ga;
+        private SOCPlayer pl;
+
+        public ForceEndTurnThread(SOCGame g, SOCPlayer p)
+        {
+            setDaemon(true);
+            ga = g;
+            pl = p;
+        }
+
+        public void run()
+        {
+            final String rname = pl.getName();
+            final int plNum = pl.getPlayerNumber();
+            if (ga.getCurrentPlayerNumber() != plNum)
+                return;
+
+            StringConnection rconn = getConnection(rname);
+            System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " state " + ga.getGameState());
+            if (rconn == null)
+            {
+                System.err.println("L9120: internal error: can't find connection for " + rname);
+                return;  // shouldn't happen
+            }
+            endGameTurnOrForce(ga, plNum, rname, rconn, false);
+        }
+
+    }  // inner class ForceEndTurnThread
 
 }  // public class SOCServer

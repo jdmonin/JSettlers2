@@ -53,6 +53,7 @@ public class SOCGameListAtServer extends SOCGameList
      * Default is 90.
      *
      * @see #createGame(String, String, Hashtable)
+     * @see SOCServer#checkForExpiredGames(long)
      */
     public static int GAME_EXPIRE_MINUTES = 90;
 
