@@ -562,6 +562,12 @@ public class SOCGame implements Serializable, Cloneable
      * Same format as {@link System#currentTimeMillis()}.
      * The server can set this field to 0 to tell itself to end a turn soon, but
      * otherwise the value should be a recent time.
+     *<P>
+     * At the end of a game, the server may increase this value by
+     * 90 minutes ({@link soc.server.SOCGameListAtServer#GAME_EXPIRE_MINUTES})
+     * in order to remove it from the {@link soc.server.SOCGameTimeoutChecker}
+     * run loop.
+     *
      * @since 1.1.10
      */
     public long lastActionTime;
@@ -3103,6 +3109,7 @@ public class SOCGame implements Serializable, Cloneable
         SOCMoveRobberResult result = new SOCMoveRobberResult();
 
         board.setRobberHex(co, true);
+        lastActionTime = System.currentTimeMillis();
 
         /**
          * do the robbing thing
