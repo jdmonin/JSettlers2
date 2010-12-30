@@ -333,6 +333,20 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected int npix;
 
     /**
+     * Size of our window from {@link #getSize()}, not excluding insets.
+     * Determined in {@link #doLayout()}, or null.
+     * @since 1.1.11
+     */
+    private Dimension prevSize;
+
+    /**
+     * Have we resized the board, and thus need to repaint the borders
+     * between panels?  Determined in {@link #doLayout()}.
+     * @since 1.1.11
+     */
+    private boolean needRepaintBorders;
+
+    /**
      * To reduce text clutter: server has just sent a dice result message.
      * If the next text message from server is the roll,
      *   replace: * It's Player's turn to roll the dice. \n * Player rolled a 4 and a 5.
@@ -608,6 +622,67 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         } else {
             g.clearRect(0, 0, getWidth(), getHeight());
         }
+    }
+
+    /**
+     * Paint each component, after (if {@link #needRepaintBorders}) clearing stray pixels
+     * from the borders between the components.
+     * @since 1.1.11
+     */
+    public void paint(Graphics g)
+    {
+        if (needRepaintBorders)
+            paintBorders(g);
+        super.paint(g);
+    }
+
+    /**
+     * Paint the borders after a resize, and set {@link #needRepaintBorders} false.
+     * {@link #prevSize} should be set before calling.
+     * @param g  Graphics as passed to <tt>update()</tt>
+     * @since 1.1.11
+     */
+    private void paintBorders(Graphics g)
+    {
+        if (prevSize == null)
+            return;
+        if (is6player)
+        {
+            paintBordersHandColumn(g, hands[5]);
+            paintBordersHandColumn(g, hands[2]);
+        } else {
+            paintBordersHandColumn(g, hands[0]);
+            paintBordersHandColumn(g, hands[1]);           
+        }
+        needRepaintBorders = false;
+    }
+
+    /**
+     * Paint the borders of one column of handpanels.
+     * @param g  Graphics as passed to <tt>update()</tt>
+     * @param middlePanel  The middle handpanel (6-player) or the bottom (4-player) in this column
+     * @since 1.1.11
+     */
+    private final void paintBordersHandColumn(Graphics g, SOCHandPanel middlePanel)
+    {
+        final int w = middlePanel.getWidth();
+
+        // left side, entire height
+        int x = middlePanel.getX();
+        g.clearRect(x - 4, 0, 4, prevSize.height);
+
+        // right side, entire height
+        x += w;
+        g.clearRect(x, 0, 4, prevSize.height);
+
+        // above middle panel
+        x = middlePanel.getX();
+        int y = middlePanel.getY();
+        g.clearRect(x, y - 4, w, 4);
+
+        // below middle panel
+        y += middlePanel.getHeight();
+        g.clearRect(x, y, w, 4);
     }
 
     /**
@@ -1659,6 +1734,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         Insets i = getInsets();
         Dimension dim = getSize();
+        if (prevSize != null)
+        {
+            needRepaintBorders = (dim.width != prevSize.width)
+                || (dim.height != prevSize.height);
+        }
+        prevSize = dim;
         dim.width -= (i.left + i.right);
         dim.height -= (i.top + i.bottom);
 
