@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,14 +21,12 @@
  **/
 package soc.server;
 
-import soc.disableDebug.D;
-
-import soc.message.SOCServerPing;
-
-import soc.server.genericServer.StringConnection;
-
 import java.util.Enumeration;
 import java.util.Vector;
+
+import soc.disableDebug.D;
+import soc.message.SOCServerPing;
+import soc.server.genericServer.StringConnection;
 
 
 /**
@@ -38,18 +37,24 @@ import java.util.Vector;
  */
 public class SOCServerRobotPinger extends Thread
 {
-    Vector robotConnections;
-    int sleepTime = 150000;
-    SOCServerPing ping;
-    boolean alive;
+    private final SOCServer srv;
+    private Vector robotConnections;
+    private int sleepTime = 150000;
+    private SOCServerPing ping;
+    private boolean alive;
+    /**
+     * Our server.
+     * @since 1.1.10
+     */
 
     /**
      * Create a server robot pinger
      *
-     * @param robots  the connections to robots
+     * @param robots  the connections to robots; a Vector of {@link StringConnection}s
      */
-    public SOCServerRobotPinger(Vector robots)
+    public SOCServerRobotPinger(SOCServer s, Vector robots)
     {
+        srv = s;
         robotConnections = robots;
         ping = new SOCServerPing(sleepTime);
         alive = true;
@@ -92,10 +97,11 @@ public class SOCServerRobotPinger extends Thread
     }
 
     /**
-     * DOCUMENT ME!
+     * Cleanly exit the thread's run loop.
      */
     public void stopPinger()
     {
         alive = false;
     }
-}
+
+}  // public class SOCServerRobotPinger
