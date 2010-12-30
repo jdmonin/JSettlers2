@@ -35,6 +35,7 @@ For debugging, if you want to inspect the game state at the server or robot:
 	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
 	  send a text msg from a client (the chat textfield), and inspect the game obj at that point
 	To inspect game state at robot, breakpoint robotcli.treat and send a text msg like *BOTLIST* or robot2:current-plans
+	On non-Windows JVMs, you can print a stack trace / thread dump to the shell by sending SIGQUIT.
 
 
 Current TODO list: (Work on these items not yet begun)
@@ -54,6 +55,9 @@ Current TODO list: (Work on these items not yet begun)
 	- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 	- If try to start server in JSettlers.jar, but port already in use, currently ends program immediately
 		should instead show MessagePanel with option to practice, or even just show a message
+	- Control the speed of robots in practice
+		Adjust SOCRobotBrain.pause, ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS, etc
+	- Sound effects
 	- Properties for game option defaults for server startup
 		-Djsettlers.game.N7=y  instead of -O N7=y
 		allow lowercase too
