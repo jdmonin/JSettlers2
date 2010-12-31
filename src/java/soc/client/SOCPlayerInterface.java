@@ -1383,6 +1383,19 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
+     * A player is being asked to roll (or play a card) at the start of their turn.
+     * Update displays if needed.
+     *<P>
+     * If the client is the current player, calls {@link SOCHandPanel#autoRollOrPromptPlayer()}.
+     * @since 1.1.11
+     */
+    public void updateAtRollPrompt()
+    {
+        if (clientIsCurrentPlayer())
+            getClientHand().autoRollOrPromptPlayer();
+    }
+
+    /**
      * Set or clear the chat text input's initial prompt.
      * Sets its status, foreground color, and the prompt text if true.
      *

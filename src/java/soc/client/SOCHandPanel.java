@@ -1528,10 +1528,11 @@ public class SOCHandPanel extends Panel implements ActionListener
      * If the player (client) has no playable
      * cards, begin auto-roll countdown,
      * Otherwise, prompt them to roll or pick a card.
-     *
+     *<P>
      * Call only if panel's player is the client, and the game's current player.
-     *
-     * Called when server sends a SOCRollDicePrompt message.
+     *<P>
+     * Called when server sends a
+     * {@link soc.message.SOCRollDicePrompt ROLLDICEPROMPT} message.
      *
      * @see #updateAtTurn()
      * @see #autoRollSetupTimer()

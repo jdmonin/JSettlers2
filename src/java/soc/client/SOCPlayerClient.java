@@ -38,8 +38,6 @@ import soc.game.SOCTradeOffer;
 
 import soc.message.*;
 
-import soc.robot.SOCRobotClient;
-
 import soc.server.SOCServer;
 import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.LocalStringServerSocket;
@@ -3615,8 +3613,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
         if (pi == null)
             return;  // Not one of our games        
-        if (pi.clientIsCurrentPlayer())
-            pi.getClientHand().autoRollOrPromptPlayer();
+        pi.updateAtRollPrompt();
     }
 
     /**
