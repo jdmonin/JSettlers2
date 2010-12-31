@@ -501,6 +501,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         sbFixLHasMouse = false;
         sbFixRHasMouse = false;
         sbFixBHasMouse = false;
+        if (firstCall && is6player)
+            addMouseListener(this);  // react when mouse leaves the Frame
 
         textDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 80);
         textDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
@@ -2055,6 +2057,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             chatDisplayHasMouse = false;
         else if (src == textInput)
             textInputHasMouse = false;
+        else if (src == this)
+        {
+            textDisplayHasMouse = false;
+            chatDisplayHasMouse = false;
+            textInputHasMouse = false;
+        }
         else if (sbFixNeeded)
         {
             if (src == boardPanel)
