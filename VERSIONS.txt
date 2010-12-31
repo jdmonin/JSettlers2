@@ -4,12 +4,12 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
-    > 1.1.11 (build 20101xxx)
+    > 1.1.11 (build 20101231)
 - Popup to confirm before you move the robber onto your own hex
 - Show robber's previous position on the board
+- Robots: Force robot turns to end after several seconds of inactivity
 - Bugfix: "Restart" button wasn't enabled if game ends after special build
 - Bugfix: Couldn't place initial road on 6-player board's northernmost edge
-- Robots: Force robot turns to end after several seconds of inactivity
 - Fix infinite loop when robot leaves during game setup
 - Game last-action time tracked, to detect idle games
 - Debug commands now case-insensitive 
