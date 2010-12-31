@@ -5,8 +5,20 @@ README.developer - Notes and current status of 2010 JSettlers development (versi
 Scroll down a bit for the current TODO list.
 See VERSIONS.txt for recent changes.
 
-Overall structure:
+CONTENTS
+--------
+- Overall structure of the code and project
+- Tips for debugging
+- Setup instructions for JSettlers as an Eclipse project
+	(although you may use any IDE you want)
+- Current partially-done work
+- Current TODO list
+- Coding Style
+- CVS (obsolete, from original project)
 
+
+Overall Structure
+-----------------
 The main server class is soc.server.SOCServer.
 The client communication is soc.client.SOCPlayerClient, and in-game interface is in soc.client.SOCPlayerInterface.
 Game state is held at the server in soc.game.SOCGame and its fields.  Partial game state is known at clients.
@@ -19,26 +31,61 @@ Coding is done in Java 1.4 for now, but should compile cleanly in newer JDKs.
 The build system is Ant, which is natively understood by Eclipse.  Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the code already there.
 (See "Coding Style" below for more details.)
+
 When adding new methods or fields, describe them in javadoc, including the @since marker
 and the one-sentence summary (even though some old methods don't have that summary).
+
 When submitting patches, please use unified diff (-ur) format.
 
 
-Current partially-done work:
-	- Refactor SOCMessage classes to use templates
-	- Support for other board encoding formats, or other board sizes
-	- Some SOCMessage classes (SOCGames, SOCJoinGameRequest) accept objects like SOCGame and parse/create them;
-	    over-the-network communication will always be strings only.
-
-
-For debugging, if you want to inspect the game state at the server or robot:
+Tips for Debugging
+------------------
+If you want to inspect the game state at the server or robot:
 	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
 	  send a text msg from a client (the chat textfield), and inspect the game obj at that point
 	To inspect game state at robot, breakpoint robotcli.treat and send a text msg like *BOTLIST* or robot2:current-plans
 	On non-Windows JVMs, you can print a stack trace / thread dump to the shell by sending SIGQUIT.
 
 
-Current TODO list: (Work on these items not yet begun)
+Setup instructions for JSettlers as an Eclipse project
+------------------------------------------------------
+  (written for Eclipse 3.6, should be applicable to other versions with minor changes)
+
+- choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
+- Browse to jsettlers-1.1.xx-src/build.xml, select the "javac" task in target "compile".
+- You'll need to build once before you run it, to create version.info from resources/version.info.in.
+
+See below for how to set up the coding style in Eclipse.
+
+In my Eclipse project, I've created these debug/run configurations for testing:
+
+Java applet: soc.client.SOCPlayerClient
+   width 600, height 340
+   parameters: PORT = 44203
+
+Java applications:
+  cli-noargs  soc.client.SOCPlayerClient
+  robot1      soc.robot.SOCRobotClient
+     arguments: localhost 44203 robot1 r1
+  robot2      soc.robot.SOCRobotClient
+     arguments: localhost 44203 robot2 r2
+  socserver   soc.server.SOCServer
+     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2  44203 9 dbuser dbpass
+  socserver-sqlite  soc.server.SOCServer
+     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7 44203 9 dbuser dbpass
+
+
+Current partially-done work
+---------------------------
+	- Refactor SOCMessage classes to use templates
+	- Support for other board encoding formats, or other board sizes
+	- Some SOCMessage classes (SOCGames, SOCJoinGameRequest) accept objects like SOCGame and parse/create them;
+	    over-the-network communication will always be strings only.
+
+
+Current TODO list
+-----------------
+	Work on these items has not yet begun.
 	Ranked from easier, to more difficult.
 	You can also search the source for TODO for ideas.
 
@@ -105,7 +152,7 @@ You will also want this to have this, which disables auto-reindenting:
 (setq-default c-electric-flag nil)
 
 
-In eclipse, here's how to set up the coding style:
+Here's how to set up the coding style in Eclipse:
 
 	preferences -> general -> editors -> text editors:
 	[x] insert spaces for tabs
