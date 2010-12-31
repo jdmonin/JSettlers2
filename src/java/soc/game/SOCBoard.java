@@ -583,14 +583,14 @@ public class SOCBoard implements Serializable, Cloneable
      * a list of nodes on the land of the board; key is node's Integer coordinate, value is Boolean.
      * nodes on outer edges of surrounding water/ports are not on the board.
      * See dissertation figure A.2.
-     * See also SOCPlayer.initLegalAndPotentialSettlements().
+     * See also {@link SOCPlayer#initLegalAndPotentialSettlements()}.
      */
     protected Hashtable nodesOnBoard;
 
     /**
      * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
-     * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
+     * @param maxPlayers Maximum players; must be 4 or 6.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      * @since 1.1.11
      */
