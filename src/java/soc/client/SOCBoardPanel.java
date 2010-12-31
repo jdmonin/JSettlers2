@@ -693,8 +693,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * The node number at grid (x,y) is nodeMap[x + (y * 15)].
      *<P>
      * In {@link #is6player 6-player mode}, there is an extra ring of water/port hexes
-     * on the outside, which isn't within the coordinate system.  So this grid is
-     * shifted +1 column, +3 rows.
+     * on the outside, which isn't within the coordinate system.  So this grid appears
+     * shifted +1 column, +3 rows on screen, to account for the outside ring.
+     *<P>
+     * In 4-player mode, here are the nodeMap coordinates (x,y) for the left end of the topmost
+     * row of water hexes:
+     *<PRE>
+     *       (4,0)       (6,0)
+     *     /       \   /      \
+     * (3,1)       (5,1)
+     * (3,2)       (5,2)
+     * (3,3)       (5,3)
+     * /   \       /   \      /
+     *       (3,4)       (6,4)
+     *</PRE>
      *
      * @see #findNode(int, int)
      * @see #initNodeMapAux(int, int, int, int, int)
