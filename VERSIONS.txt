@@ -4,6 +4,9 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
+    > 1.1.12 (build 20110xxx)
+- Further encapsulate board coordinate encoding
+
     > 1.1.11 (build 20101231)
 - Popup to confirm before you move the robber onto your own hex
 - Show robber's previous position on the board

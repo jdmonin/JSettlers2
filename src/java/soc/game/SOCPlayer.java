@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.game;
 
@@ -423,165 +421,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         /**
          * init legal and potential arrays
          */
-        legalRoads = new boolean[0xEF];
-        legalSettlements = new boolean[0xFF];
         potentialRoads = new boolean[0xEF];
-        potentialSettlements = new boolean[0xFF];
         potentialCities = new boolean[0xFF];
 
         for (i = 0; i < 0xEF; i++)
         {
-            legalRoads[i] = false;
             potentialRoads[i] = false;
         }
 
         for (i = 0; i < 0xFF; i++)
         {
-            legalSettlements[i] = false;
-            potentialSettlements[i] = false;
             potentialCities[i] = false;
         }
 
-        initLegalRoads();
-        initLegalAndPotentialSettlements();
+        legalRoads = board.initPlayerLegalRoads();
+        legalSettlements = board.initPlayerLegalAndPotentialSettlements();
+        potentialSettlements = new boolean[legalSettlements.length];
+        System.arraycopy(legalSettlements, 0, potentialSettlements, 0, legalSettlements.length);
+
         currentOffer = null;
-    }
-
-    /**
-     * initialize the legalRoads array
-     */
-    private final void initLegalRoads()
-    {
-        // 6-player starts land 1 extra hex (2 edges) west of standard board,
-        // and has an extra row of land hexes at north and south end.
-        final boolean is6player = (game.getBoard().getBoardEncodingFormat()
-            == SOCBoard.BOARD_ENCODING_6PLAYER);
-        final int westAdj = (is6player) ? 0x22 : 0x00;
-
-        // Set each row of valid road (edge) coordinates:
-        int i;
-
-        if (is6player)
-        {
-            for (i = 0x07; i <= 0x5C; i += 0x11)
-                legalRoads[i] = true;
-
-            for (i = 0x06; i <= 0x6C; i += 0x22)
-                legalRoads[i] = true;
-        }
-
-        for (i = 0x27 - westAdj; i <= 0x7C; i += 0x11)
-            legalRoads[i] = true;
-
-        for (i = 0x26 - westAdj; i <= 0x8C; i += 0x22)
-            legalRoads[i] = true;
-
-        for (i = 0x25 - westAdj; i <= 0x9C; i += 0x11)
-            legalRoads[i] = true;
-
-        for (i = 0x24 - westAdj; i <= 0xAC; i += 0x22)
-            legalRoads[i] = true;
-
-        for (i = 0x23 - westAdj; i <= 0xBC; i += 0x11)
-            legalRoads[i] = true;
-
-        for (i = 0x22 - westAdj; i <= 0xCC; i += 0x22)
-            legalRoads[i] = true;
-
-        for (i = 0x32 - westAdj; i <= 0xCB; i += 0x11)
-            legalRoads[i] = true;
-
-        for (i = 0x42 - westAdj; i <= 0xCA; i += 0x22)
-            legalRoads[i] = true;
-
-        for (i = 0x52 - westAdj; i <= 0xC9; i += 0x11)
-            legalRoads[i] = true;
-
-        for (i = 0x62 - westAdj; i <= 0xC8; i += 0x22)
-            legalRoads[i] = true;
-
-        for (i = 0x72 - westAdj; i <= 0xC7; i += 0x11)
-            legalRoads[i] = true;
-
-        if (is6player)
-        {
-            for (i = 0x60; i <= 0xC6; i += 0x22)
-                legalRoads[i] = true;
-
-            for (i = 0x70; i <= 0xC5; i += 0x11)
-                legalRoads[i] = true;
-
-        }
-    }
-
-    /**
-     * initialize the legal settlements array.
-     * @see SOCBoard#nodesOnBoard
-     */
-    private final void initLegalAndPotentialSettlements()
-    {
-        // 6-player starts land 1 extra hex (2 nodes) west of standard board,
-        // and has an extra row of land hexes at north and south end.
-        final boolean is6player = (game.getBoard().getBoardEncodingFormat()
-            == SOCBoard.BOARD_ENCODING_6PLAYER);
-        final int westAdj = (is6player) ? 0x22 : 0x00;
-
-        // Set each row of valid node coordinates:
-        int i;
-
-        if (is6player)
-        {
-            for (i = 0x07; i <= 0x6D; i += 0x11)
-            {
-                potentialSettlements[i] = true;
-                legalSettlements[i] = true;
-            }            
-        }
-
-        for (i = 0x27 - westAdj; i <= 0x8D; i += 0x11)
-        {
-            potentialSettlements[i] = true;
-            legalSettlements[i] = true;
-        }
-
-        for (i = 0x25 - westAdj; i <= 0xAD; i += 0x11)
-        {
-            potentialSettlements[i] = true;
-            legalSettlements[i] = true;
-        }
-
-        for (i = 0x23 - westAdj; i <= 0xCD; i += 0x11)
-        {
-            potentialSettlements[i] = true;
-            legalSettlements[i] = true;
-        }
-
-        for (i = 0x32 - westAdj; i <= 0xDC; i += 0x11)
-        {
-            potentialSettlements[i] = true;
-            legalSettlements[i] = true;
-        }
-
-        for (i = 0x52 - westAdj; i <= 0xDA; i += 0x11)
-        {
-            potentialSettlements[i] = true;
-            legalSettlements[i] = true;
-        }
-
-        for (i = 0x72 - westAdj; i <= 0xD8; i += 0x11)
-        {
-            potentialSettlements[i] = true;
-            legalSettlements[i] = true;
-        }
-
-        if (is6player)
-        {
-            for (i = 0x70; i <= 0xD6; i += 0x11)
-            {
-                potentialSettlements[i] = true;
-                legalSettlements[i] = true;
-            }            
-        }
     }
 
     /**
