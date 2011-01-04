@@ -279,7 +279,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public SOCPlayer(SOCPlayer player)
     {
         int i;
-        int j;
         game = player.game;
         playerNumber = player.playerNumber;
         numPieces = new int[SOCPlayingPiece.MAXPLUSONE];
@@ -321,10 +320,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         final int minNode = player.getGame().getBoard().getMinNode();
         for (i = minNode; i < SOCBoard.MAXNODEPLUSONE; i++)
         {
-            for (j = minNode; j < SOCBoard.MAXNODEPLUSONE; j++)
-            {
-                roadNodeGraph[i][j] = player.roadNodeGraph[i][j];
-            }
+            System.arraycopy(player.roadNodeGraph[i], minNode,
+                roadNodeGraph[i], minNode, SOCBoard.MAXNODEPLUSONE - minNode);
+
+            // for (j = minNode; j < SOCBoard.MAXNODEPLUSONE; j++)
+            //    roadNodeGraph[i][j] = player.roadNodeGraph[i][j];
         }
 
         /**
