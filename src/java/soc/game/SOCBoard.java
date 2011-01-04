@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2604,6 +2604,8 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public boolean isNodeOnBoard(int node)
     {
+        if (node < 0)
+            return false;
         return nodesOnBoard.containsKey(new Integer(node));
     }
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1982,9 +1982,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Calculates the longest road for a player
+     * Calculates the longest road for this player
      *
-     * @return the length of the longest road for that player
+     * @return the length of the longest road for this player
      */
     public int calcLongestRoad2()
     {
@@ -2013,148 +2013,75 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             while (!pending.isEmpty())
             {
                 NodeLenVis curNode = (NodeLenVis) pending.pop();
-                int coord = curNode.node;
-                int len = curNode.len;
+                final int coord = curNode.node;
+                final int len = curNode.len;
                 Vector visited = curNode.vis;
                 boolean pathEnd = false;
 
                 /**
                  * check for road blocks
                  */
-                Enumeration pEnum = board.getPieces().elements();
-
-                while (pEnum.hasMoreElements())
+                if (len > 0)
                 {
-                    SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
-
-                    if ((len > 0) && (p.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)) && (p.getCoordinates() == coord))
+                    Enumeration pEnum = board.getPieces().elements();
+    
+                    while (pEnum.hasMoreElements())
                     {
-                        pathEnd = true;
-
-                        //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
-                        break;
+                        SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+    
+                        if ((p.getCoordinates() == coord)
+                            && (p.getPlayer().getPlayerNumber() != playerNumber)
+                            && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)))
+                        {
+                            pathEnd = true;
+    
+                            //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
+                            break;
+                        }
                     }
                 }
 
                 if (!pathEnd)
                 {
-                    pathEnd = true;
+                    /**
+                     * Check if this road path continues to adjacent connected nodes.
+                     */
 
-                    int j;
-                    IntPair pair;
-                    boolean match;
+                    pathEnd = true;  // may be set false in loop
 
-                    j = coord - 0x11;
-                    pair = new IntPair(coord, j);
-                    match = false;
-
-                    if (board.isNodeOnBoard(j) && isConnectedByRoad(coord, j))
+                    final int[] adjacNodes = board.getAdjacentNodesToNode_arr(coord);
+                    for (int ni = adjacNodes.length - 1; ni>=0; --ni)
                     {
-                        for (Enumeration ev = visited.elements();
-                                ev.hasMoreElements();)
+                        final int j = adjacNodes[ni];
+                        if (j == -1)
+                            continue;
+
+                        if (board.isNodeOnBoard(j) && isConnectedByRoad(coord, j))
                         {
-                            IntPair vis = (IntPair) ev.nextElement();
+                            IntPair pair = new IntPair(coord, j);
+                            boolean match = false;
 
-                            if (vis.equals(pair))
+                            for (Enumeration ev = visited.elements();
+                                    ev.hasMoreElements();)
                             {
-                                match = true;
+                                IntPair vis = (IntPair) ev.nextElement();
 
-                                break;
+                                if (vis.equals(pair))
+                                {
+                                    match = true;
+                                    break;
+                                }
+                            }
+
+                            if (!match)
+                            {
+                                Vector newVis = (Vector) visited.clone();
+                                newVis.addElement(pair);
+                                pending.push(new NodeLenVis(j, len + 1, newVis));
+                                pathEnd = false;
                             }
                         }
-
-                        if (!match)
-                        {
-                            Vector newVis = (Vector) visited.clone();
-                            newVis.addElement(pair);
-                            pending.push(new NodeLenVis(j, len + 1, newVis));
-                            pathEnd = false;
-                        }
-                    }
-
-                    j = coord + 0x11;
-                    pair = new IntPair(coord, j);
-                    match = false;
-
-                    if (board.isNodeOnBoard(j) && isConnectedByRoad(coord, j))
-                    {
-                        for (Enumeration ev = visited.elements();
-                                ev.hasMoreElements();)
-                        {
-                            IntPair vis = (IntPair) ev.nextElement();
-
-                            if (vis.equals(pair))
-                            {
-                                match = true;
-
-                                break;
-                            }
-                        }
-
-                        if (!match)
-                        {
-                            Vector newVis = (Vector) visited.clone();
-                            newVis.addElement(pair);
-                            pending.push(new NodeLenVis(j, len + 1, newVis));
-                            pathEnd = false;
-                        }
-                    }
-
-                    j = (coord + 0x10) - 0x01;
-                    pair = new IntPair(coord, j);
-                    match = false;
-
-                    if (board.isNodeOnBoard(j) && isConnectedByRoad(coord, j))
-                    {
-                        for (Enumeration ev = visited.elements();
-                                ev.hasMoreElements();)
-                        {
-                            IntPair vis = (IntPair) ev.nextElement();
-
-                            if (vis.equals(pair))
-                            {
-                                match = true;
-
-                                break;
-                            }
-                        }
-
-                        if (!match)
-                        {
-                            Vector newVis = (Vector) visited.clone();
-                            newVis.addElement(pair);
-                            pending.push(new NodeLenVis(j, len + 1, newVis));
-                            pathEnd = false;
-                        }
-                    }
-
-                    j = coord - 0x10 + 0x01;
-                    pair = new IntPair(coord, j);
-                    match = false;
-
-                    if (board.isNodeOnBoard(j) && isConnectedByRoad(coord, j))
-                    {
-                        for (Enumeration ev = visited.elements();
-                                ev.hasMoreElements();)
-                        {
-                            IntPair vis = (IntPair) ev.nextElement();
-
-                            if (vis.equals(pair))
-                            {
-                                match = true;
-
-                                break;
-                            }
-                        }
-
-                        if (!match)
-                        {
-                            Vector newVis = (Vector) visited.clone();
-                            newVis.addElement(pair);
-                            pending.push(new NodeLenVis(j, len + 1, newVis));
-                            pathEnd = false;
-                        }
-                    }
+                    }  // foreach(adjacNodes)
                 }
 
                 if (pathEnd)
