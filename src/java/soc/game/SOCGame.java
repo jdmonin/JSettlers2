@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.game;
 
@@ -3171,9 +3169,13 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param hex  the coordinates of the hex
      */
-    public Vector getPlayersOnHex(int hex)
+    public Vector getPlayersOnHex(final int hex)
     {
-        Vector playerList = new Vector(maxPlayers);
+        Vector playerList = new Vector(3);
+
+        final int[] nodes = new int[6];
+        for (int d = 0; d < 6; ++d)  // north, NE, SE, south, SW, NW
+            nodes[d] = board.getAdjacentNodeToHex(hex, d);
 
         for (int i = 0; i < maxPlayers; i++)
         {
@@ -3181,211 +3183,41 @@ public class SOCGame implements Serializable, Cloneable
             Vector cities = players[i].getCities();
             Enumeration seEnum;
             Enumeration ciEnum;
-            int node;
             boolean touching = false;
 
-            node = hex + 0x01;
             seEnum = settlements.elements();
-
             while (seEnum.hasMoreElements())
             {
-                SOCSettlement se = (SOCSettlement) seEnum.nextElement();
-
-                if (se.getCoordinates() == node)
+                final int seCoord = ((SOCSettlement) seEnum.nextElement()).getCoordinates();
+                for (int d = 0; d < 6; ++d)
                 {
-                    touching = true;
-
-                    break;
+                    if (seCoord == nodes[d])
+                    {
+                        touching = true;
+                        break;
+                    }
                 }
             }
 
             if (!touching)
             {
                 ciEnum = cities.elements();
-
                 while (ciEnum.hasMoreElements())
                 {
-                    SOCCity ci = (SOCCity) ciEnum.nextElement();
-
-                    if (ci.getCoordinates() == node)
+                    final int ciCoord = ((SOCCity) ciEnum.nextElement()).getCoordinates();
+                    for (int d = 0; d < 6; ++d)
                     {
-                        touching = true;
-
-                        break;
-                    }
-                }
-
-                if (!touching)
-                {
-                    node = hex + 0x12;
-                    seEnum = settlements.elements();
-
-                    while (seEnum.hasMoreElements())
-                    {
-                        SOCSettlement se = (SOCSettlement) seEnum.nextElement();
-
-                        if (se.getCoordinates() == node)
+                        if (ciCoord == nodes[d])
                         {
                             touching = true;
-
                             break;
-                        }
-                    }
-
-                    if (!touching)
-                    {
-                        ciEnum = cities.elements();
-
-                        while (ciEnum.hasMoreElements())
-                        {
-                            SOCCity ci = (SOCCity) ciEnum.nextElement();
-
-                            if (ci.getCoordinates() == node)
-                            {
-                                touching = true;
-
-                                break;
-                            }
-                        }
-
-                        if (!touching)
-                        {
-                            node = hex + 0x21;
-                            seEnum = settlements.elements();
-
-                            while (seEnum.hasMoreElements())
-                            {
-                                SOCSettlement se = (SOCSettlement) seEnum.nextElement();
-
-                                if (se.getCoordinates() == node)
-                                {
-                                    touching = true;
-
-                                    break;
-                                }
-                            }
-
-                            if (!touching)
-                            {
-                                ciEnum = cities.elements();
-
-                                while (ciEnum.hasMoreElements())
-                                {
-                                    SOCCity ci = (SOCCity) ciEnum.nextElement();
-
-                                    if (ci.getCoordinates() == node)
-                                    {
-                                        touching = true;
-
-                                        break;
-                                    }
-                                }
-
-                                node = hex + 0x10;
-                                seEnum = settlements.elements();
-
-                                while (seEnum.hasMoreElements())
-                                {
-                                    SOCSettlement se = (SOCSettlement) seEnum.nextElement();
-
-                                    if (se.getCoordinates() == node)
-                                    {
-                                        touching = true;
-
-                                        break;
-                                    }
-                                }
-
-                                if (!touching)
-                                {
-                                    ciEnum = cities.elements();
-
-                                    while (ciEnum.hasMoreElements())
-                                    {
-                                        SOCCity ci = (SOCCity) ciEnum.nextElement();
-
-                                        if (ci.getCoordinates() == node)
-                                        {
-                                            touching = true;
-
-                                            break;
-                                        }
-                                    }
-
-                                    node = hex - 0x01;
-                                    seEnum = settlements.elements();
-
-                                    while (seEnum.hasMoreElements())
-                                    {
-                                        SOCSettlement se = (SOCSettlement) seEnum.nextElement();
-
-                                        if (se.getCoordinates() == node)
-                                        {
-                                            touching = true;
-
-                                            break;
-                                        }
-                                    }
-
-                                    if (!touching)
-                                    {
-                                        ciEnum = cities.elements();
-
-                                        while (ciEnum.hasMoreElements())
-                                        {
-                                            SOCCity ci = (SOCCity) ciEnum.nextElement();
-
-                                            if (ci.getCoordinates() == node)
-                                            {
-                                                touching = true;
-
-                                                break;
-                                            }
-                                        }
-
-                                        node = hex - 0x10;
-                                        seEnum = settlements.elements();
-
-                                        while (seEnum.hasMoreElements())
-                                        {
-                                            SOCSettlement se = (SOCSettlement) seEnum.nextElement();
-
-                                            if (se.getCoordinates() == node)
-                                            {
-                                                touching = true;
-
-                                                break;
-                                            }
-                                        }
-
-                                        if (!touching)
-                                        {
-                                            ciEnum = cities.elements();
-
-                                            while (ciEnum.hasMoreElements())
-                                            {
-                                                SOCCity ci = (SOCCity) ciEnum.nextElement();
-
-                                                if (ci.getCoordinates() == node)
-                                                {
-                                                    touching = true;
-
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                 }
             }
 
             if (touching)
-            {
                 playerList.addElement(players[i]);
-            }
         }
 
         return playerList;
@@ -3418,6 +3250,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * the current player has choosen a victim to rob.
      * perform the robbery.  Set gameState back to oldGameState.
+     *<P>
+     * Does not validate <tt>pn</tt>; assumes {@link #canChoosePlayer(int)}
+     * has been called already.
      *
      * @param pn  the number of the player being robbed
      * @return the type of resource that was stolen, as in {@link SOCResourceConstants}
