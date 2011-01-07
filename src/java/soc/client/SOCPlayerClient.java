@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.client;
 
@@ -2191,7 +2189,14 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
                 handlePLAYERSTATS((SOCPlayerStats) mes);
                 break;
 
-            }  // switch (mes.getType())               
+            /**
+             * debug piece Free Placement (as of 20110104 (v 1.1.12))
+             */
+            case SOCMessage.DEBUGFREEPLACE:
+                handleDEBUGFREEPLACE((SOCDebugFreePlace) mes);
+                break;
+
+            }  // switch (mes.getType())            
         }
         catch (Exception e)
         {
@@ -3870,6 +3875,19 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
+     * Handle the server's debug piece placement on/off message.
+     * @since 1.1.12
+     */
+    private final void handleDEBUGFREEPLACE(SOCDebugFreePlace mes)
+    {
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        if (pi == null)
+            return;  // Not one of our games
+
+        pi.setDebugFreePlacementMode(mes.getCoordinates() == 1);
+    }
+
+    /**
      * add a new game to the initial window's list of games, and possibly
      * to the {@link #serverGames server games list}.
      *
@@ -4212,17 +4230,25 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     }
 
     /**
-     * put a piece on the board
+     * put a piece on the board, using the {@link SOCPutPiece} message.
+     * If the game is in {@link SOCGame#debugFreePlacement} mode,
+     * send the {@link SOCDebugFreePlace} message instead.
      *
      * @param ga  the game where the action is taking place
      * @param pp  the piece being placed
      */
     public void putPiece(SOCGame ga, SOCPlayingPiece pp)
     {
+        String ppm;
+        if (ga.debugFreePlacement)
+            ppm = SOCDebugFreePlace.toCmd(ga.getName(), pp.getPlayer().getPlayerNumber(), pp.getType(), pp.getCoordinates());
+        else
+            ppm = SOCPutPiece.toCmd(ga.getName(), pp.getPlayer().getPlayerNumber(), pp.getType(), pp.getCoordinates());
+
         /**
          * send the command
          */
-        put(SOCPutPiece.toCmd(ga.getName(), pp.getPlayer().getPlayerNumber(), pp.getType(), pp.getCoordinates()), ga.isLocal);
+        put(ppm, ga.isLocal);
     }
 
     /**

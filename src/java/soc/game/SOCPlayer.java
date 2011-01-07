@@ -2211,6 +2211,26 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * for debug prints; appends to sb or creates it, returns it
+     * @since 1.1.12
+     */
+    public StringBuffer numpieces(StringBuffer sb)
+    {
+        if (sb == null)
+            sb = new StringBuffer("{");
+        else
+            sb.append("{");
+        for (int i = 0; i < numPieces.length; ++i)
+        {
+            if (i > 0)
+                sb.append(", ");
+            sb.append(numPieces[i]);
+        }
+        sb.append("}");
+        return sb;
+    }
+
+    /**
      * set vars to null so gc can clean up
      */
     public void destroyPlayer()

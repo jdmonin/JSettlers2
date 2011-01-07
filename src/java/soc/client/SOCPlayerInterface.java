@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.client;
 
@@ -883,6 +881,46 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             }
         }
     }
+
+    /**
+     * Switch the game's {@link SOCGame#debugFreePlacement Debug Paint Piece Mode}
+     * on or off, as directed by the server.
+     * @param setOn  Should the mode be turned on?
+     * @see #setDebugFreePlacementPlayer(int)
+     * @since 1.1.12
+     */
+    void setDebugFreePlacementMode(final boolean setOn)
+    {
+        game.debugFreePlacement = setOn;
+        if (! setOn)
+            boardPanel.setPlayer(null);
+        boardPanel.updateMode();  // will set top text, which triggers a repaint
+    }
+
+    /**
+     * Set the board's 'client player' for the Debug Paint Piece Mode.
+     * Returns to the true client player when
+     * {@link #setDebugFreePlacementMode(boolean) setDebugPaintPieceMode(false)}
+     * is called.
+     * @param pn Player number
+     * @since 1.1.12
+     */
+    void setDebugFreePlacementPlayer(final int pn)
+    {
+        if (! game.debugFreePlacement)
+            return;
+
+        int prevPn = boardPanel.getPlayerNumber();
+        if (pn == prevPn)
+            return;
+
+        boardPanel.setPlayer(game.getPlayer(pn));
+
+        // update "current" player hilight
+        getPlayerHandPanel(prevPn).updateAtTurn();
+        getPlayerHandPanel(pn).updateAtTurn();
+    }
+
 
     /**
      * @return the building panel

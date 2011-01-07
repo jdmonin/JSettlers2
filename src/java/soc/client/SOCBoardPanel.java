@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.client;
 
@@ -2966,11 +2964,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * update the type of interaction mode.
+     * update the type of interaction mode, and trigger a repaint.
      * Also calls {@link #updateHoverTipToMode()} and
      * (for 6-player board's Special Building Phase) updates top-center text.
      * For {@link soc.game.SOCGameOption#initAllOptions() Game Option "N7"},
      * updates the top-center countdown of rounds.
+     * For the {@link SOCGame#debugFreePlacement Free Placement debug mode},
+     * indicates that in the top center.
      */
     public void updateMode()
     {
@@ -3055,7 +3055,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 default:
                     mode = NONE;
-
+                    if (game.debugFreePlacement)
+                        topText = "DEBUG: Free Placement Mode";
                     break;
                 }
             }
@@ -3067,6 +3068,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (game.isSpecialBuilding())
                 {
                     topText = "Special Building: " + game.getPlayer(cpn).getName();
+                }
+                else if (game.debugFreePlacement)
+                {
+		    topText = "DEBUG: Free Placement Mode";
                 }
                 else if (game.isGameOptionSet("N7"))
                 {
@@ -3152,12 +3157,40 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * set the player that is using this board panel.
+     * set the player that is using this board panel to be the client's player in this game.
      */
     public void setPlayer()
     {
-        player = game.getPlayer(playerInterface.getClient().getNickname());
+        setPlayer(null);
+    }
+
+    /**
+     * Temporarily change the player that is using this board panel.
+     * Used during {@link SOCGame#debugFreePlacement} mode.
+     * @param pl Player to set, or null to change back to the client player
+     * @see #getPlayerNumber()
+     * @since 1.1.12
+     */
+    void setPlayer(SOCPlayer pl)
+    {
+        if (pl == null)
+            pl = game.getPlayer(playerInterface.getClient().getNickname());
+        if (pl == player)
+            return;
+        player = pl;
         playerNumber = player.getPlayerNumber();
+    }
+
+    /**
+     * Get our player number.
+     * Almost always the client's player number.
+     * During {@link SOCGame#debugFreePlacement}, the temporary
+     * player set by {@link #setPlayer(SOCPlayer)}.
+     * @since 1.1.12
+     */
+    int getPlayerNumber()
+    {
+        return playerNumber;
     }
 
     /**
@@ -3816,6 +3849,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param text2 Line 2 of text, or null; must be null if text1 is null
      * @throws IllegalArgumentException if text1 null, text2 non-null
      * @since 1.1.07
+     * @see #setSuperimposedTopText(String)
      */
     public void setSuperimposedText(String text1, String text2)
         throws IllegalArgumentException
@@ -3841,6 +3875,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Will trigger a repaint.
      * @param text Line of text, or null
      * @since 1.1.08
+     * @see #setSuperimposedText(String, String)
      */
     public void setSuperimposedTopText(String text)
     {
@@ -4420,7 +4455,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 && (mode != PLACE_INIT_ROAD) && (mode != PLACE_ROBBER)
                 && (mode != TURN_STARTING) && (mode != GAME_OVER));
 
-            boolean playerIsCurrent = (player != null) && playerInterface.clientIsCurrentPlayer();
+            final boolean debugPP = game.debugFreePlacement;
+            final boolean playerIsCurrent = 
+                (player != null) && (debugPP || playerInterface.clientIsCurrentPlayer());
             boolean hoverTextSet = false;  // True once text is determined
 
             if (! modeAllowsHoverPieces)
@@ -4479,7 +4516,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                          && (p.getPlayer() == player)
                          && (p.getType() == SOCPlayingPiece.SETTLEMENT)
                          && (player.isPotentialCity(id))
-                         && (player.getResources().contains(SOCGame.CITY_SET)))
+                         && (player.getNumPieces(SOCPlayingPiece.CITY) > 0)
+                         && (debugPP || player.getResources().contains(SOCGame.CITY_SET)))
                     {
                         hoverCityID = id;
                     } else {
@@ -4494,7 +4532,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         hoverCityID = 0;
                         if (modeAllowsHoverPieces
                             && player.isPotentialSettlement(id)
-                            && player.getResources().contains(SOCGame.SETTLEMENT_SET))
+                            && (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
+                            && (debugPP || player.getResources().contains(SOCGame.SETTLEMENT_SET)))
                             hoverSettlementID = id;
                         else
                             hoverSettlementID = 0;
@@ -4561,7 +4600,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     // No piece there
                     if (modeAllowsHoverPieces
                         && player.isPotentialRoad(id)
-                        && player.getResources().contains(SOCGame.ROAD_SET))
+                        && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
+                        && (debugPP || player.getResources().contains(SOCGame.ROAD_SET)))
                         hoverRoadID = id;
                     else
                         hoverRoadID = 0;
@@ -4919,13 +4959,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           }
           else
           {
-              int cpn = game.getCurrentPlayerNumber();
+              final int cpn = game.getCurrentPlayerNumber();
+                // note: if debugPP, cpn might not == player.playerNumber
 
               if (! isInitialPlacement)
               {
-                  buildRoadItem.setEnabled(game.couldBuildRoad(cpn) && player.isPotentialRoad(hR));
-                  buildSettleItem.setEnabled(game.couldBuildSettlement(cpn) && player.isPotentialSettlement(hS));
-                  upgradeCityItem.setEnabled(game.couldBuildCity(cpn) && player.isPotentialCity(hC));
+                  final boolean debugPP = game.debugFreePlacement;
+                  buildRoadItem.setEnabled
+                      ( player.isPotentialRoad(hR) &&
+                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
+                                 : game.couldBuildRoad(cpn)) );
+                  buildSettleItem.setEnabled
+                      ( player.isPotentialSettlement(hS) &&
+                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
+                                 : game.couldBuildSettlement(cpn)) );
+                  upgradeCityItem.setEnabled
+                      ( player.isPotentialCity(hC) &&
+                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.CITY) > 0)
+                                 : game.couldBuildCity(cpn)) );
               }
               hoverRoadID = hR;
               hoverSettlementID = hS;
@@ -4989,13 +5040,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       void tryBuild(int ptype)
       {
-          int cpn = playerInterface.getClientPlayerNumber();
+          final boolean debugPP = game.debugFreePlacement;
+          int cpn = (debugPP)
+              ? playerNumber   // boardpanel's temporary player number
+              : playerInterface.getClientPlayerNumber();
           int buildLoc;      // location
           boolean canBuild;  // resources, rules
           String btarget;    // button name on buildpanel
           
-          // If we're in initial placement, or cancel/build during game, send putpiece right now.
+          // If we're in initial placement, or cancel/build during game,
+          // or debugPP, then send putpiece right now.
           // Otherwise, multi-phase send.
+          final boolean sendNow = isInitialPlacement || wantsCancel || debugPP;
           
           // Note that if we're in gameplay have clicked the "buy road" button
           // and trying to place it, game.couldBuildRoad will be false because
@@ -5006,9 +5062,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           case SOCPlayingPiece.ROAD:
               buildLoc = hoverRoadID;
               canBuild = player.isPotentialRoad(buildLoc);
-              if (! (isInitialPlacement || wantsCancel))
+              if (! sendNow)
                   canBuild = canBuild && game.couldBuildRoad(cpn);
-              if (canBuild && (isInitialPlacement || wantsCancel))
+              if (canBuild && sendNow)
                   playerInterface.getClient().putPiece(game, new SOCRoad(player, buildLoc, board));
               btarget = SOCBuildingPanel.ROAD;
               break;
@@ -5016,9 +5072,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           case SOCPlayingPiece.SETTLEMENT:
               buildLoc = hoverSettlementID;
               canBuild = player.isPotentialSettlement(buildLoc);
-              if (! (isInitialPlacement || wantsCancel))
+              if (! sendNow)
                   canBuild = canBuild && game.couldBuildSettlement(cpn);
-              if (canBuild && (isInitialPlacement || wantsCancel))
+              if (canBuild && sendNow)
               {
                   playerInterface.getClient().putPiece(game, new SOCSettlement(player, buildLoc, board));
                   if (isInitialPlacement)
@@ -5029,10 +5085,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           
           case SOCPlayingPiece.CITY:
               buildLoc = hoverCityID;
-              canBuild = game.couldBuildCity(cpn) && player.isPotentialCity(buildLoc);
-              if (! (isInitialPlacement || wantsCancel))             
+              canBuild = player.isPotentialCity(buildLoc);
+              if (! sendNow)
                   canBuild = canBuild && game.couldBuildCity(cpn);
-              if (canBuild && (isInitialPlacement || wantsCancel))
+              if (canBuild && sendNow)
                   playerInterface.getClient().putPiece(game, new SOCCity(player, buildLoc, board));
               btarget = SOCBuildingPanel.CITY;
               break;
@@ -5047,7 +5103,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               return;
           }
           
-          if (isInitialPlacement || wantsCancel)
+          if (sendNow)
           {
               // - Easy, we've sent it right away.  Done with placing this piece.
               clearModeAndHilight(ptype);
@@ -5055,7 +5111,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           }
 
           // - During gameplay: Send, wait to receive gameState, send.
-              
+
           // Set up timer to expect first-reply (and then send the second message)
           popupSetBuildRequest(buildLoc, ptype);
 

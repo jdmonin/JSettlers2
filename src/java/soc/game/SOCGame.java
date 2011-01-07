@@ -352,6 +352,14 @@ public class SOCGame implements Serializable, Cloneable
     private int clientVersionMinRequired;
 
     /**
+     * Are we in the 'free placement' debug mode?
+     * See server.processDebugCommand_freePlace,
+     * SOCPlayerInterface.setDebugPaintPieceMode.
+     * @since 1.1.12
+     */
+    public boolean debugFreePlacement;
+
+    /**
      * true if the game came from a board reset
      */
     private boolean isFromBoardReset;

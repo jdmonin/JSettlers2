@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.client;
 
@@ -93,6 +91,7 @@ public class SOCFaceButton extends Canvas
     private int currentImageNum = DEFAULT_FACE;
     private int panelx;  // Width
     private int panely;  // Height
+    /** player number */
     private int pNumber;
     private SOCGame game;
     private SOCPlayerInterface pi;  // For callbacks (stack-trace print)
@@ -532,10 +531,22 @@ public class SOCFaceButton extends Canvas
                 return;  // <--- Notify, nothing else to do ---
             }
 
+            if (game == null)
+            {
+	        return;  // <--- Early return: further checks need game ---
+            }
+
+            if (game.debugFreePlacement)
+            {
+                pi.setDebugFreePlacementPlayer(pNumber);
+                evt.consume();
+                return;  // <--- Early return ---
+            }
+
             /**
-             * only change the face if it's the owners button
+             * only change the face if it's the client player's button
              */
-            if ((game != null) && (popupMenu != null))
+            if (popupMenu != null)
             {
                 if (evt.getClickCount() >= 2)  // Show FCF on double-click. added in 1.1.09
                 {

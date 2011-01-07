@@ -40,11 +40,30 @@ When submitting patches, please use unified diff (-ur) format.
 
 Tips for Debugging
 ------------------
-If you want to inspect the game state at the server or robot:
+You can use debug commands in any practice game, by typing into the game chat
+textfield.  Type *help* for a list of commands.
+
+If you want to inspect the game object state at the server or robot:
 	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
 	  send a text msg from a client (the chat textfield), and inspect the game obj at that point
 	To inspect game state at robot, breakpoint robotcli.treat and send a text msg like *BOTLIST* or robot2:current-plans
 	On non-Windows JVMs, you can print a stack trace / thread dump to the shell by sending SIGQUIT.
+
+To use the "Free Placement" debug mode, type this debug command on your turn:
+	*FREEPLACE* 1
+You can now build and place pieces without consuming resources, by right-
+clicking on the board.  (Don't use the "Buy" buttons for Free Placement.)
+The placements must follow game rules, except that they cost no resources.
+To place for another player, click their face icon.  You cannot remove a piece
+once it is placed.
+
+The placed pieces accumulate victory points for their players as normal, and
+Longest Road is tracked.  If a player gets 10 VP total, the game will be over
+when their turn arrives; your own player would win the game immediately.
+
+To exit Free Placement mode, either click "Done" (which will end your turn) or
+type this debug command:
+	*FREEPLACE* 0
 
 
 Setup instructions for JSettlers as an Eclipse project

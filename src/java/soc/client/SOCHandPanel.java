@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.client;
 
@@ -1389,17 +1387,27 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public void updateAtTurn()
     {
-        playerIsCurrent = (game.getCurrentPlayerNumber() == player.getPlayerNumber());
+        final int pn = player.getPlayerNumber();
+        playerIsCurrent = (game.getCurrentPlayerNumber() == pn);
         if (playerIsCurrent)
         {
             if (pnameActiveBG == null)
                 pnameCalcColors();
-            pname.setBackground(pnameActiveBG);
             updateRollButton();
         }
-        else
+
+        // show current player, or for debugging, current Free Placement player
         {
-            pname.setBackground(this.getBackground());
+            boolean showAsCurrent;
+            if (! game.debugFreePlacement)
+                showAsCurrent = playerIsCurrent;
+            else
+                showAsCurrent = (pn == playerInterface.getBoardPanel().getPlayerNumber());
+
+            if (showAsCurrent)
+                pname.setBackground(pnameActiveBG);
+            else
+                pname.setBackground(this.getBackground());
         }
 
         updateTakeOverButton();

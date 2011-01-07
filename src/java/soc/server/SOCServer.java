@@ -1,8 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,8 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.server;
 
@@ -3153,6 +3151,13 @@ public class SOCServer extends Server
                     handleNEWGAMEWITHOPTIONSREQUEST(c, (SOCNewGameWithOptionsRequest) mes);
                     break;
 
+                /**
+                 * debug piece Free Placement (as of 20110104 (v 1.1.12))
+                 */
+                case SOCMessage.DEBUGFREEPLACE:
+                    handleDEBUGFREEPLACE(c, (SOCDebugFreePlace) mes);
+                    break;
+
                 }  // switch (mes.getType)
             }  // if (mes != null)
         }
@@ -3176,6 +3181,11 @@ public class SOCServer extends Server
         = "dev: #typ playername";
 
     /**
+     * Used by {@link #DEBUG_COMMANDS_HELP}, etc. Used with {@link SOCGame#debugFreePlacement}.
+     */
+    private static final String DEBUG_CMD_FREEPLACEMENT = "*FREEPLACE*";
+
+    /**
      * Used by {@link #processDebugCommand(StringConnection, String, String)}}
      * when *HELP* is requested.
      * @since 1.1.07
@@ -3192,6 +3202,7 @@ public class SOCServer extends Server
         "*GC*    trigger the java garbage-collect",
         "*KILLBOT*  botname  End a bot's connection",
         "*KILLGAME*  end the current game",
+        DEBUG_CMD_FREEPLACEMENT + " 1 or 0  Start or end 'Free Placement' mode",
         "*RESETBOT* botname  End a bot's connection",
         "*STATS*   server stats and current-game stats",
         "*STOP*  kill the server",
@@ -3323,6 +3334,11 @@ public class SOCServer extends Server
             }
             if (! botFound)
                 D.ebugPrintln("L2614 Bot not found to disconnect: " + botName);
+        }
+        else if (dcmdU.startsWith(DEBUG_CMD_FREEPLACEMENT))
+        {
+            processDebugCommand_freePlace
+                (debugCli, ga, dcmd.substring(DEBUG_CMD_FREEPLACEMENT.length()).trim());
         }
     }
 
@@ -3802,7 +3818,7 @@ public class SOCServer extends Server
                 if (cliVers != srvVers)
                 {
                     String rejectMsg = "Sorry, robot client version does not match, version number "
-                        + Integer.toString(srvVers) + " is required.";
+                        + Version.version(srvVers) + " is required.";
                     c.put(new SOCRejectConnection(rejectMsg).toCmd());
                     c.disconnectSoft();
                     System.out.println("Rejected robot " + mes.getNickname() + ": Version " + cliVers + " does not match server version");
@@ -4063,6 +4079,73 @@ public class SOCServer extends Server
         {
             String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
             messageToPlayer(c, gaName, expireMsg);
+        }
+    }
+
+    /**
+     * Process the <tt>*FREEPLACE*</tt> Free Placement debug command.
+     * Can turn it off at any time, but can only turn it on during
+     * your own turn after rolling (during game state {@link SOCGame#PLAY1}).
+     * @param c   Connection (client) sending this message
+     * @param gaName  Game to which this applies
+     * @param arg  1 or 0, to turn on or off, or empty string or
+     *    null to print current value
+     * @since 1.1.12
+     */
+    private final void processDebugCommand_freePlace
+        (StringConnection c, final String gaName, final String arg)
+    {
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+        final boolean ppValue = ga.debugFreePlacement;
+        final boolean ppWanted;
+        if ((arg == null) || (arg.length() == 0))
+            ppWanted = ppValue;
+        else
+            ppWanted = arg.equals("1");
+
+        if (ppValue != ppWanted)
+        {
+            if (! ppWanted)
+            {
+                ga.debugFreePlacement = false;
+            } else {
+                if (c.getVersion() < SOCDebugFreePlace.VERSION_FOR_DEBUGFREEPLACE)
+                {
+                    messageToPlayer
+                        (c, gaName, "* Requires client version "
+                         + Version.version(SOCDebugFreePlace.VERSION_FOR_DEBUGFREEPLACE)
+                         + " or newer.");
+                    return;  // <--- early return ---
+                }
+                SOCPlayer cliPl = ga.getPlayer((String) c.getData());
+                if (cliPl == null)
+                    return;  // <--- early return ---
+                if (ga.getCurrentPlayerNumber() != cliPl.getPlayerNumber())
+                {
+                    messageToPlayer
+                        (c, gaName, "* Can do this only on your own turn.");
+                    return;  // <--- early return ---
+                }
+                if (ga.getGameState() != SOCGame.PLAY1)
+                {
+                    messageToPlayer
+                        (c, gaName, "* Can do this only after rolling the dice.");
+                    return;  // <--- early return ---
+                }
+
+                ga.debugFreePlacement = true;
+            }
+        }
+
+        messageToPlayer
+            (c, gaName, "- Free Placement mode is "
+             + (ppWanted ? "ON -" : "off -" ));
+
+        if (ppValue != ppWanted)
+        {
+            messageToPlayer(c, new SOCDebugFreePlace(gaName, ga.getCurrentPlayerNumber(), ppWanted));
         }
     }
 
@@ -5390,6 +5473,13 @@ public class SOCServer extends Server
             return;
 
         final String gname = ga.getName();               
+
+        if (ga.debugFreePlacement)
+        {
+            // turn that off before ending current turn
+            processDebugCommand_freePlace(c, gname, "0");
+        }
+
         ga.takeMonitor();
 
         try
@@ -6951,6 +7041,73 @@ public class SOCServer extends Server
 
         createOrJoinGameIfUserOK
             (c, mes.getNickname(), mes.getPassword(), mes.getGame(), mes.getOptions());
+    }
+
+    /**
+     * Handle the client's debug Free Placement request.
+     * @since 1.1.12
+     */
+    private final void handleDEBUGFREEPLACE(StringConnection c, SOCDebugFreePlace mes)
+    {
+        SOCGame ga = gameList.getGameData(mes.getGame());
+        if ((ga == null) || ! ga.debugFreePlacement)
+            return;
+        final String gaName = ga.getName();
+        if (ga.getGameState() != SOCGame.PLAY1)
+        {
+            messageToPlayer(c, gaName, "Allowed only in game state PLAY1, not " + ga.getGameState());
+            return;
+        }
+
+        final int coord = mes.getCoordinates();
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        if (player == null)
+            return;
+
+        boolean didPut = false;
+        switch (mes.getPieceType())
+        {
+        case SOCPlayingPiece.ROAD:
+            if (player.isPotentialRoad(coord))
+            {
+                ga.putPiece(new SOCRoad(player, coord, null));
+                didPut = true;
+            }
+            break;
+
+        case SOCPlayingPiece.SETTLEMENT:
+            if (player.isPotentialSettlement(coord))
+            {
+                ga.putPiece(new SOCSettlement(player, coord, null));
+                didPut = true;
+            }
+            break;
+
+        case SOCPlayingPiece.CITY:
+            if (player.isPotentialCity(coord))
+            {
+                ga.putPiece(new SOCCity(player, coord, null));
+                didPut = true;
+            }
+            break;
+
+        default:
+            messageToPlayer(c, gaName, "* Unknown piece type: " + mes.getPieceType());
+        }
+
+        if (didPut)
+        {
+            messageToGame(gaName, new SOCPutPiece
+                          (gaName, mes.getPlayerNumber(), mes.getPieceType(), coord));
+            if (ga.getGameState() >= SOCGame.OVER)
+            {
+                // exit debug mode, announce end of game
+                processDebugCommand_freePlace(c, gaName, "0");
+                sendGameState(ga, false);
+            }
+        } else {
+            messageToPlayer(c, gaName, "Not a valid location to place that.");
+        }
     }
 
     /**

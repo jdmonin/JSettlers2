@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Documentation paragraphs and other portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
  **/
 package soc.message;
 
@@ -200,6 +198,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /** @since 1.1.09 */
     public static final int PLAYERELEMENTS = 1086;  // multiple PLAYERELEMENT, 20100313, v1.1.09
+
+    /** @since 1.1.12 */
+    public static final int DEBUGFREEPLACE = 1087;  // debug piece Free Placement, 20110104, v1.1.12
 
 
     /////////////////////////////////////////
@@ -728,6 +729,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case PLAYERELEMENTS:    // multiple PLAYERELEMENT, 20100313, v1.1.09
                 return SOCPlayerElements.parseDataStr(multiData);
+
+            case DEBUGFREEPLACE:    // debug piece Free Placement, 20110104, v1.1.12
+                return SOCDebugFreePlace.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
