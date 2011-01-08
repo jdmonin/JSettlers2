@@ -2001,7 +2001,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         /**
          * we're doing a depth first search of all possible road paths.
-         * For similar code, see robot.SOCPlayerTracker.recalcLongestRoadETAAux.
+         * For similar code, see soc.robot.SOCRobotDM.recalcLongestRoadETAAux.
          */
         SOCBoard board = game.getBoard();
         Stack pending = new Stack();

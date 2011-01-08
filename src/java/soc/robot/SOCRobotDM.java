@@ -1014,13 +1014,22 @@ public class SOCRobotDM {
 
       if (!pathEnd)
       {
+        /**
+         * For each of the 3 adjacent edges of coord's node,
+         * check for unvisited legal road possibilities.
+         * When they are found, push that edge's far-end node
+         * onto the pending stack.
+         *
+         * For the coordinate arithmetic, see Robert S Thomas dissertation
+         * figures A.8, A.10, A.7 and A.9.
+         */
 	pathEnd = true;
 
 	int j;  // edge coordinate near coord's node
 	Integer edge;
 	boolean match;
 
-	j = coord - 0x11;
+	j = coord - 0x11;  // edge is NorthWest or SouthWest of node coord
 	edge = new Integer(j);
 	match = false;
 
@@ -1043,13 +1052,14 @@ public class SOCRobotDM {
 	    Vector newVis = (Vector) visited.clone();
 	    newVis.addElement(edge);
 
-	    // node coord and edge coord are the same
+	    // far node coord == edge coord
+	    // (NW or SW: original coord - 0x11)
 	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
 	    pathEnd = false;
 	  }
 	}
 
-	j = coord;
+	j = coord;  // NE or SE edge
 	edge = new Integer(j);
 	match = false;
 
@@ -1072,14 +1082,15 @@ public class SOCRobotDM {
 	    Vector newVis = (Vector) visited.clone();
 	    newVis.addElement(edge);
 
-	    // coord for node = edge + 0x11
+	    // coord for far node = edge + 0x11
+            // (NE or SE: original coord + 0x11)
 	    j += 0x11;
 	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
 	    pathEnd = false;
 	  }
 	}
 
-	j = coord - 0x01;
+	j = coord - 0x01;  // S edge ([Even,Odd] nodes only)
 	edge = new Integer(j);
 	match = false;
 
@@ -1102,14 +1113,15 @@ public class SOCRobotDM {
 	    Vector newVis = (Vector) visited.clone();
 	    newVis.addElement(edge);
 
-	    // node coord = edge coord + 0x10
+	    // far node coord = edge coord + 0x10
+	    // (South: original coord - 0x01 + 0x10)
 	    j += 0x10;
 	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
 	    pathEnd = false;
 	  }
 	}
 
-	j = coord - 0x10;
+	j = coord - 0x10;  // N edge ([Odd,Even] nodes only)
 	edge = new Integer(j);
 	match = false;
 
@@ -1133,6 +1145,7 @@ public class SOCRobotDM {
 	    newVis.addElement(edge);
 
 	    // node coord = edge coord + 0x01
+	    // (North: original coord + 0x01 - 0x10)
 	    j += 0x01;
 	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
 	    pathEnd = false;
@@ -1175,7 +1188,7 @@ public class SOCRobotDM {
       // return the path in a stack with the last road on top
       //
       //
-      // convert pairs of node coords to road coords
+      // first, convert pairs of node coords to road coords (edge coords):
       //
       Stack temp = new Stack();
       SOCPossibleRoad posRoad;
@@ -1190,19 +1203,25 @@ public class SOCRobotDM {
 	test = coordA - coordB;
 	if (test == 0x11) {
 	  // it is a '\' road
-	  D.ebugPrintln(board.nodeCoordToString(coordB));
+	  // So: edge is NW or SW of node coordA (fig A.8, A.10)
+	  // which is (-1,-1), but we know coordB == coordA + (1,1)
+	  // so, the +1 and -1 cancel out if we use coordB's node.
+	  //D.ebugPrintln(board.nodeCoordToString(coordB));
 	  posRoad = new SOCPossibleRoad(pl, coordB, new Vector());
 	} else if (test == -0x11) {
 	  // it is a '/' road
-	  D.ebugPrintln(board.nodeCoordToString(coordA));
+	  // So: edge is NE or SE of node coordA
+	  //D.ebugPrintln(board.nodeCoordToString(coordA));
 	  posRoad = new SOCPossibleRoad(pl, coordA, new Vector());
 	} else if (test == 0x0F) {
 	  // it is a '|' road for an A node
-	  D.ebugPrintln(board.nodeCoordToString((coordA - 0x10)));
+	  // So: edge is north of node coordA (fig A.10)
+	  //D.ebugPrintln(board.nodeCoordToString((coordA - 0x10)));
 	  posRoad = new SOCPossibleRoad(pl, (coordA - 0x10), new Vector());
 	} else {
 	  // it is a '|' road for a Y node
-	  D.ebugPrintln(board.nodeCoordToString((coordA - 0x01)));
+	  // So: edge is south of node coordA (fig A.8)
+	  //D.ebugPrintln(board.nodeCoordToString((coordA - 0x01)));
 	  posRoad = new SOCPossibleRoad(pl, (coordA - 0x01), new Vector());
 	}
 	temp.push(posRoad);
