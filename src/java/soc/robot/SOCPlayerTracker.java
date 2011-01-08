@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -1988,12 +1988,14 @@ public class SOCPlayerTracker
      *
      * @return the number of roads needed, or 500 if it can't be done
      */
-    private int recalcLongestRoadETAAux(int startNode, int pathLength, int lrLength, int searchDepth)
+    private int recalcLongestRoadETAAux
+        (final int startNode, final int pathLength, final int lrLength, final int searchDepth)
     {
         D.ebugPrintln("=== recalcLongestRoadETAAux(" + Integer.toHexString(startNode) + "," + pathLength + "," + lrLength + "," + searchDepth + ")");
 
         //
-        // we're doing a depth first search of all possible road paths 
+        // We're doing a depth first search of all possible road paths.
+        // For similar code, see SOCPlayer.calcLongestRoad2
         //
         int longest = 0;
         int numRoads = 500;
@@ -2006,28 +2008,32 @@ public class SOCPlayerTracker
         while (!pending.empty())
         {
             NodeLenVis curNode = (NodeLenVis) pending.pop();
-            D.ebugPrintln("curNode = " + curNode);
+            //D.ebugPrintln("curNode = " + curNode);
 
-            int coord = curNode.node;
+            final int coord = curNode.node;
             int len = curNode.len;
             Vector visited = curNode.vis;
             boolean pathEnd = false;
 
             //
-            // check for road blocks 
+            // check for road blocks
             //
-            Enumeration pEnum = board.getPieces().elements();
-
-            while (pEnum.hasMoreElements())
+            if (len > 0)
             {
-                SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
-
-                if ((len > 0) && (p.getPlayer().getPlayerNumber() != player.getPlayerNumber()) && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)) && (p.getCoordinates() == coord))
+                final int pn = player.getPlayerNumber();
+                Enumeration pEnum = board.getPieces().elements();
+    
+                while (pEnum.hasMoreElements())
                 {
-                    pathEnd = true;
-
-                    //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
-                    break;
+                    SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+                    if ((p.getCoordinates() == coord)
+                        && (p.getPlayer().getPlayerNumber() != pn)
+                        && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)))
+                    {
+                        pathEnd = true;
+                        //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
+                        break;
+                    }
                 }
             }
 
@@ -2037,17 +2043,18 @@ public class SOCPlayerTracker
                 // check if we've connected to another road graph
                 //
                 Iterator lrPathsIter = player.getLRPaths().iterator();
-
                 while (lrPathsIter.hasNext())
                 {
                     SOCLRPathData pathData = (SOCLRPathData) lrPathsIter.next();
-
-                    if (((startNode != pathData.getBeginning()) && (startNode != pathData.getEnd())) && ((coord == pathData.getBeginning()) || (coord == pathData.getEnd())))
+                    if ((startNode != pathData.getBeginning())
+                        && (startNode != pathData.getEnd())
+                        && ((coord == pathData.getBeginning())
+                            || (coord == pathData.getEnd())))
                     {
                         pathEnd = true;
                         len += pathData.getLength();
-                        D.ebugPrintln("connecting to another path: " + pathData);
-                        D.ebugPrintln("len = " + len);
+                        //D.ebugPrintln("connecting to another path: " + pathData);
+                        //D.ebugPrintln("len = " + len);
 
                         break;
                     }
@@ -2063,13 +2070,14 @@ public class SOCPlayerTracker
                 {
                     pathEnd = true;
                 }
+                // Reached search depth
             }
 
             if (!pathEnd)
             {
                 pathEnd = true;
 
-                int j;
+                int j;  // edge coordinate near coord's node
                 Integer edge;
                 boolean match;
 
@@ -2077,17 +2085,16 @@ public class SOCPlayerTracker
                 edge = new Integer(j);
                 match = false;
 
-                if ((j >= MINEDGE) && (j <= MAXEDGE) && (player.isLegalRoad(j)))
+                if ((j >= MINEDGE) && (j <= MAXEDGE)
+                    && player.isLegalRoad(j))
                 {
                     for (Enumeration ev = visited.elements();
-                            ev.hasMoreElements();)
+                            ev.hasMoreElements(); )
                     {
                         Integer vis = (Integer) ev.nextElement();
-
                         if (vis.equals(edge))
                         {
                             match = true;
-
                             break;
                         }
                     }
@@ -2107,17 +2114,16 @@ public class SOCPlayerTracker
                 edge = new Integer(j);
                 match = false;
 
-                if ((j >= MINEDGE) && (j <= MAXEDGE) && (player.isLegalRoad(j)))
+                if ((j >= MINEDGE) && (j <= MAXEDGE)
+                    && player.isLegalRoad(j))
                 {
                     for (Enumeration ev = visited.elements();
-                            ev.hasMoreElements();)
+                            ev.hasMoreElements(); )
                     {
                         Integer vis = (Integer) ev.nextElement();
-
                         if (vis.equals(edge))
                         {
                             match = true;
-
                             break;
                         }
                     }
@@ -2138,17 +2144,16 @@ public class SOCPlayerTracker
                 edge = new Integer(j);
                 match = false;
 
-                if ((j >= MINEDGE) && (j <= MAXEDGE) && (player.isLegalRoad(j)))
+                if ((j >= MINEDGE) && (j <= MAXEDGE)
+                    && player.isLegalRoad(j))
                 {
                     for (Enumeration ev = visited.elements();
-                            ev.hasMoreElements();)
+                            ev.hasMoreElements(); )
                     {
                         Integer vis = (Integer) ev.nextElement();
-
                         if (vis.equals(edge))
                         {
                             match = true;
-
                             break;
                         }
                     }
@@ -2169,17 +2174,16 @@ public class SOCPlayerTracker
                 edge = new Integer(j);
                 match = false;
 
-                if ((j >= MINEDGE) && (j <= MAXEDGE) && (player.isLegalRoad(j)))
+                if ((j >= MINEDGE) && (j <= MAXEDGE)
+                    && player.isLegalRoad(j))
                 {
                     for (Enumeration ev = visited.elements();
-                            ev.hasMoreElements();)
+                            ev.hasMoreElements(); )
                     {
                         Integer vis = (Integer) ev.nextElement();
-
                         if (vis.equals(edge))
                         {
                             match = true;
-
                             break;
                         }
                     }

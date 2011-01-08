@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009,2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -909,7 +909,7 @@ public class SOCRobotDM {
 
   /**
    * Does a depth first search from the end point of the longest
-   * path in a graph of nodes and returns how many roads would 
+   * path in a graph of nodes and returns how many roads would
    * need to be built to take longest road.
    *
    * @param startNode     the path endpoint
@@ -919,11 +919,14 @@ public class SOCRobotDM {
    *
    * @return a stack containing the path of roads with the last one on top, or null if it can't be done
    */
-  private Stack recalcLongestRoadETAAux(int startNode, int pathLength, int lrLength, int searchDepth) {
+  private Stack recalcLongestRoadETAAux
+      (final int startNode, final int pathLength, final int lrLength, final int searchDepth)
+  {
     D.ebugPrintln("=== recalcLongestRoadETAAux("+Integer.toHexString(startNode)+","+pathLength+","+lrLength+","+searchDepth+")");
     
     //
-    // we're doing a depth first search of all possible road paths 
+    // We're doing a depth first search of all possible road paths.
+    // For similar code, see SOCPlayer.calcLongestRoad2
     //
     int longest = 0;
     int numRoads = 500;
@@ -934,173 +937,223 @@ public class SOCRobotDM {
     Stack pending = new Stack();
     pending.push(new Pair(new NodeLenVis(startNode, pathLength, new Vector()), null));
 
-    while (!pending.empty()) {
-      Pair dataPair = (Pair)pending.pop();
-      NodeLenVis curNode = (NodeLenVis)dataPair.getA();
-      D.ebugPrintln("curNode = "+curNode);
-      int coord = curNode.node;
+    while (!pending.empty())
+    {
+      Pair dataPair = (Pair) pending.pop();
+      NodeLenVis curNode = (NodeLenVis) dataPair.getA();
+      //D.ebugPrintln("curNode = "+curNode);
+
+      final int coord = curNode.node;
       int len = curNode.len;
       Vector visited = curNode.vis;
       boolean pathEnd = false;
       
       //
-      // check for road blocks 
+      // check for road blocks
       //
-      Enumeration pEnum = board.getPieces().elements();
-      while (pEnum.hasMoreElements()) {
-	SOCPlayingPiece p = (SOCPlayingPiece)pEnum.nextElement();
-	if ((len > 0) &&
-	    (p.getPlayer().getPlayerNumber() != ourPlayerData.getPlayerNumber()) &&
-	    ((p.getType() == SOCPlayingPiece.SETTLEMENT) ||
-	     (p.getType() == SOCPlayingPiece.CITY)) &&
-	    (p.getCoordinates() == coord)) {
-	  pathEnd = true;
-	  D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
-	  break;
-	}
+      if (len > 0)
+      {
+          final int pn = ourPlayerData.getPlayerNumber();
+          Enumeration pEnum = board.getPieces().elements();
+
+          while (pEnum.hasMoreElements())
+          {
+              SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+              if ((p.getCoordinates() == coord)
+                  && (p.getPlayer().getPlayerNumber() != pn)
+                  && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)))
+              {
+                  pathEnd = true;
+                  //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
+                  break;
+              }
+          }
       }
 
-      if (!pathEnd) {
+      if (!pathEnd)
+      {
 	// 
 	// check if we've connected to another road graph
 	//
 	Iterator lrPathsIter = ourPlayerData.getLRPaths().iterator();
-	while (lrPathsIter.hasNext()) {
-	  SOCLRPathData pathData = (SOCLRPathData)lrPathsIter.next();
-	  if ((startNode != pathData.getBeginning() &&
-	       startNode != pathData.getEnd()) &&
-	      (coord == pathData.getBeginning() ||
-	       coord == pathData.getEnd())) {
+	while (lrPathsIter.hasNext())
+	{
+	  SOCLRPathData pathData = (SOCLRPathData) lrPathsIter.next();
+	  if ((startNode != pathData.getBeginning())
+              && (startNode != pathData.getEnd())
+              && ((coord == pathData.getBeginning())
+                  || (coord == pathData.getEnd())))
+	  {
 	    pathEnd = true;
 	    len += pathData.getLength();
-	    D.ebugPrintln("connecting to another path: "+pathData);
-	    D.ebugPrintln("len = "+len);
+	    //D.ebugPrintln("connecting to another path: " + pathData);
+	    //D.ebugPrintln("len = " + len);
+
 	    break;
-	  }      
+	  }
 	}
       }
-      
-      if (!pathEnd) {
+
+      if (!pathEnd)
+      {
 	//
 	// (len - pathLength) = how many new roads we've built
 	//
-	if ((len - pathLength) >= searchDepth) {
+	if ((len - pathLength) >= searchDepth)
+	{
 	  pathEnd = true;
 	}
-	D.ebugPrintln("Reached search depth");
+	//D.ebugPrintln("Reached search depth");
       }
 
-      if (!pathEnd) {
+      if (!pathEnd)
+      {
 	pathEnd = true;
 
-	int j;		
+	int j;  // edge coordinate near coord's node
 	Integer edge;
 	boolean match;
 
 	j = coord - 0x11;
 	edge = new Integer(j);
 	match = false;
-	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
-	    (ourPlayerData.isLegalRoad(j))) {
+
+	if ((j >= MINEDGE) && (j <= MAXEDGE)
+	    && ourPlayerData.isLegalRoad(j))
+	{
 	  for (Enumeration ev = visited.elements();
-	       ev.hasMoreElements(); ) {
-	    Integer vis = (Integer)ev.nextElement();
-	    if (vis.equals(edge)) {
+	       ev.hasMoreElements(); )
+	  {
+	    Integer vis = (Integer) ev.nextElement();
+	    if (vis.equals(edge))
+	    {
 	      match = true;
 	      break;
 	    }
-	  }	
-	  if (!match) {
-	    Vector newVis = (Vector)visited.clone();
+	  }
+
+	  if (!match)
+	  {
+	    Vector newVis = (Vector) visited.clone();
 	    newVis.addElement(edge);
+
 	    // node coord and edge coord are the same
 	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
 	    pathEnd = false;
 	  }
 	}
+
 	j = coord;
 	edge = new Integer(j);
 	match = false;
-	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
-	    (ourPlayerData.isLegalRoad(j))) {
+
+	if ((j >= MINEDGE) && (j <= MAXEDGE)
+	    && ourPlayerData.isLegalRoad(j))
+	{
 	  for (Enumeration ev = visited.elements();
-	       ev.hasMoreElements(); ) {
-	    Integer vis = (Integer)ev.nextElement();
-	    if (vis.equals(edge)) {
+	       ev.hasMoreElements(); )
+	  {
+	    Integer vis = (Integer) ev.nextElement();
+	    if (vis.equals(edge))
+	    {
 	      match = true;
 	      break;
 	    }
-	  }	
-	  if (!match) {
-	    Vector newVis = (Vector)visited.clone();
+	  }
+
+	  if (!match)
+	  {
+	    Vector newVis = (Vector) visited.clone();
 	    newVis.addElement(edge);
+
 	    // coord for node = edge + 0x11
 	    j += 0x11;
 	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
 	    pathEnd = false;
 	  }
 	}
+
 	j = coord - 0x01;
 	edge = new Integer(j);
 	match = false;
+
 	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
-	    (ourPlayerData.isLegalRoad(j))) {
+	    ourPlayerData.isLegalRoad(j))
+	{
 	  for (Enumeration ev = visited.elements();
-	       ev.hasMoreElements(); ) {
-	    Integer vis = (Integer)ev.nextElement();
-	    if (vis.equals(edge)) {
+	       ev.hasMoreElements(); )
+	  {
+	    Integer vis = (Integer) ev.nextElement();
+	    if (vis.equals(edge))
+	    {
 	      match = true;
 	      break;
 	    }
-	  }	
-	  if (!match) {
-	    Vector newVis = (Vector)visited.clone();
+	  }
+
+	  if (!match)
+	  {
+	    Vector newVis = (Vector) visited.clone();
 	    newVis.addElement(edge);
+
 	    // node coord = edge coord + 0x10
 	    j += 0x10;
 	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
 	    pathEnd = false;
 	  }
-	}	 
+	}
+
 	j = coord - 0x10;
 	edge = new Integer(j);
 	match = false;
-	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
-	    (ourPlayerData.isLegalRoad(j))) {
+
+	if ((j >= MINEDGE) && (j <= MAXEDGE)
+	    && ourPlayerData.isLegalRoad(j))
+	{
 	  for (Enumeration ev = visited.elements();
-	       ev.hasMoreElements(); ) {
-	    Integer vis = (Integer)ev.nextElement();
-	    if (vis.equals(edge)) {
+	       ev.hasMoreElements(); )
+	  {
+	    Integer vis = (Integer) ev.nextElement();
+	    if (vis.equals(edge))
+	    {
 	      match = true;
 	      break;
 	    }
-	  }	
-	  if (!match) {
-	    Vector newVis = (Vector)visited.clone();
+	  }
+
+	  if (!match)
+	  {
+	    Vector newVis = (Vector) visited.clone();
 	    newVis.addElement(edge);
+
 	    // node coord = edge coord + 0x01
 	    j += 0x01;
 	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
 	    pathEnd = false;
 	  }
 	}
-      }		
-      
-      if (pathEnd) {
-	if (len > longest) {
+      }
+
+      if (pathEnd)
+      {
+	if (len > longest)
+	{
 	  longest = len;
 	  numRoads = curNode.len - pathLength;
 	  bestPathNode = dataPair;
-	} else if ((len == longest) &&
-		   (curNode.len < numRoads)) {
+	}
+	else if ((len == longest) && (curNode.len < numRoads))
+	{
 	  numRoads = curNode.len - pathLength;
 	  bestPathNode = dataPair;
 	}
       }
     }
+
     if ((longest > lrLength) &&
-	(bestPathNode != null)) {
-      D.ebugPrintln("Converting nodes to road coords.");
+	(bestPathNode != null))
+    {
+      //D.ebugPrintln("Converting nodes to road coords.");
       //
       // return the path in a stack with the last road on top
       //
@@ -1113,7 +1166,8 @@ public class SOCRobotDM {
       Pair cur, parent;
       cur = bestPathNode;
       parent = (Pair)bestPathNode.getB();
-      while (parent != null) {
+      while (parent != null)
+      {
 	coordA = ((NodeLenVis)cur.getA()).node;
 	coordB = ((NodeLenVis)parent.getA()).node;
 	test = coordA - coordB;
@@ -1136,17 +1190,19 @@ public class SOCRobotDM {
 	}
 	temp.push(posRoad);
 	cur = parent;
-	parent = (Pair)parent.getB();
+	parent = (Pair) parent.getB();
       }
       //
       // reverse the order of the roads so that the last one is on top
       //
       Stack path = new Stack();
-      while (!temp.empty()) {
+      while (!temp.empty())
 	path.push(temp.pop());
-      }
+
       return path;
+
     } else {
+
       return null;
     }
   }
