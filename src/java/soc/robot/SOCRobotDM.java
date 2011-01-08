@@ -659,13 +659,13 @@ public class SOCRobotDM {
 	  Stack path;
 	  SOCLRPathData pathData = (SOCLRPathData)lrPathsIter.next();
 	  depth = Math.min(((lrLength + 1) - pathData.getLength()), ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD));
-	  path = recalcLongestRoadETAAux(pathData.getBeginning(), pathData.getLength(), lrLength, depth);
+	  path = recalcLongestRoadETAAux(ourPlayerData, pathData.getBeginning(), pathData.getLength(), lrLength, depth);
 	  if ((path != null) &&
 	      ((bestLRPath == null) ||
 	       (path.size() < bestLRPath.size()))) {
 	    bestLRPath = path;
 	  }
-	  path = recalcLongestRoadETAAux(pathData.getEnd(), pathData.getLength(), lrLength, depth);
+	  path = recalcLongestRoadETAAux(ourPlayerData, pathData.getEnd(), pathData.getLength(), lrLength, depth);
 	  if ((path != null) &&
 	      ((bestLRPath == null) ||
 	       (path.size() < bestLRPath.size()))) {
@@ -912,6 +912,7 @@ public class SOCRobotDM {
    * path in a graph of nodes and returns how many roads would
    * need to be built to take longest road.
    *
+   * @param pl            Calculate this player's longest road; typically SOCRobotDM.ourPlayerData
    * @param startNode     the path endpoint
    * @param pathLength    the length of that path
    * @param lrLength      length of longest road in the game
@@ -919,8 +920,8 @@ public class SOCRobotDM {
    *
    * @return a stack containing the path of roads with the last one on top, or null if it can't be done
    */
-  private Stack recalcLongestRoadETAAux
-      (final int startNode, final int pathLength, final int lrLength, final int searchDepth)
+  private static Stack recalcLongestRoadETAAux
+      (SOCPlayer pl, final int startNode, final int pathLength, final int lrLength, final int searchDepth)
   {
     D.ebugPrintln("=== recalcLongestRoadETAAux("+Integer.toHexString(startNode)+","+pathLength+","+lrLength+","+searchDepth+")");
     
@@ -931,7 +932,7 @@ public class SOCRobotDM {
     int longest = 0;
     int numRoads = 500;
     Pair bestPathNode = null;
-    final SOCBoard board = game.getBoard();
+    final SOCBoard board = pl.getGame().getBoard();
     final int MINEDGE = board.getMinEdge(),
               MAXEDGE = board.getMaxEdge();
     Stack pending = new Stack();
@@ -953,7 +954,7 @@ public class SOCRobotDM {
       //
       if (len > 0)
       {
-          final int pn = ourPlayerData.getPlayerNumber();
+          final int pn = pl.getPlayerNumber();
           Enumeration pEnum = board.getPieces().elements();
 
           while (pEnum.hasMoreElements())
@@ -975,7 +976,7 @@ public class SOCRobotDM {
 	// 
 	// check if we've connected to another road graph
 	//
-	Iterator lrPathsIter = ourPlayerData.getLRPaths().iterator();
+	Iterator lrPathsIter = pl.getLRPaths().iterator();
 	while (lrPathsIter.hasNext())
 	{
 	  SOCLRPathData pathData = (SOCLRPathData) lrPathsIter.next();
@@ -1019,7 +1020,7 @@ public class SOCRobotDM {
 	match = false;
 
 	if ((j >= MINEDGE) && (j <= MAXEDGE)
-	    && ourPlayerData.isLegalRoad(j))
+	    && pl.isLegalRoad(j))
 	{
 	  for (Enumeration ev = visited.elements();
 	       ev.hasMoreElements(); )
@@ -1048,7 +1049,7 @@ public class SOCRobotDM {
 	match = false;
 
 	if ((j >= MINEDGE) && (j <= MAXEDGE)
-	    && ourPlayerData.isLegalRoad(j))
+	    && pl.isLegalRoad(j))
 	{
 	  for (Enumeration ev = visited.elements();
 	       ev.hasMoreElements(); )
@@ -1077,8 +1078,8 @@ public class SOCRobotDM {
 	edge = new Integer(j);
 	match = false;
 
-	if ((j >= MINEDGE) && (j <= MAXEDGE) &&
-	    ourPlayerData.isLegalRoad(j))
+	if ((j >= MINEDGE) && (j <= MAXEDGE)
+	    && pl.isLegalRoad(j))
 	{
 	  for (Enumeration ev = visited.elements();
 	       ev.hasMoreElements(); )
@@ -1108,7 +1109,7 @@ public class SOCRobotDM {
 	match = false;
 
 	if ((j >= MINEDGE) && (j <= MAXEDGE)
-	    && ourPlayerData.isLegalRoad(j))
+	    && pl.isLegalRoad(j))
 	{
 	  for (Enumeration ev = visited.elements();
 	       ev.hasMoreElements(); )
@@ -1174,19 +1175,19 @@ public class SOCRobotDM {
 	if (test == 0x11) {
 	  // it is a '\' road
 	  D.ebugPrintln(board.nodeCoordToString(coordB));
-	  posRoad = new SOCPossibleRoad(ourPlayerData, coordB, new Vector());
+	  posRoad = new SOCPossibleRoad(pl, coordB, new Vector());
 	} else if (test == -0x11) {
 	  // it is a '/' road
 	  D.ebugPrintln(board.nodeCoordToString(coordA));
-	  posRoad = new SOCPossibleRoad(ourPlayerData, coordA, new Vector());
+	  posRoad = new SOCPossibleRoad(pl, coordA, new Vector());
 	} else if (test == 0x0F) {
 	  // it is a '|' road for an A node
 	  D.ebugPrintln(board.nodeCoordToString((coordA - 0x10)));
-	  posRoad = new SOCPossibleRoad(ourPlayerData, (coordA - 0x10), new Vector());
+	  posRoad = new SOCPossibleRoad(pl, (coordA - 0x10), new Vector());
 	} else {
 	  // it is a '|' road for a Y node
 	  D.ebugPrintln(board.nodeCoordToString((coordA - 0x01)));
-	  posRoad = new SOCPossibleRoad(ourPlayerData, (coordA - 0x01), new Vector());
+	  posRoad = new SOCPossibleRoad(pl, (coordA - 0x01), new Vector());
 	}
 	temp.push(posRoad);
 	cur = parent;

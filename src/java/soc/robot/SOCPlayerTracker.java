@@ -1965,9 +1965,9 @@ public class SOCPlayerTracker
                 SOCLRPathData pathData = (SOCLRPathData) lrPathsIter.next();
                 depth = Math.min(((longestRoadLength + 1) - pathData.getLength()), player.getNumPieces(SOCPlayingPiece.ROAD));
 
-                int minRoads = recalcLongestRoadETAAux(pathData.getBeginning(), pathData.getLength(), longestRoadLength, depth);
+                int minRoads = recalcLongestRoadETAAux(player, pathData.getBeginning(), pathData.getLength(), longestRoadLength, depth);
                 roadsToGo = Math.min(minRoads, roadsToGo);
-                minRoads = recalcLongestRoadETAAux(pathData.getEnd(), pathData.getLength(), longestRoadLength, depth);
+                minRoads = recalcLongestRoadETAAux(player, pathData.getEnd(), pathData.getLength(), longestRoadLength, depth);
                 roadsToGo = Math.min(minRoads, roadsToGo);
             }
         }
@@ -1981,6 +1981,7 @@ public class SOCPlayerTracker
      * path in a graph of nodes and returns how many roads would
      * need to be built to take longest road.
      *
+     * @param pl            Calculate this player's longest road; typically SOCPlayerTracker.player
      * @param startNode     the path endpoint
      * @param pathLength    the length of that path
      * @param lrLength      length of longest road in the game
@@ -1988,8 +1989,8 @@ public class SOCPlayerTracker
      *
      * @return the number of roads needed, or 500 if it can't be done
      */
-    private int recalcLongestRoadETAAux
-        (final int startNode, final int pathLength, final int lrLength, final int searchDepth)
+    private static int recalcLongestRoadETAAux
+        (SOCPlayer pl, final int startNode, final int pathLength, final int lrLength, final int searchDepth)
     {
         D.ebugPrintln("=== recalcLongestRoadETAAux(" + Integer.toHexString(startNode) + "," + pathLength + "," + lrLength + "," + searchDepth + ")");
 
@@ -1999,7 +2000,7 @@ public class SOCPlayerTracker
         //
         int longest = 0;
         int numRoads = 500;
-        final SOCBoard board = player.getGame().getBoard();
+        final SOCBoard board = pl.getGame().getBoard();
         final int MINEDGE = board.getMinEdge(),
                   MAXEDGE = board.getMaxEdge();
         Stack pending = new Stack();
@@ -2020,7 +2021,7 @@ public class SOCPlayerTracker
             //
             if (len > 0)
             {
-                final int pn = player.getPlayerNumber();
+                final int pn = pl.getPlayerNumber();
                 Enumeration pEnum = board.getPieces().elements();
     
                 while (pEnum.hasMoreElements())
@@ -2042,7 +2043,7 @@ public class SOCPlayerTracker
                 // 
                 // check if we've connected to another road graph
                 //
-                Iterator lrPathsIter = player.getLRPaths().iterator();
+                Iterator lrPathsIter = pl.getLRPaths().iterator();
                 while (lrPathsIter.hasNext())
                 {
                     SOCLRPathData pathData = (SOCLRPathData) lrPathsIter.next();
@@ -2086,7 +2087,7 @@ public class SOCPlayerTracker
                 match = false;
 
                 if ((j >= MINEDGE) && (j <= MAXEDGE)
-                    && player.isLegalRoad(j))
+                    && pl.isLegalRoad(j))
                 {
                     for (Enumeration ev = visited.elements();
                             ev.hasMoreElements(); )
@@ -2115,7 +2116,7 @@ public class SOCPlayerTracker
                 match = false;
 
                 if ((j >= MINEDGE) && (j <= MAXEDGE)
-                    && player.isLegalRoad(j))
+                    && pl.isLegalRoad(j))
                 {
                     for (Enumeration ev = visited.elements();
                             ev.hasMoreElements(); )
@@ -2145,7 +2146,7 @@ public class SOCPlayerTracker
                 match = false;
 
                 if ((j >= MINEDGE) && (j <= MAXEDGE)
-                    && player.isLegalRoad(j))
+                    && pl.isLegalRoad(j))
                 {
                     for (Enumeration ev = visited.elements();
                             ev.hasMoreElements(); )
@@ -2175,7 +2176,7 @@ public class SOCPlayerTracker
                 match = false;
 
                 if ((j >= MINEDGE) && (j <= MAXEDGE)
-                    && player.isLegalRoad(j))
+                    && pl.isLegalRoad(j))
                 {
                     for (Enumeration ev = visited.elements();
                             ev.hasMoreElements(); )
