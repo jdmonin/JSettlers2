@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.game;
 
@@ -1994,11 +1996,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         // representation.  if someone cut our longest path in two
         // we won't catch it unless we clear the vector
         //
-        D.ebugPrintln("CLEARING PATH DATA");
+        //D.ebugPrintln("CLEARING PATH DATA");
         lrPaths.removeAllElements();
 
         /**
-         * we're doing a depth first search of all possible road paths
+         * we're doing a depth first search of all possible road paths.
+         * For similar code, see robot.SOCPlayerTracker.recalcLongestRoadETAAux.
          */
         SOCBoard board = game.getBoard();
         Stack pending = new Stack();
@@ -2103,7 +2106,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             pdEnum.hasMoreElements();)
                     {
                         SOCLRPathData oldPathData = (SOCLRPathData) pdEnum.nextElement();
-                        D.ebugPrintln("oldPathData = " + oldPathData);
+                        //D.ebugPrintln("oldPathData = " + oldPathData);
 
                         Vector nodePairs = oldPathData.getNodePairs();
                         intersection = false;
@@ -2112,17 +2115,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 ev.hasMoreElements();)
                         {
                             IntPair vis = (IntPair) ev.nextElement();
-                            D.ebugPrintln("vis = " + vis);
+                            //D.ebugPrintln("vis = " + vis);
 
                             for (Enumeration npev = nodePairs.elements();
                                     npev.hasMoreElements();)
                             {
                                 IntPair np = (IntPair) npev.nextElement();
-                                D.ebugPrintln("np = " + np);
+                                //D.ebugPrintln("np = " + np);
 
                                 if (np.equals(vis))
                                 {
-                                    D.ebugPrintln("oldPathData.nodePairs.contains(vis)");
+                                    //D.ebugPrintln("oldPathData.nodePairs.contains(vis)");
                                     intersection = true;
 
                                     break;
@@ -2142,13 +2145,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             //
                             if (oldPathData.getLength() < len)
                             {
-                                D.ebugPrintln("REMOVING OLDPATHDATA");
+                                //D.ebugPrintln("REMOVING OLDPATHDATA");
                                 trash.addElement(oldPathData);
                             }
                             else
                             {
                                 addNewPath = false;
-                                D.ebugPrintln("NOT ADDING NEW PATH");
+                                //D.ebugPrintln("NOT ADDING NEW PATH");
                             }
                         }
                     }
@@ -2166,7 +2169,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     if (addNewPath)
                     {
                         SOCLRPathData newPathData = new SOCLRPathData(pathStartCoord, coord, len, visited);
-                        D.ebugPrintln("ADDING PATH: " + newPathData);
+                        //D.ebugPrintln("ADDING PATH: " + newPathData);
                         lrPaths.addElement(newPathData);
                     }
                 }
