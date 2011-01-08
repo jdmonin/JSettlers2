@@ -1965,9 +1965,9 @@ public class SOCPlayerTracker
                 SOCLRPathData pathData = (SOCLRPathData) lrPathsIter.next();
                 depth = Math.min(((longestRoadLength + 1) - pathData.getLength()), player.getNumPieces(SOCPlayingPiece.ROAD));
 
-                int minRoads = recalcLongestRoadETAAux(player, pathData.getBeginning(), pathData.getLength(), longestRoadLength, depth);
+                int minRoads = recalcLongestRoadETAAux(pathData.getBeginning(), pathData.getLength(), longestRoadLength, depth);
                 roadsToGo = Math.min(minRoads, roadsToGo);
-                minRoads = recalcLongestRoadETAAux(player, pathData.getEnd(), pathData.getLength(), longestRoadLength, depth);
+                minRoads = recalcLongestRoadETAAux(pathData.getEnd(), pathData.getLength(), longestRoadLength, depth);
                 roadsToGo = Math.min(minRoads, roadsToGo);
             }
         }
@@ -1981,7 +1981,6 @@ public class SOCPlayerTracker
      * path in a graph of nodes and returns how many roads would
      * need to be built to take longest road.
      *
-     * @param pl            Calculate this player's longest road; typically SOCPlayerTracker.player
      * @param startNode     the path endpoint
      * @param pathLength    the length of that path
      * @param lrLength      length of longest road in the game
@@ -1989,241 +1988,11 @@ public class SOCPlayerTracker
      *
      * @return the number of roads needed, or 500 if it can't be done
      */
-    private static int recalcLongestRoadETAAux
-        (SOCPlayer pl, final int startNode, final int pathLength, final int lrLength, final int searchDepth)
+    private int recalcLongestRoadETAAux
+        (final int startNode, final int pathLength, final int lrLength, final int searchDepth)
     {
-        D.ebugPrintln("=== recalcLongestRoadETAAux(" + Integer.toHexString(startNode) + "," + pathLength + "," + lrLength + "," + searchDepth + ")");
-
-        //
-        // We're doing a depth first search of all possible road paths.
-        // For similar code, see SOCPlayer.calcLongestRoad2
-        //
-        int longest = 0;
-        int numRoads = 500;
-        final SOCBoard board = pl.getGame().getBoard();
-        final int MINEDGE = board.getMinEdge(),
-                  MAXEDGE = board.getMaxEdge();
-        Stack pending = new Stack();
-        pending.push(new NodeLenVis(startNode, pathLength, new Vector()));
-
-        while (!pending.empty())
-        {
-            NodeLenVis curNode = (NodeLenVis) pending.pop();
-            //D.ebugPrintln("curNode = " + curNode);
-
-            final int coord = curNode.node;
-            int len = curNode.len;
-            Vector visited = curNode.vis;
-            boolean pathEnd = false;
-
-            //
-            // check for road blocks
-            //
-            if (len > 0)
-            {
-                final int pn = pl.getPlayerNumber();
-                Enumeration pEnum = board.getPieces().elements();
-    
-                while (pEnum.hasMoreElements())
-                {
-                    SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
-                    if ((p.getCoordinates() == coord)
-                        && (p.getPlayer().getPlayerNumber() != pn)
-                        && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)))
-                    {
-                        pathEnd = true;
-                        //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
-                        break;
-                    }
-                }
-            }
-
-            if (!pathEnd)
-            {
-                // 
-                // check if we've connected to another road graph
-                //
-                Iterator lrPathsIter = pl.getLRPaths().iterator();
-                while (lrPathsIter.hasNext())
-                {
-                    SOCLRPathData pathData = (SOCLRPathData) lrPathsIter.next();
-                    if ((startNode != pathData.getBeginning())
-                        && (startNode != pathData.getEnd())
-                        && ((coord == pathData.getBeginning())
-                            || (coord == pathData.getEnd())))
-                    {
-                        pathEnd = true;
-                        len += pathData.getLength();
-                        //D.ebugPrintln("connecting to another path: " + pathData);
-                        //D.ebugPrintln("len = " + len);
-
-                        break;
-                    }
-                }
-            }
-
-            if (!pathEnd)
-            {
-                //
-                // (len - pathLength) = how many new roads we've built
-                //
-                if ((len - pathLength) >= searchDepth)
-                {
-                    pathEnd = true;
-                }
-                // Reached search depth
-            }
-
-            if (!pathEnd)
-            {
-                pathEnd = true;
-
-                int j;  // edge coordinate near coord's node
-                Integer edge;
-                boolean match;
-
-                j = coord - 0x11;
-                edge = new Integer(j);
-                match = false;
-
-                if ((j >= MINEDGE) && (j <= MAXEDGE)
-                    && pl.isLegalRoad(j))
-                {
-                    for (Enumeration ev = visited.elements();
-                            ev.hasMoreElements(); )
-                    {
-                        Integer vis = (Integer) ev.nextElement();
-                        if (vis.equals(edge))
-                        {
-                            match = true;
-                            break;
-                        }
-                    }
-
-                    if (!match)
-                    {
-                        Vector newVis = (Vector) visited.clone();
-                        newVis.addElement(edge);
-
-                        // node coord and edge coord are the same
-                        pending.push(new NodeLenVis(j, len + 1, newVis));
-                        pathEnd = false;
-                    }
-                }
-
-                j = coord;
-                edge = new Integer(j);
-                match = false;
-
-                if ((j >= MINEDGE) && (j <= MAXEDGE)
-                    && pl.isLegalRoad(j))
-                {
-                    for (Enumeration ev = visited.elements();
-                            ev.hasMoreElements(); )
-                    {
-                        Integer vis = (Integer) ev.nextElement();
-                        if (vis.equals(edge))
-                        {
-                            match = true;
-                            break;
-                        }
-                    }
-
-                    if (!match)
-                    {
-                        Vector newVis = (Vector) visited.clone();
-                        newVis.addElement(edge);
-
-                        // coord for node = edge + 0x11
-                        j += 0x11;
-                        pending.push(new NodeLenVis(j, len + 1, newVis));
-                        pathEnd = false;
-                    }
-                }
-
-                j = coord - 0x01;
-                edge = new Integer(j);
-                match = false;
-
-                if ((j >= MINEDGE) && (j <= MAXEDGE)
-                    && pl.isLegalRoad(j))
-                {
-                    for (Enumeration ev = visited.elements();
-                            ev.hasMoreElements(); )
-                    {
-                        Integer vis = (Integer) ev.nextElement();
-                        if (vis.equals(edge))
-                        {
-                            match = true;
-                            break;
-                        }
-                    }
-
-                    if (!match)
-                    {
-                        Vector newVis = (Vector) visited.clone();
-                        newVis.addElement(edge);
-
-                        // node coord = edge coord + 0x10
-                        j += 0x10;
-                        pending.push(new NodeLenVis(j, len + 1, newVis));
-                        pathEnd = false;
-                    }
-                }
-
-                j = coord - 0x10;
-                edge = new Integer(j);
-                match = false;
-
-                if ((j >= MINEDGE) && (j <= MAXEDGE)
-                    && pl.isLegalRoad(j))
-                {
-                    for (Enumeration ev = visited.elements();
-                            ev.hasMoreElements(); )
-                    {
-                        Integer vis = (Integer) ev.nextElement();
-                        if (vis.equals(edge))
-                        {
-                            match = true;
-                            break;
-                        }
-                    }
-
-                    if (!match)
-                    {
-                        Vector newVis = (Vector) visited.clone();
-                        newVis.addElement(edge);
-
-                        // node coord = edge coord + 0x01
-                        j += 0x01;
-                        pending.push(new NodeLenVis(j, len + 1, newVis));
-                        pathEnd = false;
-                    }
-                }
-            }
-
-            if (pathEnd)
-            {
-                if (len > longest)
-                {
-                    longest = len;
-                    numRoads = curNode.len - pathLength;
-                }
-                else if ((len == longest) && (curNode.len < numRoads))
-                {
-                    numRoads = curNode.len - pathLength;
-                }
-            }
-        }
-
-        if (longest > lrLength)
-        {
-            return numRoads;
-        }
-        else
-        {
-            return 500;
-        }
+        return ((Integer) SOCRobotDM.recalcLongestRoadETAAux
+            (player, false, startNode, pathLength, lrLength, searchDepth)).intValue();
     }
 
     /**

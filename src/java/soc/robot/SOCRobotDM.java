@@ -659,13 +659,13 @@ public class SOCRobotDM {
 	  Stack path;
 	  SOCLRPathData pathData = (SOCLRPathData)lrPathsIter.next();
 	  depth = Math.min(((lrLength + 1) - pathData.getLength()), ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD));
-	  path = recalcLongestRoadETAAux(ourPlayerData, pathData.getBeginning(), pathData.getLength(), lrLength, depth);
+	  path = (Stack) recalcLongestRoadETAAux(ourPlayerData, true, pathData.getBeginning(), pathData.getLength(), lrLength, depth);
 	  if ((path != null) &&
 	      ((bestLRPath == null) ||
 	       (path.size() < bestLRPath.size()))) {
 	    bestLRPath = path;
 	  }
-	  path = recalcLongestRoadETAAux(ourPlayerData, pathData.getEnd(), pathData.getLength(), lrLength, depth);
+	  path = (Stack) recalcLongestRoadETAAux(ourPlayerData, true, pathData.getEnd(), pathData.getLength(), lrLength, depth);
 	  if ((path != null) &&
 	      ((bestLRPath == null) ||
 	       (path.size() < bestLRPath.size()))) {
@@ -911,20 +911,25 @@ public class SOCRobotDM {
    * Does a depth first search from the end point of the longest
    * path in a graph of nodes and returns how many roads would
    * need to be built to take longest road.
+   *<P>
+   * Combined implementation for use by SOCRobotDM and {@link SOCPlayerTracker}.
    *
-   * @param pl            Calculate this player's longest road; typically SOCRobotDM.ourPlayerData
+   * @param pl            Calculate this player's longest road;
+   *             typically SOCRobotDM.ourPlayerData or SOCPlayerTracker.player
+   * @param wantsStack    If true, return the Stack; otherwise, return numRoads.
    * @param startNode     the path endpoint
    * @param pathLength    the length of that path
    * @param lrLength      length of longest road in the game
    * @param searchDepth   how many roads out to search
    *
-   * @return a stack containing the path of roads with the last one on top, or null if it can't be done
+   * @return if <tt>wantsStack</tt>: a {@link Stack} containing the path of roads with the last one on top, or null if it can't be done.
+   *         If ! <tt>wantsStack</tt>: Integer: the number of roads needed, or 500 if it can't be done
    */
-  private static Stack recalcLongestRoadETAAux
-      (SOCPlayer pl, final int startNode, final int pathLength, final int lrLength, final int searchDepth)
+  static Object recalcLongestRoadETAAux
+      (SOCPlayer pl, final boolean wantsStack, final int startNode, final int pathLength, final int lrLength, final int searchDepth)
   {
     D.ebugPrintln("=== recalcLongestRoadETAAux("+Integer.toHexString(startNode)+","+pathLength+","+lrLength+","+searchDepth+")");
-    
+
     //
     // We're doing a depth first search of all possible road paths.
     // For similar code, see SOCPlayer.calcLongestRoad2
@@ -1149,6 +1154,17 @@ public class SOCRobotDM {
 	  bestPathNode = dataPair;
 	}
       }
+    }
+
+    if (! wantsStack)
+    {
+        // As used by SOCPlayerTracker.
+        int rv;
+        if (longest > lrLength)
+            rv = numRoads;
+        else
+            rv = 500;
+        return new Integer(rv);  // <-- Early return: ! wantsStack ---
     }
 
     if ((longest > lrLength) &&
