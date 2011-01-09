@@ -912,6 +912,11 @@ public class SOCHandPanel extends Panel implements ActionListener
             {
                 cardTypeToPlay = SOCDevCardConstants.ROADS;
             }
+            else if (player.getNumPieces(SOCPlayingPiece.ROAD) == 0)
+            {
+                playerInterface.print("* You have no roads left to place.");
+            }
+                
         }
         else if (item.equals("Year of Plenty"))
         {

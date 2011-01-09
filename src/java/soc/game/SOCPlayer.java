@@ -69,7 +69,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCGame game;
 
     /**
-     * the number of pieces not in play
+     * the number of pieces not in play.
+     * Indexes match SOCPlayingPiece constants:
+     * {@link SOCPlayingPiece#ROAD},
+     * {@link SOCPlayingPiece#SETTLEMENT},
+     * {@link SOCPlayingPiece#CITY}.
      */
     private int[] numPieces;
 
@@ -680,9 +684,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the number of pieces not in play for a particualr type of piece
+     * @return the number of pieces not in play for a particular type of piece
      *
-     * @param ptype the type of piece
+     * @param ptype the type of piece; matches SOCPlayingPiece constants,
+     *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
+
      */
     public int getNumPieces(int ptype)
     {
@@ -693,7 +699,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * set the amount of pieces not in play
      * for a particular type of piece
      *
-     * @param ptype         the type of piece
+     * @param ptype the type of piece; matches SOCPlayingPiece constants,
+     *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
      * @param amt                 the amount
      */
     public void setNumPieces(int ptype, int amt)
