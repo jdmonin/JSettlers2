@@ -7,6 +7,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
     > 1.1.12 (build 20110xxx)
 - Don't show hovering road/settlement/city if player has no more pieces
 - Feedback if 'Road Building' clicked but 0 roads left
+- Bugfix: Robot 'No thanks' displays after bank trade
 - For debugging, new "Free Placement" mode; see README.developer
 - Further encapsulate board coordinate encoding
 

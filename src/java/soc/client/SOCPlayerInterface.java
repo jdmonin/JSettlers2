@@ -665,6 +665,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     private final void paintBordersHandColumn(Graphics g, SOCHandPanel middlePanel)
     {
+        if (middlePanel == null)
+            return;  // if called during board reset
+
         final int w = middlePanel.getWidth();
 
         // left side, entire height

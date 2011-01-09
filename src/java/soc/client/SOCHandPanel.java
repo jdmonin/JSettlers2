@@ -1777,11 +1777,18 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * Show that this player (who isn't the client) has rejected another player's offer.
+     * For robots, do nothing unless {@link SOCGame#hasTradeOffers()}, because the bots
+     * will sometimes reject another player's offer after a bank trade.
      */
     public void rejectOfferShowNonClient()
     {
         if (playerIsClient)
             return;
+        if (player.isRobot())
+        {
+            if (! game.hasTradeOffers())
+                return;
+        }
         offer.setMessage("No thanks.");
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);

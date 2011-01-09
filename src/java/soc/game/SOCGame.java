@@ -3301,6 +3301,22 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Are there currently any trade offers?
+     * Calls each player's {@link SOCPlayer#getCurrentOffer()}.
+     * @return true if any, false if not
+     * @since 1.1.12
+     */
+    public boolean hasTradeOffers()
+    {
+        for (int i = 0; i < maxPlayers; ++i)
+        {
+            if ((seats[i] != VACANT) && (players[i].getCurrentOffer() != null))
+                return true;
+        }
+        return false;
+    }
+
+    /**
      * Can these two players currently trade?
      * If game option "NT" is set, players can trade only
      * with the bank/ports, not with other players.

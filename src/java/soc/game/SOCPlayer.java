@@ -220,7 +220,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean[] ports;
 
     /**
-     * this is the current trade offer that this player is making
+     * this is the current trade offer that this player is making, or null if none
      */
     private SOCTradeOffer currentOffer;
 
@@ -987,7 +987,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return this player's latest offer
+     * @return this player's latest offer, or null if none
      */
     public SOCTradeOffer getCurrentOffer()
     {
@@ -997,7 +997,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * set the current offer for this player
      *
-     * @param of        the offer
+     * @param of        the offer, or null to clear
      */
     public void setCurrentOffer(SOCTradeOffer of)
     {
