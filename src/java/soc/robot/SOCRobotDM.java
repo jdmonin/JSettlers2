@@ -1019,138 +1019,39 @@ public class SOCRobotDM {
          * check for unvisited legal road possibilities.
          * When they are found, push that edge's far-end node
          * onto the pending stack.
-         *
-         * For the coordinate arithmetic, see Robert S Thomas dissertation
-         * figures A.8, A.10, A.7 and A.9.
          */
 	pathEnd = true;
 
-	int j;  // edge coordinate near coord's node
-	Integer edge;
-	boolean match;
+        for (int dir = 0; dir < 3; ++dir)
+        {
+            int j = board.getAdjacentEdgeToNode(coord, dir);
+            if (pl.isLegalRoad(j))
+            {
+                Integer edge = new Integer(j);
+                boolean match = false;
 
-	j = coord - 0x11;  // edge is NorthWest or SouthWest of node coord
-	edge = new Integer(j);
-	match = false;
+                for (Enumeration ev = visited.elements();
+                  ev.hasMoreElements(); )
+                {
+                    Integer vis = (Integer) ev.nextElement();
+                    if (vis.equals(edge))
+                    {
+                        match = true;
+                        break;
+                    }
+                }
 
-	if ((j >= MINEDGE) && (j <= MAXEDGE)
-	    && pl.isLegalRoad(j))
-	{
-	  for (Enumeration ev = visited.elements();
-	       ev.hasMoreElements(); )
-	  {
-	    Integer vis = (Integer) ev.nextElement();
-	    if (vis.equals(edge))
-	    {
-	      match = true;
-	      break;
-	    }
-	  }
+                if (! match)
+                {
+                    Vector newVis = (Vector) visited.clone();
+                    newVis.addElement(edge);
 
-	  if (!match)
-	  {
-	    Vector newVis = (Vector) visited.clone();
-	    newVis.addElement(edge);
-
-	    // far node coord == edge coord
-	    // (NW or SW: original coord - 0x11)
-	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
-	    pathEnd = false;
-	  }
-	}
-
-	j = coord;  // NE or SE edge
-	edge = new Integer(j);
-	match = false;
-
-	if ((j >= MINEDGE) && (j <= MAXEDGE)
-	    && pl.isLegalRoad(j))
-	{
-	  for (Enumeration ev = visited.elements();
-	       ev.hasMoreElements(); )
-	  {
-	    Integer vis = (Integer) ev.nextElement();
-	    if (vis.equals(edge))
-	    {
-	      match = true;
-	      break;
-	    }
-	  }
-
-	  if (!match)
-	  {
-	    Vector newVis = (Vector) visited.clone();
-	    newVis.addElement(edge);
-
-	    // coord for far node = edge + 0x11
-            // (NE or SE: original coord + 0x11)
-	    j += 0x11;
-	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
-	    pathEnd = false;
-	  }
-	}
-
-	j = coord - 0x01;  // S edge ([Even,Odd] nodes only)
-	edge = new Integer(j);
-	match = false;
-
-	if ((j >= MINEDGE) && (j <= MAXEDGE)
-	    && pl.isLegalRoad(j))
-	{
-	  for (Enumeration ev = visited.elements();
-	       ev.hasMoreElements(); )
-	  {
-	    Integer vis = (Integer) ev.nextElement();
-	    if (vis.equals(edge))
-	    {
-	      match = true;
-	      break;
-	    }
-	  }
-
-	  if (!match)
-	  {
-	    Vector newVis = (Vector) visited.clone();
-	    newVis.addElement(edge);
-
-	    // far node coord = edge coord + 0x10
-	    // (South: original coord - 0x01 + 0x10)
-	    j += 0x10;
-	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
-	    pathEnd = false;
-	  }
-	}
-
-	j = coord - 0x10;  // N edge ([Odd,Even] nodes only)
-	edge = new Integer(j);
-	match = false;
-
-	if ((j >= MINEDGE) && (j <= MAXEDGE)
-	    && pl.isLegalRoad(j))
-	{
-	  for (Enumeration ev = visited.elements();
-	       ev.hasMoreElements(); )
-	  {
-	    Integer vis = (Integer) ev.nextElement();
-	    if (vis.equals(edge))
-	    {
-	      match = true;
-	      break;
-	    }
-	  }
-
-	  if (!match)
-	  {
-	    Vector newVis = (Vector) visited.clone();
-	    newVis.addElement(edge);
-
-	    // node coord = edge coord + 0x01
-	    // (North: original coord + 0x01 - 0x10)
-	    j += 0x01;
-	    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
-	    pathEnd = false;
-	  }
-	}
+                    j = board.getAdjacentNodeToNode(coord, dir);  // edge's other node
+                    pending.push(new Pair(new NodeLenVis(j, len+1, newVis), dataPair));
+                    pathEnd = false;
+                }
+            }
+        }
       }
 
       if (pathEnd)
@@ -1201,7 +1102,7 @@ public class SOCRobotDM {
 	coordA = ((NodeLenVis)cur.getA()).node;
 	coordB = ((NodeLenVis)parent.getA()).node;
 	posRoad = new SOCPossibleRoad
-	  (pl, getEdgeBetweenAdjacentNodes(coordA, coordB), new Vector());
+	  (pl, board.getEdgeBetweenAdjacentNodes(coordA, coordB), new Vector());
 	temp.push(posRoad);
 	cur = parent;
 	parent = (Pair) parent.getB();
@@ -1220,60 +1121,6 @@ public class SOCRobotDM {
       return null;
     }
   }
-
-    /**
-     * Given a pair of adjacent node coordinates, get the edge coordinate
-     * that connects them.
-     *<P>
-     * Does not check actual roads or other pieces on the board, only uses the
-     * calculations in Robert S Thomas' dissertation figures A.7 - A.10.
-     *
-     * @param nodeA  Node coordinate adjacent to <tt>nodeB</tt>; not checked for validity
-     * @param nodeB  Node coordinate adjacent to <tt>nodeA</tt>; not checked for validity
-     * @return edge coordinate, or -2 if <tt>nodeA</tt> and <tt>nodeB</tt> aren't adjacent
-     * @since 1.1.12
-     */
-    public static int getEdgeBetweenAdjacentNodes(final int nodeA, final int nodeB)
-    {
-        // A.7:  Adjacent hexes and nodes to an [Even,Odd] Node
-        // A.9:  Adjacent hexes and nodes to an [Odd,Even] Node
-        // A.8:  Adjacent edges to an [Even,Odd] Node
-        // A.10: Adjacent edges to an [Odd,Even] Node
-    
-        final int edge;
-    
-        switch (nodeA - nodeB)  // nodeB to nodeA: fig A.7, A.9
-        {
-        case 0x11:
-            // Edge is NW or SW of nodeA (fig A.8, A.10)
-            // so it's (-1,-1), but we know nodeB == nodeA + (1,1)
-            // so, each +1 and -1 cancel out if we use nodeB's coordinate.
-            edge = nodeB;
-            break;
-    
-        case -0x11:
-            // Edge is NE or SE of nodeA
-            edge = nodeA;
-            break;
-    
-        case 0x0F:  // +0x10, -0x01 for (+1,-1)
-            // it is a '|' road for an 'A' node
-            // So: edge is north of nodeA (fig A.10)
-            edge = (nodeA - 0x10);
-            break;
-    
-        case -0x0F:  // -0x10, +0x01 for (-1,+1)
-            // it is a '|' road for a 'Y' node
-            // So: edge is south of nodeA (fig A.8)
-            edge = (nodeA - 0x01);
-            break;
-    
-        default:
-            edge = -2;  // not adjacent nodes
-        }
-    
-        return edge;
-    }
 
   /**
    * smart game strategy

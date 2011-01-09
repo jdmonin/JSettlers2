@@ -1923,12 +1923,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return true if this edge is a legal road
-     * @param edge        the coordinates of an edge on the board. Accepts -1 for edge 0x00.
+     * @param edge        the coordinates of an edge on the board.
+     *   Accepts -1 for edge 0x00; any other negative value returns false.
      */
     public boolean isLegalRoad(int edge)
     {
         if (edge == -1)
             edge = 0x00;
+        else if ((edge < 0) || (edge >= legalRoads.length))
+            return false;
         return legalRoads[edge];
     }
 

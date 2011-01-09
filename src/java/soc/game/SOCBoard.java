@@ -2144,6 +2144,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Get the valid edge coordinates adjacent to this node.
      * @return the edges touching this node, as a Vector of Integer coordinates
+     * @see #getAdjacentEdgeToNode(int, int)
      */
     public Vector getAdjacentEdgesToNode(final int coord)
     {
@@ -2166,13 +2167,37 @@ public class SOCBoard implements Serializable, Cloneable
      *    Unused elements of the array are set to -1.
      * @since 1.1.08
      */
-    public int[] getAdjacentEdgesToNode_arr(final int coord)
+    public final int[] getAdjacentEdgesToNode_arr(final int coord)
+    {
+        int[] edges = new int[3];
+        for (int i = 0; i < 3; ++i)
+            edges[i] = getAdjacentEdgeToNode(coord, i);
+
+        return edges;
+    }
+
+    /**
+     * Given a node, get the valid adjacent edge in a given direction, if any.
+     *<P>
+     * In the 6-player layout, valid land nodes/edges are
+     * found on the outer ring of the board coordinate
+     * system, but some of their adjacent nodes/edges may be
+     * "off the board" and thus invalid.
+     *
+     * @param nodeCoord  Node coordinate to go from; not checked for validity.
+     * @param nodeDir  0 for northwest or southwest; 1 for northeast or southeast;
+     *     2 for north or south
+     * @return  The adjacent edge in that direction, or -1 if none (if off the board)
+     * @throws IllegalArgumentException if <tt>nodeDir</tt> is less than 0 or greater than 2
+     * @since 1.1.12
+     * @see #getAdjacentEdgesToNode(int)
+     * @see #getEdgeBetweenAdjacentNodes(int, int)
+     * @see #getAdjacentNodeToNode(int, int)
+     */
+    public int getAdjacentEdgeToNode(final int nodeCoord, final int nodeDir)
     {
         // See RST dissertation figures A.2 (nodes), A.3 (edges),
         // and A.8 and A.10 (computing adjacent edges to a node).
-
-        int[] edges = new int[3];
-        int tmp;
 
         // Bounds checks:
         // - For west and east edges of board:
@@ -2185,66 +2210,138 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * if the coords are (even, odd), then
          * the node is 'Y'.
+         * otherwise the coords are (odd, even),
+         * and the node is 'upside down Y' (or 'A').
          */
-        if (((coord >> 4) % 2) == 0)
+        final boolean evenOddHex = (((nodeCoord >> 4) % 2) == 0);
+
+        final int tmp, edge;
+        switch (nodeDir)
         {
-            // upper left '\' edge;
-            // minEdge covers bounds-check, units digit will never be 0 (since it's odd)
-            tmp = coord - 0x11;
-            if ((tmp >= minEdge) && (tmp <= maxEdge))
-                edges[0] = tmp;
-            else
-                edges[0] = -1;
+        case 0:  // NW or SW
+            if (evenOddHex)
+            {
+                // upper left '\' edge;
+                // minEdge covers bounds-check, units digit will never be 0 (since it's odd)
+                tmp = nodeCoord - 0x11;
+                if ((tmp >= minEdge) && (tmp <= maxEdge))
+                    edge = tmp;
+                else
+                    edge = -1;
+            } else {
+                // lower left '/' edge
+                tmp = nodeCoord - 0x11;
+                if (((nodeCoord & 0x0F) > 0) && (tmp >= minEdge) && (tmp <= maxEdge))
+                    edge = tmp;
+                else
+                    edge = -1;              
+            }
+            break;
 
-            // upper right '/' edge
-            tmp = coord;
-            if (((coord & 0x0F) < 0x0D) && (tmp >= minEdge) && (tmp <= maxEdge))
-                edges[1] = tmp;
-            else
-                edges[1] = -1;
+        case 1:  // NE or SE
+            if (evenOddHex)
+            {
+                // upper right '/' edge
+                tmp = nodeCoord;
+                if (((nodeCoord & 0x0F) < 0x0D) && (tmp >= minEdge) && (tmp <= maxEdge))
+                    edge = tmp;
+                else
+                    edge = -1;
+            } else {
+                // lower right '\' edge; maxEdge covers the bounds-check
+                tmp = nodeCoord;
+                if ((tmp >= minEdge) && (tmp <= maxEdge))
+                    edge = tmp;
+                else
+                    edge = -1;                
+            }
+            break;
 
-            // Southernmost row of Y-nodes stats at 0x81 and moves += 0x22 to the east.
-            // lower middle '|' edge
-            boolean hasSouthernEdge = (coord < 0x81) || (0 != ((coord - 0x81) % 0x22));
-            tmp = coord - 0x01;
-            if (hasSouthernEdge && (0 < (coord & 0x0F)) && (tmp >= minEdge) && (tmp <= maxEdge))
-                edges[2] = tmp;
-            else
-                edges[2] = -1;
+        case 2:  // N or S
+            if (evenOddHex)
+            {
+                // Southernmost row of Y-nodes stats at 0x81 and moves += 0x22 to the east.
+                // lower middle '|' edge
+                boolean hasSouthernEdge = (nodeCoord < 0x81) || (0 != ((nodeCoord - 0x81) % 0x22));
+                tmp = nodeCoord - 0x01;
+                if (hasSouthernEdge && (0 < (nodeCoord & 0x0F)) && (tmp >= minEdge) && (tmp <= maxEdge))
+                    edge = tmp;
+                else
+                    edge = -1;
+            } else {
+                // Northernmost row of A-nodes stats at 0x18 and moves += 0x22 to the east.
+                // upper middle '|' edge
+                boolean hasNorthernEdge = (nodeCoord < 0x18) || (nodeCoord > 0x7E)
+                  || (0 != ((nodeCoord - 0x18) % 0x22));
+                tmp = nodeCoord - 0x10;
+                if (hasNorthernEdge && (tmp >= minEdge) && (tmp <= maxEdge))
+                    edge = tmp;
+                else
+                    edge = -1;
+            }
+            break;
+
+        default:
+            throw new IllegalArgumentException("nodeDir out of range: " + nodeDir);
         }
-        else
+
+        return edge;
+    }
+
+    /**
+     * Given a pair of adjacent node coordinates, get the edge coordinate
+     * that connects them.
+     *<P>
+     * Does not check actual roads or other pieces on the board, only uses the
+     * calculations in Robert S Thomas' dissertation figures A.7 - A.10.
+     *
+     * @param nodeA  Node coordinate adjacent to <tt>nodeB</tt>; not checked for validity
+     * @param nodeB  Node coordinate adjacent to <tt>nodeA</tt>; not checked for validity
+     * @return edge coordinate, or -2 if <tt>nodeA</tt> and <tt>nodeB</tt> aren't adjacent
+     * @since 1.1.12
+     * @see #getAdjacentEdgesToNode(int)
+     * @see #getAdjacentEdgeToNode(int, int)
+     */
+    public int getEdgeBetweenAdjacentNodes(final int nodeA, final int nodeB)
+    {
+        // A.7:  Adjacent hexes and nodes to an [Even,Odd] Node
+        // A.9:  Adjacent hexes and nodes to an [Odd,Even] Node
+        // A.8:  Adjacent edges to an [Even,Odd] Node
+        // A.10: Adjacent edges to an [Odd,Even] Node
+    
+        final int edge;
+    
+        switch (nodeA - nodeB)  // nodeB to nodeA: fig A.7, A.9
         {
-            /**
-             * otherwise the coords are (odd, even),
-             * and the EDGE is 'upside down Y' (or 'A').
-             */
-
-            // Northernmost row of A-nodes stats at 0x18 and moves += 0x22 to the east.
-            // upper middle '|' edge
-            boolean hasNorthernEdge = (coord < 0x18) || (coord > 0x7E)
-              || (0 != ((coord - 0x18) % 0x22));
-            tmp = coord - 0x10;
-            if (hasNorthernEdge && (tmp >= minEdge) && (tmp <= maxEdge))
-                edges[0] = tmp;
-            else
-                edges[0] = -1;
-
-            // lower right '\' edge; maxEdge covers the bounds-check
-            tmp = coord;
-            if ((tmp >= minEdge) && (tmp <= maxEdge))
-                edges[1] = tmp;
-            else
-                edges[1] = -1;
-
-            // lower left '/' edge
-            tmp = coord - 0x11;
-            if (((coord & 0x0F) > 0) && (tmp >= minEdge) && (tmp <= maxEdge))
-                edges[2] = tmp;
-            else
-                edges[2] = -1;
+        case 0x11:
+            // Edge is NW or SW of nodeA (fig A.8, A.10)
+            // so it's (-1,-1), but we know nodeB == nodeA + (1,1)
+            // so, each +1 and -1 cancel out if we use nodeB's coordinate.
+            edge = nodeB;
+            break;
+    
+        case -0x11:
+            // Edge is NE or SE of nodeA
+            edge = nodeA;
+            break;
+    
+        case 0x0F:  // +0x10, -0x01 for (+1,-1)
+            // it is a '|' road for an 'A' node
+            // So: edge is north of nodeA (fig A.10)
+            edge = (nodeA - 0x10);
+            break;
+    
+        case -0x0F:  // -0x10, +0x01 for (-1,+1)
+            // it is a '|' road for a 'Y' node
+            // So: edge is south of nodeA (fig A.8)
+            edge = (nodeA - 0x01);
+            break;
+    
+        default:
+            edge = -2;  // not adjacent nodes
         }
-
-        return edges;
+    
+        return edge;
     }
 
     /**
@@ -2257,6 +2354,7 @@ public class SOCBoard implements Serializable, Cloneable
      *   For the 6-player encoding, use 0, not -1, to indicate edge 0x00.
      * @return  is the edge adjacent?
      * @since 1.1.11
+     * @see #getEdgeBetweenAdjacentNodes(int, int)
      */
     public boolean isEdgeAdjacentToNode(final int nodeCoord, final int edgeCoord)
     {
@@ -2279,6 +2377,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Get the valid node coordinates adjacent to this node.
      * @return the nodes adjacent to this node, as a Vector of Integer coordinates
+     * @see #getAdjacentNodeToNode(int, int)
      */
     public Vector getAdjacentNodesToNode(final int coord)
     {
@@ -2301,65 +2400,101 @@ public class SOCBoard implements Serializable, Cloneable
      *    Unused elements of the array are set to -1.
      * @since 1.1.08
      */
-    public int[] getAdjacentNodesToNode_arr(final int coord)
+    public final int[] getAdjacentNodesToNode_arr(final int coord)
+    {
+        int nodes[] = new int[3];
+        for (int i = 0; i < 3; ++i)
+            nodes[i] = getAdjacentNodeToNode(coord, i);
+
+        return nodes;
+    }
+
+    /**
+     * Given a node, get the valid adjacent node in a given direction, if any.
+     *<P>
+     * In the 6-player layout, valid land nodes/edges are
+     * found on the outer ring of the board coordinate
+     * system, but some of their adjacent nodes/edges may be
+     * "off the board" and thus invalid.
+     *
+     * @param nodeCoord  Node coordinate to go from; not checked for validity.
+     * @param nodeDir  0 for northwest or southwest; 1 for northeast or southeast;
+     *     2 for north or south
+     * @return  The adjacent node in that direction, or -1 if none (if off the board)
+     * @throws IllegalArgumentException if <tt>nodeDir</tt> is less than 0 or greater than 2
+     * @since 1.1.12
+     * @see #getAdjacentNodesToNode(int)
+     * @see #getAdjacentEdgeToNode(int, int)
+     */
+    public int getAdjacentNodeToNode(final int nodeCoord, final int nodeDir)
     {
         // See RST dissertation figures A.2 (nodes)
-        // and A.7 and A.7 (computing adjacent nodes to a node).
-
-        int nodes[] = new int[3];
-        int tmp;
+        // and A.7 and A.9 (computing adjacent nodes to a node).
 
         // Both 'Y' nodes and 'A' nodes have adjacent nodes
         // to east at (+1,+1) and west at (-1,-1).
         // Offset to third adjacent node varies.
 
-        tmp = coord - 0x11;
-        if ((tmp >= minNode) && (tmp <= MAXNODE) && ((coord & 0x0F) > 0))
-            nodes[0] = tmp;
-        else
-            nodes[0] = -1;
-
-        tmp = coord + 0x11;
-        if ((tmp >= minNode) && (tmp <= MAXNODE) && ((coord & 0x0F) < 0xD))
-            nodes[1] = tmp;
-        else
-            nodes[1] = -1;
-
-        /**
-         * if the coords are (even, odd), then
-         * the node is 'Y'.
-         */
-        if (((coord >> 4) % 2) == 0)
+        final int tmp, node;
+        switch (nodeDir)
         {
-            // Node directly to south of coord.
-            // Southernmost row of Y-nodes stats at 0x81 and moves += 0x22 to the east.
-            boolean hasSouthernEdge = (coord < 0x81) || (0 != ((coord - 0x81) % 0x22));
-            tmp = (coord + 0x10) - 0x01;
-            if (hasSouthernEdge && (tmp >= minNode) && (tmp <= MAXNODE))
-                nodes[2] = tmp;
+        case 0:  // NW or SW
+            tmp = nodeCoord - 0x11;
+            if ((tmp >= minNode) && (tmp <= MAXNODE) && ((nodeCoord & 0x0F) > 0))
+                node = tmp;
             else
-                nodes[2] = -1;
-        }
-        else
-        {
+                node = -1;
+            break;
+
+        case 1:  // NE or SE
+            tmp = nodeCoord + 0x11;
+            if ((tmp >= minNode) && (tmp <= MAXNODE) && ((nodeCoord & 0x0F) < 0xD))
+                node = tmp;
+            else
+                node = -1;
+            break;
+
+        case 2:  // N or S
             /**
-             * otherwise the coords are (odd, even),
-             * and the node is 'upside down Y' ('A').
+             * if the coords are (even, odd), then
+             * the node is 'Y'.
              */
-            // Node directly to north of coord.
-            // Northernmost row of A-nodes stats at 0x18 and moves += 0x22 to the east.
-            boolean hasNorthernEdge = (coord < 0x18) || (coord > 0x7E)
-              || (0 != ((coord - 0x18) % 0x22));
-            tmp = coord - 0x10 + 0x01;
-            if (hasNorthernEdge && (tmp >= minNode) && (tmp <= MAXNODE))
-                nodes[2] = tmp;
+            if (((nodeCoord >> 4) % 2) == 0)
+            {
+                // Node directly to south of coord.
+                // Southernmost row of Y-nodes stats at 0x81 and moves += 0x22 to the east.
+                boolean hasSouthernEdge = (nodeCoord < 0x81) || (0 != ((nodeCoord - 0x81) % 0x22));
+                tmp = (nodeCoord + 0x10) - 0x01;
+                if (hasSouthernEdge && (tmp >= minNode) && (tmp <= MAXNODE))
+                    node = tmp;
+                else
+                    node = -1;
+            }
             else
-                nodes[2] = -1;
+            {
+                /**
+                 * otherwise the coords are (odd, even),
+                 * and the node is 'upside down Y' ('A').
+                 */
+                // Node directly to north of coord.
+                // Northernmost row of A-nodes stats at 0x18 and moves += 0x22 to the east.
+                boolean hasNorthernEdge = (nodeCoord < 0x18) || (nodeCoord > 0x7E)
+                  || (0 != ((nodeCoord - 0x18) % 0x22));
+                tmp = nodeCoord - 0x10 + 0x01;
+                if (hasNorthernEdge && (tmp >= minNode) && (tmp <= MAXNODE))
+                    node = tmp;
+                else
+                    node = -1;
+            }
+            break;
+
+        default:
+            throw new IllegalArgumentException("nodeDir out of range: " + nodeDir);
         }
 
-        return nodes;
+        return node;
     }
-    
+
     /**
      * Make a list of all valid hex coordinates (or, only land) adjacent to this hex.
      * Valid coordinates are those within the board data structures,
@@ -2692,4 +2827,5 @@ public class SOCBoard implements Serializable, Cloneable
 
         return str;
     }
+
 }
