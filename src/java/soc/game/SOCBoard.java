@@ -2151,7 +2151,7 @@ public class SOCBoard implements Serializable, Cloneable
         Vector edges = new Vector(3);
         int[] edgea = getAdjacentEdgesToNode_arr(coord);
         for (int i = edgea.length - 1; i>=0; --i)
-            if (edgea[i] != -1)
+            if (edgea[i] != -9)
                 edges.addElement(new Integer(edgea[i]));
         return edges;
     }
@@ -2164,7 +2164,7 @@ public class SOCBoard implements Serializable, Cloneable
      * "off the board" and thus invalid.
      * @param coord  Node coordinate.  Is not checked for validity.
      * @return the edges touching this node, as an array of 3 coordinates.
-     *    Unused elements of the array are set to -1.
+     *    Unused elements of the array are set to -9.
      * @since 1.1.08
      */
     public final int[] getAdjacentEdgesToNode_arr(final int coord)
@@ -2187,7 +2187,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param nodeCoord  Node coordinate to go from; not checked for validity.
      * @param nodeDir  0 for northwest or southwest; 1 for northeast or southeast;
      *     2 for north or south
-     * @return  The adjacent edge in that direction, or -1 if none (if off the board)
+     * @return  The adjacent edge in that direction, or -9 if none (if off the board)
      * @throws IllegalArgumentException if <tt>nodeDir</tt> is less than 0 or greater than 2
      * @since 1.1.12
      * @see #getAdjacentEdgesToNode(int)
@@ -2227,14 +2227,14 @@ public class SOCBoard implements Serializable, Cloneable
                 if ((tmp >= minEdge) && (tmp <= maxEdge))
                     edge = tmp;
                 else
-                    edge = -1;
+                    edge = -9;
             } else {
                 // lower left '/' edge
                 tmp = nodeCoord - 0x11;
                 if (((nodeCoord & 0x0F) > 0) && (tmp >= minEdge) && (tmp <= maxEdge))
                     edge = tmp;
                 else
-                    edge = -1;              
+                    edge = -9;              
             }
             break;
 
@@ -2246,14 +2246,14 @@ public class SOCBoard implements Serializable, Cloneable
                 if (((nodeCoord & 0x0F) < 0x0D) && (tmp >= minEdge) && (tmp <= maxEdge))
                     edge = tmp;
                 else
-                    edge = -1;
+                    edge = -9;
             } else {
                 // lower right '\' edge; maxEdge covers the bounds-check
                 tmp = nodeCoord;
                 if ((tmp >= minEdge) && (tmp <= maxEdge))
                     edge = tmp;
                 else
-                    edge = -1;                
+                    edge = -9;                
             }
             break;
 
@@ -2267,7 +2267,7 @@ public class SOCBoard implements Serializable, Cloneable
                 if (hasSouthernEdge && (0 < (nodeCoord & 0x0F)) && (tmp >= minEdge) && (tmp <= maxEdge))
                     edge = tmp;
                 else
-                    edge = -1;
+                    edge = -9;
             } else {
                 // Northernmost row of A-nodes stats at 0x18 and moves += 0x22 to the east.
                 // upper middle '|' edge
@@ -2277,7 +2277,7 @@ public class SOCBoard implements Serializable, Cloneable
                 if (hasNorthernEdge && (tmp >= minEdge) && (tmp <= maxEdge))
                     edge = tmp;
                 else
-                    edge = -1;
+                    edge = -9;
             }
             break;
 
@@ -2297,7 +2297,7 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @param nodeA  Node coordinate adjacent to <tt>nodeB</tt>; not checked for validity
      * @param nodeB  Node coordinate adjacent to <tt>nodeA</tt>; not checked for validity
-     * @return edge coordinate, or -2 if <tt>nodeA</tt> and <tt>nodeB</tt> aren't adjacent
+     * @return edge coordinate, or -9 if <tt>nodeA</tt> and <tt>nodeB</tt> aren't adjacent
      * @since 1.1.12
      * @see #getAdjacentEdgesToNode(int)
      * @see #getAdjacentEdgeToNode(int, int)
@@ -2308,9 +2308,9 @@ public class SOCBoard implements Serializable, Cloneable
         // A.9:  Adjacent hexes and nodes to an [Odd,Even] Node
         // A.8:  Adjacent edges to an [Even,Odd] Node
         // A.10: Adjacent edges to an [Odd,Even] Node
-    
+
         final int edge;
-    
+
         switch (nodeA - nodeB)  // nodeB to nodeA: fig A.7, A.9
         {
         case 0x11:
@@ -2319,28 +2319,28 @@ public class SOCBoard implements Serializable, Cloneable
             // so, each +1 and -1 cancel out if we use nodeB's coordinate.
             edge = nodeB;
             break;
-    
+
         case -0x11:
             // Edge is NE or SE of nodeA
             edge = nodeA;
             break;
-    
+
         case 0x0F:  // +0x10, -0x01 for (+1,-1)
             // it is a '|' road for an 'A' node
             // So: edge is north of nodeA (fig A.10)
             edge = (nodeA - 0x10);
             break;
-    
+
         case -0x0F:  // -0x10, +0x01 for (-1,+1)
             // it is a '|' road for a 'Y' node
             // So: edge is south of nodeA (fig A.8)
             edge = (nodeA - 0x01);
             break;
-    
+
         default:
-            edge = -2;  // not adjacent nodes
+            edge = -9;  // not adjacent nodes
         }
-    
+
         return edge;
     }
 
@@ -2384,7 +2384,7 @@ public class SOCBoard implements Serializable, Cloneable
         Vector nodes = new Vector(3);
         int[] nodea = getAdjacentNodesToNode_arr(coord);
         for (int i = nodea.length - 1; i>=0; --i)
-            if (nodea[i] != -1)
+            if (nodea[i] != -9)
                 nodes.addElement(new Integer(nodea[i]));
         return nodes;
     }
@@ -2397,7 +2397,7 @@ public class SOCBoard implements Serializable, Cloneable
      * "off the board" and thus invalid.
      * @param coord  Node coordinate.  Is not checked for validity.
      * @return the nodes touching this node, as an array of 3 coordinates.
-     *    Unused elements of the array are set to -1.
+     *    Unused elements of the array are set to -9.
      * @since 1.1.08
      */
     public final int[] getAdjacentNodesToNode_arr(final int coord)
@@ -2420,7 +2420,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param nodeCoord  Node coordinate to go from; not checked for validity.
      * @param nodeDir  0 for northwest or southwest; 1 for northeast or southeast;
      *     2 for north or south
-     * @return  The adjacent node in that direction, or -1 if none (if off the board)
+     * @return  The adjacent node in that direction, or -9 if none (if off the board)
      * @throws IllegalArgumentException if <tt>nodeDir</tt> is less than 0 or greater than 2
      * @since 1.1.12
      * @see #getAdjacentNodesToNode(int)
@@ -2443,7 +2443,7 @@ public class SOCBoard implements Serializable, Cloneable
             if ((tmp >= minNode) && (tmp <= MAXNODE) && ((nodeCoord & 0x0F) > 0))
                 node = tmp;
             else
-                node = -1;
+                node = -9;
             break;
 
         case 1:  // NE or SE
@@ -2451,7 +2451,7 @@ public class SOCBoard implements Serializable, Cloneable
             if ((tmp >= minNode) && (tmp <= MAXNODE) && ((nodeCoord & 0x0F) < 0xD))
                 node = tmp;
             else
-                node = -1;
+                node = -9;
             break;
 
         case 2:  // N or S
@@ -2468,7 +2468,7 @@ public class SOCBoard implements Serializable, Cloneable
                 if (hasSouthernEdge && (tmp >= minNode) && (tmp <= MAXNODE))
                     node = tmp;
                 else
-                    node = -1;
+                    node = -9;
             }
             else
             {
@@ -2484,7 +2484,7 @@ public class SOCBoard implements Serializable, Cloneable
                 if (hasNorthernEdge && (tmp >= minNode) && (tmp <= MAXNODE))
                     node = tmp;
                 else
-                    node = -1;
+                    node = -9;
             }
             break;
 

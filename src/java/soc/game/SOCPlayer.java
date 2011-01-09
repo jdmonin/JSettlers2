@@ -1705,7 +1705,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         for (int i = 0; i < 3; ++i)
                         {
                             int edge = edges[i];
-                            if ((edge != -1) && legalRoads[edge])
+                            if ((edge != -9) && legalRoads[edge])
                                 potentialRoads[edge] = true;
                         }
 
@@ -1732,7 +1732,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             int[] adjac = board.getAdjacentNodesToNode_arr(id);
             for (int i = 0; i < 3; ++i)
             {
-                if (adjac[i] != -1)
+                if (adjac[i] != -9)
                 {
                     potentialSettlements[adjac[i]] = false;
                     legalSettlements[adjac[i]] = false;
@@ -1750,7 +1750,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 for (int i = 0; i < 3; ++i)
                 {
                     tmp = adjac[i];
-                    if ((tmp != -1) && legalRoads[tmp])
+                    if ((tmp != -9) && legalRoads[tmp])
                         potentialRoads[tmp] = true;
                 }
             }
@@ -1779,7 +1779,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 for (int i = 0; i < 3; ++i)
                 {
                     tmp = adjac[i];  // edge coordinate
-                    if ((tmp == -1) || ! potentialRoads[tmp])
+                    if ((tmp == -9) || ! potentialRoads[tmp])
                     {
                         continue;  // We don't have a potential road here, so
                                    // there's nothing to be potentially broken.
@@ -2059,7 +2059,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     for (int ni = adjacNodes.length - 1; ni>=0; --ni)
                     {
                         final int j = adjacNodes[ni];
-                        if (j == -1)
+                        if (j == -9)
                             continue;
 
                         if (board.isNodeOnBoard(j) && isConnectedByRoad(coord, j))
