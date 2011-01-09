@@ -1192,7 +1192,7 @@ public class SOCRobotDM {
       //
       Stack temp = new Stack();
       SOCPossibleRoad posRoad;
-      int coordA, coordB, test;
+      int coordA, coordB;
       Pair cur, parent;
       cur = bestPathNode;
       parent = (Pair)bestPathNode.getB();
@@ -1200,30 +1200,8 @@ public class SOCRobotDM {
       {
 	coordA = ((NodeLenVis)cur.getA()).node;
 	coordB = ((NodeLenVis)parent.getA()).node;
-	test = coordA - coordB;
-	if (test == 0x11) {
-	  // it is a '\' road
-	  // So: edge is NW or SW of node coordA (fig A.8, A.10)
-	  // which is (-1,-1), but we know coordB == coordA + (1,1)
-	  // so, the +1 and -1 cancel out if we use coordB's node.
-	  //D.ebugPrintln(board.nodeCoordToString(coordB));
-	  posRoad = new SOCPossibleRoad(pl, coordB, new Vector());
-	} else if (test == -0x11) {
-	  // it is a '/' road
-	  // So: edge is NE or SE of node coordA
-	  //D.ebugPrintln(board.nodeCoordToString(coordA));
-	  posRoad = new SOCPossibleRoad(pl, coordA, new Vector());
-	} else if (test == 0x0F) {
-	  // it is a '|' road for an A node
-	  // So: edge is north of node coordA (fig A.10)
-	  //D.ebugPrintln(board.nodeCoordToString((coordA - 0x10)));
-	  posRoad = new SOCPossibleRoad(pl, (coordA - 0x10), new Vector());
-	} else {
-	  // it is a '|' road for a Y node
-	  // So: edge is south of node coordA (fig A.8)
-	  //D.ebugPrintln(board.nodeCoordToString((coordA - 0x01)));
-	  posRoad = new SOCPossibleRoad(pl, (coordA - 0x01), new Vector());
-	}
+	posRoad = new SOCPossibleRoad
+	  (pl, getEdgeBetweenAdjacentNodes(coordA, coordB), new Vector());
 	temp.push(posRoad);
 	cur = parent;
 	parent = (Pair) parent.getB();
@@ -1242,6 +1220,60 @@ public class SOCRobotDM {
       return null;
     }
   }
+
+    /**
+     * Given a pair of adjacent node coordinates, get the edge coordinate
+     * that connects them.
+     *<P>
+     * Does not check actual roads or other pieces on the board, only uses the
+     * calculations in Robert S Thomas' dissertation figures A.7 - A.10.
+     *
+     * @param nodeA  Node coordinate adjacent to <tt>nodeB</tt>; not checked for validity
+     * @param nodeB  Node coordinate adjacent to <tt>nodeA</tt>; not checked for validity
+     * @return edge coordinate, or -2 if <tt>nodeA</tt> and <tt>nodeB</tt> aren't adjacent
+     * @since 1.1.12
+     */
+    public static int getEdgeBetweenAdjacentNodes(final int nodeA, final int nodeB)
+    {
+        // A.7:  Adjacent hexes and nodes to an [Even,Odd] Node
+        // A.9:  Adjacent hexes and nodes to an [Odd,Even] Node
+        // A.8:  Adjacent edges to an [Even,Odd] Node
+        // A.10: Adjacent edges to an [Odd,Even] Node
+    
+        final int edge;
+    
+        switch (nodeA - nodeB)  // nodeB to nodeA: fig A.7, A.9
+        {
+        case 0x11:
+            // Edge is NW or SW of nodeA (fig A.8, A.10)
+            // so it's (-1,-1), but we know nodeB == nodeA + (1,1)
+            // so, each +1 and -1 cancel out if we use nodeB's coordinate.
+            edge = nodeB;
+            break;
+    
+        case -0x11:
+            // Edge is NE or SE of nodeA
+            edge = nodeA;
+            break;
+    
+        case 0x0F:  // +0x10, -0x01 for (+1,-1)
+            // it is a '|' road for an 'A' node
+            // So: edge is north of nodeA (fig A.10)
+            edge = (nodeA - 0x10);
+            break;
+    
+        case -0x0F:  // -0x10, +0x01 for (-1,+1)
+            // it is a '|' road for a 'Y' node
+            // So: edge is south of nodeA (fig A.8)
+            edge = (nodeA - 0x01);
+            break;
+    
+        default:
+            edge = -2;  // not adjacent nodes
+        }
+    
+        return edge;
+    }
 
   /**
    * smart game strategy
