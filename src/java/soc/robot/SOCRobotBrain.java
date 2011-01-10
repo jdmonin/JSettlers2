@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.robot;
 
@@ -3881,48 +3881,13 @@ public class SOCRobotBrain extends Thread
          * last settlement, and pick the best one
          */
         SOCBoard board = game.getBoard();
-        int tmp;
 
-        tmp = settlementNode - 0x20;  // NW direction (northwest)
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
+        for (int facing = 1; facing <= 6; ++facing)
         {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode + 0x02;  // NE
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode + 0x22;  // E
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode + 0x20;  // SE
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode - 0x02;  // SW
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode - 0x22;  // W direction (west)
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
+            // each of 6 directions: NE, E, SE, SW, W, NW
+            int tmp = board.getAdjacentNodeToNode2Away(settlementNode, facing);
+            if ((tmp != -9) && ourPlayerData.isPotentialSettlement(tmp))
+                twoAway.put(new Integer(tmp), new Integer(0));
         }
 
         scoreNodesForSettlements(twoAway, 3, 5, 10);
@@ -4069,43 +4034,11 @@ public class SOCRobotBrain extends Thread
             }
         }
 
+        // Reminder: settlementNode == ourPlayerData.getLastSettlementCoord()
         final int destination = bestNodePair.getNode();  // coordinate of future settlement
-        final int roadEdge;
-
-        /**
-         * if the coords are (even, odd), then
-         * the node is 'Y'.
-         */
-        if (((settlementNode >> 4) % 2) == 0)
-        {
-            if ((destination == (settlementNode - 0x02)) || (destination == (settlementNode + 0x20)))
-            {
-                roadEdge = settlementNode - 0x01;
-            }
-            else if (destination < settlementNode)
-            {
-                roadEdge = settlementNode - 0x11;
-            }
-            else
-            {
-                roadEdge = settlementNode;
-            }
-        }
-        else
-        {
-            if ((destination == (settlementNode - 0x20)) || (destination == (settlementNode + 0x02)))
-            {
-                roadEdge = settlementNode - 0x10;
-            }
-            else if (destination > settlementNode)
-            {
-                roadEdge = settlementNode;
-            }
-            else
-            {
-                roadEdge = settlementNode - 0x11;
-            }
-        }
+                                                         // 2 nodes away from settlementNode
+        final int roadEdge   // will be adjacent to settlementNode
+            = board.getAdjacentEdgeToNode2Away(settlementNode, destination);
 
         //D.ebugPrintln("!!! PUTTING INIT ROAD !!!");
         pause(500);
@@ -4277,6 +4210,7 @@ public class SOCRobotBrain extends Thread
      */
     protected void bestSpot2AwayFromANodeSet(Hashtable nodesIn, Vector nodeSet, int weight)
     {
+        final SOCBoard board = game.getBoard();
         Enumeration nodesInEnum = nodesIn.keys();
 
         while (nodesInEnum.hasMoreElements())
@@ -4296,27 +4230,7 @@ public class SOCRobotBrain extends Thread
                 {
                     break;
                 }
-                else if (node == (target - 0x20))
-                {
-                    score = 100;
-                }
-                else if (node == (target + 0x02))
-                {
-                    score = 100;
-                }
-                else if (node == (target + 0x22))
-                {
-                    score = 100;
-                }
-                else if (node == (target + 0x20))
-                {
-                    score = 100;
-                }
-                else if (node == (target - 0x02))
-                {
-                    score = 100;
-                }
-                else if (node == (target - 0x22))
+                else if (board.isNode2AwayFromNode(node, target))
                 {
                     score = 100;
                 }

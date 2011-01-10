@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.game;
 
@@ -106,7 +108,8 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAX_ROBBER_HEX = MAX_LAND_HEX;
 
     /**
-     * Facing is the direction (1-6) to the hex touching a hex or edge.
+     * Facing is the direction (1-6) to the hex touching a hex or edge,
+     * or from a node to another node 2 nodes away.
      * Facing 1 is NE, 2 is E, 3 is SE, 4 is SW, etc;
      * used in {@link #hexLayout} for ports, and elsewhere.<pre>
       6 &lt;--.    .--> 1
@@ -532,6 +535,16 @@ public class SOCBoard implements Serializable, Cloneable
      * -- @see #getAdjacentHexesToNode(int) instead
      * private int[] nodeToHex = { -0x21, 0x01, -0x01, -0x10, 0x10, -0x12 };
      */
+
+    /**
+     * Offsets from a node to another node 2 away,
+     * indexed by the facing directions: {@link #FACING_NE} is 1,
+     * {@link #FACING_E} is 2, etc; {@link #FACING_NW} is 6.
+     * Used by {@link #getAdjacentNodeToNode2Away(int, int)}. 
+     * See RST dissertation figure A.2.
+     * @since 1.1.12
+     */
+    private final int[] NODE_2_AWAY = { -9, 0x02, 0x22, 0x20, -0x02, -0x22, -0x20 };
 
     /**
      * the hex coordinate that the robber is in; placed on desert in constructor
@@ -2195,6 +2208,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @see #getAdjacentNodeToNode(int, int)
      */
     public int getAdjacentEdgeToNode(final int nodeCoord, final int nodeDir)
+        throws IllegalArgumentException
     {
         // See RST dissertation figures A.2 (nodes), A.3 (edges),
         // and A.8 and A.10 (computing adjacent edges to a node).
@@ -2424,9 +2438,11 @@ public class SOCBoard implements Serializable, Cloneable
      * @throws IllegalArgumentException if <tt>nodeDir</tt> is less than 0 or greater than 2
      * @since 1.1.12
      * @see #getAdjacentNodesToNode(int)
+     * @see #getAdjacentNodeToNode2Away(int, int)
      * @see #getAdjacentEdgeToNode(int, int)
      */
     public int getAdjacentNodeToNode(final int nodeCoord, final int nodeDir)
+        throws IllegalArgumentException
     {
         // See RST dissertation figures A.2 (nodes)
         // and A.7 and A.9 (computing adjacent nodes to a node).
@@ -2493,6 +2509,118 @@ public class SOCBoard implements Serializable, Cloneable
         }
 
         return node;
+    }
+
+    /**
+     * Offsets from a node to another node 2 away,
+     * indexed by the facing directions: {@link #FACING_NE} is 1,
+     * {@link #FACING_E} is 2, etc; {@link #FACING_NW} is 6.
+     * 
+     * @param nodeCoord  Starting node's coordinate
+     * @param facing    Facing from node; 1 to 6.
+     *           This will be one of the 6 directions
+     *           from a node to another node 2 away.
+     *           Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
+     * @return the node coordinate, or -9 if that node is not
+     *   {@link #isNodeOnBoard(int) on the board}.
+     * @see #getAdjacentNodeToNode(int, int)
+     * @see #getAdjacentEdgeToNode2Away(int, int)
+     * @see #isNode2AwayFromNode(int, int)
+     * @throws IllegalArgumentException if facing < 1 or facing &gt; 6
+     * @since 1.1.12
+     */
+    public int getAdjacentNodeToNode2Away(final int nodeCoord, final int facing)
+        throws IllegalArgumentException
+    {
+        if ((facing < 1) || (facing > 6))
+            throw new IllegalArgumentException("bad facing: " + facing);
+
+        // See RST dissertation figure A.2.
+        int node = nodeCoord + NODE_2_AWAY[facing];
+        if (! isNodeOnBoard(node))
+            node = -9;
+        return node;
+    }
+
+    /**
+     * Determine if these 2 nodes are 2 nodes apart on the board,
+     * by the node coordinate arithmetic.
+     *
+     * @param n1  Node coordinate; not validated
+     * @param n2  Node coordinate; not validated
+     * @return are these nodes 2 away from each other?
+     * @see #getAdjacentNodeToNode2Away(int, int)
+     * @since 1.1.12
+     */
+    public boolean isNode2AwayFromNode(final int n1, final int n2)
+    {
+        final int d = n2 - n1;
+        for (int facing = 1; facing <= 6; ++facing)
+        {
+            if (d == NODE_2_AWAY[facing])
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Given an initial node, and a second node 2 nodes away,
+     * calculate the edge coordinate (adjacent to the initial
+     * node) going towards the second node.
+     * @param node  Initial node coordinate; not validated
+     * @param node2away  Second node coordinate; should be 2 away,
+     *     but this is not validated
+     * @return  An edge coordinate, adjacent to initial node,
+     *   in the direction of the second node.
+     * @see #getAdjacentNodeToNode2Away(int, int)
+     * @since 1.1.12
+     */
+    public int getAdjacentEdgeToNode2Away
+        (final int node, final int node2away)
+    {
+        final int roadEdge;
+
+        /**
+         * See RST dissertation figures A.2, A.8, A.10.
+         *
+         * if the coords are (even, odd), then
+         * the node is 'Y'.
+         */
+        if (((node >> 4) % 2) == 0)
+        {
+            if ((node2away == (node - 0x02)) || (node2away == (node + 0x20)))
+            {
+                // south
+                roadEdge = node - 0x01;
+            }
+            else if (node2away < node)
+            {
+                // NW
+                roadEdge = node - 0x11;
+            }
+            else
+            {
+                // NE
+                roadEdge = node;
+            }
+        }
+        else
+        {
+            if ((node2away == (node - 0x20)) || (node2away == (node + 0x02)))
+            {
+                // north
+                roadEdge = node - 0x10;
+            }
+            else if (node2away > node)
+            {  // SE
+                roadEdge = node;
+            }
+            else
+            {  // SW
+                roadEdge = node - 0x11;
+            }
+        }
+        return roadEdge;
     }
 
     /**

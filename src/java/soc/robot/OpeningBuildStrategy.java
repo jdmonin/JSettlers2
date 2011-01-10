@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -634,48 +634,12 @@ public class OpeningBuildStrategy {
          * last settlement and pick the best one
          */
         SOCBoard board = game.getBoard();
-        int tmp;
-
-        tmp = settlementNode - 0x20;
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
+        for (int facing = 1; facing <= 6; ++facing)
         {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode + 0x02;
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode + 0x22;
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode + 0x20;
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode - 0x02;
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        tmp = settlementNode - 0x22;
-
-        if (board.isNodeOnBoard(tmp) && ourPlayerData.isPotentialSettlement(tmp))
-        {
-            twoAway.put(new Integer(tmp), new Integer(0));
+            // each of 6 directions: NE, E, SE, SW, W, NW
+            int tmp = board.getAdjacentNodeToNode2Away(settlementNode, facing);
+            if ((tmp != -9) && ourPlayerData.isPotentialSettlement(tmp))
+                twoAway.put(new Integer(tmp), new Integer(0));
         }
 
         scoreNodesForSettlements(twoAway, 3, 5, 10, game, ourPlayerData);
@@ -726,8 +690,8 @@ public class OpeningBuildStrategy {
                 /**
                  * check 3:1 ports
                  */
-                Vector miscPortNodes = game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT);
-                bestSpot2AwayFromANodeSet(allNodes, miscPortNodes, 5);
+                Vector miscPortNodes = board.getPortCoordinates(SOCBoard.MISC_PORT);
+                bestSpot2AwayFromANodeSet(board, allNodes, miscPortNodes, 5);
 
                 /**
                  * check out good 2:1 ports
@@ -741,9 +705,9 @@ public class OpeningBuildStrategy {
                      */
                     if (resourceEstimates[portType] > 33)
                     {
-                        Vector portNodes = game.getBoard().getPortCoordinates(portType);
+                        Vector portNodes = board.getPortCoordinates(portType);
                         int portWeight = (resourceEstimates[portType] * 10) / 56;
-                        bestSpot2AwayFromANodeSet(allNodes, portNodes, portWeight);
+                        bestSpot2AwayFromANodeSet(board, allNodes, portNodes, portWeight);
                     }
                 }
 
@@ -822,43 +786,12 @@ public class OpeningBuildStrategy {
             }
         }
 
-        int roadEdge = 0;
-        int destination = bestNodePair.getNode();
+        // Reminder: settlementNode == ourPlayerData.getLastSettlementCoord()
+        final int destination = bestNodePair.getNode();  // coordinate of future settlement
+                                                         // 2 nodes away from settlementNode
+        final int roadEdge   // will be adjacent to settlementNode
+            = board.getAdjacentEdgeToNode2Away(settlementNode, destination);
 
-        /**
-         * if the coords are (even, odd), then
-         * the node is 'Y'.
-         */
-        if (((settlementNode >> 4) % 2) == 0)
-        {
-            if ((destination == (settlementNode - 0x02)) || (destination == (settlementNode + 0x20)))
-            {
-                roadEdge = settlementNode - 0x01;
-            }
-            else if (destination < settlementNode)
-            {
-                roadEdge = settlementNode - 0x11;
-            }
-            else
-            {
-                roadEdge = settlementNode;
-            }
-        }
-        else
-        {
-            if ((destination == (settlementNode - 0x20)) || (destination == (settlementNode + 0x02)))
-            {
-                roadEdge = settlementNode - 0x10;
-            }
-            else if (destination > settlementNode)
-            {
-                roadEdge = settlementNode;
-            }
-            else
-            {
-                roadEdge = settlementNode - 0x11;
-            }
-        }
         dummy.destroyPlayer();
         
         return roadEdge;
@@ -973,11 +906,12 @@ public class OpeningBuildStrategy {
      * If a node is two away from a node in the desired set of nodes it gets 100.
      * Otherwise it gets 0.
      *
+     * @param board     the game board
      * @param nodesIn   the table of nodes to evaluate: Hashtable<Integer,Integer>
      * @param nodeSet   the set of desired nodes
      * @param weight    the score multiplier
      */
-    protected void bestSpot2AwayFromANodeSet(Hashtable nodesIn, Vector nodeSet, int weight)
+    protected void bestSpot2AwayFromANodeSet(SOCBoard board, Hashtable nodesIn, Vector nodeSet, int weight)
     {
         Enumeration nodesInEnum = nodesIn.keys();  // <Integer>
 
@@ -998,27 +932,7 @@ public class OpeningBuildStrategy {
                 {
                     break;
                 }
-                else if (node == (target - 0x20))
-                {
-                    score = 100;
-                }
-                else if (node == (target + 0x02))
-                {
-                    score = 100;
-                }
-                else if (node == (target + 0x22))
-                {
-                    score = 100;
-                }
-                else if (node == (target + 0x20))
-                {
-                    score = 100;
-                }
-                else if (node == (target - 0x02))
-                {
-                    score = 100;
-                }
-                else if (node == (target - 0x22))
+                else if (board.isNode2AwayFromNode(node, target))
                 {
                     score = 100;
                 }
