@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.client;
 
@@ -654,11 +656,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             paintBordersHandColumn(g, hands[0]);
             paintBordersHandColumn(g, hands[1]);           
         }
+        g.clearRect(boardPanel.getX(), boardPanel.getY() - 4, boardPanel.getWidth(), 4);
         needRepaintBorders = false;
     }
 
     /**
      * Paint the borders of one column of handpanels.
+     * {@link #prevSize} must be set before calling.
      * @param g  Graphics as passed to <tt>update()</tt>
      * @param middlePanel  The middle handpanel (6-player) or the bottom (4-player) in this column
      * @since 1.1.11

@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.client;
 
@@ -115,6 +117,8 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected static final String ROLL_OR_PLAY_CARD = "Roll or Play Card";
     protected static final String OFFERBUTTIP_ENA = "Send trade offer to other players";
     protected static final String OFFERBUTTIP_DIS = "To offer a trade, first click resources";
+    protected static final String ROBOTLOCKBUTTIP_L = "Lock to prevent a human from taking over this robot.";
+    protected static final String ROBOTLOCKBUTTIP_U = "Unlock to allow a human to take over this robot.";
     protected static final String TRADEMSG_DISCARD = "Discarding..."; 
 
     /** If player has won the game, update pname label */
@@ -233,6 +237,15 @@ public class SOCHandPanel extends Panel implements ActionListener
      * @see #interactive
      */
     protected AWTToolTip offerButTip;
+
+    /**
+     * Hint for "Lock/Unlock" button ({@link #sittingRobotLockBut};
+     * non-null only if a robot is sitting there.
+     * @see #ROBOTLOCKBUTTIP_L
+     * @see #ROBOTLOCKBUTTIP_U
+     * @since 1.1.12
+     */
+    protected AWTToolTip robotLockButTip;
 
     /** Clear the current trade offer at client and server */
     protected Button clearOfferBut;
@@ -669,11 +682,11 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         if (target == LOCKSEAT)
         {
-            client.lockSeat(game, player.getPlayerNumber());
+            client.lockSeat(game, player.getPlayerNumber(), true);
         }
         else if (target == UNLOCKSEAT)
         {
-            client.unlockSeat(game, player.getPlayerNumber());
+            client.lockSeat(game, player.getPlayerNumber(), false);
         }
         else if (target == TAKEOVER)
         {
@@ -970,18 +983,24 @@ public class SOCHandPanel extends Panel implements ActionListener
         D.ebugPrintln("*** addSeatLockBut() ***");
         D.ebugPrintln("seatLockBut = " + sittingRobotLockBut);
 
+            final String tipText;
             if (game.isSeatLocked(player.getPlayerNumber()))
             {
                 sittingRobotLockBut.setLabel(UNLOCKSEAT);
+                tipText = ROBOTLOCKBUTTIP_U;
             }
             else
             {
-                sittingRobotLockBut.setLabel(UNLOCKSEAT);
+                sittingRobotLockBut.setLabel(LOCKSEAT);
+                tipText = ROBOTLOCKBUTTIP_L;
             }
 
             sittingRobotLockBut.setVisible(true);
 
-            //seatLockBut.repaint();
+        if (robotLockButTip != null)
+            robotLockButTip.setTip(tipText);
+        else
+            robotLockButTip = new AWTToolTip(tipText, sittingRobotLockBut);
     }
 
     /**
@@ -1627,6 +1646,11 @@ public class SOCHandPanel extends Panel implements ActionListener
     public void removeSittingRobotLockBut()
     {
         sittingRobotLockBut.setVisible(false);
+        if (robotLockButTip != null)
+        {
+            robotLockButTip.destroy();
+            robotLockButTip = null;
+        }
     }
 
     /**
@@ -2078,16 +2102,28 @@ public class SOCHandPanel extends Panel implements ActionListener
     public void updateSeatLockButton()
     {
         boolean isLocked = game.isSeatLocked(player.getPlayerNumber());
+        final String tipText;
         if (isLocked)
         {
             sittingRobotLockBut.setLabel(UNLOCKSEAT);
+            tipText = ROBOTLOCKBUTTIP_U;
         }
         else
         {
             sittingRobotLockBut.setLabel(LOCKSEAT);
+            tipText = ROBOTLOCKBUTTIP_L;
         }
+        if (robotLockButTip != null)
+        {
+            final String prevTip = robotLockButTip.getTip();
+            if (prevTip != tipText)  // constant string ref, so don't need equals()
+                robotLockButTip.setTip(tipText);
+        }
+
         if (sitButIsLock)
         {
+            // game is still forming, so update the other "lock" button.
+
             boolean noPlayer = (player == null) || (player.getName() == null);
             if (isLocked)
             {

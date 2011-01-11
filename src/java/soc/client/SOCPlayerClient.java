@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.client;
 
@@ -4455,21 +4457,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
      *
      * @param ga  the game
      * @param pn  the seat number
+     * @param lock  Lock the seat, or unlock?
      */
-    public void lockSeat(SOCGame ga, int pn)
+    public void lockSeat(SOCGame ga, int pn, final boolean lock)
     {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, true), ga.isLocal);
-    }
-
-    /**
-     * the user is unlocking a seat
-     *
-     * @param ga  the game
-     * @param pn  the seat number
-     */
-    public void unlockSeat(SOCGame ga, int pn)
-    {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, false), ga.isLocal);
+        put(SOCSetSeatLock.toCmd(ga.getName(), pn, lock), ga.isLocal);
     }
 
     /**
