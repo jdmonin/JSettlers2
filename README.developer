@@ -14,7 +14,7 @@ CONTENTS
 - Current partially-done work
 - Current TODO list
 - Coding Style
-- CVS (obsolete, from original project)
+- CVS usage
 
 
 Overall Structure
@@ -232,39 +232,20 @@ If desired, in Eclipse preferences, you can bind a key combination to Remove Tra
 This will trim it from the entire file when the key is pressed.
 
 
-
-[The text below is obsolete, from the sourceforge jsettlers project.]
-
 CVS
 ---
-
 HEAD recieves new features and enhancements for next 'minor' release.
-Simple bug fixes are made to the branch.
+As soon as a bug is fixed or a feature's design is fairly stable, it
+should be committed to HEAD.
 
-It is safest to use a separate sandbox for working on a branch,
-checking in simple bug fixes there. Those changes are merged into the
-HEAD as needed, and a "bookmark" tag is placed on the branch after the
-merge.
+There are no branches, because jsettlers2 is mature at this point.
+Each minor release is a stable release, there is no experimental branch.
 
- ~/ > cvs co -r jsettlers-x-y-branch -d jsettlers-branch jsettlers
+Each release's files are tagged for the release:
 
-Update that sandbox to the tip of the branch, make updates, and commit:
+$ cd JSettlers2
+$ cvs -q tag release-1_1_12
+$ cvs -q update -A
 
- ~/jsettlers-branch > cvs up -r jsettlers-x-y-branch
-    ...
- ~/jsettlers-branch > cvs com -m "fixed xyz problems pdq" $files
-
-Then merge the changes into the HEAD, commit, and move the
-jsettlers-x-y-merged tag. This way, the merge into the HEAD will always
-look like the following:
-
- ~/jsettlers-HEAD > cvs up -j jsettlers-x-y-merged -j jsettlers-x-y-branch $files
- ~/jsettlers-HEAD > cvs com -m "merged branch x.y into HEAD" $files
- ~/jsettlers-HEAD > cvs tag -F -r jsettlers-x-y-branch jsettlers-x-y-merged $files
-
-The idea is that the last merge to HEAD is always tagged in the
-branch. This way you can also get an overview of the changes made in
-the branch which have not yet been merged into HEAD:
-
- ~/jsettlers-branch > cvs diff -u -r jsetters-x-y-merged -r jsettlers-x-y-branch $files
-
+You can also see an overview of CVS commit comments in the CVS version
+histories of src/java/resources/version.info.in and VERSIONS.txt.
