@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.client;
 
@@ -2034,6 +2036,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 // was cached from previous calculation
                 rFill = robberGhostFill[hexType];
                 rOutline = robberGhostOutline[hexType];
+
+                if (! fillNotOutline)
+                {
+                    final int dnum = board.getNumberOnHexFromNumber(hexNum);
+                    if ((hexType == SOCBoard.DESERT_HEX)
+                        || (dnum <= 3) || (dnum >= 11))
+                    {
+                        // outline-only against a light background.
+                        rFill = Color.BLACK;
+                    }
+                }
             } else {
                 // find basic color, "ghost" it
                 rOutline = hexColor(hexType);
