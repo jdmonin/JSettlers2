@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.robot;
 
@@ -939,7 +939,44 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
         //D.ebugPrintln(mes.getNickname()+": "+mes.getText());
-        if (mes.getText().startsWith(nickname + ":debug-off"))
+        if (mes.getText().startsWith(nickname))
+        {
+            handleGAMETEXTMSG_debug(mes);
+        }
+
+        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
+
+        if (brainQ != null)
+        {
+            try
+            {
+                brainQ.put(mes);
+            }
+            catch (CutoffExceededException exc)
+            {
+                D.ebugPrintln("CutoffExceededException" + exc);
+            }
+        }
+    }
+
+    /**
+     * Handle debug text messages to the robot, which start with
+     * the robot's nickname + ":".
+     * @since 1.1.12
+     */
+    private final void handleGAMETEXTMSG_debug(SOCGameTextMsg mes)
+    {
+        final int nL = nickname.length();
+        try
+        {
+            if (mes.getText().charAt(nL) != ':')
+                return;
+        } catch (IndexOutOfBoundsException e) {
+            return;
+        }
+        final String dcmd = mes.getText().substring(nL);
+
+        if (dcmd.startsWith(":debug-off"))
         {
             SOCGame ga = (SOCGame) games.get(mes.getGame());
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
@@ -951,7 +988,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":debug-on"))
+        else if (dcmd.startsWith(":debug-on"))
         {
             SOCGame ga = (SOCGame) games.get(mes.getGame());
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
@@ -963,7 +1000,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":current-plans") || mes.getText().startsWith(nickname + ":cp"))
+        else if (dcmd.startsWith(":current-plans") || dcmd.startsWith(":cp"))
         {
             SOCGame ga = (SOCGame) games.get(mes.getGame());
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
@@ -974,7 +1011,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":current-resources") || mes.getText().startsWith(nickname + ":cr"))
+        else if (dcmd.startsWith(":current-resources") || dcmd.startsWith(":cr"))
         {
             SOCGame ga = (SOCGame) games.get(mes.getGame());
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
@@ -985,7 +1022,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":last-plans") || mes.getText().startsWith(nickname + ":lp"))
+        else if (dcmd.startsWith(":last-plans") || dcmd.startsWith(":lp"))
         {
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
 
@@ -1001,7 +1038,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":last-resources") || mes.getText().startsWith(nickname + ":lr"))
+        else if (dcmd.startsWith(":last-resources") || dcmd.startsWith(":lr"))
         {
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
 
@@ -1017,7 +1054,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":last-move") || mes.getText().startsWith(nickname + ":lm"))
+        else if (dcmd.startsWith(":last-move") || dcmd.startsWith(":lm"))
         {
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
 
@@ -1063,7 +1100,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":consider-move ") || mes.getText().startsWith(nickname + ":cm "))
+        else if (dcmd.startsWith(":consider-move ") || dcmd.startsWith(":cm "))
         {
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
 
@@ -1099,7 +1136,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":last-target") || mes.getText().startsWith(nickname + ":lt"))
+        else if (dcmd.startsWith(":last-target") || dcmd.startsWith(":lt"))
         {
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
 
@@ -1145,7 +1182,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":consider-target ") || mes.getText().startsWith(nickname + ":ct "))
+        else if (dcmd.startsWith(":consider-target ") || dcmd.startsWith(":ct "))
         {
             SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
 
@@ -1181,7 +1218,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
-        if (mes.getText().startsWith(nickname + ":stats"))
+        else if (dcmd.startsWith(":stats"))
         {
             SOCGame ga = (SOCGame) games.get(mes.getGame());
             sendText(ga, "Games played:" + gamesPlayed);
@@ -1195,27 +1232,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             sendText(ga, "Free Memory:" + rt.freeMemory());
         }
 
-        if (mes.getText().startsWith(nickname + ":gc"))
+        else if (dcmd.startsWith(":gc"))
         {
             SOCGame ga = (SOCGame) games.get(mes.getGame());
             Runtime rt = Runtime.getRuntime();
             rt.gc();
             sendText(ga, "Free Memory:" + rt.freeMemory());
         }
-
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
+        
     }
 
     /**
