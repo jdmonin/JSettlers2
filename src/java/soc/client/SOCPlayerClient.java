@@ -2645,8 +2645,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     protected void handleGAMEMEMBERS(SOCGameMembers mes)
     {
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        D.ebugPrintln("got GAMEMEMBERS");
-        pi.began();
+        pi.began(mes.getMembers());
     }
 
     /**

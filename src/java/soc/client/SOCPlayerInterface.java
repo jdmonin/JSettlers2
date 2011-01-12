@@ -52,6 +52,7 @@ import java.awt.event.WindowEvent;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Vector;
 
 import java.io.PrintWriter;  // For chatPrintStackTrace
 import java.io.StringWriter;
@@ -66,7 +67,7 @@ import java.io.StringWriter;
  *<P>
  * When we join a game, the client will update visible game state by calling methods here like
  * {@link #addPlayer(String, int)}; when all this activity is complete, and the interface is
- * ready for interaction, the client calls {@link #began()}.
+ * ready for interaction, the client calls {@link #began(Vector)}.
  *<P>
  * A separate {@link SOCPlayerClient} window holds the list of current games and channels.
  *
@@ -1280,8 +1281,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * only that the window is ready for players to choose where to sit.
      * By now HandPanel has added "sit" buttons, or updatePlayerLimitDisplay
      * has removed them if necessary.
+     *<P>
+     * If this game has observers, list them in the textDisplay now.
+     *
+     * @param members Game member names from {@link soc.message.SOCGameMembers#getMembers()} (added in 1.1.12)
      */
-    public void began()
+    public void began(Vector members)
     {
         textInput.setEditable(true);
         textInput.setText("");
@@ -1289,6 +1294,36 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         // Don't request focus for textInput; it should clear
         // the prompt text when user clicks (focuses) it, so
         // wait for user to do that.
+
+        // Look for game observers, list in textDisplay
+        if (members == null)
+            return;
+        int numObservers = 0;
+        StringBuffer obs = null;
+        for (int i = members.size() - 1; i >= 0; --i)
+        {
+            String mname = (String) members.elementAt(i);
+            if (null != game.getPlayer(mname))
+                continue;
+            if (mname.equals(client.getNickname()))
+                continue;
+            if (numObservers == 0)
+                obs = new StringBuffer("* ");
+            else
+                obs.append(", ");
+            obs.append(mname);
+            ++numObservers;
+        }
+        if (numObservers > 0)
+        {
+            if (numObservers == 1)
+                obs.append(" has");
+            else
+                obs.append(" have");
+            obs.append(" joined as observer.\n");
+
+            textDisplay.append(obs.toString());
+        }
     }
 
     /**

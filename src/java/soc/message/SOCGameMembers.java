@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.message;
 
@@ -64,7 +64,7 @@ public class SOCGameMembers extends SOCMessage
     }
 
     /**
-     * @return the list of members
+     * @return the list of member names; each element is a String with the member's nickname
      */
     public Vector getMembers()
     {

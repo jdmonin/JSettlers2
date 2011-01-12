@@ -17,6 +17,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.server;
 
@@ -762,7 +764,9 @@ public class SOCServer extends Server
      *           (this exception was added in 1.1.07)
      * @throws IllegalArgumentException if client's version is too low to join for any
      *           other reason. (this exception was added in 1.1.06)
+     * @see #joinGame(SOCGame, StringConnection, boolean, boolean)
      * @see #handleSTARTGAME(StringConnection, SOCStartGame)
+     * @see #handleJOINGAME(StringConnection, SOCJoinGame)
      */
     public boolean connectToGame(StringConnection c, final String gaName, Hashtable gaOpts)
         throws SOCGameOptionVersionException, IllegalArgumentException
@@ -7194,6 +7198,9 @@ public class SOCServer extends Server
      * @param isTakingOver  Client is re-joining; this connection replaces an earlier one which
      *                      is defunct because of a network problem.
      *                      If <tt>isTakingOver</tt>, don't send anything to other players.
+     *
+     * @see #connectToGame(StringConnection, String, Hashtable)
+     * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
      */
     private void joinGame(SOCGame gameData, StringConnection c, boolean isReset, boolean isTakingOver)
     {
