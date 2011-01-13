@@ -73,6 +73,9 @@ import java.util.Vector;
  *<LI> See {@link SOCMessage} for details of the client/server protocol.
  *<LI> See {@link Server} for details of the server threading and processing.
  *<LI> To get a player's connection, use {@link #getConnection(Object) getConnection(plName)}.
+ *<LI> To get a client's nickname, use <tt>(String)</tt> {@link StringConnection#getData() connection.getData()}.
+ *<LI> To get the rest of a client's data, use ({@link SOCClientData})
+ *       {@link StringConnection#getAppData() connection.getAppData()}.
  *<LI> To send a message to all players in a game, use {@link #messageToGame(String, SOCMessage)}
  *       and related methods.
  *</UL>
