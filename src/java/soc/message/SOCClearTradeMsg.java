@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -25,7 +25,9 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that the server wants the trade message cleared
+ * This message means that the server wants the trade message cleared.
+ *<P>
+ * Version 1.1.12: If <tt>playerNumber</tt> is -1, all players are clearing trade messages.
  *
  * @author Robert S. Thomas
  */
@@ -33,12 +35,18 @@ public class SOCClearTradeMsg extends SOCMessage
     implements SOCMessageForGame
 {
     /**
+     * Minimum version (1.1.12) which supports playerNumber -1 for clear all.
+     * @since 1.1.12
+     */
+    public static final int VERSION_FOR_CLEAR_ALL = 1112;
+
+    /**
      * Name of game
      */
     private String game;
 
     /**
-     * The seat number
+     * The seat number, or -1 to clear all seats
      */
     private int playerNumber;
 
@@ -64,7 +72,7 @@ public class SOCClearTradeMsg extends SOCMessage
     }
 
     /**
-     * @return the seat number
+     * @return the seat number, or -1 to clear all seats
      */
     public int getPlayerNumber()
     {

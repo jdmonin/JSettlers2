@@ -3363,7 +3363,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes)
     {
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        pi.getPlayerHandPanel(mes.getPlayerNumber()).clearTradeMsg();
+        pi.clearTradeMsg(mes.getPlayerNumber());
     }
 
     /**

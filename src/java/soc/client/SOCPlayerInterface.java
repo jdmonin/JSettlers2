@@ -892,6 +892,22 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
+     * If the player's trade-offer panel is showing a message
+     * (not a trade offer), clear and hide it.
+     * @param pn  Player number, or -1 for all players
+     * @see SOCHandPanel#clearTradeMsg()
+     * @since 1.1.12
+     */
+    void clearTradeMsg(final int pn)
+    {
+        if (pn != -1)
+            hands[pn].clearTradeMsg();
+        else
+            for (int i = 0; i < game.maxPlayers; ++i)
+                hands[i].clearTradeMsg();
+    }
+
+    /**
      * Switch the game's {@link SOCGame#debugFreePlacement Debug Paint Piece Mode}
      * on or off, as directed by the server.
      * @param setOn  Should the mode be turned on?

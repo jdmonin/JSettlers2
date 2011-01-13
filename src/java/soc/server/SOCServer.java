@@ -5837,9 +5837,12 @@ public class SOCServer extends Server
                          * clear all the trade messages because a new offer has been made
                          */
                         gameList.takeMonitorForGame(gaName);
-                        for (int i = 0; i < ga.maxPlayers; i++)
+                        if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
                         {
-                            messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
+                            messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));            
+                        } else {
+                            for (int i = 0; i < ga.maxPlayers; i++)
+                                messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
                         }
                         gameList.releaseMonitorForGame(gaName);
                     }
@@ -5881,10 +5884,15 @@ public class SOCServer extends Server
                     /**
                      * clear all the trade messages
                      */
-                    for (int i = 0; i < ga.maxPlayers; i++)
+                    gameList.takeMonitorForGame(gaName);
+                    if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
                     {
-                        messageToGame(gaName, new SOCClearTradeMsg(gaName, i));
+                        messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));            
+                    } else {
+                        for (int i = 0; i < ga.maxPlayers; i++)
+                            messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
                     }
+                    gameList.releaseMonitorForGame(gaName);
                 }
                 catch (Exception e)
                 {
