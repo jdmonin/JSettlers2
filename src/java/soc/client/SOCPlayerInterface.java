@@ -48,6 +48,7 @@ import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import java.util.StringTokenizer;
 import java.util.Timer;
@@ -2290,7 +2291,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
     }  // class ResetBoardVoteDialog
-    
+
+    /**
+     * React to window closing or losing focus (deactivation).
+     * @author jdmonin
+     * @since 1.1.00
+     */
     private static class MyWindowAdapter extends WindowAdapter
     {
         private SOCPlayerInterface pi;
@@ -2308,6 +2314,25 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             // leaveGame();
             SOCQuitConfirmDialog.createAndShow(pi.getClient(), pi);
         }
+
+        /**
+         * When window loses focus, if 6-player, unexpand the chat window if needed.
+         * @since 1.1.12
+         */
+        public void windowDeactivated(WindowEvent e)
+        {
+            if (! pi.textDisplaysLargerTemp)
+                return;
+
+            pi.textDisplayHasMouse = false;
+            pi.chatDisplayHasMouse = false;
+            pi.textInputHasMouse = false;
+            pi.textDisplaysLargerTemp = false;
+            pi.textDisplaysLargerTemp_needsLayout = true;
+            pi.invalidate();
+            pi.validate();  // call pi.doLayout()
+        }
+
     }  // MyWindowAdapter
 
     /**

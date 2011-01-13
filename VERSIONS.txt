@@ -9,6 +9,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Feedback if 'Road Building' clicked but 0 roads left
 - Lock/unlock button for robot seats: add tooltip, fix label when first shown
 - Bugfix: Robot 'No thanks' displays after bank trade
+- When 6-player board's window loses focus, un-expand the chat area
 - If game has observers, list them when client joins
 - For debugging, new "Free Placement" mode; see README.developer
 - Further encapsulate board coordinate encoding
