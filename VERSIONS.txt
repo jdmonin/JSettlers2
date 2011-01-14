@@ -13,6 +13,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - If game has observers, list them when client joins
 - For debugging, new "Free Placement" mode; see README.developer
 - Further encapsulate board coordinate encoding
+- Javadocs and other explanations of board coordinate encoding
 
     > 1.1.11 (build 20101231)
 - Popup to confirm before you move the robber onto your own hex

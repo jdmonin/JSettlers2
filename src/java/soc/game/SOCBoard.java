@@ -51,16 +51,27 @@ import java.util.Vector;
  * and <b>edges</b> (between nodes; where roads are placed),
  * share the same grid of coordinates.
  * Each hex is 2 units wide, in a 2-D coordinate system.
+ *<P>
+ * Current coordinate encoding: ({@link #BOARD_ENCODING_ORIGINAL})
+ *<P>
+ * <b>On the 4-player board:</b> See <tt>src/docs/hexcoord.gif</tt><br>
+ * Coordinates start with hex (1,1) on the far west, and go to (D,D) on the east.
+ * The ring of water hexes surrounding land, is within these coordinates. (Land
+ * hexes in that row are (3,3) to (B,B). 
  * The first axis runs northwest to southeast; the second runs southwest to northeast.
  * Having six sides, hexes run in a straight line west to east, separated by vertical edges;
  * both coordinates increase along a west-to-east line.
  *<P>
- * Current coordinate encoding: ({@link #BOARD_ENCODING_ORIGINAL})
- *<BR>
  * All coordinates are encoded as two-digit hex integers, one digit per axis (thus 00 to FF).
  * The center hex is encoded as 77; see the dissertation PDF's appendix for diagrams.
  * Unfortunately this format means the board can't be expanded without changing its
  * encoding, which is used across the network.
+ *<P>
+ * <b>On the 6-player board:</b> See <tt>src/docs/hexcoord-6player.gif</tt><br>
+ * The 6-player board is rotated 90 degrees clockwise from the 4-player board,
+ * so coordinates start with hex (1,1) as the northernmost land hex, and
+ * hex (B,B) is the southernmost land hex.  The ring of water hexes are outside
+ * this coordinate grid.
  *<P>
  * @author Robert S Thomas
  */
