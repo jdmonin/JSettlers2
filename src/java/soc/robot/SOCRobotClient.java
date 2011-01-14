@@ -1958,7 +1958,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             robotBrains.remove(ga.getName());
             brainQs.remove(ga.getName());
             games.remove(ga.getName());
-            System.err.println("L1833 robot " + nickname + " leaving game " + ga + " due to " + leaveReason);
+            D.ebugPrintln("L1833 robot " + nickname + " leaving game " + ga + " due to " + leaveReason);
             if (showDebugTrace)
             {
                 soc.debug.D.ebugPrintStackTrace(null, "Leaving game here");
