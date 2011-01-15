@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.game;
 
@@ -4523,4 +4525,13 @@ public class SOCGame implements Serializable, Cloneable
         }
     }
 
+    /**
+     * toString contains the game name.
+     * @return "SOCGame{" + gameName + "}"
+     * @since 1.1.12
+     */
+    public String toString()
+    {
+        return "SOCGame{" + name + "}";
+    }
 }
