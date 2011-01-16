@@ -3068,7 +3068,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 default:
                     mode = NONE;
-                    if (game.debugFreePlacement)
+                    if (game.isDebugFreePlacement())
                         topText = "DEBUG: Free Placement Mode";
                     break;
                 }
@@ -3082,7 +3082,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     topText = "Special Building: " + game.getPlayer(cpn).getName();
                 }
-                else if (game.debugFreePlacement)
+                else if (game.isDebugFreePlacement())
                 {
 		    topText = "DEBUG: Free Placement Mode";
                 }
@@ -4468,7 +4468,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 && (mode != PLACE_INIT_ROAD) && (mode != PLACE_ROBBER)
                 && (mode != TURN_STARTING) && (mode != GAME_OVER));
 
-            final boolean debugPP = game.debugFreePlacement;
+            final boolean debugPP = game.isDebugFreePlacement();
             final boolean playerIsCurrent = 
                 (player != null) && (debugPP || playerInterface.clientIsCurrentPlayer());
             boolean hoverTextSet = false;  // True once text is determined
@@ -4977,7 +4977,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
               if (! isInitialPlacement)
               {
-                  final boolean debugPP = game.debugFreePlacement;
+                  final boolean debugPP = game.isDebugFreePlacement();
                   buildRoadItem.setEnabled
                       ( player.isPotentialRoad(hR) &&
                         (debugPP ? (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
@@ -5053,7 +5053,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       void tryBuild(int ptype)
       {
-          final boolean debugPP = game.debugFreePlacement;
+          final boolean debugPP = game.isDebugFreePlacement();
           int cpn = (debugPP)
               ? playerNumber   // boardpanel's temporary player number
               : playerInterface.getClientPlayerNumber();

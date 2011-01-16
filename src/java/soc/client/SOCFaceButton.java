@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.client;
 
@@ -536,7 +538,7 @@ public class SOCFaceButton extends Canvas
 	        return;  // <--- Early return: further checks need game ---
             }
 
-            if (game.debugFreePlacement)
+            if (game.isDebugFreePlacement())
             {
                 pi.setDebugFreePlacementPlayer(pNumber);
                 evt.consume();

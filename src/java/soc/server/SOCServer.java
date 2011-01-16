@@ -4105,7 +4105,7 @@ public class SOCServer extends Server
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
-        final boolean ppValue = ga.debugFreePlacement;
+        final boolean ppValue = ga.isDebugFreePlacement();
         final boolean ppWanted;
         if ((arg == null) || (arg.length() == 0))
             ppWanted = ppValue;
@@ -4116,7 +4116,7 @@ public class SOCServer extends Server
         {
             if (! ppWanted)
             {
-                ga.debugFreePlacement = false;
+                ga.setDebugFreePlacement(false);
             } else {
                 if (c.getVersion() < SOCDebugFreePlace.VERSION_FOR_DEBUGFREEPLACE)
                 {
@@ -4142,7 +4142,7 @@ public class SOCServer extends Server
                     return;  // <--- early return ---
                 }
 
-                ga.debugFreePlacement = true;
+                ga.setDebugFreePlacement(true);
             }
         }
 
@@ -5481,7 +5481,7 @@ public class SOCServer extends Server
 
         final String gname = ga.getName();               
 
-        if (ga.debugFreePlacement)
+        if (ga.isDebugFreePlacement())
         {
             // turn that off before ending current turn
             processDebugCommand_freePlace(c, gname, "0");
@@ -7065,7 +7065,7 @@ public class SOCServer extends Server
     private final void handleDEBUGFREEPLACE(StringConnection c, SOCDebugFreePlace mes)
     {
         SOCGame ga = gameList.getGameData(mes.getGame());
-        if ((ga == null) || ! ga.debugFreePlacement)
+        if ((ga == null) || ! ga.isDebugFreePlacement())
             return;
         final String gaName = ga.getName();
         if (ga.getGameState() != SOCGame.PLAY1)

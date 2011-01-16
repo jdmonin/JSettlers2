@@ -4241,7 +4241,7 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
     public void putPiece(SOCGame ga, SOCPlayingPiece pp)
     {
         String ppm;
-        if (ga.debugFreePlacement)
+        if (ga.isDebugFreePlacement())
             ppm = SOCDebugFreePlace.toCmd(ga.getName(), pp.getPlayer().getPlayerNumber(), pp.getType(), pp.getCoordinates());
         else
             ppm = SOCPutPiece.toCmd(ga.getName(), pp.getPlayer().getPlayerNumber(), pp.getType(), pp.getCoordinates());

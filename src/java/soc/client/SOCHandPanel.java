@@ -1423,7 +1423,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         // show current player, or for debugging, current Free Placement player
         {
             boolean showAsCurrent;
-            if (! game.debugFreePlacement)
+            if (! game.isDebugFreePlacement())
                 showAsCurrent = playerIsCurrent;
             else
                 showAsCurrent = (pn == playerInterface.getBoardPanel().getPlayerNumber());

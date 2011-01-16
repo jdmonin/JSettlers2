@@ -359,7 +359,7 @@ public class SOCGame implements Serializable, Cloneable
      * SOCPlayerInterface.setDebugPaintPieceMode.
      * @since 1.1.12
      */
-    public boolean debugFreePlacement;
+    private boolean debugFreePlacement;
 
     /**
      * true if the game came from a board reset
@@ -1687,6 +1687,9 @@ public class SOCGame implements Serializable, Cloneable
      *<b>Note:</b> Because <tt>pp</tt> is not checked for validity, please call
      * methods such as {@link SOCPlayer#isPotentialSettlement(int)}
      * to verify <tt>pp</tt> before calling this method.
+     *<P>
+     * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
+     * unless the current player gains enough points to win.
      *
      * @param pp the piece to put on the board; coordinates are not checked for validity
      */
@@ -4526,6 +4529,36 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Are we in the 'free placement' debug mode?
+     * See server.processDebugCommand_freePlace,
+     * SOCPlayerInterface.setDebugPaintPieceMode.
+     * @see #putPiece(SOCPlayingPiece)
+     * @since 1.1.12
+     */
+    public boolean isDebugFreePlacement()
+    {
+        return debugFreePlacement;
+    }
+
+    /**
+     * Turn the "free placement" debug mode on or off, if possible.
+     * Should only be turned on during the debugging human player's turn,
+     * in game state {@link #PLAY1}.
+     *<P>
+     * For more details, see {@link #isDebugFreePlacement()} javadoc.
+     * @param debugOn  Should the mode be on?
+     * @throws IllegalStateException  if turning on when gameState is not {@link #PLAY1}
+     * @since 1.1.12
+     */
+    public void setDebugFreePlacement(final boolean debugOn)
+        throws IllegalStateException
+    {
+        if (gameState != SOCGame.PLAY1)
+            throw new IllegalStateException("state=" + gameState);
+        debugFreePlacement = debugOn;
+    }
+
+    /**
      * toString contains the game name.
      * @return "SOCGame{" + gameName + "}"
      * @since 1.1.12
@@ -4534,4 +4567,5 @@ public class SOCGame implements Serializable, Cloneable
     {
         return "SOCGame{" + name + "}";
     }
+
 }

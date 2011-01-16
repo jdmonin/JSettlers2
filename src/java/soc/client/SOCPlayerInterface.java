@@ -916,10 +916,16 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     void setDebugFreePlacementMode(final boolean setOn)
     {
-        game.debugFreePlacement = setOn;
-        if (! setOn)
-            boardPanel.setPlayer(null);
-        boardPanel.updateMode();  // will set top text, which triggers a repaint
+        try
+        {
+            game.setDebugFreePlacement(setOn);
+            if (! setOn)
+                boardPanel.setPlayer(null);
+            boardPanel.updateMode();  // will set or clear top text, which triggers a repaint
+        } catch (IllegalStateException e) {
+            textDisplay.append
+              ("*** Can't setDebugFreePlacement(" + setOn+ ") for " + game.getName() + " in state " + game.getGameState() + "\n");
+        }
     }
 
     /**
@@ -932,7 +938,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     void setDebugFreePlacementPlayer(final int pn)
     {
-        if (! game.debugFreePlacement)
+        if (! game.isDebugFreePlacement())
             return;
 
         int prevPn = boardPanel.getPlayerNumber();
