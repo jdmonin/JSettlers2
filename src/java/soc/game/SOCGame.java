@@ -1295,6 +1295,8 @@ public class SOCGame implements Serializable, Cloneable
      * what states are expected when, please see the javadoc for {@link #NEW}.
      *
      * @return the current game state
+     * @see #isInitialPlacement()
+     * @see #isSpecialBuilding()
      */
     public int getGameState()
     {
@@ -1339,6 +1341,18 @@ public class SOCGame implements Serializable, Cloneable
                 ("Current state is not RESET_OLD: " + gameState);
 
         return oldGameState;
+    }
+
+    /**
+     * Are we in the Initial Placement part of the game?
+     * Includes game states {@link #START1A} - {@link #START2B}.
+     *
+     * @return true if in Initial Placement
+     * @since 1.1.12
+     */
+    public final boolean isInitialPlacement()
+    {
+        return (gameState >= START1A) && (gameState <= START2B);
     }
 
     /**

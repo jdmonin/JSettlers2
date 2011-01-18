@@ -4866,18 +4866,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           cancelBuildItem.setEnabled(menuPlayerIsCurrent);
 
           // Check for initial placement (for different cancel message)
-          switch (game.getGameState())
-          {
-          case SOCGame.START1A:
-          case SOCGame.START2A:
-          case SOCGame.START1B:
-          case SOCGame.START2B:
-              isInitialPlacement = true;
-              break;
-          
-          default:
-              isInitialPlacement = false;
-          }
+          isInitialPlacement = game.isInitialPlacement();
 
           switch (buildType)
           {

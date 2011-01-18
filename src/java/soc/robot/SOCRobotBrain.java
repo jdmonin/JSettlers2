@@ -1424,7 +1424,7 @@ public class SOCRobotBrain extends Thread
                     }
 
                     if ((failedBuildingAttempts > (2 * MAX_DENIED_BUILDING_PER_TURN))
-                        && (game.getGameState() <= SOCGame.START2B))
+                        && game.isInitialPlacement())
                     {
                         // Apparently can't decide where we can initially place:
                         // Leave the game.
