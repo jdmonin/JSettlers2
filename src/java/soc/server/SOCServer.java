@@ -4105,6 +4105,7 @@ public class SOCServer extends Server
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
+        final boolean wasInitial = ga.isInitialPlacement();
         final boolean ppValue = ga.isDebugFreePlacement();
         final boolean ppWanted;
         if ((arg == null) || (arg.length() == 0))
@@ -4116,7 +4117,24 @@ public class SOCServer extends Server
         {
             if (! ppWanted)
             {
-                ga.setDebugFreePlacement(false);
+                try
+                {
+                    ga.setDebugFreePlacement(false);
+                }
+                catch (IllegalStateException e)
+                {
+                    if (wasInitial)
+                    {
+                        messageToPlayer
+                          (c, gaName, "* To exit this debug mode, all players must have either");
+                        messageToPlayer
+                          (c, gaName, "* 1 settlement and 1 road, or all must have at least 2 of each.");
+                    } else {
+                        messageToPlayer
+                          (c, gaName, "* Could not exit this debug mode: " + e.getMessage());
+                    }
+                    return;  // <--- early return ---
+                }
             } else {
                 if (c.getVersion() < SOCDebugFreePlace.VERSION_FOR_DEBUGFREEPLACE)
                 {
@@ -4135,7 +4153,8 @@ public class SOCServer extends Server
                         (c, gaName, "* Can do this only on your own turn.");
                     return;  // <--- early return ---
                 }
-                if (ga.getGameState() != SOCGame.PLAY1)
+                if ((ga.getGameState() != SOCGame.PLAY1)
+                    && ! ga.isInitialPlacement())
                 {
                     messageToPlayer
                         (c, gaName, "* Can do this only after rolling the dice.");
@@ -4153,6 +4172,15 @@ public class SOCServer extends Server
         if (ppValue != ppWanted)
         {
             messageToPlayer(c, new SOCDebugFreePlace(gaName, ga.getCurrentPlayerNumber(), ppWanted));
+            if (wasInitial && ! ppWanted)
+            {
+                boolean toldRoll = sendGameState(ga, false);
+                if (!checkTurn(c, ga))
+                {
+                    // Player changed (or play started), announce new player.
+                    sendTurn(ga, toldRoll);
+                }
+            }
         }
     }
 
@@ -7059,7 +7087,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * Handle the client's debug Free Placement request.
+     * Handle the client's debug Free Placement putpiece request.
      * @since 1.1.12
      */
     private final void handleDEBUGFREEPLACE(StringConnection c, SOCDebugFreePlace mes)
@@ -7068,11 +7096,6 @@ public class SOCServer extends Server
         if ((ga == null) || ! ga.isDebugFreePlacement())
             return;
         final String gaName = ga.getName();
-        if (ga.getGameState() != SOCGame.PLAY1)
-        {
-            messageToPlayer(c, gaName, "Allowed only in game state PLAY1, not " + ga.getGameState());
-            return;
-        }
 
         final int coord = mes.getCoordinates();
         SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
@@ -7080,10 +7103,15 @@ public class SOCServer extends Server
             return;
 
         boolean didPut = false;
-        switch (mes.getPieceType())
+        final int pieceType = mes.getPieceType();
+
+        final boolean initialDeny
+            = ga.isInitialPlacement() && ! player.canBuildInitialPieceType(pieceType);
+
+        switch (pieceType)
         {
         case SOCPlayingPiece.ROAD:
-            if (player.isPotentialRoad(coord))
+            if (player.isPotentialRoad(coord) && ! initialDeny)
             {
                 ga.putPiece(new SOCRoad(player, coord, null));
                 didPut = true;
@@ -7091,7 +7119,7 @@ public class SOCServer extends Server
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-            if (player.isPotentialSettlement(coord))
+            if (player.isPotentialSettlement(coord) && ! initialDeny)
             {
                 ga.putPiece(new SOCSettlement(player, coord, null));
                 didPut = true;
@@ -7099,7 +7127,7 @@ public class SOCServer extends Server
             break;
 
         case SOCPlayingPiece.CITY:
-            if (player.isPotentialCity(coord))
+            if (player.isPotentialCity(coord) && ! initialDeny)
             {
                 ga.putPiece(new SOCCity(player, coord, null));
                 didPut = true;
@@ -7107,13 +7135,13 @@ public class SOCServer extends Server
             break;
 
         default:
-            messageToPlayer(c, gaName, "* Unknown piece type: " + mes.getPieceType());
+            messageToPlayer(c, gaName, "* Unknown piece type: " + pieceType);
         }
 
         if (didPut)
         {
             messageToGame(gaName, new SOCPutPiece
-                          (gaName, mes.getPlayerNumber(), mes.getPieceType(), coord));
+                          (gaName, mes.getPlayerNumber(), pieceType, coord));
             if (ga.getGameState() >= SOCGame.OVER)
             {
                 // exit debug mode, announce end of game
@@ -7121,7 +7149,16 @@ public class SOCServer extends Server
                 sendGameState(ga, false);
             }
         } else {
-            messageToPlayer(c, gaName, "Not a valid location to place that.");
+            if (initialDeny)
+            {
+                final String pieceTypeFirst =
+                    ((player.getPieces().size() % 2) == 0)
+                    ? "settlement"
+                    : "road";
+                messageToPlayer(c, gaName, "Place a " + pieceTypeFirst + " before placing that.");
+            } else {
+                messageToPlayer(c, gaName, "Not a valid location to place that.");
+            }
         }
     }
 

@@ -362,6 +362,13 @@ public class SOCGame implements Serializable, Cloneable
     private boolean debugFreePlacement;
 
     /**
+     * Have we placed pieces in {@link #debugFreePlacement}
+     * during initial placement?  Set in {@link #putPiece(SOCPlayingPiece)}.
+     * @since 1.1.12
+     */
+    private boolean debugFreePlacementStartPlaced;
+
+    /**
      * true if the game came from a board reset
      */
     private boolean isFromBoardReset;
@@ -1700,7 +1707,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      *<b>Note:</b> Because <tt>pp</tt> is not checked for validity, please call
      * methods such as {@link SOCPlayer#isPotentialSettlement(int)}
-     * to verify <tt>pp</tt> before calling this method.
+     * to verify <tt>pp</tt> before calling this method, and also check
+     * {@link #getGameState()} to ensure that piece type can be placed now.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
@@ -1720,10 +1728,14 @@ public class SOCGame implements Serializable, Cloneable
 
         board.putPiece(pp);
 
+        if (debugFreePlacement && (gameState <= START2B))
+            debugFreePlacementStartPlaced = true;
+
         /**
          * if the piece is a city, remove the settlement there
          */
-        if (pp.getType() == SOCPlayingPiece.CITY)
+        final int pieceType = pp.getType();
+        if (pieceType == SOCPlayingPiece.CITY)
         {
             SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
 
@@ -1737,9 +1749,12 @@ public class SOCGame implements Serializable, Cloneable
 
         /**
          * if this their second initial settlement, give the
-         * player some resources, and clear potentialSettlements.
+         * player some resources.
          */
-        if ((gameState == START2A) && (pp.getType() == SOCPlayingPiece.SETTLEMENT))
+        if ((pieceType == SOCPlayingPiece.SETTLEMENT)
+            && ((gameState == START2A)
+                || (debugFreePlacementStartPlaced
+                    && (pp.getPlayer().getPieces().size() == 3))))
         {
             SOCResourceSet resources = new SOCResourceSet();
             Enumeration hexes = SOCBoard.getAdjacentHexesToNode(pp.getCoordinates()).elements();
@@ -1780,7 +1795,13 @@ public class SOCGame implements Serializable, Cloneable
             pp.getPlayer().getResources().add(resources);
         }
 
-        if ((gameState == START2B) && (pp.getType() == SOCPlayingPiece.ROAD))
+        /**
+         * if this their second initial road, clear potentialSettlements.
+         */
+        if ((pieceType == SOCPlayingPiece.ROAD)
+            && ((gameState == START2B)
+                || (debugFreePlacementStartPlaced
+                    && (pp.getPlayer().getPieces().size() == 4))))
         {
             pp.getPlayer().clearPotentialSettlements();
         }
@@ -1788,9 +1809,9 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * update which player has longest road
          */
-        if (pp.getType() != SOCPlayingPiece.CITY)
+        if (pieceType != SOCPlayingPiece.CITY)
         {
-            if (pp.getType() == SOCPlayingPiece.ROAD)
+            if (pieceType == SOCPlayingPiece.ROAD)
             {
                 /**
                  * the affected player is the one who build the road
@@ -1861,7 +1882,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * update the state of the game, and possibly current player
          */
-        if (active)
+        if (active && ! debugFreePlacement)
         {
             advanceTurnStateAfterPutPiece();
         }
@@ -4556,20 +4577,74 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Turn the "free placement" debug mode on or off, if possible.
+     *<P>
      * Should only be turned on during the debugging human player's turn,
-     * in game state {@link #PLAY1}.
+     * in game state {@link #PLAY1} or during {@link #isInitialPlacement()} states.
+     *<P>
+     * When turning it off during initial placement, all players must have
+     * either 1 settlement and road, or at least 2 settlements and roads.
+     * This allows the game setup routines to work properly during this debug
+     * mode.  The current player will be set to the first player (if 2+
+     * settlements/roads placed) or the last player (1 settlement placed).
+     * Check {@link #getCurrentPlayerNumber()} and {@link #getGameState()}
+     * after calling {@link #setDebugFreePlacement(boolean) setDebugFreePlacement(false)}
+     * during initial placement.
      *<P>
      * For more details, see {@link #isDebugFreePlacement()} javadoc.
+     *
      * @param debugOn  Should the mode be on?
      * @throws IllegalStateException  if turning on when gameState is not {@link #PLAY1}
+     *    or an initial placement state ({@link #START1A} - {@link #START2B}),
+     *    or turning off during initial placement with an unequal number of pieces placed.
      * @since 1.1.12
      */
     public void setDebugFreePlacement(final boolean debugOn)
         throws IllegalStateException
     {
-        if (gameState != SOCGame.PLAY1)
+        if ((gameState != SOCGame.PLAY1) && ! isInitialPlacement())
             throw new IllegalStateException("state=" + gameState);
+        if (debugOn == debugFreePlacement)
+            return;
+
+        if (debugFreePlacementStartPlaced && ! debugOn)
+        {
+            // Special handling: When exiting this mode during
+            // initial placement, all players must have the same
+            // number of settlements and roads.
+            int npiece = -1;
+            boolean ok = true;
+            for (int i = 0; i < maxPlayers; ++i)
+            {
+                if (isSeatVacant(i))
+                    continue;
+                int n = players[i].getPieces().size();
+                if (n > 4)
+                    n = 4;
+                else if ((n == 1) || (n == 3))
+                    ok = false;
+                if (npiece == -1)
+                    npiece = n;
+                else if (npiece != n)
+                    ok = false;
+            }
+            if (! ok)
+                throw new IllegalStateException("initial piece count");
+            if (npiece == 2)
+            {
+                currentPlayerNumber = lastPlayerNumber;
+                gameState = START2A;
+            }
+            else if (npiece == 4)
+            {
+                currentPlayerNumber = firstPlayerNumber;
+                gameState = PLAY;
+                updateAtTurn();  // "virtual" endTurn here,
+                  // just like advanceTurnStateAfterPutPiece().
+            }
+        }
+
         debugFreePlacement = debugOn;
+        debugFreePlacementStartPlaced = false;
     }
 
     /**

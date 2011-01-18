@@ -3068,10 +3068,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 default:
                     mode = NONE;
-                    if (game.isDebugFreePlacement())
-                        topText = "DEBUG: Free Placement Mode";
                     break;
                 }
+
+                if ((topText == null) && game.isDebugFreePlacement())
+                    topText = "DEBUG: Free Placement Mode";
             }
             else
             {
@@ -4918,11 +4919,29 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               portTradeSubmenu.destroy();
               portTradeSubmenu = null;
           }
-         
+
           menuPlayerIsCurrent = (player != null) && playerInterface.clientIsCurrentPlayer();
+
           if (menuPlayerIsCurrent)
           {
               int gs = game.getGameState();
+              if (game.isDebugFreePlacement() && game.isInitialPlacement())
+              {
+                  switch (player.getPieces().size())
+                  {
+                  case 0:
+                  case 2:
+                      gs = SOCGame.START1A;  // Settlement
+                      break;
+                  case 1:
+                  case 3:
+                      gs = SOCGame.START1B;  // Road
+                      break;
+                  default:
+                      gs = SOCGame.PLAY1;  // any piece is okay
+                  }
+              }
+
               switch (gs)
               {
               case SOCGame.START1A:

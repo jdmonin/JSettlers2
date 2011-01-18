@@ -1994,6 +1994,45 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Can this player build this piece type now, based on their pieces so far?
+     * Initial placement order is Settlement, Road, Settlement, Road.
+     * Once 2 settlements and 2 roads have been placed, any piece type is valid.  
+     * Ignores the specific gameState (any initial state is OK).
+     * @param pieceType  Piece type, such as {@link SOCPlayingPiece#SETTLEMENT}
+     * @since 1.1.12
+     * @return true if this piece type is the next to be placed
+     * @throws IllegalStateException if gameState is past initial placement (> {@link #START2B})
+     */
+    public boolean canBuildInitialPieceType(final int pieceType)
+        throws IllegalStateException
+    {
+        if (game.getGameState() > SOCGame.START2B)
+            throw new IllegalStateException();
+
+        final int pieceCount = pieces.size();
+        if (pieceCount >= 4)
+            return true;
+
+        final boolean pieceCountOdd = ((pieceCount % 2) == 1);
+        final boolean ok;
+        switch (pieceType)
+        {
+        case SOCPlayingPiece.SETTLEMENT:
+            ok = ! pieceCountOdd;
+            break;
+
+        case SOCPlayingPiece.ROAD:
+            ok = pieceCountOdd;
+            break;
+
+        default:
+            ok = false;
+        }
+
+        return ok;
+    }
+
+    /**
      * Calculates the longest road for this player
      *
      * @return the length of the longest road for this player

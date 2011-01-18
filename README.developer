@@ -68,6 +68,11 @@ when their turn arrives; your own player would win the game immediately.
 To exit Free Placement mode, either click "Done" (which will end your turn) or
 type this debug command:
 	*FREEPLACE* 0
+When exiting Free Placement mode during initial placement, all players must have
+either 1 settlement and road, or at least 2 settlements and roads.  This allows
+the game setup routines to work properly during this debug mode.  The current
+player will be set to the first player (if 2+ settlements/roads placed) or the
+last player (1 settlement placed).
 
 
 Setup instructions for JSettlers as an Eclipse project
