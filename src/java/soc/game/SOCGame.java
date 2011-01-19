@@ -4601,12 +4601,16 @@ public class SOCGame implements Serializable, Cloneable
     public void setDebugFreePlacement(final boolean debugOn)
         throws IllegalStateException
     {
-        if ((gameState != SOCGame.PLAY1) && ! isInitialPlacement())
+        if ((gameState != SOCGame.PLAY1)
+            && (debugOn != (gameState < SOCGame.OVER))
+            && ! isInitialPlacement())
             throw new IllegalStateException("state=" + gameState);
         if (debugOn == debugFreePlacement)
             return;
 
-        if (debugFreePlacementStartPlaced && ! debugOn)
+        if (debugFreePlacementStartPlaced
+            && (gameState < SOCGame.OVER)
+            && ! debugOn)
         {
             // Special handling: When exiting this mode during
             // initial placement, all players must have the same
