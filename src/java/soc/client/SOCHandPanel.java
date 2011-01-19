@@ -1424,9 +1424,13 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             boolean showAsCurrent;
             if (! game.isDebugFreePlacement())
+            {
                 showAsCurrent = playerIsCurrent;
-            else
+            } else {
                 showAsCurrent = (pn == playerInterface.getBoardPanel().getPlayerNumber());
+                if (pnameActiveBG == null)
+                    pnameCalcColors();
+            }
 
             if (showAsCurrent)
                 pname.setBackground(pnameActiveBG);
