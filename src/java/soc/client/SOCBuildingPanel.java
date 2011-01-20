@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D. Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.client;
 
@@ -464,9 +464,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         if (player != null)
         {
             final int pnum = player.getPlayerNumber();
-            final boolean isCurrent = (game.getCurrentPlayerNumber() == pnum);
+            final boolean isDebugFreePlacement = game.isDebugFreePlacement();
+            final boolean isCurrent = (! isDebugFreePlacement)
+                && (game.getCurrentPlayerNumber() == pnum);
             final int gstate = game.getGameState();
-            boolean currentCanBuy = game.canBuyOrAskSpecialBuild(pnum);
+            boolean currentCanBuy = (! isDebugFreePlacement)
+                && game.canBuyOrAskSpecialBuild(pnum);
 
             if (isCurrent && (gstate == SOCGame.PLACING_ROAD))
             {
