@@ -102,6 +102,8 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected static final String TAKEOVER = "Take Over";
     protected static final String LOCKSEAT = "Lock";
     protected static final String UNLOCKSEAT = "Unlock";
+    private static final String LOCKSEATTIP = "Lock to prevent a robot from sitting here.";
+    private static final String UNLOCKSEATTIP = "Unlock to have a robot sit here when the game starts.";
     protected static final String ROLL = "Roll";
     protected static final String QUIT = "Quit";
     protected static final String DONE = "Done";
@@ -138,7 +140,24 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     private ColorSquare blankStandIn;
 
+    /**
+     * When player has joined but not sat, the "Sit Here" button.  After
+     * they sit down, this button is used for the anti-robot "Lock" button.
+     * ({@link #LOCKSEAT} / {@link #UNLOCKSEAT}, when {@link #sitButIsLock} true.)
+     * Disappears when the game begins.
+     * @see #renameSitButLock()
+     */
     protected Button sitBut;
+
+    /**
+     * Hint for "Lock/Unlock" button before game starts ({@link #sitBut};
+     * non-null only if {@link #sitButIsLock}.
+     * @see #LOCKSEATTIP
+     * @see #UNLOCKSEATTIP
+     * @since 1.1.12
+     */
+    private AWTToolTip sitButTip;
+
     protected Button robotBut;
     protected Button startBut;
     protected Button takeOverBut;
@@ -974,7 +993,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * Add the "lock" button for when a robot is currently playing in this position.
      * This is not the large "lock" button seen in empty positions when the
      * game is forming, which prevents a robot from sitting down. That button
-     * is actually sitBut with a different label.
+     * is actually {@link #sitBut} with a different label.
      *<P>
      * This method was <tt>addSeatLockBut()</tt> before 1.1.07.
      */
@@ -1023,6 +1042,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * @param clientHasSatAlready Is the client seated in this game?
      *   If so, button label should be "lock"/"unlock" (about robots).
      *   (Added in 1.1.07)
+     * @see #renameSitButLock()
      */
     public void addSitButton(boolean clientHasSatAlready)
     {
@@ -1030,6 +1050,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             sitBut.setLabel(SIT);
             sitButIsLock = false;
+            if (sitButTip != null)
+            {
+                sitButTip.destroy();
+                sitButTip = null;
+            }
         } else if (clientHasSatAlready && ! sitButIsLock)
         {
             renameSitButLock();
@@ -1705,22 +1730,31 @@ public class SOCHandPanel extends Panel implements ActionListener
      * with fewer players/robots. This uses the same server-interface as
      * the "lock" button shown when robot is playing in the position,
      * but a different button in the client (the sit-here button).
+     * @see #addSitButton(boolean)
      * @see #updateSeatLockButton()
      */
     public void renameSitButLock()
     {
         if (game.getGameState() != SOCGame.NEW)
             return;  // TODO consider IllegalStateException
+        final String buttonText, ttipText;
         if (game.isSeatLocked(player.getPlayerNumber()))
         {
-            sitBut.setLabel(UNLOCKSEAT);  // actionPerformed target becomes UNLOCKSEAT
+            buttonText = UNLOCKSEAT;  // actionPerformed target becomes UNLOCKSEAT
+            ttipText = UNLOCKSEATTIP;
             pname.setText(SITLOCKED);
             pname.setVisible(true);
         }
         else
         {
-            sitBut.setLabel(LOCKSEAT);
+            buttonText = LOCKSEAT;
+            ttipText = LOCKSEATTIP;
         }
+        sitBut.setLabel(buttonText);
+        if (sitButTip == null)
+            sitButTip = new AWTToolTip(ttipText, sitBut);
+        else
+            sitButTip.setTip(ttipText);
         sitButIsLock = true;
         sitBut.repaint();
     }
@@ -2129,9 +2163,11 @@ public class SOCHandPanel extends Panel implements ActionListener
             // game is still forming, so update the other "lock" button.
 
             boolean noPlayer = (player == null) || (player.getName() == null);
+            final String buttonText, ttipText;
             if (isLocked)
             {
-                sitBut.setLabel(UNLOCKSEAT);
+                buttonText = UNLOCKSEAT;
+                ttipText = UNLOCKSEATTIP;
                 if (noPlayer)
                 {
                     pname.setText(SITLOCKED);
@@ -2140,13 +2176,19 @@ public class SOCHandPanel extends Panel implements ActionListener
             }
             else
             {
-                sitBut.setLabel(LOCKSEAT);
+                buttonText = LOCKSEAT;
+                ttipText = LOCKSEATTIP;
                 if (noPlayer)
                 {
                     pname.setText(" ");
                     pname.setVisible(false);
                 }
             }
+            sitBut.setLabel(buttonText);
+            if (sitButTip == null)
+                sitButTip = new AWTToolTip(ttipText, sitBut);
+            else
+                sitButTip.setTip(ttipText);
             repaint();
         }
     }
