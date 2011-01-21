@@ -19,7 +19,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
  */
 
 
@@ -305,6 +304,8 @@ public class AWTToolTip
     }
 
     tfont = parentComp.getFont();
+    if (tfont.getStyle() != Font.PLAIN)
+        tfont = tfont.deriveFont(Font.PLAIN);
     FontMetrics fm = getFontMetrics(tfont);
     boxW = fm.stringWidth(tip) + 6;
     boxH = fm.getHeight();
@@ -453,7 +454,13 @@ public class AWTToolTip
 }  /* public class AWTToolTip */
 
 /**
- * Former cvs Log: AWTToolTip.java - log discontinued on 2009/12/06, see CVS for changes since then.
+ * Former cvs Log: AWTToolTip.java - see also JSettlers2 CVS for minor changes.
+ *
+ * 2011/01/21 12:23  jdmonin
+ * Always use plain style of parentComp's font
+ *
+ * 2011/01/11 03:34 jdmonin
+ * Javadocs added
  *
  * Revision 1.7  2009/10/28 22:30:06  jdmonin
  * discontinue cvs log within file; line-encoding of cvs-log comment to CRLF to match rest of project
