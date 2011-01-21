@@ -355,7 +355,7 @@ public class AWTToolTip
   }
 
   /**
-   * destroys the tooltip.
+   * destroys the tooltip.  Hide it first if visible.
    */
   public void destroy()
   {
