@@ -2356,6 +2356,7 @@ public class SOCRobotBrain extends Thread
             if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
             {
                 // Track it after the road is placed
+                // (in handlePUTPIECE_updateGameData)
                 SOCPlayerTracker tr = (SOCPlayerTracker) playerTrackers.get
                     (new Integer(newSettlementPl.getPlayerNumber()));
                 tr.setPendingInitSettlement(newSettlement);

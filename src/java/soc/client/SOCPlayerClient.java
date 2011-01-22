@@ -3184,6 +3184,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
             mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);
             pi.getBoardPanel().repaint();
             pi.getBuildingPanel().updateButtonStatus();
+            if (ga.isDebugFreePlacement() && ga.isInitialPlacement())
+                pi.getBoardPanel().updateMode();  // update here, since gamestate doesn't change
 
             /**
              * Check for and announce change in longest road; update all players' victory points.

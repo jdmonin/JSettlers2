@@ -48,7 +48,6 @@ import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 
 import java.util.StringTokenizer;
 import java.util.Timer;
@@ -922,6 +921,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             if (! setOn)
                 boardPanel.setPlayer(null);
             boardPanel.updateMode();  // will set or clear top text, which triggers a repaint
+            buildingPanel.updateButtonStatus();
         } catch (IllegalStateException e) {
             textDisplay.append
               ("*** Can't setDebugFreePlacement(" + setOn+ ") for " + game.getName() + " in state " + game.getGameState() + "\n");

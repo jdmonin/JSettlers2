@@ -4128,7 +4128,7 @@ public class SOCServer extends Server
                         messageToPlayer
                           (c, gaName, "* To exit this debug mode, all players must have either");
                         messageToPlayer
-                          (c, gaName, "* 1 settlement and 1 road, or all must have at least 2 of each.");
+                          (c, gaName, "  1 settlement and 1 road, or all must have at least 2 of each.");
                     } else {
                         messageToPlayer
                           (c, gaName, "* Could not exit this debug mode: " + e.getMessage());
@@ -4785,7 +4785,7 @@ public class SOCServer extends Server
                     {
                         if (player.isPotentialRoad(coord))
                         {
-                            ga.putPiece(rd);  // Changes state and sometimes player
+                            ga.putPiece(rd);  // Changes state and sometimes player (initial placement)
 
                             /*
                                if (D.ebugOn) {

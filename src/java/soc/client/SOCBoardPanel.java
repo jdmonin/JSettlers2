@@ -564,7 +564,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int[] scaledHexCornersX, scaledHexCornersY; 
 
     /**
-     * Old pointer coords for interface
+     * Old pointer coordinates for interface; the mouse was at this location when
+     * {@link #hilight} was last determined in {@link #mouseMoved(MouseEvent)}.
      */
     private int ptrOldX, ptrOldY;
     
@@ -572,6 +573,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * (tooltip) Hover text.  Its mode uses boardpanel mode
      * constants: Will be NONE, PLACE_ROAD, PLACE_SETTLEMENT,
      *   PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
+     * Also contains "hovering" road/settlement/city near mouse pointer.
      */
     private BoardToolTip hoverTip;
 
@@ -2599,6 +2601,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the hilight when in interactive mode;
          * No hilight when null player (before game started).
+         * The "hovering" road/settlement/city are separately painted
+         * in {@link soc.client.SOCBoardPanel.BoardToolTip#paint()}.
          */
         switch (mode)
         {
@@ -2992,7 +2996,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (player != null)
         {
             final int cpn = game.getCurrentPlayerNumber();
-            if (cpn == player.getPlayerNumber())
+            if (game.isDebugFreePlacement())
+            {
+                topText = "DEBUG: Free Placement Mode";
+                switch(player.getPieces().size())
+                {
+                case 1:
+                case 3:
+                    mode = PLACE_INIT_ROAD;
+                    break;
+
+                case 0:
+                case 2:
+                    mode = PLACE_INIT_SETTLEMENT;
+                    break;
+
+                default:
+                    mode = NONE;
+                }
+            }
+            else if (cpn == player.getPlayerNumber())
             {
                 switch (game.getGameState())
                 {
@@ -3070,9 +3093,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     mode = NONE;
                     break;
                 }
-
-                if ((topText == null) && game.isDebugFreePlacement())
-                    topText = "DEBUG: Free Placement Mode";
             }
             else
             {
@@ -3082,10 +3102,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (game.isSpecialBuilding())
                 {
                     topText = "Special Building: " + game.getPlayer(cpn).getName();
-                }
-                else if (game.isDebugFreePlacement())
-                {
-		    topText = "DEBUG: Free Placement Mode";
                 }
                 else if (game.isGameOptionSet("N7"))
                 {
@@ -3193,6 +3209,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             return;
         player = pl;
         playerNumber = player.getPlayerNumber();
+        updateMode();
     }
 
     /**
@@ -3337,11 +3354,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 // Figure out if this is a legal road
                 // It must be attached to the last stlmt
-                if ((player == null) ||
-                    ! (player.isPotentialRoad(edgeNum)
-                       && board.isEdgeAdjacentToNode
-                        (initstlmt,
-                         (edgeNum != -1) ? edgeNum : 0)))
+                if ((player == null)
+                    || (! player.isPotentialRoad(edgeNum))
+                    || (! (game.isDebugFreePlacement()
+                           || board.isEdgeAdjacentToNode
+                              (initstlmt,
+                               (edgeNum != -1) ? edgeNum : 0))))
                 {
                     edgeNum = 0;
                 }
@@ -3576,7 +3594,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         try {
         int x = evt.getX();
         int y = evt.getY();
-        
+
         if (evt.isPopupTrigger())
         {
             popupMenuSystime = evt.getWhen();
@@ -3590,7 +3608,32 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             return;  // <--- Ignore click: too soon after popup click ---
         }
 
-        if ((hilight != 0) && (player != null))
+        boolean tempChangedMode = false;
+        if ((mode == NONE) && game.isDebugFreePlacement() && hoverTip.isVisible())
+        {
+            // Normally, NONE mode ignores single clicks.
+            // But in the Free Placement debug mode, these
+            // can be used to place pieces.
+
+            if (hoverTip.hoverSettlementID != 0)
+            {
+                hilight = hoverTip.hoverSettlementID;
+                mode = PLACE_SETTLEMENT;
+                tempChangedMode = true;
+            } else if (hoverTip.hoverCityID != 0)
+            {
+                hilight = hoverTip.hoverCityID;
+                mode = PLACE_CITY;
+                tempChangedMode = true;
+            } else if (hoverTip.hoverRoadID != 0)
+            {
+                hilight = hoverTip.hoverRoadID;
+                mode = PLACE_ROAD;
+                tempChangedMode = true;
+            }
+        }
+
+        if ((hilight != 0) && (player != null) && (x == ptrOldX) && (y == ptrOldY))
         {
             SOCPlayerClient client = playerInterface.getClient();
 
@@ -3613,12 +3656,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     // Now that we've placed, clear the mode and the hilight.
                     clearModeAndHilight(SOCPlayingPiece.ROAD);
+                    if (tempChangedMode)
+                        hoverTip.hideHoverAndPieces();
                 }
 
                 break;
 
             case PLACE_INIT_SETTLEMENT:
-                initstlmt = hilight;
+                if (player.getPlayerNumber() == playerInterface.getClientPlayerNumber())
+                {
+                    initstlmt = hilight;
+                }
                 // no break: fall through
 
             case PLACE_SETTLEMENT:
@@ -3627,6 +3675,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     client.putPiece(game, new SOCSettlement(player, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
+                    if (tempChangedMode)
+                        hoverTip.hideHoverAndPieces();
                 }
 
                 break;
@@ -3637,6 +3687,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     client.putPiece(game, new SOCCity(player, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.CITY);
+                    if (tempChangedMode)
+                        hoverTip.hideHoverAndPieces();
                 }
 
                 break;
@@ -3736,7 +3788,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
             }
         }
-        else if ((player != null) && (game.getCurrentPlayerNumber() == player.getPlayerNumber()))
+        else if ((player != null)
+                 && ((game.getCurrentPlayerNumber() == player.getPlayerNumber()))
+                     || game.isDebugFreePlacement())
         {
             // No hilight. But, they clicked the board, expecting something.
             // It's possible the mode is incorrect.
@@ -3746,9 +3800,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             ptrOldY = 0;
             mouseMoved(evt);  // mouseMoved will establish hilight using click's x,y
         }
-        
+
         evt.consume();
-        
+        if (tempChangedMode)
+            mode = NONE;
+
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
@@ -4958,9 +5014,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   buildRoadItem.setEnabled(hR != 0);
                   buildSettleItem.setEnabled(false);
                   upgradeCityItem.setEnabled(false);
-                  cancelBuildItem.setLabel("Cancel settlement");  // Initial settlement
-                  cancelBuildItem.setEnabled(true);
-                  cancelBuildType = SOCPlayingPiece.SETTLEMENT;
+                  if (! game.isDebugFreePlacement())
+                  {
+                      cancelBuildItem.setLabel("Cancel settlement");  // Initial settlement
+                      cancelBuildItem.setEnabled(true);
+                      cancelBuildType = SOCPlayingPiece.SETTLEMENT;
+                  }
                   break;
               
               default:
