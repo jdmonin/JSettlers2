@@ -60,6 +60,7 @@ JSettlers-full.jar can connect directly to any server over TCP/IP
 
 To host a JSettlers server that provides a web applet for clients, you will
 need an http server such as Apache's httpd, available from http://httpd.apache.org.
+
 The JSettlers-full.jar file can also run locally as a server, without
 needing a web server.  The applet is considered more convenient,
 because you know everyone will have the same version.

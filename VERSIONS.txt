@@ -4,7 +4,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
-    > 1.1.12 (build 20110xxx)
+    > 1.1.12 (build 20110122)
 - Don't show hovering road/settlement/city if player has no more pieces
 - Feedback if 'Road Building' clicked but 0 roads left
 - Lock/unlock button for robot seats: add tooltip, fix label when first shown
