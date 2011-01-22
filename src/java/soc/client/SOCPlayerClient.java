@@ -66,6 +66,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
@@ -110,7 +112,8 @@ import java.util.Vector;
  *
  * @author Robert S Thomas
  */
-public class SOCPlayerClient extends Applet implements Runnable, ActionListener, TextListener, ItemListener
+public class SOCPlayerClient extends Applet
+    implements Runnable, ActionListener, TextListener, ItemListener, MouseListener
 {
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
@@ -172,7 +175,8 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
 
     protected Label messageLabel;  // error message for messagepanel
     protected Label messageLabel_top;   // secondary message
-    protected Label versionOrlocalTCPPortLabel;   // shows port number in mainpanel, if running localTCPServer;
+    private Label localTCPServerLabel;  // blank, or 'server is running'
+    private Label versionOrlocalTCPPortLabel;   // shows port number in mainpanel, if running localTCPServer;
                                          // shows remote version# when connected to a remote server
     protected Button pgm;  // practice game on messagepanel
     protected AppletContext ac;
@@ -604,6 +608,11 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         mainPane.add(l);
 
         // Row 4 (spacer)
+
+        localTCPServerLabel = new Label();
+        c.gridwidth = 2;
+        gbl.setConstraints(localTCPServerLabel, c);
+        mainPane.add(localTCPServerLabel);
 
         l = new Label();
         c.gridwidth = GridBagConstraints.REMAINDER;
@@ -4892,11 +4901,15 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         localTCPServer.setupLocalRobots(5, 2);
 
         // Set label
+        localTCPServerLabel.setText("Server is Running.");
+        localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
+        localTCPServerLabel.addMouseListener(this);
         versionOrlocalTCPPortLabel.setText("Port: " + tport);
         new AWTToolTip ("You are running a server on TCP port " + tport
             + ". Version " + Version.version()
             + " bld " + Version.buildnum(),
             versionOrlocalTCPPortLabel);
+        versionOrlocalTCPPortLabel.addMouseListener(this);
 
         // Set titlebar, if present
         {
@@ -5106,6 +5119,45 @@ public class SOCPlayerClient extends Applet implements Runnable, ActionListener,
         if (! withConnectOrPractice)
             client.connect();
     }
+
+    /**
+     * When the local-server info label is clicked,
+     * show a popup with more info.
+     * @since 1.1.12
+     */
+    public void mouseClicked(MouseEvent e)
+    {
+        NotifyDialog.createAndShow
+            (this, null,
+             "For other players to connect to your server,\nthey need only your IP address and port number.\nNo other server software install is needed.\nMake sure your firewall allows inbound traffic on port " + localTCPServer.getPort() + ".",
+             "OK", true);
+    }
+
+    /**
+     * Set the hand cursor when entering the local-server info label.
+     * @since 1.1.12
+     */
+    public void mouseEntered(MouseEvent e)
+    {
+        if (e.getSource() == localTCPServerLabel)
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+    /**
+     * Clear the cursor when exiting the local-server info label.
+     * @since 1.1.12
+     */
+    public void mouseExited(MouseEvent e)
+    {
+        if (e.getSource() == localTCPServerLabel)
+            setCursor(Cursor.getDefaultCursor());
+    }
+
+    /** required stub for {@link MouseListener} */
+    public void mousePressed(MouseEvent e) {}
+
+    /** required stub for {@link MouseListener} */
+    public void mouseReleased(MouseEvent e) {}
 
     private WindowAdapter createWindowAdapter()
     {

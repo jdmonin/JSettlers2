@@ -10,6 +10,8 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Lock/unlock button for robot seats: add tooltip, fix label when first shown
 - Bugfix: Robot 'No thanks' displays after bank trade
 - When 6-player board's window loses focus, un-expand the chat area
+- Clearer indication of when client is running a TCP server;
+     can click the new "Server is Running" label for a popup with details.
 - If game has observers, list them when client joins
 - For debugging, new "Free Placement" mode; see README.developer
 - Further encapsulate board coordinate encoding
