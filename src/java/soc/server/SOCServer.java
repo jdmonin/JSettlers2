@@ -9150,6 +9150,12 @@ public class SOCServer extends Server
             System.err.println("       -h or --help or -? : print this screen");
             System.err.println("       -o or --option name=value : set per-game options' default values");
             System.err.println("       -D name=value : set properties such as " + SOCDBHelper.PROP_JSETTLERS_DB_USER);
+            System.err.println("-- Recognized properties: --");
+            for (int i = 0; i < PROPS_LIST.length; ++i)
+            {
+                System.err.print("\t");
+                System.err.println(PROPS_LIST[i]);
+            }
             printGameOptions();
         } else {
             System.err.println("       use java soc.server.SOCServer --help to see recognized options");            
