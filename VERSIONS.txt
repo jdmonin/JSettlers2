@@ -7,7 +7,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
     > 1.1.13 (build 20110xxx)
 - Warn on server startup if robots take up most of maxConnections
 
-    > 1.1.12 (build 20110122)
+    > 1.1.12 (build JM20110122)
 - Don't show hovering road/settlement/city if player has no more pieces
 - Feedback if 'Road Building' clicked but 0 roads left
 - Lock/unlock button for robot seats: add tooltip, fix label when first shown
@@ -20,7 +20,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Further encapsulate board coordinate encoding
 - Javadocs and other explanations of board coordinate encoding
 
-    > 1.1.11 (build 20101231)
+    > 1.1.11 (build JM20101231)
 - Popup to confirm before you move the robber onto your own hex
 - Show robber's previous position on the board
 - Robots: Force robot turns to end after several seconds of inactivity
@@ -31,7 +31,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Debug commands now case-insensitive 
 - Per-game messages indicated by new interface SOCMessageForGame
 
-    > 1.1.10 (build 20100613)
+    > 1.1.10 (build JM20100613)
 - Game owner tracked at server
 - Security: Limit the maximum simultaneous games/chat channels created per client:
 	Once a game/channel is removed (all members leave), they can create another.
@@ -39,7 +39,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 	jsettlers.client.maxcreategames
 	jsettlers.client.maxcreatechannels
 
-    > 1.1.09 (build 20100417)
+    > 1.1.09 (build JM20100417)
 - 4-player board: crisper graphics (images from 6-player board)
 - Practice games don't expire (Rowan H idea)
 - Show rounds remaining for "roll no 7s during first n turns" (Rowan H idea)
@@ -79,7 +79,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Debug assist: Connection, LocalStringConnection +toString()
 - README.developer: Coding Style section
 
-    > 1.1.08 (build 20100112)
+    > 1.1.08 (build JM20100112)
 - 6-player board, with Special Building Phase rule
 - Can now sometimes reconnect after connection to server is lost,
      when message "A player with that nickname is already logged in" appears.
@@ -95,7 +95,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - SOCRobotBrain refactor some message-handlers out of run() (C McNeil idea)
 - Old version history (pre-sourceforge): Added file src/docs/old-updates-rsthomas.html found on web at http://jrh-xp.byu.edu/settlers/updates.htm
 
-    > 1.1.07 (build 20091031)
+    > 1.1.07 (build JM20091031)
 - Per-game options framework, including these options:
 	- PL  Maximum # players (2-4)
 	- RD  Robber can't return to the desert
@@ -116,7 +116,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Don't cover board with 'choose player' popup (Rowan H idea)
 - AskDialog supports multiple lines with "\n"
 
-    > 1.1.06 (build 2009-06-01)
+    > 1.1.06 (build JM20090601)
 - Based on 1.1.04's code
 - Monopoly reports (privately) number of resources stolen to each victim
 - Reset practice game, at end of game: New randomly-selected robots, instead of same robots each time
@@ -135,7 +135,7 @@ JSettlers 1.1.05 had been under development (build 2008-09-13) but its direction
 Further development is based on 1.1.04.
 - Use Log4j 1.2, vs previous homegrown soc.debug/disableDebug
 
-    > 1.1.04 (build 2008-09-06)
+    > 1.1.04 (build JM20080906)
 - Bugfix: Cancelling 2nd initial settlement, other players lost resources (SOCPlayer)
 - Bugfix: Don't disable "play card" button after buying or playing a card (SOCHandPanel)
 - Bugfix: Sometimes, "hovering" road or settlement wouldn't show during initial placement (SOCBoardPanel)
