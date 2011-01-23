@@ -637,13 +637,27 @@ public class SOCServer extends Server
         {
             try
             {
-                int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
+                final int rcount = Integer.parseInt(props.getProperty(PROP_JSETTLERS_STARTROBOTS));
+                final int hcount = maxConnections - rcount;  // max human client connection count
                 int fast30 = (int) (0.30f * rcount);
                 boolean loadSuccess = setupLocalRobots(fast30, rcount - fast30);  // each bot gets a thread
                 if (! loadSuccess)
                 {
                     System.err.println("** Cannot start robots with this JAR.");
                     System.err.println("** For robots, please use the Full JAR instead of the server-only JAR.");
+                }
+                else if ((hcount < 6) || (hcount < rcount))
+                {
+                    new Thread() {
+                        public void run()
+                        {
+                            try {
+                                Thread.sleep(1600);  // wait for bot-connect messages to print
+                            } catch (InterruptedException e) {}
+                            System.err.println("** Warning: Only " + hcount
+                                + " player connections available, because of the robot connections.");
+                        }
+                    }.start();
                 }
             }
             catch (NumberFormatException e)
@@ -2740,6 +2754,9 @@ public class SOCServer extends Server
      *<P>
      * Called from the single 'treater' thread.
      * <em>Do not block or sleep</em> because this is single-threaded.
+     *<P>
+     * The first message from a client is treated by
+     * {@link #processFirstCommand(String, StringConnection)} instead.
      *<P>
      * Note: When there is a choice, always use local information
      *       over information from the message.  For example, use
@@ -9232,6 +9249,7 @@ public class SOCServer extends Server
             server.start();  // <---- Start the Main SOCServer Thread ----
 
             // Most threads are started in the SOCServer constructor, via initSocServer.
+            // Messages from clients are handled in processCommand's loop.
         }
         catch (Throwable e)
         {

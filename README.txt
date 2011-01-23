@@ -150,6 +150,10 @@ to your jsettlers java command line, BEFORE the port number:
 
 This will start 3 robots on the server.
 
+The started robots count against your max connections (10 in this example).
+If the robots leave less than 6 player connections available, or if they take
+more than half the max connections, a warning message is printed at startup.
+
 
 Shutting down the server
 ------------------------
