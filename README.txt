@@ -93,6 +93,18 @@ users a nickname and password to use when they log in and play.
 People without accounts can still connect, by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
+If you would like robots to automatically start when your server starts,
+without the need for a separate command line, add the "startrobots" property
+to your jsettlers java command line, BEFORE the port number:
+
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=6 8880 15 dbUser dbPass
+
+This will start 6 robots on the server.
+
+The started robots count against your max connections (15 in this example).
+If the robots leave less than 6 player connections available, or if they take
+more than half the max connections, a warning message is printed at startup.
+
 Now, from another command line window, start the player client with
 the following command:
 
@@ -117,15 +129,6 @@ something like the following in the chat display:
 If you do not, you might not have entered your nickname correctly.  It
 must be "debug" in order to use the administrative commands.
 
-Now you can add some robot players.  Enter the following commands in
-separate command line windows:  (See below for how to automate this.)
-
-  java -cp JSettlersServer.jar soc.robot.SOCRobotClient localhost 8880 robot1 passwd
-
-  java -cp JSettlersServer.jar soc.robot.SOCRobotClient localhost 8880 robot2 passwd
-
-  java -cp JSettlersServer.jar soc.robot.SOCRobotClient localhost 8880 robot3 passwd
-
 Now click on the "Sit Here" button and press "Start Game".  The robot
 players should automatically join the game and start playing.
 
@@ -142,17 +145,6 @@ If you would like to maintain accounts for your JSettlers server,
 start the database prior to starting the JSettlers Server. See the
 directions in "Database Setup".
 
-If you would like robots to automatically start when your server starts,
-without the need for a separate command line, add the "startrobots" property
-to your jsettlers java command line, BEFORE the port number:
-
-    java -jar JSettlersServer.jar -Djsettlers.startrobots=3 8880 10 dbUser dbPass
-
-This will start 3 robots on the server.
-
-The started robots count against your max connections (10 in this example).
-If the robots leave less than 6 player connections available, or if they take
-more than half the max connections, a warning message is printed at startup.
 
 
 Shutting down the server
@@ -189,26 +181,16 @@ make sure the PORT parameter in "index.html" and "account.html" applet
 tags match the port of your JSettlers server.
 
 Next copy the client files to the server. Copy JSettlers.jar to
-${docroot}. This will allow users with Java version 1.2 or later
-installed to use the browser plug-in. Using the .jar like allows for
-faster downloads, and startup times, but does not allow browsers with
-Java version 1.1 to start the client.
-
-To allow browsers with old versions of Java (1.1) to use the applet,
-unpack JSettlers.jar and copy (recursively) the extracted "soc"
-and "resources" directories to ${docroot}. To unpack, use:
-
-    $ jar -xf JSettlers.jar
+${docroot}. This will allow users to use the web browser plug-in.
 
 You may also copy the "doc/users" directory (recursively) to the same
-directory as the sample .html pages to provide user documentation.
+directory as the sample .html pages to provide user documentation:
+    $ jar -xf JSettlers.jar doc/users
 
 Your web server directory structure should now contain:
   ${docroot}/index.html
   ${docroot}/*.html
   ${docroot}/JSettlers.jar
-  ${docroot}/resources/...
-  ${docroot}/soc/...
   ${docroot}/users/...
 
 Users should now be able to visit your web site to run the client
@@ -279,7 +261,8 @@ for details. Patches against the latest version may be submitted there.
 Before building, make sure you have at least version 1.4 of the Java
 development kit installed.  If you simply want to run the client and
 server, you only need the Java Runtime (JRE). If you wish to maintain a user
-database for your server, you need MySQL or PostgreSQL installed, and configured.
+database for your server, you need MySQL or PostgreSQL installed, and configured,
+or the sqlite jdbc driver.
 
 This package was designed to use the ANT tool available from
 http://ant.apache.org tools.  We assume you have installed it
