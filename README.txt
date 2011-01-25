@@ -77,6 +77,8 @@ directory which contains both JSettlers.jar, settlers-server.jar and the
 "lib" directory.  (If you have downloaded jsettlers-1.1.xx-full.tar.gz,
 look in the src/target directory for these files.)
 
+SERVER STARTUP:
+
 Start the server with the following command
 (server requires Java 1.4 or higher):
 
@@ -94,8 +96,8 @@ People without accounts can still connect, by leaving the password field blank,
 as long as they aren't using a nickname which has a password in the database.
 
 If you would like robots to automatically start when your server starts,
-without the need for a separate command line, add the "startrobots" property
-to your jsettlers java command line, BEFORE the port number:
+add the "startrobots" property to your jsettlers java command line, BEFORE the
+port number:
 
   java -jar JSettlersServer.jar -Djsettlers.startrobots=6 8880 15 dbUser dbPass
 
@@ -104,6 +106,8 @@ This will start 6 robots on the server.
 The started robots count against your max connections (15 in this example).
 If the robots leave less than 6 player connections available, or if they take
 more than half the max connections, a warning message is printed at startup.
+
+CLIENT CONNECT:
 
 Now, from another command line window, start the player client with
 the following command:
