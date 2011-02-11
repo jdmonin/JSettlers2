@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -169,7 +169,7 @@ public class TradeOfferPanel extends Panel
         public MessagePanel()
         {
             setLayout(null);
-            setFont(new Font("Helvetica", Font.PLAIN, 18));
+            setFont(new Font("SansSerif", Font.PLAIN, 18));
         
             msg = new Label(" ", Label.CENTER);
             msg.setBackground(insideBGColor);
@@ -263,7 +263,7 @@ public class TradeOfferPanel extends Panel
         public OfferPanel()
         {
             setLayout(null);
-            setFont(new Font("Helvetica", Font.PLAIN, 10));
+            setFont(new Font("SansSerif", Font.PLAIN, 10));
 
             /** Offer received */
 
