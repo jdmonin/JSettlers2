@@ -1211,6 +1211,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * For dice-roll message, combine lines to reduce clutter.
      *
      * @param s  the text; you don't need to include "\n".
+     * @see #chatPrint(String)
      */
     public void print(String s)
     {
@@ -1270,6 +1271,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * print text in the chat window
      *
      * @param s  the text
+     * @see #print(String)
      */
     public void chatPrint(String s)
     {

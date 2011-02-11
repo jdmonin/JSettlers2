@@ -2597,8 +2597,13 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleJOINGAME(SOCJoinGame mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        pi.print("*** " + mes.getNickname() + " has joined this game.\n");
+        final String gn = mes.getGame();
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gn);
+        final String msg = "*** " + mes.getNickname() + " has joined this game.\n";
+        pi.print(msg);
+        SOCGame ga = (SOCGame) games.get(gn);
+        if ((ga != null) && (ga.getGameState() >= SOCGame.START1A))
+            pi.chatPrint(msg);
     }
 
     /**
@@ -2610,10 +2615,11 @@ public class SOCPlayerClient extends Applet
         String gn = mes.getGame();
         SOCGame ga = (SOCGame) games.get(gn);
 
+        final String name = mes.getNickname();
         if (ga != null)
         {
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gn);
-            SOCPlayer player = ga.getPlayer(mes.getNickname());
+            SOCPlayer player = ga.getPlayer(name);
 
             if (player != null)
             {
@@ -2622,7 +2628,14 @@ public class SOCPlayerClient extends Applet
                 //  Remove first from interface, then from game data.
                 //
                 pi.removePlayer(player.getPlayerNumber());
-                ga.removePlayer(mes.getNickname());
+                ga.removePlayer(name);
+            }
+            else if (ga.getGameState() >= SOCGame.START1A)
+            {
+                //  Spectator, game in progress.
+                //  Server prints it in the game text area,
+                //  and we also print in the chat area (less clutter there).
+                pi.chatPrint("* " + name + " left the game");
             }
         }
     }
