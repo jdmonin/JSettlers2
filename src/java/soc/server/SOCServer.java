@@ -288,7 +288,8 @@ public class SOCServer extends Server
     private Properties props;
 
     /**
-     * A list of robots connected to this server
+     * A list of robot {@link StringConnection}s connected to this server.
+     * @see SOCPlayerLocalRobotRunner#robotClients
      */
     protected Vector robots = new Vector();
 
@@ -9276,6 +9277,16 @@ public class SOCServer extends Server
      */
     private static class SOCPlayerLocalRobotRunner implements Runnable
     {
+        /**
+         * All the started {@link SOCRobotClient}s. Key is the bot nickname.
+         *<P>
+         *<b>Note:</b> If a bot is disconnected from the server, it's not
+         * removed from this list, because the same bot will try to reconnect.
+         * To see if a bot is connected, check {@link SOCServer#robots} instead.
+         * @since 1.1.13
+         */
+        public static Hashtable robotClients;
+
         SOCRobotClient rob;
 
         protected SOCPlayerLocalRobotRunner (SOCRobotClient rc)
@@ -9285,7 +9296,11 @@ public class SOCServer extends Server
 
         public void run()
         {
-            Thread.currentThread().setName("robotrunner-" + rob.getNickname());
+            final String rname = rob.getNickname();
+            Thread.currentThread().setName("robotrunner-" + rname);
+            if (robotClients == null)
+                robotClients = new Hashtable();
+            robotClients.put(rname, rob);
             rob.init();
         }
 
@@ -9358,6 +9373,13 @@ public class SOCServer extends Server
             {
                 System.err.println("L9120: internal error: can't find connection for " + rname);
                 return;  // shouldn't happen
+            }
+            if (rconn instanceof LocalStringConnection)
+            {
+                // print brain variables
+                SOCRobotClient rcli = (SOCRobotClient) SOCPlayerLocalRobotRunner.robotClients.get(rname);
+                if (rcli != null)
+                    rcli.debugPrintBrainStatus(ga.getName());
             }
             endGameTurnOrForce(ga, plNum, rname, rconn, false);
         }

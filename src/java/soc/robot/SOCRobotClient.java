@@ -1218,6 +1218,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             }
         }
 
+        else if (dcmd.startsWith(":print-vars") || dcmd.startsWith(":pv"))
+        {
+            // TODO sendText, not print at server
+            debugPrintBrainStatus(mes.getGame());
+            put(SOCGameTextMsg.toCmd(mes.getGame(), nickname,
+                "Internal state printed at server console."));
+        }
+
         else if (dcmd.startsWith(":stats"))
         {
             SOCGame ga = (SOCGame) games.get(mes.getGame());
@@ -1943,6 +1951,20 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 sendText(ga, str);
             }
         }
+    }
+
+    /**
+     * Print brain variables and status for this game to {@link System#err},
+     * by calling {@link SOCRobotBrain#debugPrintBrainStatus()}.
+     * @param gameName  Game name; if no brain for that game, do nothing.
+     * @since 1.1.13
+     */
+    public void debugPrintBrainStatus(String gameName)
+    {
+        SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(gameName);
+        if (brain == null)
+            return;
+        brain.debugPrintBrainStatus();
     }
 
     /**

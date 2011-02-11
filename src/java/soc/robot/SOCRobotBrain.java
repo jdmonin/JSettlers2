@@ -244,6 +244,9 @@ public class SOCRobotBrain extends Thread
      */
     protected SOCRobotNegotiator negotiator;
 
+    // If any new expect or waitingFor fields are added,
+    // please update debugPrintBrainStatus().
+
     /**
      * true if we're expecting the START1A state
      */
@@ -353,6 +356,9 @@ public class SOCRobotBrain extends Thread
      */
     protected boolean expectWAITING_FOR_MONOPOLY;
 
+    // If any new expect or waitingFor fields are added,
+    // please update debugPrintBrainStatus().
+
     /**
      * true if we're waiting for a GAMESTATE message from the server.
      * This is set after a robot action or requested action is sent to server,
@@ -385,6 +391,9 @@ public class SOCRobotBrain extends Thread
      * true if we're waiting for a response to our trade message
      */
     protected boolean waitingForTradeResponse;
+
+    // If any new expect or waitingFor fields are added,
+    // please update debugPrintBrainStatus().
 
     /**
      * true if we're done trading
@@ -715,6 +724,58 @@ public class SOCRobotBrain extends Thread
             ourPlayerData.setFaceId(faceId);
             // robotclient will handle sending it to server
         }
+    }
+
+    /**
+     * Print brain variables and status for this game to {@link System#err}.
+     * Includes all of the expect and waitingFor fields (<tt>expectPLAY</tt>,
+     * <tt>waitingForGameState</tt>, etc.)
+     * @since 1.1.13
+     */
+    public void debugPrintBrainStatus()
+    {
+        System.err.println("Robot internal state: " + client.getNickname() + " in game " + game.getName() + ":");
+        final String[] s = {
+            "ourTurn", "doneTrading",
+            "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard", "waitingForTradeResponse",
+            "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B",
+            "expectPLAY", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY",
+            "expectPLACING_ROBBER", "expectPLACING_FREE_ROAD1", "expectPLACING_FREE_ROAD2",
+            "expectPUTPIECE_FROM_START1A", "expectPUTPIECE_FROM_START1B", "expectPUTPIECE_FROM_START2A", "expectPUTPIECE_FROM_START2B",
+            "expectDICERESULT", "expectDISCARD", "expectMOVEROBBER", "expectWAITING_FOR_DISCOVERY", "expectWAITING_FOR_MONOPOLY"
+        };
+        final boolean[] b = {
+            ourTurn, doneTrading,
+            waitingForGameState, waitingForOurTurn, waitingForTradeMsg, waitingForDevCard, waitingForTradeResponse,
+            moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B,
+            expectPLAY, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY,
+            expectPLACING_ROBBER, expectPLACING_FREE_ROAD1, expectPLACING_FREE_ROAD2,
+            expectPUTPIECE_FROM_START1A, expectPUTPIECE_FROM_START1B, expectPUTPIECE_FROM_START2A, expectPUTPIECE_FROM_START2B,
+            expectDICERESULT, expectDISCARD, expectMOVEROBBER, expectWAITING_FOR_DISCOVERY, expectWAITING_FOR_MONOPOLY
+        };
+        if (s.length != b.length)
+        {
+            System.err.println("L745: Internal error: array length");
+            return;
+        }
+        int slen = 0;
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < s.length; ++i)
+        {
+            if ((slen + s[i].length() + 8) > 79)
+            {
+                System.err.println(sb.toString());
+                slen = 0;
+                sb.delete(0, sb.length());
+            }
+            sb.append("  ");
+            sb.append(s[i]);
+            sb.append(": ");
+            sb.append(b[i]);
+            slen = sb.length();
+        }
+        if (slen > 0)
+            System.err.println(sb.toString());
     }
 
     /**
