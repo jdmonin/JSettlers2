@@ -2330,11 +2330,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         /**
          * Ask if player is sure - Leave the game when the window closes.
+         * If they're observing, not playing, the window can close immediately.
          */
         public void windowClosing(WindowEvent e)
         {
-            // leaveGame();
-            SOCQuitConfirmDialog.createAndShow(pi.getClient(), pi);
+            if (pi.clientHandPlayerNum != -1)
+                SOCQuitConfirmDialog.createAndShow(pi.getClient(), pi);
+            else
+                pi.leaveGame();
         }
 
         /**
