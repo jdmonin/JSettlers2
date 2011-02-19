@@ -9368,7 +9368,7 @@ public class SOCServer extends Server
                 return;
 
             StringConnection rconn = getConnection(rname);
-            System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " state " + ga.getGameState());
+            System.err.println("For robot " + rname + ": force end turn in game " + ga.getName() + " cpn=" + plNum + " state " + ga.getGameState());
             if (rconn == null)
             {
                 System.err.println("L9120: internal error: can't find connection for " + rname);
