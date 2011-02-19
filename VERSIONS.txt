@@ -5,6 +5,8 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
     > 1.1.13 (build 20110xxx)
+- 6-player board: Chat ease of use: Focus on text input field when any text area is clicked;
+     to put the cursor in the text areas instead of the input field, click there again.
 - Warn on server startup if robots take up most of maxConnections
 - New debug command for robots:  botname:print-vars
 - If game is in progress, joining/leaving people also announced in chat area (less clutter there)

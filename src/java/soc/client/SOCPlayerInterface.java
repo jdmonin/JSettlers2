@@ -195,10 +195,29 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected SnippingTextArea chatDisplay;
 
     /**
+     * If any text area is clicked in a 6-player game, give
+     * focus to the text input box; for use with {@link #mouseClicked(MouseEvent)}.
+     * This is for ease-of-use because these boxes move/expand in
+     * the 6-player board just as the mouse is near them, so it's
+     * more difficult to click on the text input box.
+     *<P>
+     * If the user actually wants to click in the text box instead,
+     * they can click there again 1 second after the text displays
+     * are made larger.
+     *<P>
+     * When the text fields are un-expanded because the mouse moves away from them,
+     * that timer is reset to 0, and the next click will again give focus
+     * to the input text box.
+     * @since 1.1.13
+     */
+    private long textDisplaysLargerWhen;
+
+    /**
      * In the {@link #is6player 6-player} layout, the text display fields
      * ({@link #textDisplay}, {@link #chatDisplay}) aren't as large.
      * When this flag is set, they've temporarily been made larger.
      * @see SOCPITextDisplaysLargerTask
+     * @see #textDisplaysLargerWhen
      * @since 1.1.08
      */
     private boolean textDisplaysLargerTemp;
@@ -495,6 +514,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         textDisplaysLargerTemp = false;
         textDisplaysLargerTemp_needsLayout = false;
+        textDisplaysLargerWhen = 0L;
         textInputHasMouse = false;
         textDisplayHasMouse = false;
         chatDisplayHasMouse = false;
@@ -2189,10 +2209,23 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
-     * Stub for MouseListener.
-     * @since 1.1.08
+     * If any text area is clicked in a 6-player game, give
+     * focus to the text input box for ease-of-use.  For details
+     * see the {@link #textDisplaysLargerWhen} javadoc.
+     * @since 1.1.13
      */
-    public void mouseClicked(MouseEvent e) { }
+    public void mouseClicked(MouseEvent e)
+    {
+        if (! is6player)
+            return;
+        final Object src = e.getSource();
+        if ((src != textDisplay) && (src != chatDisplay))
+            return;
+
+        final long when = e.getWhen();
+        if ((textDisplaysLargerWhen == 0L) || (Math.abs(when - textDisplaysLargerWhen) < 1000L))
+            textInput.requestFocusInWindow();
+    }
 
     /**
      * Stub for MouseListener.
@@ -2512,6 +2545,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             {
                 textDisplaysLargerTemp = wantsLarger;
                 textDisplaysLargerTemp_needsLayout = true;
+                if (! wantsLarger)
+                    textDisplaysLargerWhen = 0L;
+                else
+                    textDisplaysLargerWhen = System.currentTimeMillis();
                 invalidate();
                 validate();
             }
