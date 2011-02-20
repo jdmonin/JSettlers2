@@ -4036,7 +4036,7 @@ public class SOCServer extends Server
         // 1.1.07: all practice games are debug mode, for ease of debugging;
         //         not much use for a chat window in a practice game anyway.
         //
-        if (c.getData().equals("debug") || (c instanceof LocalStringConnection))
+        else if (c.getData().equals("debug") || (c instanceof LocalStringConnection))
         {
             if (cmdTxtUC.startsWith("RSRCS:"))
             {

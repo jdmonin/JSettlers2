@@ -10,6 +10,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Warn on server startup if robots take up most of maxConnections
 - New debug command for robots:  botname:print-vars
 - If game is in progress, joining/leaving people also announced in chat area (less clutter there)
+- Don't echo info commands like *STATS* to all players
 - Bugfix: If observer closes the game window, shouldn't ask them if want to keep playing
 
     > 1.1.12 (build JM20110122)
