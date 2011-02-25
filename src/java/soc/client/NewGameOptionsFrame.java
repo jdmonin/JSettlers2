@@ -736,7 +736,7 @@ public class NewGameOptionsFrame extends Frame
         if (allOK && checkOptionsMinVers && ! forPractice)
         {
             int optsVers = SOCGameOption.optionsMinimumVersion(controlsOpts);
-            if (optsVers > -1)
+            if ((optsVers > -1) && (optsVers > Version.versionNumberMaximumNoWarn()))
             {
                 allOK = false;
                 new VersionConfirmDialog(this, optsVers).show();
