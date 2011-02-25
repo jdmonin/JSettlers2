@@ -1,5 +1,8 @@
 package soc.util;
 
+// Version.java - mchenryc@acm.org Chadwick A. McHenry
+// Portions copyright (C) 2008,2010,2011 Jeremy D Monin <jeremy@nand.net>
+
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -18,6 +21,14 @@ public class Version {
 
   public static String VERSION   = "project.version";
   public static String VERSNUM   = "project.versionnum";
+
+  /**
+   * For minimum version required; warn in NewGameOptionsFrame only
+   * if game options require newer than this versionnum.
+   * @since 1.1.13
+   */
+  public static final String VERSNUM_NOWARN_MAXIMUM = "project.versionnumMaxNoWarn";
+
   public static String COPYRIGHT = "project.copyright";
   public static String BUILDNUM  = "project.buildnum";
   
@@ -40,6 +51,7 @@ public class Version {
     // defaults in case build failed to produce version.info
     versionInfo.put(VERSION, "-error-");
     versionInfo.put(VERSNUM, "-error-");
+    versionInfo.put(VERSNUM_NOWARN_MAXIMUM, "-1");
     versionInfo.put(COPYRIGHT, "-error-");
     versionInfo.put(BUILDNUM, "-unknown-");
     // JRE_MIN_VERSION default is built later
@@ -100,6 +112,28 @@ public class Version {
     }
     catch (Throwable e) {
         vnum = 0;
+    }
+    return vnum;
+  }
+
+  /**
+   * For new game creation, return the minimum recent version number to
+   * not warn during new game creation;
+   * should be the version released about a year ago.
+   * If game options require a newer version, warn about that
+   * in NewGameOptionsFrame.
+   * @return Version integer; 1108 is version 1.1.08.
+   *         If the version number cannot be read, -1 is returned.
+   * @see #versionNumber()
+   * @since 1.1.13
+   */
+  public static int versionNumberMaximumNoWarn() {
+    int vnum;
+    try {
+        vnum = Integer.parseInt(versionInfo.getProperty(VERSNUM_NOWARN_MAXIMUM));
+    }
+    catch (Throwable e) {
+        vnum = -1;
     }
     return vnum;
   }
