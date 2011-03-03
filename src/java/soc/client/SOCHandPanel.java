@@ -275,11 +275,25 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Checkboxes to send to the other three players.
      * Enabled/disabled at removeStartBut().
+     * Updated at start of each turn in {@link #clearOffer(boolean)}.
+     *<P>
      * This is null if {@link #playerTradingDisabled}.
      *
      * @see #playerSendMap
+     * @see #playerSendForPrevTrade
      */
     protected ColorSquare[] playerSend;
+
+    /**
+     * The {@link #playerSend} checkboxes selected during the
+     * previous trade offer; if no previous offer, all are selected.
+     *<P>
+     * This is null if {@link #playerTradingDisabled}, because {@link #playerSend} is null.
+     * @since 1.1.13
+     */
+    private boolean[] playerSendForPrevTrade;
+
+    // end of most Trading interface fields; a few more below.
 
     /** displays auto-roll countdown, or prompts to roll/play card.
      * @see #setRollPrompt(String, boolean)
@@ -309,6 +323,8 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /** Do we have any seated player? Set by {@link #addPlayer(String)}, cleared by {@link #removePlayer()}. */
     protected boolean inPlay;
+
+    // More Trading interface/message balloon fields:
 
     /** Three player numbers to send trade offers to.
      *  For i from 0 to 2, playerSendMap[i] is playerNumber for checkbox i.
@@ -365,6 +381,8 @@ public class SOCHandPanel extends Panel implements ActionListener
      * before {@link #offerIsResetMessage} or {@link #offerIsDiscardMessage} was set.
      */
     protected boolean offerIsMessageWasTrade;
+
+    // End of Trading interface/message balloon fields.
 
     /**
      * When this flag is true, the panel is interactive.
@@ -605,9 +623,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             playerSend = null;
             playerSendMap = null;
+            playerSendForPrevTrade = null;
         } else {
             playerSend = new ColorSquare[game.maxPlayers-1];
             playerSendMap = new int[game.maxPlayers-1];
+            playerSendForPrevTrade = new boolean[game.maxPlayers-1];
 
             // set the trade buttons correctly
             int cnt = 0;
@@ -617,6 +637,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 {
                     Color color = playerInterface.getPlayerColor(pn);
                     playerSendMap[cnt] = pn;
+                    playerSendForPrevTrade[cnt] = true;
                     playerSend[cnt] = new ColorSquare(ColorSquare.CHECKBOX, true, color);
                     playerSend[cnt].setColor(playerInterface.getPlayerColor(pn));
                     playerSend[cnt].setBoolValue(true);
@@ -820,6 +841,9 @@ public class SOCHandPanel extends Panel implements ActionListener
                             {
                                 to[playerSendMap[i]] = true;
                                 toAny = true;
+                                playerSendForPrevTrade[i] = true;
+                            } else {
+                                playerSendForPrevTrade[i] = false;
                             }
                         }
                     }
@@ -1992,14 +2016,18 @@ public class SOCHandPanel extends Panel implements ActionListener
                 boolean pIsCurr = (pcurr == player.getPlayerNumber());  // are we current? 
                 for (int i = 0; i < game.maxPlayers - 1; i++)
                 {
-                    boolean canSend;
+                    boolean canSend, wantSend;
                     if (pIsCurr)
+                    {
                         // send to any occupied seat
                         canSend = ! game.isSeatVacant(playerSendMap[i]);
-                    else
+                        wantSend = canSend && playerSendForPrevTrade[i];
+                    } else {
                         // send only to current player
                         canSend = (pcurr == playerSendMap[i]);
-                    playerSend[i].setBoolValue(canSend);
+                        wantSend = canSend;
+                    }
+                    playerSend[i].setBoolValue(wantSend);
                     playerSend[i].setEnabled(canSend);
                 }
             }
