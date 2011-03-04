@@ -146,21 +146,25 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_CLI_MAXCREATECHANNELS = "jsettlers.client.maxcreatechannels";
 
     /**
-     * List of all available JSettlers {@link Properties properties},
+     * List and descriptions of all available JSettlers {@link Properties properties},
      * such as {@link #PROP_JSETTLERS_PORT} and {@link SOCDBHelper#PROP_JSETTLERS_DB_URL}.
+     *<P>
+     * Each property name is followed in the array by a brief description:
+     * [0] is a property, [1] is its description, [2] is the next property, etc.
+     * (This was added in 1.1.13 for {@link #printUsage(boolean)}}.
      * @since 1.1.09
      */
     public static final String[] PROPS_LIST =
     {
-        PROP_JSETTLERS_PORT,
-        PROP_JSETTLERS_CONNECTIONS,
-        PROP_JSETTLERS_STARTROBOTS,
-        PROP_JSETTLERS_CLI_MAXCREATECHANNELS,
-        PROP_JSETTLERS_CLI_MAXCREATEGAMES,
-        SOCDBHelper.PROP_JSETTLERS_DB_USER,
-        SOCDBHelper.PROP_JSETTLERS_DB_PASS,
-        SOCDBHelper.PROP_JSETTLERS_DB_URL,
-        SOCDBHelper.PROP_JSETTLERS_DB_DRIVER
+        PROP_JSETTLERS_PORT,     "TCP port number for server to bind to",
+        PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots",
+        PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup",
+        PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
+        PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
+        SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
+        SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
+        SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
+        SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name"
     };
 
     /**
@@ -9157,7 +9161,10 @@ public class SOCServer extends Server
             for (int i = 0; i < PROPS_LIST.length; ++i)
             {
                 System.err.print("\t");
-                System.err.println(PROPS_LIST[i]);
+                System.err.print(PROPS_LIST[i]);    // name
+                ++i;
+                System.err.print("\t");
+                System.err.println(PROPS_LIST[i]);  // description
             }
             printGameOptions();
         } else {
