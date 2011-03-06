@@ -289,3 +289,8 @@ the most useful ones:
 All files created by building are in the "target" directory, including
 Java .class files, and JavaDoc files. Distribution tarballs, zip
 files, and installation files are placed in "dist".
+
+JSettlers is licensed under the GNU General Public License.  Each source file
+lists contributors by year.  A copyright year range (for example, 2007-2011)
+means the file was contributed to by that person in each year of that range.
+
