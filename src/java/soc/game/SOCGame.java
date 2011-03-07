@@ -329,8 +329,11 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Since 1.1.09: This flag is set at the server, only if the server is a local practice
      * server whose stringport name is <tt>SOCServer.PRACTICE_STRINGPORT</tt>.
+     *<P>
+     * Before 1.1.13, this field was called <tt>isLocal</tt>, but that was misleading;
+     * the full client can launched a tcp LAN server.
      */
-    public boolean isLocal;
+    public boolean isPractice;
 
     /**
      * For use at server; are there clients connected which aren't at the latest version?
@@ -4218,7 +4221,7 @@ public class SOCGame implements Serializable, Cloneable
         gameState = RESET_OLD;
 
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
-        cp.isLocal = isLocal;
+        cp.isPractice = isPractice;
         cp.ownerName = ownerName;
 
         // Game min-version from options

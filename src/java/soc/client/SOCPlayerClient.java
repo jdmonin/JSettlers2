@@ -107,7 +107,7 @@ import java.util.Vector;
  *        locally against robots: {@link #practiceServer}
  *</UL>
  * At most, the client is connected to the practice server and one TCP server.
- * Each game's {@link SOCGame#isLocal} flag determines which connection to use.
+ * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
  *
  * @author Robert S Thomas
  */
@@ -388,7 +388,7 @@ public class SOCPlayerClient extends Applet
      * for local-practice game via {@link #prCli}; not connected to
      * the network, not suited for multi-player games. Use {@link #localTCPServer}
      * for those.
-     * SOCMessages of games where {@link SOCGame#isLocal} is true are sent
+     * SOCMessages of games where {@link SOCGame#isPractice} is true are sent
      * to practiceServer.
      *<P>
      * Null before it's started in {@link #startPracticeGame()}.
@@ -411,7 +411,7 @@ public class SOCPlayerClient extends Applet
      * as a client, instead of being client of a remote server.
      * Started via {@link #startLocalTCPServer(int)}.
      * {@link #practiceServer} may still be activated at the user's request.
-     * Note that {@link SOCGame#isLocal} is false for localTCPServer's games.
+     * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
      */
     protected SOCServer localTCPServer = null;
 
@@ -1700,7 +1700,7 @@ public class SOCPlayerClient extends Applet
      * we must route to the appropriate client-server connection.
      * 
      * @param s  the message
-     * @param isLocal Is the server local (practice game), or network?
+     * @param isPractice Is the server local (practice game), or network?
      *                {@link #localTCPServer} is considered "network" here.
      * @return true if the message was sent, false if not
      */
@@ -1717,7 +1717,7 @@ public class SOCPlayerClient extends Applet
      * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
      *
      * @param mes    the message
-     * @param isLocal Server is local (practice game, not network)
+     * @param isPractice Server is local (practice game, not network)
      */
     public void treat(SOCMessage mes, boolean isLocal)
     {
@@ -2223,7 +2223,7 @@ public class SOCPlayerClient extends Applet
      * and display the version on the main panel.
      * (Local server's version is always {@link Version#versionNumber()}.)
      *
-     * @param isLocal Is the server local, or remote?  Client can be connected
+     * @param isPractice Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
      * @param mes  the messsage
      */
@@ -2301,7 +2301,7 @@ public class SOCPlayerClient extends Applet
      * Used for server events, also used if player tries to join a game
      * but their nickname is not OK.
      * @param mes  the message
-     * @param isLocal from practice server, or remote server?
+     * @param isPractice from practice server, or remote server?
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isLocal)
     {
@@ -2420,7 +2420,7 @@ public class SOCPlayerClient extends Applet
      * handle the "list of channels" message; this message indicates that
      * we're newly connected to the server.
      * @param mes  the message
-     * @param isLocal is the server actually local (practice game)?
+     * @param isPractice is the server actually local (practice game)?
      */
     protected void handleCHANNELS(SOCChannels mes, boolean isLocal)
     {
@@ -2546,7 +2546,7 @@ public class SOCPlayerClient extends Applet
      * handle the "join game authorization" message: create new {@link SOCGame} and
      * {@link SOCPlayerInterface} so user can join the game
      * @param mes  the message
-     * @param isLocal server is local for practice (vs. normal network)
+     * @param isPractice server is local for practice (vs. normal network)
      */
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, boolean isLocal)
     {
@@ -2582,7 +2582,7 @@ public class SOCPlayerClient extends Applet
         SOCGame ga = new SOCGame(gaName, gameOpts);
         if (ga != null)
         {
-            ga.isLocal = isLocal;
+            ga.isPractice = isLocal;
             SOCPlayerInterface pi = new SOCPlayerInterface(gaName, this, ga);
             pi.setVisible(true);
             playerInterfaces.put(gaName, pi);
@@ -3669,7 +3669,7 @@ public class SOCPlayerClient extends Applet
             return;  // Not one of our games
 
         SOCGame greset = ga.resetAsCopy();
-        greset.isLocal = ga.isLocal;
+        greset.isPractice = ga.isPractice;
         games.put(gname, greset);
         pi.resetBoard(greset, mes.getRejoinPlayerNumber(), mes.getRequestingPlayerNumber());
         ga.destroyGame();
@@ -4094,7 +4094,7 @@ public class SOCPlayerClient extends Applet
      * If it's on the list, also remove from {@link #serverGames}.
      *
      * @param gameName  the game to remove
-     * @param isLocal   local practice, or at remote server?
+     * @param isPractice   local practice, or at remote server?
      * @return true if deleted, false if not found in list
      */
     public boolean deleteFromGameList(String gameName, boolean isLocal)
@@ -4227,7 +4227,7 @@ public class SOCPlayerClient extends Applet
      */
     public void buyDevCard(SOCGame ga)
     {
-        put(SOCBuyCardRequest.toCmd(ga.getName()), ga.isLocal);
+        put(SOCBuyCardRequest.toCmd(ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4239,7 +4239,7 @@ public class SOCPlayerClient extends Applet
      */
     public void buildRequest(SOCGame ga, int piece)
     {
-        put(SOCBuildRequest.toCmd(ga.getName(), piece), ga.isLocal);
+        put(SOCBuildRequest.toCmd(ga.getName(), piece), ga.isPractice);
     }
 
     /**
@@ -4250,7 +4250,7 @@ public class SOCPlayerClient extends Applet
      */
     public void cancelBuildRequest(SOCGame ga, int piece)
     {
-        put(SOCCancelBuildRequest.toCmd(ga.getName(), piece), ga.isLocal);
+        put(SOCCancelBuildRequest.toCmd(ga.getName(), piece), ga.isPractice);
     }
 
     /**
@@ -4272,7 +4272,7 @@ public class SOCPlayerClient extends Applet
         /**
          * send the command
          */
-        put(ppm, ga.isLocal);
+        put(ppm, ga.isPractice);
     }
 
     /**
@@ -4284,7 +4284,7 @@ public class SOCPlayerClient extends Applet
      */
     public void moveRobber(SOCGame ga, SOCPlayer pl, int coord)
     {
-        put(SOCMoveRobber.toCmd(ga.getName(), pl.getPlayerNumber(), coord), ga.isLocal);
+        put(SOCMoveRobber.toCmd(ga.getName(), pl.getPlayerNumber(), coord), ga.isPractice);
     }
 
     /**
@@ -4297,7 +4297,7 @@ public class SOCPlayerClient extends Applet
     {
         if (!doLocalCommand(ga, me))
         {
-            put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me), ga.isLocal);
+            put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me), ga.isPractice);
         }
     }
 
@@ -4310,7 +4310,7 @@ public class SOCPlayerClient extends Applet
     {
         playerInterfaces.remove(ga.getName());
         games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(nickname, host, ga.getName()), ga.isLocal);
+        put(SOCLeaveGame.toCmd(nickname, host, ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4321,7 +4321,7 @@ public class SOCPlayerClient extends Applet
      */
     public void sitDown(SOCGame ga, int pn)
     {
-        put(SOCSitDown.toCmd(ga.getName(), "dummy", pn, false), ga.isLocal);
+        put(SOCSitDown.toCmd(ga.getName(), "dummy", pn, false), ga.isPractice);
     }
 
     /**
@@ -4331,7 +4331,7 @@ public class SOCPlayerClient extends Applet
      */
     public void startGame(SOCGame ga)
     {
-        put(SOCStartGame.toCmd(ga.getName()), ga.isLocal);
+        put(SOCStartGame.toCmd(ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4341,7 +4341,7 @@ public class SOCPlayerClient extends Applet
      */
     public void rollDice(SOCGame ga)
     {
-        put(SOCRollDice.toCmd(ga.getName()), ga.isLocal);
+        put(SOCRollDice.toCmd(ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4351,7 +4351,7 @@ public class SOCPlayerClient extends Applet
      */
     public void endTurn(SOCGame ga)
     {
-        put(SOCEndTurn.toCmd(ga.getName()), ga.isLocal);
+        put(SOCEndTurn.toCmd(ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4361,7 +4361,7 @@ public class SOCPlayerClient extends Applet
      */
     public void discard(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCDiscard.toCmd(ga.getName(), rs), ga.isLocal);
+        put(SOCDiscard.toCmd(ga.getName(), rs), ga.isPractice);
     }
 
     /**
@@ -4372,7 +4372,7 @@ public class SOCPlayerClient extends Applet
      */
     public void choosePlayer(SOCGame ga, int pn)
     {
-        put(SOCChoosePlayer.toCmd(ga.getName(), pn), ga.isLocal);
+        put(SOCChoosePlayer.toCmd(ga.getName(), pn), ga.isPractice);
     }
 
     /**
@@ -4382,7 +4382,7 @@ public class SOCPlayerClient extends Applet
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()), ga.isLocal);
+        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()), ga.isPractice);
     }
 
     /**
@@ -4393,7 +4393,7 @@ public class SOCPlayerClient extends Applet
      */
     public void acceptOffer(SOCGame ga, int from)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), from), ga.isLocal);
+        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), from), ga.isPractice);
     }
 
     /**
@@ -4403,7 +4403,7 @@ public class SOCPlayerClient extends Applet
      */
     public void clearOffer(SOCGame ga)
     {
-        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()), ga.isLocal);
+        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()), ga.isPractice);
     }
 
     /**
@@ -4415,7 +4415,7 @@ public class SOCPlayerClient extends Applet
      */
     public void bankTrade(SOCGame ga, SOCResourceSet give, SOCResourceSet get)
     {
-        put(SOCBankTrade.toCmd(ga.getName(), give, get), ga.isLocal);
+        put(SOCBankTrade.toCmd(ga.getName(), give, get), ga.isPractice);
     }
 
     /**
@@ -4426,7 +4426,7 @@ public class SOCPlayerClient extends Applet
      */
     public void offerTrade(SOCGame ga, SOCTradeOffer offer)
     {
-        put(SOCMakeOffer.toCmd(ga.getName(), offer), ga.isLocal);
+        put(SOCMakeOffer.toCmd(ga.getName(), offer), ga.isPractice);
     }
 
     /**
@@ -4437,7 +4437,7 @@ public class SOCPlayerClient extends Applet
      */
     public void playDevCard(SOCGame ga, int dc)
     {
-        put(SOCPlayDevCardRequest.toCmd(ga.getName(), dc), ga.isLocal);
+        put(SOCPlayDevCardRequest.toCmd(ga.getName(), dc), ga.isPractice);
     }
 
     /**
@@ -4448,7 +4448,7 @@ public class SOCPlayerClient extends Applet
      */
     public void discoveryPick(SOCGame ga, SOCResourceSet rscs)
     {
-        put(SOCDiscoveryPick.toCmd(ga.getName(), rscs), ga.isLocal);
+        put(SOCDiscoveryPick.toCmd(ga.getName(), rscs), ga.isPractice);
     }
 
     /**
@@ -4459,7 +4459,7 @@ public class SOCPlayerClient extends Applet
      */
     public void monopolyPick(SOCGame ga, int res)
     {
-        put(SOCMonopolyPick.toCmd(ga.getName(), res), ga.isLocal);
+        put(SOCMonopolyPick.toCmd(ga.getName(), res), ga.isPractice);
     }
 
     /**
@@ -4471,7 +4471,7 @@ public class SOCPlayerClient extends Applet
     public void changeFace(SOCGame ga, int id)
     {
         lastFaceChange = id;
-        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), id), ga.isLocal);
+        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), id), ga.isPractice);
     }
 
     /**
@@ -4483,7 +4483,7 @@ public class SOCPlayerClient extends Applet
      */
     public void lockSeat(SOCGame ga, int pn, final boolean lock)
     {
-        put(SOCSetSeatLock.toCmd(ga.getName(), pn, lock), ga.isLocal);
+        put(SOCSetSeatLock.toCmd(ga.getName(), pn, lock), ga.isPractice);
     }
 
     /**
@@ -4497,7 +4497,7 @@ public class SOCPlayerClient extends Applet
      */
     public void resetBoardRequest(SOCGame ga)
     {
-        put(SOCResetBoardRequest.toCmd(SOCMessage.RESETBOARDREQUEST, ga.getName()), ga.isLocal);
+        put(SOCResetBoardRequest.toCmd(SOCMessage.RESETBOARDREQUEST, ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4513,7 +4513,7 @@ public class SOCPlayerClient extends Applet
      */
     public void resetBoardVote(SOCGame ga, int pn, boolean voteYes)
     {
-        put(SOCResetBoardVote.toCmd(ga.getName(), pn, voteYes), ga.isLocal);
+        put(SOCResetBoardVote.toCmd(ga.getName(), pn, voteYes), ga.isPractice);
     }
 
     /**
@@ -4738,7 +4738,7 @@ public class SOCPlayerClient extends Applet
         }
 
         msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, msg), ga.isLocal);
+        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, msg), ga.isPractice);
     }
 
     /**
@@ -4773,7 +4773,7 @@ public class SOCPlayerClient extends Applet
         }
 
         msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, msg), ga.isLocal);
+        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, msg), ga.isPractice);
     }
 
     /**
@@ -4962,7 +4962,7 @@ public class SOCPlayerClient extends Applet
      */
     public int getServerVersion(SOCGame game)
     {
-        if (game.isLocal)
+        if (game.isPractice)
             return Version.versionNumber();
         else
             return sVersion;
@@ -5008,7 +5008,7 @@ public class SOCPlayerClient extends Applet
             // Local practice games can continue.
 
             SOCPlayerInterface pi = ((SOCPlayerInterface) e.nextElement());
-            if (! (canLocal && pi.getGame().isLocal))
+            if (! (canLocal && pi.getGame().isPractice))
             {
                 pi.over(err);
             }

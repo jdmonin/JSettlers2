@@ -409,7 +409,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     public SOCPlayerInterface(String title, SOCPlayerClient cl, SOCGame ga)
     {
         super(TITLEBAR_GAME + title +
-              (ga.isLocal ? "" : " [" + cl.getNickname() + "]"));
+              (ga.isPractice ? "" : " [" + cl.getNickname() + "]"));
         setResizable(true);
         layoutNotReadyYet = true;  // will set to false at end of doLayout
 
@@ -1473,7 +1473,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         for (int i = 0; i < finalScores.length; ++i)
             hands[i].updateValue(SOCHandPanel.VICTORYPOINTS);  // Also disables buttons, etc.
         setTitle(TITLEBAR_GAME_OVER + game.getName() +
-                 (game.isLocal ? "" : " [" + client.getNickname() + "]"));
+                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
         boardPanel.updateMode();
         repaint();
     }
@@ -1760,7 +1760,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         initInterfaceElements(false);  // new sub-components
         // Clear from possible TITLEBAR_GAME_OVER
         setTitle(TITLEBAR_GAME + game.getName() +
-                 (game.isLocal ? "" : " [" + client.getNickname() + "]"));
+                 (game.isPractice ? "" : " [" + client.getNickname() + "]"));
         validate();
         repaint();
         String requesterName = game.getPlayer(requesterNumber).getName();
@@ -2037,7 +2037,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         catch (NullPointerException e) {}
 
         int tdh, cdh;
-        if (game.isLocal)
+        if (game.isPractice)
         {
             // Game textarea larger than chat textarea
             cdh = (int) (2.2f * tfh);
@@ -2076,7 +2076,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             }
 
             textDisplay.setBounds(x, i.top + 4, w, h);
-            if (! game.isLocal)
+            if (! game.isPractice)
                 cdh += 20;
             chatDisplay.setBounds(x, i.top + 4 + h, w, cdh);
             h += cdh;

@@ -881,7 +881,7 @@ public class SOCServer extends Server
                 gameList.createGame(gaName, (String) c.getData(), gaOpts);
                 if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
                 {
-                    gameList.getGameData(gaName).isLocal = true;  // flag if practice game (set since 1.1.09)
+                    gameList.getGameData(gaName).isPractice = true;  // flag if practice game (set since 1.1.09)
                 }
 
                 // Add this (creating) player to the game
@@ -3964,7 +3964,7 @@ public class SOCServer extends Server
             // changes to another timespan, please update the
             // warning text sent in checkForExpiredGames().
             // Use ">>>" in messageToGame to mark as urgent.
-            if (ga.isLocal)
+            if (ga.isPractice)
             {
                 messageToGameUrgent(gaName, ">>> Practice games never expire.");
             } else {
@@ -4105,7 +4105,7 @@ public class SOCServer extends Server
             // Ignore possible "1 minutes"; that game is too short to worry about.
         }
 
-        if (! gameData.isLocal)   // practice games don't expire
+        if (! gameData.isPractice)   // practice games don't expire
         {
             String expireMsg = ">>> This game will expire in " + ((gameData.getExpiration() - System.currentTimeMillis()) / 60000) + " minutes.";
             messageToPlayer(c, gaName, expireMsg);
@@ -8757,7 +8757,7 @@ public class SOCServer extends Server
     /**
      * check for games that have expired and destroy them.
      * If games are about to expire, send a warning.
-     * As of version 1.1.09, practice games ({@link SOCGame#isLocal} flag set) don't expire.
+     * As of version 1.1.09, practice games ({@link SOCGame#isPractice} flag set) don't expire.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #GAME_EXPIRE_WARN_MINUTES
@@ -8778,7 +8778,7 @@ public class SOCServer extends Server
             for (Enumeration k = gameList.getGamesData(); k.hasMoreElements();)
             {
                 SOCGame gameData = (SOCGame) k.nextElement();
-                if (gameData.isLocal)
+                if (gameData.isPractice)
                     continue;  // <--- Skip practice games, they don't expire ---
 
                 long gameExpir = gameData.getExpiration();

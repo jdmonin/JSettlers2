@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -773,7 +773,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * {@link soc.game.SOCGameOption game option} deltas between
      * the two versions.
      *
-     * @param isLocal Is the server local, or remote?  Client can be connected
+     * @param isPractice Is the server local, or remote?  Client can be connected
      *                only to local, or remote.
      * @param mes  the messsage
      */
@@ -1696,7 +1696,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;  // Not one of our games
 
         SOCGame greset = ga.resetAsCopy();
-        greset.isLocal = ga.isLocal;
+        greset.isPractice = ga.isPractice;
         games.put(gname, greset);
         ga.destroyGame();
     }
