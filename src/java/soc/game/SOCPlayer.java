@@ -122,6 +122,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCResourceSet resources;
 
     /**
+     * For use at server by SOCGame, if the player's previous action this turn was a
+     * bank trade, the resources involved.  Used to decide if they can undo the trade.
+     *<P>
+     * Ignore unless {@link SOCGame#canUndoBankTrade(SOCResourceSet, SOCResourceSet)} is true.
+     *
+     * @since 1.1.13
+     */
+    SOCResourceSet lastActionBankTrade_give, lastActionBankTrade_get;
+
+    /**
      * server-only total count of how many of each known resource the player has received this game
      * from dice rolls.
      * The used indexes are {@link SOCResourceConstants#CLAY} - {@link SOCResourceConstants#WOOD}.

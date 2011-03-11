@@ -590,6 +590,16 @@ public class SOCGame implements Serializable, Cloneable
     public long lastActionTime;
 
     /**
+     * Used at server; was the most recent player action a bank trade?
+     * If true, allow the player to undo that trade.
+     * Updated whenever {@link #lastActionTime} is updated.
+     *<P>
+     * TODO: Consider lastActionType instead, it's more general.
+     * @since 1.1.13
+     */
+    private boolean lastActionWasBankTrade;
+
+    /**
      * The number of normal turns (not rounds, not initial placements), including this turn.
      *  This is 0 during initial piece placement, and 1 when the first player is about to
      *  roll dice for the first time.
@@ -722,6 +732,7 @@ public class SOCGame implements Serializable, Cloneable
         askedSpecialBuildPhase = false;
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack();
+        lastActionWasBankTrade = false;
 
         opts = op;
         if (op == null)
@@ -1874,6 +1885,7 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
 
         /**
          * check if the game is over
@@ -2438,9 +2450,13 @@ public class SOCGame implements Serializable, Cloneable
             setFirstPlayer(currentPlayerNumber);  // also sets lastPlayerNumber
 
         currentDice = 0;
-        players[currentPlayerNumber].getDevCards().newToOld();
+        SOCPlayer cpl = players[currentPlayerNumber];
+        cpl.getDevCards().newToOld();
         resetVoteClear();
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
+        cpl.lastActionBankTrade_give = null;
+        cpl.lastActionBankTrade_get = null;
 
         if (gameState == PLAY)
         {
@@ -2458,7 +2474,7 @@ public class SOCGame implements Serializable, Cloneable
         } else if (gameState == SPECIAL_BUILDING)
         {
             // Set player's flag: active in this Special Building Phase
-            players[currentPlayerNumber].setSpecialBuilt(true);
+            cpl.setSpecialBuilt(true);
         }
     }
 
@@ -3158,6 +3174,7 @@ public class SOCGame implements Serializable, Cloneable
 
         board.setRobberHex(co, true);
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
 
         /**
          * do the robbing thing
@@ -3450,6 +3467,30 @@ public class SOCGame implements Serializable, Cloneable
         acceptingPlayerResources.add(offer.getGiveSet());
 
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
+    }
+
+    /**
+     * Can we undo this bank trade?
+     * True only if the last action this turn was a bank trade with the same resources.
+     *<P>
+     * To undo the bank trade, call {@link #canMakeBankTrade(SOCResourceSet, SOCResourceSet)}
+     * with give/get swapped from the original call, then call
+     * {@link #makeBankTrade(SOCResourceSet, SOCResourceSet)} the same way.
+     *
+     * @param undo_give  Undo giving these resources
+     * @param undo_get   Undo getting these resources
+     * @return  true if the current player can undo a bank trade of these resources
+     * @since 1.1.13
+     */
+    public boolean canUndoBankTrade(SOCResourceSet undo_give, SOCResourceSet undo_get)
+    {
+        if (! lastActionWasBankTrade)
+            return false;
+        final SOCPlayer cpl = players[currentPlayerNumber];
+        return ((cpl.lastActionBankTrade_get != null)
+                && (cpl.lastActionBankTrade_get.equals(undo_get))
+                && (cpl.lastActionBankTrade_give.equals(undo_give)));
     }
 
     /**
@@ -3458,6 +3499,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param  give  what the player will give to the bank
      * @param  get   what the player wants from the bank
+     * @see #canUndoBankTrade(SOCResourceSet, SOCResourceSet)
      */
     public boolean canMakeBankTrade(SOCResourceSet give, SOCResourceSet get)
     {
@@ -3465,6 +3507,8 @@ public class SOCGame implements Serializable, Cloneable
         {
             return false;
         }
+
+        // TODO check for canUndoBankTrade scenario
 
         if ((give.getTotal() < 2) || (get.getTotal() == 0))
         {
@@ -3581,11 +3625,17 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void makeBankTrade(SOCResourceSet give, SOCResourceSet get)
     {
-        SOCResourceSet playerResources = players[currentPlayerNumber].getResources();
+        // TODO check for canUndoBankTrade scenario; update javadoc for that
+
+        final SOCPlayer cpl = players[currentPlayerNumber];
+        SOCResourceSet playerResources = cpl.getResources();
 
         playerResources.subtract(give);
         playerResources.add(get);
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = true;
+        cpl.lastActionBankTrade_give = give;
+        cpl.lastActionBankTrade_get = get;
     }
 
     /**
@@ -3756,6 +3806,7 @@ public class SOCGame implements Serializable, Cloneable
         resources.subtract(1, SOCResourceConstants.WHEAT);
         players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.NEW, card);
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
         checkForWinner();
 
         return (card);
@@ -3880,6 +3931,7 @@ public class SOCGame implements Serializable, Cloneable
     public void playKnight()
     {
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
         players[currentPlayerNumber].incrementNumKnights();
@@ -3902,6 +3954,7 @@ public class SOCGame implements Serializable, Cloneable
     public void playRoadBuilding()
     {
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
         oldGameState = gameState;
@@ -3919,6 +3972,7 @@ public class SOCGame implements Serializable, Cloneable
     public void playDiscovery()
     {
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.DISC);
         oldGameState = gameState;
@@ -3931,6 +3985,7 @@ public class SOCGame implements Serializable, Cloneable
     public void playMonopoly()
     {
         lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.MONO);
         oldGameState = gameState;
