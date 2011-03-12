@@ -26,7 +26,6 @@ import soc.game.SOCPlayer;
  * DOCUMENT ME!
  *
  * @author $author$
- * @version $Revision$
  */
 public class SOCPlayerAction
 {

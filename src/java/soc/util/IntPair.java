@@ -23,7 +23,6 @@ package soc.util;
  * DOCUMENT ME!
  *
  * @author $author$
- * @version $Revision$
  */
 public class IntPair
 {

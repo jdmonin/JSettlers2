@@ -26,7 +26,6 @@ import java.util.Vector;
  * DOCUMENT ME!
  *
  * @author $author$
- * @version $Revision$
  */
 public class NodeLenVis
 {

@@ -26,7 +26,6 @@ package soc.debug;
  * debug on and off per class.
  *
  * @author $author$
- * @version $Revision$
  */
 public class D
 {
