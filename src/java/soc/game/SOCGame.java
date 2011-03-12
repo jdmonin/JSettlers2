@@ -3508,6 +3508,8 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
+        final SOCPlayer cpl = players[currentPlayerNumber];
+
         // TODO check for canUndoBankTrade scenario
 
         if ((give.getTotal() < 2) || (get.getTotal() == 0))
@@ -3515,7 +3517,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        if (!(players[currentPlayerNumber].getResources().contains(give)))
+        if (! cpl.getResources().contains(give))
         {
             return false;
         }
@@ -3566,7 +3568,7 @@ public class SOCGame implements Serializable, Cloneable
                     /**
                      * check if this player has a 3:1 port
                      */
-                    if (!(players[currentPlayerNumber].getPortFlag(SOCBoard.MISC_PORT)))
+                    if (! cpl.getPortFlag(SOCBoard.MISC_PORT))
                     {
                         return false;
                     }
@@ -3595,7 +3597,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 if (give.getAmount(i) > 0)
                 {
-                    if (((give.getAmount(i) % 2) == 0) && (players[currentPlayerNumber].getPortFlag(i)))
+                    if (((give.getAmount(i) % 2) == 0) && cpl.getPortFlag(i))
                     {
                         groupCount += (give.getAmount(i) / 2);
                     }
@@ -3620,8 +3622,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * perform a bank trade
      *
-     * @param give  the number of the player making the offer
-     * @param get the number of the player accepting the offer
+     * @param  give  what the player will give to the bank
+     * @param  get   what the player wants from the bank
      */
     public void makeBankTrade(SOCResourceSet give, SOCResourceSet get)
     {
