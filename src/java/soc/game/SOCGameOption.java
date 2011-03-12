@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009 Jeremy Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011 Jeremy Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -85,7 +85,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *
      * <h3>Current known options:</h3>
      *<UL>
-     *<LI> PL  Maximum # players (2-4)
+     *<LI> PL  Maximum # players (2-6)
      *<LI> RD  Robber can't return to the desert
      *<LI> N7  Roll no 7s during first # rounds
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
