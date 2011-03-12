@@ -3478,19 +3478,19 @@ public class SOCGame implements Serializable, Cloneable
      * with give/get swapped from the original call, then call
      * {@link #makeBankTrade(SOCResourceSet, SOCResourceSet)} the same way.
      *
-     * @param undo_give  Undo giving these resources
-     * @param undo_get   Undo getting these resources
+     * @param undo_gave  Undo giving these resources (get these back from the bank)
+     * @param undo_got   Undo getting these resources (give these back to the bank)
      * @return  true if the current player can undo a bank trade of these resources
      * @since 1.1.13
      */
-    public boolean canUndoBankTrade(SOCResourceSet undo_give, SOCResourceSet undo_get)
+    public boolean canUndoBankTrade(SOCResourceSet undo_gave, SOCResourceSet undo_got)
     {
         if (! lastActionWasBankTrade)
             return false;
         final SOCPlayer cpl = players[currentPlayerNumber];
         return ((cpl.lastActionBankTrade_get != null)
-                && (cpl.lastActionBankTrade_get.equals(undo_get))
-                && (cpl.lastActionBankTrade_give.equals(undo_give)));
+                && cpl.lastActionBankTrade_get.equals(undo_got)
+                && cpl.lastActionBankTrade_give.equals(undo_gave));
     }
 
     /**
@@ -3508,9 +3508,10 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        final SOCPlayer cpl = players[currentPlayerNumber];
+        if (lastActionWasBankTrade && canUndoBankTrade(get, give))
+            return true;
 
-        // TODO check for canUndoBankTrade scenario
+        final SOCPlayer cpl = players[currentPlayerNumber];
 
         if ((give.getTotal() < 2) || (get.getTotal() == 0))
         {
@@ -3620,17 +3621,40 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * perform a bank trade
+     * perform a bank trade, or undo the last bank trade.
+     *<P>
+     * This method does not validate against game rules, so call
+     * {@link #canMakeBankTrade(SOCResourceSet, SOCResourceSet)} first.
+     *<P>
+     * Undo was added in version 1.1.13; if the player's previous action
+     * this turn was a bank trade, it can be undone by calling
+     * {@link #canUndoBankTrade(SOCResourceSet, SOCResourceSet)},
+     * then calling {@link #makeBankTrade(SOCResourceSet, SOCResourceSet)} with
+     * the give/get swapped.  This is the only time the resource count
+     * of <tt>give</tt> is less than <tt>get</tt> here (for example,
+     * give back 1 brick to get back 3 sheep).
      *
      * @param  give  what the player will give to the bank
      * @param  get   what the player wants from the bank
      */
     public void makeBankTrade(SOCResourceSet give, SOCResourceSet get)
     {
-        // TODO check for canUndoBankTrade scenario; update javadoc for that
-
         final SOCPlayer cpl = players[currentPlayerNumber];
         SOCResourceSet playerResources = cpl.getResources();
+
+        if (lastActionWasBankTrade
+            && (cpl.lastActionBankTrade_get != null)
+            && cpl.lastActionBankTrade_get.equals(give)
+            && cpl.lastActionBankTrade_give.equals(get))
+        {
+            playerResources.subtract(give);
+            playerResources.add(get);
+            lastActionTime = System.currentTimeMillis();
+            lastActionWasBankTrade = false;
+            cpl.lastActionBankTrade_give = null;
+            cpl.lastActionBankTrade_get = null;
+            return;
+        }
 
         playerResources.subtract(give);
         playerResources.add(get);
