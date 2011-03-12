@@ -2450,13 +2450,13 @@ public class SOCGame implements Serializable, Cloneable
             setFirstPlayer(currentPlayerNumber);  // also sets lastPlayerNumber
 
         currentDice = 0;
-        SOCPlayer cpl = players[currentPlayerNumber];
-        cpl.getDevCards().newToOld();
+        SOCPlayer currPlayer = players[currentPlayerNumber];
+        currPlayer.getDevCards().newToOld();
         resetVoteClear();
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        cpl.lastActionBankTrade_give = null;
-        cpl.lastActionBankTrade_get = null;
+        currPlayer.lastActionBankTrade_give = null;
+        currPlayer.lastActionBankTrade_get = null;
 
         if (gameState == PLAY)
         {
@@ -2474,7 +2474,7 @@ public class SOCGame implements Serializable, Cloneable
         } else if (gameState == SPECIAL_BUILDING)
         {
             // Set player's flag: active in this Special Building Phase
-            cpl.setSpecialBuilt(true);
+            currPlayer.setSpecialBuilt(true);
         }
     }
 
@@ -3487,10 +3487,10 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (! lastActionWasBankTrade)
             return false;
-        final SOCPlayer cpl = players[currentPlayerNumber];
-        return ((cpl.lastActionBankTrade_get != null)
-                && cpl.lastActionBankTrade_get.equals(undo_got)
-                && cpl.lastActionBankTrade_give.equals(undo_gave));
+        final SOCPlayer currPlayer = players[currentPlayerNumber];
+        return ((currPlayer.lastActionBankTrade_get != null)
+                && currPlayer.lastActionBankTrade_get.equals(undo_got)
+                && currPlayer.lastActionBankTrade_give.equals(undo_gave));
     }
 
     /**
@@ -3511,14 +3511,14 @@ public class SOCGame implements Serializable, Cloneable
         if (lastActionWasBankTrade && canUndoBankTrade(get, give))
             return true;
 
-        final SOCPlayer cpl = players[currentPlayerNumber];
+        final SOCPlayer currPlayer = players[currentPlayerNumber];
 
         if ((give.getTotal() < 2) || (get.getTotal() == 0))
         {
             return false;
         }
 
-        if (! cpl.getResources().contains(give))
+        if (! currPlayer.getResources().contains(give))
         {
             return false;
         }
@@ -3569,7 +3569,7 @@ public class SOCGame implements Serializable, Cloneable
                     /**
                      * check if this player has a 3:1 port
                      */
-                    if (! cpl.getPortFlag(SOCBoard.MISC_PORT))
+                    if (! currPlayer.getPortFlag(SOCBoard.MISC_PORT))
                     {
                         return false;
                     }
@@ -3598,7 +3598,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 if (give.getAmount(i) > 0)
                 {
-                    if (((give.getAmount(i) % 2) == 0) && cpl.getPortFlag(i))
+                    if (((give.getAmount(i) % 2) == 0) && currPlayer.getPortFlag(i))
                     {
                         groupCount += (give.getAmount(i) / 2);
                     }
@@ -3639,20 +3639,20 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void makeBankTrade(SOCResourceSet give, SOCResourceSet get)
     {
-        final SOCPlayer cpl = players[currentPlayerNumber];
-        SOCResourceSet playerResources = cpl.getResources();
+        final SOCPlayer currPlayer = players[currentPlayerNumber];
+        SOCResourceSet playerResources = currPlayer.getResources();
 
         if (lastActionWasBankTrade
-            && (cpl.lastActionBankTrade_get != null)
-            && cpl.lastActionBankTrade_get.equals(give)
-            && cpl.lastActionBankTrade_give.equals(get))
+            && (currPlayer.lastActionBankTrade_get != null)
+            && currPlayer.lastActionBankTrade_get.equals(give)
+            && currPlayer.lastActionBankTrade_give.equals(get))
         {
             playerResources.subtract(give);
             playerResources.add(get);
             lastActionTime = System.currentTimeMillis();
             lastActionWasBankTrade = false;
-            cpl.lastActionBankTrade_give = null;
-            cpl.lastActionBankTrade_get = null;
+            currPlayer.lastActionBankTrade_give = null;
+            currPlayer.lastActionBankTrade_get = null;
             return;
         }
 
@@ -3660,8 +3660,8 @@ public class SOCGame implements Serializable, Cloneable
         playerResources.add(get);
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = true;
-        cpl.lastActionBankTrade_give = give;
-        cpl.lastActionBankTrade_get = get;
+        currPlayer.lastActionBankTrade_give = give;
+        currPlayer.lastActionBankTrade_get = get;
     }
 
     /**
