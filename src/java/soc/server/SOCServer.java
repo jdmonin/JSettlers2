@@ -6070,16 +6070,19 @@ public class SOCServer extends Server
 
             if (ga != null)
             {
+                final SOCResourceSet give = mes.getGiveSet(),
+                    get = mes.getGetSet();
+
                 ga.takeMonitor();
 
                 try
                 {
                     if (checkTurn(c, ga))
                     {
-                        if (ga.canMakeBankTrade(mes.getGiveSet(), mes.getGetSet()))
+                        if (ga.canMakeBankTrade(give, get))
                         {
-                            ga.makeBankTrade(mes.getGiveSet(), mes.getGetSet());
-                            reportBankTrade(ga, mes.getGiveSet(), mes.getGetSet());
+                            ga.makeBankTrade(give, get);
+                            reportBankTrade(ga, give, get);
                         }
                         else
                         {
@@ -6087,7 +6090,7 @@ public class SOCServer extends Server
                             SOCClientData scd = (SOCClientData) c.getAppData();
                             if ((scd != null) && scd.isRobot)
                                 D.ebugPrintln("ILLEGAL BANK TRADE: " + c.getData()
-                                  + ": give " + mes.getGiveSet() + ", get " + mes.getGetSet());
+                                  + ": give " + give + ", get " + get);
                         }
                     }
                     else
@@ -8157,7 +8160,9 @@ public class SOCServer extends Server
             message.append(" for ");
             reportRsrcGainLoss(gaName, get, false, cpn, -1, message, null);
 
-            if ((give.getTotal() / get.getTotal()) == 4)
+            final int giveTotal = give.getTotal(),
+                getTotal = get.getTotal();
+            if ((giveTotal / getTotal) == 4)
             {
                 message.append(" from the bank.");  // 4:1 trade
             }
@@ -8165,6 +8170,8 @@ public class SOCServer extends Server
             {
                 message.append(" from a port.");    // 3:1 or 2:1 trade
             }
+            if (giveTotal < getTotal)
+                message.append(" (Undo previous trade)");
 
             messageToGame(gaName, message.toString());
         }
