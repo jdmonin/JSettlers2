@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011 Jeremy Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -309,9 +309,11 @@ public class SOCGameOption implements Cloneable, Comparable
     public final int lastModVersion;
 
     /**
-     * Should we drop this option from game options, and not send over the network (to reduce overhead),
-     * if the value is un-set or blank? (un-set for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
+     * Should the server drop this option from game options, and not send over
+     * the network (to reduce overhead), if the value is un-set or blank?
+     * (Meaning not set (false) for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
      * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE})
+     *<P>
      * Only recommended for seldom-used options.
      * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable)}.
      * Once this flag is set for an option, it should not be un-set if the
@@ -319,6 +321,10 @@ public class SOCGameOption implements Cloneable, Comparable
      *<P>
      * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
      * boolean values are checked against defaults.
+     *<P>
+     * This flag is ignored at the client when asking to create a new game:
+     * <tt>NewGameOptionsFrame</tt> sends all options it has displayed, even those
+     * which would be dropped because they're unused and they have this flag.
      */
     public final boolean dropIfUnused;  // OTYPE_* - mention in javadoc if this applies to the new type.
 
@@ -383,7 +389,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param minVers Minimum client version if this option is set (is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default value (true if set, false if not set)
-     * @param dropIfUnused If this option's value is unset, should we not add it to game options
+     * @param dropIfUnused If this option's value is unset, should server not add it to game options
      *           or send over the network (to reduce overhead)?
      *           Only recommended if game behavior without the option is well-established
      *           (for example, trading is allowed unless option NT is present).
@@ -441,7 +447,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
      * @param dropIfUnused If this option's bool value is unset, and its int value is the default,
-     *           should we not add it to game options
+     *           should server not add it to game options
      *           or send over the network (to reduce overhead)?
      *           Only recommended if game behavior without the option is well-established
      *           (for example, trading is allowed unless option NT is present).
@@ -503,7 +509,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param defaultIntValue Default int value, in range 1 - n (n == number of possible values)
      * @param enumVals text to display for each possible choice of this option
      * @param dropIfUnused If this option's bool value is unset, and its int value is the default,
-     *           should we not add it to game options
+     *           should server not add it to game options
      *           or send over the network (to reduce overhead)?
      *           Only recommended if game behavior without the option is well-established
      *           (for example, trading is allowed unless option NT is present).
@@ -534,7 +540,8 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param maxLength   Maximum length, between 1 and 255 (for network bandwidth conservation)
      * @param hideTyping  Should type be {@link #OTYPE_STRHIDE} instead of {@link #OTYPE_STR}?
-     * @param dropIfUnused If this option's value is blank, should we not add it to game options
+     * @param dropIfUnused If this option's value is blank, should
+     *           server not add it to game options
      *           or send over the network (to reduce overhead)?
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the text value goes.
@@ -569,7 +576,8 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param minValue Minimum permissible value
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
-     * @param dropIfUnused If this option's value is blank or unset, should we not add it to game options?
+     * @param dropIfUnused If this option's value is blank or unset, should
+     *                 server not add it to game options?
      *                 See {@link #dropIfUnused} javadoc for more details.
      * @param enumVals Possible choice texts for {@link #OTYPE_ENUM} or {@link #OTYPE_ENUMBOOL}, or null;
      *                 value(s) must pass same checks as desc.
