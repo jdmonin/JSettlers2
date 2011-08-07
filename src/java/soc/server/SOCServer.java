@@ -9299,7 +9299,7 @@ public class SOCServer extends Server
          * To see if a bot is connected, check {@link SOCServer#robots} instead.
          * @since 1.1.13
          */
-        public static Hashtable robotClients;
+        public static Hashtable robotClients = new Hashtable();
 
         SOCRobotClient rob;
 
@@ -9312,8 +9312,6 @@ public class SOCServer extends Server
         {
             final String rname = rob.getNickname();
             Thread.currentThread().setName("robotrunner-" + rname);
-            if (robotClients == null)
-                robotClients = new Hashtable();
             robotClients.put(rname, rob);
             rob.init();
         }
@@ -9322,6 +9320,7 @@ public class SOCServer extends Server
          * Create and start a robot client within a {@link SOCPlayerLocalRobotRunner} thread.
          * After creating it, {@link Thread#yield() yield} the current thread and then sleep
          * 75 milliseconds, to give the robot time to start itself up.
+         * The SOCPlayerLocalRobotRunner's run() will add the {@link SOCRobotClient} to {@link #robotClients}.
          * @param rname  Name of robot
          * @param strSocketName  Server's stringport socket name, or null
          * @param port    Server's tcp port, if <tt>strSocketName</tt> is null
@@ -9342,7 +9341,7 @@ public class SOCServer extends Server
                 rcli = new SOCRobotClient ("localhost", port, rname, "pw");
             Thread rth = new Thread(new SOCPlayerLocalRobotRunner(rcli));
             rth.setDaemon(true);
-            rth.start();
+            rth.start();  // run() will add to robotClients
 
             Thread.yield();
             try
@@ -9374,6 +9373,7 @@ public class SOCServer extends Server
             pl = p;
         }
 
+        /** If our targeted robot player is still the current player, force-end their turn. */
         public void run()
         {
             final String rname = pl.getName();
@@ -9388,17 +9388,20 @@ public class SOCServer extends Server
                 System.err.println("L9120: internal error: can't find connection for " + rname);
                 return;  // shouldn't happen
             }
-            if (rconn instanceof LocalStringConnection)
+
+            // if it's the built-in type, print brain variables
+            SOCClientData scd = (SOCClientData) rconn.getAppData();
+            if (scd.isBuiltInRobot)
             {
-                // print brain variables
                 SOCRobotClient rcli = (SOCRobotClient) SOCPlayerLocalRobotRunner.robotClients.get(rname);
                 if (rcli != null)
                     rcli.debugPrintBrainStatus(ga.getName());
                 else
                     System.err.println("L9397: internal error: can't find robotClient for " + rname);
             } else {
-                System.err.println("  Can't print brain status; rconn class is " + rconn.getClass());
+                System.err.println("  Can't print brain status; robot type is " + scd.robot3rdPartyBrainClass);
             }
+
             endGameTurnOrForce(ga, plNum, rname, rconn, false);
         }
 
