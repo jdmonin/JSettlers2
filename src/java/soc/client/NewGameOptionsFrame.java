@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -283,7 +283,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Interface setup: Options. 
-     * One row per option.
+     * One row per option, except for 3-letter options which group with 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
      * If options are null, put a label with {@link #TXT_SERVER_TOO_OLD}.
@@ -304,6 +304,22 @@ public class NewGameOptionsFrame extends Frame
 
         gbc.anchor = GridBagConstraints.WEST;
 
+        // Look for options that should be on the same
+        // line as other options (based on key length).
+        Hashtable sameLineOpts = new Hashtable();  // key=on-same-line opt, value=opt to start line
+        {
+            Enumeration okeys = opts.keys();
+            while (okeys.hasMoreElements())
+            {
+                final String kf3 = (String) okeys.nextElement();
+                if (kf3.length() <= 2)
+                    continue;
+                final String kf2 = kf3.substring(0, 2);
+                if (opts.containsKey(kf2))
+                    sameLineOpts.put(kf3, kf2);
+            }
+        }
+
         // Sort and lay out options; remove unknowns from opts.
         // TreeSet sorts game options by description, using gameopt.compareTo.
         // The array lets us remove from opts without disrupting an iterator.
@@ -316,56 +332,91 @@ public class NewGameOptionsFrame extends Frame
                 opts.remove(op.optKey);
                 continue;  // <-- Removed, Go to next entry --
             }
+            if (sameLineOpts.containsKey(op.optKey))
+                continue;  // <-- Shares a line, Go to next entry --
+            final boolean sharesLine = sameLineOpts.containsValue(op.optKey);
 
-            switch (op.optType)  // OTYPE_*
+            initInterface_OptLine(op, bp, gbl, gbc);
+            if (sharesLine)
             {
-            case SOCGameOption.OTYPE_BOOL:
-                initInterface_Opt1(op, new Checkbox(), true, false, bp, gbl, gbc);
-                break;
-
-            case SOCGameOption.OTYPE_INT:
-            case SOCGameOption.OTYPE_INTBOOL:
+                // Group them under this one.
+                // TODO group on same line, not following lines, if there's only 1.
+                Enumeration linekeys = sameLineOpts.keys();
+                while (linekeys.hasMoreElements())
                 {
-                    final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
-                    initInterface_Opt1(op, initOption_int(op), hasCheckbox, true, bp, gbl, gbc);
-                }
-                break;
+                    final String kf3 = (String) linekeys.nextElement();
+                    final String kf2 = (String) sameLineOpts.get(kf3);
+                    if ((kf2 == null) || ! kf2.equals(op.optKey))
+                        continue;  // <-- Goes with a a different option --
 
-            case SOCGameOption.OTYPE_ENUM:
-            case SOCGameOption.OTYPE_ENUMBOOL:
-                // Choice (popup menu)
-                {
-                    final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
-                    initInterface_Opt1(op, initOption_enum(op), hasCheckbox, true, bp, gbl, gbc);
+                    final SOCGameOption op3 = (SOCGameOption) opts.get(kf3);
+                    if (op3 != null)
+                        initInterface_OptLine(op3, bp, gbl, gbc);
                 }
-                break;
-
-            case SOCGameOption.OTYPE_STR:
-            case SOCGameOption.OTYPE_STRHIDE:
-                {
-                    int txtwid = op.maxIntValue;  // used as max length
-                    if (txtwid > 20)
-                        txtwid = 20;
-                    final boolean doHide = (op.optType == SOCGameOption.OTYPE_STRHIDE);
-                    String txtcontent = (doHide ? "" : op.getStringValue());
-                    TextField txtc = new TextField(txtcontent, txtwid);
-                    if (doHide)
-                    {
-                        if (SOCPlayerClient.isJavaOnOSX)
-                            txtc.setEchoChar('\u2022');  // round bullet (option-8)
-                        else
-                            txtc.setEchoChar('*');
-                    }
-                    if (! readOnly)
-                        txtc.addKeyListener(this);  // for ESC/ENTER
-                    initInterface_Opt1(op, txtc, false, false, bp, gbl, gbc);
-                }
-                break;
-
-                // default: unknown, see above
             }
 
         }  // for(opts)
+    }
+
+    /**
+     * Set up one game option in one line of the panel.
+     * Based on the option type, create the appropriate AWT component
+     * and call {@link #initInterface_Opt1(SOCGameOption, Component, boolean, boolean, Panel, GridBagLayout, GridBagConstraints)}.
+     * @param op  Option data
+     * @param bp  Add to this panel
+     * @param gbl Use this layout
+     * @param gbc Use these constraints
+     */
+    private void initInterface_OptLine(SOCGameOption op, Panel bp,
+        GridBagLayout gbl, GridBagConstraints gbc)
+    {
+        switch (op.optType)  // OTYPE_*
+        {
+        case SOCGameOption.OTYPE_BOOL:
+            initInterface_Opt1(op, new Checkbox(), true, false, bp, gbl, gbc);
+            break;
+
+        case SOCGameOption.OTYPE_INT:
+        case SOCGameOption.OTYPE_INTBOOL:
+            {
+                final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
+                initInterface_Opt1(op, initOption_int(op), hasCheckbox, true, bp, gbl, gbc);
+            }
+            break;
+
+        case SOCGameOption.OTYPE_ENUM:
+        case SOCGameOption.OTYPE_ENUMBOOL:
+            // Choice (popup menu)
+            {
+                final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
+                initInterface_Opt1(op, initOption_enum(op), hasCheckbox, true, bp, gbl, gbc);
+            }
+            break;
+
+        case SOCGameOption.OTYPE_STR:
+        case SOCGameOption.OTYPE_STRHIDE:
+            {
+                int txtwid = op.maxIntValue;  // used as max length
+                if (txtwid > 20)
+                    txtwid = 20;
+                final boolean doHide = (op.optType == SOCGameOption.OTYPE_STRHIDE);
+                String txtcontent = (doHide ? "" : op.getStringValue());
+                TextField txtc = new TextField(txtcontent, txtwid);
+                if (doHide)
+                {
+                    if (SOCPlayerClient.isJavaOnOSX)
+                        txtc.setEchoChar('\u2022');  // round bullet (option-8)
+                    else
+                        txtc.setEchoChar('*');
+                }
+                if (! readOnly)
+                    txtc.addKeyListener(this);  // for ESC/ENTER
+                initInterface_Opt1(op, txtc, false, false, bp, gbl, gbc);
+            }
+            break;
+
+            // default: unknown, see above
+        }
     }
 
     /**

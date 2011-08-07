@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ import soc.util.SOCGameList;
  * their {@link soc.game.SOCGameOption game options}.
  * It's constructed and sent for each connecting client
  * which can understand game options (1.1.07 and newer),
- * by calling {@link #toCmd(Vector)}.
+ * by calling {@link #toCmd(Vector, int)}.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
@@ -53,7 +53,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * objects; call {@link soc.game.SOCGameOption#parseOptionsToHash(String)} for that.
      *<P>
      * There is no server-side constructor, because the server
-     * instead calls {@link #toCmd(Vector)}.
+     * instead calls {@link #toCmd(Vector, int)}.
      *
      * @param gla Game list array
      */
@@ -109,9 +109,11 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * @param ga  the list of games, as a mixed-content vector of Strings and/or {@link SOCGame}s;
      *            if a client can't join a game, it should be a String prefixed with
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+     * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+     *            If any game's options need adjustment for an older client, cliVers triggers that.
      * @return    the command string
      */
-    public static String toCmd(Vector ga)
+    public static String toCmd(Vector ga, final int cliVers)
     {
         // build by iteration
         StringBuffer sb = new StringBuffer(Integer.toString(SOCMessage.GAMESWITHOPTIONS));
@@ -123,7 +125,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
             {
                 sb.append(((SOCGame) ob).getName());
                 sb.append(sep);
-                sb.append(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false));
+                sb.append(SOCGameOption.packOptionsToString(((SOCGame) ob).getGameOptions(), false, cliVers));
             } else {
                 sb.append((String) ob);
                 sb.append(sep);
