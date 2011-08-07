@@ -86,11 +86,15 @@ public class SOCGameOption implements Cloneable, Comparable
      * <h3>Current known options:</h3>
      *<UL>
      *<LI> PL  Maximum # players (2-6)
+     *<LI> PLB Use 6-player board*
      *<LI> RD  Robber can't return to the desert
      *<LI> N7  Roll no 7s during first # rounds
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
      *<LI> NT  No trading allowed
      *</UL>
+     *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
+     *    existing option.  So in NewGameOptionsFrame, it appears on the same line
+     *    as the PL option in client version 1.1.13 and above.
      *
      * <h3>If you want to add a game option:</h3>
      *<UL>
@@ -195,6 +199,8 @@ public class SOCGameOption implements Cloneable, Comparable
 
         opt.put("PL", new SOCGameOption
                 ("PL", -1, 1108, 4, 2, 6, "Maximum # players"));
+        opt.put("PLB", new SOCGameOption
+                ("PLB", 1108, 1113, false, true, "Use 6-player board"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
@@ -1014,8 +1020,36 @@ public class SOCGameOption implements Cloneable, Comparable
     public static String packOptionsToString(Hashtable ohash, boolean hideEmptyStringOpts)
 	throws ClassCastException
     {
+        return packOptionsToString(ohash, hideEmptyStringOpts, -2);
+    }
+
+    /**
+     * Utility - build a string of option name-value pairs,
+     * adjusting for old clients if necessary.
+     * This can be unpacked with {@link #parseOptionsToHash(String)}.
+     * See {@link #packOptionsToString(Hashtable, boolean)} javadoc for details.
+     * 
+     * @param ohash Hashtable of SOCGameOptions, or null
+     * @param hideEmptyStringOpts omit string-valued options which are empty?
+     *            Suitable only for sending defaults.
+     * @param cliVers  Client version; assumed >= {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
+     *            If any game's options need adjustment for an older client, cliVers triggers that.
+     *            Use -2 if the client version doesn't matter.
+     * @return string of name-value pairs, or "-" for an empty or null ohash;
+     *         see {@link #packOptionsToString(Hashtable, boolean)} javadoc for details.
+     * @throws ClassCastException if hashtable contains anything other
+     *         than SOCGameOptions
+     */
+    public static String packOptionsToString(Hashtable ohash, boolean hideEmptyStringOpts, final int cliVers)
+        throws ClassCastException
+    {
 	if ((ohash == null) || ohash.size() == 0)
 	    return "-";
+
+	// If the "PLB" option is set, old client versions
+	//  may need adjustment of the "PL" option.
+	final boolean hasOptPLB = (cliVers != -2) && ohash.containsKey("PLB")
+	    && ((SOCGameOption) ohash.get("PLB")).boolValue;
 
 	StringBuffer sb = new StringBuffer();
 	boolean hadAny = false;
@@ -1035,7 +1069,29 @@ public class SOCGameOption implements Cloneable, Comparable
 		hadAny = true;
 	    sb.append(op.optKey);
 	    sb.append('=');
-            op.packValue(sb);
+
+	    boolean wroteValueAlready = false;
+	    if (cliVers != -2)
+	    {
+	        if (hasOptPLB && op.optKey.equals("PL")
+	            && (cliVers < 1113) && (op.intValue < 5))
+	        {
+	            // When "PLB" is used (Use 6-player board)
+	            // but the client is too old to recognize PLB,
+	            // make sure "PL" is large enough to make the
+	            // client use that board.
+
+	            final int realValue = op.intValue;
+	            op.intValue = 5;  // big enough for 6-player
+	            op.packValue(sb);
+                    wroteValueAlready = true;
+	            op.intValue = realValue;
+	        }
+
+	        // NEW_OPTION - Check your option vs old clients here.
+	    }
+	    if (! wroteValueAlready)
+	        op.packValue(sb);
 	}
 	return sb.toString();
     }
@@ -1329,7 +1385,7 @@ public class SOCGameOption implements Cloneable, Comparable
     /**
      * Compare a set of options with known-good values.
      * If any are above/below maximum/minimum, clip to the max/min value in knownOpts.
-     * If any are unknown, return false. Will still check (and clip) the known ones.
+     * If any are unknown, return a description. Will still check (and clip) the known ones.
      * If any boolean or string-valued options are default, and unset/blank, and
      * their {@link #dropIfUnused} flag is set, remove them from newOpts.
      * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
@@ -1341,18 +1397,23 @@ public class SOCGameOption implements Cloneable, Comparable
      *            Must not be null.
      * @param knownOpts Set of known SOCGameOptions to check against, or null to use
      *            the server's static copy
-     * @return true if all are known; false if any of newOpts are unknown
-     *            or if an opt's type differs from that in knownOpts,
-     *            or if opt's {@link #lastModVersion} differs from in knownOpts.
+     * @return <tt>null</tt> if all are known; or, a human-readable problem description if:
+     *            <UL>
+     *            <LI> any of <tt>newOpts</tt> are unknown
+     *            <LI> or an opt's type differs from that in knownOpts
+     *            <LI> or an opt's {@link #lastModVersion} differs from in knownOpts
+     *            </UL>
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
-    public static boolean adjustOptionsToKnown(Hashtable newOpts, Hashtable knownOpts)
+    public static StringBuffer adjustOptionsToKnown(Hashtable newOpts, Hashtable knownOpts)
         throws IllegalArgumentException
     {
         if (knownOpts == null)
             knownOpts = allOptions;
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
+
+        StringBuffer optProblems = new StringBuffer();
 
         // use Iterator in loop, so we can remove from the hash if needed
         boolean allKnown = true;
@@ -1370,14 +1431,34 @@ public class SOCGameOption implements Cloneable, Comparable
                 throw new IllegalArgumentException("wrong class, expected gameoption");
 	    }
 	    SOCGameOption knownOp = (SOCGameOption) knownOpts.get(op.optKey);
-	    if ((knownOp == null) || (knownOp.optType != op.optType))
+	    if (knownOp == null)
 	    {
-		allKnown = false;
+                allKnown = false;
+                optProblems.append(op.optKey);
+                optProblems.append(": unknown. ");
+	    }
+	    else if (knownOp.optType != op.optType)
+	    {
+                allKnown = false;
+                optProblems.append(op.optKey);
+                optProblems.append(": optType mismatch (");
+                optProblems.append(knownOp.optType);
+                optProblems.append(" != ");
+                optProblems.append(op.optType);
+                optProblems.append("). ");
 	    } else {
 	        // Clip int values, check default values, check dropIfUnused
 
 		if (knownOp.lastModVersion != op.lastModVersion)
+		{
 		    allKnown = false;
+		    optProblems.append(op.optKey);
+		    optProblems.append(": lastModVersion mismatch (");
+		    optProblems.append(knownOp.lastModVersion);
+		    optProblems.append(" != ");
+                    optProblems.append(op.lastModVersion);
+                    optProblems.append("). ");
+		}
 
 		switch (op.optType)  // OTYPE_*
 		{
@@ -1425,7 +1506,11 @@ public class SOCGameOption implements Cloneable, Comparable
 		}  // endsw
 	    }
 	}
-	return allKnown;
+
+	if (allKnown)
+	    return null;
+	else
+	    return optProblems;
     }
 
     /**

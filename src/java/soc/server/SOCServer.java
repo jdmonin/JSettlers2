@@ -2509,7 +2509,7 @@ public class SOCServer extends Server
             {
                 // send the full list as 1 message
                 if (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    c.put(SOCGamesWithOptions.toCmd(gl));
+                    c.put(SOCGamesWithOptions.toCmd(gl, cliVers));
                 else
                     c.put(SOCGames.toCmd(gl));
             } else {
@@ -2530,7 +2530,7 @@ public class SOCServer extends Server
                     }
                     // announce as 'new game' to client
                     if ((ob instanceof SOCGame) && (cliVers >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                        c.put(SOCNewGameWithOptions.toCmd((SOCGame) ob));
+                        c.put(SOCNewGameWithOptions.toCmd((SOCGame) ob, cliVers));
                     else
                         c.put(SOCNewGame.toCmd(gaName));
                 }
@@ -4409,11 +4409,12 @@ public class SOCServer extends Server
                 return;  // <---- Early return ----
             }
 
-            if (! SOCGameOption.adjustOptionsToKnown(gameOpts, null))
+            final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null);
+            if (optProblems != null)
             {
                 c.put(SOCStatusMessage.toCmd
                       (SOCStatusMessage.SV_NEWGAME_OPTION_UNKNOWN, cliVers,
-                       "Unknown game option(s) were requested, cannot create this game."));
+                       "Unknown game option(s) were requested, cannot create this game. " + optProblems));
 
                 return;  // <---- Early return ----
             }
@@ -9393,6 +9394,10 @@ public class SOCServer extends Server
                 SOCRobotClient rcli = (SOCRobotClient) SOCPlayerLocalRobotRunner.robotClients.get(rname);
                 if (rcli != null)
                     rcli.debugPrintBrainStatus(ga.getName());
+                else
+                    System.err.println("L9397: internal error: can't find robotClient for " + rname);
+            } else {
+                System.err.println("  Can't print brain status; rconn class is " + rconn.getClass());
             }
             endGameTurnOrForce(ga, plNum, rname, rconn, false);
         }

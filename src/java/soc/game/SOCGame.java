@@ -697,8 +697,10 @@ public class SOCGame implements Serializable, Cloneable
         name = n;
         if (op != null)
         {
+           SOCGameOption board6pl = (SOCGameOption) op.get("PLB");
+           final boolean wants6board = (board6pl != null) && board6pl.getBoolValue();
            SOCGameOption maxpl = (SOCGameOption) op.get("PL");
-           if ((maxpl != null) && (maxpl.getIntValue() > 4))
+           if (wants6board || ((maxpl != null) && (maxpl.getIntValue() > 4)))
                maxPlayers = MAXPLAYERS;  // == 6
            else
                maxPlayers = 4;
@@ -739,8 +741,9 @@ public class SOCGame implements Serializable, Cloneable
         {
             clientVersionMinRequired = -1;
         } else {
-            if (! SOCGameOption.adjustOptionsToKnown(op, null))
-                throw new IllegalArgumentException("op: unknown option");
+            final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(op, null); 
+            if (optProblems != null)
+                throw new IllegalArgumentException("op: unknown option(s): " + optProblems);
 
             // the adjust method will also throw IllegalArg if a non-SOCGameOption
             // object is found within opts.
@@ -2860,8 +2863,13 @@ public class SOCGame implements Serializable, Cloneable
         int die1, die2;
         do
         {
+//            if (rand.nextBoolean())  // JM TEMP - try trigger bot discard-no-move-robber bug
+//            {
+//                die1 = 0; die2 = 7;
+//            } else {
             die1 = Math.abs(rand.nextInt() % 6) + 1;
             die2 = Math.abs(rand.nextInt() % 6) + 1;
+//            }
 
             currentDice = die1 + die2;
         } while ((currentDice == 7) && ! okToRoll7);
