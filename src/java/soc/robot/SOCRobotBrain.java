@@ -361,12 +361,12 @@ public class SOCRobotBrain extends Thread
     /**
      * true if we're waiting for a GAMESTATE message from the server.
      * This is set after a robot action or requested action is sent to server,
-     * or just before ending our turn (which also sets waitingForOurTurn == true).
+     * or just before ending our turn (which also sets {@link #waitingForOurTurn} == true).
      */
     protected boolean waitingForGameState;
 
     /**
-     * true if we're waiting for a TURN message from the server
+     * true if we're waiting for a {@link SOCTurn TURN} message from the server
      * when it's our turn
      */
     protected boolean waitingForOurTurn;
@@ -5122,8 +5122,10 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * make an offer to another player.
-     * Will set {@link #waitingForTradeResponse} or {@link #doneTrading}.
+     * make an offer to another player, or decide to make no offer.
+     * Calls {@link SOCRobotNegotiator#makeOffer(SOCPossiblePiece)}.
+     * Will set either {@link #waitingForTradeResponse} or {@link #doneTrading},
+     * and update {@link #ourPlayerData}.{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) setCurrentOffer()},
      *
      * @param target  the resources that we want
      * @return true if we made an offer
