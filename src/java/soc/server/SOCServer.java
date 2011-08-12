@@ -230,12 +230,13 @@ public class SOCServer extends Server
     public static int ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS = 60;
 
     /**
-     * Maximum permitted game name length, default 20 characters.
+     * Maximum permitted game name length, default 30 characters.
+     * Before 1.1.13, the default maximum was 20 characters.
      *
      * @see #createOrJoinGameIfUserOK(StringConnection, String, String, String, Hashtable)
      * @since 1.1.07
      */
-    public static int GAME_NAME_MAX_LENGTH = 20;
+    public static int GAME_NAME_MAX_LENGTH = 30;
 
     /**
      * Maximum permitted player name length, default 20 characters.
@@ -4362,7 +4363,7 @@ public class SOCServer extends Server
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
                      SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(GAME_NAME_MAX_LENGTH)));
-            // Please choose a shorter name; maximum length: 20
+            // Please choose a shorter name; maximum length: 30
 
             return;  // <---- Early return ----
         }
