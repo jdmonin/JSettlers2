@@ -149,9 +149,15 @@ public class SOCRobotBrain extends Thread
     protected SOCPlayer dummyCancelPlayerData;
 
     /**
-     * The queue of game messages
+     * The queue of game messages; contents are {@link SOCMessage}.
      */
     protected CappedQueue gameEventQ;
+
+    /**
+     * The game messages received this turn / previous turn; contents are {@link SOCMessage}.
+     * @since 1.1.13
+     */
+    private Vector turnEventsCurrent, turnEventsPrev;
 
     /**
      * A counter used to measure passage of time
@@ -485,6 +491,8 @@ public class SOCRobotBrain extends Thread
         gameIs6Player = (ga.maxPlayers > 4);
         pauseFaster = gameIs6Player;
         gameEventQ = mq;
+        turnEventsCurrent = new Vector();
+        turnEventsPrev = new Vector();
         alive = true;
         counter = 0;
         expectSTART1A = true;
@@ -729,11 +737,13 @@ public class SOCRobotBrain extends Thread
      * Print brain variables and status for this game to {@link System#err}.
      * Includes all of the expect and waitingFor fields (<tt>expectPLAY</tt>,
      * <tt>waitingForGameState</tt>, etc.)
+     * Also prints the game state, and the messages received by this brain
+     * during the previous and current turns.
      * @since 1.1.13
      */
     public void debugPrintBrainStatus()
     {
-        System.err.println("Robot internal state: " + client.getNickname() + " in game " + game.getName() + ":");
+        System.err.println("Robot internal state: " + client.getNickname() + " in game " + game.getName() + ": gs=" + game.getGameState());
         final String[] s = {
             "ourTurn", "doneTrading",
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard", "waitingForTradeResponse",
@@ -775,6 +785,36 @@ public class SOCRobotBrain extends Thread
         }
         if (slen > 0)
             System.err.println(sb.toString());
+
+        debugPrintTurnMessages(turnEventsPrev, "previous");
+        debugPrintTurnMessages(turnEventsCurrent, "current");
+    }
+
+    /**
+     * Print the contents of this Vector to <tt>System.err</tt>.
+     * One element per line, indented by <tt>\t</tt>.
+     * Headed by a line formatted as one of:
+     *<BR>  Current turn: No messages received.
+     *<BR>  Current turn: 5 messages received:     
+     * @param msgV  Vector of {@link SOCMessage}s from server
+     * @param msgDesc  Short description of the vector, like 'previous' or 'current'
+     * @since 1.1.13
+     */
+    private static void debugPrintTurnMessages(Vector msgV, final String msgDesc)
+    {
+        System.err.print("  " + msgDesc);
+        final int n = msgV.size();
+        if (n == 0)
+        {
+            System.err.println(" turn: No messages received.");
+        } else {
+            System.err.println(" turn: " + n + " messages received:");
+            for (int i = 0; i < n; ++i)
+            {
+                System.err.print("\t");
+                System.err.println(msgV.elementAt(i));
+            }
+        }
     }
 
     /**
@@ -820,7 +860,10 @@ public class SOCRobotBrain extends Thread
                     if (mes != null)
                     {
                         mesType = mes.getType();
-                        D.ebugPrintln("mes - " + mes);
+                        if (mesType != SOCMessage.GAMETEXTMSG)
+                            turnEventsCurrent.addElement(mes);
+                        if (D.ebugOn)
+                            D.ebugPrintln("mes - " + mes);
 
                         // Debug aid: when looking at message contents: avoid pings:
                         // check here for (mesType != SOCMessage.GAMETEXTMSG).
@@ -931,6 +974,16 @@ public class SOCRobotBrain extends Thread
                             buildingPlan.clear();
                         }
                         negotiator.resetTargetPieces();
+
+                        //
+                        // swap the message-history queues
+                        //
+                        {
+                            Vector tmp = turnEventsPrev;
+                            turnEventsPrev = turnEventsCurrent;
+                            tmp.clear();
+                            turnEventsCurrent = tmp;
+                        }
                     }
 
                     if (game.getCurrentPlayerNumber() == ourPN)

@@ -16,6 +16,8 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Warn on server startup if robots take up most of maxConnections
 - On server startup, show each property's description
 - New debug command for robots:  botname:print-vars
+- If server forces a robot to end its turn, will print the bot's brain status
+      variables and last two turns' received messages before it forces the end.
 - If game is in progress, joining/leaving people also announced in chat area (less clutter there)
 - Don't echo info commands like *STATS* to all players
 - Bugfix: If observer closes the game window, shouldn't ask them if want to keep playing
