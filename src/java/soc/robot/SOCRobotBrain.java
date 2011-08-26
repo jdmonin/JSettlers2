@@ -744,6 +744,8 @@ public class SOCRobotBrain extends Thread
     public void debugPrintBrainStatus()
     {
         System.err.println("Robot internal state: " + client.getNickname() + " in game " + game.getName() + ": gs=" + game.getGameState());
+        if (game.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
+            System.err.println("  bot card count = " + ourPlayerData.getResources().getTotal());
         final String[] s = {
             "ourTurn", "doneTrading",
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard", "waitingForTradeResponse",
