@@ -763,6 +763,38 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Possible number paths for 6-player board.
+     * {@link #makeNewBoard(Hashtable)} randomly chooses one.
+     */
+    private final static int[][] makeNewBoard_numPaths_6pl =
+    {
+        // clockwise from north
+        {
+            15, 9, 4, 0, 1, 2, 7, 13, 20, 26, 31, 35, 34, 33, 28, 22,  // outermost hexes
+            16, 10, 5, 6, 12, 19, 25, 30, 29, 23,  // middle ring of hexes
+            17, 11, 18, 24                         // center hexes
+        },
+        // counterclockwise from north
+        {
+            15, 22, 28, 33, 34, 35, 31, 26, 20, 13, 7, 2, 1, 0, 4, 9,
+            16, 23, 29, 30, 25, 19, 12, 6, 5, 10,
+            17, 24, 18, 11
+        },
+        // clockwise from south
+        {
+            20, 26, 31, 35, 34, 33, 28, 22, 15, 9, 4, 0, 1, 2, 7, 13,
+            19, 25, 30, 29, 23, 16, 10, 5, 6, 12,
+            18, 24, 17, 11
+        },
+        // counterclockwise from south
+        {
+            20, 13, 7, 2, 1, 0, 4, 9, 15, 22, 28, 33, 34, 35, 31, 26,
+            19, 12, 6, 5, 10, 16, 23, 29, 30, 25,
+            18, 11, 17, 24
+        }
+    };
+
+    /**
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setHexLayout(int[])}.
@@ -790,12 +822,6 @@ public class SOCBoard implements Serializable, Cloneable
                 3,   2,  6          // Za-Zc        
             };
         final int[] numPath_v1 = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
-        final int[] numPath_6pl =
-        {
-           15, 9, 4, 0, 1, 2, 7, 13, 20, 26, 31, 35, 34, 33, 28, 22,  // outermost hexes
-           16, 10, 5, 6, 12, 19, 25, 30, 29, 23,  // middle ring of hexes
-           17, 11, 18, 24                         // center hexes
-        };
 
         SOCGameOption opt_breakClumps = (opts != null ? (SOCGameOption)opts.get("BC") : null);
 
@@ -804,7 +830,14 @@ public class SOCBoard implements Serializable, Cloneable
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
         {
             final int[] landHex = is6player ? landHex_6pl : landHex_v1;
-            final int[] numPath = is6player ? numPath_6pl : numPath_v1;
+            final int[] numPath;
+            if (is6player)
+            {
+                numPath = makeNewBoard_numPaths_6pl
+                  [Math.abs(rand.nextInt() % makeNewBoard_numPaths_6pl.length)];
+            } else {
+                numPath = numPath_v1;
+            }
             final int[] numbers = is6player ? number_6pl : number_v1;
             makeNewBoard_placeHexes
                 (landHex, numPath, numbers, opt_breakClumps);
