@@ -2663,21 +2663,29 @@ public class SOCHandPanel extends Panel implements ActionListener
                 cityLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
                 citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
-                clayLab.setBounds(inset, cardsY, sheepW, lineH);
-                claySq.setBounds(inset + sheepW + space, cardsY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                oreLab.setBounds(inset, cardsY + (lineH + space), sheepW, lineH);
-                oreSq.setBounds(inset + sheepW + space, cardsY + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                sheepLab.setBounds(inset, cardsY + (2 * (lineH + space)), sheepW, lineH);
-                sheepSq.setBounds(inset + sheepW + space, cardsY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                wheatLab.setBounds(inset, cardsY + (3 * (lineH + space)), sheepW, lineH);
-                wheatSq.setBounds(inset + sheepW + space, cardsY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
-                woodLab.setBounds(inset, cardsY + (4 * (lineH + space)), sheepW, lineH);
-                woodSq.setBounds(inset + sheepW + space, cardsY + (4 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                // Player's resource counts
+                tbY = cardsY;
+                clayLab.setBounds(inset, tbY, sheepW, lineH);
+                claySq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                tbY += (lineH + space);
+                oreLab.setBounds(inset, tbY, sheepW, lineH);
+                oreSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                tbY += (lineH + space);
+                sheepLab.setBounds(inset, tbY, sheepW, lineH);
+                sheepSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                tbY += (lineH + space);
+                wheatLab.setBounds(inset, tbY, sheepW, lineH);
+                wheatSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                tbY += (lineH + space);
+                woodLab.setBounds(inset, tbY, sheepW, lineH);
+                woodSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 // Line between woodSq, resourceSq
-                resourceSqDivLine.setBounds(inset + space, cardsY + (5 * (lineH + space)) - 1, sheepW + ColorSquare.WIDTH, 1);
+                tbY += (lineH + space);
+                resourceSqDivLine.setBounds(inset + space, tbY - 1, sheepW + ColorSquare.WIDTH, 1);
                 // Total Resources
-                resourceLab.setBounds(inset, cardsY + (5 * (lineH + space)) + 1, sheepW, lineH);
-                resourceSq.setBounds(inset + sheepW + space, cardsY + (5 * (lineH + space)) + 1, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                ++tbY;
+                resourceLab.setBounds(inset, tbY, sheepW, lineH);
+                resourceSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
                 int clW = dim.width - (inset + sheepW + space + ColorSquare.WIDTH + (4 * space) + inset);
                 int clX = inset + sheepW + space + ColorSquare.WIDTH + (4 * space);
