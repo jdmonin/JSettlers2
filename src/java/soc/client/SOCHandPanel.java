@@ -2654,6 +2654,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                     }
                 }
 
+                // Various counts, to the right of give/get/offer/trade area
                 knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
                 knightsSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 roadLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + lineH + space, knightsW, lineH);
@@ -2664,7 +2665,9 @@ public class SOCHandPanel extends Panel implements ActionListener
                 citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
                 // Player's resource counts
-                tbY = cardsY;
+                //   center the group vertical between bottom of Clear button, top of Quit button
+                tbY = (((dim.height - lineH - inset) + (tbY + (2 * lineH) + space)) / 2)
+                  - (3 * (lineH + space));
                 clayLab.setBounds(inset, tbY, sheepW, lineH);
                 claySq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 tbY += (lineH + space);
