@@ -460,6 +460,10 @@ public class SOCBoard implements Serializable, Cloneable
 
       33  34  35  36  </pre>
      *
+     *  The 6-player board is visually rotated clockwise 90 degrees; the
+     *  client's visual "North" (index 15, hex coordinate 0x11) on that
+     *  board is West internally in the board layout.
+     *
          @see #getHexTypeFromNumber(int)
          @see #getAdjacentNodeToHex(int, int)
      *
@@ -789,6 +793,54 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Possible number paths for 4-player original board.
+     * {@link #makeNewBoard(Hashtable)} randomly chooses one path (one 1-dimensional array)
+     * to be used as <tt>numPath[]</tt> in
+     * {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
+     */
+    private final static int[][] makeNewBoard_numPaths_v1 =
+    {
+        // Numbers are indexes within hexLayout (also in numberLayout) for each land hex.
+        // See the hexLayout javadoc for how the indexes are arranged on the board layout.
+
+        // counterclockwise from southwest
+        {
+            29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23,  // outermost hexes
+            24, 25, 19, 12, 11, 17,    18  // middle ring, center hex
+        },
+
+        // clockwise from southwest
+        {
+            29, 23, 16, 10, 5, 6, 7, 13, 20, 26, 31, 30,
+            24, 17, 11, 12, 19, 25,    18
+        },
+
+        // counterclockwise from east corner
+        {
+            20, 13, 7, 6, 5, 10, 16, 23, 29, 30, 31, 26,
+            19, 12, 11, 17, 24, 25,    18
+        },
+
+        // clockwise from east corner
+        {
+            20, 26, 31, 30, 29, 23, 16, 10, 5, 6, 7, 13,
+            19, 25, 24, 17, 11, 12,    18
+        },
+
+        // counterclockwise from northwest
+        {
+            5, 10, 16, 23, 29, 30, 31, 26, 20, 13, 7, 6,
+            11, 17, 24, 25, 19, 12,    18
+        },
+
+        // clockwise from northwest
+        {
+            5, 6, 7, 13, 20, 26, 31, 30, 29, 23, 16, 10,
+            11, 12, 19, 25, 24, 17,    18
+        }
+    };
+
+    /**
      * Possible number paths for 6-player board.
      * {@link #makeNewBoard(Hashtable)} randomly chooses one path (one 1-dimensional array)
      * to be used as <tt>numPath[]</tt> in
@@ -807,18 +859,21 @@ public class SOCBoard implements Serializable, Cloneable
             16, 10, 5, 6, 12, 19, 25, 30, 29, 23,  // middle ring of hexes
             17, 11, 18, 24                         // center hexes
         },
+
         // counterclockwise from north
         {
             15, 22, 28, 33, 34, 35, 31, 26, 20, 13, 7, 2, 1, 0, 4, 9,
             16, 23, 29, 30, 25, 19, 12, 6, 5, 10,
             17, 24, 18, 11
         },
+
         // clockwise from south
         {
             20, 26, 31, 35, 34, 33, 28, 22, 15, 9, 4, 0, 1, 2, 7, 13,
             19, 25, 30, 29, 23, 16, 10, 5, 6, 12,
             18, 24, 17, 11
         },
+
         // counterclockwise from south
         {
             20, 13, 7, 2, 1, 0, 4, 9, 15, 22, 28, 33, 34, 35, 31, 26,
@@ -856,7 +911,6 @@ public class SOCBoard implements Serializable, Cloneable
                 4,   9,  5,  9, 12, // U-Y
                 3,   2,  6          // Za-Zc        
             };
-        final int[] numPath_v1 = { 29, 30, 31, 26, 20, 13, 7, 6, 5, 10, 16, 23, 24, 25, 19, 12, 11, 17, 18 };
 
         SOCGameOption opt_breakClumps = (opts != null ? (SOCGameOption)opts.get("BC") : null);
 
@@ -865,14 +919,9 @@ public class SOCBoard implements Serializable, Cloneable
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
         {
             final int[] landHex = is6player ? landHex_6pl : landHex_v1;
-            final int[] numPath;
-            if (is6player)
-            {
-                numPath = makeNewBoard_numPaths_6pl
-                  [Math.abs(rand.nextInt() % makeNewBoard_numPaths_6pl.length)];
-            } else {
-                numPath = numPath_v1;
-            }
+            final int[][] numPaths = is6player ? makeNewBoard_numPaths_6pl : makeNewBoard_numPaths_v1;
+            final int[] numPath = 
+                numPaths[ Math.abs(rand.nextInt() % numPaths.length) ];
             final int[] numbers = is6player ? number_6pl : number_v1;
             makeNewBoard_placeHexes
                 (landHex, numPath, numbers, opt_breakClumps);
