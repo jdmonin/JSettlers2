@@ -445,7 +445,7 @@ public class SOCBoard implements Serializable, Cloneable
          @see #getAdjacentNodeToHex(int, int)
      *
      **/
-    private int[] hexLayout =   // initially all WATER_HEX
+    private int[] hexLayout =   // initially all WATER_HEX (== 6)
     {
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
         6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, WATER_HEX
@@ -764,10 +764,14 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Possible number paths for 6-player board.
-     * {@link #makeNewBoard(Hashtable)} randomly chooses one.
+     * {@link #makeNewBoard(Hashtable)} randomly chooses one path (one 1-dimensional array)
+     * to be used as <tt>numPath[]</tt> in
+     * {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      */
     private final static int[][] makeNewBoard_numPaths_6pl =
     {
+        // Numbers are indexes within hexLayout (also in numberLayout) for each land hex.
+
         // clockwise from north
         {
             15, 9, 4, 0, 1, 2, 7, 13, 20, 26, 31, 35, 34, 33, 28, 22,  // outermost hexes
@@ -807,6 +811,8 @@ public class SOCBoard implements Serializable, Cloneable
     {
         final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
+        // For purpose/format of these arrays, see the
+        // makeNewBoard_placeHexes javadoc.
         final int[] landHex_v1 = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
         final int[] landHex_6pl = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 
             DESERT_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX,
@@ -928,11 +934,18 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * For makeNewBoard, place the land hexes, number, and robber,
+     * For {@link #makeNewBoard(Hashtable)}, place the land hexes, number, and robber,
      * after shuffling landHex[].
      * Sets robberHex, contents of hexLayout[] and numberLayout[].
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
+     * @param landHex  Resource type to place into {@link #hexLayout} for each land hex; will be shuffled.
+     *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
+     * @param numPath  Indexes within {@link #hexLayout} (also within {@link #numberLayout}) for each land hex;
+     *                    same array length as <tt>landHex[]</tt>
+     * @param number   Numbers to place into {@link #numberLayout} for each land hex;
+     *                    array length is <tt>landHex[].length</tt> minus 1 for each desert in <tt>landHex[]</tt>
+     * @param optBC  The game options for this board; only option "BC" is checked for.
      */
     private final void makeNewBoard_placeHexes
         (int[] landHex, final int[] numPath, final int[] number, SOCGameOption optBC)
@@ -964,7 +977,7 @@ public class SOCBoard implements Serializable, Cloneable
                 hexLayout[numPath[i]] = landHex[i];
 
                 // place the robber on the desert
-                if (landHex[i] == 0)
+                if (landHex[i] == DESERT_HEX)
                 {
                     robberHex = numToHexID[numPath[i]];
                     numberLayout[numPath[i]] = -1;
