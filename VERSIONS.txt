@@ -10,6 +10,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
      by trading the same resources back. For example, give back 1 brick to get back 3 sheep.
 - Dice number layout is now clockwise or counterclockwise from 1 of
      several corners; previously always the same corner same direction.
+- Show your player's total resource count (Rowan idea)
 - 6-player board: Chat ease of use: Focus on text input field when any text area is clicked;
      to put the cursor in the text areas instead of the input field, click there again.
 - Remember the player checkboxes chosen in previous trade offer

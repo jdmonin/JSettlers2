@@ -114,6 +114,8 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected static final String CARD = "  Play Card  ";
     protected static final String GIVE = "I Give:";  // No trailing space (room for wider colorsquares)
     protected static final String GET = "I Get:";
+    private static final String RESOURCES = "Resources: ";  // for other players (! playerIsClient)
+    private static final String RESOURCES_TOTAL = "Total: ";  // for playerIsClient
     protected static final String AUTOROLL_COUNTDOWN = "Auto-Roll in: ";
     protected static final String ROLL_OR_PLAY_CARD = "Roll or Play Card";
     protected static final String OFFERBUTTIP_ENA = "Send trade offer to other players";
@@ -194,6 +196,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected ColorSquare sheepSq;
     protected ColorSquare wheatSq;
     protected ColorSquare woodSq;
+    protected ColorSquare resourceSqDivLine;
     protected Label clayLab;
     protected Label oreLab;
     protected Label sheepLab;
@@ -507,6 +510,9 @@ public class SOCHandPanel extends Panel implements ActionListener
         add(woodSq);
         woodSq.setTooltipText("Right-click to trade wood");
 
+        resourceSqDivLine = new ColorSquare(Color.BLACK);
+        add(resourceSqDivLine);
+
         //cardLab = new Label("Cards:");
         //add(cardLab);
         cardList = new List(0, false);
@@ -543,7 +549,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         add(knightsSq);
         knightsSq.setTooltipText("Size of this army");
 
-        resourceLab = new Label("Resources: ");
+        resourceLab = new Label(RESOURCES);
         add(resourceLab);
         resourceSq = new ColorSquare(ColorSquare.GREY, 0);
         add(resourceSq);
@@ -1135,6 +1141,9 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         larmyLab.setVisible(false);
         lroadLab.setVisible(false);
+        resourceLab.setVisible(false);
+        resourceSq.setVisible(false);
+        resourceSqDivLine.setVisible(false);
 
         offerHidingControls = false;  
         offerCounterHidingFace = false;
@@ -1204,8 +1213,6 @@ public class SOCHandPanel extends Panel implements ActionListener
         setRollPrompt(null, true);  // Clear it, and cancel autoRollTimerTask if running
 
         /* other player's hand */
-        resourceLab.setVisible(false);
-        resourceSq.setVisible(false);
         developmentLab.setVisible(false);
         developmentSq.setVisible(false);
         faceImg.removeFacePopupMenu();  // Also disables left-click to change
@@ -1273,6 +1280,9 @@ public class SOCHandPanel extends Panel implements ActionListener
         knightsLab.setVisible(true);
         knightsSq.setVisible(true);
 
+        resourceLab.setVisible(true);
+        resourceSq.setVisible(true);
+
         playerIsCurrent = (game.getCurrentPlayerNumber() == player.getPlayerNumber());
 
         if (player.getName().equals(client.getNickname()))
@@ -1308,6 +1318,8 @@ public class SOCHandPanel extends Panel implements ActionListener
             wheatLab.setVisible(true);
             woodSq.setVisible(true);
             woodLab.setVisible(true);
+            resourceSqDivLine.setVisible(true);
+            resourceLab.setText(RESOURCES_TOTAL);
 
             resourceTradeCost = new int[6];
             if (resourceTradeMenu != null)
@@ -1408,9 +1420,8 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             vpLab.setVisible(true);
             vpSq.setVisible(true);
+            resourceLab.setText(RESOURCES);
 
-            resourceLab.setVisible(true);
-            resourceSq.setVisible(true);
             developmentLab.setVisible(true);
             developmentSq.setVisible(true);
 
@@ -2251,6 +2262,8 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public void updateValue(int vt)
     {
+        boolean updateTotalResCount = false;
+
         /**
          * We say that we're getting the total vp, but
          * for other players this will automatically get
@@ -2297,36 +2310,36 @@ public class SOCHandPanel extends Panel implements ActionListener
         case CLAY:
 
             claySq.setIntValue(player.getResources().getAmount(SOCResourceConstants.CLAY));
-
+            updateTotalResCount = true;
             break;
 
         case ORE:
 
             oreSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.ORE));
-
+            updateTotalResCount = true;
             break;
 
         case SHEEP:
 
             sheepSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.SHEEP));
-
+            updateTotalResCount = true;
             break;
 
         case WHEAT:
 
             wheatSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.WHEAT));
-
+            updateTotalResCount = true;
             break;
 
         case WOOD:
 
             woodSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.WOOD));
-
+            updateTotalResCount = true;
             break;
 
         case NUMRESOURCES:
 
-            resourceSq.setIntValue(player.getResources().getTotal());
+            updateTotalResCount = true;
             if (offerIsDiscardMessage)
                 clearDiscardMsg();
             break;
@@ -2371,6 +2384,9 @@ public class SOCHandPanel extends Panel implements ActionListener
             break;
 
         }
+
+        if (updateTotalResCount)
+            resourceSq.setIntValue(player.getResources().getTotal());
     }
 
     /**
@@ -2655,6 +2671,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                 wheatSq.setBounds(inset + sheepW + space, cardsY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 woodLab.setBounds(inset, cardsY + (4 * (lineH + space)), sheepW, lineH);
                 woodSq.setBounds(inset + sheepW + space, cardsY + (4 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                // Line between woodSq, resourceSq
+                resourceSqDivLine.setBounds(inset + space, cardsY + (5 * (lineH + space)) - 1, sheepW + ColorSquare.WIDTH, 1);
+                // Total Resources
+                resourceLab.setBounds(inset, cardsY + (5 * (lineH + space)) + 1, sheepW, lineH);
+                resourceSq.setBounds(inset + sheepW + space, cardsY + (5 * (lineH + space)) + 1, ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
                 int clW = dim.width - (inset + sheepW + space + ColorSquare.WIDTH + (4 * space) + inset);
                 int clX = inset + sheepW + space + ColorSquare.WIDTH + (4 * space);
