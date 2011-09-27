@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -108,6 +108,11 @@ public class ColorSquare extends Canvas implements MouseListener
     int upperBound;
     int lowerBound;
     boolean interactive;
+
+    /** Border color, BLACK by default
+     * @since 1.1.13
+     */
+    private Color borderColor;
     protected ColorSquareListener sqListener;
     protected AWTToolTip ttip;
 
@@ -242,6 +247,7 @@ public class ColorSquare extends Canvas implements MouseListener
         setSize(WIDTH, HEIGHT);
         setFont(new Font("Geneva", Font.PLAIN, 10));
 
+        borderColor = Color.BLACK;
         setBackground(c);
         kind = k;
         interactive = in;
@@ -341,6 +347,20 @@ public class ColorSquare extends Canvas implements MouseListener
     public void setColor(Color c)
     {
         setBackground(c);
+    }
+
+    /**
+     * Set this square's border color.
+     * @param c  New color; the default is {@link Color#BLACK}
+     * @since 1.1.13
+     * @throws IllegalArgumentException if c is null
+     */
+    public void setBorderColor(Color c)
+        throws IllegalArgumentException
+    {
+        if (c == null)
+            throw new IllegalArgumentException();
+        borderColor = c;
     }
 
     /**
@@ -748,7 +768,7 @@ public class ColorSquare extends Canvas implements MouseListener
             {
                 g.clearRect(0, 0, squareW, squareH);
             }
-            g.setColor(Color.black);
+            g.setColor(borderColor);
             g.drawRect(0, 0, squareW - 1, squareH - 1);
 
             int x;
@@ -758,6 +778,8 @@ public class ColorSquare extends Canvas implements MouseListener
             {
                 if (isWarnLow || isWarnHigh)
                     g.setColor(WARN_LEVEL_COLOR);
+                else
+                    g.setColor(Color.BLACK);
 
                 FontMetrics fm = this.getFontMetrics(this.getFont());
                 int numW;

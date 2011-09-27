@@ -1319,6 +1319,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             woodSq.setVisible(true);
             woodLab.setVisible(true);
             resourceSqDivLine.setVisible(true);
+            resourceSq.setBorderColor(ColorSquare.ORE);  // dark gray
             resourceLab.setText(RESOURCES_TOTAL);
 
             resourceTradeCost = new int[6];
@@ -1420,6 +1421,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             vpLab.setVisible(true);
             vpSq.setVisible(true);
+            resourceSq.setBorderColor(Color.BLACK);
             resourceLab.setText(RESOURCES);
 
             developmentLab.setVisible(true);
