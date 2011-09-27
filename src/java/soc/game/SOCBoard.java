@@ -936,21 +936,6 @@ public class SOCBoard implements Serializable, Cloneable
         if (is6player)
             portsLayout = portHex;  // No need to remember for 4-player standard layout
 
-        /*
-        // place the ports (hex numbers and facing) within hexLayout and nodeIDtoPortType
-
-        placePort(portHex[0], 0, 3);  // Facing 3 is SE: see hexLayout's javadoc.
-                                      //   0 is hex number (index within hexLayout)
-        placePort(portHex[1], 2, 4);  // Facing 4 is SW, at hex number 2
-        placePort(portHex[2], 8, 4);  // SW
-        placePort(portHex[3], 21, 5); // W
-        placePort(portHex[4], 32, 6); // NW
-        placePort(portHex[5], 35, 6); // NW
-        placePort(portHex[6], 33, 1); // NE
-        placePort(portHex[7], 22, 2); // E
-        placePort(portHex[8], 9, 2);  // E
-        */
-
         // place the ports (hex numbers and facing) within hexLayout and nodeIDtoPortType.
         // fill out the ports[] vectors with node coordinates where a trade port can be placed.
         nodeIDtoPortType = new int[MAXNODEPLUSONE];
@@ -976,38 +961,6 @@ public class SOCBoard implements Serializable, Cloneable
                 ports[ptype].addElement(new Integer(nodes[1]));
             }
         }
-
-        /*
-        // fill out the ports[] vectors with node coordinates
-        // where a trade port can be placed
-
-        ports[portHex[0]].addElement(new Integer(0x27));  // Port touches the upper-left land hex, port facing SE
-        ports[portHex[0]].addElement(new Integer(0x38));  // [port's hex is NW of the upper-left land hex]
-
-        ports[portHex[1]].addElement(new Integer(0x5A));  // Touches middle land hex of top row, port facing SW
-        ports[portHex[1]].addElement(new Integer(0x6B));  // [The port hex itself is 2 to right of prev port hex.]
-
-        ports[portHex[2]].addElement(new Integer(0x9C));  // Touches rightmost land hex of row above middle, SW
-        ports[portHex[2]].addElement(new Integer(0xAD));
-
-        ports[portHex[3]].addElement(new Integer(0xCD));  // Rightmost of middle-row land hex, W
-        ports[portHex[3]].addElement(new Integer(0xDC));
-
-        ports[portHex[4]].addElement(new Integer(0xC9));  // Rightmost land hex below middle, NW
-        ports[portHex[4]].addElement(new Integer(0xDA));
-
-        ports[portHex[5]].addElement(new Integer(0xA5));  // Port touches middle hex of bottom row, facing NW
-        ports[portHex[5]].addElement(new Integer(0xB6));  // [The port hex itself is 2 to right of next port hex.]
-
-        ports[portHex[6]].addElement(new Integer(0x72));  // Leftmost of bottom row, NE
-        ports[portHex[6]].addElement(new Integer(0x83));
-
-        ports[portHex[7]].addElement(new Integer(0x43));  // Leftmost land hex of row below middle, E
-        ports[portHex[7]].addElement(new Integer(0x52));
-
-        ports[portHex[8]].addElement(new Integer(0x25));  // Leftmost land hex above middle, facing E
-        ports[portHex[8]].addElement(new Integer(0x34));
-        */
 
     }
 
