@@ -400,6 +400,8 @@ public class SOCBoard implements Serializable, Cloneable
      * Each element's value encodes hex type and, if a
      * port, its facing ({@link #FACING_NE} to {@link #FACING_NW}).
      *<P>
+     * For land hexes, the dice number on <tt>hexLayout</tt>[i] is {@link #numberLayout}[i].
+     *<P>
      * Key to the hexLayout[] values:
        <pre>
        0 : desert  {@link #DESERT_HEX}
@@ -473,6 +475,8 @@ public class SOCBoard implements Serializable, Cloneable
      */
     /** Dice number from hex numbers.
      *  For coord mapping, see {@link #numToHexID}
+     *<P>
+     *  <tt>numberLayout</tt>[i] is the dice number for the land hex stored in {@link #hexLayout}[i].
      */
     private int[] numberLayout =    // TODO largerboard: assumes hexLayout.length == 37 (is valid for ORIGINAL, 6PLAYER encodings)
     {
