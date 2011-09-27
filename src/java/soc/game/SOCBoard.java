@@ -442,7 +442,24 @@ public class SOCBoard implements Serializable, Cloneable
             \  /
             /\/\
       4 &lt;--.    .--> 3  </pre>
+     *<P>
+     *  For board encoding formats {@link #BOARD_ENCODING_ORIGINAL} and
+     *  {@link #BOARD_ENCODING_6PLAYER}, hexLayout indexes are arranged
+     *  this way per {@link #numToHexID}: <pre>
+       0   1   2   3
 
+     4   5   6   7   8
+
+   9  10  11  12  13  14
+
+15  16  17  18  19  20  21
+
+  22  23  24  25  26  27
+
+    28  29  30  31  32
+
+      33  34  35  36  </pre>
+     *
          @see #getHexTypeFromNumber(int)
          @see #getAdjacentNodeToHex(int, int)
      *
@@ -495,6 +512,8 @@ public class SOCBoard implements Serializable, Cloneable
      *</UL>
      * @see #hexIDtoNum
      * @see #nodesOnBoard
+     * @see #HEXCOORDS_LAND_V1
+     * @see #HEXCOORDS_LAND_V2
      */
     private int[] numToHexID = 
     {
@@ -511,6 +530,9 @@ public class SOCBoard implements Serializable, Cloneable
         0x51, 0x73, 0x95, 0xB7, 0xD9,
         
         0x71, 0x93, 0xB5, 0xD7
+
+        // The hex coordinate layout given here can also
+        // be seen in RST's dissertation figure A.1.
     };
 
     /**
@@ -775,6 +797,9 @@ public class SOCBoard implements Serializable, Cloneable
     private final static int[][] makeNewBoard_numPaths_6pl =
     {
         // Numbers are indexes within hexLayout (also in numberLayout) for each land hex.
+        // See the hexLayout javadoc for how the indexes are arranged on the board layout,
+        // and remember that the 6-player board is visually rotated clockwise 90 degrees;
+        // visual "North" used here is West internally in the board layout. 
 
         // clockwise from north
         {
