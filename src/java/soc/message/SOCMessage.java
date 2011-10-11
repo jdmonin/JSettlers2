@@ -201,6 +201,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** @since 1.1.12 */
     public static final int DEBUGFREEPLACE = 1087;  // debug piece Free Placement, 20110104, v1.1.12
 
+    /** @since 1.1.13 */
+    public static final int TIMINGPING = 1088;  // robot timing ping, 20111011, v1.1.13
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -731,6 +734,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case DEBUGFREEPLACE:    // debug piece Free Placement, 20110104, v1.1.12
                 return SOCDebugFreePlace.parseDataStr(data);
+
+            case TIMINGPING:        // robot timing ping, 20111011, v1.1.13
+                return SOCTimingPing.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

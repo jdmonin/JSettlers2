@@ -28,54 +28,7 @@ import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 
-import soc.message.SOCAcceptOffer;
-import soc.message.SOCAdminPing;
-import soc.message.SOCAdminReset;
-import soc.message.SOCBoardLayout;
-import soc.message.SOCBoardLayout2;
-import soc.message.SOCCancelBuildRequest;
-import soc.message.SOCChangeFace;
-import soc.message.SOCChoosePlayerRequest;
-import soc.message.SOCClearOffer;
-import soc.message.SOCClearTradeMsg;
-import soc.message.SOCDeleteGame;
-import soc.message.SOCDevCard;
-import soc.message.SOCDevCardCount;
-import soc.message.SOCDiceResult;
-import soc.message.SOCDiscardRequest;
-import soc.message.SOCFirstPlayer;
-import soc.message.SOCGameMembers;
-import soc.message.SOCGameState;
-import soc.message.SOCGameTextMsg;
-import soc.message.SOCImARobot;
-import soc.message.SOCJoinGame;
-import soc.message.SOCJoinGameAuth;
-import soc.message.SOCJoinGameRequest;
-import soc.message.SOCLargestArmy;
-import soc.message.SOCLeaveAll;
-import soc.message.SOCLeaveGame;
-import soc.message.SOCLongestRoad;
-import soc.message.SOCMakeOffer;
-import soc.message.SOCMessage;
-import soc.message.SOCMessageForGame;
-import soc.message.SOCMoveRobber;
-import soc.message.SOCPlayerElement;
-import soc.message.SOCPotentialSettlements;
-import soc.message.SOCPutPiece;
-import soc.message.SOCRejectConnection;
-import soc.message.SOCRejectOffer;
-import soc.message.SOCResetBoardAuth;
-import soc.message.SOCResourceCount;
-import soc.message.SOCRobotDismiss;
-import soc.message.SOCServerPing;
-import soc.message.SOCSetPlayedDevCard;
-import soc.message.SOCSetTurn;
-import soc.message.SOCSitDown;
-import soc.message.SOCStartGame;
-import soc.message.SOCStatusMessage;
-import soc.message.SOCTurn;
-import soc.message.SOCUpdateRobotParams;
-import soc.message.SOCVersion;
+import soc.message.*;
 
 import soc.server.genericServer.LocalStringServerSocket;
 
@@ -520,6 +473,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
+             * server's 1x/second timing ping
+             */
+            case SOCMessage.TIMINGPING:
+                handleTIMINGPING((SOCTimingPing) mes);
+                break;
+
+            /**
              * someone is sitting down
              */
             case SOCMessage.SITDOWN:
@@ -928,6 +888,27 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             put(SOCSitDown.toCmd(mes.getGame(), nickname, pn.intValue(), true));
         } else {
             System.err.println("** Cannot sit down: Assert failed: null pn for game " + mes.getGame());
+        }
+    }
+
+    /**
+     * handle the "timing ping" message
+     * @param mes  the message
+     */
+    protected void handleTIMINGPING(SOCTimingPing mes)
+    {
+        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
+
+        if (brainQ != null)
+        {
+            try
+            {
+                brainQ.put(mes);
+            }
+            catch (CutoffExceededException exc)
+            {
+                D.ebugPrintln("CutoffExceededException" + exc);
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,7 +20,7 @@
  **/
 package soc.robot;
 
-import soc.message.SOCGameTextMsg;
+import soc.message.SOCTimingPing;
 
 import soc.util.CappedQueue;
 import soc.util.CutoffExceededException;
@@ -33,7 +34,7 @@ import soc.util.CutoffExceededException;
 public class SOCRobotPinger extends Thread
 {
     CappedQueue messageQueue;
-    SOCGameTextMsg ping;
+    SOCTimingPing ping;
     boolean alive;
     String robotNickname;
 
@@ -43,10 +44,10 @@ public class SOCRobotPinger extends Thread
      * @param q  the robot brain's message queue
      * @param nickname the robot's nickname, for debug thread naming
      */
-    public SOCRobotPinger(CappedQueue q, String nickname)
+    public SOCRobotPinger(CappedQueue q, String gameName, String nickname)
     {
         messageQueue = q;
-        ping = new SOCGameTextMsg("*PING*", "*PING*", "*PING*");
+        ping = new SOCTimingPing(gameName);
         alive = true;
         robotNickname = nickname;
     }

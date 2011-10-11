@@ -537,7 +537,7 @@ public class SOCRobotBrain extends Thread
         resourceChoices = new SOCResourceSet();
         resourceChoices.add(2, SOCResourceConstants.CLAY);
         monopolyChoice = SOCResourceConstants.SHEEP;
-        pinger = new SOCRobotPinger(gameEventQ, client.getNickname() + "-" + game.getName());
+        pinger = new SOCRobotPinger(gameEventQ, game.getName(), client.getNickname() + "-" + game.getName());
         dRecorder = new DebugRecorder[2];
         dRecorder[0] = new DebugRecorder();
         dRecorder[1] = new DebugRecorder();
@@ -822,7 +822,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Here is the run method.  Just keep receiving game events
      * and deal with each one.
-     * Remember that we're sent a {@link SOCGameTextMsg}(<tt>"*PING*"</tt>) once per second.
+     * Remember that we're sent a {@link SOCTimingPing} once per second.
      */
     public void run()
     {
@@ -1521,12 +1521,9 @@ public class SOCRobotBrain extends Thread
                         }
                         break;
 
-                    case SOCMessage.GAMETEXTMSG:
-                        if (((SOCGameTextMsg) mes).getText().equals("*PING*"))
-                        {
-                            // Once-per-second message from the pinger thread
-                            counter++;
-                        }
+                    case SOCMessage.TIMINGPING:
+                        // Once-per-second message from the pinger thread
+                        counter++;
                         break;
 
                     }  // switch (mesType) - for some types, at bottom of loop body
