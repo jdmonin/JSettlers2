@@ -18,8 +18,6 @@
  **/
 package soc.message;
 
-import java.util.StringTokenizer;
-
 
 /**
  * This message contains a timing ping sent by the server to
@@ -32,6 +30,9 @@ import java.util.StringTokenizer;
 public class SOCTimingPing extends SOCMessage
     implements SOCMessageForGame
 {
+    /** matches version (1.1.13) */
+    private static final long serialVersionUID = 1113L;
+
     /**
      * Name of game
      */
