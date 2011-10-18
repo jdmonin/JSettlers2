@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -377,7 +377,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
 
             if (n.length() > 20)
             {
-                nickname = n.substring(1, 20);
+                nickname = n.substring(0, 20);
             }
             else
             {
@@ -388,7 +388,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
 
             if (p1.length() > 20)
             {
-                password = p1.substring(1, 20);
+                password = p1.substring(0, 20);
             }
             else
             {
@@ -399,7 +399,7 @@ public class SOCAccountClient extends Applet implements Runnable, ActionListener
 
             if (p2.length() > 20)
             {
-                password2 = p2.substring(1, 20);
+                password2 = p2.substring(0, 20);
             }
             else
             {

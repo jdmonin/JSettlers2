@@ -1310,7 +1310,7 @@ public class SOCPlayerClient extends Applet
 
         if (n.length() > 20)
         {
-            n = n.substring(1, 20);
+            n = n.substring(0, 20);
         }
         if (! SOCMessage.isSingleLineAndSafe(n))
         {

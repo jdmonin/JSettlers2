@@ -24,6 +24,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - If game is in progress, joining/leaving people also announced in chat area (less clutter there)
 - Don't echo info commands like *STATS* to all players
 - Bugfix: If observer closes the game window, shouldn't ask them if want to keep playing
+- Bugfix: Truncating player name, don't drop the first character
 - License upgrade to GPL v3
 
     > 1.1.12 (build JM20110122)
