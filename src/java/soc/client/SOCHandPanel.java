@@ -111,6 +111,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected static final String CLEAR = "Clear";
     protected static final String SEND = "Offer";
     protected static final String BANK = "Bank/Port";
+    private static final String BANK_UNDO = "Undo Trade";
     protected static final String CARD = "  Play Card  ";
     protected static final String GIVE = "I Give:";  // No trailing space (room for wider colorsquares)
     protected static final String GET = "I Get:";
@@ -273,6 +274,19 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /** Trade resources with the bank or port */
     protected Button bankBut;
+
+    /**
+     * Bank or port trade's give/get resource info;
+     * used for Undo.
+     * @since 1.1.13
+     */
+    SOCResourceSet bankGive, bankGet;
+
+    /**
+     * Undo previous trade with the bank or port
+     * @since 1.1.13
+     */
+    protected Button bankUndoBut;
 
     /**
      * Checkboxes to send to the other three players.
@@ -624,6 +638,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         bankBut.setEnabled(interactive);
         add(bankBut);
 
+        bankUndoBut = new Button(BANK_UNDO);
+        bankUndoBut.addActionListener(this);
+        bankUndoBut.setEnabled(false);
+        add(bankUndoBut);
+
         if (playerTradingDisabled)
         {
             playerSend = null;
@@ -792,6 +811,9 @@ public class SOCHandPanel extends Panel implements ActionListener
                 SOCResourceSet giveSet = new SOCResourceSet(give);
                 SOCResourceSet getSet = new SOCResourceSet(get);
                 client.bankTrade(game, giveSet, getSet);
+                bankGive = giveSet;
+                bankGet = getSet;
+                bankUndoBut.setEnabled(true);  // TODO what if trade is not allowed
             }
             else if (gstate == SOCGame.OVER)
             {
@@ -800,6 +822,16 @@ public class SOCHandPanel extends Panel implements ActionListener
                     // msg = "The game is over; <someone> won.";
                     // msg = "The game is over; no one won.";
                 playerInterface.print("* " + msg);
+            }
+        }
+        else if (target == BANK_UNDO)
+        {
+            if ((bankGive != null) && (bankGet != null))
+            {
+                client.bankTrade(game, bankGet, bankGive);  // reverse the previous order to undo it
+                bankGive = null;
+                bankGet = null;
+                bankUndoBut.setEnabled(false);  // TODO what if undo is not allowed
             }
         }
         else if (target == SEND)
@@ -1196,6 +1228,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         sqPanel.setVisible(false);
         clearOfferBut.setVisible(false);
         bankBut.setVisible(false);
+        bankUndoBut.setVisible(false);
 
         if (! playerTradingDisabled)
         {
@@ -1352,6 +1385,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             clearOfferBut.setVisible(true);
             bankBut.setVisible(true);
+            bankUndoBut.setVisible(true);            
 
             if (! playerTradingDisabled)
             {
@@ -1522,6 +1556,11 @@ public class SOCHandPanel extends Panel implements ActionListener
             bankBut.disable();  // enabled by updateAtPlay1()
         }
 
+        bankGive = null;
+        bankGet = null;
+        if (bankUndoBut.isEnabled())
+            bankUndoBut.setEnabled(false);
+
         // Although this method is called at the start of our turn,
         // the call to autoRollOrPromptPlayer() is not made here.
         // That call is made when the server says it's our turn to
@@ -1564,6 +1603,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             bankBut.disable();  // enabled by updateAtPlay1()
         }
 
+        bankUndoBut.setEnabled(false);
         clearOfferBut.disable();  // No trade offer has been set yet
         if (! playerTradingDisabled)
         {
@@ -2287,9 +2327,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                         pname.setText(player.getName() + WINNER_SUFFIX);
                     }
                     if (interactive)
+                    {
                         bankBut.setEnabled(false);
-                    if (interactive)
+                        bankUndoBut.setEnabled(false);
                         playCardBut.setEnabled(false);
+                    }
                     doneBut.setLabel(DONE_RESTART);
                     doneBut.setEnabled(true);  // In case it's another player's turn
                     doneButIsRestart = true;
@@ -2638,6 +2680,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 }
                 clearOfferBut.setBounds(tbX, tbY + lineH + space, tbW, lineH);
                 bankBut.setBounds(tbX + tbW + space, tbY + lineH + space, tbW, lineH);
+                bankUndoBut.setBounds(tbX + tbW + space, tbY + 2 * (lineH + space), tbW, lineH);
 
                 if (! playerTradingDisabled)
                 {
