@@ -1338,7 +1338,7 @@ public class SOCPlayerClient extends Applet
 
         if (p.length() > 20)
         {
-            p = p.substring(1, 20);
+            p = p.substring(0, 20);
         }
 
         password = p;
