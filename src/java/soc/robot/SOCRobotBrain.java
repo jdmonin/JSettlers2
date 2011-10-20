@@ -862,13 +862,13 @@ public class SOCRobotBrain extends Thread
                     if (mes != null)
                     {
                         mesType = mes.getType();
-                        if (mesType != SOCMessage.GAMETEXTMSG)
+                        if ((mesType != SOCMessage.TIMINGPING) && (mesType != SOCMessage.GAMETEXTMSG))
                             turnEventsCurrent.addElement(mes);
                         if (D.ebugOn)
                             D.ebugPrintln("mes - " + mes);
 
                         // Debug aid: when looking at message contents: avoid pings:
-                        // check here for (mesType != SOCMessage.GAMETEXTMSG).
+                        // check here for (mesType != SOCMessage.TIMINGPING).
                     }
                     else
                     {
