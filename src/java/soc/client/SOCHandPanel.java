@@ -280,7 +280,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * used for Undo.
      * @since 1.1.13
      */
-    SOCResourceSet bankGive, bankGet;
+    private SOCResourceSet bankGive, bankGet;
 
     /**
      * Undo previous trade with the bank or port
@@ -807,13 +807,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 int[] get = new int[5];
                 sqPanel.getValues(give, get);
                 client.clearOffer(game);
-
-                SOCResourceSet giveSet = new SOCResourceSet(give);
-                SOCResourceSet getSet = new SOCResourceSet(get);
-                client.bankTrade(game, giveSet, getSet);
-                bankGive = giveSet;
-                bankGet = getSet;
-                bankUndoBut.setEnabled(true);  // TODO what if trade is not allowed
+                createSendBankTradeRequest(game, give, get);
             }
             else if (gstate == SOCGame.OVER)
             {
@@ -831,7 +825,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 client.bankTrade(game, bankGet, bankGive);  // reverse the previous order to undo it
                 bankGive = null;
                 bankGet = null;
-                bankUndoBut.setEnabled(false);  // TODO what if undo is not allowed
+                bankUndoBut.setEnabled(false);
             }
         }
         else if (target == SEND)
@@ -902,6 +896,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                                               player.getPlayerNumber(),
                                               to, giveSet, getSet);
                         client.offerTrade(game, tradeOffer);
+                        disableBankUndoButton();
                     }
                 }
             }
@@ -913,6 +908,40 @@ public class SOCHandPanel extends Panel implements ActionListener
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
         }
+    }
+
+    /**
+     * Create and send a bank/port trade request.
+     * Remember the resources for the "undo" button.
+     * @param game  Our game
+     * @param give  Resources to give, same format as {@link SOCResourceSet#SOCResourceSet(int[])
+     * @param get   Resources to get, same format as {@link SOCResourceSet#SOCResourceSet(int[])
+     * @since 1.1.13
+     */
+    private void createSendBankTradeRequest
+        (SOCGame game, final int[] give, final int[] get)
+    {
+        SOCResourceSet giveSet = new SOCResourceSet(give);
+        SOCResourceSet getSet = new SOCResourceSet(get);
+        getClient().bankTrade(game, giveSet, getSet);
+
+        bankGive = giveSet;
+        bankGet = getSet;
+        bankUndoBut.setEnabled(true);  // TODO what if trade is not allowed
+    }
+
+    /**
+     * Disable the bank/port trade undo button.
+     * Call when a non-trade game action is sent by the client.
+     * @since 1.1.13
+     */
+    public void disableBankUndoButton()
+    {
+        if (bankGive == null)
+            return;
+        bankGive = null;
+        bankGet = null;
+        bankUndoBut.setEnabled(false);
     }
 
     /**
@@ -1036,6 +1065,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         if (cardTypeToPlay != -1)
         {
             client.playDevCard(game, cardTypeToPlay);
+            disableBankUndoButton();
         }
     }
 
@@ -2973,10 +3003,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             int[] get = new int[5];
             give[tradeFrom - 1] = tradeNum;
             get[tradeTo - 1] = 1;
-
-            SOCResourceSet giveSet = new SOCResourceSet(give);
-            SOCResourceSet getSet = new SOCResourceSet(get);
-            hp.getClient().bankTrade(game, giveSet, getSet);
+            hp.createSendBankTradeRequest(game, give, get);
         }
 
     }  // ResourceTradeMenuItem

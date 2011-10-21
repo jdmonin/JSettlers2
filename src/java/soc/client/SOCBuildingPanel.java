@@ -435,7 +435,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             if (cardBut.getLabel().equals("Buy"))
             {
                 if (stateBuyOK || canAskSBP)
+                {
                     client.buyDevCard(game);
+                    pi.getClientHand().disableBankUndoButton();
+                }
             }
         }
         else if (target == SBP)
@@ -446,10 +449,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (sendBuildRequest != -9)
         {
+            final SOCHandPanel chp = pi.getClientHand();
             if (isCurrent && (sendBuildRequest == -1))
-                pi.getClientHand().setRollPrompt(null, true);  // clear the auto-roll countdown
+                chp.setRollPrompt(null, true);  // clear the auto-roll countdown
 
             client.buildRequest(game, sendBuildRequest);
+            chp.disableBankUndoButton();
         }
     }
 

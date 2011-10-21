@@ -658,6 +658,7 @@ public class TradeOfferPanel extends Panel
                 //int[] tempGet = new int[5];
                 //squares.getValues(tempGive, tempGet);
                 hp.getClient().acceptOffer(hp.getGame(), from);
+                hp.disableBankUndoButton();
             }
             } catch (Throwable th) {
                 pi.chatPrintStackTrace(th);
