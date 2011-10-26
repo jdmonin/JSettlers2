@@ -40,7 +40,7 @@ import soc.message.SOCMessage;
  * For information about adding or changing game options in a
  * later version of JSettlers, please see {@link #initAllOptions()}.
  *<P>
- * All in-game code uses 2-letter key strings to query and change
+ * All in-game code uses the 2-letter or 3-letter key strings to query and change
  * game option settings; only a very few places use SOCGameOption
  * objects.  To search the code for uses of a game option, search for
  * its capitalized key string.
@@ -59,7 +59,10 @@ import soc.message.SOCMessage;
  * If a new option changes previously expected behavior of the game, it should default to
  * the old behavior; its default value on your server can be changed at runtime.
  *<P>
- * Introduced in 1.1.07; check server, client versions against
+ * Since 1.1.13, when the user changes options while creating a new game, related
+ * options can be changed on-screen; see {@link SOCGameOption.ChangeListener} for details.
+ *<P>
+ * Game options were introduced in 1.1.07; check server, client versions against
  * {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
  * Each option has version information, because options can be added or changed
  * with new versions of JSettlers.  Since games run on the server, the server is
@@ -78,6 +81,14 @@ public class SOCGameOption implements Cloneable, Comparable
      * allOptions must never be null, because other places assume it is filled.
      */
     private static Hashtable allOptions = initAllOptions();
+
+    /**
+     * List of options to refresh on-screen after a change during game creation;
+     * filled by {@link #refreshDisplay()}.  Not thread-safe.
+     * @see ChangeListener
+     * @since 1.1.13
+     */
+    private static Vector refreshList;
 
     /**
      * Create a set of the known options.
@@ -197,10 +208,12 @@ public class SOCGameOption implements Cloneable, Comparable
     {
         Hashtable opt = new Hashtable();
 
-        opt.put("PL", new SOCGameOption
-                ("PL", -1, 1108, 4, 2, 6, "Maximum # players"));
-        opt.put("PLB", new SOCGameOption
-                ("PLB", 1108, 1113, false, true, "Use 6-player board"));
+        final SOCGameOption pl = new SOCGameOption
+                ("PL", -1, 1108, 4, 2, 6, "Maximum # players");
+        opt.put("PL", pl);
+        final SOCGameOption plb = new SOCGameOption
+                ("PLB", 1108, 1113, false, true, "Use 6-player board");
+        opt.put("PLB", plb);
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
@@ -212,6 +225,49 @@ public class SOCGameOption implements Cloneable, Comparable
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
+
+        // ChangeListeners for client convenience:
+        // Remember that the server can't update this code at the client.
+
+        // If PL goes over 4, set PLB.
+        pl.addChangeListener(new ChangeListener()
+        {
+            public void valueChanged
+                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable currentOpts)
+            {
+                if  (! (oldValue instanceof Integer))
+                    return;  // ignore unless int
+                final int ov = ((Integer) oldValue).intValue();
+                final int nv = ((Integer) newValue).intValue();
+                if ((ov <= 4) && (nv > 4))
+                {
+                    SOCGameOption plb = (SOCGameOption) currentOpts.get("PLB");
+                    if (plb == null)
+                        return;
+                    plb.setBoolValue(true);
+                    plb.refreshDisplay();
+                }
+            }
+        });
+
+        // If PLB is unchecked, set PL to 4 if it's 5 or 6
+        plb.addChangeListener(new ChangeListener()
+        {
+            public void valueChanged
+                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable currentOpts)
+            {
+                if (Boolean.TRUE.equals(newValue))
+                    return;  // ignore unless it became false
+                SOCGameOption pl = (SOCGameOption) currentOpts.get("PL");
+                if (pl == null)
+                    return;
+                if (pl.getIntValue() > 4)
+                {
+                    pl.setIntValue(4);
+                    pl.refreshDisplay();
+                }
+            }
+        });
 
         return opt;
 
@@ -229,6 +285,29 @@ public class SOCGameOption implements Cloneable, Comparable
                 ("DEBUGSTR", 1107, 1107, 20, false, true, "Test option str"));
         opt.put("DEBUGSTRHIDE", new SOCGameOption
                 ("DEBUGSTRHIDE", 1107, 1107, 20, true, true, "Test option strhide"));
+        */
+
+        /*
+                // TEST CODE: simple callback for each option, that just echoes old/new value
+
+        ChangeListener testCL = new ChangeListener()
+        {
+            public void valueChanged
+                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable currentOpts)
+            {
+                System.err.println("Test ChangeListener: " + opt.optKey
+                    + " changed from " + oldValue + " to " + newValue);                
+            }
+        };
+        Enumeration okeys = opt.keys();
+        while (okeys.hasMoreElements())
+        {
+            SOCGameOption op = (SOCGameOption) opt.get(okeys.nextElement());
+            if (! op.hasChangeListener())
+                op.addChangeListener(testCL);
+        }
+
+                // END TEST CODE
         */
 
         // OBSOLETE OPTIONS, REMOVED OPTIONS - Move its opt.put down here, commented out,
@@ -371,6 +450,12 @@ public class SOCGameOption implements Cloneable, Comparable
     private boolean boolValue;
     private int     intValue;
     private String  strValue;  // no default value: is "", stored as null
+
+    /**
+     * The option's ChangeListener, or null.
+     * @since 1.1.13
+     */
+    private transient ChangeListener optCL;
 
     /**
      * Create a new game option of unknown type ({@link #OTYPE_UNKNOWN}).
@@ -1584,6 +1669,71 @@ public class SOCGameOption implements Cloneable, Comparable
     }
 
     /**
+     * Get the list of {@link SOCGameOption}s whose {@link #refreshDisplay()}
+     * methods have been called, and clear the internal static copy.
+     * Not thread-safe, assumes only 1 GUI thread or 1 NewGameOptionsFrame at a time.
+     * @return the list, or null if refreshDisplay wasn't called on any option
+     * @since 1.1.13
+     */
+    public static final Vector getAndClearRefreshList()
+    {
+        Vector refr = refreshList;
+        refreshList = null;
+        if ((refr != null) && (refr.size() == 0))
+            refr = null;
+        return refr;
+    }
+
+    /**
+     * If this game option is displayed on-screen, refresh it;
+     * call this after changing the value.
+     * @since 1.1.13
+     */
+    public void refreshDisplay()
+    {
+        if (refreshList == null)
+            refreshList = new Vector();
+        else if (refreshList.contains(this))
+            return;
+        refreshList.addElement(this);
+    }
+
+    /**
+     * Add or remove this option's change listener.
+     * Does not support multiple listeners, so if it's already set, it will
+     * be changed to the new value.
+     * @param cl  Change listener to add, or null to remove.
+     * @see #hasChangeListener()
+     * @since 1.1.13
+     */
+    public void addChangeListener(ChangeListener cl)
+    {
+        optCL = cl;
+    }
+
+    /**
+     * Does this option have a non-null {@link ChangeListener}?
+     * @see #getChangeListener()
+     * @since 1.1.13
+     */
+    public boolean hasChangeListener()
+    {
+        return (optCL != null);
+    }
+
+    /**
+     * Get this option's {@link ChangeListener}, if any
+     * @return the changelistener, or null if none
+     * @see #hasChangeListener()
+     * @see #addChangeListener(ChangeListener)
+     * @since 1.1.13
+     */
+    public ChangeListener getChangeListener()
+    {
+        return optCL;
+    }
+
+    /**
      * Form a string with the key and current value, useful for debugging purposes.
      * @return string such as "PL=4" or "BC=t3", with the same format
      *    as {@link #packKnownOptionsToString(boolean)}.
@@ -1616,4 +1766,42 @@ public class SOCGameOption implements Cloneable, Comparable
         return hashCode() - other.hashCode();
     }
 
+    /**
+     * Listener for option value changes at the client during game creation.
+     * When the user changes an option, allows a related option to change.
+     * For example, when the max players is changed to 5 or 6,
+     * the listener can check the box for "use 6-player board".
+     *<P>
+     * The server can't do anything to update the client's ChangeListener
+     * code, so be careful and write them defensively.
+     *<P> 
+     * Callback method is {@link #valueChanged(SOCGameOption, Object, Object, Hashtable)}.
+     * @see SOCGameOption#addChangeListener(ChangeListener)
+     * @since 1.1.13
+     */
+    public interface ChangeListener
+    {
+        /**
+         * Called when the user changes <tt>opt</tt>'s value during game creation.
+         * Not called when a game option's setters are called. 
+         *<P>
+         * If you change any other <tt>currentOpts</tt> values,
+         * be sure to call {@link SOCGameOption#refreshDisplay()} to update the GUI.
+         * Do not call <tt>refreshDisplay()</tt> on <tt>opt</tt>.
+         *<P>
+         * Remember that the related option may not be present in <tt>currentOpts</tt>
+         * because different servers may have different default options, or different versions.
+         *<P>
+         * Write this method carefully, because the server can't update a client's
+         * buggy version.  Although calls to this method are surrounded by a try/catch({@link Throwable})
+         * block, a bug-free version is best for the user.
+         *
+         * @param opt  Option that has changed, already updated to new value
+         * @param oldValue  Old value; an Integer, Boolean, or String.
+         * @param newValue  New value; always the same class as <tt>oldValue</tt>
+         * @param currentOpts  The current value of all {@link SOCGameOption}s in this set
+         */
+        public void valueChanged
+          (final SOCGameOption opt, final Object oldValue, final Object newValue, Hashtable currentOpts);
+    }
 }
