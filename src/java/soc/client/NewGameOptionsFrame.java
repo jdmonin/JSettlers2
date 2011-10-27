@@ -49,8 +49,6 @@ import java.util.Hashtable;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import com.sun.corba.se.spi.copyobject.CopierManager;
-
 import soc.game.SOCGameOption;
 import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
