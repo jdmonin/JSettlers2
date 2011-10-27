@@ -281,6 +281,8 @@ public class SOCGameOption implements Cloneable, Comparable
         opt.put("DEBUGENUMBOOL", new SOCGameOption
                 ("DEBUGENUMBOOL", 1107, 1108, true,
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, true, "Test option # enumbool"));
+        opt.put("DEBUGINT", new SOCGameOption
+                ("DEBUGINT", -1, 1113, 500, 1, 1000, "Test option int # (range 1-1000)"));
         opt.put("DEBUGSTR", new SOCGameOption
                 ("DEBUGSTR", 1107, 1107, 20, false, true, "Test option str"));
         opt.put("DEBUGSTRHIDE", new SOCGameOption
@@ -1783,7 +1785,7 @@ public class SOCGameOption implements Cloneable, Comparable
     {
         /**
          * Called when the user changes <tt>opt</tt>'s value during game creation.
-         * Not called when a game option's setters are called. 
+         * Not called when a game option's setters are called.
          *<P>
          * If you change any other <tt>currentOpts</tt> values,
          * be sure to call {@link SOCGameOption#refreshDisplay()} to update the GUI.
@@ -1795,6 +1797,13 @@ public class SOCGameOption implements Cloneable, Comparable
          * Write this method carefully, because the server can't update a client's
          * buggy version.  Although calls to this method are surrounded by a try/catch({@link Throwable})
          * block, a bug-free version is best for the user.
+         *<P>
+         * For {@link SOCGameOption#OTYPE_STR} or <tt>OTYPE_STRHIDE</tt>, this method is
+         * called once for each character entered or deleted.
+         *<P>
+         * For {@link SOCGameOption#OTYPE_INT} or <tt>OTYPE_INTBOOL</tt>, this method is
+         * called once for each digit typed or deleted, so long as the resulting number
+         * is parsable and within the min/max range for the option.
          *
          * @param opt  Option that has changed, already updated to new value
          * @param oldValue  Old value; an Integer, Boolean, or String.

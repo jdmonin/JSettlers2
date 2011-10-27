@@ -47,6 +47,9 @@ import java.awt.event.WindowEvent;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.TreeSet;
+import java.util.Vector;
+
+import com.sun.corba.se.spi.copyobject.CopierManager;
 
 import soc.game.SOCGameOption;
 import soc.message.SOCMessage;
@@ -88,6 +91,18 @@ public class NewGameOptionsFrame extends Frame
 
     /** Key = AWT control; value = {@link SOCGameOption} within {@link #opts}. Empty if opts is null.  */
     private Hashtable controlsOpts;
+
+    /**
+     * AWT control for each gameopt, for handling {@link SOCGameOption#refreshDisplay()}
+     * if called by {@link SOCGameOption.ChangeListener}s.
+     * Key = option key; value = Component.
+     * Null if {@link #readOnly}.
+     * For game options with 2 input controls (OTYPE_INTBOOL, OTYPE_ENUMBOOL),
+     * the TextField/Choice is found here, and the boolean Checkbox is found in {@link #boolOptCheckboxes}.
+     * @since 1.1.13
+     * @see #fireOptionChangeListener(soc.game.SOCGameOption.ChangeListener, SOCGameOption, Object, Object)
+     */
+    private Hashtable optsControls;
 
     /** Key = {@link SOCGameOption#optKey}; value = {@link Checkbox} if bool/intbool option.
       * Empty if none, null if readOnly.
@@ -141,7 +156,10 @@ public class NewGameOptionsFrame extends Frame
         this.readOnly = readOnly;
         controlsOpts = new Hashtable();
         if (! readOnly)
+        {
+            optsControls = new Hashtable();
             boolOptCheckboxes = new Hashtable();
+        }
         if ((gaName == null) && forPractice)
         {
             if (cli.numPracticeGames == 0)
@@ -373,7 +391,12 @@ public class NewGameOptionsFrame extends Frame
         switch (op.optType)  // OTYPE_*
         {
         case SOCGameOption.OTYPE_BOOL:
-            initInterface_Opt1(op, new Checkbox(), true, false, bp, gbl, gbc);
+            {
+                Checkbox cb = new Checkbox();
+                initInterface_Opt1(op, cb, true, false, bp, gbl, gbc);
+                if (op.hasChangeListener())
+                    cb.addItemListener(this);
+            }
             break;
 
         case SOCGameOption.OTYPE_INT:
@@ -410,7 +433,11 @@ public class NewGameOptionsFrame extends Frame
                         txtc.setEchoChar('*');
                 }
                 if (! readOnly)
+                {
                     txtc.addKeyListener(this);  // for ESC/ENTER
+                    if (op.hasChangeListener())
+                        txtc.addTextListener(this);  // for gameopt ChangeListener
+                }
                 initInterface_Opt1(op, txtc, false, false, bp, gbl, gbc);
             }
             break;
@@ -454,7 +481,11 @@ public class NewGameOptionsFrame extends Frame
             gbl.setConstraints(cb, gbc);
             bp.add(cb);
             if (! readOnly)
+            {
                 boolOptCheckboxes.put(op.optKey, cb);
+                if (op.hasChangeListener())
+                    cb.addItemListener(this);  // for op's ChangeListener
+            }
         } else {
             L = new Label();  // to fill checkbox's column
             gbl.setConstraints(L, gbc);
@@ -499,10 +530,12 @@ public class NewGameOptionsFrame extends Frame
                     ((TextField) oc).addKeyListener(this);   // for ESC/ENTER
                 } else if (oc instanceof Choice)
                 {
-                    ((Choice) oc).addItemListener(this);
+                    ((Choice) oc).addItemListener(this);  // for related cb, and op.ChangeListener
                 }
             }
         }
+        if (! readOnly)
+            optsControls.put(op.optKey, oc);
 
         // Any text to the right of placeholder?  Also creates
         // the text label if there is no placeholder (placeholderIdx == -1).
@@ -558,7 +591,9 @@ public class NewGameOptionsFrame extends Frame
             int twidth = 1 + (int) Math.ceil(Math.log(magn)/LOG_10);
             if (twidth < 3)
                 twidth = 3;
-            c = new IntTextField(op.getIntValue(), twidth);          
+            c = new IntTextField(op.getIntValue(), twidth);
+            if (op.hasChangeListener())
+                ((TextField) c).addTextListener(this);
         } else {
             Choice ch = new Choice();
             for (int i = op.minIntValue; i <= op.maxIntValue; ++i)
@@ -567,6 +602,8 @@ public class NewGameOptionsFrame extends Frame
             int defaultIdx = op.getIntValue() - op.minIntValue;
             if (defaultIdx > 0)
                 ch.select(defaultIdx);
+            if (op.hasChangeListener())
+                ch.addItemListener(this);
             c = ch;
         }
         return c;
@@ -587,6 +624,8 @@ public class NewGameOptionsFrame extends Frame
         int defaultIdx = op.getIntValue() - 1;  // enum numbering is 1-based
         if (defaultIdx > 0)
             ch.select(defaultIdx);
+        if (op.hasChangeListener())
+            ch.addItemListener(this);
         return ch;
     }
 
@@ -849,7 +888,8 @@ public class NewGameOptionsFrame extends Frame
         Object srcObj = e.getSource();
         if (! (srcObj instanceof TextField))
             return;
-        final boolean notEmpty = (((TextField) srcObj).getText().trim().length() > 0);
+        final String newText = ((TextField) srcObj).getText().trim();
+        final boolean notEmpty = (newText.length() > 0);
         if (srcObj == gameName)
         {
             if (notEmpty != create.isEnabled())
@@ -857,31 +897,205 @@ public class NewGameOptionsFrame extends Frame
         }
         else
         {
+            // Check for a ChangeListener for OTYPE_STR and OTYPE_STRHIDE,
+            // OTYPE_INT and OTYPE_INTBOOL.
             // if source is OTYPE_INTBOOL, check its checkbox vs notEmpty.
             SOCGameOption opt = (SOCGameOption) controlsOpts.get(srcObj);
             if (opt == null)
                 return;
+            final String oldText = opt.getStringValue();
+            boolean validChange = false;
+            boolean otypeIsInt;
+            int oldIntValue = 0;
+
+            if ((opt.optType == SOCGameOption.OTYPE_STR)
+                 || (opt.optType == SOCGameOption.OTYPE_STRHIDE))
+            {
+                otypeIsInt = false;
+                try
+                {
+                    opt.setStringValue(newText);
+                    validChange = true;
+                } catch (IllegalArgumentException ex)
+                { }
+            } else {
+                otypeIsInt = true;
+                try   // OTYPE_INT, OTYPE_INTBOOL
+                {
+                    final int iv = Integer.parseInt(newText);
+                    oldIntValue = opt.getIntValue();
+                    opt.setIntValue(iv);  // ignored if outside min,max range
+                    if (iv == opt.getIntValue())
+                        validChange = true;
+                } catch (NumberFormatException ex)
+                { }
+            }
+
+            boolean cbSet = false;
             Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
-            if ((cb == null) || (notEmpty == cb.getState()))
+            if ((cb != null) && (notEmpty != cb.getState()))
+            {
+                cb.setState(notEmpty);
+                opt.setBoolValue(notEmpty);
+                cbSet = true;
+            }
+            SOCGameOption.ChangeListener cl = opt.getChangeListener();
+            if (cl == null)
                 return;
-            cb.setState(notEmpty);
+            if (cbSet)
+            {
+                // ChangeListener for checkbox
+                final Boolean newValue = (notEmpty) ? Boolean.TRUE : Boolean.FALSE;
+                final Boolean oldValue = (notEmpty) ? Boolean.FALSE : Boolean.TRUE;
+                fireOptionChangeListener(cl, opt, oldValue, newValue);
+            }
+            // ChangeListener for text field
+            if (validChange)
+            {
+                if (otypeIsInt)
+                    fireOptionChangeListener(cl, opt, new Integer(oldIntValue), new Integer(opt.getIntValue()));
+                else
+                    fireOptionChangeListener(cl, opt, oldText, newText);
+            }
         }
     }
 
     /**
+     * Called when a Choice or Checkbox value changes.  Two purposes:
+     * Check Choices or Checkboxes to see if their game option has a {@link ChangeListener}.
      * Set the checkbox when the popup-menu Choice value is changed for a
      * {@link SOCGameOption#OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL}. (ItemListener)
-     * @param e textevent from a Choice in {@link #controlsOpts}
+     * @param e itemevent from a Choice or Checkbox in {@link #controlsOpts}
      */
     public void itemStateChanged(ItemEvent e)
     {
-        SOCGameOption opt = (SOCGameOption) controlsOpts.get(e.getSource());
+        final Object ctrl = e.getSource();
+        boolean choiceSetCB = false;
+        SOCGameOption opt = (SOCGameOption) controlsOpts.get(ctrl);
         if (opt == null)
             return;
         Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
-        if (cb == null)
+        if ((cb != null) && (cb != ctrl) && ! cb.getState())
+        {
+            cb.setState(true);
+            choiceSetCB = true;
+        }
+        SOCGameOption.ChangeListener cl = opt.getChangeListener();
+        if (cl == null)
             return;
-        cb.setState(true);
+        // TODO should update both int and bool fields before calling fireOptionChangeListener
+        if (choiceSetCB || (ctrl instanceof Checkbox))
+        {
+            final boolean becameChecked = (e.getStateChange() == ItemEvent.SELECTED);
+            final Boolean newValue = (becameChecked) ? Boolean.TRUE : Boolean.FALSE;
+            final Boolean oldValue = (becameChecked) ? Boolean.FALSE : Boolean.TRUE;
+            opt.setBoolValue(becameChecked);
+            fireOptionChangeListener(cl, opt, oldValue, newValue);
+        }
+        if (ctrl instanceof Choice)
+        {
+            int chIdx = ((Choice) ctrl).getSelectedIndex();  // 0 to n-1
+            if (chIdx != -1)
+            {
+                final int nv = chIdx + opt.minIntValue;
+                Integer newValue = new Integer(nv);
+                Integer oldValue = new Integer(opt.getIntValue());
+                opt.setIntValue(nv);
+                fireOptionChangeListener(cl, opt, oldValue, newValue);
+            }
+        }
+    }
+
+    /**
+     * Handle firing a game option's ChangeListener, and refreshing related
+     * gameopts' values on-screen if needed.
+     * If <tt>oldValue</tt>.equals(<tt>newValue</tt>), nothing happens and
+     * the ChangeListener is not called.
+     * @param cl  The ChangeListener; must not be null
+     * @param op  The game option
+     * @param oldValue  Old value, string or boxed primitive
+     * @param newValue  New value, string or boxed primitive
+     * @since 1.1.13
+     */
+    private void fireOptionChangeListener
+        (SOCGameOption.ChangeListener cl, SOCGameOption opt, final Object oldValue, final Object newValue)
+    {
+        if (oldValue.equals(newValue))
+            return;  // <--- Early return: Value didn't change ---
+
+        try
+        {
+            cl.valueChanged(opt, oldValue, newValue, opts);
+        } catch (Throwable thr) {
+            System.err.println("-- Error caught in ChangeListener: " + thr.toString() + " --");
+            thr.printStackTrace();
+            while (thr.getCause() != null)
+            {
+                thr = thr.getCause();
+                System.err.println(" --> Cause: " + thr + " --");
+                thr.printStackTrace();
+            }
+            System.err.println("-- Error stack trace end --");
+            System.err.println();
+        }
+
+        Vector refresh = SOCGameOption.getAndClearRefreshList();
+        if (refresh == null)
+            return;  // <--- Early return: Nothing else changed ---
+
+        // Refresh each one now, depending on type:
+        if (optsControls == null)
+            return;  // should only be null if readOnly, and thus no changes to values anyway
+        for (int i = refresh.size() - 1; i >= 0; --i)
+        {
+            final SOCGameOption op = (SOCGameOption) (refresh.elementAt(i));
+            final Component opComp = (Component) optsControls.get(op.optKey);
+
+            switch (op.optType)  // OTYPE_*
+            {
+            case SOCGameOption.OTYPE_BOOL:
+                ((Checkbox) opComp).setState(op.getBoolValue());
+                break;
+    
+            case SOCGameOption.OTYPE_INT:
+            case SOCGameOption.OTYPE_INTBOOL:
+                {
+                    if (opComp instanceof TextField)
+                        ((TextField) opComp).setText(Integer.toString(op.getIntValue()));
+                    else
+                        ((Choice) opComp).select(op.getIntValue() - op.minIntValue);
+                    final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
+                    if (hasCheckbox)
+                    {
+                        Checkbox cb = (Checkbox) boolOptCheckboxes.get(op.optKey);
+                        if (cb != null)
+                            cb.setState(op.getBoolValue());
+                    }
+                }
+                break;
+    
+            case SOCGameOption.OTYPE_ENUM:
+            case SOCGameOption.OTYPE_ENUMBOOL:
+                {
+                    ((Choice) opComp).select(op.getIntValue() - op.minIntValue);
+                    final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
+                    if (hasCheckbox)
+                    {
+                        Checkbox cb = (Checkbox) boolOptCheckboxes.get(op.optKey);
+                        if (cb != null)
+                            cb.setState(op.getBoolValue());
+                    }
+                }
+                break;
+    
+            case SOCGameOption.OTYPE_STR:
+            case SOCGameOption.OTYPE_STRHIDE:
+                ((TextField) opComp).setText(op.getStringValue());
+                break;
+    
+                // default: unknown, see above
+            }
+        }
     }
 
     /** when an option with a boolValue's label is clicked, toggle its checkbox */
@@ -893,7 +1107,15 @@ public class NewGameOptionsFrame extends Frame
         Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
         if (cb == null)
             return;
-        cb.setState(! cb.getState());
+        final boolean becameChecked = ! cb.getState();
+        cb.setState(becameChecked);
+        opt.setBoolValue(becameChecked);
+        SOCGameOption.ChangeListener cl = opt.getChangeListener();
+        if (cl == null)
+            return;
+        final Boolean newValue = (becameChecked) ? Boolean.TRUE : Boolean.FALSE;
+        final Boolean oldValue = (becameChecked) ? Boolean.FALSE : Boolean.TRUE;
+        fireOptionChangeListener(cl, opt, oldValue, newValue);
     }
 
     /** required stub for MouseListener */
