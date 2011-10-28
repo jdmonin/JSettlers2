@@ -1415,7 +1415,8 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             clearOfferBut.setVisible(true);
             bankBut.setVisible(true);
-            bankUndoBut.setVisible(true);            
+            if (game.isPractice || (client.sVersion >= 1113))  // server version 1.1.13 and up
+                bankUndoBut.setVisible(true);
 
             if (! playerTradingDisabled)
             {
