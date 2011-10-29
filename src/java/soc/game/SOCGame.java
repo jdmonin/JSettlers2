@@ -1187,7 +1187,7 @@ public class SOCGame implements Serializable, Cloneable
      * Calculated by {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      *<P>
      * For options where the minimum version changes with its current value, some
-     * option version data is hardcoded in {@link SOCGameOption#getMinVersion()},
+     * option version data is hardcoded in {@link SOCGameOption#getMinVersion(Hashtable)},
      * executed on the server with a newer version than an older client.  So, the
      * version returned may be too low when called at that client.  The server
      * will let the client know if it's too old to join or create a game due

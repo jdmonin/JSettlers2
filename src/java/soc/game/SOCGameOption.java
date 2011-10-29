@@ -104,8 +104,8 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> NT  No trading allowed
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
-     *    existing option.  So in NewGameOptionsFrame, it appears on the same line
-     *    as the PL option in client version 1.1.13 and above.
+     *    existing option.  So in NewGameOptionsFrame, it appears on the line following
+     *    the PL option in client version 1.1.13 and above.
      *
      * <h3>If you want to add a game option:</h3>
      *<UL>
@@ -122,15 +122,21 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> Decide if all client versions can use your option.  Typically, if the option
      *   requires server changes but not any client changes, all clients can use it.
      *   (For example, "N7" for "roll no 7s early in the game" is strictly server-side.)
+     *<LI> Create the option by calling opt.put here in initAllOptions.
+     *   Use the current version for the "last modified" field.
      *<LI> If only <em>some values</em> of the option will require client changes,
-     *   also update {@link #getMinVersion()}.  (For example, if "PL"'s value is 5 or 6,
+     *   also update {@link #getMinVersion(Hashtable)}.  (For example, if "PL"'s value is 5 or 6,
      *   a new client would be needed to display that many players at once, but 2 - 4
-     *   can use any client version.)  If this is the case and your option type
+     *   can use any client version.) <BR>
+     *   If this is the case and your option type
      *   is {@link #OTYPE_ENUM} or {@link #OTYPE_ENUMBOOL}, also update
      *   {@link #getMaxEnumValueForVersion(String, int)}.
      *   Otherwise, update {@link #getMaxIntValueForVersion(String, int)}.
-     *<LI> Create the option by calling opt.put here in initAllOptions.
-     *   Use the current version for the "last modified" field.
+     *<LI> If the new option can be used by old clients by changing the values of
+     *   <em>other</em> related options when game options are sent to those versions,
+     *   add code to {@link #getMinVersion(Hashtable)}. <BR>
+     *   For example, the boolean "PLB" can force use of the 6-player board in
+     *   versions 1.1.08 - 1.1.12 by changing "PL"'s value to 5 or 6.
      *<LI> Within {@link SOCGame}, don't add any object fields due to the new option;
      *   instead call {@link SOCGame#isGameOptionDefined(String)},
      *   {@link SOCGame#getGameOptionIntValue(String)}, etc.
@@ -168,6 +174,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *   {@link #OTYPE_INT integer} option
      *<LI> Change the default value, although this can also be done
      *   at runtime on the command line
+     *<LI> Change the value at the server based on other options' values
      *</UL>
      *   Things you can't change about an option, because inconsistencies would occur:
      *<UL>
@@ -185,7 +192,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> Change the option here in initAllOptions; change the "last modified" field to
      *   the current game version. Otherwise the server can't tell the client what has
      *   changed about the option.
-     *<LI> If new values require a newer minimum client version, add code to {@link #getMinVersion()}.
+     *<LI> If new values require a newer minimum client version, add code to {@link #getMinVersion(Hashtable)}.
      *<LI> If adding a new enum value for {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL},
      *   add code to {@link #getMaxEnumValueForVersion(String, int)}.
      *<LI> If increasing the maximum value of an int-valued parameter, and the new maximum
@@ -381,7 +388,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * Minimum game version supporting this option, or -1;
      * same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      * Public direct usage of this is discouraged;
-     * use {@link #optionsMinimumVersion(Hashtable)} or {@link #getMinVersion()} instead,
+     * use {@link #optionsMinimumVersion(Hashtable)} or {@link #getMinVersion(Hashtable)} instead,
      * because the current value of an option can change its minimum version.
      * For example, a 5- or 6-player game will need a newer client than 4 players,
      * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
@@ -850,17 +857,27 @@ public class SOCGameOption implements Cloneable, Comparable
      * {@link #OTYPE_INTBOOL}), the minimum
      * value is -1 unless {@link #getBoolValue()} is true (that is, unless the option is set).
      *<P>
+     * Occasionally, an older client version supports a new option, but only by changing
+     * the value of some options it recognizes.
+     * This method will calculate the minimum client version at which options are unchanged,
+     * if <tt>opts</tt> != null.
+     *<P>
      * Because this calculation is hardcoded here, the version returned may be too low when
      * called at an older-version client.  The server will let the client know if it's too
      * old to join or create a game due to options.
      *
+     * @param  opts  If null, return the minimum version supporting this option.
+     *               Otherwise, the minimum version at which this option's value isn't changed
+     *               (for compatibility) by the presence of other options. 
      * @return minimum version, or -1;
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
+     *     If <tt>opts != null</tt>, the returned version will either be -1 or >= 1107
+     *     (the first version with game options).
      * @see #optionsMinimumVersion(Hashtable)
      * @see #getMaxEnumValueForVersion(String, int)
      * @see #getMaxIntValueForVersion(String, int)
      */
-    public int getMinVersion()
+    public int getMinVersion(Hashtable opts)
     {
         if ((optType == OTYPE_BOOL) || (optType == OTYPE_INTBOOL)
             || (optType == OTYPE_ENUMBOOL))  // OTYPE_*: check here if boolean-valued
@@ -875,8 +892,26 @@ public class SOCGameOption implements Cloneable, Comparable
         // If your option changes the minVers based on its current value,
         // check the optKey and current value, and return the appropriate version,
         // instead of just returning minVersion.
+        //
+        // ADDITIONAL BACKWARDS-COMPATIBLE CHECK (opts != null):
+        // If opts != null, also check if your option is supported in lower versions
+        // (backwards-compatible) only with possible changes to its value.  If this
+        // situation applies and opts != null, return the lowest client version
+        // where you _don't_ need to change the value to be backwards-compatible.
+        // (That version is probably the one in which you introduced the game option.)
+        // To simplify the server-side code, do not return less than 1107 (the first
+        // version with game options) for this backwards-compatible version number
+        // unless you are returning -1.
+        // EXAMPLE:
+        // For clients below 1.1.13, if game option PLB is set, option
+        // PL must be changed to 5 or 6 to force use of the 6-player board.
+        // For clients 1.1.13 and newer, PLB is recognized at the client,
+        // so PL can be less than 5 and still use the 6-player board.
+        // So, if PLB is set, and PL > 4, return 1113 because client
+        // versions <= 1112 would need PL changed.
+        // If PLB is set, and PL <= 4, return 1108 (the first version with a 6-player board).
 
-        // SAMPLE CODE:
+        // SAMPLE CODE: (without ADDITONAL CHECK)
         /*
         if (optKey.equals("N7") && (intValue == 42))
         {
@@ -884,10 +919,23 @@ public class SOCGameOption implements Cloneable, Comparable
         }
         */
         // END OF SAMPLE CODE.
+        // The following non-sample code demonstrates the ADDITIONAL CHECK:
 
-        if (optKey.equals("PL") && (intValue > 4))
+        if (optKey.equals("PL"))
         {
-            return 1108;  // 5 or 6 players
+            if ((opts != null) && (intValue <= 4) && opts.containsKey("PLB"))
+            {
+                // For clients below 1.1.13, if PLB is set,
+                // PL must be changed to 5 or 6 to force use of the 6-player board.
+                // For clients 1.1.13 and newer, PLB is recognized at the client,
+                // so PL can be less than 5 and still use the 6-player board.
+
+                SOCGameOption plb = (SOCGameOption) opts.get("PLB");
+                if (plb.boolValue)
+                    return 1113;
+            }
+            if (intValue > 4)
+                return 1108;  // 5 or 6 players
         }
 
         return minVersion;
@@ -1121,7 +1169,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *            Suitable only for sending defaults.
      * @param cliVers  Client version; assumed >= {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
-     *            Use -2 if the client version doesn't matter.
+     *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
      * @return string of name-value pairs, or "-" for an empty or null ohash;
      *         see {@link #packOptionsToString(Hashtable, boolean)} javadoc for details.
      * @throws ClassCastException if hashtable contains anything other
@@ -1138,6 +1186,7 @@ public class SOCGameOption implements Cloneable, Comparable
 	final boolean hasOptPLB = (cliVers != -2) && ohash.containsKey("PLB")
 	    && ((SOCGameOption) ohash.get("PLB")).boolValue;
 
+	// Pack all non-unknown options:
 	StringBuffer sb = new StringBuffer();
 	boolean hadAny = false;
 	for (Enumeration e = ohash.keys(); e.hasMoreElements(); )
@@ -1357,18 +1406,48 @@ public class SOCGameOption implements Cloneable, Comparable
      * Calls at the client to optionsMinimumVersion should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *
+     * @param opts  a set of SOCGameOptions; not null
      * @return the highest 'minimum version' among these options, or -1
      * @throws ClassCastException if values contain a non-{@link SOCGameOption}
-     * @see #getMinVersion()
+     * @see #optionsMinimumVersion(Hashtable, boolean)
+     * @see #getMinVersion(Hashtable)
      */
     public static int optionsMinimumVersion(Hashtable opts)
+        throws ClassCastException
+    {
+        return optionsMinimumVersion(opts, false);
+    }
+
+    /**
+     * Examine this set of options, finding the minimum required version to support
+     * a game with these options.  The current value of an option can change its minimum version.
+     * For example, a 5- or 6-player game will need a newer client than 4 players,
+     * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
+     *<P>
+     * This calculation is done at the server when creating a new game.  Although the client's
+     * version and options (and thus its copy of optionsMinimumVersion) may be newer or older,
+     * and would give a different result if called, the server is authoritative for game options.
+     * Calls at the client to optionsMinimumVersion should keep this in mind, especially if
+     * a client's game option's {@link #lastModVersion} is newer than the server.
+     *<P>
+     * TODO verbiage re findCliVersionUnchanged
+     *
+     * @param opts  a set of SOCGameOptions; not null
+     * @param findCliVersionUnchanged  TODO javadoc ... -1, or 1107 or more
+     * @return the highest 'minimum version' among these options, or -1
+     * @throws ClassCastException if values contain a non-{@link SOCGameOption}
+     * @see #optionsMinimumVersion(Hashtable)
+     * @see #getMinVersion(Hashtable)
+     */
+    public static int optionsMinimumVersion(Hashtable opts, final boolean findCliVersionUnchanged)
 	throws ClassCastException
     {
 	int minVers = -1;
+	final Hashtable oarg = findCliVersionUnchanged ? opts : null;
 	for (Enumeration e = opts.keys(); e.hasMoreElements(); )
 	{
 	    SOCGameOption op = (SOCGameOption) opts.get(e.nextElement());
-            int opMin = op.getMinVersion();  // includes any option value checking for minVers
+            int opMin = op.getMinVersion(oarg);  // includes any option value checking for minVers
 	    if (opMin > minVers)
 		minVers = opMin;
 	}
@@ -1390,7 +1469,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param checkValues  Which mode: Check options' current values and {@link #minVersion},
      *              not their {@link #lastModVersion}?
      *              An option's minimum version can increase based
-     *              on its value; see {@link #getMinVersion()}.
+     *              on its value; see {@link #getMinVersion(Hashtable)}.
      * @param trimEnums  For enum-type options where minVersion changes based on current value,
      *              should we remove too-new values from the returned option info?
      *              This lets us send only the permitted values to an older client.
@@ -1411,7 +1490,7 @@ public class SOCGameOption implements Cloneable, Comparable
 
             if (checkValues)
             {
-                if (opt.getMinVersion() <= vers)
+                if (opt.getMinVersion(null) <= vers)
                     opt = null;  // not too new
             } else {
                 if (opt.lastModVersion <= vers)

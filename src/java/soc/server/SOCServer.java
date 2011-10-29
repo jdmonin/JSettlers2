@@ -894,7 +894,7 @@ public class SOCServer extends Server
                 result = true;
                 ((SOCClientData) c.getAppData()).createdGame();
 
-                // check version before we broadcast
+                // check required client version before we broadcast
                 final int cversMin = getMinConnectedCliVersion();
 
                 if ((gVers <= cversMin) && (gaOpts == null))
@@ -906,11 +906,23 @@ public class SOCServer extends Server
                     // Send messages, based on clients' version
                     // and whether there are game options.
 
-                    if (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                    // Client version variables:
+                    // cversMax: maximum version connected to server
+                    // cversMin: minimum version connected to server 
+                    // VERSION_FOR_NEWGAMEWITHOPTIONS: minimum to understand game options
+
+                    // Game version variables:
+                    // gVersMinGameOptsNoChange: minimum to understand these game options
+                    //           without backwards-compatibility changes to their values     
+                    // gVers: minimum to play the game
+
+                    final int gVersMinGameOptsNoChange = SOCGameOption.optionsMinimumVersion(gaOpts, true);
+                    if ((cversMin >= gVersMinGameOptsNoChange)
+                        && (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
                     {
                         // All cli can understand msg with version/options included
                         broadcast
-                            (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers));
+                            (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2));
                     } else {
                         // Only some can understand msg with version/options included;
                         // send at most 1 message to each connected client, split by client version.
@@ -922,9 +934,46 @@ public class SOCServer extends Server
                         final int newgameSimpleMsgMaxCliVers;
                         if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
                         {
-                            broadcastToVers
-                                (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers),
-                                 SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
+                            // Announce to the connected clients with versions new enough for game options:
+
+                            if ((cversMin < gVersMinGameOptsNoChange)  // client versions are connected
+                                && (gVers < gVersMinGameOptsNoChange)) // able to play, but needs value changes
+                            {
+                                // Some clients' versions are too old to understand these game
+                                // option values without change; send them an altered set for
+                                // compatibility with those clients.
+
+                                // Since cversMin < gVersMinGameOptsNoChange,
+                                //   we know gVersMinGameOptsNoChange > -1 and thus >= 1107.
+                                // cversMax and VERSION_FOR_NEWGAMEWITHOPTIONS are also 1107.
+                                // So:
+                                //  1107 <= cversMax
+                                //  gVers < gVersMinGameOptsNoChange
+                                //  1107 <= gVersMinGameOptsNoChange
+
+                                // Loop through "joinable" client versions < gVersMinGameOptsNoChange.
+                                // A separate message is sent below to clients < gVers.
+                                int cv = cversMin;  // start loop with min cli version
+                                if (gVers > cv)
+                                    cv = gVers;  // game version is higher, start there
+
+                                for ( ; cv < gVersMinGameOptsNoChange; ++cv)
+                                {
+                                    if (isCliVersionConnected(cv))
+                                        broadcastToVers
+                                          (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, cv),
+                                           cv, cv);
+                                }
+                                // Now send to newer clients, no changes needed
+                                broadcastToVers
+                                  (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
+                                   gVersMinGameOptsNoChange, Integer.MAX_VALUE);
+                            } else {
+                                // No clients need backwards-compatible option value changes.
+                                broadcastToVers
+                                  (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
+                                   SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
+                            }
                             newgameSimpleMsgMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
                         } else {
                             newgameSimpleMsgMaxCliVers = Integer.MAX_VALUE;

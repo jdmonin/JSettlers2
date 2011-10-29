@@ -139,12 +139,14 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param ga  the name of the game; the game name may have
      *            the {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE} prefix.
      * @param opts Requested game options, as a hashtable of {@link soc.game.SOCGameOption}
-     * @param minVers Minimum client version required, or -1     
+     * @param gameMinVers Minimum client version required, or -1
+     * @param cliVers  Client version, if any game's options need adjustment for an older client.
+     *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
      * @return the command string
      */
-    public static String toCmd(String ga, Hashtable opts, int minVers)
+    public static String toCmd(String ga, Hashtable opts, final int gameMinVers, final int cliVers)
     {
-	return toCmd(ga, SOCGameOption.packOptionsToString(opts, false), minVers);
+	return toCmd(ga, SOCGameOption.packOptionsToString(opts, false, cliVers), gameMinVers);
     }
 
     /**
@@ -155,6 +157,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * @param ga  the game
      * @param cliVers  Client version; assumed >= {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
+     *            Use -2 if the client version doesn't matter.
      * @return the command string
      */
     public static String toCmd(SOCGame ga, final int cliVers)
