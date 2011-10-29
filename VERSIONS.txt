@@ -18,6 +18,8 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
      is newer than 1.1.08 (released January 2010).
 - Warn on server startup if robots take up most of maxConnections
 - On server startup, show each property's description
+- If the graphical PlayerClient starts a server, the "server is running" text on-screen
+     now also says "Click for info" (D Sawyer idea)
 - New debug command for robots:  botname:print-vars
 - If server forces a robot to end its turn, will print the bot's brain status
       variables and last two turns' received messages before it forces the end.
