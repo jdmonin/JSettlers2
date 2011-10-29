@@ -657,6 +657,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * <b>Locks:</b> Caller should synchronize on {@link #unnamedConns},
      *   and call just before incrementing {@link #numberCurrentConnections}.
      *
+     * @param cvers Client version number, from {@link StringConnection#getVersion()}.
      * @see #clientVersionRem(int)
      * @see #getMinConnectedCliVersion()
      * @see #getMaxConnectedCliVersion()
@@ -696,6 +697,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *   right after decrementing numberCurrentConnections (in case a consistency-check
      *   is called from here).
      *
+     * @param cvers Client version number, from {@link StringConnection#getVersion()}.
      * @see #clientVersionAdd(int)
      * @see #getMinConnectedCliVersion()
      * @see #getMaxConnectedCliVersion()
@@ -750,6 +752,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @return the version number of the oldest-version client
      *         that is currently connected
      * @since 1.1.06
+     * @see #isCliVersionConnected(int)
      */
     public int getMinConnectedCliVersion()
     {
@@ -760,10 +763,28 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @return the version number of the newest-version client
      *         that is currently connected
      * @since 1.1.06
+     * @see #isCliVersionConnected(int)
      */
     public int getMaxConnectedCliVersion()
     {
         return cliVersionMax;
+    }
+
+    /**
+     * Is a client with this version number currently connected?
+     * @param cvers Client version number, from {@link StringConnection#getVersion()}.
+     * @return  True if a client of this version is currently connected,
+     *    according to calls to {@link #clientVersionAdd(int)}
+     *    and {@link #clientVersionRem(int)}
+     * @since 1.1.13
+     * @see #getMinConnectedCliVersion()
+     * @see #getMaxConnectedCliVersion()
+     */
+    public boolean isCliVersionConnected(final int cvers)
+    {
+        ConnVersionCounter cv = (ConnVersionCounter)
+            cliVersionsConnected.get(new Integer(cvers));
+        return (cv != null) && (cv.cliCount > 0);
     }
 
     /**
