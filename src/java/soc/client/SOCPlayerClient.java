@@ -4913,7 +4913,7 @@ public class SOCPlayerClient extends Applet
         localTCPServer.setupLocalRobots(5, 2);
 
         // Set label
-        localTCPServerLabel.setText("Server is Running.");
+        localTCPServerLabel.setText("Server is Running. (Click for info)");
         localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
         localTCPServerLabel.addMouseListener(this);
         versionOrlocalTCPPortLabel.setText("Port: " + tport);
