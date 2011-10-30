@@ -776,7 +776,8 @@ public class SOCServer extends Server
      * @param gaName  the name of the game
      * @param gaOpts  if creating a game with options, hashtable of {@link SOCGameOption}; otherwise null.
      *                Should already be validated, by calling
-     *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
+     *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *                with <tt>doServerPreadjust</tt> true.
      *
      * @return     true if c was not a member of ch before,
      *             false if c was already in this game
@@ -4317,7 +4318,7 @@ public class SOCServer extends Server
      *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_UNKNOWN SV_NEWGAME_OPTION_UNKNOWN}) <br>
      *      - if any are too new for client's version, resp with
      *        STATUSMESSAGE({@link SOCStatusMessage#SV_NEWGAME_OPTION_VALUE_TOONEW SV_NEWGAME_OPTION_VALUE_TOONEW}) <br>
-     *      Comparison is done by {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
+     *      Comparison is done by {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}.
      *  <LI> if ok: create new game with params;
      *      socgame will calc game's minCliVersion,
      *      and this method will check that against cli's version.
@@ -4334,8 +4335,9 @@ public class SOCServer extends Server
      * @param gameName  name of game to create/join. Must pass {@link SOCMessage#isSingleLineAndSafe(String)}
      *                  and be at most {@link #GAME_NAME_MAX_LENGTH} characters.
      * @param gameOpts  if game has options, contains {@link SOCGameOption} to create new game; if not null, will not join an existing game.
-     *                  Will validate by calling
-     *                  {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
+     *                  Will validate and adjust by calling
+     *                  {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *                  with <tt>doServerPreadjust</tt> true.
      *
      * @since 1.1.07
      */
@@ -4462,7 +4464,7 @@ public class SOCServer extends Server
                 return;  // <---- Early return ----
             }
 
-            final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null);
+            final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null, true);
             if (optProblems != null)
             {
                 c.put(SOCStatusMessage.toCmd

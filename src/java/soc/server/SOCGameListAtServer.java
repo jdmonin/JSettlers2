@@ -257,7 +257,8 @@ public class SOCGameListAtServer extends SOCGameList
      * @param gaOwner the game owner/creator's player name, or null (added in 1.1.10)
      * @param gaOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *                Should already be validated, by calling
-     *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)}.
+     *                {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *                with <tt>doServerPreadjust</tt> true.
      * @return new game object, or null if it already existed
      */
     public synchronized SOCGame createGame(final String gaName, final String gaOwner, Hashtable gaOpts)

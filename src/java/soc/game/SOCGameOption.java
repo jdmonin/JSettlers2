@@ -60,7 +60,9 @@ import soc.message.SOCMessage;
  * the old behavior; its default value on your server can be changed at runtime.
  *<P>
  * Since 1.1.13, when the user changes options while creating a new game, related
- * options can be changed on-screen; see {@link SOCGameOption.ChangeListener} for details.
+ * options can be changed on-screen for consistency; see {@link SOCGameOption.ChangeListener} for details.
+ * If you create a ChangeListener, consider adding equivalent code to
+ * {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)} for the server side.
  *<P>
  * Game options were introduced in 1.1.07; check server, client versions against
  * {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
@@ -409,7 +411,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE})
      *<P>
      * Only recommended for seldom-used options.
-     * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable)}.
+     * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)}.
      * Once this flag is set for an option, it should not be un-set if the
      * option is changed in a later version.
      *<P>
@@ -911,7 +913,7 @@ public class SOCGameOption implements Cloneable, Comparable
         // versions <= 1112 would need PL changed.
         // If PLB is set, and PL <= 4, return 1108 (the first version with a 6-player board).
 
-        // SAMPLE CODE: (without ADDITONAL CHECK)
+        // SAMPLE CODE: (without ADDITIONAL CHECK)
         /*
         if (optKey.equals("N7") && (intValue == 42))
         {
@@ -1556,6 +1558,12 @@ public class SOCGameOption implements Cloneable, Comparable
      * their {@link #dropIfUnused} flag is set, remove them from newOpts.
      * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
      * boolean values are checked against defaults.
+     *<P>
+     * If <tt>doServerPreadjust</tt> is true, then the server might also change some
+     * option values before creating the game, for overall consistency of the set of options.
+     * This is a server-side equivalent to the client-side {@link ChangeListener}s.
+     * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
+     * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
      *
      * @param newOpts Set of SOCGameOptions to check against knownOpts;
      *            an option's current value will be changed if it's outside of
@@ -1563,6 +1571,10 @@ public class SOCGameOption implements Cloneable, Comparable
      *            Must not be null.
      * @param knownOpts Set of known SOCGameOptions to check against, or null to use
      *            the server's static copy
+     * @param doServerPreadjust  If true, we're calling from the server before creating a game;
+     *            pre-adjust any values for consistency.
+     *            This is a server-side equivalent to the client-side {@link ChangeListener}s.
+     *            (Added in 1.1.13)
      * @return <tt>null</tt> if all are known; or, a human-readable problem description if:
      *            <UL>
      *            <LI> any of <tt>newOpts</tt> are unknown
@@ -1571,11 +1583,43 @@ public class SOCGameOption implements Cloneable, Comparable
      *            </UL>
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
-    public static StringBuffer adjustOptionsToKnown(Hashtable newOpts, Hashtable knownOpts)
+    public static StringBuffer adjustOptionsToKnown
+        (Hashtable newOpts, Hashtable knownOpts, final boolean doServerPreadjust)
         throws IllegalArgumentException
     {
         if (knownOpts == null)
             knownOpts = allOptions;
+
+        if (doServerPreadjust)
+        {
+            // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
+            //   code here. Set or change options if it makes sense; if a user has deliberately
+            //    set a boolean option, think carefully before un-setting it and surprising them.
+
+            // Set PLB if PL>4
+            SOCGameOption optPL = (SOCGameOption) newOpts.get("PL");
+            if ((optPL != null) && (optPL.getIntValue() > 4))
+            {
+                SOCGameOption optPLB = (SOCGameOption) newOpts.get("PLB");
+                if (optPLB == null)
+                {
+                    try
+                    {
+                        optPLB = (SOCGameOption) (((SOCGameOption) allOptions.get("PLB")).clone());
+                    }
+                    catch (CloneNotSupportedException e)
+                    {
+                        // required stub; is Cloneable, so won't happen
+                    }
+                    optPLB.boolValue = true;
+                    newOpts.put("PLB", optPLB);
+                }
+                else if (! optPLB.boolValue)
+                {
+                    optPLB.boolValue = true;
+                }
+            }
+        }  // if(doServerPreadjust)
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
 
@@ -1848,15 +1892,20 @@ public class SOCGameOption implements Cloneable, Comparable
     }
 
     /**
-     * Listener for option value changes at the client during game creation.
+     * Listener for option value changes <em>at the client</em> during game creation.
      * When the user changes an option, allows a related option to change.
      * For example, when the max players is changed to 5 or 6,
      * the listener can check the box for "use 6-player board".
      *<P>
-     * The server can't do anything to update the client's ChangeListener
-     * code, so be careful and write them defensively.
+     * Once written, the server can't do anything to update the client's
+     * ChangeListener code, so be careful and write them defensively.
      *<P> 
      * Callback method is {@link #valueChanged(SOCGameOption, Object, Object, Hashtable)}.
+     *<P>
+     * For <em>server-side</em> consistency adjustment of values before creating games,
+     * add code to {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     * that's equivalent to your ChangeListener.
+     *
      * @see SOCGameOption#addChangeListener(ChangeListener)
      * @since 1.1.13
      */

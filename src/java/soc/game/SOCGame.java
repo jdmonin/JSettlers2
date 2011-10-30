@@ -638,7 +638,8 @@ public class SOCGame implements Serializable, Cloneable
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
-     *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)},
+     *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
      *           {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      * @throws IllegalArgumentException if op contains unknown options, or any
@@ -676,7 +677,8 @@ public class SOCGame implements Serializable, Cloneable
      * @param a  true if this is an active game, false for inactive
      * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
-     *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable)},
+     *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
+     *           with <tt>doServerPreadjust</tt> false,
      *           and set game's minimum version by calling
      *           {@link SOCGameOption#optionsMinimumVersion(Hashtable)}.
      * @throws IllegalArgumentException if op contains unknown options, or any
@@ -741,7 +743,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             clientVersionMinRequired = -1;
         } else {
-            final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(op, null); 
+            final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(op, null, false); 
             if (optProblems != null)
                 throw new IllegalArgumentException("op: unknown option(s): " + optProblems);
 
