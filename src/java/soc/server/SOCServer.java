@@ -917,7 +917,12 @@ public class SOCServer extends Server
                     //           without backwards-compatibility changes to their values     
                     // gVers: minimum to play the game
 
-                    final int gVersMinGameOptsNoChange = SOCGameOption.optionsMinimumVersion(gaOpts, true);
+                    final int gVersMinGameOptsNoChange;
+                    if (cversMin < Version.versionNumber())
+                        gVersMinGameOptsNoChange = SOCGameOption.optionsMinimumVersion(gaOpts, true);
+                    else
+                        gVersMinGameOptsNoChange = -1;  // all clients are our current version
+
                     if ((cversMin >= gVersMinGameOptsNoChange)
                         && (cversMin >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
                     {
