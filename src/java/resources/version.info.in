@@ -1,5 +1,6 @@
 # Project info template
 # Copied to resources with a filter to set the proper values
+# To change version and versionnum, edit build.xml
 # Buildnum is set directly here, because it changes more often
 # See also soc.util.Version
 project.version=@VERSION@
