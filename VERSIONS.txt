@@ -27,6 +27,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - If game is in progress, joining/leaving people also announced in chat area (less clutter there)
 - Don't echo info commands like *STATS* to all players
 - Bugfix: If observer closes the game window, shouldn't ask them if want to keep playing
+- Bugfix: Show "(cannot join)" in client's game list for unjoinable games sent when client connects
 - Bugfix: Truncating player name, don't drop the first character
 - New game option backwards-compatibility framework: allows use of some new game options (like PLB)
       with older clients, by changing related option values (like PL) sent to those old clients.

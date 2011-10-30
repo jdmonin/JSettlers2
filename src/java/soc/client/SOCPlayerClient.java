@@ -3840,7 +3840,7 @@ public class SOCPlayerClient extends Applet
     {
         // Any game's name in this msg may start with the "unjoinable" prefix
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
-        // We'll recognize and remove it in methods called from here.
+        // This is recognized and removed in mes.getGameList.
 
         SOCGameList msgGames = mes.getGameList();
         if (msgGames == null)
@@ -3863,7 +3863,9 @@ public class SOCPlayerClient extends Applet
         while (gamesEnum.hasMoreElements())
         {
             String gaName = (String) gamesEnum.nextElement();
-            addToGameList(gaName, msgGames.getGameOptionsString(gaName), false);
+            addToGameList
+                (msgGames.isUnjoinableGame(gaName), gaName,
+                 msgGames.getGameOptionsString(gaName), false);
         }
     }
 

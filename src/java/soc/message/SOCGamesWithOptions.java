@@ -64,8 +64,13 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
 
     /**
      * Get the list of games (and option strings).
-     * List contains each game's option strings sent from server, as packed by
+     * List contains each game's name and option strings sent from server, as packed by
      * {@link soc.game.SOCGameOption#packOptionsToString(java.util.Hashtable, boolean)}.
+     *<P>
+     * Game names may be marked with the prefix {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE};
+     * this will be removed from their names before adding to the returned game list.
+     * To see if a game cannot be joined, call {@link SOCGameList#isUnjoinableGame(String)}.
+     *
      * @return list of games contained in this message, or an empty SOCGameList
      * @see SOCGameList#parseGameOptions(String)
      */

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2008-2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -292,7 +292,8 @@ public class SOCGameList
     }
 
     /**
-     * does this game have the unjoinable flag prefix?
+     * does this game have the unjoinable flag, either in its game info in our GameList,
+     *     or by a special prefix in its name string?
      * @param   gaName  the name of the game;  may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      *         Remember that the prefix is not stored as part of the game name in this list,
