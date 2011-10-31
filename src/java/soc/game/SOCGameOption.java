@@ -237,6 +237,7 @@ public class SOCGameOption implements Cloneable, Comparable
 
         // ChangeListeners for client convenience:
         // Remember that the server can't update this code at the client.
+        // If you create a ChangeListener, also update adjustOptionsToKnown for server-side code.
 
         // If PL goes over 4, set PLB.
         pl.addChangeListener(new ChangeListener()
@@ -860,7 +861,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * value is -1 unless {@link #getBoolValue()} is true (that is, unless the option is set).
      *<P>
      * Occasionally, an older client version supports a new option, but only by changing
-     * the value of some options it recognizes.
+     * the value of some other options it recognizes.
      * This method will calculate the minimum client version at which options are unchanged,
      * if <tt>opts</tt> != null.
      *<P>
@@ -1432,20 +1433,27 @@ public class SOCGameOption implements Cloneable, Comparable
      * Calls at the client to optionsMinimumVersion should keep this in mind, especially if
      * a client's game option's {@link #lastModVersion} is newer than the server.
      *<P>
-     * TODO verbiage re findCliVersionUnchanged
+     * <b>Backwards-compatibility support: <tt>minCliVersionForUnchangedOpts</tt> parameter:</b><br>
+     * Occasionally, an older client version supports a new option, but only by changing
+     * the value of some other options it recognizes.  If this parameter is true,
+     * this method will calculate the minimum client version at which options are understood
+     * without backwards-compatibility changes to their values.
      *
      * @param opts  a set of SOCGameOptions; not null
-     * @param findCliVersionUnchanged  TODO javadoc ... -1, or 1107 or more
-     * @return the highest 'minimum version' among these options, or -1
+     * @param minCliVersionForUnchangedOpts  If true, return the minimum version at which these
+     *         options' values aren't changed (for compatibility) by the presence of new options.
+     * @return the highest 'minimum version' among these options, or -1.
+     *         If <tt>minCliVersionForUnchangedOpts</tt>, the returned version will either be -1 or >= 1107
+     *         (the first version with game options).
      * @throws ClassCastException if values contain a non-{@link SOCGameOption}
      * @see #optionsMinimumVersion(Hashtable)
      * @see #getMinVersion(Hashtable)
      */
-    public static int optionsMinimumVersion(Hashtable opts, final boolean findCliVersionUnchanged)
+    public static int optionsMinimumVersion(Hashtable opts, final boolean minCliVersionForUnchangedOpts)
 	throws ClassCastException
     {
 	int minVers = -1;
-	final Hashtable oarg = findCliVersionUnchanged ? opts : null;
+	final Hashtable oarg = minCliVersionForUnchangedOpts ? opts : null;
 	for (Enumeration e = opts.keys(); e.hasMoreElements(); )
 	{
 	    SOCGameOption op = (SOCGameOption) opts.get(e.nextElement());
