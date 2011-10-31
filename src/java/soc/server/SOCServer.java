@@ -937,7 +937,8 @@ public class SOCServer extends Server
                         // message type to all clients.
 
                         final int cversMax = getMaxConnectedCliVersion();
-                        final int newgameSimpleMsgMaxCliVers;
+                        final int newgameSimpleMsgMaxCliVers;  // max version to get simple no-opts newgame message
+
                         if ((gaOpts != null) && (cversMax >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
                         {
                             // Announce to the connected clients with versions new enough for game options:
@@ -980,20 +981,40 @@ public class SOCServer extends Server
                                   (SOCNewGameWithOptions.toCmd(gaName, gaOpts, gVers, -2),
                                    SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS, Integer.MAX_VALUE);
                             }
+
+                            // Simple announcement will go only to
+                            // clients too old to understand NEWGAMEWITHOPTIONS
                             newgameSimpleMsgMaxCliVers = SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS - 1;
                         } else {
+
+                            // Game has no opts, or no clients are new enough for opts;
+                            // simple announcement will go to all clients
                             newgameSimpleMsgMaxCliVers = Integer.MAX_VALUE;
                         }
 
-                        // To older clients who can join, announce game without its options/version
-                        broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameSimpleMsgMaxCliVers);
+                        // "Simple" announcement message without game options:
+                        final int newgameSimpleMsgCantJoinVers;  // narrow down the versions for announcement
+                        if (gVers <= newgameSimpleMsgMaxCliVers)
+                        {
+                            // To older clients who can join, announce game without its options/version
+                            broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameSimpleMsgMaxCliVers);
+                            newgameSimpleMsgCantJoinVers = gVers - 1;
+                        } else {
+                            // No older clients can join.  This game's already been announced to                       
+                            // some clients (new enough for NEWGAMEWITHOPTIONS).
+                            newgameSimpleMsgCantJoinVers = newgameSimpleMsgMaxCliVers;
+                        }
 
                         // To older clients who can't join, announce game with cant-join prefix
-                        StringBuffer sb = new StringBuffer();
-                        sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
-                        sb.append(gaName);
-                        broadcastToVers
-                            (SOCNewGame.toCmd(sb.toString()), SOCGames.VERSION_FOR_UNJOINABLE, gVers-1);
+                        if (cversMin <= newgameSimpleMsgCantJoinVers)
+                        {
+                            StringBuffer sb = new StringBuffer();
+                            sb.append(SOCGames.MARKER_THIS_GAME_UNJOINABLE);
+                            sb.append(gaName);
+                            broadcastToVers
+                                (SOCNewGame.toCmd(sb.toString()),
+                                 SOCGames.VERSION_FOR_UNJOINABLE, newgameSimpleMsgCantJoinVers);
+                        }
                     }
                 }
             }
