@@ -57,6 +57,8 @@ import soc.util.Version;
 /**
  * This is the dialog for options to set in a new game.
  * Prompt for name and options.
+ *<P>
+ * Also used for showing a game's options (read-only) during game play.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.07
@@ -84,6 +86,12 @@ public class NewGameOptionsFrame extends Frame
 
     /** Contains this game's {@link SOCGameOption}s, or null if none.
      *  Unknowns (OTYPE_UNKNOWN) are removed in initInterface_options.
+     *<P>
+     * The opts' values are updated from controls when the user hits the Create Game button,
+     * and sent to the server to create the game.  If there are {@link SOCGameOption.ChangeListener}s,
+     * they are updated as soon as the user changes them in the controls, then re-updated when
+     * Create is hit.
+     * @see #readOptsValuesFromControls(boolean)
      */
     private Hashtable opts;
 
