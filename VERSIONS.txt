@@ -4,7 +4,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
-    > 1.1.13 (build 20110xxx)
+    > 1.1.13 (build JM20111101)
 - Game name maximum length is 30, was 20 previously
 - Allow player to undo their last bank trade, if the undo is the very next thing they do,
      by trading the same resources back. For example, give back 1 brick to get back 3 sheep.
