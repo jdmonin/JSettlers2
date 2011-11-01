@@ -2253,6 +2253,10 @@ public class SOCServer extends Server
 
     /**
      * Things to do when a new connection comes.
+     *<P>
+     * If we already have {@link #maxConnections} named clients, reject this new one
+     * by sending {@link SOCRejectConnection}.
+     *<P>
      * If the connection is accepted, it's added to {@link #unnamedConns} until the
      * player "names" it by joining or creating a game under their player name.
      * Other communication is then done, in {@link #newConnection2(StringConnection)}.

@@ -56,6 +56,9 @@ import java.util.Vector;
  *  to handle messages from the client.  Treat places them in a server-wide {@link #inQueue},
  *  which is processed in a server-wide single thread called the "treater".
  *<P>
+ *  Alternately, it could be rejected in <tt>newConnection1</tt> for any reason,
+ *  including too many connections versus {@link #connectionCount()}.
+ *<P>
  *  To handle inbound messages from the clients, the server-wide "treater" thread
  *  will call {@link #processCommand(String, StringConnection)} for each message.
  *<P>
@@ -285,7 +288,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @return the count of named connections: StringConnections where {@link StringConnection#getData()}
      *         is not null
      */
-    protected synchronized int connectionCount()
+    protected int connectionCount()
     {
         return conns.size();
     }
@@ -322,6 +325,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 while (isUp())
                 {
                     // we could limit the number of accepted connections here
+                    // Currently it's limited in SOCServer.newConnection1 by checking connectionCount()
+                    // which is more modular.
                     StringConnection con = ss.accept();
                     if (port != -1)
                     {
