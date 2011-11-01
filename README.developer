@@ -119,9 +119,6 @@ Current TODO list
 
 	- User documentation is out of date; unsure if any user ever reads it anyway
 	- Visual reminder to player when they've made an offer
-	- Hovering mouse at center of robber-hex, should be able to see tooltip with the dice #.
-		instead, currently see road of players on either side
-	- Rename SOCGame.isLocal to .isPractice
 	- Show # VP when choosing where to sit, if game is in progress
 	- Keyboard shortcuts for "roll", "done" buttons
 	- Occasionally an image does not re-scale when board is stretched.
@@ -133,13 +130,21 @@ Current TODO list
 	- Control the speed of robots in practice
 		Adjust SOCRobotBrain.pause, ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS, etc
 	- Sound effects
+	- Property to require an account (user/password) in database in order to connect
 	- Properties for game option defaults for server startup
 		-Djsettlers.game.N7=y  instead of -O N7=y
 		allow lowercase too
 		probably best done at bottom of SOCServer.parseCmdline_DashedArgs
 	- Possible: Auto-add robots when needed as server runs, with server active-game count
 		only do it if jsettlers.startrobots property is set
+	- Refactor: Many SOCRobotClient handle-methods just put the message into brainQ,
+		these redundant handle-methods could be combined;
+		handleGAMESTATE, handleSETTURN, handleFIRSTPLAYER are examples
+	- Refactor: SOCGameOption static methods to check and change values within a set
+	- Some way to mark bot seats so they are locked out when the board is reset after a game
+		Possibly right-click the robot icon for a menu/popup to set this
 	- At board reset, game observers not currently handled properly
+	- cmdline option to create db-schema if empty: jsettlers.xx.tablecreate (sqlite or general)
 	- Game "owner" with extra powers (kick out player, etc)
 		what happens if owner loses connection?
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)

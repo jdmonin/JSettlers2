@@ -31,6 +31,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Bugfix: Truncating player name, don't drop the first character
 - New game option backwards-compatibility framework: allows use of some new game options (like PLB)
       with older clients, by changing related option values (like PL) sent to those old clients.
+- Rename SOCGame.isLocal field to .isPractice
 - License upgrade to GPL v3
 
     > 1.1.12 (build JM20110122)
