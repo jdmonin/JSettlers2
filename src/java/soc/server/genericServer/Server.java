@@ -57,7 +57,7 @@ import java.util.Vector;
  *  which is processed in a server-wide single thread called the "treater".
  *<P>
  *  Alternately, it could be rejected in <tt>newConnection1</tt> for any reason,
- *  including too many connections versus {@link #connectionCount()}.
+ *  including too many connections versus {@link #getNamedConnectionCount()}.
  *<P>
  *  To handle inbound messages from the clients, the server-wide "treater" thread
  *  will call {@link #processCommand(String, StringConnection)} for each message.
@@ -285,12 +285,26 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     }
 
     /**
+     * Get the current number of named connections to the server.
      * @return the count of named connections: StringConnections where {@link StringConnection#getData()}
      *         is not null
+     * @see #getCurrentConnectionCount()
      */
-    protected int connectionCount()
+    protected final int getNamedConnectionCount()
     {
         return conns.size();
+    }
+
+    /**
+     * Get the current number of connections (both named and unnamed) to the server.
+     * @return the count of connections, both unnamed and named
+     *         ({@link StringConnection#getData()} not null).
+     * @since 1.1.13
+     * @see #getNamedConnectionCount()
+     */
+    protected int getCurrentConnectionCount()
+    {
+        return numberCurrentConnections;
     }
 
     public synchronized boolean isUp()
@@ -545,7 +559,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 } else {
                     // no connection-key data; we can't identify it later if it reconnects;
                     // just print the announcement right now.
-                    D.ebugPrintln(c.host() + " left (" + connectionCount() + ")  " + (new Date()).toString() + ((cerr != null) ? (": " + cerr.toString()) : ""));
+                    D.ebugPrintln(c.host() + " left (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date()).toString() + ((cerr != null) ? (": " + cerr.toString()) : ""));
                 }
             }
         }
@@ -617,7 +631,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             }
             newConnection2(c);  // <-- App-specific #2 --
         } else {
-            D.ebugPrintln(c.host() + " came but rejected (" + connectionCount() + ")  " + (new Date()).toString());
+            D.ebugPrintln(c.host() + " came but rejected (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date()).toString());
         }
     }
 
@@ -1284,10 +1298,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             if (isArriveNotDepart)
             {
-                D.ebugPrintln(connHost + " came (" + connectionCount() + ")  " + (new Date(thrownAt)).toString());
+                D.ebugPrintln(connHost + " came (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date(thrownAt)).toString());
                 cliConnDisconPrintsPending.remove(arrivingConn);
             } else {
-                D.ebugPrintln(connHost + " left (" + connectionCount() + ")  " + (new Date(thrownAt)).toString() + ((excep != null) ? (": " + excep.toString()) : ""));
+                D.ebugPrintln(connHost + " left (" + getNamedConnectionCount() + "," + numberCurrentConnections + ")  " + (new Date(thrownAt)).toString() + ((excep != null) ? (": " + excep.toString()) : ""));
                 cliConnDisconPrintsPending.remove(connData);
             }
         }

@@ -2288,7 +2288,7 @@ public class SOCServer extends Server
              */
             try
             {
-                if (this.connectionCount() >= maxConnections)
+                if (getNamedConnectionCount() >= maxConnections)
                 {
                     SOCRejectConnection rcCommand = new SOCRejectConnection("Too many connections, please try another server.");
                     c.put(rcCommand.toCmd());
@@ -4077,8 +4077,9 @@ public class SOCServer extends Server
                   seconds = (diff - (hours * 60 * 60 * 1000) - (minutes * 60 * 1000)) / 1000;
             Runtime rt = Runtime.getRuntime();
             messageToPlayer(c, gaName, "> Uptime: " + hours + ":" + minutes + ":" + seconds);
-            messageToPlayer(c, gaName, "> Total connections: " + numberOfConnections);
-            messageToPlayer(c, gaName, "> Current connections: " + connectionCount());
+            messageToPlayer(c, gaName, "> Connections since startup: " + numberOfConnections);
+            messageToPlayer(c, gaName, "> Current named connections: " + getNamedConnectionCount());
+            messageToPlayer(c, gaName, "> Current connections including unnamed: " + getCurrentConnectionCount());
             messageToPlayer(c, gaName, "> Total Users: " + numberOfUsers);
             messageToPlayer(c, gaName, "> Games started: " + numberOfGamesStarted);
             messageToPlayer(c, gaName, "> Games finished: " + numberOfGamesFinished);

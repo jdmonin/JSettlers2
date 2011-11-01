@@ -26,6 +26,9 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
       variables and last two turns' received messages before it forces the end.
 - If game is in progress, joining/leaving people also announced in chat area (less clutter there)
 - Don't echo info commands like *STATS* to all players
+- Add current total connection count to *STATS* (including connections not yet named)
+- When clients arrive or depart, show both the named & total current connection count
+      on console "(7,9)"; previously showed only named connections "(7)"
 - Bugfix: If observer closes the game window, shouldn't ask them if want to keep playing
 - Bugfix: Show "(cannot join)" in client's game list for unjoinable games sent when client connects
 - Bugfix: Truncating player name, don't drop the first character
