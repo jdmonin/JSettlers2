@@ -73,9 +73,12 @@ Setting up and testing
 ----------------------
 
 From the command line, make sure you are in the JSettlers distribution
-directory which contains both JSettlers.jar, settlers-server.jar and the
+directory which contains both JSettlers.jar, JsettlersServer.jar and the
 "lib" directory.  (If you have downloaded jsettlers-1.1.xx-full.tar.gz,
 look in the src/target directory for these files.)
+
+If you have downloaded jsettlers-1.1.xx-full.jar or jsettlers-1.1.x-server.jar
+instead of the full tar.gz, use that filename on the command lines shown below.
 
 SERVER STARTUP:
 
@@ -113,6 +116,10 @@ Now, from another command line window, start the player client with
 the following command:
 
   java -jar JSettlers.jar localhost 8880
+
+You can instead double-click the JAR file to launch the client, and then
+click "connect to server".  Use the command line if you want to see the
+message traffic and debug output.
 
 In the player client window, enter "debug" in the Nickname field and
 create a new game.
@@ -293,4 +300,4 @@ files, and installation files are placed in "dist".
 JSettlers is licensed under the GNU General Public License.  Each source file
 lists contributors by year.  A copyright year range (for example, 2007-2011)
 means the file was contributed to by that person in each year of that range.
-
+See individual source files for the GPL version and other details.
