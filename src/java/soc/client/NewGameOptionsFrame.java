@@ -948,6 +948,9 @@ public class NewGameOptionsFrame extends Frame
             SOCGameOption.ChangeListener cl = opt.getChangeListener();
             if (cl == null)
                 return;
+
+            // If both bool and int fields are changed, update both before
+            // calling fireOptionChangeListener.  Boolean is called before int.
             if (cbSet)
             {
                 // ChangeListener for checkbox
@@ -989,15 +992,25 @@ public class NewGameOptionsFrame extends Frame
         SOCGameOption.ChangeListener cl = opt.getChangeListener();
         if (cl == null)
             return;
-        // TODO should update both int and bool fields before calling fireOptionChangeListener
+
+        // If both bool and int fields are changed, update both before
+        // calling fireOptionChangeListener.  Boolean is called before int.
+        final boolean fireBooleanListener;
+        final Object boolOldValue, boolNewValue;
+
         if (choiceSetCB || (ctrl instanceof Checkbox))
         {
+            fireBooleanListener = true;
             final boolean becameChecked = (e.getStateChange() == ItemEvent.SELECTED);
-            final Boolean newValue = (becameChecked) ? Boolean.TRUE : Boolean.FALSE;
-            final Boolean oldValue = (becameChecked) ? Boolean.FALSE : Boolean.TRUE;
+            boolNewValue = (becameChecked) ? Boolean.TRUE : Boolean.FALSE;
+            boolOldValue = (becameChecked) ? Boolean.FALSE : Boolean.TRUE;
             opt.setBoolValue(becameChecked);
-            fireOptionChangeListener(cl, opt, oldValue, newValue);
+        } else {
+            fireBooleanListener = false;
+            boolNewValue = null;
+            boolOldValue = null;
         }
+
         if (ctrl instanceof Choice)
         {
             int chIdx = ((Choice) ctrl).getSelectedIndex();  // 0 to n-1
@@ -1007,9 +1020,13 @@ public class NewGameOptionsFrame extends Frame
                 Integer newValue = new Integer(nv);
                 Integer oldValue = new Integer(opt.getIntValue());
                 opt.setIntValue(nv);
+                if (fireBooleanListener)
+                    fireOptionChangeListener(cl, opt, boolOldValue, boolNewValue);
                 fireOptionChangeListener(cl, opt, oldValue, newValue);
             }
         }
+        else if (fireBooleanListener)
+            fireOptionChangeListener(cl, opt, boolOldValue, boolNewValue);
     }
 
     /**

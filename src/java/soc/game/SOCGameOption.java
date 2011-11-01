@@ -1940,6 +1940,12 @@ public class SOCGameOption implements Cloneable, Comparable
          * For {@link SOCGameOption#OTYPE_INT} or <tt>OTYPE_INTBOOL</tt>, this method is
          * called once for each digit typed or deleted, so long as the resulting number
          * is parsable and within the min/max range for the option.
+         *<P>
+         * For {@link SOCGameOption#OTYPE_ENUMBOOL} or <tt>OTYPE_INTBOOL</tt>, if both the
+         * boolean and int value fields are set at once, then after updating both fields,
+         * <tt>valueChanged</tt> will be called twice (boolean and then int).
+         * If the boolean value is cleared to false, there won't be a second call for the
+         * int value, because when cleared the game option has no effect.
          *
          * @param opt  Option that has changed, already updated to new value
          * @param oldValue  Old value; an Integer, Boolean, or String.
