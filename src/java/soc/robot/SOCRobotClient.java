@@ -476,7 +476,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * server's 1x/second timing ping
              */
             case SOCMessage.TIMINGPING:
-                handleTIMINGPING((SOCTimingPing) mes);
+                handlePutBrainQ((SOCTimingPing) mes);
                 break;
 
             /**
@@ -521,7 +521,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * set the current turn
              */
             case SOCMessage.SETTURN:
-                handleSETTURN((SOCSetTurn) mes);
+                handlePutBrainQ((SOCSetTurn) mes);
 
                 break;
 
@@ -529,7 +529,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * set who the first player is
              */
             case SOCMessage.FIRSTPLAYER:
-                handleFIRSTPLAYER((SOCFirstPlayer) mes);
+                handlePutBrainQ((SOCFirstPlayer) mes);
 
                 break;
 
@@ -537,7 +537,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * update who's turn it is
              */
             case SOCMessage.TURN:
-                handleTURN((SOCTurn) mes);
+                handlePutBrainQ((SOCTurn) mes);
 
                 break;
 
@@ -545,7 +545,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * receive player information
              */
             case SOCMessage.PLAYERELEMENT:
-                handlePLAYERELEMENT((SOCPlayerElement) mes);
+                handlePutBrainQ((SOCPlayerElement) mes);
 
                 break;
 
@@ -553,7 +553,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * receive resource count
              */
             case SOCMessage.RESOURCECOUNT:
-                handleRESOURCECOUNT((SOCResourceCount) mes);
+                handlePutBrainQ((SOCResourceCount) mes);
 
                 break;
 
@@ -561,7 +561,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * the latest dice result
              */
             case SOCMessage.DICERESULT:
-                handleDICERESULT((SOCDiceResult) mes);
+                handlePutBrainQ((SOCDiceResult) mes);
 
                 break;
 
@@ -577,7 +577,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * the current player has cancelled an initial settlement
              */
             case SOCMessage.CANCELBUILDREQUEST:
-                handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
+                handlePutBrainQ((SOCCancelBuildRequest) mes);
 
                 break;
 
@@ -585,7 +585,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * the robber moved
              */
             case SOCMessage.MOVEROBBER:
-                handleMOVEROBBER((SOCMoveRobber) mes);
+                handlePutBrainQ((SOCMoveRobber) mes);
 
                 break;
 
@@ -593,7 +593,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * the server wants this player to discard
              */
             case SOCMessage.DISCARDREQUEST:
-                handleDISCARDREQUEST((SOCDiscardRequest) mes);
+                handlePutBrainQ((SOCDiscardRequest) mes);
 
                 break;
 
@@ -601,7 +601,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * the server wants this player to choose a player to rob
              */
             case SOCMessage.CHOOSEPLAYERREQUEST:
-                handleCHOOSEPLAYERREQUEST((SOCChoosePlayerRequest) mes);
+                handlePutBrainQ((SOCChoosePlayerRequest) mes);
 
                 break;
 
@@ -609,7 +609,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * a player has made an offer
              */
             case SOCMessage.MAKEOFFER:
-                handleMAKEOFFER((SOCMakeOffer) mes);
+                handlePutBrainQ((SOCMakeOffer) mes);
 
                 break;
 
@@ -617,7 +617,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * a player has cleared her offer
              */
             case SOCMessage.CLEAROFFER:
-                handleCLEAROFFER((SOCClearOffer) mes);
+                handlePutBrainQ((SOCClearOffer) mes);
 
                 break;
 
@@ -625,7 +625,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * a player has rejected an offer
              */
             case SOCMessage.REJECTOFFER:
-                handleREJECTOFFER((SOCRejectOffer) mes);
+                handlePutBrainQ((SOCRejectOffer) mes);
 
                 break;
 
@@ -633,7 +633,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * a player has accepted an offer
              */
             case SOCMessage.ACCEPTOFFER:
-                handleACCEPTOFFER((SOCAcceptOffer) mes);
+                handlePutBrainQ((SOCAcceptOffer) mes);
 
                 break;
 
@@ -649,7 +649,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * the current number of development cards
              */
             case SOCMessage.DEVCARDCOUNT:
-                handleDEVCARDCOUNT((SOCDevCardCount) mes);
+                handlePutBrainQ((SOCDevCardCount) mes);
 
                 break;
 
@@ -657,7 +657,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * a dev card action, either draw, play, or add to hand
              */
             case SOCMessage.DEVCARD:
-                handleDEVCARD((SOCDevCard) mes);
+                handlePutBrainQ((SOCDevCard) mes);
 
                 break;
 
@@ -666,7 +666,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * development card this turn
              */
             case SOCMessage.SETPLAYEDDEVCARD:
-                handleSETPLAYEDDEVCARD((SOCSetPlayedDevCard) mes);
+                handlePutBrainQ((SOCSetPlayedDevCard) mes);
 
                 break;
 
@@ -674,7 +674,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * get a list of all the potential settlements for a player
              */
             case SOCMessage.POTENTIALSETTLEMENTS:
-                handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes);
+                handlePutBrainQ((SOCPotentialSettlements) mes);
 
                 break;
 
@@ -892,10 +892,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * handle the "timing ping" message
+     * handle any per-game message that just needs to go into its game's {@link #brainQs}.
+     * This includes all messages that the {@link SOCRobotBrain} needs to react to.
      * @param mes  the message
+     * @since 1.2.00
      */
-    protected void handleTIMINGPING(SOCTimingPing mes)
+    protected void handlePutBrainQ(SOCMessageForGame mes)
     {
         CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
 
@@ -924,19 +926,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             handleGAMETEXTMSG_debug(mes);
         }
 
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
+        handlePutBrainQ(mes);
     }
 
     /**
@@ -1343,145 +1333,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         if (ga != null)
         {
-            CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-            if (brainQ != null)
-            {
-                try
-                {
-                    brainQ.put(mes);
-                }
-                catch (CutoffExceededException exc)
-                {
-                    D.ebugPrintln("CutoffExceededException" + exc);
-                }
-            }
-        }
-    }
-
-    /**
-     * handle the "set turn" message
-     * @param mes  the message
-     */
-    protected void handleSETTURN(SOCSetTurn mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "set first player" message
-     * @param mes  the message
-     */
-    protected void handleFIRSTPLAYER(SOCFirstPlayer mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "turn" message
-     * @param mes  the message
-     */
-    protected void handleTURN(SOCTurn mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "player element" message
-     * @param mes  the message
-     */
-    protected void handlePLAYERELEMENT(SOCPlayerElement mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle "resource count" message
-     * @param mes  the message
-     */
-    protected void handleRESOURCECOUNT(SOCResourceCount mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "dice result" message
-     * @param mes  the message
-     */
-    protected void handleDICERESULT(SOCDiceResult mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
+            handlePutBrainQ(mes);
         }
     }
 
@@ -1515,263 +1367,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /**
-     * handle the rare "cancel build request" message; usually not sent from
-     * server to client.
-     *<P>
-     * - When sent from client to server, CANCELBUILDREQUEST means the player has changed
-     *   their mind about spending resources to build a piece.  Only allowed during normal
-     *   game play (PLACING_ROAD, PLACING_SETTLEMENT, or PLACING_CITY).
-     *<P>
-     *  When sent from server to client:
-     *<P>
-     * - During game startup (START1B or START2B): <BR>
-     *       Sent from server, CANCELBUILDREQUEST means the current player
-     *       wants to undo the placement of their initial settlement.  
-     *<P>
-     * - During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
-     *                           PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2):
-     *<P>
-     *      Sent from server, CANCELBUILDREQUEST means the player has sent
-     *      an illegal PUTPIECE (bad building location). Humans can probably
-     *      decide a better place to put their road, but robots must cancel
-     *      the build request and decide on a new plan.
-     *<P>
-     *      Our robot client sends this to the brain to act on.
-     *
-     * @param mes  the message
-     */
-    protected void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "move robber" message
-     * @param mes  the message
-     */
-    protected void handleMOVEROBBER(SOCMoveRobber mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "discard request" message
-     * @param mes  the message
-     */
-    protected void handleDISCARDREQUEST(SOCDiscardRequest mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "choose player request" message
-     * @param mes  the message
-     */
-    protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "make offer" message
-     * @param mes  the message
-     */
-    protected void handleMAKEOFFER(SOCMakeOffer mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "clear offer" message
-     * @param mes  the message
-     */
-    protected void handleCLEAROFFER(SOCClearOffer mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "reject offer" message
-     * @param mes  the message
-     */
-    protected void handleREJECTOFFER(SOCRejectOffer mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "accept offer" message
-     * @param mes  the message
-     */
-    protected void handleACCEPTOFFER(SOCAcceptOffer mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
      * handle the "clear trade" message
      * @param mes  the message
      */
     protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes) {}
-
-    /**
-     * handle the "development card count" message
-     * @param mes  the message
-     */
-    protected void handleDEVCARDCOUNT(SOCDevCardCount mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "development card action" message
-     * @param mes  the message
-     */
-    protected void handleDEVCARD(SOCDevCard mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
-
-    /**
-     * handle the "set played development card" message
-     * @param mes  the message
-     */
-    protected void handleSETPLAYEDDEVCARD(SOCSetPlayedDevCard mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
-            }
-        }
-    }
 
     /**
      * handle the "dismiss robot" message
@@ -1802,27 +1401,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             if ((brain == null) || (!brain.isAlive()))
             {
                 leaveGame((SOCGame) games.get(mes.getGame()), "brain not alive", false);
-            }
-        }
-    }
-
-    /**
-     * handle the "potential settlements" message
-     * @param mes  the message
-     */
-    protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
-    {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
-
-        if (brainQ != null)
-        {
-            try
-            {
-                brainQ.put(mes);
-            }
-            catch (CutoffExceededException exc)
-            {
-                D.ebugPrintln("CutoffExceededException" + exc);
             }
         }
     }
