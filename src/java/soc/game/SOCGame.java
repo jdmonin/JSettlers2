@@ -699,8 +699,7 @@ public class SOCGame implements Serializable, Cloneable
         name = n;
         if (op != null)
         {
-           SOCGameOption board6pl = (SOCGameOption) op.get("PLB");
-           final boolean wants6board = (board6pl != null) && board6pl.getBoolValue();
+           final boolean wants6board = isGameOptionSet(op, "PLB");
            SOCGameOption maxpl = (SOCGameOption) op.get("PL");
            if (wants6board || ((maxpl != null) && (maxpl.getIntValue() > 4)))
                maxPlayers = MAXPLAYERS;  // == 6
@@ -1076,11 +1075,12 @@ public class SOCGame implements Serializable, Cloneable
      * @param optKey Name of a {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_BOOL OTYPE_BOOL},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL}
      *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
-     * @return True if option is set, false if not set or not defined in this game's options
+     * @return True if option is set, false if not set or not defined in this set of options
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
-     * @see #getGameOptionIntValue(String)
-     * @see #getGameOptionStringValue(String)
+     * @see #isGameOptionSet(String)
+     * @see #getGameOptionIntValue(Hashtable, String)
+     * @see #getGameOptionStringValue(Hashtable, String)
      */
     public static boolean isGameOptionSet(Hashtable opts, final String optKey)
     {
@@ -1122,21 +1122,43 @@ public class SOCGame implements Serializable, Cloneable
      *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
      *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
-     *         or 0 if not defined in this game's options;
+     *         or 0 if not defined in the set of options;
      *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
+     * @see #getGameOptionIntValue(Hashtable, String, int)
      */
     public static int getGameOptionIntValue(Hashtable opts, final String optKey)
+    {
+        return getGameOptionIntValue(opts, optKey, 0);
+    }
+
+    /**
+     * What is this integer game option's current value?
+     * @param opts A hashtable of {@link SOCGameOption}, or null
+     * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
+     *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
+     *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
+     *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
+     * @param defValue  Default value to use if <tt>optKey</tt> not defined
+     * @return Option's current {@link SOCGameOption#getIntValue() intValue},
+     *         or <tt>defValue</tt> if not defined in the set of options;
+     *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
+     * @since 1.2.00
+     * @see #isGameOptionDefined(String)
+     * @see #isGameOptionSet(String)
+     * @see #getGameOptionIntValue(Hashtable, String)
+     */
+    public static int getGameOptionIntValue(Hashtable opts, final String optKey, final int defValue)
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
         if (opts == null)
-            return 0;
+            return defValue;
         SOCGameOption op = (SOCGameOption) opts.get(optKey);
         if (op == null)
-            return 0;
+            return defValue;
         return op.getIntValue();
     }
 
@@ -1165,7 +1187,7 @@ public class SOCGame implements Serializable, Cloneable
      *               {@link SOCGameOption#OTYPE_STR OTYPE_STR}
      *               or {@link SOCGameOption#OTYPE_STRHIDE OTYPE_STRHIDE}
      * @return Option's current {@link SOCGameOption#getStringValue() getStringValue}
-     *         or null if not defined in this game's options
+     *         or null if not defined in this set of options
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)

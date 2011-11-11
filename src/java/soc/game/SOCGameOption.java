@@ -44,6 +44,8 @@ import soc.message.SOCMessage;
  * game option settings; only a very few places use SOCGameOption
  * objects.  To search the code for uses of a game option, search for
  * its capitalized key string.
+ * You will see calls to {@link SOCGame#isGameOptionDefined(String)},
+ * {@link SOCGame#getGameOptionIntValue(Hashtable, String, int)}, etc.
  *<P>
  * Option name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z') and digits ('0' through '9'), in order to normalize
@@ -784,6 +786,7 @@ public class SOCGameOption implements Cloneable, Comparable
     /**
      * Is this option set, if this option's type has a boolean component?
      * @return current boolean value of this option
+     * @see SOCGame#isGameOptionSet(Hashtable, String)
      */
     public boolean getBoolValue() { return boolValue; }
 
@@ -792,6 +795,8 @@ public class SOCGameOption implements Cloneable, Comparable
     /**
      * This option's integer value, if this option's type has an integer component.
      * @return current integer value of this option
+     * @see SOCGame#getGameOptionIntValue(Hashtable, String)
+     * @see SOCGame#getGameOptionIntValue(Hashtable, String, int)
      */
     public int getIntValue() { return intValue; }
 
@@ -812,6 +817,7 @@ public class SOCGameOption implements Cloneable, Comparable
     /**
      * @return current string value of this option, or "" (empty string) if not set.
      * Will not contain newlines or otherwise fail {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @see SOCGame#getGameOptionStringValue(Hashtable, String)
      */
     public String getStringValue()
     {
