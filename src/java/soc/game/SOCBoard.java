@@ -728,6 +728,19 @@ public class SOCBoard implements Serializable, Cloneable
         initHexIDtoNumAux(0x51, 0xD9, 28); // Next: 5
         initHexIDtoNumAux(0x71, 0xD7, 33); // Bottom horizontal row: 4 hexes across
 
+        initNodesOnBoard();
+    }
+
+    /**
+     * As part of the constructor, check the {@link #boardEncodingFormat}
+     * and initialize {@link #nodesOnBoard} accordingly.
+     * @since 1.2.00
+     */
+    private void initNodesOnBoard()
+    {
+        final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
+
+        int i;
         nodesOnBoard = new Hashtable();
 
         /**
