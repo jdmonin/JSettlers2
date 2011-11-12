@@ -284,9 +284,10 @@ public class SOCBoard implements Serializable, Cloneable
      *   Hexes: 11 to DD
      *   Nodes: 01 or 10, to FE or EF
      *   Edges: 00 to EE </pre>
+     * Although this field is protected (not private), please treat it as read-only.
      * @since 1.1.06
      */
-    private int boardWidth, boardHeight;
+    protected int boardWidth, boardHeight;
 
     /**
      * Minimum and maximum edge and node coordinates in this board's encoding.
@@ -578,12 +579,12 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Offset to add to hex coordinate to get all adjacent node coords, starting at
-     * index 0 at the top (northern point of hex) and going clockwise (RST dissertation figure A.5).
-     * Because we're looking at nodes and not edges (points, not sides, of the hex),
+     * index 0 at the top (northern corner of hex) and going clockwise (RST dissertation figure A.5).
+     * Because we're looking at nodes and not edges (corners, not sides, of the hex),
      * these are offset from the set of "facing" directions by 30 degrees.
      * -- see getAdjacent* methods instead
      */
-    private final int[] HEXNODES = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
+    private final static int[] HEXNODES = { 0x01, 0x12, 0x21, 0x10, -0x01, -0x10 };
 
     /**
      * offset of all hexes adjacent to a node
@@ -599,7 +600,7 @@ public class SOCBoard implements Serializable, Cloneable
      * See RST dissertation figure A.2.
      * @since 1.1.12
      */
-    private final int[] NODE_2_AWAY = { -9, 0x02, 0x22, 0x20, -0x02, -0x22, -0x20 };
+    private final static int[] NODE_2_AWAY = { -9, 0x02, 0x22, 0x20, -0x02, -0x22, -0x20 };
 
     /**
      * the hex coordinate that the robber is in; placed on desert in constructor
@@ -1770,7 +1771,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
     /**
      * What type of port is at this node?
-     * @param nodeCoord
+     * @param nodeCoord  the coordinates for a node
      * @return the type of port (in range {@link #MISC_PORT} to {@link #WOOD_PORT}),
      *         or -1 if no port at this node
      * @see #getPortTypeFromHexType(int)
@@ -1786,11 +1787,12 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Given a hex coordinate, return the number on that hex
+     * Given a hex coordinate, return the dice-roll number on that hex
      *
-     * @param hex  the coordinates for a hex
+     * @param hex  the coordinates ("ID") for a hex
      *
-     * @return the number on that hex, or 0 if not a hex coordinate
+     * @return the dice-roll number on that hex, or 0 if not a hex coordinate
+     * @see #getNumberOnHexFromNumber(int)
      */
     public int getNumberOnHexFromCoord(final int hex)
     {
@@ -1801,11 +1803,12 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Given a hex number, return the (dice-roll) number on that hex
+     * Given a hex number (index), return the (dice-roll) number on that hex
      *
      * @param hex  the number of a hex, or -1 if invalid
      *
      * @return the dice-roll number on that hex, or 0
+     * @see #getNumberOnHexFromCoord(int)
      */
     public int getNumberOnHexFromNumber(final int hex)
     {
@@ -1824,10 +1827,10 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Given a hex coordinate, return the hex number
+     * Given a hex coordinate, return the hex number (index)
      *
      * @param hexCoord  the coordinates ("ID") for a hex
-     * @return the hex number, or -1 if hexCoord isn't a hex coordinate on the board
+     * @return the hex number (index in numberLayout), or -1 if hexCoord isn't a hex coordinate on the board
      * @see #getHexTypeFromCoord(int)
      * @since 1.1.08
      */
@@ -2549,8 +2552,8 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Get the valid node coordinates adjacent to this node.
+     * Calls {@link #getAdjacentNodeToNode(int, int)}.
      * @return the nodes adjacent to this node, as a Vector of Integer coordinates
-     * @see #getAdjacentNodeToNode(int, int)
      */
     public Vector getAdjacentNodesToNode(final int coord)
     {
@@ -2568,6 +2571,8 @@ public class SOCBoard implements Serializable, Cloneable
      * found on the outer ring of the board coordinate
      * system, but some of their adjacent nodes/edges may be
      * "off the board" and thus invalid.
+     *<P>
+     * Calls {@link #getAdjacentNodeToNode(int, int)}.
      * @param coord  Node coordinate.  Is not checked for validity.
      * @return the nodes touching this node, as an array of 3 coordinates.
      *    Unused elements of the array are set to -9.
