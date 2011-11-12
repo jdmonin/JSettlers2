@@ -73,6 +73,7 @@ import java.util.Vector;
  * this coordinate grid.
  *<P>
  * @author Robert S Thomas
+ * @see SOCBoardLarge
  */
 public class SOCBoard implements Serializable, Cloneable
 {
@@ -264,10 +265,18 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int BOARD_ENCODING_6PLAYER = 2;
 
     /**
+     * Large format (3) for {@link #getBoardEncodingFormat()}:
+     * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
+     * @see SOCBoardLarge
+     * @since 1.2.00
+     */
+    public static final int BOARD_ENCODING_LARGE = 3;
+
+    /**
      * Largest value of {@link #getBoardEncodingFormat()} supported in this version.
      * @since 1.1.08
      */
-    public static final int MAX_BOARD_ENCODING = 2;
+    public static final int MAX_BOARD_ENCODING = 3;
 
     /**
      * Size of board in coordinates (not in number of hexes across).
@@ -298,7 +307,13 @@ public class SOCBoard implements Serializable, Cloneable
      *       Coordinate range is 0 to 15 (in decimal).
      *       Port types stored in {@link #portsLayout}.
      *       Added in 1.1.08.
+     *<LI> 3 - Large board ({@link #BOARD_ENCODING_LARGE}).
+     *       Coordinate range for rows,columns is each 0 to 255 decimal,
+     *       or altogether 0x0000 to 0xFFFF hex.
+     *       Arbitrary mix of land and water tiles.
+     *       Added in 1.2.00, implemented in {@link SOCBoardLarge}.
      *</UL>
+     * Although this field is protected (not private), please treat it as read-only.
      * @since 1.1.06
      */
     protected int boardEncodingFormat;
@@ -483,7 +498,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @see #ports
      * @since 1.1.08
      */
-    private int[] portsLayout;
+    protected int[] portsLayout;
 
     /*
        private int numberLayout[] = { -1, -1, -1, -1,
@@ -599,31 +614,34 @@ public class SOCBoard implements Serializable, Cloneable
     private int prevRobberHex;
 
     /**
-     * where the ports are; coordinates per port type.
+     * where the ports of each type are; coordinates per port type.
      * Indexes are port types, {@link #MISC_PORT} to {@link #WOOD_PORT}.
+     * Values are Vectors of Integer node coordinates; each port
+     *    will have 2 Integers because it touches 2 nodes.
+     *    So, the number of ports of a type is ports[type].size() / 2.
      * @see #portsLayout
      */
-    private Vector[] ports;
+    protected Vector[] ports;
 
     /**
      * pieces on the board; Vector of SOCPlayingPiece
      */
-    private Vector pieces;
+    protected Vector pieces;
 
     /**
      * roads on the board; Vector of SOCPlayingPiece
      */
-    private Vector roads;
+    protected Vector roads;
 
     /**
      * settlements on the board; Vector of SOCPlayingPiece
      */
-    private Vector settlements;
+    protected Vector settlements;
 
     /**
      * cities on the board; Vector of SOCPlayingPiece
      */
-    private Vector cities;
+    protected Vector cities;
 
     /**
      * random number generator
@@ -653,7 +671,12 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Minimal super constructor for subclasses.
-     * Sets only {@link #boardEncodingFormat}, {@link #robberHex}, {@link #prevRobberHex}.
+     * Sets {@link #boardEncodingFormat}, {@link #robberHex}, {@link #prevRobberHex}.
+     * Creates empty Vectors for {@link #pieces}, {@link #roads}, {@link #settlements},
+     *   {@link #cities} and {@link #ports}, but not {@link #portsLayout}.
+     *<P>
+     * Most likely you should also call {@link #setBoardBounds(int, int)}.
+     *
      * @param boardEncodingFmt  A format constant in the currently valid range:
      *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
      * @since 1.2.00
@@ -669,6 +692,23 @@ public class SOCBoard implements Serializable, Cloneable
 
         robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
         prevRobberHex = -1;
+
+        /**
+         * initialize the pieces vectors
+         */
+        pieces = new Vector(96);
+        roads = new Vector(60);
+        settlements = new Vector(20);
+        cities = new Vector(16);
+
+        /**
+         * initialize the port vector
+         */
+        ports = new Vector[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
+        ports[MISC_PORT] = new Vector(8);
+        for (int i = CLAY_PORT; i <= WOOD_PORT; i++)
+            ports[i] = new Vector(2);
+
     }
 
     /**
@@ -681,7 +721,8 @@ public class SOCBoard implements Serializable, Cloneable
     protected SOCBoard(Hashtable gameOpts, final int maxPlayers)
         throws IllegalArgumentException
     {
-        // set boardEncodingFormat, robberHex, prevRobberHex
+        // set boardEncodingFormat, robberHex, prevRobberHex,
+        //  and create empty vectors for pieces & port node coordinates:
         this( (maxPlayers == 6) ? BOARD_ENCODING_6PLAYER : BOARD_ENCODING_ORIGINAL );
 
         if ((maxPlayers != 4) && (maxPlayers != 6))
@@ -708,25 +749,6 @@ public class SOCBoard implements Serializable, Cloneable
          * generic counter
          */
         int i;
-
-        /**
-         * initialize the pieces vectors
-         */
-        pieces = new Vector(96);
-        roads = new Vector(60);
-        settlements = new Vector(20);
-        cities = new Vector(16);
-
-        /**
-         * initialize the port vector
-         */
-        ports = new Vector[6];  // 1 per resource type, MISC_PORT to WOOD_PORT
-        ports[MISC_PORT] = new Vector(8);
-
-        for (i = CLAY_PORT; i <= WOOD_PORT; i++)
-        {
-            ports[i] = new Vector(2);
-        }
 
         /**
          * initialize the hexIDtoNum array;
@@ -1986,6 +2008,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Width of this board in coordinates (not in number of hexes across.)
+     * The maximum column coordinate.
      * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
      * @since 1.1.06
      */
@@ -1996,12 +2019,27 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Height of this board in coordinates (not in number of hexes across.)
+     * The maximum row coordinate.
      * For the default size, see {@link #BOARD_ENCODING_ORIGINAL}.
      * @since 1.1.06
      */
     public int getBoardHeight()
     {
         return boardHeight;
+    }
+
+    /**
+     * For subclass constructor usage, set the board width and height.
+     * Does not set node or edge ranges (minNode, maxEdge, etc) because these
+     * limits aren't used in all encodings. 
+     * @param boardW  New maximum column coordinate, for {@link #getBoardWidth()}
+     * @param boardH  New maximum row coordinate, for {@link #getBoardHeight()}
+     * @since 1.2.00
+     */
+    protected void setBoardBounds(final int boardW, final int boardH)
+    {
+        boardWidth = boardW;
+        boardHeight = boardH;
     }
 
     /**
