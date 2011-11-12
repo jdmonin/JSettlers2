@@ -301,7 +301,7 @@ public class SOCBoard implements Serializable, Cloneable
      *</UL>
      * @since 1.1.06
      */
-    private int boardEncodingFormat;
+    protected int boardEncodingFormat;
 
     /**
      * Board Encoding fields end here
@@ -652,6 +652,26 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Minimal super constructor for subclasses.
+     * Sets only {@link #boardEncodingFormat}, {@link #robberHex}, {@link #prevRobberHex}.
+     * @param boardEncodingFmt  A format constant in the currently valid range:
+     *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
+     * @since 1.2.00
+     * @throws IllegalArgumentException if <tt>boardEncodingFmt</tt> is out of range
+     */
+    protected SOCBoard(final int boardEncodingFmt)
+        throws IllegalArgumentException
+    {
+        if ((boardEncodingFmt < 1) || (boardEncodingFmt > MAX_BOARD_ENCODING))
+            throw new IllegalArgumentException(Integer.toString(boardEncodingFmt));
+
+        boardEncodingFormat = boardEncodingFmt;
+
+        robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
+        prevRobberHex = -1;
+    }
+
+    /**
      * Create a new Settlers of Catan Board.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
@@ -661,27 +681,28 @@ public class SOCBoard implements Serializable, Cloneable
     protected SOCBoard(Hashtable gameOpts, final int maxPlayers)
         throws IllegalArgumentException
     {
+        // set boardEncodingFormat, robberHex, prevRobberHex
+        this( (maxPlayers == 6) ? BOARD_ENCODING_6PLAYER : BOARD_ENCODING_ORIGINAL );
+
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
+
         boardWidth = 0x10;
         boardHeight = 0x10;
         final boolean is6player = (maxPlayers == 6);
 
         if (is6player)
         {
-            boardEncodingFormat = BOARD_ENCODING_6PLAYER;
+            // boardEncodingFormat = BOARD_ENCODING_6PLAYER;
             minEdge = MINEDGE_V2;
             maxEdge = MAXEDGE_V2;
             minNode = MINNODE_V2;
         } else {
-            boardEncodingFormat = BOARD_ENCODING_ORIGINAL;  // See javadoc of boardEncodingFormat
+            // boardEncodingFormat = BOARD_ENCODING_ORIGINAL;  // See javadoc of boardEncodingFormat
             minEdge = MINEDGE_V1;
             maxEdge = MAXEDGE_V1;
             minNode = MINNODE_V1;
         }
-
-        robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
-        prevRobberHex = -1;
 
         /**
          * generic counter
