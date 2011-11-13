@@ -79,6 +79,20 @@ public class SOCBoardLarge extends SOCBoard
         { +0x100, 0 }, { +0x100, -1 }, { -0x100, -1 }   // S, SW, NW
     };
 
+    /**
+     * Used by {@link #getAdjacentEdgesToEdge(int)}.
+     * for each of the 3 edge directions, the (r,c) offsets for the 4 adjacent edges.
+     *<P>
+     * Decimal, not hex, because we need bounds-checking.
+     *<br>
+     * Order of directions: | / \
+     */
+    private final static int[][] A_EDGE2EDGE = {
+        { -1,-1,  -1,0,  +1,-1,  +1,0 },  // "|"
+        { 0,-1,   +1,0,  -1,+1,  0,+1 },  // "/"
+        { 0,-1,   -1,0,  +1,+1,  0,+1 }   // "\"
+    };
+
     // TODO hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
 
     /**
@@ -163,15 +177,14 @@ public class SOCBoardLarge extends SOCBoard
     //  numToHexID, hexIDtoNum, nodeIDtoPortType,
     //  HEXNODES, NODE_2_AWAY :
     //  getPortFacing(),
-    //  getAdjacentNodesToEdge(), getAdjacentNodesToEdge_arr(), getAdjacentEdgesToEdge(),
+    //  getAdjacentNodesToEdge(), getAdjacentNodesToEdge_arr(),
     //  getAdjacentHexesToNode(), getAdjacentEdgesToNode(), getAdjacentEdgesToNode_arr(),
     //  getAdjacentEdgeToNode(), getEdgeBetweenAdjacentNodes(), isEdgeAdjacentToNode(),
     //  getAdjacentNodeToNode2Away(), isNode2AwayFromNode(), getAdjacentEdgeToNode2Away(),
     //  getAdjacentHexToEdge(), edgeCoordToString()
     // DONE:
     //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
-    //     incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
-    //  getAdjacentNodeToNode(), getAdjacentHexesToHex(), getAdjacentNodeToHex()
+    //     TODO incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
     //
     // Not valid for this layout: TODO look for callers:
     //   getHexLandCoords(), getPortTypeFromNodeCoord(), getNumberOnHexFromNumber(),
@@ -293,7 +306,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
 
-    ///////////////////////////////////
+    ////////////////////////////////////////
     //
     // GetAdjacent____ToHex
     //
@@ -379,16 +392,60 @@ public class SOCBoardLarge extends SOCBoard
     }
 
 
-    ///////////////////////////////////
+    ////////////////////////////////////////////
     //
     // GetAdjacent____ToEdge
     //
+    // Determining (r,c) edge direction: | / \
+    //   "|" if r is odd
+    //   Otherwise: s = r/2
+    //   "/" if (s,c) is even,odd or odd,even
+    //   "\" if (s,c) is odd,odd or even,even
+
+    /**
+     * Get the edge coordinates of the 2 to 4 edges adjacent to this edge.
+     * @param coord  Edge coordinate; not checked for validity
+     * @return the valid adjacent edges to this edge, as a Vector of Integer coordinates
+     */
+    public Vector getAdjacentEdgesToEdge(final int coord)
+    {
+        final int r = (coord >> 8),
+            c = (coord & 0xFF);
+
+        // Get offsets for edge direction
+        final int[] offs;
+        {
+            final int dir;
+            if ( (r%2) == 1 )
+                dir = 0;  // "|"
+            else if ( (c%2) != ((r/2) % 2) )
+                dir = 1;  // "/"
+            else
+                dir = 2;  // "\"
+            offs = A_EDGE2EDGE[dir];
+        }
+
+        Vector edge = new Vector(4);
+        for (int i = 0; i < 8; )
+        {
+            final int er = r + offs[i];  ++i;
+            final int ec = c + offs[i];  ++i;
+            if ((er > 0) && (ec > 0) && (er <= boardHeight) && (ec <= boardWidth))
+                edge.addElement(new Integer( (er << 8) | ec ));
+            // TODO check the 4 corners: (0,0) not valid, etc
+        }
+        return edge;
+    }
 
 
-    ///////////////////////////////////
+    ////////////////////////////////////////////
     //
     // GetAdjacent____ToNode
     //
+    // Determining (r,c) node direction: Y or A
+    //  s = r/2
+    //  "Y" if (s,c) is even,odd or odd,even
+    //  "A" if (s,c) is odd,odd or even,even
 
 
     /**
