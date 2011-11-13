@@ -64,6 +64,21 @@ public class SOCBoardLarge extends SOCBoard
 
     private static final int BOARDHEIGHT_LARGE = 15, BOARDWIDTH_LARGE = 22;  // hardcode size for now
 
+    /**
+     * For {@link #getAdjacentNodeToHex(int, int)}, the offset to add to the hex
+     * coordinate to get all adjacent node coords, starting at
+     * index 0 at the top (northern corner of hex) and going clockwise.
+     * Because we're looking at nodes and not edges (corners, not sides, of the hex),
+     * these are offset from the set of "facing" directions by 30 degrees.
+     *<P>
+     * For each direction, array of adds to the coordinate to change the row & column.
+     * The row delta in hex is +-0xRR00, the column is small (+-1) so doesn't need hex format.
+     */
+    private final static int[][] A_NODE2HEX = {
+        { -0x100, 0 }, { -0x100, +1 }, { +0x100, +1 },  // N, NE, SE
+        { +0x100, 0 }, { +0x100, -1 }, { -0x100, -1 }   // S, SW, NW
+    };
+
     // TODO hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
 
     /**
@@ -152,11 +167,11 @@ public class SOCBoardLarge extends SOCBoard
     //  getAdjacentHexesToNode(), getAdjacentEdgesToNode(), getAdjacentEdgesToNode_arr(),
     //  getAdjacentEdgeToNode(), getEdgeBetweenAdjacentNodes(), isEdgeAdjacentToNode(),
     //  getAdjacentNodeToNode2Away(), isNode2AwayFromNode(), getAdjacentEdgeToNode2Away(),
-    //  getAdjacentNodeToHex(), getAdjacentHexToEdge(), edgeCoordToString()
+    //  getAdjacentHexToEdge(), edgeCoordToString()
     // DONE:
     //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
     //     incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
-    //  getAdjacentNodeToNode(), getAdjacentHexesToHex()
+    //  getAdjacentNodeToNode(), getAdjacentHexesToHex(), getAdjacentNodeToHex()
     //
     // Not valid for this layout: TODO look for callers:
     //   getHexLandCoords(), getPortTypeFromNodeCoord(), getNumberOnHexFromNumber(),
@@ -277,6 +292,105 @@ public class SOCBoardLarge extends SOCBoard
         return -1;
     }
 
+
+    ///////////////////////////////////
+    //
+    // GetAdjacent____ToHex
+    //
+
+
+    /**
+     * Make a list of all valid hex coordinates (or, only land) adjacent to this hex.
+     * Valid coordinates are those within the board coordinate limits
+     * ({@link #getBoardHeight()}, {@link #getBoardWidth()}).
+     *<P>
+     * Coordinate offsets - adjacent hexes to hex:<PRE>
+     *   (-2,-1) (-2,+1)
+     *
+     * (0,-2)   x   (0,+2)
+     *
+     *   (+2,-1) (+2,+1)  </PRE>
+     *
+     * @param hexCoord  Coordinate ("ID") of this hex
+     * @param includeWater  Should water hexes be returned (not only land ones)?
+     * @return the hexes that touch this hex, as a Vector of Integer coordinates,
+     *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
+     */
+    public Vector getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
+    {
+        Vector hexes = new Vector();
+
+        final int r = hexCoord >> 8,
+            c = hexCoord & 0xFF;
+
+        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r - 2, c - 1);  // NW (northwest)
+        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r - 2, c + 1);  // NE
+        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r,     c - 2);  // W
+        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r,     c + 2);  // E
+        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r + 2, c - 1);  // SW
+        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r + 2, c + 1);  // SE
+
+        if (hexes.size() > 0)
+            return hexes;
+        else
+            return null;
+    }
+
+    /**
+     * Check one possible coordinate for getAdjacentHexesToHex.
+     * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
+     * @param includeWater Should water hexes be returned (not only land ones)?
+     * @param hexCoord Coordinate ("ID") of this hex
+     * @param r  Row
+     * @param c  Column
+     */
+    private final void getAdjacentHexes2Hex_AddIfOK
+        (Vector addTo, final boolean includeWater, final int r, final int c)
+    {
+        if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))
+            return;  // <--- Off the board in one coordinate ----
+        if ((r % 2) == 0)
+            return;  // not a valid hex row
+        if (includeWater
+            || (hexLayoutLg[r][c] <= MAX_LAND_HEX))
+        {
+            addTo.addElement(new Integer((r << 8) | c));
+        }
+    }
+
+    /**
+     * The node coordinate adjacent to this hex in a given direction.
+     * Since all hexes have 6 nodes, all node coordinates are valid so long as
+     * the hex coordinate is valid.
+     *
+     * @param hexCoord Coordinate ("ID") of this hex
+     * @param dir  Direction, clockwise from top (northern point of hex):
+     *           0 is north, 1 is northeast, etc, 5 is northwest.
+     * @return Node coordinate in that direction
+     * @throws IllegalArgumentException if dir &lt; 0 or dir &gt; 5
+     */
+    public int getAdjacentNodeToHex(final int hexCoord, final int dir)
+        throws IllegalArgumentException
+    {
+        if ((dir >= 0) && (dir <= 5))
+            return hexCoord + A_NODE2HEX[dir][0] + A_NODE2HEX[dir][1];
+        else
+            throw new IllegalArgumentException("dir");
+    }
+
+
+    ///////////////////////////////////
+    //
+    // GetAdjacent____ToEdge
+    //
+
+
+    ///////////////////////////////////
+    //
+    // GetAdjacent____ToNode
+    //
+
+
     /**
      * Given a node, get the valid adjacent node in a given direction, if any.
      * At the edge of the layout, some adjacent nodes/edges may be
@@ -334,65 +448,6 @@ public class SOCBoardLarge extends SOCBoard
             return -9;
         else
             return ((r << 8) | c);
-    }
-
-    /**
-     * Make a list of all valid hex coordinates (or, only land) adjacent to this hex.
-     * Valid coordinates are those within the board coordinate limits
-     * ({@link #getBoardHeight()}, {@link #getBoardWidth()}).
-     *<P>
-     * Coordinate offsets - adjacent hexes to hex:<PRE>
-     *   (-2,-1) (-2,+1)
-     *
-     * (0,-2)   x   (0,+2)
-     *
-     *   (+2,-1) (+2,+1)  </PRE>
-     *
-     * @param hexCoord  Coordinate ("ID") of this hex
-     * @param includeWater  Should water hexes be returned (not only land ones)?
-     * @return the hexes that touch this hex, as a Vector of Integer coordinates,
-     *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
-     */
-    public Vector getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
-    {
-        Vector hexes = new Vector();
-
-        final int r = hexCoord >> 8,
-            c = hexCoord & 0xFF;
-
-        getAdjacentHexes_AddIfOK_Lg(hexes, includeWater, r - 2, c - 1);  // NW (northwest)
-        getAdjacentHexes_AddIfOK_Lg(hexes, includeWater, r - 2, c + 1);  // NE
-        getAdjacentHexes_AddIfOK_Lg(hexes, includeWater, r,     c - 2);  // W
-        getAdjacentHexes_AddIfOK_Lg(hexes, includeWater, r,     c + 2);  // E
-        getAdjacentHexes_AddIfOK_Lg(hexes, includeWater, r + 2, c - 1);  // SW
-        getAdjacentHexes_AddIfOK_Lg(hexes, includeWater, r + 2, c + 1);  // SE
-
-        if (hexes.size() > 0)
-            return hexes;
-        else
-            return null;
-    }
-
-    /**
-     * Check one possible coordinate for getAdjacentHexesToHex.
-     * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
-     * @param includeWater Should water hexes be returned (not only land ones)?
-     * @param hexCoord Coordinate ("ID") of this hex
-     * @param r  Row
-     * @param c  Column
-     */
-    private final void getAdjacentHexes_AddIfOK_Lg
-        (Vector addTo, final boolean includeWater, final int r, final int c)
-    {
-        if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))
-            return;  // <--- Off the board in one coordinate ----
-        if ((r % 2) == 0)
-            return;  // not a valid hex row
-        if (includeWater
-            || (hexLayoutLg[r][c] <= MAX_LAND_HEX))
-        {
-            addTo.addElement(new Integer((r << 8) | c));
-        }
     }
 
 }
