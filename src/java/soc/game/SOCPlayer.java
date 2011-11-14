@@ -1574,7 +1574,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                              * check each adjacent node for blocking
                              * settlements or cities
                              */
-                            final int[] adjNodes = SOCBoard.getAdjacentNodesToEdge_arr(adjEdgeID);
+                            final int[] adjNodes = board.getAdjacentNodesToEdge_arr(adjEdgeID);
 
                             for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni) 
                             {
@@ -1690,7 +1690,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             if (ours)
             {
                 // only add potentials if it's our piece
-                final int[] nodes = SOCBoard.getAdjacentNodesToEdge_arr(id);
+                final int[] nodes = board.getAdjacentNodesToEdge_arr(id);
 
                 for (int ni = 0; ni < 2; ++ni)
                 {
@@ -1804,7 +1804,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     // find the far-end node coordinate
                     final int farNode;
                     {
-                        final int[] enodes = SOCBoard.getAdjacentNodesToEdge_arr(tmp);
+                        final int[] enodes = board.getAdjacentNodesToEdge_arr(tmp);
                         if (enodes[0] == id)
                             farNode = enodes[1];
                         else

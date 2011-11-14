@@ -2088,7 +2088,9 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Adjacent node coordinates to an edge, within range {@link #getMinNode()} to {@link #MAXNODE}.
+     * Adjacent node coordinates to an edge, within valid range to be on the board.
+     *<P>
+     * For v1 and v2 encoding, this range is {@link #getMinNode()} to {@link #MAXNODE}.
      * @return the nodes that touch this edge, as a Vector of Integer coordinates
      * @see #getAdjacentNodesToEdge_arr(int)
      */
@@ -2111,7 +2113,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @see #getAdjacentNodesToEdge(int)
      * @since 1.1.08
      */
-    public static int[] getAdjacentNodesToEdge_arr(final int coord)
+    public int[] getAdjacentNodesToEdge_arr(final int coord)
     {
         int[] nodes = new int[2];
 
@@ -2135,8 +2137,10 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Get the edge coordinates of the 2 to 4 edges adjacent to this edge.
      * @param coord  Edge coordinate; for the 6-player encoding, use 0, not -1, for edge 0x00.
-     * @return the adjacent edges to this edge, as a Vector of Integer coordinates
+     *    Not checked for validity.
+     * @return the valid adjacent edges to this edge, as a Vector of 2 to 4 Integer coordinates
      */
     public Vector getAdjacentEdgesToEdge(int coord)
     {
@@ -2860,7 +2864,7 @@ public class SOCBoard implements Serializable, Cloneable
      *           0 is north, 1 is northeast, etc, 5 is northwest.
      * @return Node coordinate in that direction
      * @since 1.1.08
-     * @throws IllegalArgumentException if dir < 0 or dir &gt; 5
+     * @throws IllegalArgumentException if dir &lt; 0 or dir &gt; 5
      */
     public int getAdjacentNodeToHex(final int hexCoord, final int dir)
         throws IllegalArgumentException
@@ -2874,6 +2878,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * The hex touching an edge in a given direction,
      * either along its length or at one end node.
+     * Each edge touches up to 4 valid hexes.
      * @param edgeCoord The edge's coordinate. {@link #maxEdge} is 0xCC in v1 and v2 encoding.
      * @param facing  Facing from edge; 1 to 6.
      *           This will be either a direction perpendicular to the edge,
@@ -2883,7 +2888,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @return hex coordinate of hex in the facing direction,
      *           or 0 if a hex digit would be below 0 after subtraction
      *           or above F after addition.
-     * @throws IllegalArgumentException if facing < 1 or facing &gt; 6
+     * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6
      * @since 1.1.08
      */
     public int getAdjacentHexToEdge(final int edgeCoord, final int facing)

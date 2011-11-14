@@ -1566,7 +1566,7 @@ public class SOCPlayerTracker
                 /**
                  * look for possible settlements that can block this road
                  */
-                final int[] adjNodesToPosRoad = SOCBoard.getAdjacentNodesToEdge_arr(posRoad.getCoordinates());
+                final int[] adjNodesToPosRoad = board.getAdjacentNodesToEdge_arr(posRoad.getCoordinates());
                 Enumeration adjEdgeEnum = board.getAdjacentEdgesToEdge(posRoad.getCoordinates()).elements();
 
                 while (adjEdgeEnum.hasMoreElements())
@@ -1761,12 +1761,12 @@ public class SOCPlayerTracker
                 if (necRoadVec.size() == 1)
                 {
                     SOCPossibleRoad necRoad = (SOCPossibleRoad) necRoadVec.firstElement();
-                    final int[] adjNodes1 = SOCBoard.getAdjacentNodesToEdge_arr(posRoad.getCoordinates());
+                    final int[] adjNodes1 = board.getAdjacentNodesToEdge_arr(posRoad.getCoordinates());
 
                     for (int i1 = 0; i1 < 2; ++i1)
                     {
                         final int adjNode1 = adjNodes1[i1];
-                        final int[] adjNodes2 = SOCBoard.getAdjacentNodesToEdge_arr(necRoad.getCoordinates());
+                        final int[] adjNodes2 = board.getAdjacentNodesToEdge_arr(necRoad.getCoordinates());
 
                         for (int i2 = 0; i2 < 2; ++i2)
                         {
