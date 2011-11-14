@@ -177,11 +177,10 @@ public class SOCBoardLarge extends SOCBoard
     //  numToHexID, hexIDtoNum, nodeIDtoPortType,
     //  HEXNODES, NODE_2_AWAY :
     //  getPortFacing(),
-    //  getAdjacentNodesToEdge(), getAdjacentNodesToEdge_arr(),
     //  getAdjacentHexesToNode(), getAdjacentEdgesToNode(), getAdjacentEdgesToNode_arr(),
     //  getAdjacentEdgeToNode(), getEdgeBetweenAdjacentNodes(), isEdgeAdjacentToNode(),
     //  getAdjacentNodeToNode2Away(), isNode2AwayFromNode(), getAdjacentEdgeToNode2Away(),
-    //  getAdjacentHexToEdge(), edgeCoordToString()
+    //  edgeCoordToString()
     // DONE:
     //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
     //     TODO incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
@@ -403,6 +402,99 @@ public class SOCBoardLarge extends SOCBoard
     //   "\" if (s,c) is odd,odd or even,even
 
     /**
+     * The hex touching an edge in a given direction,
+     * either along its length or at one end node.
+     * Each edge touches up to 4 valid hexes.
+     * @param edgeCoord The edge's coordinate. Not checked for validity.
+     * @param facing  Facing from edge; 1 to 6.
+     *           This will be either a direction perpendicular to the edge,
+     *           or towards one end. Each end has two facing directions angled
+     *           towards it; both will return the same hex.
+     *           Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
+     * @return hex coordinate of hex in the facing direction,
+     *           or 0 if that hex would be off the edge of the board.
+     * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6
+     */
+    public int getAdjacentHexToEdge(final int edgeCoord, final int facing)
+        throws IllegalArgumentException
+    {
+        if ((facing < 1) && (facing > 6))
+            throw new IllegalArgumentException();
+        int r = (edgeCoord >> 8),
+            c = (edgeCoord & 0xFF);
+
+        // "|" if r is odd
+        if ((r%2) == 1)
+        {
+            switch (facing)
+            {
+            case FACING_E:
+                ++c;
+                break;
+            case FACING_W:
+                --c;
+                break;
+            case FACING_NE: case FACING_NW:
+                r = r - 2;
+                break;
+            case FACING_SE: case FACING_SW:
+                r = r + 2;
+                break;
+            }
+        }
+
+        // "/" if (s,c) is even,odd or odd,even
+        else if ((c % 2) != ((r/2) % 2))
+        {
+            switch (facing)
+            {
+            case FACING_NW:
+                --r;
+                break;
+            case FACING_SE:
+                ++r;
+                ++c;
+                break;
+            case FACING_NE: case FACING_E:
+                --r;
+                c = c + 2;
+                break;
+            case FACING_SW: case FACING_W:
+                ++r;
+                --c;
+                break;
+            }
+        }
+        else
+        {
+            // "\" if (s,c) is odd,odd or even,even
+            switch (facing)
+            {
+            case FACING_NE:
+                --r;
+                ++c;
+                break;
+            case FACING_SW:
+                ++r;
+                break;
+            case FACING_E: case FACING_SE:
+                ++r;
+                c = c + 2;
+                break;
+            case FACING_W: case FACING_NW:
+                --r;
+                --c;
+                break;
+            }
+        }
+
+        if ((r > 0) && (c > 0) && (r < boardHeight) && (c < boardWidth))
+            return ( (r << 8) | c );   // bounds-check OK: within the outer edge
+        else
+            return 0;  // hex is not on the board
+    }
+
+    /**
      * Get the edge coordinates of the 2 to 4 edges adjacent to this edge.
      * @param coord  Edge coordinate; not checked for validity
      * @return the valid adjacent edges to this edge, as a Vector of Integer coordinates
@@ -432,9 +524,51 @@ public class SOCBoardLarge extends SOCBoard
             final int ec = c + offs[i];  ++i;
             if ((er > 0) && (ec > 0) && (er <= boardHeight) && (ec <= boardWidth))
                 edge.addElement(new Integer( (er << 8) | ec ));
-            // TODO check the 4 corners: (0,0) not valid, etc
+            // TODO bounds-check the 4 corners: (0,0) not valid, etc
         }
         return edge;
+    }
+
+    /**
+     * Adjacent node coordinates to an edge (that is, the nodes that are the two ends of the edge).
+     * @return the nodes that touch this edge, as a Vector of Integer coordinates
+     * @see #getAdjacentNodesToEdge_arr(int)
+     */
+    public Vector getAdjacentNodesToEdge(final int coord)
+    {
+        Vector nodes = new Vector(2);
+        final int[] narr = getAdjacentNodesToEdge_arr(coord);
+        nodes.addElement(new Integer(narr[0]));
+        nodes.addElement(new Integer(narr[1]));
+        return nodes;
+    }
+
+    /**
+     * Adjacent node coordinates to an edge (that is, the nodes that are the two ends of the edge).
+     * @return the nodes that touch this edge, as an array of 2 integer coordinates
+     * @see #getAdjacentNodesToEdge(int)
+     */
+    public int[] getAdjacentNodesToEdge_arr(final int coord)
+    {
+        int[] nodes = new int[2];
+
+        final int r = coord >> 8;
+        if ((r%2) == 1)
+        {
+            // "|" if r is odd
+            nodes[0] = coord;           // (r,c)
+            nodes[1] = coord + 0x0001;  // (r,c+1)
+        }
+        else
+        {
+            // either "/" or "\"
+            nodes[0] = coord - 0x0100;  // (r-1,c)
+            nodes[1] = coord + 0x0100;  // (r+1,c)
+        }
+
+        return nodes;
+
+        // Bounds-check OK: if edge coord is valid, its nodes are both valid
     }
 
 
