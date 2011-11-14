@@ -353,16 +353,17 @@ public class SOCBoardLarge extends SOCBoard
      * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
      * @param includeWater Should water hexes be returned (not only land ones)?
      * @param hexCoord Coordinate ("ID") of this hex
-     * @param r  Row
-     * @param c  Column
+     * @param r  Hex row coordinate
+     * @param c  Hex column coordinate
      */
     private final void getAdjacentHexes2Hex_AddIfOK
         (Vector addTo, final boolean includeWater, final int r, final int c)
     {
-        if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))
-            return;  // <--- Off the board in one coordinate ----
+        if ((r <= 0) || (c <= 0) || (r >= boardHeight) || (c >= boardWidth))
+            return;  // not within the board's valid hex boundaries
         if ((r % 2) == 0)
             return;  // not a valid hex row
+
         if (includeWater
             || (hexLayoutLg[r][c] <= MAX_LAND_HEX))
         {
@@ -400,6 +401,7 @@ public class SOCBoardLarge extends SOCBoard
     //   Otherwise: s = r/2
     //   "/" if (s,c) is even,odd or odd,even
     //   "\" if (s,c) is odd,odd or even,even
+
 
     /**
      * The hex touching an edge in a given direction,
@@ -522,9 +524,8 @@ public class SOCBoardLarge extends SOCBoard
         {
             final int er = r + offs[i];  ++i;
             final int ec = c + offs[i];  ++i;
-            if ((er > 0) && (ec > 0) && (er <= boardHeight) && (ec <= boardWidth))
+            if (isEdgeInBounds(r,c))
                 edge.addElement(new Integer( (er << 8) | ec ));
-            // TODO bounds-check the 4 corners: (0,0) not valid, etc
         }
         return edge;
     }
@@ -635,10 +636,117 @@ public class SOCBoardLarge extends SOCBoard
             throw new IllegalArgumentException("nodeDir out of range: " + nodeDir);
         }
 
-        if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))
-            return -9;
-        else
+        if (isNodeInBounds(r, c))
             return ((r << 8) | c);
+        else
+            return -9;
+    }
+
+
+    ////////////////////////////////////////////
+    //
+    // Check coordinates for validity.
+    //
+
+
+    /**
+     * Is this an edge coordinate within the board's boundaries,
+     * not overlapping or off the side of the board?
+     * TODO description... valid range for nodes(corners) of hexes laid out,
+     * but doesn't check for "misalignment" in the middle of the board.
+     * @param r  Node coordinate's row
+     * @param c  Node coordinate's column
+     * @see #isEdgeInBounds(int, int)
+     * @see #isNodeOnBoard(int)
+     */
+    public final boolean isNodeInBounds(final int r, final int c)
+    {
+        /*
+        We only need to check when r==0 or r==h:
+          For rows in the middle, all cols are valid nodes on hexes above and/or below
+        First row of hexes is offset +1 column, so:
+        Node (0,0) is never valid
+        Node (0,w) valid only if 1st row of hexes longer than 2nd row
+          so, if w odd
+        Node (h,0) valid only if last hex row begins in column 0, not 1
+          so, if h/2 even
+        Node (h,w) valid only if last hex row ends in column w, not w-1
+          so, if w odd and r/2 odd, or w even and r/2 even
+         */
+
+        if ((r > 0) && (r < boardHeight))
+            return ((c >= 0) && (c <= boardWidth));
+        if ((r < 0) || (r > boardHeight))
+            return false;
+
+        // r == 0 or r == boardHeight.
+        if ((c > 0) && (c < boardWidth))
+            return true;
+
+        // c == 0 or c == boardWidth.
+        if (r == 0)
+        {
+            if (c == 0)
+                return false;
+            else
+                return ((boardWidth % 2) == 1); 
+        } else {
+            // r == boardHeight
+            if (c == 0)
+                return (((r/2) % 2) == 0);
+            else
+                return ((boardWidth % 2) == ((r/2) % 2));
+        }
+    }
+
+    /**
+     * Is this an edge coordinate within the board's boundaries,
+     * not overlapping or off the side of the board?
+     * TODO description... valid range for edges(sides) of hexes laid out,
+     * but doesn't check for "misalignment" in the middle of the board.
+     * @param r  Edge coordinate's row
+     * @param c  Edge coordinate's column
+     * @see #isNodeInBounds(int, int)
+     */
+    public final boolean isEdgeInBounds(final int r, final int c)
+    {
+        /*
+        For even rows in the middle, 0 <= c < w are valid edges on hexes above and/or below
+        For odd rows in the middle (vertical edges), 0 <= c <= w can be valid
+        For r==0 or r==h:
+        First row of hexes is offset +1 column, so:
+        Edge (0,0) is never valid
+        Edge (h,0) is valid if its left-end node (h,0) is valid
+        Edge (0,w-1) or (h,w-1) is valid if its right-end node (*,w) is valid
+         */
+
+        if (c < 0)
+            return false;
+        if ((r > 0) && (r < boardHeight))
+        {
+            if ((r % 2) == 0)
+                return (c < boardWidth);
+            else
+                return (c <= boardWidth);
+        }
+        if ((r < 0) || (r > boardHeight))
+            return false;
+
+        // r == 0 or r == boardHeight.
+        if (c == 0)
+        {
+            if (r == 0)
+                return false;
+            else
+                return isNodeInBounds(r, 0);
+        }
+        else if (c < (boardWidth - 1))
+            return true;
+        else if (c == boardWidth)
+            return false;
+
+        // c == boardWidth - 1.
+        return isNodeInBounds(r, c+1);
     }
 
 }
