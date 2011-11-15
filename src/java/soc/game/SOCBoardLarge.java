@@ -62,7 +62,7 @@ public class SOCBoardLarge extends SOCBoard
     /** This board encoding was introduced in version 1.2.00 (1200) */
     public static final int VERSION_FOR_ENCODING_LARGE = 1200;
 
-    private static final int BOARDHEIGHT_LARGE = 15, BOARDWIDTH_LARGE = 22;  // hardcode size for now
+    private static final int BOARDHEIGHT_LARGE = 14, BOARDWIDTH_LARGE = 22;  // hardcode size for now
 
     /**
      * For {@link #getAdjacentNodeToHex(int, int)}, the offset to add to the hex
@@ -91,6 +91,20 @@ public class SOCBoardLarge extends SOCBoard
         { -1,-1,  -1,0,  +1,-1,  +1,0 },  // "|"
         { 0,-1,   +1,0,  -1,+1,  0,+1 },  // "/"
         { 0,-1,   -1,0,  +1,+1,  0,+1 }   // "\"
+    };
+
+    /**
+     * (r,c) Offsets from a node to another node 2 away,
+     * Indexed by the facing directions: {@link #FACING_NE} is 1,
+     * {@link #FACING_E} is 2, etc; {@link #FACING_NW} is 6.
+     * Used by {@link #getAdjacentNodeToNode2Away(int, int)}. 
+     * The array contains 2 elements per facing.
+     */
+    private final static int[] NODE_TO_NODE_2_AWAY = {
+        -9,-9,          // not valid
+        -2,+1,   0,+2,  // NE, E
+        +2,+1,  +2,-1,  // SE, SW
+         0,-2,  -2,-1   // W, NW
     };
 
     // TODO hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
@@ -174,13 +188,9 @@ public class SOCBoardLarge extends SOCBoard
 
     // TODO override anything related to the unused super fields:
     //  hexLayout, numberLayout, minNode, minEdge, maxEdge,
-    //  numToHexID, hexIDtoNum, nodeIDtoPortType,
-    //  HEXNODES, NODE_2_AWAY :
-    //  getPortFacing(),
-    //  getAdjacentHexesToNode(), getAdjacentEdgesToNode(), getAdjacentEdgesToNode_arr(),
-    //  getAdjacentEdgeToNode(), getEdgeBetweenAdjacentNodes(), isEdgeAdjacentToNode(),
-    //  getAdjacentNodeToNode2Away(), isNode2AwayFromNode(), getAdjacentEdgeToNode2Away(),
-    //  edgeCoordToString()
+    //  numToHexID, hexIDtoNum, nodeIDtoPortType :
+    //  getPortFacing(), getPortsEdges()
+    //  nodeCoordToString(), edgeCoordToString()
     // DONE:
     //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
     //     TODO incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
@@ -190,7 +200,8 @@ public class SOCBoardLarge extends SOCBoard
     //   getHexNumFromCoord(), getHexTypeFromNumber(), getMinNode(), getMinEdge(), getMaxEdge()
     //
     // Not valid if arrays are 2D:
-    //   getHexLayout(), getNumberLayout(), setHexLayout(), setPortsLayout(), setNumberLayout()
+    //   getHexLayout(), getPortsLayout(), getNumberLayout(), setHexLayout(), setPortsLayout(), setNumberLayout()
+    //   getHexLandCoords()
     //   Consider get/set layouts as a 1D array: r, c, contents. Only include odd-numbered rows.
     //
     // Maybe not valid:
@@ -584,6 +595,189 @@ public class SOCBoardLarge extends SOCBoard
 
 
     /**
+     * Get the coordinates of the valid hexes adjacent to this node.
+     * @param coord  Node coordinate.  Is not checked for validity.
+     * @return the coordinates (Integers) of the 1 to 3 hexes touching this node
+     */
+    public Vector getAdjacentHexesToNode(final int nodeCoord)
+    {
+        // Determining (r,c) node direction: Y or A
+        //  s = r/2
+        //  "Y" if (s,c) is even,odd or odd,even
+        //  "A" if (s,c) is odd,odd or even,even
+        // Bounds check for hexes: r > 0, c > 0, r < height, c < width
+
+        final int r = (nodeCoord >> 8), c = (nodeCoord & 0xFF);
+        Vector hexes = new Vector(3);
+
+        final boolean nodeIsY = ( (c % 2) != ((r/2) % 2) );
+        if (nodeIsY)
+        {
+            // North: (r-1, c)
+            if (r > 0)
+                hexes.addElement(new Integer(nodeCoord - 0x0100));
+
+            if (r < boardHeight)
+            {
+                // SW: (r+1, c-1)
+                if (c > 0)
+                    hexes.addElement(new Integer((nodeCoord + 0x0100) - 1));
+
+                // SE: (r+1, c+1)
+                if (c < boardWidth)
+                    hexes.addElement(new Integer((nodeCoord + 0x0100) + 1));
+            }
+        }
+        else
+        {
+            // South: (r+1, c)
+            if (r < boardHeight)
+                hexes.addElement(new Integer(nodeCoord + 0x0100));
+
+            if (r > 0)
+            {
+                // NW: (r-1, c-1)
+                if (c > 0)
+                    hexes.addElement(new Integer((nodeCoord - 0x0100) - 1));
+
+                // NE: (r-1, c+1)
+                if (c < boardWidth)
+                    hexes.addElement(new Integer((nodeCoord - 0x0100) + 1));
+            }
+        }
+
+        return hexes;
+    }
+
+    /**
+     * Given a node, get the valid adjacent edge in a given direction, if any.
+     *<P>
+     * Along the edge of the board layout, valid land nodes/edges
+     * have some adjacent nodes/edges which may be
+     * "off the board" and thus invalid; check the return value.
+     *
+     * @param nodeCoord  Node coordinate to go from; not checked for validity.
+     * @param nodeDir  0 for northwest or southwest; 1 for northeast or southeast;
+     *     2 for north or south
+     * @return  The adjacent edge in that direction, or -9 if none (if off the board)
+     * @throws IllegalArgumentException if <tt>nodeDir</tt> is less than 0 or greater than 2
+     * @see #getAdjacentEdgesToNode(int)
+     * @see #getEdgeBetweenAdjacentNodes(int, int)
+     * @see #getAdjacentNodeToNode(int, int)
+     */
+    public int getAdjacentEdgeToNode(final int nodeCoord, final int nodeDir)
+        throws IllegalArgumentException
+    {
+        // Determining (r,c) node direction: Y or A
+        //  s = r/2
+        //  "Y" if (s,c) is even,odd or odd,even
+        //  "A" if (s,c) is odd,odd or even,even
+
+        int r = (nodeCoord >> 8), c = (nodeCoord & 0xFF);
+
+        switch (nodeDir)
+        {
+        case 0:  // NW or SW (upper-left or lower-left edge)
+            --c;  // (r, c-1)
+            break;
+
+        case 1:  // NE or SE
+            // (r, c) is already correct
+            break;
+
+        case 2:  // N or S
+            final boolean nodeIsY = ( (c % 2) != ((r/2) % 2) );
+            if (nodeIsY)
+                ++r;  // S: (r+1, c)
+            else
+                --r;  // N: (r-1, c)
+            break;
+
+        default:
+            throw new IllegalArgumentException("nodeDir out of range: " + nodeDir);
+        }
+
+        if (isEdgeInBounds(r, c))
+            return ((r << 8) | c);
+        else
+            return -9;
+    }
+
+    /**
+     * Given a pair of adjacent node coordinates, get the edge coordinate
+     * that connects them.
+     *<P>
+     * Does not check actual roads or other pieces on the board.
+     *
+     * @param nodeA  Node coordinate adjacent to <tt>nodeB</tt>; not checked for validity
+     * @param nodeB  Node coordinate adjacent to <tt>nodeA</tt>; not checked for validity
+     * @return edge coordinate, or -9 if <tt>nodeA</tt> and <tt>nodeB</tt> aren't adjacent
+     * @see #getAdjacentEdgesToNode(int)
+     * @see #getAdjacentEdgeToNode(int, int)
+     */
+    public int getEdgeBetweenAdjacentNodes(final int nodeA, final int nodeB)
+    {
+        final int edge;
+
+        switch (nodeB - nodeA)
+        {
+        case 0x01:  // c+1, same r
+            // nodeB and edge are NE or SE of nodeA
+            edge = nodeA;
+            break;
+
+        case -0x01:  // c-1, same r
+            // nodeB and edge are NW or SW of nodeA
+            edge = nodeB;
+            break;
+
+        case 0x0200:  // r+2, same c
+            // nodeB,edge are S of nodeA
+            edge = nodeA + 0x0100;
+            break;
+
+        case -0x0200:  // r-2, same c
+            // nodeB,edge are N of nodeA
+            edge = nodeA - 0x0100;
+            break;
+
+        default:
+            edge = -9;  // not adjacent nodes
+        }
+
+        return edge;
+    }
+
+    /**
+     * Determine if this node and edge are adjacent.
+     *
+     * @param nodeCoord  Node coordinate; not bounds-checked
+     * @param edgeCoord  Edge coordinate; bounds-checked against board boundaries.
+     * @return  is the edge in-bounds and adjacent?
+     * @see #getEdgeBetweenAdjacentNodes(int, int)
+     */
+    public boolean isEdgeAdjacentToNode(final int nodeCoord, final int edgeCoord)
+    {
+        final int edgeR = (edgeCoord >> 8), edgeC = (edgeCoord & 0xFF);
+        if (! isEdgeInBounds(edgeR, edgeC))
+            return false;
+
+        if ((edgeCoord == nodeCoord) || (edgeCoord == (nodeCoord - 0x01)))
+            return true;  // same row; NE,SE,NW or SW
+
+        final int nodeC = (nodeCoord & 0xFF);
+        if (edgeC != nodeC)
+            return false;  // not same column; not N or S
+
+        final int nodeR = (nodeCoord >> 8);
+        final boolean nodeIsY = ( (nodeC % 2) != ((nodeR/2) % 2) );
+        if (nodeIsY)
+            return (edgeR == (nodeR + 1));  // S
+        else
+            return (edgeR == (nodeR - 1));  // N
+    }
+
+    /**
      * Given a node, get the valid adjacent node in a given direction, if any.
      * At the edge of the layout, some adjacent nodes/edges may be
      * "off the board" and thus invalid.
@@ -640,6 +834,133 @@ public class SOCBoardLarge extends SOCBoard
             return ((r << 8) | c);
         else
             return -9;
+    }
+
+
+    ////////////////////////////////////////////
+    //
+    // 2 Away
+    //
+
+
+    /**
+     * Given an initial node, and a second node 2 nodes away,
+     * calculate the road/edge coordinate (adjacent to the initial
+     * node) going towards the second node.
+     * @param node  Initial node coordinate; not validated
+     * @param node2away  Second node coordinate; should be 2 away,
+     *     but this is not validated
+     * @return  An edge coordinate, adjacent to initial node,
+     *   in the direction of the second node.
+     * @see #getAdjacentNodeToNode2Away(int, int)
+     */
+    public int getAdjacentEdgeToNode2Away
+        (final int node, final int node2away)
+    {
+        // Determining (r,c) node direction: Y or A
+        //  s = r/2
+        //  "Y" if (s,c) is even,odd or odd,even
+        //  "A" if (s,c) is odd,odd or even,even
+
+        final int r = (node >> 8), c = (node & 0xFF),
+            r2 = (node2away >> 8), c2 = (node2away & 0xFF);
+        final int roadEdge;
+
+        final boolean nodeIsY = ( (c % 2) != ((r/2) % 2) );
+        if (nodeIsY)
+        {
+            if (r2 > r)
+            {
+                // south
+                roadEdge = node + 0x0100;  // (+1, 0)
+            }
+            else if (c2 < c)
+            {
+                // NW
+                roadEdge = node - 1; // (0, -1)
+            }
+            else
+            {
+                // NE
+                roadEdge = node;  // (0, +0)
+            }
+        }
+        else
+        {
+            if (r2 < r)
+            {
+                // north
+                roadEdge = node - 0x0100;  // (-1, 0)
+            }
+            else if (c2 < c)
+            {  // SW
+                roadEdge = node - 1;  // (0, -1)
+            }
+            else
+            {  // SE
+                roadEdge = node;  // (0, +0)
+            }
+        }
+
+        return roadEdge;
+    }
+
+
+    /**
+     * Get the coordinate of another node 2 away, based on a starting node.
+     * Facing is indexed by the facing directions: {@link #FACING_NE} is 1,
+     * {@link #FACING_E} is 2, etc; {@link #FACING_NW} is 6.
+     *
+     * @param nodeCoord  Starting node's coordinate
+     * @param facing    Facing from node; 1 to 6.
+     *           This will be one of the 6 directions
+     *           from a node to another node 2 away.
+     *           Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
+     * @return the node coordinate, or -9 if that node is not
+     *   {@link #isNodeOnBoard(int) on the board}.
+     * @see #getAdjacentNodeToNode(int, int)
+     * @see #getAdjacentEdgeToNode2Away(int, int)
+     * @see #isNode2AwayFromNode(int, int)
+     * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6
+     */
+    public int getAdjacentNodeToNode2Away(final int nodeCoord, int facing)
+        throws IllegalArgumentException
+    {
+        if ((facing < 1) || (facing > 6))
+            throw new IllegalArgumentException("bad facing: " + facing);
+
+        int r = (nodeCoord >> 8), c = (nodeCoord & 0xFF);
+        facing = facing * 2;  // array has 2 elements per facing
+        r = r + NODE_TO_NODE_2_AWAY[facing];
+        ++facing;
+        c = c + NODE_TO_NODE_2_AWAY[facing];
+        if (! isNodeInBounds(r, c))
+            return -9;
+        else
+            return ((r << 8) | c);
+    }
+
+    /**
+     * Determine if these 2 nodes are 2 nodes apart on the board,
+     * by the node coordinate arithmetic.
+     *
+     * @param n1  Node coordinate; not validated
+     * @param n2  Node coordinate; not validated
+     * @return are these nodes 2 away from each other?
+     * @see #getAdjacentNodeToNode2Away(int, int)
+     */
+    public boolean isNode2AwayFromNode(final int n1, final int n2)
+    {
+        final int dr = (n2 >> 8) - (n1 >> 8),      // delta for rows
+                  dc = (n2 & 0xFF) - (n1 & 0xFF);  // delta for cols
+        for (int facing = 1; facing <= 6; ++facing)
+        {
+            int i = 2 * facing;
+            if (dr == NODE_TO_NODE_2_AWAY[i])
+                if (dc == NODE_TO_NODE_2_AWAY[i+1])
+                    return true;
+        }
+        return false;
     }
 
 
