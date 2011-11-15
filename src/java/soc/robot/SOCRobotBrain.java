@@ -3436,7 +3436,7 @@ public class SOCRobotBrain extends Thread
                 D.ebugPrint("numbers:[");
                 playerNumbers.clear();
                 probTotal = 0;
-                hexes = SOCBoard.getAdjacentHexesToNode(firstNode).elements();
+                hexes = board.getAdjacentHexesToNode(firstNode).elements();
 
                 while (hexes.hasMoreElements())
                 {
@@ -3507,7 +3507,7 @@ public class SOCRobotBrain extends Thread
                         D.ebugPrint("numbers:[");
                         playerNumbers.clear();
                         probTotal = 0;
-                        hexes = SOCBoard.getAdjacentHexesToNode(firstNode).elements();
+                        hexes = board.getAdjacentHexesToNode(firstNode).elements();
 
                         while (hexes.hasMoreElements())
                         {
@@ -3520,7 +3520,7 @@ public class SOCRobotBrain extends Thread
                         }
 
                         D.ebugPrint("] [");
-                        hexes = SOCBoard.getAdjacentHexesToNode(secondNode).elements();
+                        hexes = board.getAdjacentHexesToNode(secondNode).elements();
 
                         while (hexes.hasMoreElements())
                         {
@@ -3633,7 +3633,7 @@ public class SOCRobotBrain extends Thread
          * choose which settlement to place first
          */
         playerNumbers.clear();
-        hexes = SOCBoard.getAdjacentHexesToNode(firstSettlement).elements();
+        hexes = board.getAdjacentHexesToNode(firstSettlement).elements();
 
         while (hexes.hasMoreElements())
         {
@@ -3700,7 +3700,7 @@ public class SOCRobotBrain extends Thread
         }
 
         playerNumbers.clear();
-        hexes = SOCBoard.getAdjacentHexesToNode(secondSettlement).elements();
+        hexes = board.getAdjacentHexesToNode(secondSettlement).elements();
 
         while (hexes.hasMoreElements())
         {
@@ -3810,7 +3810,7 @@ public class SOCRobotBrain extends Thread
                 playerNumbers.clear();
                 probTotal = 0;
 
-                Enumeration hexes = SOCBoard.getAdjacentHexesToNode(firstNode).elements();
+                Enumeration hexes = board.getAdjacentHexesToNode(firstNode).elements();
 
                 while (hexes.hasMoreElements())
                 {
@@ -3822,7 +3822,7 @@ public class SOCRobotBrain extends Thread
                     D.ebugPrint(number + " ");
                 }
 
-                hexes = SOCBoard.getAdjacentHexesToNode(secondNode).elements();
+                hexes = board.getAdjacentHexesToNode(secondNode).elements();
 
                 while (hexes.hasMoreElements())
                 {
@@ -4226,7 +4226,7 @@ public class SOCRobotBrain extends Thread
             oldScore = ((Integer) nodes.get(node)).intValue();
 
             int score = 0;
-            Enumeration hexesEnum = SOCBoard.getAdjacentHexesToNode(node.intValue()).elements();
+            Enumeration hexesEnum = board.getAdjacentHexesToNode(node.intValue()).elements();
 
             while (hexesEnum.hasMoreElements())
             {
@@ -4275,7 +4275,7 @@ public class SOCRobotBrain extends Thread
             oldScore = ((Integer) nodes.get(node)).intValue();
 
             int score = 0;
-            Enumeration hexesEnum = SOCBoard.getAdjacentHexesToNode(node.intValue()).elements();
+            Enumeration hexesEnum = board.getAdjacentHexesToNode(node.intValue()).elements();
 
             while (hexesEnum.hasMoreElements())
             {

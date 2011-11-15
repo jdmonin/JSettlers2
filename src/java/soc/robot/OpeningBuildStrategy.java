@@ -106,7 +106,7 @@ public class OpeningBuildStrategy {
                 sb.append("numbers:[");
                 playerNumbers.clear();
                 probTotal = 0;
-                hexes = SOCBoard.getAdjacentHexesToNode(firstNode).elements();
+                hexes = board.getAdjacentHexesToNode(firstNode).elements();
 
                 while (hexes.hasMoreElements())
                 {
@@ -182,7 +182,7 @@ public class OpeningBuildStrategy {
                         sb.append("numbers:[");
                         playerNumbers.clear();
                         probTotal = 0;
-                        hexes = SOCBoard.getAdjacentHexesToNode(firstNode).elements();
+                        hexes = board.getAdjacentHexesToNode(firstNode).elements();
 
                         while (hexes.hasMoreElements())
                         {
@@ -195,7 +195,7 @@ public class OpeningBuildStrategy {
                         }
 
                         sb.append("] [");
-                        hexes = SOCBoard.getAdjacentHexesToNode(secondNode).elements();
+                        hexes = board.getAdjacentHexesToNode(secondNode).elements();
 
                         while (hexes.hasMoreElements())
                         {
@@ -312,7 +312,7 @@ public class OpeningBuildStrategy {
          * choose which settlement to place first
          */
         playerNumbers.clear();
-        hexes = SOCBoard.getAdjacentHexesToNode(firstSettlement).elements();
+        hexes = board.getAdjacentHexesToNode(firstSettlement).elements();
 
         while (hexes.hasMoreElements())
         {
@@ -379,7 +379,7 @@ public class OpeningBuildStrategy {
         }
 
         playerNumbers.clear();
-        hexes = SOCBoard.getAdjacentHexesToNode(secondSettlement).elements();
+        hexes = board.getAdjacentHexesToNode(secondSettlement).elements();
 
         while (hexes.hasMoreElements())
         {
@@ -491,7 +491,7 @@ public class OpeningBuildStrategy {
                 playerNumbers.clear();
                 probTotal = 0;
 
-                Enumeration hexes = SOCBoard.getAdjacentHexesToNode(firstNode).elements();  // Integers
+                Enumeration hexes = board.getAdjacentHexesToNode(firstNode).elements();  // Integers
 
                 while (hexes.hasMoreElements())
                 {
@@ -503,7 +503,7 @@ public class OpeningBuildStrategy {
                     sb.append(number + " ");
                 }
 
-                hexes = SOCBoard.getAdjacentHexesToNode(secondNode).elements();
+                hexes = board.getAdjacentHexesToNode(secondNode).elements();
 
                 while (hexes.hasMoreElements())
                 {
@@ -1011,7 +1011,7 @@ public class OpeningBuildStrategy {
             oldScore = ((Integer) nodes.get(node)).intValue();
 
             int score = 0;
-            Enumeration hexesEnum = SOCBoard.getAdjacentHexesToNode(node.intValue()).elements();  // <Integer>
+            Enumeration hexesEnum = board.getAdjacentHexesToNode(node.intValue()).elements();  // <Integer>
 
             while (hexesEnum.hasMoreElements())
             {
@@ -1119,7 +1119,7 @@ public class OpeningBuildStrategy {
             oldScore = ((Integer) nodes.get(node)).intValue();
 
             int score = 0;
-            Enumeration hexesEnum = SOCBoard.getAdjacentHexesToNode(node.intValue()).elements();  // <Integer>
+            Enumeration hexesEnum = board.getAdjacentHexesToNode(node.intValue()).elements();  // <Integer>
 
             while (hexesEnum.hasMoreElements())
             {

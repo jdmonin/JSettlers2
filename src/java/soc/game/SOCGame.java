@@ -1797,7 +1797,7 @@ public class SOCGame implements Serializable, Cloneable
                     && (pp.getPlayer().getPieces().size() == 3))))
         {
             SOCResourceSet resources = new SOCResourceSet();
-            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(pp.getCoordinates()).elements();
+            Enumeration hexes = board.getAdjacentHexesToNode(pp.getCoordinates()).elements();
 
             while (hexes.hasMoreElements())
             {
@@ -2968,7 +2968,7 @@ public class SOCGame implements Serializable, Cloneable
         while (sEnum.hasMoreElements())
         {
             SOCSettlement se = (SOCSettlement) sEnum.nextElement();
-            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(se.getCoordinates()).elements();
+            Enumeration hexes = board.getAdjacentHexesToNode(se.getCoordinates()).elements();
 
             while (hexes.hasMoreElements())
             {
@@ -3014,7 +3014,7 @@ public class SOCGame implements Serializable, Cloneable
         while (cEnum.hasMoreElements())
         {
             SOCCity ci = (SOCCity) cEnum.nextElement();
-            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(ci.getCoordinates()).elements();
+            Enumeration hexes = board.getAdjacentHexesToNode(ci.getCoordinates()).elements();
 
             while (hexes.hasMoreElements())
             {

@@ -2255,9 +2255,11 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Get the coordinates of the valid hexes adjacent to this node.
+     * @param coord  Node coordinate.  Is not checked for validity.
      * @return the coordinates (Integers) of the 1 to 3 hexes touching this node
      */
-    public static Vector getAdjacentHexesToNode(int coord)
+    public Vector getAdjacentHexesToNode(int coord)
     {
         Vector hexes = new Vector(3);
         int tmp;
@@ -2322,6 +2324,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Get the valid edge coordinates adjacent to this node.
+     * Calls {@link #getAdjacentEdgeToNode(int, int)}.
      * @return the edges touching this node, as a Vector of Integer coordinates
      * @see #getAdjacentEdgeToNode(int, int)
      */
@@ -2341,6 +2344,7 @@ public class SOCBoard implements Serializable, Cloneable
      * found on the outer ring of the board coordinate
      * system, but some of their adjacent nodes/edges may be
      * "off the board" and thus invalid.
+     * Calls {@link #getAdjacentEdgeToNode(int, int)}.
      * @param coord  Node coordinate.  Is not checked for validity.
      * @return the edges touching this node, as an array of 3 coordinates.
      *    Unused elements of the array are set to -9.
@@ -2532,7 +2536,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param nodeCoord  Node coordinate; not bounds-checked
      * @param edgeCoord  Edge coordinate; checked against minEdge, maxEdge.
      *   For the 6-player encoding, use 0, not -1, to indicate edge 0x00.
-     * @return  is the edge adjacent?
+     * @return  is the edge in-bounds and adjacent?
      * @since 1.1.11
      * @see #getEdgeBetweenAdjacentNodes(int, int)
      */
@@ -2680,8 +2684,8 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Offsets from a node to another node 2 away,
-     * indexed by the facing directions: {@link #FACING_NE} is 1,
+     * Get the coordinate of another node 2 away, based on a starting node.
+     * Facing is indexed by the facing directions: {@link #FACING_NE} is 1,
      * {@link #FACING_E} is 2, etc; {@link #FACING_NW} is 6.
      * 
      * @param nodeCoord  Starting node's coordinate
@@ -2694,7 +2698,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @see #getAdjacentNodeToNode(int, int)
      * @see #getAdjacentEdgeToNode2Away(int, int)
      * @see #isNode2AwayFromNode(int, int)
-     * @throws IllegalArgumentException if facing < 1 or facing &gt; 6
+     * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6
      * @since 1.1.12
      */
     public int getAdjacentNodeToNode2Away(final int nodeCoord, final int facing)

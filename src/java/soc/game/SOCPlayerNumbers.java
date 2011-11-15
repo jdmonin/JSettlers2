@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -156,7 +156,7 @@ public class SOCPlayerNumbers
      */
     public void updateNumbers(SOCPlayingPiece piece, SOCBoard board)
     {
-        Enumeration hexes = SOCBoard.getAdjacentHexesToNode(piece.getCoordinates()).elements();
+        Enumeration hexes = board.getAdjacentHexesToNode(piece.getCoordinates()).elements();
 
         while (hexes.hasMoreElements())
         {
@@ -177,7 +177,7 @@ public class SOCPlayerNumbers
      */
     public void updateNumbers(int coord, SOCBoard board)
     {
-        Enumeration hexes = SOCBoard.getAdjacentHexesToNode(coord).elements();
+        Enumeration hexes = board.getAdjacentHexesToNode(coord).elements();
 
         while (hexes.hasMoreElements())
         {
@@ -313,7 +313,7 @@ public class SOCPlayerNumbers
      */
     public void undoUpdateNumbers(SOCPlayingPiece piece, SOCBoard board)
     {
-        Enumeration hexes = SOCBoard.getAdjacentHexesToNode(piece.getCoordinates()).elements();
+        Enumeration hexes = board.getAdjacentHexesToNode(piece.getCoordinates()).elements();
 
         while (hexes.hasMoreElements())
         {
@@ -334,7 +334,7 @@ public class SOCPlayerNumbers
      */
     public void undoUpdateNumbers(int coord, SOCBoard board)
     {
-        Enumeration hexes = SOCBoard.getAdjacentHexesToNode(coord).elements();
+        Enumeration hexes = board.getAdjacentHexesToNode(coord).elements();
 
         while (hexes.hasMoreElements())
         {
