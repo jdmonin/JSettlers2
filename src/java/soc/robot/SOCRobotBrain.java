@@ -1130,8 +1130,16 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.POTENTIALSETTLEMENTS:
                         {
-                        SOCPlayer player = game.getPlayer(((SOCPotentialSettlements) mes).getPlayerNumber());
-                        player.setPotentialSettlements(((SOCPotentialSettlements) mes).getPotentialSettlements());
+                            int pn = ((SOCPotentialSettlements) mes).getPlayerNumber();
+                            final Vector vset = ((SOCPotentialSettlements) mes).getPotentialSettlements();
+                            if (pn != -1)
+                            {
+                                SOCPlayer player = game.getPlayer(pn);
+                                player.setPotentialSettlements(vset);
+                            } else {
+                                for (pn = game.maxPlayers - 1; pn >= 0; --pn)
+                                    game.getPlayer(pn).setPotentialSettlements(vset);
+                            }
                         }
                         break;
 

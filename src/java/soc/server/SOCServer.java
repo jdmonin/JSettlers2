@@ -7400,6 +7400,29 @@ public class SOCServer extends Server
 
         c.put(getBoardLayoutMessage(gameData).toCmd());
 
+        /**
+         * if game hasn't started yet, each player's potentialSettlements are
+         * identical, so send that info once for all players.
+         */
+        if ((gameData.getGameState() == SOCGame.NEW)
+            && (c.getVersion() >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
+        {
+            Vector psList = new Vector();
+            {
+                final SOCPlayer pl = gameData.getPlayer(0);
+                for (int j = gameData.getBoard().getMinNode(); j <= SOCBoard.MAXNODE; j++)
+                {
+                    if (pl.isPotentialSettlement(j))
+                        psList.addElement(new Integer(j));
+                }
+            }
+
+            c.put(SOCPotentialSettlements.toCmd(gameName, -1, psList));
+        }
+
+        /**
+         * send the per-player information
+         */
         for (int i = 0; i < gameData.maxPlayers; i++)
         {
             SOCPlayer pl = gameData.getPlayer(i);
@@ -7422,20 +7445,23 @@ public class SOCServer extends Server
             }
 
             /**
-             * send potential settlement list
+             * send each player's unique potential settlement list,
+             * if game has started
              */
-            Vector psList = new Vector();
+            if ((gameData.getGameState() != SOCGame.NEW)
+                || (c.getVersion() < SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
             {
-                for (int j = gameData.getBoard().getMinNode(); j <= SOCBoard.MAXNODE; j++)
+                Vector psList = new Vector();
                 {
-                    if (pl.isPotentialSettlement(j))
+                    for (int j = gameData.getBoard().getMinNode(); j <= SOCBoard.MAXNODE; j++)
                     {
-                        psList.addElement(new Integer(j));
+                        if (pl.isPotentialSettlement(j))
+                            psList.addElement(new Integer(j));
                     }
                 }
+    
+                c.put(SOCPotentialSettlements.toCmd(gameName, i, psList));
             }
-
-            c.put(SOCPotentialSettlements.toCmd(gameName, i, psList));
 
             /**
              * send coords of the last settlement

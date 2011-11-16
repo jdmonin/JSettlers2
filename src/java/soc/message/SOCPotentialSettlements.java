@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,12 +34,19 @@ public class SOCPotentialSettlements extends SOCMessage
     implements SOCMessageForGame
 {
     /**
+     * In version 1.2.00 and above, playerNumber can be -1
+     * to indicate all players have these potential settlements.
+     * @since 1.2.00
+     */
+    public static final int VERSION_FOR_PLAYERNUM_ALL = 1200;
+
+    /**
      * Name of game
      */
     private String game;
 
     /**
-     * Player number
+     * Player number, or -1 for all players (version 1.2.00 or newer)
      */
     private int playerNumber;
 

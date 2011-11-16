@@ -109,6 +109,7 @@ import java.io.InterruptedIOException;
 import java.net.Socket;
 
 import java.util.Hashtable;
+import java.util.Vector;
 
 
 /**
@@ -1578,11 +1579,18 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
     {
         SOCGame ga = (SOCGame) games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
+        final Vector vset = mes.getPotentialSettlements();
+        int pn = mes.getPlayerNumber();
+        if (pn != -1)
         {
-            SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            player.setPotentialSettlements(mes.getPotentialSettlements());
+            SOCPlayer player = ga.getPlayer(pn);
+            player.setPotentialSettlements(vset);
+        } else {
+            for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
+                ga.getPlayer(pn).setPotentialSettlements(vset);
         }
     }
 
