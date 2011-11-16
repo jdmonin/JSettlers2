@@ -21,6 +21,7 @@
 
 package soc.game;
 
+import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -176,8 +177,17 @@ public class SOCBoardLarge extends SOCBoard
     {
         super(BOARD_ENCODING_LARGE);
         setBoardBounds(BOARDWIDTH_LARGE, BOARDHEIGHT_LARGE);
-        hexLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];  // TODO initial set to WATER_HEX
-        numberLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];  // TODO initial set to 0
+
+        hexLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];
+        numberLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];
+
+        // Only odd-numbered rows are valid,
+        // but we fill all rows here just in case.
+        for (int r = 0; r <= boardHeight; ++r)
+        {            
+            Arrays.fill(hexLayoutLg[r], WATER_HEX);
+            Arrays.fill(numberLayoutLg[r], 0);
+        }
     }
 
     // TODO override makeNewBoard; set hexLayoutLg, numberLayoutLg, portsLayout, robberHex,
@@ -956,8 +966,8 @@ public class SOCBoardLarge extends SOCBoard
         for (int facing = 1; facing <= 6; ++facing)
         {
             int i = 2 * facing;
-            if (dr == NODE_TO_NODE_2_AWAY[i])
-                if (dc == NODE_TO_NODE_2_AWAY[i+1])
+            if ((dr == NODE_TO_NODE_2_AWAY[i])
+                && (dc == NODE_TO_NODE_2_AWAY[i+1]))
                     return true;
         }
         return false;

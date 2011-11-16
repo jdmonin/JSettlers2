@@ -28,6 +28,7 @@ import soc.util.NodeLenVis;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Stack;
@@ -218,6 +219,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * a list of nodes where a city could be
      * placed on the next turn.
+     * At start of the game, this is clear/empty because the player has no settlements yet.
+     * Elements are set true when the player places settlements, via
+     * {@link #updatePotentials(SOCPlayingPiece)}.
      */
     private boolean[] potentialCities;
 
@@ -351,18 +355,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         potentialSettlements = new boolean[0xFF];
         potentialCities = new boolean[0xFF];
 
-        for (i = 0; i < 0xEF; i++)
-        {
-            legalRoads[i] = player.legalRoads[i];
-            potentialRoads[i] = player.potentialRoads[i];
-        }
+        System.arraycopy(player.legalRoads,     0, legalRoads,     0, player.legalRoads.length);
+        System.arraycopy(player.potentialRoads, 0, potentialRoads, 0, player.potentialRoads.length);
 
-        for (i = 0; i < 0xFF; i++)
-        {
-            legalSettlements[i] = player.legalSettlements[i];
-            potentialSettlements[i] = player.potentialSettlements[i];
-            potentialCities[i] = player.potentialCities[i];
-        }
+        System.arraycopy(player.legalSettlements,     0, legalSettlements,     0, player.legalSettlements.length);
+        System.arraycopy(player.potentialSettlements, 0, potentialSettlements, 0, player.potentialSettlements.length);
+        System.arraycopy(player.potentialCities,      0, potentialCities,      0, player.potentialCities.length);
 
         if (player.currentOffer != null)
         {
@@ -383,7 +381,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public SOCPlayer(int pn, SOCGame ga)
     {
         int i;
-        int j;
 
         game = ga;
         playerNumber = pn;
@@ -426,12 +423,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         final int minNode = board.getMinNode();
         for (i = minNode; i < SOCBoard.MAXNODEPLUSONE; i++)
-        {
-            for (j = minNode; j < SOCBoard.MAXNODEPLUSONE; j++)
-            {
-                roadNodeGraph[i][j] = false;
-            }
-        }
+            Arrays.fill(roadNodeGraph[i], minNode, SOCBoard.MAXNODEPLUSONE, false);
 
         /**
          * init legal and potential arrays
@@ -439,15 +431,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         potentialRoads = new boolean[0xEF];
         potentialCities = new boolean[0xFF];
 
-        for (i = 0; i < 0xEF; i++)
-        {
-            potentialRoads[i] = false;
-        }
-
-        for (i = 0; i < 0xFF; i++)
-        {
-            potentialCities[i] = false;
-        }
+        // no settlements yet, so no potential roads or cities
+        Arrays.fill(potentialRoads, 0, 0xEF, false);
+        Arrays.fill(potentialCities, 0, 0xFF, false);
 
         legalRoads = board.initPlayerLegalRoads();
         legalSettlements = board.initPlayerLegalAndPotentialSettlements();
@@ -468,12 +454,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialSettlements()
     {
-        int i;
-
-        for (i = 0; i < 0xFF; i++)
-        {
-            potentialSettlements[i] = false;
-        }
+        Arrays.fill(potentialSettlements, 0, 0xFF, false);
     }
 
     /**
