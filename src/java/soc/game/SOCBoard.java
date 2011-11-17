@@ -22,6 +22,7 @@ package soc.game;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
@@ -1364,8 +1365,7 @@ public class SOCBoard implements Serializable, Cloneable
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
         boolean[] legalRoads = new boolean[0xEF];
-        for (int i = 0; i < 0xEF; i++)
-            legalRoads[i] = false;
+        Arrays.fill(legalRoads, false);
 
         // Set each row of valid road (edge) coordinates:
         int i;
@@ -1445,8 +1445,7 @@ public class SOCBoard implements Serializable, Cloneable
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
         boolean[] legalSettlements = new boolean[0xFF];
-        for (int i = 0; i < 0xFF; i++)
-            legalSettlements[i] = false;
+        Arrays.fill(legalSettlements, false);
 
         // Set each row of valid node coordinates:
         int i;
@@ -1615,13 +1614,15 @@ public class SOCBoard implements Serializable, Cloneable
      * Please call {@link #setBoardEncodingFormat(int)} first,
      * unless the format is {@link #BOARD_ENCODING_ORIGINAL}.
      *
-     * @param hl  the hex layout
+     * @param hl  the hex layout.
+     *   For {@link #BOARD_ENCODING_ORIGINAL}: if <tt>hl[0]</tt> is {@link #WATER_HEX},
+     *    the board is assumed empty and ports arrays won't be filled.
      */
     public void setHexLayout(int[] hl)
     {
         hexLayout = hl;
 
-        if (hl[0] == 6)
+        if (hl[0] == WATER_HEX)
         {
             /**
              * this is a blank board
