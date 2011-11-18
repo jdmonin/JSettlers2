@@ -1426,7 +1426,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Create and initialize a {@link SOCPlayer}'s legal settlements array.
+     * Create and initialize a {@link SOCPlayer}'s set of legal settlements.
      * You can use {@link System#arraycopy(Object, int, Object, int, int)}
      * to copy the returned <tt>legalSettlements[]</tt>
      * to <tt>potentialSettlements[]</tt>.
@@ -1436,7 +1436,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @since 1.1.12
      * @see #nodesOnBoard
      */
-    boolean[] initPlayerLegalAndPotentialSettlements()
+    Hashtable initPlayerLegalAndPotentialSettlements()
     {
         // 6-player starts land 1 extra hex (2 nodes) west of standard board,
         // and has an extra row of land hexes at north and south end.
@@ -1444,8 +1444,7 @@ public class SOCBoard implements Serializable, Cloneable
             (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
-        boolean[] legalSettlements = new boolean[0xFF];
-        Arrays.fill(legalSettlements, false);
+        Hashtable legalSettlements = new Hashtable(is6player ? 37 : 23);
 
         // Set each row of valid node coordinates:
         int i;
@@ -1453,31 +1452,31 @@ public class SOCBoard implements Serializable, Cloneable
         if (is6player)
         {
             for (i = 0x07; i <= 0x6D; i += 0x11)
-                legalSettlements[i] = true;
+                legalSettlements.put(new Integer(i), Boolean.TRUE);
         }
 
         for (i = 0x27 - westAdj; i <= 0x8D; i += 0x11)
-            legalSettlements[i] = true;
+            legalSettlements.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x25 - westAdj; i <= 0xAD; i += 0x11)
-            legalSettlements[i] = true;
+            legalSettlements.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x23 - westAdj; i <= 0xCD; i += 0x11)
-            legalSettlements[i] = true;
+            legalSettlements.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x32 - westAdj; i <= 0xDC; i += 0x11)
-            legalSettlements[i] = true;
+            legalSettlements.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x52 - westAdj; i <= 0xDA; i += 0x11)
-            legalSettlements[i] = true;
+            legalSettlements.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x72 - westAdj; i <= 0xD8; i += 0x11)
-            legalSettlements[i] = true;
+            legalSettlements.put(new Integer(i), Boolean.TRUE);
 
         if (is6player)
         {
             for (i = 0x70; i <= 0xD6; i += 0x11)
-                legalSettlements[i] = true;
+                legalSettlements.put(new Integer(i), Boolean.TRUE);
         }
 
         return legalSettlements;

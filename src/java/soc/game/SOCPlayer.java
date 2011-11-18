@@ -188,13 +188,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean[] legalRoads;
 
     /**
-     * a list of nodes where it is legal to place a
-     * settlement.        a node is legal if a settlement
-     * could eventually be placed there.
+     * a set of nodes where it is legal to place a
+     * settlement. A node is legal if a settlement
+     * can ever be placed there.
+     *<P>
+     * Key = node coordinate, value is not used;
+     * If {@link Hashtable#containsKey(Object) legalSettlements.containsKey(new Integer(nodeCoord))},
+     * then this is a legal settlement.
      * @see #potentialSettlements
      * @see SOCBoard#nodesOnBoard
      */
-    private boolean[] legalSettlements;
+    private Hashtable legalSettlements;
 
     /**
      * a list of edges where a road could be placed
@@ -206,15 +210,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean[] potentialRoads;
 
     /**
-     * a list of nodes where a settlement could be
+     * a set of nodes where a settlement could be
      * placed on the next turn.
      * At start of the game, all {@link #legalSettlements} are also potential.
-     * When the second settlement is placed, this is cleared,
+     * When the second settlement is placed, <tt>potentialSettlements</tt> is cleared,
      * and then re-set via {@link #updatePotentials(SOCPlayingPiece) updatePotentials(SOCRoad)}.
+     *<P>
+     * Key = node coordinate, value is not used;
+     * If {@link Hashtable#containsKey(Object) potentialSettlements.containsKey(new Integer(nodeCoord))},
+     * then this is a potential settlement.
      * @see #legalSettlements
      * @see SOCBoard#nodesOnBoard
      */
-    private boolean[] potentialSettlements;
+    private Hashtable potentialSettlements;
 
     /**
      * a list of nodes where a city could be
@@ -350,16 +358,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
          * init legal and potential arrays
          */
         legalRoads = new boolean[0xEF];
-        legalSettlements = new boolean[0xFF];
+        legalSettlements = (Hashtable) (player.legalSettlements.clone());
         potentialRoads = new boolean[0xEF];
-        potentialSettlements = new boolean[0xFF];
+        potentialSettlements = (Hashtable) (player.potentialSettlements.clone());
         potentialCities = new boolean[0xFF];
 
         System.arraycopy(player.legalRoads,     0, legalRoads,     0, player.legalRoads.length);
         System.arraycopy(player.potentialRoads, 0, potentialRoads, 0, player.potentialRoads.length);
 
-        System.arraycopy(player.legalSettlements,     0, legalSettlements,     0, player.legalSettlements.length);
-        System.arraycopy(player.potentialSettlements, 0, potentialSettlements, 0, player.potentialSettlements.length);
         System.arraycopy(player.potentialCities,      0, potentialCities,      0, player.potentialCities.length);
 
         if (player.currentOffer != null)
@@ -437,8 +443,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         legalRoads = board.initPlayerLegalRoads();
         legalSettlements = board.initPlayerLegalAndPotentialSettlements();
-        potentialSettlements = new boolean[legalSettlements.length];
-        System.arraycopy(legalSettlements, 0, potentialSettlements, 0, legalSettlements.length);
+        potentialSettlements = (Hashtable) (legalSettlements.clone());
 
         currentOffer = null;
     }
@@ -454,7 +459,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialSettlements()
     {
-        Arrays.fill(potentialSettlements, 0, 0xFF, false);
+        potentialSettlements.clear();
     }
 
     /**
@@ -1311,6 +1316,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     protected void undoPutPieceAuxSettlement(int settlementNode)
     {
+        final Integer settleNodeInt = new Integer(settlementNode);
+
         //D.ebugPrintln("))))) undoPutPieceAuxSettlement : node = "+Integer.toHexString(settlementNode));
         //
         // if this node doesn't have any neighboring settlements or cities, make it legal
@@ -1380,15 +1387,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 if (board.isNodeOnBoard(settlementNode))
                 {
-                    legalSettlements[settlementNode] = true;
+                    legalSettlements.put(settleNodeInt, Boolean.TRUE);
 
-                    //D.ebugPrintln(")))) legalSettlements["+Integer.toHexString(settlementNode)+"] = true");
                     //
                     // if it's the beginning of the game, make it potental
                     //
+                    //D.ebugPrintln(")))) legalSettlements["+Integer.toHexString(settlementNode)+"] = true");
+                    //
                     if (game.getGameState() < SOCGame.PLAY)
                     {
-                        potentialSettlements[settlementNode] = true;
+                        potentialSettlements.put(settleNodeInt, Boolean.TRUE);
 
                         //D.ebugPrintln(")))) potentialSettlements["+Integer.toHexString(settlementNode)+"] = true");
                     }
@@ -1428,7 +1436,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                         if (adjRoad)
                         {
-                            potentialSettlements[settlementNode] = true;
+                            potentialSettlements.put(settleNodeInt, Boolean.TRUE);
 
                             //D.ebugPrintln(")))) potentialSettlements["+Integer.toHexString(settlementNode)+"] = true");
                         }
@@ -1515,7 +1523,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         if (!match)
                         {
                             roadNodes.removeElement(node);
-                            potentialSettlements[node.intValue()] = false;
+                            potentialSettlements.remove(node);
                         }
                     }
 
@@ -1649,6 +1657,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         final boolean ours;
         boolean blocked;
         final int id = piece.getCoordinates();
+        final Integer idInt = new Integer(id);
         SOCBoard board = game.getBoard();
         Vector allPieces = board.getPieces();
 
@@ -1706,9 +1715,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 potentialRoads[edge] = true;
                         }
 
-                        if (legalSettlements[node])
+                        final Integer nodeInt = new Integer(node);
+                        if (legalSettlements.containsKey(nodeInt))
                         {
-                            potentialSettlements[node] = true;
+                            potentialSettlements.put(nodeInt, Boolean.TRUE);
                         }
                     }
                 }
@@ -1724,15 +1734,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             // remove non-potentials:
             // no settlement at this node coordinate,
             // no settlement in its adjacent nodes.
-            potentialSettlements[id] = false;
-            legalSettlements[id] = false;
+            potentialSettlements.remove(idInt);
+            legalSettlements.remove(idInt);
             int[] adjac = board.getAdjacentNodesToNode_arr(id);
             for (int i = 0; i < 3; ++i)
             {
                 if (adjac[i] != -9)
                 {
-                    potentialSettlements[adjac[i]] = false;
-                    legalSettlements[adjac[i]] = false;
+                    final Integer adjacNodeInt = new Integer(adjac[i]);
+                    potentialSettlements.remove(adjacNodeInt);
+                    legalSettlements.remove(adjacNodeInt);
                 }
             }
 
@@ -1844,7 +1855,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         while (settlementEnum.hasMoreElements())
         {
             Integer number = (Integer) settlementEnum.nextElement();
-            potentialSettlements[number.intValue()] = true;
+            potentialSettlements.put(number, Boolean.TRUE);
         }
     }
 
@@ -1854,7 +1865,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialSettlement(int node)
     {
-        return potentialSettlements[node];
+        return potentialSettlements.containsKey(new Integer(node));
     }
 
     /**
@@ -1867,7 +1878,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialSettlement(final int node)
     {
-        potentialSettlements[node] = false;
+        potentialSettlements.remove(new Integer(node));
     }
 
     /**
@@ -1889,7 +1900,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialCity(final int node)
     {
-        potentialSettlements[node] = false;
+        potentialSettlements.remove(new Integer(node));
     }
 
     /**
@@ -1954,16 +1965,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean hasPotentialSettlement()
     {
-        // TODO efficiency; maybe a count variable instead?
-        for (int i = game.getBoard().getMinNode(); i <= SOCBoard.MAXNODE; i++)
-        {
-            if (potentialSettlements[i])
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return ! potentialSettlements.isEmpty();
     }
 
     /**
@@ -2296,9 +2298,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         roadNodes = null;
         roadNodeGraph = null;
         legalRoads = null;
-        legalSettlements = null;
+        if (legalSettlements != null)
+        {
+            legalSettlements.clear();
+            legalSettlements = null;
+        }
         potentialRoads = null;
-        potentialSettlements = null;
+        if (potentialSettlements != null)
+        {
+            potentialSettlements.clear();
+            potentialSettlements = null;
+        }
         potentialCities = null;
         currentOffer = null;
     }
