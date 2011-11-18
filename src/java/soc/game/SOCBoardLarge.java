@@ -1083,15 +1083,19 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * My sample board layout: Main island's ports, clockwise from its northwest.
      * Each port has 2 elements.
-     * First: Coordinate, in hex: 0xRRCC
-     * Second: Facing
+     * First: Coordinate, in hex: 0xRRCC.
+     * Second: Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
      */
-    final int PORT_EDGE_FACING_MAINLAND[] = {
-	0x0002, FACING_NW,  0x0005, FACING_NE,
-	0x0208, FACING_NE,  0x050A, FACING_E,
-	0x0808, FACING_SE,  0x0A05, FACING_SE,
-	0x0A02, FACING_SW,  0x0701, FACING_W,
-	0x0301, FACING_W
+    final int PORT_EDGE_FACING_MAINLAND[] =
+    {
+	0x0002, FACING_SE,  0x0005, FACING_SW,
+	0x0208, FACING_SW,  0x050A, FACING_W,
+	0x0808, FACING_NW,  0x0A05, FACING_NW,
+	0x0A02, FACING_NE,  0x0701, FACING_E,
+	0x0301, FACING_E
     };
 
     /**
@@ -1100,16 +1104,18 @@ public class SOCBoardLarge extends SOCBoard
      * First: Coordinate, in hex: 0xRRCC
      * Second: Facing
      */
-    final int PORT_EDGE_FACING_ISLANDS[] = {
-	0x060D, FACING_SE,   // - northeast island
-	0x0A0E, FACING_NE,  0x0E0B, FACING_SE,	// - southeast island
-	0x0E05, FACING_NW    // - southwest island
+    final int PORT_EDGE_FACING_ISLANDS[] =
+    {
+	0x060D, FACING_NW,   // - northeast island
+	0x0A0E, FACING_SW,  0x0E0B, FACING_NW,	// - southeast island
+	0x0E05, FACING_SE    // - southwest island
     };
 
     /**
      * My sample board layout: Main island's land hex coordinates, each row west to east.
      */
-    final int LANDHEX_COORD_MAINLAND[] = {
+    final int LANDHEX_COORD_MAINLAND[] =
+    {
 	0x0103, 0x0105, 0x0107,
 	0x0302, 0x0304, 0x0306, 0x0308,
 	0x0501, 0x0503, 0x0505, 0x0507, 0x0509,
@@ -1120,7 +1126,8 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * My sample board layout: Each outlying island's land hex coordinates.
      */
-    final int LANDHEX_COORD_ISLANDS[][] = {
+    final int LANDHEX_COORD_ISLANDS[][] =
+    {
 	{ 0x010D, 0x030C, 0x030E, 0x050D, 0x050F },
 	{ 0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D },
 	{ 0X0D01, 0X0D03, 0X0F04, 0X0F06 }
@@ -1130,7 +1137,8 @@ public class SOCBoardLarge extends SOCBoard
      * My sample board layout: Land hex types,
      * to be used with (for the main island) {@link #landHex_v1}[].
      */
-    final int LANDHEX_TYPE_ISLANDS[] = {
+    final int LANDHEX_TYPE_ISLANDS[] =
+    {
 	CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
 	SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX,
 	WOOD_HEX, WOOD_HEX, DESERT_HEX, DESERT_HEX // TODO: should be GOLD_HEX, GOLD_HEX

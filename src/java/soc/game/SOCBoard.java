@@ -160,7 +160,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Each port's <em>facing,</em> on standard board.
      * Ordered clockwise from upper-left (hex coordinate 0x17).
-     * Port Facing is the direction from the port hex, to the land hex touching it
+     * Port Facing is the direction from the port hex/edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      * Facing 2 is east ({@link #FACING_E}), 3 is SE, 4 is SW, etc; see {@link #hexLayout}.
      * @since 1.1.08
@@ -200,7 +200,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Each port's <em>facing,</em> on 6-player board.
      * Ordered clockwise from upper-left (hex coordinate 0x17, which is land in the V2 layout).
-     * Port Facing is the direction from the port hex, to the land hex touching it
+     * Port Facing is the direction from the port hex/edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      * Within the board orientation (not the rotated visual orientation),
      * facing 2 is east ({@link #FACING_E}), 3 is SE, 4 is SW, etc.
@@ -622,6 +622,7 @@ public class SOCBoard implements Serializable, Cloneable
      *    will have 2 Integers because it touches 2 nodes.
      *    So, the number of ports of a type is ports[type].size() / 2.
      * @see #portsLayout
+     * @see #getPortsEdges()
      */
     protected Vector[] ports;
 
@@ -1538,7 +1539,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
      * @return the ports' facing
      * @see #getPortsEdges()
-     * @since 1.1.8
+     * @since 1.1.08
      */
     public int[] getPortsFacing()
     {
@@ -1557,7 +1558,8 @@ public class SOCBoard implements Serializable, Cloneable
      * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
      * @return the ports' edges
      * @see #getPortsFacing()
-     * @since 1.1.8
+     * @see #getPortCoordinates(int)
+     * @since 1.1.08
      */
     public int[] getPortsEdges()
     {
@@ -1732,13 +1734,14 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return the list of coordinates for a type of port;
+     * @return the list of node coordinates for a type of port;
      *         each element is an Integer
      *
      * @param portType  the type of port;
      *        in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      * @see #getPortTypeFromNodeCoord(int)
      * @see #getPortsLayout()
+     * @see #getPortsEdges()
      */
     public Vector getPortCoordinates(int portType)
     {
