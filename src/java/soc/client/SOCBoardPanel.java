@@ -2489,7 +2489,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         final int[] portsFacing = board.getPortsFacing();
         final int[] portsEdges = board.getPortsEdges();
-        for (int i = portsLayout.length-1; i>=0; --i)
+        for (int i = board.getPortsCount()-1; i>=0; --i)
         {
             // The (x,y) graphic location for this port isn't in hexX/hexY, because
             // the port is just beyond the coordinate system.  Get its facing land hex

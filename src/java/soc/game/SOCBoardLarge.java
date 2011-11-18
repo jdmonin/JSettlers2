@@ -172,6 +172,13 @@ public class SOCBoardLarge extends SOCBoard
      */
     private int[][] numberLayoutLg;
 
+    /**
+     * This board layout's number of ports;
+     * 0 if {@link #makeNewBoard(Hashtable)} hasn't been called yet.
+     * Port types, edges and facings are all stored in {@link SOCBoard#portsLayout}.
+     */
+    private int portsCount;
+
     public SOCBoardLarge(Hashtable gameOpts, int maxPlayers)
             throws IllegalArgumentException
     {
@@ -188,13 +195,14 @@ public class SOCBoardLarge extends SOCBoard
             Arrays.fill(hexLayoutLg[r], WATER_HEX);
             Arrays.fill(numberLayoutLg[r], 0);
         }
+
+        portsCount = 0;
     }
 
     // TODO override makeNewBoard; set hexLayoutLg, numberLayoutLg, portsLayout, robberHex,
-    //  fill ports, pieces, roads, nodesOnBoard
+    //  set portsCount, fill ports, pieces, roads, nodesOnBoard
 
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
-    // TODO portsFacing, port layout should be separate like v2 portsLayout, instead of part of hexLayoutLg
 
     // TODO override anything related to the unused super fields:
     //  hexLayout, numberLayout, minNode, minEdge, maxEdge,
@@ -210,7 +218,7 @@ public class SOCBoardLarge extends SOCBoard
     //   getHexNumFromCoord(), getHexTypeFromNumber(), getMinNode(), getMinEdge(), getMaxEdge()
     //
     // Not valid if arrays are 2D:
-    //   getHexLayout(), getPortsLayout(), getNumberLayout(), setHexLayout(), setPortsLayout(), setNumberLayout()
+    //   getHexLayout(), getNumberLayout(), setHexLayout(), setNumberLayout()
     //   getHexLandCoords()
     //   Consider get/set layouts as a 1D array: r, c, contents. Only include odd-numbered rows.
     //
@@ -1080,6 +1088,68 @@ public class SOCBoardLarge extends SOCBoard
         return isNodeInBounds(r, c+1);
     }
 
+
+    ////////////////////////////////////////////
+    //
+    // Ports
+    //
+
+
+    public int getPortsCount()
+    {
+        return portsCount;
+    }
+
+    /**
+     * Set the port information at the client, sent from the server from
+     * {@link #getPortsLayout()}.
+     *<P>
+     * <b>Note:</b> This v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
+     * within the port layout array.  If you call {@link #setPortsLayout(int[])}, be sure
+     * you are giving all information returned by {@link #getPortsLayout()}, not just the
+     * port types.
+     */
+    public void setPortsLayout(final int[] portTypesAndInfo)
+    {
+        /**
+         * n = port count = portTypesAndInfo.length / 3.
+         * The port types are stored at the beginning, from index 0 to n - 1.
+         * The next n indexes store each port's edge coordinate.
+         * The next n store each port's facing (towards land).
+         */
+        portsLayout = portTypesAndInfo;
+
+        portsCount = portTypesAndInfo.length / 3;
+
+        // Clear any previous port layout info
+        // TODO create or clear nodeIDtoPortType
+        // if (nodeIDtoPortType == null)
+        // {
+        // }
+        for (int i = 0; i < ports.length; ++i)
+            ports[i].removeAllElements();
+
+        // Place the new ports
+        for (int i = 0; i < portsCount; ++i)
+        {
+            final int ptype = portTypesAndInfo[i];
+            final int edge = portTypesAndInfo[i + portsCount],
+                      facing = portTypesAndInfo[i + (2 * portsCount)];
+
+            final int[] nodes = getAdjacentNodesToEdge_arr(edge);
+            placePort(ptype, -1, facing, nodes[0], nodes[1]);
+            ports[ptype].addElement(new Integer(nodes[0])); 
+            ports[ptype].addElement(new Integer(nodes[1])); 
+        }
+    }
+
+
+    ////////////////////////////////////////////
+    //
+    // Sample Layout
+    //
+
+
     /**
      * My sample board layout: Main island's ports, clockwise from its northwest.
      * Each port has 2 elements.
@@ -1089,7 +1159,7 @@ public class SOCBoardLarge extends SOCBoard
      * Port Facing is the direction from the port edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      */
-    final int PORT_EDGE_FACING_MAINLAND[] =
+    static final int PORT_EDGE_FACING_MAINLAND[] =
     {
 	0x0002, FACING_SE,  0x0005, FACING_SW,
 	0x0208, FACING_SW,  0x050A, FACING_W,
@@ -1104,7 +1174,7 @@ public class SOCBoardLarge extends SOCBoard
      * First: Coordinate, in hex: 0xRRCC
      * Second: Facing
      */
-    final int PORT_EDGE_FACING_ISLANDS[] =
+    static final int PORT_EDGE_FACING_ISLANDS[] =
     {
 	0x060D, FACING_NW,   // - northeast island
 	0x0A0E, FACING_SW,  0x0E0B, FACING_NW,	// - southeast island
@@ -1114,7 +1184,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * My sample board layout: Main island's land hex coordinates, each row west to east.
      */
-    final int LANDHEX_COORD_MAINLAND[] =
+    static final int LANDHEX_COORD_MAINLAND[] =
     {
 	0x0103, 0x0105, 0x0107,
 	0x0302, 0x0304, 0x0306, 0x0308,
@@ -1126,7 +1196,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * My sample board layout: Each outlying island's land hex coordinates.
      */
-    final int LANDHEX_COORD_ISLANDS[][] =
+    static final int LANDHEX_COORD_ISLANDS[][] =
     {
 	{ 0x010D, 0x030C, 0x030E, 0x050D, 0x050F },
 	{ 0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D },
@@ -1137,7 +1207,7 @@ public class SOCBoardLarge extends SOCBoard
      * My sample board layout: Land hex types,
      * to be used with (for the main island) {@link #landHex_v1}[].
      */
-    final int LANDHEX_TYPE_ISLANDS[] =
+    static final int LANDHEX_TYPE_ISLANDS[] =
     {
 	CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
 	SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX,

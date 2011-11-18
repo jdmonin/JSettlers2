@@ -52,7 +52,8 @@ import java.util.Vector;
  * share the same grid of coordinates.
  * Each hex is 2 units wide, in a 2-D coordinate system.
  *<P>
- * Current coordinate encoding: ({@link #BOARD_ENCODING_ORIGINAL})
+ * Current coordinate encodings: v1 ({@link #BOARD_ENCODING_ORIGINAL}),
+ *   v2 ({@link #BOARD_ENCODING_6PLAYER}), v3 ({@link #BOARD_ENCODING_LARGE}).
  *<P>
  * <b>On the 4-player board:</b> See <tt>src/docs/hexcoord.gif</tt><br>
  * Coordinates start with hex (1,1) on the far west, and go to (D,D) on the east.
@@ -260,14 +261,17 @@ public class SOCBoard implements Serializable, Cloneable
      * Ports are not part of {@link #hexLayout} because their
      * coordinates wouldn't fit within 2 hex digits.
      * Instead, see {@link #getPortTypeFromNodeCoord(int)},
+     *   {@link #getPortFacing(int)}, {@link #getPortsEdges()},
      *   {@link #getPortCoordinates(int)} or {@link #getPortsLayout()}.
      * @since 1.1.08
      */
     public static final int BOARD_ENCODING_6PLAYER = 2;
 
     /**
-     * Large format (3) for {@link #getBoardEncodingFormat()}:
+     * Large format (v3) for {@link #getBoardEncodingFormat()}:
      * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
+     * Land, water, and port locations/facings are no longer hardcoded.
+     * Use {@link #getPortsCount()} to get the number of ports.
      * @see SOCBoardLarge
      * @since 1.2.00
      */
@@ -492,11 +496,23 @@ public class SOCBoard implements Serializable, Cloneable
     };
 
     /**
-     * On the 6-player (v2 layout) board, each port's type.  Null otherwise.
+     * Port information; varies by board layout encoding format.
+     * Initialized in {@link #makeNewBoard(Hashtable)} if not <tt>null</tt>.
+     *<UL>
+     *<LI> v1: Not used in the original board, these are part of {@link #hexLayout} instead,
+     *         and this field is <tt>null</tt>.
+     *
+     *<LI> v2: On the 6-player (v2 layout) board, each port's type.  
      * Same value range as in {@link #hexLayout}.
-     * (In the standard (v1) board, these are part of {@link #hexLayout} instead.) 
      * 1 element per port. Same ordering as {@link #PORTS_FACING_V2}.
-     * Initialized in {@link #makeNewBoard(Hashtable)}.
+     *
+     *<LI> v3: {@link #BOARD_ENCODING_LARGE} stores more information
+     * within the port layout array.  <em>n</em> = {@link #getPortsCount()}.
+     * The port types are stored at the beginning, from index 0 to <em>n</em> - 1.
+     * The next <em>n</em> indexes store each port's edge coordinate.
+     * The next <em>n</em> store each port's facing (towards land).
+     *</UL>
+     *
      * @see #ports
      * @since 1.1.08
      */
@@ -1007,8 +1023,6 @@ public class SOCBoard implements Serializable, Cloneable
                 final int ptype = portHex[i];
                 final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V2[i]);
                 placePort(ptype, -1, PORTS_FACING_V2[i], nodes[0], nodes[1]);
-                ports[ptype].addElement(new Integer(nodes[0]));
-                ports[ptype].addElement(new Integer(nodes[1]));
             }            
         } else {
             for (int i = 0; i < PORTS_FACING_V1.length; ++i)
@@ -1016,8 +1030,6 @@ public class SOCBoard implements Serializable, Cloneable
                 final int ptype = portHex[i];
                 final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V1[i]);
                 placePort(ptype, PORTS_HEXNUM_V1[i], PORTS_FACING_V1[i], nodes[0], nodes[1]);
-                ports[ptype].addElement(new Integer(nodes[0]));
-                ports[ptype].addElement(new Integer(nodes[1]));
             }
         }
 
@@ -1326,28 +1338,32 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Auxiliary method for placing the port hexes, changing an element of {@link #hexLayout}
      * and setting 2 elements of {@link #nodeIDtoPortType}.
-     * @param port Port type; in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
+     * Adds the 2 nodes to {@link #ports}<tt>[ptype]</tt>.
+     * @param ptype Port type; in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      * @param hex  Hex coordinate within {@link #hexLayout}, or -1 if {@link #BOARD_ENCODING_6PLAYER}
      * @param face Facing of port; 1 to 6 ({@link #FACING_NE} to {@link #FACING_NW})
      * @param node1 Node coordinate 1 of port
      * @param node2 Node coordinate 2 of port
      */
-    private final void placePort(int port, int hex, int face, int node1, int node2)
+    protected final void placePort
+        (final int ptype, final int hex, final int face, final int node1, final int node2)
     {
         if (hex != -1)
         {
-            if (port == MISC_PORT)
+            if (ptype == MISC_PORT)
             {
                 // generic port == 6 + facing
                 hexLayout[hex] = face + 6;
             }
             else
             {
-                hexLayout[hex] = (face << 4) + port;
+                hexLayout[hex] = (face << 4) + ptype;
             }
         }
-        nodeIDtoPortType[node1] = port;
-        nodeIDtoPortType[node2] = port;
+        nodeIDtoPortType[node1] = ptype;
+        nodeIDtoPortType[node2] = ptype;
+        ports[ptype].addElement(new Integer(node1)); 
+        ports[ptype].addElement(new Integer(node2)); 
     }
 
     /**
@@ -1521,6 +1537,12 @@ public class SOCBoard implements Serializable, Cloneable
      * Same value range as in {@link #hexLayout}.
      * (In the standard board (v1), these are part of {@link #hexLayout} instead.)
      * Same order as {@link #getPortsFacing()}: Clockwise from upper-left.
+     * The number of ports is {@link #getPortsCount()}.
+     *<P>
+     * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
+     * within the port layout array.  The port types are stored at the beginning, from index
+     * 0 to {@link #getPortsCount()}-1.  If you call {@link #setPortsLayout(int[])}, be sure
+     * to give it the entire array returned from here.
      *
      * @return the ports layout, or null if not used in this board encoding format
      * @see #getPortTypeFromNodeCoord(int)
@@ -1537,6 +1559,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Port Facing is the direction from the port hex, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
+     * The length of this array is always {@link #getPortsCount()}.
      * @return the ports' facing
      * @see #getPortsEdges()
      * @since 1.1.08
@@ -1556,6 +1579,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Each port's edge coordinate.
      * This is the edge whose 2 end nodes can be used to build port settlements/cities.
      * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
+     * The length of this array is always 2 * {@link #getPortsCount()}.
      * @return the ports' edges
      * @see #getPortsFacing()
      * @see #getPortCoordinates(int)
@@ -1657,12 +1681,20 @@ public class SOCBoard implements Serializable, Cloneable
      * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
      * (In the standard board (v1), these are part of {@link #hexLayout}.)
      * Same order as {@link #PORTS_FACING_V2}: Clockwise from upper-left.
+     *<P>
+     * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
+     * within the port layout array.  If you call {@link #setPortsLayout(int[])}, be sure
+     * you are giving all information returned by {@link #getPortsLayout()}, not just the
+     * port types.
+     * 
      * @see #getPortsLayout()
      * @since 1.1.08
      */
     public void setPortsLayout(int[] portTypes)
     {
         portsLayout = portTypes;
+
+        // Clear any previous port layout info
         if (nodeIDtoPortType == null)
         {
             nodeIDtoPortType = new int[MAXNODEPLUSONE];
@@ -1671,14 +1703,16 @@ public class SOCBoard implements Serializable, Cloneable
         }
         for (int i = 0; i < ports.length; ++i)
             ports[i].removeAllElements();
+
+        // Place the new ports
         for (int i = 0; i < PORTS_FACING_V2.length; ++i)
         {
             final int ptype = portTypes[i];
             final int[] nodes = getAdjacentNodesToEdge_arr(PORTS_EDGE_V2[i]);
             placePort(ptype, -1, PORTS_FACING_V2[i], nodes[0], nodes[1]);
-            ports[ptype].addElement(new Integer(nodes[0])); 
-            ports[ptype].addElement(new Integer(nodes[1])); 
         }
+
+        // The v3 layout overrides this method in SOCBoardLarge.
     }
 
     /**
@@ -1731,6 +1765,27 @@ public class SOCBoard implements Serializable, Cloneable
         else
             prevRobberHex = -1;
         robberHex = rh;
+    }
+
+    /**
+     * Get the number of ports on this board.  The original and 6-player
+     * board layouts each have a constant number of ports.  The v3 layout
+     * ({@link #BOARD_ENCODING_LARGE}) has a varying amount of ports,
+     * set during {@link #makeNewBoard(Hashtable)}.
+     *
+     * @return the number of ports on this board; might be 0 if
+     *   {@link #makeNewBoard(Hashtable)} hasn't been called yet.
+     * @since 1.2.00
+     */
+    public int getPortsCount()
+    {
+        if (boardEncodingFormat == BOARD_ENCODING_ORIGINAL)
+            return PORTS_FACING_V1.length;
+        else
+            return PORTS_FACING_V2.length;
+
+        // v3 BOARD_ENCODING_LARGE overrides this method
+        // in SOCBoardLarge to return its port count.
     }
 
     /**
