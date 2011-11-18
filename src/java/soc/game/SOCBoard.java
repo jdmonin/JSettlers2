@@ -1356,7 +1356,7 @@ public class SOCBoard implements Serializable, Cloneable
      * to better encapsulate the board coordinate encoding.
      * @since 1.1.12
      */
-    boolean[] initPlayerLegalRoads()
+    Hashtable initPlayerLegalRoads()
     {
         // 6-player starts land 1 extra hex (2 edges) west of standard board,
         // and has an extra row of land hexes at north and south end.
@@ -1364,8 +1364,7 @@ public class SOCBoard implements Serializable, Cloneable
             (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
-        boolean[] legalRoads = new boolean[0xEF];
-        Arrays.fill(legalRoads, false);
+        Hashtable legalRoads = new Hashtable(97);  // 4-pl board 72 roads; load factor 0.75
 
         // Set each row of valid road (edge) coordinates:
         int i;
@@ -1373,53 +1372,52 @@ public class SOCBoard implements Serializable, Cloneable
         if (is6player)
         {
             for (i = 0x07; i <= 0x5C; i += 0x11)
-                legalRoads[i] = true;
+                legalRoads.put(new Integer(i), Boolean.TRUE);
 
             for (i = 0x06; i <= 0x6C; i += 0x22)
-                legalRoads[i] = true;
+                legalRoads.put(new Integer(i), Boolean.TRUE);
         }
 
         for (i = 0x27 - westAdj; i <= 0x7C; i += 0x11)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x26 - westAdj; i <= 0x8C; i += 0x22)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x25 - westAdj; i <= 0x9C; i += 0x11)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x24 - westAdj; i <= 0xAC; i += 0x22)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x23 - westAdj; i <= 0xBC; i += 0x11)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x22 - westAdj; i <= 0xCC; i += 0x22)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x32 - westAdj; i <= 0xCB; i += 0x11)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x42 - westAdj; i <= 0xCA; i += 0x22)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x52 - westAdj; i <= 0xC9; i += 0x11)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x62 - westAdj; i <= 0xC8; i += 0x22)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         for (i = 0x72 - westAdj; i <= 0xC7; i += 0x11)
-            legalRoads[i] = true;
+            legalRoads.put(new Integer(i), Boolean.TRUE);
 
         if (is6player)
         {
             for (i = 0x60; i <= 0xC6; i += 0x22)
-                legalRoads[i] = true;
+                legalRoads.put(new Integer(i), Boolean.TRUE);
 
             for (i = 0x70; i <= 0xC5; i += 0x11)
-                legalRoads[i] = true;
-
+                legalRoads.put(new Integer(i), Boolean.TRUE);
         }
 
         return legalRoads;
