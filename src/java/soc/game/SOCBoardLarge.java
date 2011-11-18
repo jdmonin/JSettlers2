@@ -1122,10 +1122,10 @@ public class SOCBoardLarge extends SOCBoard
         portsCount = portTypesAndInfo.length / 3;
 
         // Clear any previous port layout info
-        // TODO create or clear nodeIDtoPortType
-        // if (nodeIDtoPortType == null)
-        // {
-        // }
+        if (nodeIDtoPortType == null)
+            nodeIDtoPortType = new Hashtable();
+        else
+            nodeIDtoPortType.clear();
         for (int i = 0; i < ports.length; ++i)
             ports[i].removeAllElements();
 
