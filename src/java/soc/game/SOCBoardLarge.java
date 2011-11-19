@@ -1143,6 +1143,26 @@ public class SOCBoardLarge extends SOCBoard
         }
     }
 
+    public int getPortFacing(int portNum)
+    {
+        if ((portNum < 0) || (portNum >= portsCount))
+            return 0;
+        return portsLayout[portNum - (2 * portsCount)];
+    }
+
+    public int[] getPortsEdges()
+    {
+        int[] edge = new int[portsCount];
+        System.arraycopy(portsLayout, portsCount, edge, 0, portsCount);
+        return edge;
+    }
+
+    public int[] getPortsFacing()
+    {
+        int[] facing = new int[portsCount];
+        System.arraycopy(portsLayout, 2 * portsCount, facing, 0, portsCount);
+        return facing;
+    }
 
     ////////////////////////////////////////////
     //
@@ -1159,7 +1179,7 @@ public class SOCBoardLarge extends SOCBoard
      * Port Facing is the direction from the port edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
      */
-    static final int PORT_EDGE_FACING_MAINLAND[] =
+    private static final int PORT_EDGE_FACING_MAINLAND[] =
     {
 	0x0002, FACING_SE,  0x0005, FACING_SW,
 	0x0208, FACING_SW,  0x050A, FACING_W,
@@ -1174,7 +1194,7 @@ public class SOCBoardLarge extends SOCBoard
      * First: Coordinate, in hex: 0xRRCC
      * Second: Facing
      */
-    static final int PORT_EDGE_FACING_ISLANDS[] =
+    private static final int PORT_EDGE_FACING_ISLANDS[] =
     {
 	0x060D, FACING_NW,   // - northeast island
 	0x0A0E, FACING_SW,  0x0E0B, FACING_NW,	// - southeast island
@@ -1182,9 +1202,35 @@ public class SOCBoardLarge extends SOCBoard
     };
 
     /**
-     * My sample board layout: Main island's land hex coordinates, each row west to east.
+     * Port types for the 4 outlying-island ports.
+     * For the mainland's port types, use {@link SOCBoard#PORTS_TYPE_V1}.
      */
-    static final int LANDHEX_COORD_MAINLAND[] =
+    private static final int PORT_TYPE_ISLANDS[] =
+    {
+        0, SHEEP_PORT, WHEAT_PORT, WOOD_PORT
+    };
+
+    /**
+     * Sample board layout: Dice-number path (hex coordinates)
+     * on the main island, spiraling inward from the shore.
+     * The outlying islands have no dice path.
+     * For the mainland's dice numbers, see SOCBoard.makeNewBoard.numPath_v1.
+     * @see #LANDHEX_COORD_MAINLAND
+     */
+    private static final int LANDHEX_DICEPATH_MAINLAND[] =
+    {
+        // clockwise from northwest
+        0x0103, 0x0105, 0x0107, 0x0308, 0x0509,
+        0x0708, 0x0907, 0x0905, 0x0903, 0x0702,
+        0x0501, 0x0302, 0x0304, 0x0306, 0x0507,
+        0x0706, 0x0704, 0x0503, 0x0505
+    };
+
+    /**
+     * My sample board layout: Main island's land hex coordinates, each row west to east.
+     * @see #LANDHEX_DICEPATH_MAINLAND
+     */
+    private static final int LANDHEX_COORD_MAINLAND[] =
     {
 	0x0103, 0x0105, 0x0107,
 	0x0302, 0x0304, 0x0306, 0x0308,
@@ -1196,7 +1242,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * My sample board layout: Each outlying island's land hex coordinates.
      */
-    static final int LANDHEX_COORD_ISLANDS[][] =
+    private static final int LANDHEX_COORD_ISLANDS[][] =
     {
 	{ 0x010D, 0x030C, 0x030E, 0x050D, 0x050F },
 	{ 0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D },
@@ -1207,11 +1253,23 @@ public class SOCBoardLarge extends SOCBoard
      * My sample board layout: Land hex types,
      * to be used with (for the main island) {@link #landHex_v1}[].
      */
-    static final int LANDHEX_TYPE_ISLANDS[] =
+    private static final int LANDHEX_TYPE_ISLANDS[] =
     {
 	CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
-	SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX,
+	SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX, DESERT_HEX,
 	WOOD_HEX, WOOD_HEX, DESERT_HEX, DESERT_HEX // TODO: should be GOLD_HEX, GOLD_HEX
+    };
+
+    /**
+     * My sample board layout: Dice numbers for the outlying islands.
+     * These islands have no defined NumPath; as long as 6 and 8 aren't
+     * adjacent, and as long as GOLD_HEXes have rare numbers, all is OK.
+     */
+    private static final int LANDHEX_DICENUM_ISLANDS[] =
+    {
+        5, 4, 6, 3, 8,
+        10, 9, 11, 5, 9,
+        4, 10, 5  // leave 1 un-numbered, for the DESERT_HEX
     };
 
 }

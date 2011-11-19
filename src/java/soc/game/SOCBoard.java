@@ -22,7 +22,6 @@ package soc.game;
 
 import java.io.Serializable;
 
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Random;
@@ -1569,6 +1568,9 @@ public class SOCBoard implements Serializable, Cloneable
      * which will have 2 nodes where a port settlement/city can be built.
      * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
      * The length of this array is always {@link #getPortsCount()}.
+     *<P>
+     * This method should not be called frequently.
+     *
      * @return the ports' facing
      * @see #getPortsEdges()
      * @since 1.1.08
@@ -1589,6 +1591,9 @@ public class SOCBoard implements Serializable, Cloneable
      * This is the edge whose 2 end nodes can be used to build port settlements/cities.
      * Same order as {@link #getPortsLayout()}: Clockwise from upper-left.
      * The length of this array is always 2 * {@link #getPortsCount()}.
+     *<P>
+     * This method should not be called frequently.
+     *
      * @return the ports' edges
      * @see #getPortsFacing()
      * @see #getPortCoordinates(int)
@@ -1810,7 +1815,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Get a port's <em>facing</em>.
      * Facing is the direction from the port hex, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
-     * @param portNum Port number, in range 0 to n-1,
+     * @param portNum Port number, in range 0 to {@link #getPortsCount()} - 1.
      *           Ordered clockwise from upper-left.
      * @return facing (1-6), or 0 if not a valid port number.
      *            Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
@@ -1827,7 +1832,10 @@ public class SOCBoard implements Serializable, Cloneable
             return pfacings[portNum];
         else
             return 0;
+
+        // v3 encoding overrides this method in SOCBoardLarge. 
     }
+
     /**
      * What type of port is at this node?
      * @param nodeCoord  the coordinates for a node
