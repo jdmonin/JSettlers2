@@ -147,7 +147,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Same order as {@link #PORTS_FACING_V1}. {@link #MISC_PORT} is 0.
      * @since 1.1.08
      */
-    private final static int PORTS_TYPE_V1[] = { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT};
+    protected final static int PORTS_TYPE_V1[] = { 0, 0, 0, 0, CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT};
 
     /**
      * Each port's hex number within {@link #hexLayout} on standard board.
@@ -959,6 +959,25 @@ public class SOCBoard implements Serializable, Cloneable
     };
 
     /**
+     * Land hex types on the original board layout (v1).
+     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
+     * @since 1.2.00
+     */
+    protected static final int[] makeNewBoard_landHexTypes_v1 =
+        { DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+            ORE_HEX, ORE_HEX, ORE_HEX,
+            SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+            WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+            WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX };
+    /**
+     * Dice numbers in the original board layout, in order along numPath.
+     * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
+     * @since 1.2.00
+     */
+    protected static final int[] makeNewBoard_diceNums_v1 = 
+        { 5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11 };
+
+    /**
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
      * client instead calls methods such as {@link #setHexLayout(int[])}.
@@ -971,13 +990,11 @@ public class SOCBoard implements Serializable, Cloneable
     {
         final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
-        // For purpose/format of these arrays, see the
-        // makeNewBoard_placeHexes javadoc.
-        final int[] landHex_v1 = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5 };
+        // landHex_v1 == makeNewBoard_landHexTypes_v1
+        // number_v1  == makeNewBoard_diceNums_v1
         final int[] landHex_6pl = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 
             DESERT_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX,
             WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX };
-        final int[] number_v1 = { 5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11 };
         final int[] number_6pl =
             {
                 2,   5,  4,  6 , 3, // A-E
@@ -994,11 +1011,11 @@ public class SOCBoard implements Serializable, Cloneable
         // sets robberHex, contents of hexLayout[] and numberLayout[].
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
         {
-            final int[] landHex = is6player ? landHex_6pl : landHex_v1;
+            final int[] landHex = is6player ? landHex_6pl : makeNewBoard_landHexTypes_v1;
             final int[][] numPaths = is6player ? makeNewBoard_numPaths_6pl : makeNewBoard_numPaths_v1;
             final int[] numPath = 
                 numPaths[ Math.abs(rand.nextInt() % numPaths.length) ];
-            final int[] numbers = is6player ? number_6pl : number_v1;
+            final int[] numbers = is6player ? number_6pl : makeNewBoard_diceNums_v1;
             makeNewBoard_placeHexes
                 (landHex, numPath, numbers, opt_breakClumps);
         }
@@ -1262,7 +1279,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param opt_breakClumps Game option "BC", or null
      * @throws IllegalStateException if opt_breakClumps is set, and all portHex[] elements have the same value
      */
-    private void makeNewBoard_shufflePorts(int[] portHex, SOCGameOption opt_breakClumps)
+    protected void makeNewBoard_shufflePorts(int[] portHex, SOCGameOption opt_breakClumps)
         throws IllegalStateException
     {
         boolean portsOK = true;
