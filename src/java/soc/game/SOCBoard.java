@@ -1110,163 +1110,193 @@ public class SOCBoard implements Serializable, Cloneable
 
             if (checkClumps)
             {
-                /**
-                 * Depth-first search to check land hexes for resource clumps.
-                 *
-                 * Start with the set of all land hexes, and consider them 'unvisited'.
-                 * Look at each hex in the set, marking them as visited and moving
-                 * them into new subsets ("clumps") composed of adjacent hexes of the
-                 * same resource type. Build clumps by immediately visiting those adjacent
-                 * hexes, and their unvisited same-type adjacents, etc.
-                 * Once we've visited each hex, check if any clump subset's
-                 * size is larger than the allowed size.
-                 *
-                 * Pseudocode:
-                // Using vectors to represent sets.
-                //   Sets will contain each land hex's coordinate ("ID").
-                //
-                // - clumps := new empty set (will be a vector of vectors)
-                //     At end of search, each element of this set will be
-                //       a subset (a vector) of adjacent hexes
-                // - clumpsNotOK := false
-                // - unvisited-set := new set (vector) of all land hexes
-                // - iterate through unvisited-set; for each hex:
-                //     - remove this from unvisited-set
-                //     - look at its adjacent hexes of same type
-                //          assertion: they are all unvisited, because this hex was unvisited
-                //                     and this is the top-level loop
-                //     - if none, done looking at this hex
-                //     - remove all adj-of-same-type from unvisited-set
-                //     - build a new clump-vector of this + all adj of same type
-                //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
-                //       because we already have its adjacent hexes)
-                //          precondition: each hex already in the clump set, is not in unvisited-vec
-                //          - look at its adjacent unvisited hexes of same type
-                //          - if none, done looking at this hex
-                //          - remove same-type adjacents from unvisited-set
-                //          - insert them into clump-vector (will continue the iteration with them)
-                //     - add clump-vector to set-of-all-clumps
-                //          OR, immediately check its size vs clumpSize
-                //   postcondition: have visited each hex
-                // - iterate through set-of-all-clumps
-                //      if size >= clumpSize then clumpsNotOK := true. Stop.
-                // - read clumpsNotOK.
-                 */
-
-                // Actual code along with pseudocode:
-
-                // Using vectors to represent sets.
-                //   Sets will contain each land hex's coordinate ("ID").
-                //   We're operating on Integer instances, which is okay because
-                //   vector methods such as contains() and remove() test obj.equals()
-                //   to determine if the Integer is a member.
-                //   (getAdjacent() returns new Integer objs with the same value
-                //    as unvisited's members.)
-
-                // - unvisited-set := new set (vector) of all land hexes
-                clumpsNotOK = false;    // will set true in while-loop body
                 Vector unvisited = new Vector();  // contains each land hex's coordinate
                 for (int i = 0; i < landHex.length; ++i)
                 {
                     unvisited.addElement(new Integer(numToHexID[numPath[i]]));
                 }
-
-                // - iterate through unvisited-set
-
-                while (unvisited.size() > 0)
-                {
-                    //   for each hex:
-
-                    //     - remove this from unvisited-set
-                    Integer hexCoordObj = (Integer) unvisited.elementAt(0);
-                    final int hexCoord = hexCoordObj.intValue();
-                    final int resource = getHexTypeFromCoord(hexCoord);
-                    unvisited.removeElementAt(0);
-
-                    //     - look at its adjacent hexes of same type
-                    //          assertion: they are all unvisited, because this hex was unvisited
-                    //                     and this is the top-level loop
-                    //     - if none, done looking at this hex
-                    //     - build a new clump-vector of this + all adj of same type
-                    //     - remove all adj-of-same-type from unvisited-set
-
-                    // set of adjacent will become the clump, or be emptied completely
-                    Vector adjacent = getAdjacentHexesToHex(hexCoord, false);
-                    if (adjacent == null)
-                        continue;
-
-                    Vector clump = null;
-                    for (int i = 0; i < adjacent.size(); ++i)
-                    {
-                        Integer adjCoordObj = (Integer) adjacent.elementAt(i);
-                        final int adjCoord = adjCoordObj.intValue();
-                        if (resource == getHexTypeFromCoord(adjCoord))
-                        {
-                            // keep this one
-                            if (clump == null)
-                                clump = new Vector();
-                            clump.addElement(adjCoordObj);
-                            unvisited.remove(adjCoordObj);
-                        }
-                    }
-                    if (clump == null)
-                        continue;
-
-                    clump.insertElementAt(hexCoordObj, 0);  // put the first hex into clump
-
-                    //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
-                    //       because we already have its adjacent hexes)
-                    for (int ic = 1; ic < clump.size(); )  // ++ic is within loop body, if nothing inserted
-                    {
-                        // precondition: each hex already in clump set, is not in unvisited-vec
-                        Integer chexCoordObj = (Integer) clump.elementAt(ic);
-                        final int chexCoord = chexCoordObj.intValue();
-
-                        //  - look at its adjacent unvisited hexes of same type
-                        //  - if none, done looking at this hex
-                        //  - remove same-type adjacents from unvisited-set
-                        //  - insert them into clump-vector
-                        //    (will continue the iteration with them)
-
-                        Vector adjacent2 = getAdjacentHexesToHex(chexCoord, false);
-                        if (adjacent2 == null)
-                        {
-                            ++ic;
-                            continue;
-                        }
-                        boolean didInsert = false;
-                        for (int ia = 0; ia < adjacent2.size(); ++ia)
-                        {
-                            Integer adjCoordObj = (Integer) adjacent2.elementAt(ia);
-                            final int adjCoord = adjCoordObj.intValue();
-                            if ((resource == getHexTypeFromCoord(adjCoord))
-                                && unvisited.contains(adjCoordObj))
-                            {
-                                // keep this one
-                                clump.insertElementAt(adjCoordObj, ic);
-                                unvisited.remove(adjCoordObj);
-                                didInsert = true;
-                            }
-                        }
-                        if (! didInsert)
-                            ++ic;
-
-                    }  // for each in clump
-
-                    //     - immediately check clump's size vs clumpSize
-                    if (clump.size() >= clumpSize)
-                    {
-                        clumpsNotOK = true;
-                        break;
-                    }
-
-                }  // for each in unvisited
-
+                clumpsNotOK = makeNewBoard_checkLandHexResourceClumps
+                    (unvisited, clumpSize);
             }  // if (checkClumps)
 
         } while (clumpsNotOK);
 
     }  // makeNewBoard_placeHexes
+
+    /**
+     * Depth-first search to check land hexes for resource clumps.
+     *<P>
+     * Start with the set of all land hexes, and consider them 'unvisited'.
+     * Look at each hex in the set, marking them as visited and moving
+     * them into new subsets ("clumps") composed of adjacent hexes of the
+     * same resource type. Build clumps by immediately visiting those adjacent
+     * hexes, and their unvisited same-type adjacents, etc.
+     * Once we've visited each hex, check if any clump subset's
+     * size is larger than the allowed size.
+     *<P>
+     * Before v1.2.00, this was part of makeNewBoard_placeHexes.
+     * 
+     * @param unvisited  Contains each land hex's coordinate as an Integer;
+     *          <b>Note:</b> This vector will be modified by the method.
+     * @param clumpSize  Clumps of this size or more are too large.
+     *          Minimum value is 3, smaller values will always return false.
+     * @return  true if large clumps found, false if okay
+     * @since 1.2.00
+     */
+    protected boolean makeNewBoard_checkLandHexResourceClumps
+        (Vector unvisited, final int clumpSize)
+    {
+        if (clumpSize < 3)
+            return false;
+
+        /**
+         * Depth-first search to check land hexes for resource clumps.
+         *
+         * Start with the set of all land hexes, and consider them 'unvisited'.
+         * Look at each hex in the set, marking them as visited and moving
+         * them into new subsets ("clumps") composed of adjacent hexes of the
+         * same resource type. Build clumps by immediately visiting those adjacent
+         * hexes, and their unvisited same-type adjacents, etc.
+         * Once we've visited each hex, check if any clump subset's
+         * size is larger than the allowed size.
+         *
+         * Pseudocode:
+        // Using vectors to represent sets.
+        //   Sets will contain each land hex's coordinate ("ID").
+        //
+        // - clumps := new empty set (will be a vector of vectors)
+        //     At end of search, each element of this set will be
+        //       a subset (a vector) of adjacent hexes
+        // - clumpsNotOK := false
+        // - unvisited-set := new set (vector) of all land hexes
+        // - iterate through unvisited-set; for each hex:
+        //     - remove this from unvisited-set
+        //     - look at its adjacent hexes of same type
+        //          assertion: they are all unvisited, because this hex was unvisited
+        //                     and this is the top-level loop
+        //     - if none, done looking at this hex
+        //     - remove all adj-of-same-type from unvisited-set
+        //     - build a new clump-vector of this + all adj of same type
+        //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
+        //       because we already have its adjacent hexes)
+        //          precondition: each hex already in the clump set, is not in unvisited-vec
+        //          - look at its adjacent unvisited hexes of same type
+        //          - if none, done looking at this hex
+        //          - remove same-type adjacents from unvisited-set
+        //          - insert them into clump-vector (will continue the iteration with them)
+        //     - add clump-vector to set-of-all-clumps
+        //          OR, immediately check its size vs clumpSize
+        //   postcondition: have visited each hex
+        // - iterate through set-of-all-clumps
+        //      if size >= clumpSize then clumpsNotOK := true. Stop.
+        // - read clumpsNotOK.
+         */
+
+        // Actual code along with pseudocode:
+
+        // Using vectors to represent sets.
+        //   Sets will contain each land hex's coordinate ("ID").
+        //   We're operating on Integer instances, which is okay because
+        //   vector methods such as contains() and remove() test obj.equals()
+        //   to determine if the Integer is a member.
+        //   (getAdjacent() returns new Integer objs with the same value
+        //    as unvisited's members.)
+
+        boolean clumpsNotOK = false;    // will set true in while-loop body
+
+        // - unvisited-set := new set (vector) of all land hexes
+        // - iterate through unvisited-set
+
+        while (unvisited.size() > 0)
+        {
+            //   for each hex:
+
+            //     - remove this from unvisited-set
+            Integer hexCoordObj = (Integer) unvisited.elementAt(0);
+            final int hexCoord = hexCoordObj.intValue();
+            final int resource = getHexTypeFromCoord(hexCoord);
+            unvisited.removeElementAt(0);
+
+            //     - look at its adjacent hexes of same type
+            //          assertion: they are all unvisited, because this hex was unvisited
+            //                     and this is the top-level loop
+            //     - if none, done looking at this hex
+            //     - build a new clump-vector of this + all adj of same type
+            //     - remove all adj-of-same-type from unvisited-set
+
+            // set of adjacent will become the clump, or be emptied completely
+            Vector adjacent = getAdjacentHexesToHex(hexCoord, false);
+            if (adjacent == null)
+                continue;
+
+            Vector clump = null;
+            for (int i = 0; i < adjacent.size(); ++i)
+            {
+                Integer adjCoordObj = (Integer) adjacent.elementAt(i);
+                final int adjCoord = adjCoordObj.intValue();
+                if (resource == getHexTypeFromCoord(adjCoord))
+                {
+                    // keep this one
+                    if (clump == null)
+                        clump = new Vector();
+                    clump.addElement(adjCoordObj);
+                    unvisited.remove(adjCoordObj);
+                }
+            }
+            if (clump == null)
+                continue;
+
+            clump.insertElementAt(hexCoordObj, 0);  // put the first hex into clump
+
+            //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
+            //       because we already have its adjacent hexes)
+            for (int ic = 1; ic < clump.size(); )  // ++ic is within loop body, if nothing inserted
+            {
+                // precondition: each hex already in clump set, is not in unvisited-vec
+                Integer chexCoordObj = (Integer) clump.elementAt(ic);
+                final int chexCoord = chexCoordObj.intValue();
+
+                //  - look at its adjacent unvisited hexes of same type
+                //  - if none, done looking at this hex
+                //  - remove same-type adjacents from unvisited-set
+                //  - insert them into clump-vector
+                //    (will continue the iteration with them)
+
+                Vector adjacent2 = getAdjacentHexesToHex(chexCoord, false);
+                if (adjacent2 == null)
+                {
+                    ++ic;
+                    continue;
+                }
+                boolean didInsert = false;
+                for (int ia = 0; ia < adjacent2.size(); ++ia)
+                {
+                    Integer adjCoordObj = (Integer) adjacent2.elementAt(ia);
+                    final int adjCoord = adjCoordObj.intValue();
+                    if ((resource == getHexTypeFromCoord(adjCoord))
+                        && unvisited.contains(adjCoordObj))
+                    {
+                        // keep this one
+                        clump.insertElementAt(adjCoordObj, ic);
+                        unvisited.remove(adjCoordObj);
+                        didInsert = true;
+                    }
+                }
+                if (! didInsert)
+                    ++ic;
+
+            }  // for each in clump
+
+            //     - immediately check clump's size vs clumpSize
+            if (clump.size() >= clumpSize)
+            {
+                clumpsNotOK = true;
+                break;
+            }
+
+        }  // for each in unvisited
+        return clumpsNotOK;
+    }
 
     /**
      * For makeNewBoard, shuffle portHex[].
