@@ -666,7 +666,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * random number generator
      */
-    private Random rand = new Random();
+    protected Random rand = new Random();
 
     /**
      * a list of nodes on the land of the board; key is node's Integer coordinate, value is Boolean.
@@ -1057,13 +1057,18 @@ public class SOCBoard implements Serializable, Cloneable
      * Sets robberHex, contents of hexLayout[] and numberLayout[].
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
+     *<P>
+     * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
+     * before it starts placement.  Since hexLayout's land hex coordinates are hardcoded within
+     * {@link #numToHexID}, it can only be called once per board layout.
+     *
      * @param landHex  Resource type to place into {@link #hexLayout} for each land hex; will be shuffled.
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
      * @param numPath  Indexes within {@link #hexLayout} (also within {@link #numberLayout}) for each land hex;
      *                    same array length as <tt>landHex[]</tt>
      * @param number   Numbers to place into {@link #numberLayout} for each land hex;
      *                    array length is <tt>landHex[].length</tt> minus 1 for each desert in <tt>landHex[]</tt>
-     * @param optBC  The game options for this board; only option "BC" is checked for.
+     * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
      */
     private final void makeNewBoard_placeHexes
         (int[] landHex, final int[] numPath, final int[] number, SOCGameOption optBC)
@@ -1082,6 +1087,8 @@ public class SOCBoard implements Serializable, Cloneable
                 {
                     // Swap a random card below the ith card with the ith card
                     idx = Math.abs(rand.nextInt() % (landHex.length - i));
+                    if (idx == i)
+                        continue;
                     tmp = landHex[idx];
                     landHex[idx] = landHex[i];
                     landHex[i] = tmp;

@@ -228,6 +228,178 @@ public class SOCBoardLarge extends SOCBoard
     // TODO override initPlayerLegalRoads, initPlayerLegalAndPotentialSettlements;
     //  their return format might not scale to this size
 
+
+    ////////////////////////////////////////////
+    //
+    // Make New Board
+    //
+
+
+    /**
+     * Shuffle the hex tiles and layout a board.
+     * This is called at server, but not at client;
+     * client instead calls methods such as {@link #setHexLayout(int[])}.
+     * @param opts {@link SOCGameOption Game options}, which may affect
+     *          tile placement on board, or null.  <tt>opts</tt> must be
+     *          the same as passed to constructor, and thus give the same size and layout
+     *          (same {@link #getBoardEncodingFormat()}).
+     */
+    public void makeNewBoard(Hashtable opts)
+    {
+        SOCGameOption opt_breakClumps = (opts != null ? (SOCGameOption)opts.get("BC") : null);
+
+        // shuffle and place the land hexes, numbers, and robber:
+        // sets robberHex, contents of hexLayout[] and numberLayout[].
+        // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
+        // - Mainland:
+        makeNewBoard_placeHexes
+            (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, opt_breakClumps);
+        // - Islands:
+        makeNewBoard_placeHexes
+            (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, (SOCGameOption) null);
+
+        // copy and shuffle the ports, and check vs game option BC
+        int[] portTypes_main = new int[PORTS_TYPE_V1.length],
+              portTypes_islands = new int[PORT_TYPE_ISLANDS.length];
+        System.arraycopy(PORTS_TYPE_V1, 0, portTypes_main, 0, portTypes_main.length);
+        System.arraycopy(PORT_TYPE_ISLANDS, 0, portTypes_islands, 0, portTypes_islands.length);
+        makeNewBoard_shufflePorts
+            (portTypes_main, opt_breakClumps);
+        makeNewBoard_shufflePorts
+            (portTypes_islands, null);
+
+        // copy port types to beginning of portsLayout[]
+        portsCount = PORTS_TYPE_V1.length + PORT_TYPE_ISLANDS.length;
+        System.arraycopy(portTypes_main, 0,
+            portsLayout, 0, portTypes_main.length);
+        System.arraycopy(portTypes_islands, 0,
+            portsLayout, portTypes_main.length, portTypes_islands.length);
+
+        // place the ports (hex numbers and facing) within portsLayout[] and nodeIDtoPortType.
+        // fill out the ports[] vectors with node coordinates where a trade port can be placed.
+        nodeIDtoPortType = new Hashtable();
+
+        // - main island:
+        // i == port type array index
+        // j == port edge & facing array index
+        final int L = portTypes_main.length;
+        for (int i = 0, j = 0; i < L; ++i)
+        {
+            final int ptype = portTypes_main[i];  // also == portsLayout[i]
+            final int edge = PORT_EDGE_FACING_MAINLAND[j];
+            ++j;
+            final int facing = PORT_EDGE_FACING_MAINLAND[j];
+            ++j;
+            final int[] nodes = getAdjacentNodesToEdge_arr(edge);
+            placePort(ptype, -1, facing, nodes[0], nodes[1]);
+            portsLayout[i + portsCount] = edge;
+            portsLayout[i + (2 * portsCount)] = facing;
+        }
+
+        // - outlying islands:
+        // i == port type array index
+        // j == port edge & facing array index
+        for (int i = 0, j = 0; i < PORT_TYPE_ISLANDS.length; ++i)
+        {
+            final int ptype = portTypes_islands[i];  // also == portsLayout[i+L]
+            final int edge = PORT_EDGE_FACING_ISLANDS[j];
+            ++j;
+            final int facing = PORT_EDGE_FACING_ISLANDS[j];
+            ++j;
+            final int[] nodes = getAdjacentNodesToEdge_arr(edge);
+            placePort(ptype, -1, facing, nodes[0], nodes[1]);
+            portsLayout[L + i + portsCount] = edge;
+            portsLayout[L + i + (2 * portsCount)] = facing;
+        }
+    }
+
+    /**
+     * For {@link #makeNewBoard(Hashtable)}, place the land hexes, number, and robber,
+     * after shuffling landHexType[].
+     * Sets robberHex, contents of hexLayoutLg[] and numberLayoutLg[].
+     * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
+     * (for land hex resource types).
+     *<P>
+     * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
+     * before it starts placement.  You can call it multiple times to set up multiple
+     * areas of land hexes.
+     *
+     * @param landHexType  Resource type to place into {@link #hexLayout} for each land hex; will be shuffled.
+     *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
+     * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
+     *                    same array length as <tt>landHexType[]</tt>
+     * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
+     *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
+     * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
+     */
+    private final void makeNewBoard_placeHexes
+        (int[] landHexType, final int[] numPath, final int[] number, SOCGameOption optBC)
+    {
+        final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
+        final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
+        boolean clumpsNotOK = checkClumps;
+
+        do   // will re-do placement until clumpsNotOK is false
+        {
+            // shuffle the land hexes 10x
+            for (int j = 0; j < 10; j++)
+            {
+                int idx, tmp;
+                for (int i = 0; i < landHexType.length; i++)
+                {
+                    // Swap a random card below the ith card with the ith card
+                    idx = Math.abs(rand.nextInt() % (landHexType.length - i));
+                    if (idx == i)
+                        continue;
+                    tmp = landHexType[idx];
+                    landHexType[idx] = landHexType[i];
+                    landHexType[i] = tmp;
+                }
+            }
+
+            int cnt = 0;
+            for (int i = 0; i < landHexType.length; i++)
+            {
+                final int r = numPath[i] >> 8,
+                          c = numPath[i] & 0xFF;
+
+                // place the land hexes
+                hexLayoutLg[r][c] = landHexType[i];
+
+                // place the robber on the desert
+                if (landHexType[i] == DESERT_HEX)
+                {
+                    setRobberHex(numPath[i], false);
+                    numberLayoutLg[r][c] = -1;
+                }
+                else
+                {
+                    // place the numbers
+                    numberLayoutLg[r][c] = number[cnt];
+                    cnt++;
+                }
+            }  // for(i in landHex)
+
+            if (checkClumps)
+            {
+                Vector unvisited = new Vector();  // contains each land hex's coordinate
+                for (int i = 0; i < landHexType.length; ++i)
+                    unvisited.addElement(new Integer(numPath[i]));
+
+                clumpsNotOK = makeNewBoard_checkLandHexResourceClumps
+                    (unvisited, clumpSize);
+            }
+
+        } while (clumpsNotOK);
+
+    }  // makeNewBoard_placeHexes
+
+
+    ////////////////////////////////////////////
+    //
+    // Board info getters
+    //
+    
     /**
      * Given a hex coordinate, return the dice-roll number on that hex
      *
@@ -1164,6 +1336,7 @@ public class SOCBoardLarge extends SOCBoard
         return facing;
     }
 
+
     ////////////////////////////////////////////
     //
     // Sample Layout
@@ -1240,18 +1413,30 @@ public class SOCBoardLarge extends SOCBoard
     };
 
     /**
-     * My sample board layout: Each outlying island's land hex coordinates.
+     * My sample board layout: All the outlying islands' land hex coordinates.
+     * @see #LANDHEX_COORD_ISLANDS_EACH
      */
-    private static final int LANDHEX_COORD_ISLANDS[][] =
+    private static final int LANDHEX_COORD_ISLANDS_ALL[] =
     {
-	{ 0x010D, 0x030C, 0x030E, 0x050D, 0x050F },
-	{ 0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D },
-	{ 0X0D01, 0X0D03, 0X0F04, 0X0F06 }
+	0x010D, 0x030C, 0x030E, 0x050D, 0x050F,
+	0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D,
+	0X0D01, 0X0D03, 0X0F04, 0X0F06
+    };
+
+    /**
+     * My sample board layout: Each outlying island's land hex coordinates.
+     * @see #LANDHEX_COORD_ISLANDS_ALL
+     */
+    private static final int LANDHEX_COORD_ISLANDS_EACH[][] =
+    {
+        { 0x010D, 0x030C, 0x030E, 0x050D, 0x050F },
+        { 0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D },
+        { 0X0D01, 0X0D03, 0X0F04, 0X0F06 }
     };
 
     /**
      * My sample board layout: Land hex types,
-     * to be used with (for the main island) {@link #landHex_v1}[].
+     * to be used with (for the main island) {@link #makeNewBoard_landHexTypes_v1}[].
      */
     private static final int LANDHEX_TYPE_ISLANDS[] =
     {
