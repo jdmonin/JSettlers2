@@ -1123,7 +1123,7 @@ public class SOCBoard implements Serializable, Cloneable
                  *
                  * Pseudocode:
                 // Using vectors to represent sets.
-                //   Sets will contain each hex's index within hexLayout.
+                //   Sets will contain each land hex's coordinate ("ID").
                 //
                 // - clumps := new empty set (will be a vector of vectors)
                 //     At end of search, each element of this set will be
@@ -1156,7 +1156,7 @@ public class SOCBoard implements Serializable, Cloneable
                 // Actual code along with pseudocode:
 
                 // Using vectors to represent sets.
-                //   Sets will contain each hex's index within hexLayout.
+                //   Sets will contain each land hex's coordinate ("ID").
                 //   We're operating on Integer instances, which is okay because
                 //   vector methods such as contains() and remove() test obj.equals()
                 //   to determine if the Integer is a member.
@@ -1165,10 +1165,10 @@ public class SOCBoard implements Serializable, Cloneable
 
                 // - unvisited-set := new set (vector) of all land hexes
                 clumpsNotOK = false;    // will set true in while-loop body
-                Vector unvisited = new Vector();
+                Vector unvisited = new Vector();  // contains each land hex's coordinate
                 for (int i = 0; i < landHex.length; ++i)
                 {
-                    unvisited.addElement(new Integer(numPath[i]));
+                    unvisited.addElement(new Integer(numToHexID[numPath[i]]));
                 }
 
                 // - iterate through unvisited-set
@@ -1178,9 +1178,9 @@ public class SOCBoard implements Serializable, Cloneable
                     //   for each hex:
 
                     //     - remove this from unvisited-set
-                    Integer hexIdxObj = (Integer) unvisited.elementAt(0);
-                    int hexIdx = hexIdxObj.intValue();
-                    int resource = hexLayout[hexIdx];
+                    Integer hexCoordObj = (Integer) unvisited.elementAt(0);
+                    final int hexCoord = hexCoordObj.intValue();
+                    final int resource = getHexTypeFromCoord(hexCoord);
                     unvisited.removeElementAt(0);
 
                     //     - look at its adjacent hexes of same type
@@ -1191,35 +1191,36 @@ public class SOCBoard implements Serializable, Cloneable
                     //     - remove all adj-of-same-type from unvisited-set
 
                     // set of adjacent will become the clump, or be emptied completely
-                    Vector adjacent = getAdjacentHexesToHex(numToHexID[hexIdx], false);
+                    Vector adjacent = getAdjacentHexesToHex(hexCoord, false);
                     if (adjacent == null)
                         continue;
+
                     Vector clump = null;
                     for (int i = 0; i < adjacent.size(); ++i)
                     {
                         Integer adjCoordObj = (Integer) adjacent.elementAt(i);
-                        int adjIdx = hexIDtoNum[adjCoordObj.intValue()];
-                        if (resource == hexLayout[adjIdx])
+                        final int adjCoord = adjCoordObj.intValue();
+                        if (resource == getHexTypeFromCoord(adjCoord))
                         {
                             // keep this one
                             if (clump == null)
                                 clump = new Vector();
-                            Integer adjIdxObj = new Integer(adjIdx);
-                            clump.addElement(adjIdxObj);
-                            unvisited.remove(adjIdxObj);
+                            clump.addElement(adjCoordObj);
+                            unvisited.remove(adjCoordObj);
                         }
                     }
                     if (clump == null)
                         continue;
-                    clump.insertElementAt(hexIdxObj, 0);  // put the first hex into clump
+
+                    clump.insertElementAt(hexCoordObj, 0);  // put the first hex into clump
 
                     //     - grow the clump: iterate through each hex in clump-vector (skip its first hex,
                     //       because we already have its adjacent hexes)
                     for (int ic = 1; ic < clump.size(); )  // ++ic is within loop body, if nothing inserted
                     {
                         // precondition: each hex already in clump set, is not in unvisited-vec
-                        Integer chexIdxObj = (Integer) clump.elementAt(ic);
-                        int chexIdx = chexIdxObj.intValue();
+                        Integer chexCoordObj = (Integer) clump.elementAt(ic);
+                        final int chexCoord = chexCoordObj.intValue();
 
                         //  - look at its adjacent unvisited hexes of same type
                         //  - if none, done looking at this hex
@@ -1227,7 +1228,7 @@ public class SOCBoard implements Serializable, Cloneable
                         //  - insert them into clump-vector
                         //    (will continue the iteration with them)
 
-                        Vector adjacent2 = getAdjacentHexesToHex(numToHexID[chexIdx], false);
+                        Vector adjacent2 = getAdjacentHexesToHex(chexCoord, false);
                         if (adjacent2 == null)
                         {
                             ++ic;
@@ -1237,14 +1238,13 @@ public class SOCBoard implements Serializable, Cloneable
                         for (int ia = 0; ia < adjacent2.size(); ++ia)
                         {
                             Integer adjCoordObj = (Integer) adjacent2.elementAt(ia);
-                            int adjIdx = hexIDtoNum[adjCoordObj.intValue()];
-                            Integer adjIdxObj = new Integer(adjIdx);
-                            if ((resource == hexLayout[adjIdx])
-                                && unvisited.contains(adjIdxObj))
+                            final int adjCoord = adjCoordObj.intValue();
+                            if ((resource == getHexTypeFromCoord(adjCoord))
+                                && unvisited.contains(adjCoordObj))
                             {
                                 // keep this one
-                                clump.insertElementAt(adjIdxObj, ic);
-                                unvisited.remove(adjIdxObj);
+                                clump.insertElementAt(adjCoordObj, ic);
+                                unvisited.remove(adjCoordObj);
                                 didInsert = true;
                             }
                         }
