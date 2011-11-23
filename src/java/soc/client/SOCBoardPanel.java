@@ -90,10 +90,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
     private static final int deltaY = 46;
+
     /** How many pixels to move over for a new hex. @see #HEXWIDTH */
     private static final int deltaX = 54;
-    /** Each row only moves a half hex over horizontally. @see #deltaX */
+
+    /**
+     * Each row moves a half hex over horizontally,
+     * compared to the row above/below it.
+     * @see #deltaX
+     * @see #halfdeltaY
+     */
     private static final int halfdeltaX = 27;
+
+    /**
+     * How many pixels for half a hex's height.
+     * @since 1.2.00
+     * @see #deltaY
+     * @see #halfdeltaX
+     */
+    private static final int halfdeltaY = 23;
 
     /**
      * x-offset to move over 1 hex, for each port facing direction (1-6). 0 is unused.
@@ -119,6 +134,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * hex coordinates for drawing the standard board.
+     * Upper-left corner of each hex, left-to-right in each row.
      * These were called hexX, hexY before 1.1.08.
      * @see #hexX_6pl
      */
@@ -346,9 +362,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * (7D-DD-D7 row).
      * The 6-player mode uses {@link #hexX_6pl} instead of {@link #hexX_st} for coordinates.
      * @see #inactiveHexNums
+     * @see #isLargeBoard
      * @since 1.1.08
      */
     protected boolean is6player;
+
+    /**
+     * The board is configured Large-Board Format (up to 127x127, oriented like 4-player not 6-player);
+     * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}.
+     * The coordinate system is an arbitrary land/water mixture.
+     * @see #is6player
+     * @since 1.2.00
+     */
+    protected final boolean isLargeBoard;
 
     /**
      * The board is visually rotated 90 degrees clockwise (6-player: game opt PL > 4)
@@ -460,9 +486,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * hex coordinates for drawing pieces on the board.
+     * Upper-left corner of each hex, left-to-right in each row.
      * Points to {@link #hexX_st} or {@link #hexX_6pl},
      * and {@link #hexY_st} or {@link #hexY_6pl},
      * depending on {@link #is6player} flag.
+     *<P>
+     * Null when {@link #isLargeBoard}, because of its simpler
+     * coordinate encoding.  In that case, calculate (x,y) with:
+     *<UL>
+     *<LI> y = halfdeltaY * r;
+     *<LI> x = halfdeltaX * c;
+     *</UL>
+     *
      * @since 1.1.08
      */
     private int[] hexX, hexY;
@@ -677,6 +712,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * In {@link #is6player 6-player mode}, there is an extra ring of water/port hexes
      * on the outside, which isn't within the coordinate system.  So this grid is
      * shifted +1 column, +3 rows.
+     *<P>
+     * Not used when {@link #isLargeBoard}.
      *
      * @see #findEdge(int, int)
      * @see #initEdgeMapAux(int, int, int, int, int)
@@ -708,6 +745,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * /   \       /   \      /
      *       (3,4)       (6,4)
      *</PRE>
+     * Not used when {@link #isLargeBoard}.
      *
      * @see #findNode(int, int)
      * @see #initNodeMapAux(int, int, int, int, int)
@@ -716,6 +754,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Map grid sectors (from on-screen coordinates) to hexes.
+     * Not used when {@link #isLargeBoard}.
      * @see #findHex(int, int)
      */
     private int[] hexMap;
@@ -809,8 +848,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         board = game.getBoard();
         isScaled = false;
         scaledMissedImage = false;
-        is6player = (board.getBoardEncodingFormat() == SOCBoard.BOARD_ENCODING_6PLAYER)
-            || (game.maxPlayers > 4);
+        if (board.getBoardEncodingFormat() == SOCBoard.BOARD_ENCODING_LARGE)
+        {
+            is6player = false;
+            isLargeBoard = true;
+        } else {
+            is6player = (board.getBoardEncodingFormat() == SOCBoard.BOARD_ENCODING_6PLAYER)
+                || (game.maxPlayers > 4);
+            isLargeBoard = false;
+        }
         isRotated = isScaledOrRotated = is6player;
         if (isRotated)
         {
@@ -845,6 +891,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         ptrOldY = 0;
 
         hilight = 0;
+
+        if (isLargeBoard)
+        {
+            // Because of the straightforward coordinate system used for isLargeBoard,
+            // there's no need for these (x,y) -> board-coordinate maps.
+            // Calculate (x,y) with:
+            //   y = halfdeltaY * r;
+            //   x = halfdeltaX * c;
+
+            edgeMap = null;
+            nodeMap = null;
+            hexMap = null;
+            hexIDtoNum = null;
+            hexX = null;
+            hexY = null;
+            inactiveHexNums = null;
+
+        } else {
 
         // init edge map
         edgeMap = new int[345];
@@ -964,6 +1028,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             inactiveHexNums = null;
         }
 
+        }  // if (isLargeBoard)
+
         // set mode of interaction
         mode = NONE;
 
@@ -1022,6 +1088,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * For more details of the initialization algorithm used in this
      * method, see comments within
      * {@link #initNodeMapAux(int, int, int, int, int)}.
+     *<P>
+     * Not applicable when {@link #isLargeBoard}.
      *
      * @param x1  Leftmost x-value to init within edgeMap; the x-value
      *    of the row's leftmost vertical edge
@@ -1189,6 +1257,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * For node coordinates, see RST dissertation figure A2. For hex coordinates, see figure A1.
      *<P>
      * {@link #initEdgeMapAux(int, int, int, int, int)} uses a similar structure.
+     *<P>
+     * Not applicable when {@link #isLargeBoard}.
      *
      * @param x1 Starting x-coordinate within {@link #nodeMap}'s index;
      *           should correspond to left edge of <tt>startHex</tt>
@@ -1750,6 +1820,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * draw a board tile
+     *<P>
+     * When {@link #isLargeBoard}, call {@link #drawHex(Graphics, int, int, int, int)} instead.
+     *
      * @param g       graphics
      * @param hexNum  hex number (0-36)
      */
@@ -1765,8 +1838,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Otherwise, also draw the dice number for this hex (if any).
      *
      * @param g      graphics
-     * @param x      board-graphics x-coordinate to draw at
-     * @param y      board-graphics y-coordinate to draw at
+     * @param x      board-graphics x-coordinate to draw at; upper-left corner of hex
+     * @param y      board-graphics y-coordinate to draw at; upper-left corner of hex
      * @param hexType hex number, as in {@link SOCBoard#getHexLayout()}
      * @param hexNum  hex number (0-36), or -1 if this isn't a valid hex number
      * @since 1.1.08
@@ -2003,9 +2076,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final void drawRobber
         (Graphics g, final int hexID, final boolean fullNotGhost, final boolean fillNotOutline)
     {
-        int hexNum = hexIDtoNum[hexID];
-        int hx = hexX[hexNum] + 27;
-        int hy = hexY[hexNum] + 32;
+        int hx, hy;
+        if (isLargeBoard)
+        {
+            hx = halfdeltaX * (hexID & 0xFF);
+            hy = halfdeltaY * (hexID >> 8);
+        } else {
+            int hexNum = hexIDtoNum[hexID];
+            hx = hexX[hexNum] + 27;
+            hy = hexY[hexNum] + 32;
+        }
+
         if (isRotated)
         {
             // (cw):  P'=(panelMinBH-y, x)
@@ -2026,7 +2107,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             rOutline = Color.black;
         } else {
             // Determine "ghost" color, we're moving the robber
-            int hexType = board.getHexLayout()[hexNum];
+            int hexType = board.getHexTypeFromCoord(hexID);
             if (hexType >= robberGhostFill.length)
             {
                 // should not happen
@@ -2040,7 +2121,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (! fillNotOutline)
                 {
-                    final int dnum = board.getNumberOnHexFromNumber(hexNum);
+                    final int dnum = board.getNumberOnHexFromCoord(hexID);
                     if ((hexType == SOCBoard.DESERT_HEX)
                         || (dnum <= 3) || (dnum >= 11))
                     {
@@ -2092,12 +2173,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final void drawRoad(Graphics g, int edgeNum, int pn, boolean isHilight)
     {
         // Draw a road
-        int hexNum, roadX[], roadY[];
+        final int roadX[], roadY[];
+        int hx, hy;
         if (edgeNum == -1)
             edgeNum = 0x00;
-        int dy = 0;  // y-offset, if edge's hex would draw it off the map
 
-        if ((((edgeNum & 0x0F) + (edgeNum >> 4)) % 2) == 0)
+        if (! isLargeBoard)
+        {
+            final int hexNum;
+            int dy = 0;  // y-offset, if edge's hex would draw it off the map
+
+            if ((((edgeNum & 0x0F) + (edgeNum >> 4)) % 2) == 0)
         { // If first and second digit 
           // are even, then it is '|'.
             hexNum = hexIDtoNum[edgeNum + 0x11];
@@ -2133,8 +2219,47 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             roadX = scaledDownRoadX;
             roadY = scaledDownRoadY;
         }
-        int hx = hexX[hexNum];
-        int hy = hexY[hexNum] + dy;
+
+            hx = hexX[hexNum];
+            hy = hexY[hexNum] + dy;
+
+        } else {
+
+            // isLargeBoard:
+            // Determining (r,c) edge direction: | / \
+            //   "|" if r is odd
+            //   Otherwise: s = r/2
+            //   "/" if (s,c) is even,odd or odd,even
+            //   "\" if (s,c) is odd,odd or even,even
+
+            final int r = (edgeNum >> 8),
+                      c = (edgeNum & 0xFF);
+            if ((r % 2) == 1)
+            {
+                // "|"
+                hx = halfdeltaX * c;
+                hy = halfdeltaY * (r-1);  // offset: scaledVertRoadY is center of hex, not upper corner
+                roadX = scaledVertRoadX;
+                roadY = scaledVertRoadY;
+            } else {
+                if ((c % 2) != ((r/2) % 2))
+                {
+                    // "/"
+                    hx = halfdeltaX * c;
+                    hy = halfdeltaY * r;
+                    roadX = scaledUpRoadX;
+                    roadY = scaledUpRoadY;
+                } else {
+                    // "\"
+                    hx = halfdeltaX * c;
+                    hy = halfdeltaY * (r-2);  // offset: scaledDownRoadY is bottom of hex, not upper corner
+                    roadX = scaledDownRoadX;
+                    roadY = scaledDownRoadY;
+                }
+            }
+
+        }  // if (! isLargeBoard)
+
         if (isRotated)
         {
             // (cw):  P'=(panelMinBH-y, x)
@@ -2187,7 +2312,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final void drawSettlementOrCity
         (Graphics g, final int nodeNum, final int pn, final boolean isHilight, final boolean isCity)
     {
-        int hexNum, hx, hy;
+        int hx, hy;
+
+        if (! isLargeBoard)
+        {
+            final int hexNum;
 
         if (((nodeNum >> 4) % 2) == 0)
         { // If first digit is even,
@@ -2230,6 +2359,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hy = hexY[hexNum] + 2;
             }
         }
+
+        } else {
+            // isLargeBoard
+            hx = halfdeltaX * (nodeNum & 0xFF);
+            hy = halfdeltaY * (nodeNum >> 8);
+        }
+
         if (isRotated)
         {
             // (cw):  P'=(panelMinBH-y, x)
@@ -3987,6 +4123,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 x += 8;  // middle part of hex: adjust sector boundary
             secX = x / 27;
         }
+
+        if (isLargeBoard)
+        {
+            if ((secX < 0) || (secY < 0)
+                || (secX > board.getBoardWidth())
+                || (secY > board.getBoardHeight()))
+                return 0;
+            else
+                return (secY << 8) | secX;
+
+            // TODO consider local fields for width,height
+        }
+
         int sector = secX + (secY * 15);
 
         // System.out.println("SECTOR = "+sector+" | EDGE = "+edgeMap[sector]);
@@ -4018,6 +4167,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             secX = ((x + 13) / 27);
             secY = ((y + 7) / 15);
         }
+
+        if (isLargeBoard)
+        {
+            if ((secX < 0) || (secY < 0)
+                || (secX > board.getBoardWidth())
+                || (secY > board.getBoardHeight()))
+                return 0;
+            else
+                return (secY << 8) | secX;
+
+            // TODO consider local fields for width,height
+        }
+
         int sector = secX + (secY * 15);
 
         // System.out.println("SECTOR = "+sector+" | NODE = "+nodeMap[sector]);
@@ -4049,6 +4211,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             secX = x / 27;
             secY = y / 15;
         }
+
+        if (isLargeBoard)
+        {
+            if ((secX < 0) || (secY < 0)
+                || (secX > board.getBoardWidth())
+                || (secY > board.getBoardHeight()))
+                return 0;
+            else
+                return (secY << 8) | secX;
+
+            // TODO consider local fields for width,height
+        }
+
         int sector = secX + (secY * 15);
 
         // System.out.println("SECTOR = "+sector+" | HEX = "+hexMap[sector]);
