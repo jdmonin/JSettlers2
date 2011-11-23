@@ -471,7 +471,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private FontMetrics diceNumberCircleFM;
 
     /**
-     * translate hex ID to number to get coords
+     * translate hex ID to number to get coords.
+     * Null when {@link #isLargeBoard}.
      */
     private int[] hexIDtoNum;
 
@@ -910,6 +911,72 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         } else {
 
+            initCoordMappings();
+
+        }  // if (isLargeBoard)
+
+        // set mode of interaction
+        mode = NONE;
+
+        // Set up mouse listeners
+        this.addMouseListener(this);
+        this.addMouseMotionListener(this);
+        
+        // Cached colors to be determined later
+        robberGhostFill = new Color [1 + SOCBoard.MAX_ROBBER_HEX];
+        robberGhostOutline = new Color [1 + SOCBoard.MAX_ROBBER_HEX];
+        
+        // Set up hover tooltip info
+        hoverTip = new BoardToolTip(this);
+        
+        // Set up popup menu
+        popupMenu = new BoardPopupMenu(this);
+        add (popupMenu);
+        popupMenuSystime = System.currentTimeMillis();  // Set to a reasonable value 
+
+        // Overlay text
+        superText1 = null;
+        superText2 = null;
+
+        // load the static images
+        loadImages(this, isRotated);
+
+        // point to static images, unless we're later resized
+        scaledHexes = new Image[hexes.length];
+        scaledPorts = new Image[ports.length];
+        Image[] h, p;
+        if (isRotated)
+        {
+            h = rotatHexes;
+            p = rotatPorts;
+        } else {
+            h = hexes;
+            p = ports;
+        }
+        for (i = hexes.length - 1; i>=0; --i)
+            scaledHexes[i] = h[i];
+        for (i = ports.length - 1; i>=0; --i)
+            scaledPorts[i] = p[i];
+        scaledHexFail = new boolean[hexes.length];
+        scaledPortFail = new boolean[ports.length];
+
+        // point to static coordinate arrays, unless we're later resized.
+        // If this is the first instance, calculate arrowXR.
+        rescaleCoordinateArrays();
+    }
+
+    /**
+     * During the constructor, initialize the board-coordinate to screen-coordinate mappings:
+     * {@link #edgeMap}, {@link #nodeMap}, {@link #hexMap},
+     * {@link #hexIDtoNum}, {@link #hexX}, {@link #hexY},
+     * {@link #inactiveHexNums}.
+     *<P>
+     * Not used when {@link #isLargeBoard}.
+     * @since 1.2.00.
+     */
+    private void initCoordMappings()
+    {
+        int i;
         // init edge map
         edgeMap = new int[345];
 
@@ -1027,57 +1094,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hexY = hexY_st;
             inactiveHexNums = null;
         }
-
-        }  // if (isLargeBoard)
-
-        // set mode of interaction
-        mode = NONE;
-
-        // Set up mouse listeners
-        this.addMouseListener(this);
-        this.addMouseMotionListener(this);
-        
-        // Cached colors to be determined later
-        robberGhostFill = new Color [1 + SOCBoard.MAX_ROBBER_HEX];
-        robberGhostOutline = new Color [1 + SOCBoard.MAX_ROBBER_HEX];
-        
-        // Set up hover tooltip info
-        hoverTip = new BoardToolTip(this);
-        
-        // Set up popup menu
-        popupMenu = new BoardPopupMenu(this);
-        add (popupMenu);
-        popupMenuSystime = System.currentTimeMillis();  // Set to a reasonable value 
-
-        // Overlay text
-        superText1 = null;
-        superText2 = null;
-
-        // load the static images
-        loadImages(this, isRotated);
-
-        // point to static images, unless we're later resized
-        scaledHexes = new Image[hexes.length];
-        scaledPorts = new Image[ports.length];
-        Image[] h, p;
-        if (isRotated)
-        {
-            h = rotatHexes;
-            p = rotatPorts;
-        } else {
-            h = hexes;
-            p = ports;
-        }
-        for (i = hexes.length - 1; i>=0; --i)
-            scaledHexes[i] = h[i];
-        for (i = ports.length - 1; i>=0; --i)
-            scaledPorts[i] = p[i];
-        scaledHexFail = new boolean[hexes.length];
-        scaledPortFail = new boolean[ports.length];
-
-        // point to static coordinate arrays, unless we're later resized.
-        // If this is the first instance, calculate arrowXR.
-        rescaleCoordinateArrays();
     }
 
     /**
@@ -2186,41 +2202,41 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int dy = 0;  // y-offset, if edge's hex would draw it off the map
 
             if ((((edgeNum & 0x0F) + (edgeNum >> 4)) % 2) == 0)
-        { // If first and second digit 
-          // are even, then it is '|'.
-            hexNum = hexIDtoNum[edgeNum + 0x11];
-            roadX = scaledVertRoadX;
-            roadY = scaledVertRoadY;
-        }
-        else if (((edgeNum >> 4) % 2) == 0)
-        { // If first digit is even,
-          // then it is '/'.
-            if ((edgeNum >= 0x81) && (0 == ((edgeNum - 0x81) % 0x22)))
-            {
-                // hex is off the south edge of the board.
-                // move 2 hexes north and offset y.
-                hexNum = hexIDtoNum[edgeNum - 0x10 + 0x02];
-                dy = 2 * deltaY;
-            } else {
-                hexNum = hexIDtoNum[edgeNum + 0x10];
+            { // If first and second digit 
+              // are even, then it is '|'.
+                hexNum = hexIDtoNum[edgeNum + 0x11];
+                roadX = scaledVertRoadX;
+                roadY = scaledVertRoadY;
             }
-            roadX = scaledUpRoadX;
-            roadY = scaledUpRoadY;
-        }
-        else
-        { // Otherwise it is '\'.
-            if ((edgeNum >= 0x18) && (0 == ((edgeNum - 0x18) % 0x22)))
-            {
-                // hex is off the north edge of the board.
-                // move 2 hexes south and offset y.
-                hexNum = hexIDtoNum[edgeNum + 0x20 - 0x01];
-                dy = -2 * deltaY;
-            } else {
-                hexNum = hexIDtoNum[edgeNum + 0x01];
+            else if (((edgeNum >> 4) % 2) == 0)
+            { // If first digit is even,
+              // then it is '/'.
+                if ((edgeNum >= 0x81) && (0 == ((edgeNum - 0x81) % 0x22)))
+                {
+                    // hex is off the south edge of the board.
+                    // move 2 hexes north and offset y.
+                    hexNum = hexIDtoNum[edgeNum - 0x10 + 0x02];
+                    dy = 2 * deltaY;
+                } else {
+                    hexNum = hexIDtoNum[edgeNum + 0x10];
+                }
+                roadX = scaledUpRoadX;
+                roadY = scaledUpRoadY;
             }
-            roadX = scaledDownRoadX;
-            roadY = scaledDownRoadY;
-        }
+            else
+            { // Otherwise it is '\'.
+                if ((edgeNum >= 0x18) && (0 == ((edgeNum - 0x18) % 0x22)))
+                {
+                    // hex is off the north edge of the board.
+                    // move 2 hexes south and offset y.
+                    hexNum = hexIDtoNum[edgeNum + 0x20 - 0x01];
+                    dy = -2 * deltaY;
+                } else {
+                    hexNum = hexIDtoNum[edgeNum + 0x01];
+                }
+                roadX = scaledDownRoadX;
+                roadY = scaledDownRoadY;
+            }
 
             hx = hexX[hexNum];
             hy = hexY[hexNum] + dy;
@@ -2320,47 +2336,47 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             final int hexNum;
 
-        if (((nodeNum >> 4) % 2) == 0)
-        { // If first digit is even,
-          // then it is a 'Y' node
-          // in the northwest corner of a hex.
-            if ((nodeNum >= 0x81) && (0 == ((nodeNum - 0x81) % 0x22)))
-            {
-                // this node's hex would be off the southern edge of the board.
-                // shift 1 hex north, then add to y.
-                hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10]; 
-                hx = hexX[hexNum];
-                hy = hexY[hexNum] + 17 + (2 * deltaY);
-            } else {
-                hexNum = hexIDtoNum[nodeNum + 0x10]; 
-                hx = hexX[hexNum];
-                hy = hexY[hexNum] + 17;
+            if (((nodeNum >> 4) % 2) == 0)
+            { // If first digit is even,
+              // then it is a 'Y' node
+              // in the northwest corner of a hex.
+                if ((nodeNum >= 0x81) && (0 == ((nodeNum - 0x81) % 0x22)))
+                {
+                    // this node's hex would be off the southern edge of the board.
+                    // shift 1 hex north, then add to y.
+                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10]; 
+                    hx = hexX[hexNum];
+                    hy = hexY[hexNum] + 17 + (2 * deltaY);
+                } else {
+                    hexNum = hexIDtoNum[nodeNum + 0x10]; 
+                    hx = hexX[hexNum];
+                    hy = hexY[hexNum] + 17;
+                }
             }
-        }
-        else
-        { // otherwise it is an 'A' node
-          // in the northern corner of a hex.
-            if ((nodeNum >= 0x70) && (0 == ((nodeNum - 0x70) % 0x22)))
-            {
-                // this node's hex would be off the southern edge of the board.
-                // shift 1 hex north, then add to y.
-                hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 - 0x01];
-                hx = hexX[hexNum] + halfdeltaX;
-                hy = hexY[hexNum] + 2 + (2 * deltaY);
+            else
+            { // otherwise it is an 'A' node
+              // in the northern corner of a hex.
+                if ((nodeNum >= 0x70) && (0 == ((nodeNum - 0x70) % 0x22)))
+                {
+                    // this node's hex would be off the southern edge of the board.
+                    // shift 1 hex north, then add to y.
+                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 - 0x01];
+                    hx = hexX[hexNum] + halfdeltaX;
+                    hy = hexY[hexNum] + 2 + (2 * deltaY);
+                }
+                else if ((nodeNum & 0x0F) > 0)
+                {
+                    hexNum = hexIDtoNum[nodeNum - 0x01];
+                    hx = hexX[hexNum] + halfdeltaX;
+                    hy = hexY[hexNum] + 2;
+                } else {
+                    // this node's hex would be off the southwest edge of the board.
+                    // shift 1 hex to the east, then subtract from x.
+                    hexNum = hexIDtoNum[nodeNum + 0x22 - 0x01];
+                    hx = hexX[hexNum] - halfdeltaX;
+                    hy = hexY[hexNum] + 2;
+                }
             }
-            else if ((nodeNum & 0x0F) > 0)
-            {
-                hexNum = hexIDtoNum[nodeNum - 0x01];
-                hx = hexX[hexNum] + halfdeltaX;
-                hy = hexY[hexNum] + 2;
-            } else {
-                // this node's hex would be off the southwest edge of the board.
-                // shift 1 hex to the east, then subtract from x.
-                hexNum = hexIDtoNum[nodeNum + 0x22 - 0x01];
-                hx = hexX[hexNum] - halfdeltaX;
-                hy = hexY[hexNum] + 2;
-            }
-        }
 
         } else {
             // isLargeBoard
