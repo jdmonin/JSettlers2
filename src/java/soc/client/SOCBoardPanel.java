@@ -104,6 +104,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * How many pixels for half a hex's height.
+     * Used in layout calculations when {@link #isLargeBoard}.
      * @since 1.2.00
      * @see #deltaY
      * @see #halfdeltaX
@@ -2590,7 +2591,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void drawPortsRing(Graphics g)
     {
-        int hnum, hx, hy, htype;
+        int hnum, hx, hy, ptype;
 
         /**
          * First, draw the ring of water hexes.
@@ -2624,18 +2625,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
              c < 4;
              ++c, nodeCoord += 0x22, hx += deltaX)
         {
-            htype = board.getPortTypeFromNodeCoord(nodeCoord);
-            if (htype == -1)
+            ptype = board.getPortTypeFromNodeCoord(nodeCoord);
+            if (ptype == -1)
                 drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
 
             // bottom-row coords swap the hex digits of top-row coords.
-            htype = board.getPortTypeFromNodeCoord((nodeCoord >> 4) | ((nodeCoord & 0x0F) << 4));
-            if (htype == -1)
+            ptype = board.getPortTypeFromNodeCoord((nodeCoord >> 4) | ((nodeCoord & 0x0F) << 4));
+            if (ptype == -1)
                 drawHex(g, hx, hy2, SOCBoard.WATER_HEX, -1);
         }
 
         /**
          * Draw each port
+         * Similar code to drawPorts_LargeBoard.
          */
         final int[] portsLayout = board.getPortsLayout();
         if (portsLayout == null)
@@ -2657,14 +2659,58 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // portsLayout type will be like SHEEP_PORT;
             // must encode facing type and facing for drawHex.
-            htype = portsLayout[i];
-            if (htype == SOCBoard.MISC_PORT)
+            ptype = portsLayout[i];
+            if (ptype == SOCBoard.MISC_PORT)
             {
-                htype = SOCBoard.MISC_PORT_HEX + (landFacing - 1);
+                ptype = SOCBoard.MISC_PORT_HEX + (landFacing - 1);
             } else {
-                htype += (landFacing << 4) ;
+                ptype += (landFacing << 4) ;
             }
-            drawHex(g, hx, hy, htype, -1);
+            drawHex(g, hx, hy, ptype, -1);
+        }
+    }
+
+    /**
+     * for the {@link #isLargeBoard large board}, draw the ports.
+     * These can occur anywhere on the board.
+     * @since 1.2.00
+     */
+    private final void drawPorts_LargeBoard(Graphics g)
+    {
+        int px, py, ptype;
+
+        /**
+         * Draw each port
+         * Similar code to drawPortsRing.
+         */
+        final int[] portsLayout = board.getPortsLayout();
+        if (portsLayout == null)
+            return;  // <--- Too early: board not created & sent from server ---
+
+        final int[] portsFacing = board.getPortsFacing();
+        final int[] portsEdges = board.getPortsEdges();
+        for (int i = board.getPortsCount()-1; i>=0; --i)
+        {
+            // For each port, get its facing land hex
+            // and base (x,y) off that.
+            final int landFacing = portsFacing[i];
+            final int landHexCoord = board.getAdjacentHexToEdge(portsEdges[i], landFacing);
+            px = halfdeltaX * (landHexCoord & 0xFF);
+            py = halfdeltaY * (landHexCoord >> 8);
+            // now move 1 hex "backwards" from that hex's center
+            px -= DELTAX_FACING[landFacing];
+            py -= DELTAY_FACING[landFacing];
+
+            // portsLayout type will be like SHEEP_PORT;
+            // must encode facing type and facing for drawHex.
+            ptype = portsLayout[i];
+            if (ptype == SOCBoard.MISC_PORT)
+            {
+                ptype = SOCBoard.MISC_PORT_HEX + (landFacing - 1);
+            } else {
+                ptype += (landFacing << 4) ;
+            }
+            drawHex(g, px, py, ptype, -1);
         }
     }
 
@@ -2898,7 +2944,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
-            // TODO draw ports, similar to is6player
+            drawPorts_LargeBoard(g);
         }
 
         if (scaledMissedImage)
