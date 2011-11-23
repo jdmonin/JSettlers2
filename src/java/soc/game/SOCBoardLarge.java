@@ -413,14 +413,17 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Given a hex number, return the (dice-roll) number on that hex
+     * Given a hex coordinate / hex number, return the (dice-roll) number on that hex
      *
-     * @param hex  the number of a hex, or -1 if invalid
+     * @param hex  the coordinates for a hex, or -1 if invalid
      *
      * @return the dice-roll number on that hex, or 0
      */
     public int getNumberOnHexFromNumber(final int hex)
     {
+        if (hex == -1)
+            return 0;
+
         final int r = hex >> 8,
             c = hex & 0xFF;
         if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))

@@ -1840,8 +1840,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param g      graphics
      * @param x      board-graphics x-coordinate to draw at; upper-left corner of hex
      * @param y      board-graphics y-coordinate to draw at; upper-left corner of hex
-     * @param hexType hex number, as in {@link SOCBoard#getHexLayout()}
+     * @param hexType hex type, as in {@link SOCBoard#getHexLayout()}
      * @param hexNum  hex number (0-36), or -1 if this isn't a valid hex number
+     *                   or if the dice number shouldn't be drawn.
+     *                   When {@link #isLargeBoard}, pass in the hex coordinate as hexNum.
      * @since 1.1.08
      */
     private final void drawHex(Graphics g, int x, int y, int hexType, int hexNum)
@@ -1992,7 +1994,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the number
          */
-        final int hnl = board.getNumberLayout()[hexNum];
+        final int hnl = board.getNumberOnHexFromNumber(hexNum);
         if (hnl > 0)
         {
             if (diceNumberCircleFont == null)
@@ -2837,16 +2839,51 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.fillRect(0, 0, scaledPanelX, scaledPanelY);
 
         // Draw hexes:
-        // Normal board draws all 37 hexes.
-        // The 6-player board skips the rightmost row (hexes 7D-DD-D7).
         // drawHex will set scaledMissedImage if missed.
-        for (int i = 0; i < hexX.length; i++)
+        if (! isLargeBoard)
         {
-            if ((inactiveHexNums == null) || ! inactiveHexNums[i])
-                drawHex(g, i);
+            // Normal board draws all 37 hexes.
+            // The 6-player board skips the rightmost row (hexes 7D-DD-D7).
+
+            for (int i = 0; i < hexX.length; i++)
+            {
+                if ((inactiveHexNums == null) || ! inactiveHexNums[i])
+                    drawHex(g, i);
+            }
+            if (is6player)
+                drawPortsRing(g);
+
+        } else {
+
+            // Large Board has a rectangular array of hexes.
+            // (r,c) are board coordinates.
+            // (x,y) are pixel coordinates.
+
+            final int bw = board.getBoardWidth();
+            for (int r = 1, y = halfdeltaY;
+                 r <= board.getBoardHeight();
+                 r += 2, y += deltaY)
+            {
+                final int rshift = (r << 8);
+                int c, x;
+                if ((r % 2) == 1)
+                {
+                    c = 0;  // odd rows start at 0
+                    x = 0;
+                } else {
+                    c = 1;  // even rows start at 1
+                    x = halfdeltaX;
+                }
+                for (; c <= bw; c += 2, x += deltaX)
+                {
+                    final int hexCoord = rshift | c;
+                    drawHex
+                        (g, x, y, board.getHexTypeFromCoord(hexCoord), hexCoord);
+                }
+            }
+
+            // TODO draw ports, similar to is6player
         }
-        if (is6player)
-            drawPortsRing(g);
 
         if (scaledMissedImage)
         {

@@ -1058,7 +1058,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
      *<P>
-     * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
+     * This method does not clear out {@link #hexLayout} or {@link #numberLayout}
      * before it starts placement.  Since hexLayout's land hex coordinates are hardcoded within
      * {@link #numToHexID}, it can only be called once per board layout.
      *
