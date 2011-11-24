@@ -158,7 +158,7 @@ public class SOCBoard implements Serializable, Cloneable
     private final static int PORTS_HEXNUM_V1[] = { 0, 2, 8, 21, 32, 35, 33, 22, 9 };
 
     /**
-     * Each port's <em>facing,</em> on standard board.
+     * Each port's <em>facing</em> towards land, on the standard board.
      * Ordered clockwise from upper-left (hex coordinate 0x17).
      * Port Facing is the direction from the port hex/edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
@@ -797,13 +797,13 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * As part of the constructor, check the {@link #boardEncodingFormat}
      * and initialize {@link #nodesOnBoard} accordingly.
+     * @see #initPlayerLegalAndPotentialSettlements()
      * @since 1.2.00
      */
     private void initNodesOnBoard()
     {
         final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
-        int i;
         nodesOnBoard = new Hashtable();
 
         /**
@@ -812,10 +812,13 @@ public class SOCBoard implements Serializable, Cloneable
          * See dissertation figure A.2.
          * 6-player starts land 1 extra hex (2 nodes) west of standard board,
          * and has an extra row of land hexes at north and south end.
-         * See also SOCPlayer.initLegalAndPotentialSettlements.
+         * Same node coordinates are needed in initPlayerLegalAndPotentialSettlements.
          */
-        final Boolean t = new Boolean(true);
+        final Boolean t = Boolean.TRUE;
         final int westAdj = (is6player) ? 0x22 : 0x00;
+
+        // Set each row of valid node coordinates:
+        int i;
 
         if (is6player)
         {
@@ -2750,7 +2753,7 @@ public class SOCBoard implements Serializable, Cloneable
         final int tmp, node;
         switch (nodeDir)
         {
-        case 0:  // NW or SW
+        case 0:  // NW or SW (upper-left or lower-left edge)
             tmp = nodeCoord - 0x11;
             if ((tmp >= minNode) && (tmp <= MAXNODE) && ((nodeCoord & 0x0F) > 0))
                 node = tmp;
@@ -2984,8 +2987,8 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * The node coordinate adjacent to this hex in a given direction.
-     * Since all hexes have 6 nodes, all node coordinates are valid so long as
-     * the hex coordinate is valid.
+     * Since all hexes have 6 nodes, all node coordinates are valid
+     * if the hex coordinate is valid.
      *
      * @param hexCoord Coordinate ("ID") of this hex
      * @param dir  Direction, clockwise from top (northern point of hex):
@@ -3001,6 +3004,26 @@ public class SOCBoard implements Serializable, Cloneable
             return hexCoord + HEXNODES[dir];
         else
             throw new IllegalArgumentException("dir");
+    }
+
+    /**
+     * The node coordinates adjacent to this hex in all 6 directions.
+     * Since all hexes have 6 nodes, all node coordinates are valid
+     * if the hex coordinate is valid.
+     *
+     * @param hexCoord Coordinate of this hex
+     * @return Node coordinate in all 6 directions,
+     *           clockwise from top (northern point of hex):
+     *           0 is north, 1 is northeast, etc, 5 is northwest.
+     * @since 1.2.00
+     * @see #getAdjacentNodeToHex(int, int)
+     */
+    public int[] getAdjacentNodesToHex(final int hexCoord)
+    {
+	int[] node = new int[6];
+	for (int dir = 0; dir < 6; ++dir)
+	    node[dir] = hexCoord + HEXNODES[dir];
+	return node;
     }
 
     /**
