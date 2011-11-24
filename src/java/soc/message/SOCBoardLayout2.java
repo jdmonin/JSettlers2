@@ -43,7 +43,7 @@ import java.util.StringTokenizer;
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
- *<LI> v3: LH, RH, maybe PL
+ *<LI> v3: LH, RH, maybe PL; LH is null before makeNewBoard is called
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
  * <tt>SOCBoardLayout</tt> required a mapping/unmapping step. 
@@ -123,7 +123,7 @@ public class SOCBoardLayout2 extends SOCMessage
      *
      * @param ga   the name of the game
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
-     * @param lh   the land hex layout
+     * @param lh   the land hex layout, or null if all water (before makeNewBoard is called)
      * @param pl   the port layout, or null
      * @param rh   the robber hex
      */
@@ -133,7 +133,8 @@ public class SOCBoardLayout2 extends SOCMessage
         game = ga;
         boardEncodingFormat = bef;
         layoutParts = new Hashtable();
-        layoutParts.put("LH", lh);
+        if (lh != null)
+            layoutParts.put("LH", lh);
         if (pl != null)
             layoutParts.put("PL", pl);
         layoutParts.put("RH", new Integer(rh));        

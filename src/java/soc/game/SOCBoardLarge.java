@@ -68,7 +68,7 @@ public class SOCBoardLarge extends SOCBoard
     /** This board encoding was introduced in version 1.2.00 (1200) */
     public static final int VERSION_FOR_ENCODING_LARGE = 1200;
 
-    private static final int BOARDHEIGHT_LARGE = 14, BOARDWIDTH_LARGE = 22;  // hardcode size for now
+    private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
 
     /**
      * For {@link #getAdjacentNodeToHex(int, int)}, the offset to add to the hex
@@ -218,8 +218,8 @@ public class SOCBoardLarge extends SOCBoard
 
         setBoardBounds(BOARDWIDTH_LARGE, BOARDHEIGHT_LARGE);
 
-        hexLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];
-        numberLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];
+        hexLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
+        numberLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
         landHexLayout = new HashSet();
         legalRoadEdges = new HashSet();
 
@@ -640,11 +640,21 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Set the land hex layout, sent from server to client.
      * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
-     * Clears landHexLayout before beginning, but does not clear diceLayoutLg or numberLayoutLg.
+     * Clears landHexLayout, diceLayoutLg and numberLayoutLg before beginning. 
      */
     public void setLandHexLayout(final int[] lh)
     {
+        // Clear the previous contents:
         landHexLayout.clear();
+        for (int r = 0; r <= boardHeight; ++r)
+        {            
+            Arrays.fill(hexLayoutLg[r], WATER_HEX);
+            Arrays.fill(numberLayoutLg[r], 0);
+        }
+
+        if (lh == null)
+            return;  // all water for now
+
         for (int i = 0; i < lh.length; )
         {
             final int hexCoord = lh[i];  ++i;
@@ -1600,8 +1610,8 @@ public class SOCBoardLarge extends SOCBoard
     private static final int LANDHEX_COORD_ISLANDS_ALL[] =
     {
         0x010D, 0x030C, 0x030E, 0x050D, 0x050F,
-        0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D,
-        0X0D01, 0X0D03, 0X0F04, 0X0F06
+        0x0B0C, 0x0B0E, 0x0B10, 0x0D0B, 0x0D0D,
+        0x0D01, 0x0D03, 0x0F04, 0x0F06
     };
 
     /**
@@ -1611,8 +1621,8 @@ public class SOCBoardLarge extends SOCBoard
     private static final int LANDHEX_COORD_ISLANDS_EACH[][] =
     {
         { 0x010D, 0x030C, 0x030E, 0x050D, 0x050F },
-        { 0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D },
-        { 0X0D01, 0X0D03, 0X0F04, 0X0F06 }
+        { 0x0B0C, 0x0B0E, 0x0B10, 0x0D0B, 0x0D0D },
+        { 0x0D01, 0x0D03, 0x0F04, 0x0F06 }
     };
 
     /**
