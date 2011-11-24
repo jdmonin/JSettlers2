@@ -22,7 +22,9 @@
 package soc.game;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -31,10 +33,12 @@ import java.util.Vector;
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
  *<P>
  * Server and client must be 1.2.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
+ * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
+ * followed by the robber hex and (separately) the legal settlement/city nodes.
  *<P>
  * Unlike earlier encodings, here the "hex number" ("ID") is not an index into a dense array
  * of land hexes.  Thus it's not efficient to iterate through all hex numbers. <br>
- * Instead: Hex ID = (r << 8) | c   // 2 bytes: 0xRRCC
+ * Instead: Hex ID = (r &lt;&lt; 8) | c   // 2 bytes: 0xRRCC
  *<P>
  * <b>Coordinate system</b> is a square grid of rows and columns, different from previous encodings:
  *<P>
@@ -43,7 +47,7 @@ import java.util.Vector;
  * and <b>edges</b> (between nodes; where roads are placed),
  * share the same grid of coordinates.
  * Each hex is 2 units wide and 2 tall, with vertical sides (west,edge edges)
- * and sloped tops & bottoms (NW, NE, SW, SE edges).
+ * and sloped tops and bottoms (NW, NE, SW, SE edges).
  *<P>
  * See <tt>src/docs/TODO.gif</tt><br>
  * Coordinates start at the upper-left and continue to the right and down.
@@ -121,6 +125,8 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * For land hexes, the dice number on <tt>hexLayoutLg</tt>[r][c] is {@link #numberLayoutLg}[r][c].
      *<P>
+     * For the set of all land hex coordinates, see {@link #landHex}.
+     *<P>
      * Key to the hexLayoutLg[][] values:
        <pre>
        0 : desert  {@link #DESERT_HEX}
@@ -166,6 +172,22 @@ public class SOCBoardLarge extends SOCBoard
     private int[][] hexLayoutLg;
 
     /**
+     * The set of land hex coordinates within {@link #hexLayoutLg}.
+     * Sent from server to client, along with the land hex types / dice numbers,
+     * via {@link #getLandHexLayout()} / {@link #setLandHexLayout(int[])}.
+     */
+    private HashSet landHexLayout;
+
+    /**
+     * The legal set of land edge coordinates to build roads,
+     * based on {@link #nodesOnLand}.
+     * Calculated in {@link makeNewBoard_makeLegalRoadsFromLandNodes()},
+     * after {@link #nodesOnLand} is filled by
+     * {@link makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     */
+    private HashSet legalRoadEdges;
+
+    /**
      * Dice number from hex coordinate.
      * One element per water, land, or port hex; non-land hexes are 0.
      * Order: [row][column].
@@ -187,6 +209,8 @@ public class SOCBoardLarge extends SOCBoard
 
         hexLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];
         numberLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];
+        landHexLayout = new HashSet();
+        legalRoadEdges = new HashSet();
 
         // Only odd-numbered rows are valid,
         // but we fill all rows here just in case.
@@ -199,15 +223,11 @@ public class SOCBoardLarge extends SOCBoard
         portsCount = 0;
     }
 
-    // TODO override makeNewBoard; set hexLayoutLg, numberLayoutLg, portsLayout, robberHex,
-    //  set portsCount, fill ports, pieces, roads, nodesOnBoard
-
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
 
     // TODO override anything related to the unused super fields:
     //  hexLayout, numberLayout, minNode, minEdge, maxEdge,
     //  numToHexID, hexIDtoNum, nodeIDtoPortType :
-    //  getPortFacing(), getPortsEdges()
     //  nodeCoordToString(), edgeCoordToString()
     // DONE:
     //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
@@ -223,10 +243,10 @@ public class SOCBoardLarge extends SOCBoard
     //   Consider get/set layouts as a 1D array: r, c, contents. Only include odd-numbered rows.
     //
     // Maybe not valid:
-    //   getPortsFacing(), getPortsEdges(), getPortTypeFromHexType()
+    //   getPortTypeFromHexType()
 
-    // TODO override initPlayerLegalRoads, initPlayerLegalAndPotentialSettlements;
-    //  their return format might not scale to this size
+    // TODO unlike roads, is there ever a time when sea edges are _not_ legal?
+    //  (assuming water hexes on one or both sides of the edge)
 
 
     ////////////////////////////////////////////
@@ -250,6 +270,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
+        // Adds to landHexLayout and nodesOnLand.
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
         // - Mainland:
         makeNewBoard_placeHexes
@@ -257,6 +278,8 @@ public class SOCBoardLarge extends SOCBoard
         // - Islands:
         makeNewBoard_placeHexes
             (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, (SOCGameOption) null);
+        // Set up legalRoadEdges:
+        makeNewBoard_makeLegalRoadsFromLandNodes();
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
@@ -317,6 +340,7 @@ public class SOCBoardLarge extends SOCBoard
      * For {@link #makeNewBoard(Hashtable)}, place the land hexes, number, and robber,
      * after shuffling landHexType[].
      * Sets robberHex, contents of hexLayoutLg[] and numberLayoutLg[].
+     * Adds to {@link #landHexLayout} and {@link #nodesOnLand}.
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
      *<P>
@@ -328,6 +352,7 @@ public class SOCBoardLarge extends SOCBoard
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
      * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
      *                    same array length as <tt>landHexType[]</tt>
+     *                    <BR> Also must contain the coordinate of each land hex.
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
      *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
      * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
@@ -371,6 +396,7 @@ public class SOCBoardLarge extends SOCBoard
                 {
                     setRobberHex(numPath[i], false);
                     numberLayoutLg[r][c] = -1;
+                    // TODO do we want to not set robberHex? or a specific point?
                 }
                 else
                 {
@@ -378,7 +404,7 @@ public class SOCBoardLarge extends SOCBoard
                     numberLayoutLg[r][c] = number[cnt];
                     cnt++;
                 }
-            }  // for(i in landHex)
+            }  // for (i in landHex)
 
             if (checkClumps)
             {
@@ -392,13 +418,79 @@ public class SOCBoardLarge extends SOCBoard
 
         } while (clumpsNotOK);
 
+        // Now that we know this layout is okay,
+        // add the hex coordinates to landHexLayout,
+        // and the hexes' nodes to nodesOnLand.
+
+        for (int i = 0; i < landHexType.length; i++)
+	    landHexLayout.add(new Integer(numPath[i]));
+        makeNewBoard_fillNodesOnLandFromHexes(numPath);
+
     }  // makeNewBoard_placeHexes
+
+    /**
+     * Calculate the board's legal settlement/city nodes, based on land hexes.
+     * All corners of these hexes are legal for settlements/cities.
+     *<P>
+     * Iterative: Can call multiple times, giving different hexes each time.
+     * Each call will add those hexes to {@link #nodesOnLand}.
+     * Before the first call, clear <tt>nodesOnLand</tt>.
+     * @param landHexCoords  Coordinates of a contiguous group of land hexes
+     * @see #makeNewBoard_makeLegalRoadsFromLandNodes()
+     */
+    private void makeNewBoard_fillNodesOnLandFromHexes
+	(final int landHexCoords[])
+    {
+	for (int i = 0; i < landHexCoords.length; ++i)
+	{
+	    final int[] nodes = getAdjacentNodesToHex(landHexCoords[i]);
+	    for (int j = 0; j < 6; ++j)
+		nodesOnLand.add(new Integer(nodes[j]));
+	    // it's ok to add if this set already contains an Integer equal to nodes[j].
+	}
+
+    }  // makeNewBoard_makeLegalNodesFromHexes
+
+    /**
+     * Once the legal settlement/city nodes ({@link #nodesOnLand})
+     * are established from land hexes, fill {@link #legalRoadEdges}.
+     * Not iterative; clears all previous legal roads.
+     * @see #makeNewBoard_fillNodesOnLandFromHexes(int[])
+     */
+    private void makeNewBoard_makeLegalRoadsFromLandNodes()
+    {
+	// About corners/concave parts:
+	//   Set of the valid nodes will contain both ends of the edge;
+	//   anything concave across a sea would be missing at least 1 node, in the water along the way.
+
+        // Go from nodesOnLand, iterate all nodes:
+
+	legalRoadEdges.clear();
+
+        Iterator nodes = nodesOnLand.iterator();
+	while (nodes.hasNext())
+	{
+	    final int node = ((Integer) nodes.next()).intValue();
+	    for (int dir = 0; dir < 3; ++dir)
+	    {
+		int nodeAdjac = getAdjacentNodeToNode(node, dir);
+		if (nodesOnLand.contains(new Integer(nodeAdjac)))
+		{
+		    legalRoadEdges.add
+			(new Integer(getAdjacentEdgeToNode(node, dir)));
+                    // it's ok to add if this set already contains an Integer equal to that edge.
+		}
+	    }
+	}
+
+    }  // makeNewBoard_makeLegalRoadsFromNodes
 
 
     ////////////////////////////////////////////
     //
     // Board info getters
     //
+
     
     /**
      * Given a hex coordinate, return the dice-roll number on that hex
@@ -425,7 +517,7 @@ public class SOCBoardLarge extends SOCBoard
             return 0;
 
         final int r = hex >> 8,
-            c = hex & 0xFF;
+                  c = hex & 0xFF;
         if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))
             return 0;
 
@@ -471,7 +563,7 @@ public class SOCBoardLarge extends SOCBoard
     public int getHexTypeFromNumber(final int hex)
     {
         final int r = hex >> 8,
-            c = hex & 0xFF;
+                  c = hex & 0xFF;
         if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))
             return -1;
         final int hexType = hexLayoutLg[r][c];
@@ -508,6 +600,61 @@ public class SOCBoardLarge extends SOCBoard
         return -1;
     }
 
+    /**
+     * Get the land hex layout, for sending from server to client.
+     * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
+     * @return the layout, or null if no land hexes.
+     */
+    public int[] getLandHexLayout()
+    {
+	final int LHL = landHexLayout.size();
+	if (LHL == 0)
+	    return null;
+
+	int[] lh = new int[3 * LHL];
+	int i = 0;
+        Iterator hexes = landHexLayout.iterator();
+	while (hexes.hasNext())
+	{
+	    final int hexCoord = ((Integer) hexes.next()).intValue();
+            final int r = hexCoord >> 8,
+                      c = hexCoord & 0xFF;
+	    lh[i] = hexCoord;  ++i;
+	    lh[i] = hexLayoutLg[r][c];  ++i;
+	    lh[i] = numberLayoutLg[r][c];  ++i;
+	}
+	return lh;
+    }
+
+    /**
+     * Set the land hex layout, sent from server to client.
+     * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
+     * Clears landHexLayout before beginning, but does not clear diceLayoutLg or numberLayoutLg.
+     */
+    public void setLandHexLayout(final int[] lh)
+    {
+	landHexLayout.clear();
+	for (int i = 0; i < lh.length; )
+	{
+	    final int hexCoord = lh[i];  ++i;
+            final int r = hexCoord >> 8,
+                      c = hexCoord & 0xFF;
+            landHexLayout.add(new Integer(hexCoord));
+            hexLayoutLg[r][c] = lh[i];  ++i;
+	    numberLayoutLg[r][c] = lh[i];  ++i;
+	}
+    }
+
+    /**
+     * Create and initialize a {@link SOCPlayer}'s legalRoads set.
+     * @return the set of legal edge coordinates for roads, as {@link Integer}s
+     * @since 1.1.12
+     */
+    HashSet initPlayerLegalRoads()
+    {
+        return (HashSet) (legalRoadEdges.clone());
+    }
+
 
     ////////////////////////////////////////
     //
@@ -537,7 +684,7 @@ public class SOCBoardLarge extends SOCBoard
         Vector hexes = new Vector();
 
         final int r = hexCoord >> 8,
-            c = hexCoord & 0xFF;
+                  c = hexCoord & 0xFF;
 
         getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r - 2, c - 1);  // NW (northwest)
         getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r - 2, c + 1);  // NE
@@ -577,8 +724,8 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * The node coordinate adjacent to this hex in a given direction.
-     * Since all hexes have 6 nodes, all node coordinates are valid so long as
-     * the hex coordinate is valid.
+     * Since all hexes have 6 nodes, all node coordinates are valid
+     * if the hex coordinate is valid.
      *
      * @param hexCoord Coordinate ("ID") of this hex
      * @param dir  Direction, clockwise from top (northern point of hex):
@@ -593,6 +740,26 @@ public class SOCBoardLarge extends SOCBoard
             return hexCoord + A_NODE2HEX[dir][0] + A_NODE2HEX[dir][1];
         else
             throw new IllegalArgumentException("dir");
+    }
+
+    /**
+     * The node coordinates adjacent to this hex in all 6 directions.
+     * Since all hexes have 6 nodes, all node coordinates are valid
+     * if the hex coordinate is valid.
+     *
+     * @param hexCoord Coordinate of this hex
+     * @return Node coordinate in all 6 directions,
+     *           clockwise from top (northern point of hex):
+     *           0 is north, 1 is northeast, etc, 5 is northwest.
+     * @since 1.2.00
+     * @see #getAdjacentNodeToHex(int, int)
+     */
+    public int[] getAdjacentNodesToHex(final int hexCoord)
+    {
+	int[] node = new int[6];
+	for (int dir = 0; dir < 6; ++dir)
+	    node[dir] = hexCoord + A_NODE2HEX[dir][0] + A_NODE2HEX[dir][1];
+	return node;
     }
 
 
@@ -708,7 +875,7 @@ public class SOCBoardLarge extends SOCBoard
     public Vector getAdjacentEdgesToEdge(final int coord)
     {
         final int r = (coord >> 8),
-            c = (coord & 0xFF);
+                  c = (coord & 0xFF);
 
         // Get offsets for edge direction
         final int[] offs;
@@ -996,7 +1163,7 @@ public class SOCBoardLarge extends SOCBoard
 
         switch (nodeDir)
         {
-        case 0:  // NW or SW
+        case 0:  // NW or SW (upper-left or lower-left edge)
             --c;
             break;
 
@@ -1110,7 +1277,7 @@ public class SOCBoardLarge extends SOCBoard
      *           from a node to another node 2 away.
      *           Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
      * @return the node coordinate, or -9 if that node is not
-     *   {@link #isNodeOnBoard(int) on the board}.
+     *   {@link #isNodeOnLand(int) on the board}.
      * @see #getAdjacentNodeToNode(int, int)
      * @see #getAdjacentEdgeToNode2Away(int, int)
      * @see #isNode2AwayFromNode(int, int)
@@ -1171,7 +1338,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param r  Node coordinate's row
      * @param c  Node coordinate's column
      * @see #isEdgeInBounds(int, int)
-     * @see #isNodeOnBoard(int)
+     * @see #isNodeOnLand(int)
      */
     public final boolean isNodeInBounds(final int r, final int c)
     {
