@@ -304,6 +304,8 @@ public class SOCBoardLarge extends SOCBoard
 
         // copy port types to beginning of portsLayout[]
         portsCount = PORTS_TYPE_V1.length + PORT_TYPE_ISLANDS.length;
+        if ((portsLayout == null) || (portsLayout.length != (3 * portsCount)))
+            portsLayout = new int[3 * portsCount];
         System.arraycopy(portTypes_main, 0,
             portsLayout, 0, portTypes_main.length);
         System.arraycopy(portTypes_islands, 0,

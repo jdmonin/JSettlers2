@@ -8413,14 +8413,6 @@ public class SOCServer extends Server
         {
             final String gaName = ga.getName();
 
-            SOCMessage layoutMsg;
-            try
-            {
-                layoutMsg = getBoardLayoutMessage(ga);
-            } catch (IllegalArgumentException e) {
-                System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
-                return;
-            }
             numberOfGamesStarted++;
             ga.startGame();
             gameList.takeMonitorForGame(gaName);
@@ -8428,8 +8420,15 @@ public class SOCServer extends Server
             /**
              * send the board layout
              */
-            messageToGameWithMon(gaName, layoutMsg);
-            layoutMsg = null;
+            SOCMessage layoutMsg;
+            try
+            {
+                messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
+            } catch (IllegalArgumentException e) {
+                gameList.releaseMonitorForGame(gaName);
+                System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
+                return;
+            }
 
             /**
              * send the player info
