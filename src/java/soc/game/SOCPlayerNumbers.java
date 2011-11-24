@@ -36,17 +36,26 @@ public class SOCPlayerNumbers
     /**
      * Dice roll numbers which yield this resource.
      * Uses indexes in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     * Each element contains {@link Integer}s for the dice numbers.
      */
     private Vector[] numbersForResource;
 
-    /** Resources on dice roll numbers; uses indexes 2-12  */
+    /**
+     * Resources on dice roll numbers; uses indexes 2-12.
+     * Each element contains {@link Integer}s for the resource(s),
+     * in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     */
     private Vector[] resourcesForNumber;
 
-    /** Hex information, by hex coordinate ID  */
+    /**
+     * Hex dice-roll resource information, by hex coordinate ID.
+     * Each hex coordinate's vector contains 0 or more {@link IntPair}(diceNum, resource).
+     */
     private Vector[] numberAndResourceForHex;
 
     /**
      * Reference to either {@link SOCBoard#HEXCOORDS_LAND_V1} or {@link SOCBoard#HEXCOORDS_LAND_V2}.
+     * Hex coordinates for each land hex on the board.
      * @since 1.1.08
      */
     private int[] landHexCoords;
@@ -68,7 +77,7 @@ public class SOCPlayerNumbers
             numbersForResource[i] = (Vector) numbers.numbersForResource[i].clone();
         }
 
-        resourcesForNumber = new Vector[13];
+        resourcesForNumber = new Vector[13];  // dice roll totals 2 to 12
 
         for (int i = 0; i < 13; i++)
         {
@@ -109,7 +118,7 @@ public class SOCPlayerNumbers
             numbersForResource[i] = new Vector();
         }
 
-        resourcesForNumber = new Vector[13];
+        resourcesForNumber = new Vector[13];  // dice roll totals 2 to 12
 
         for (int i = 0; i < 13; i++)
         {
@@ -168,38 +177,39 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * update the numbers data
+     * update the numbers data, based on placing a settlement or upgrading at a node.
      *
      * given a node coordinate and a board, add numbers for this player to the list
      *
-     * @param coord   the node coordinate
+     * @param nodeCoord   the node coordinate
      * @param board   the game board
      */
-    public void updateNumbers(int coord, SOCBoard board)
+    public void updateNumbers(final int nodeCoord, SOCBoard board)
     {
-        Enumeration hexes = board.getAdjacentHexesToNode(coord).elements();
+        Enumeration hexes = board.getAdjacentHexesToNode(nodeCoord).elements();
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = (Integer) hexes.nextElement();
-            int number = board.getNumberOnHexFromCoord(hex.intValue());
-            int resource = board.getHexTypeFromCoord(hex.intValue());
-            addNumberForResource(number, resource, hex.intValue());
+            final int hexCoord = ((Integer) hexes.nextElement()).intValue();
+            int number = board.getNumberOnHexFromCoord(hexCoord);
+            int resource = board.getHexTypeFromCoord(hexCoord);
+            addNumberForResource(number, resource, hexCoord);
         }
     }
 
     /**
-     * @return the resources for a number
-     *
-     * @param num  the number
+     * Get this player's resources gained when a dice number is rolled.
+     * @param diceNum  the dice number, 2-12
+     * @return the resources for a number; contains {@link Integer}s for the resource(s),
+     * in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
      */
-    public Vector getResourcesForNumber(int num)
+    public Vector getResourcesForNumber(final int diceNum)
     {
-        return resourcesForNumber[num];
+        return resourcesForNumber[diceNum];
     }
 
     /**
-     * @return the numbers for a resource
+     * @return the numbers for a resource, as {@link Integer}s
      *
      * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      */
@@ -209,7 +219,8 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * @return the number-resource pairs for a hex
+     * @return the number-resource pairs for a hex;
+     *  a Vector of 0 or more {@link IntPair}(diceNum, resource).
      *
      * @param hex  the hex coord
      */
@@ -219,7 +230,7 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * @return the numbers for a resource, taking the robber into account
+     * @return the dice numbers for a resource (as {@link Integer}s), taking the robber into account
      *
      * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @param robberHex the robber hex
@@ -250,12 +261,13 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * @return the resources for a number taking the robber into account
+     * @return the resources for a dice number, taking the robber into account;
+     *   Integers in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      *
-     * @param number  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
-     * @param robberHex the robber hex
+     * @param diceNum  the dice roll, 2 - 12 
+     * @param robberHex the robber hex coordinate
      */
-    public Vector getResourcesForNumber(int number, int robberHex)
+    public Vector getResourcesForNumber(final int diceNum, final int robberHex)
     {
         Vector resources = new Vector();
 
@@ -269,7 +281,7 @@ public class SOCPlayerNumbers
                 {
                     IntPair pair = (IntPair) pairsEnum.nextElement();
 
-                    if (pair.getA() == number)
+                    if (pair.getA() == diceNum)
                     {
                         resources.addElement(new Integer(pair.getB()));
                     }
@@ -281,25 +293,25 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * set a number for a resource
+     * add a number to the list of dice numbers for a resource
      *
-     * @param number    the dice-roll number
+     * @param diceNum    the dice-roll number
      * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @param hex       the hex coordinate ID
      */
-    public void addNumberForResource(int number, int resource, int hex)
+    public void addNumberForResource(final int diceNum, final int resource, final int hex)
     {
         if ((resource >= SOCResourceConstants.CLAY) && (resource <= SOCResourceConstants.WOOD))
         {
-            numbersForResource[resource].addElement(new Integer(number));
+            numbersForResource[resource].addElement(new Integer(diceNum));
 
             Integer resourceInt = new Integer(resource);
 
             //if (!resourcesForNumber[number].contains(resourceInt)) {
-            resourcesForNumber[number].addElement(resourceInt);
+            resourcesForNumber[diceNum].addElement(resourceInt);
 
             //}
-            numberAndResourceForHex[hex].addElement(new IntPair(number, resource));
+            numberAndResourceForHex[hex].addElement(new IntPair(diceNum, resource));
         }
     }
 
