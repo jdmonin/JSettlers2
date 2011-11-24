@@ -23,6 +23,7 @@ package soc.game;
 import soc.util.IntPair;
 
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Vector;
 
 
@@ -48,10 +49,13 @@ public class SOCPlayerNumbers
     private Vector[] resourcesForNumber;
 
     /**
-     * Hex dice-roll resource information, by hex coordinate ID.
+     * Hex dice-roll resource information, by land-hex coordinate ID.
+     * Key = Integer hexCoord; value = Vector.
      * Each hex coordinate's vector contains 0 or more {@link IntPair}(diceNum, resource).
+     * Until {@link #addNumberForResource(int, int, int)} is called,
+     * any land hex's entry in this hashtable may be null.
      */
-    private Vector[] numberAndResourceForHex;
+    private Hashtable numberAndResourceForHex;
 
     /**
      * Reference to either {@link SOCBoard#HEXCOORDS_LAND_V1} or {@link SOCBoard#HEXCOORDS_LAND_V2}.
@@ -84,11 +88,14 @@ public class SOCPlayerNumbers
             resourcesForNumber[i] = (Vector) numbers.resourcesForNumber[i].clone();
         }
 
-        numberAndResourceForHex = new Vector[0xBC];
-
-        for (int i = 0; i < landHexCoords.length; i++)
+        // deep copy, not shallow copy:
+        numberAndResourceForHex = new Hashtable((int) (numbers.numberAndResourceForHex.size() * 1.4f));
+        for (Enumeration hexes = numbers.numberAndResourceForHex.keys();
+             hexes.hasMoreElements(); )
         {
-            numberAndResourceForHex[landHexCoords[i]] = (Vector) numbers.numberAndResourceForHex[landHexCoords[i]].clone();
+            Object hex = hexes.nextElement();
+            numberAndResourceForHex.put
+                (hex, ((Vector) numbers.numberAndResourceForHex.get(hex)).clone());
         }
     }
 
@@ -125,12 +132,14 @@ public class SOCPlayerNumbers
             resourcesForNumber[i] = new Vector();
         }
 
-        numberAndResourceForHex = new Vector[0xBC];
+        numberAndResourceForHex = new Hashtable();
 
-        for (int i = 0; i < landHexCoords.length; i++)
-        {
-            numberAndResourceForHex[landHexCoords[i]] = new Vector();
-        }
+        //    Initially empty, until addNumberForResource is called.
+        //    So, skip this loop:
+        // for (int i = 0; i < landHexCoords.length; i++)
+        // {
+        //    numberAndResourceForHex.put(new Integer(landHexCoords[i]), new Vector());
+        // }
     }
 
     /**
@@ -149,10 +158,7 @@ public class SOCPlayerNumbers
             resourcesForNumber[i].removeAllElements();
         }
 
-        for (int i = 0; i < landHexCoords.length; i++)
-        {
-            numberAndResourceForHex[landHexCoords[i]].removeAllElements();
-        }
+        numberAndResourceForHex.clear();
     }
 
     /**
@@ -221,12 +227,30 @@ public class SOCPlayerNumbers
     /**
      * @return the number-resource pairs for a hex;
      *  a Vector of 0 or more {@link IntPair}(diceNum, resource).
+     *  May be null if hexCoord has no resources for us, or is not a valid land hex.
      *
-     * @param hex  the hex coord
+     * @param hexCoord  the hex coord
+     * @see #hasNoResourcesForHex(int)
      */
-    public Vector getNumberResourcePairsForHex(int hex)
+    public Vector getNumberResourcePairsForHex(final int hexCoord)
     {
-        return numberAndResourceForHex[hex];
+        return (Vector) numberAndResourceForHex.get(new Integer(hexCoord));
+    }
+
+    /**
+     * Do we receive no resources at all from this hex on any dice rolls?
+     * @param hexCoord  the hex coordinate
+     * @return  True if {@link #getNumberResourcePairsForHex(int)} is empty;
+     *        False if we do receive resources from this hex
+     * @since 1.2.00
+     */
+    public boolean hasNoResourcesForHex(final int hexCoord)
+    {
+        Vector v = (Vector) numberAndResourceForHex.get(new Integer(hexCoord));
+        if (v == null)
+            return true;
+        else
+            return v.isEmpty();
     }
 
     /**
@@ -243,12 +267,14 @@ public class SOCPlayerNumbers
         {
             if (landHexCoords[i] != robberHex)
             {
-                Enumeration pairsEnum = numberAndResourceForHex[landHexCoords[i]].elements();
+                Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(landHexCoords[i]));
+                if (pairs == null)
+                    continue;
 
+                Enumeration pairsEnum = pairs.elements();
                 while (pairsEnum.hasMoreElements())
                 {
                     IntPair pair = (IntPair) pairsEnum.nextElement();
-
                     if (pair.getB() == resource)
                     {
                         numbers.addElement(new Integer(pair.getA()));
@@ -275,12 +301,14 @@ public class SOCPlayerNumbers
         {
             if (landHexCoords[i] != robberHex)
             {
-                Enumeration pairsEnum = numberAndResourceForHex[landHexCoords[i]].elements();
+                Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(landHexCoords[i]));
+                if (pairs == null)
+                    continue;
 
+                Enumeration pairsEnum = pairs.elements();
                 while (pairsEnum.hasMoreElements())
                 {
                     IntPair pair = (IntPair) pairsEnum.nextElement();
-
                     if (pair.getA() == diceNum)
                     {
                         resources.addElement(new Integer(pair.getB()));
@@ -311,7 +339,16 @@ public class SOCPlayerNumbers
             resourcesForNumber[diceNum].addElement(resourceInt);
 
             //}
-            numberAndResourceForHex[hex].addElement(new IntPair(diceNum, resource));
+
+            final IntPair newPair = new IntPair(diceNum, resource);
+            final Integer hexInt = new Integer(hex);
+            Vector pairs = (Vector) numberAndResourceForHex.get(hexInt);
+            if (pairs == null)
+            {
+                pairs = new Vector();
+                numberAndResourceForHex.put(hexInt, pairs);
+            }
+            pairs.addElement(newPair);
         }
     }
 
@@ -397,17 +434,20 @@ public class SOCPlayerNumbers
                 }
             }
 
-            Enumeration numAndResourceEnum = numberAndResourceForHex[hex].elements();
-
-            while (numAndResourceEnum.hasMoreElements())
+            Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(hex));
+            if (pairs != null)
             {
-                IntPair numAndResource = (IntPair) numAndResourceEnum.nextElement();
-
-                if ((numAndResource.getA() == number) && (numAndResource.getB() == resource))
+                Enumeration numAndResourceEnum = pairs.elements();
+    
+                while (numAndResourceEnum.hasMoreElements())
                 {
-                    numberAndResourceForHex[hex].removeElement(numAndResource);
-
-                    break;
+                    IntPair numAndResource = (IntPair) numAndResourceEnum.nextElement();
+    
+                    if ((numAndResource.getA() == number) && (numAndResource.getB() == resource))
+                    {
+                        pairs.removeElement(numAndResource);
+                        break;
+                    }
                 }
             }
         }

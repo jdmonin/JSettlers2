@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -111,7 +111,7 @@ public class RobberStrategy {
             * only check hexes that we're not touching,
             * and not the robber hex
             */
-           if ((hexes[i] != robberHex) && (ourPlayerData.getNumbers().getNumberResourcePairsForHex(hexes[i]).isEmpty()))
+           if ((hexes[i] != robberHex) && ourPlayerData.getNumbers().hasNoResourcesForHex(hexes[i]))
            {
                estimate.recalculateEstimates(victim.getNumbers(), hexes[i]);
 
@@ -141,7 +141,7 @@ public class RobberStrategy {
        /**
         * pick a spot at random if we can't decide
         */
-       while ((bestHex == robberHex) && (ourPlayerData.getNumbers().getNumberResourcePairsForHex(hexes[bestHex]).isEmpty()))
+       while ((bestHex == robberHex) && ourPlayerData.getNumbers().hasNoResourcesForHex(hexes[bestHex]))
        {
            bestHex = hexes[Math.abs(rand.nextInt() % hexes.length)];
            log.debug("%%% random pick = " + Integer.toHexString(bestHex));

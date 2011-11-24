@@ -1840,7 +1840,7 @@ public class SOCRobotBrain extends Thread
                  * is on one of our numbers, play the knight card
                  */
                 if ((ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0)
-                    && ! (ourPlayerData.getNumbers().getNumberResourcePairsForHex(game.getBoard().getRobberHex())).isEmpty())
+                    && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
                 {
                     expectPLACING_ROBBER = true;
                     waitingForGameState = true;
@@ -4492,7 +4492,7 @@ public class SOCRobotBrain extends Thread
              * and not the robber hex, and possibly not desert hexes
              */
             if ((hexes[i] != robberHex)
-                    && ourPlayerData.getNumbers().getNumberResourcePairsForHex(hexes[i]).isEmpty()
+                    && ourPlayerData.getNumbers().hasNoResourcesForHex(hexes[i])
                     && ! (skipDeserts && (gboard.getHexTypeFromCoord(hexes[i]) == SOCBoard.DESERT_HEX )))
             {
                 estimate.recalculateEstimates(victim.getNumbers(), hexes[i]);
@@ -4538,7 +4538,7 @@ public class SOCRobotBrain extends Thread
                     || (skipDeserts
                             && (gboard.getHexTypeFromCoord(bestHex) == SOCBoard.DESERT_HEX ))
                     || ((numRand < 30)
-                            && ourPlayerData.getNumbers().getNumberResourcePairsForHex(bestHex).isEmpty()))
+                            && ourPlayerData.getNumbers().hasNoResourcesForHex(bestHex)))
             {
                 bestHex = hexes[Math.abs(rand.nextInt()) % hexes.length];
                 // D.ebugPrintln("%%% random pick = " + Integer.toHexString(bestHex));
