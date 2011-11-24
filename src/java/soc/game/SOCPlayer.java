@@ -30,6 +30,7 @@ import java.io.Serializable;
 
 import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Stack;
 import java.util.Vector;
@@ -185,20 +186,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * an edge is legal if a road could eventually be
      * placed there.
      */
-    private Hashtable legalRoads;
+    private HashSet legalRoads;
 
     /**
      * a set of nodes where it is legal to place a
      * settlement. A node is legal if a settlement
      * can ever be placed there.
      *<P>
-     * Key = node coordinate, value is not used;
-     * If {@link Hashtable#containsKey(Object) legalSettlements.containsKey(new Integer(nodeCoord))},
+     * Key = node coordinate, as {@link Integer}.
+     * If {@link HashSet#contains(Object) legalSettlements.contains(new Integer(nodeCoord))},
      * then this is a legal settlement.
      * @see #potentialSettlements
      * @see SOCBoard#nodesOnLand
      */
-    private Hashtable legalSettlements;
+    private HashSet legalSettlements;
 
     /**
      * a set of edges where a road could be placed
@@ -207,7 +208,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Elements are set true when the player places adjacent settlements or roads, via
      * {@link #updatePotentials(SOCPlayingPiece)}.
      */
-    private Hashtable potentialRoads;
+    private HashSet potentialRoads;
 
     /**
      * a set of nodes where a settlement could be
@@ -216,13 +217,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * When the second settlement is placed, <tt>potentialSettlements</tt> is cleared,
      * and then re-set via {@link #updatePotentials(SOCPlayingPiece) updatePotentials(SOCRoad)}.
      *<P>
-     * Key = node coordinate, value is not used;
-     * If {@link Hashtable#containsKey(Object) potentialSettlements.containsKey(new Integer(nodeCoord))},
+     * Key = node coordinate, as {@link Integer}.
+     * If {@link HashSet#contains(Object) potentialSettlements.contains(new Integer(nodeCoord))},
      * then this is a potential settlement.
      * @see #legalSettlements
      * @see SOCBoard#nodesOnLand
      */
-    private Hashtable potentialSettlements;
+    private HashSet potentialSettlements;
 
     /**
      * a set of nodes where a city could be
@@ -231,7 +232,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Elements are set true when the player places settlements, via
      * {@link #updatePotentials(SOCPlayingPiece)}.
      */
-    private Hashtable potentialCities;
+    private HashSet potentialCities;
 
     /**
      * a boolean array stating wheather this player is touching a
@@ -357,11 +358,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         /**
          * init legal and potential arrays
          */
-        legalRoads = (Hashtable) (player.legalRoads.clone());
-        legalSettlements = (Hashtable) (player.legalSettlements.clone());
-        potentialRoads = (Hashtable) (player.potentialRoads.clone());
-        potentialSettlements = (Hashtable) (player.potentialSettlements.clone());
-        potentialCities = (Hashtable) (player.potentialCities.clone());
+        legalRoads = (HashSet) (player.legalRoads.clone());
+        legalSettlements = (HashSet) (player.legalSettlements.clone());
+        potentialRoads = (HashSet) (player.potentialRoads.clone());
+        potentialSettlements = (HashSet) (player.potentialSettlements.clone());
+        potentialCities = (HashSet) (player.potentialCities.clone());
 
         if (player.currentOffer != null)
         {
@@ -430,12 +431,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
          * init legal and potential arrays.
          * no settlements yet, so no potential roads or cities.
          */
-        potentialRoads = new Hashtable();
-        potentialCities = new Hashtable();
+        potentialRoads = new HashSet();
+        potentialCities = new HashSet();
 
         legalRoads = board.initPlayerLegalRoads();
         legalSettlements = board.initPlayerLegalAndPotentialSettlements();
-        potentialSettlements = (Hashtable) (legalSettlements.clone());
+        potentialSettlements = (HashSet) (legalSettlements.clone());
 
         currentOffer = null;
     }
@@ -1158,7 +1159,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 // make it a legal space again
                 //
-                legalRoads.put(pieceCoordInt, Boolean.TRUE);
+                legalRoads.add(pieceCoordInt);
 
                 //
                 // call updatePotentials
@@ -1289,7 +1290,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             if (ours)
             {
                 removePiece(piece);
-                potentialCities.put(pieceCoordInt, Boolean.TRUE);
+                potentialCities.add(pieceCoordInt);
 
                 /**
                  * update what numbers we're touching
@@ -1381,7 +1382,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 if (board.isNodeOnLand(settlementNode))
                 {
-                    legalSettlements.put(settleNodeInt, Boolean.TRUE);
+                    legalSettlements.add(settleNodeInt);
 
                     //
                     // if it's the beginning of the game, make it potental
@@ -1390,7 +1391,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     //
                     if (game.getGameState() < SOCGame.PLAY)
                     {
-                        potentialSettlements.put(settleNodeInt, Boolean.TRUE);
+                        potentialSettlements.add(settleNodeInt);
 
                         //D.ebugPrintln(")))) potentialSettlements["+Integer.toHexString(settlementNode)+"] = true");
                     }
@@ -1430,7 +1431,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                         if (adjRoad)
                         {
-                            potentialSettlements.put(settleNodeInt, Boolean.TRUE);
+                            potentialSettlements.add(settleNodeInt);
 
                             //D.ebugPrintln(")))) potentialSettlements["+Integer.toHexString(settlementNode)+"] = true");
                         }
@@ -1535,8 +1536,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * NOTE: we're assuming that we could build a road here
                      * before, so we can make it a legal spot again
                      */
-                    potentialRoads.put(pieceCoordInt, Boolean.TRUE);
-                    legalRoads.put(pieceCoordInt, Boolean.TRUE);
+                    potentialRoads.add(pieceCoordInt);
+                    legalRoads.add(pieceCoordInt);
 
                     /**
                      * check each adjacent legal edge, if there are
@@ -1551,7 +1552,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
                         final int adjEdgeID = adjEdge.intValue();
 
-                        if (potentialRoads.containsKey(adjEdge))
+                        if (potentialRoads.contains(adjEdge))
                         {
                             boolean isPotentialRoad = false;
 
@@ -1614,7 +1615,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             }
 
                             if (isPotentialRoad)
-                                potentialRoads.put(adjEdge, Boolean.TRUE);
+                                potentialRoads.add(adjEdge);
                             else
                                 potentialRoads.remove(adjEdge);
                         }
@@ -1713,15 +1714,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             if (edge != -9)
                             {
                                 final Integer edgeInt = new Integer(edge);
-                                if (legalRoads.containsKey(edgeInt))
-                                    potentialRoads.put(edgeInt, Boolean.TRUE);
+                                if (legalRoads.contains(edgeInt))
+                                    potentialRoads.add(edgeInt);
                             }
                         }
 
                         final Integer nodeInt = new Integer(node);
-                        if (legalSettlements.containsKey(nodeInt))
+                        if (legalSettlements.contains(nodeInt))
                         {
-                            potentialSettlements.put(nodeInt, Boolean.TRUE);
+                            potentialSettlements.add(nodeInt);
                         }
                     }
                 }
@@ -1755,7 +1756,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             if (ours)
             {
-                potentialCities.put(idInt, Boolean.TRUE);
+                potentialCities.add(idInt);
 
                 adjac = board.getAdjacentEdgesToNode_arr(id);
                 for (int i = 0; i < 3; ++i)
@@ -1764,8 +1765,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     if (tmp != -9)
                     {
                         final Integer tmpEdgeInt = new Integer(tmp);
-                        if (legalRoads.containsKey(tmpEdgeInt))
-                            potentialRoads.put(tmpEdgeInt, Boolean.TRUE);
+                        if (legalRoads.contains(tmpEdgeInt))
+                            potentialRoads.add(tmpEdgeInt);
                     }
                 }
             }
@@ -1794,7 +1795,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 for (int i = 0; i < 3; ++i)
                 {
                     tmp = adjac[i];  // edge coordinate
-                    if ((tmp == -9) || ! potentialRoads.containsKey(new Integer(tmp)))
+                    if ((tmp == -9) || ! potentialRoads.contains(new Integer(tmp)))
                     {
                         continue;  // We don't have a potential road here, so
                                    // there's nothing to be potentially broken.
@@ -1862,7 +1863,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         while (settlementEnum.hasMoreElements())
         {
             Integer number = (Integer) settlementEnum.nextElement();
-            potentialSettlements.put(number, Boolean.TRUE);
+            potentialSettlements.add(number);
         }
     }
 
@@ -1870,9 +1871,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return true if this node is a potential settlement
      * @param node        the coordinates of a node on the board
      */
-    public boolean isPotentialSettlement(int node)
+    public boolean isPotentialSettlement(final int node)
     {
-        return potentialSettlements.containsKey(new Integer(node));
+        return potentialSettlements.contains(new Integer(node));
     }
 
     /**
@@ -1892,9 +1893,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return true if this node is a potential city
      * @param node        the coordinates of a node on the board
      */
-    public boolean isPotentialCity(int node)
+    public boolean isPotentialCity(final int node)
     {
-        return potentialCities.containsKey(new Integer(node));
+        return potentialCities.contains(new Integer(node));
     }
 
     /**
@@ -1918,7 +1919,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (edge == -1)
             edge = 0x00;
-        return potentialRoads.containsKey(new Integer(edge));
+        return potentialRoads.contains(new Integer(edge));
     }
 
     /**
@@ -1947,7 +1948,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             edge = 0x00;
         else if (edge < 0)
             return false;
-        return legalRoads.containsKey(new Integer(edge));
+        return legalRoads.contains(new Integer(edge));
     }
 
     /**

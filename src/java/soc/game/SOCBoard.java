@@ -23,6 +23,7 @@ package soc.game;
 import java.io.Serializable;
 
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.Vector;
@@ -674,7 +675,7 @@ public class SOCBoard implements Serializable, Cloneable
      * See dissertation figure A.2.
      * See also {@link SOCPlayer#initLegalAndPotentialSettlements()}.
      */
-    protected Hashtable nodesOnLand;
+    protected HashSet nodesOnLand;
 
     /**
      * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
@@ -694,6 +695,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Sets {@link #boardEncodingFormat}, {@link #robberHex}, {@link #prevRobberHex}.
      * Creates empty Vectors for {@link #pieces}, {@link #roads}, {@link #settlements},
      *   {@link #cities} and {@link #ports}, but not {@link #portsLayout}.
+     * Creates an empty HashSet for {@link #nodesOnLand}.
      *<P>
      * Most likely you should also call {@link #setBoardBounds(int, int)}.
      *
@@ -712,6 +714,8 @@ public class SOCBoard implements Serializable, Cloneable
 
         robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
         prevRobberHex = -1;
+
+        nodesOnLand = new HashSet();
 
         /**
          * initialize the pieces vectors
@@ -804,7 +808,7 @@ public class SOCBoard implements Serializable, Cloneable
     {
         final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
-        nodesOnLand = new Hashtable();
+        nodesOnLand = new HashSet();
 
         /**
          * initialize the list of nodes on the land of the board;
@@ -814,7 +818,6 @@ public class SOCBoard implements Serializable, Cloneable
          * and has an extra row of land hexes at north and south end.
          * Same node coordinates are needed in initPlayerLegalAndPotentialSettlements.
          */
-        final Boolean t = Boolean.TRUE;
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
         // Set each row of valid node coordinates:
@@ -823,31 +826,31 @@ public class SOCBoard implements Serializable, Cloneable
         if (is6player)
         {
             for (i = 0x07; i <= 0x6D; i += 0x11)
-                nodesOnLand.put(new Integer(i), t);
+                nodesOnLand.add(new Integer(i));
         }
 
         for (i = 0x27 - westAdj; i <= 0x8D; i += 0x11)  //  Northernmost horizontal row: each north corner across 3 hexes
-            nodesOnLand.put(new Integer(i), t);
+            nodesOnLand.add(new Integer(i));
 
         for (i = 0x25 - westAdj; i <= 0xAD; i += 0x11)  // Next: each north corner of row of 4 / south corner of the northernmost 3 hexes
-            nodesOnLand.put(new Integer(i), t);
+            nodesOnLand.add(new Integer(i));
 
         for (i = 0x23 - westAdj; i <= 0xCD; i += 0x11)  // Next: north corners of middle row of 5 hexes
-            nodesOnLand.put(new Integer(i), t);
+            nodesOnLand.add(new Integer(i));
 
         for (i = 0x32 - westAdj; i <= 0xDC; i += 0x11) // Next: south corners of middle row of 5 hexes
-            nodesOnLand.put(new Integer(i), t);
+            nodesOnLand.add(new Integer(i));
 
         for (i = 0x52 - westAdj; i <= 0xDA; i += 0x11)  // South corners of row of 4 / north corners of the southernmost 3 hexes
-            nodesOnLand.put(new Integer(i), t);
+            nodesOnLand.add(new Integer(i));
 
         for (i = 0x72 - westAdj; i <= 0xD8; i += 0x11)  // Southernmost horizontal row: each south corner across 3 hexes
-            nodesOnLand.put(new Integer(i), t);
+            nodesOnLand.add(new Integer(i));
 
         if (is6player)
         {
             for (i = 0x70; i <= 0xD6; i += 0x11)
-                nodesOnLand.put(new Integer(i), t);
+                nodesOnLand.add(new Integer(i));
         }
     }
 
@@ -1432,13 +1435,14 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Create and initialize a {@link SOCPlayer}'s legalRoads array.
+     * Create and initialize a {@link SOCPlayer}'s legalRoads set.
      *<P>
      * Previously part of {@link SOCPlayer}, but moved here in version 1.1.12
      * to better encapsulate the board coordinate encoding.
+     * @return the set of legal edge coordinates for roads, as {@link Integer}s
      * @since 1.1.12
      */
-    Hashtable initPlayerLegalRoads()
+    HashSet initPlayerLegalRoads()
     {
         // 6-player starts land 1 extra hex (2 edges) west of standard board,
         // and has an extra row of land hexes at north and south end.
@@ -1446,7 +1450,7 @@ public class SOCBoard implements Serializable, Cloneable
             (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
         final int westAdj = (is6player) ? 0x22 : 0x00;
 
-        Hashtable legalRoads = new Hashtable(97);  // 4-pl board 72 roads; load factor 0.75
+        HashSet legalRoads = new HashSet(97);  // 4-pl board 72 roads; load factor 0.75
 
         // Set each row of valid road (edge) coordinates:
         int i;
@@ -1454,52 +1458,52 @@ public class SOCBoard implements Serializable, Cloneable
         if (is6player)
         {
             for (i = 0x07; i <= 0x5C; i += 0x11)
-                legalRoads.put(new Integer(i), Boolean.TRUE);
+                legalRoads.add(new Integer(i));
 
             for (i = 0x06; i <= 0x6C; i += 0x22)
-                legalRoads.put(new Integer(i), Boolean.TRUE);
+                legalRoads.add(new Integer(i));
         }
 
         for (i = 0x27 - westAdj; i <= 0x7C; i += 0x11)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x26 - westAdj; i <= 0x8C; i += 0x22)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x25 - westAdj; i <= 0x9C; i += 0x11)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x24 - westAdj; i <= 0xAC; i += 0x22)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x23 - westAdj; i <= 0xBC; i += 0x11)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x22 - westAdj; i <= 0xCC; i += 0x22)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x32 - westAdj; i <= 0xCB; i += 0x11)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x42 - westAdj; i <= 0xCA; i += 0x22)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x52 - westAdj; i <= 0xC9; i += 0x11)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x62 - westAdj; i <= 0xC8; i += 0x22)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         for (i = 0x72 - westAdj; i <= 0xC7; i += 0x11)
-            legalRoads.put(new Integer(i), Boolean.TRUE);
+            legalRoads.add(new Integer(i));
 
         if (is6player)
         {
             for (i = 0x60; i <= 0xC6; i += 0x22)
-                legalRoads.put(new Integer(i), Boolean.TRUE);
+                legalRoads.add(new Integer(i));
 
             for (i = 0x70; i <= 0xC5; i += 0x11)
-                legalRoads.put(new Integer(i), Boolean.TRUE);
+                legalRoads.add(new Integer(i));
         }
 
         return legalRoads;
@@ -1507,17 +1511,18 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Create and initialize a {@link SOCPlayer}'s set of legal settlements.
-     * You can copy the returned <tt>legalSettlements</tt>
+     * You can clone the returned <tt>legalSettlements</tt>
      * to <tt>potentialSettlements</tt>.
      *<P>
      * Previously part of {@link SOCPlayer}, but moved here in version 1.1.12
      * to better encapsulate the board coordinate encoding.
+     * In encoding v1 and v2, this is always the same coordinates as {@link #nodesOnLand}.
      * @since 1.1.12
      * @see #nodesOnLand
      */
-    Hashtable initPlayerLegalAndPotentialSettlements()
+    HashSet initPlayerLegalAndPotentialSettlements()
     {
-        Hashtable legalSettlements = (Hashtable) nodesOnLand.clone();
+        HashSet legalSettlements = (HashSet) nodesOnLand.clone();
         return legalSettlements;
     }
 
@@ -3148,7 +3153,7 @@ public class SOCBoard implements Serializable, Cloneable
     {
         if (node < 0)
             return false;
-        return nodesOnLand.containsKey(new Integer(node));
+        return nodesOnLand.contains(new Integer(node));
     }
 
     /**
