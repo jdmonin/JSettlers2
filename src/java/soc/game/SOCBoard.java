@@ -547,7 +547,7 @@ public class SOCBoard implements Serializable, Cloneable
      *     the unused hexes (rightmost column: 7D - DD - D7).
      *</UL>
      * @see #hexIDtoNum
-     * @see #nodesOnBoard
+     * @see #nodesOnLand
      * @see #HEXCOORDS_LAND_V1
      * @see #HEXCOORDS_LAND_V2
      */
@@ -674,7 +674,7 @@ public class SOCBoard implements Serializable, Cloneable
      * See dissertation figure A.2.
      * See also {@link SOCPlayer#initLegalAndPotentialSettlements()}.
      */
-    protected Hashtable nodesOnBoard;
+    protected Hashtable nodesOnLand;
 
     /**
      * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
@@ -791,20 +791,20 @@ public class SOCBoard implements Serializable, Cloneable
         initHexIDtoNumAux(0x51, 0xD9, 28); // Next: 5
         initHexIDtoNumAux(0x71, 0xD7, 33); // Bottom horizontal row: 4 hexes across
 
-        initNodesOnBoard();
+        initNodesOnLand();
     }
 
     /**
      * As part of the constructor, check the {@link #boardEncodingFormat}
-     * and initialize {@link #nodesOnBoard} accordingly.
+     * and initialize {@link #nodesOnLand} accordingly.
      * @see #initPlayerLegalAndPotentialSettlements()
      * @since 1.2.00
      */
-    private void initNodesOnBoard()
+    private void initNodesOnLand()
     {
         final boolean is6player = (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
 
-        nodesOnBoard = new Hashtable();
+        nodesOnLand = new Hashtable();
 
         /**
          * initialize the list of nodes on the land of the board;
@@ -823,31 +823,31 @@ public class SOCBoard implements Serializable, Cloneable
         if (is6player)
         {
             for (i = 0x07; i <= 0x6D; i += 0x11)
-                nodesOnBoard.put(new Integer(i), t);
+                nodesOnLand.put(new Integer(i), t);
         }
 
         for (i = 0x27 - westAdj; i <= 0x8D; i += 0x11)  //  Northernmost horizontal row: each north corner across 3 hexes
-            nodesOnBoard.put(new Integer(i), t);
+            nodesOnLand.put(new Integer(i), t);
 
         for (i = 0x25 - westAdj; i <= 0xAD; i += 0x11)  // Next: each north corner of row of 4 / south corner of the northernmost 3 hexes
-            nodesOnBoard.put(new Integer(i), t);
+            nodesOnLand.put(new Integer(i), t);
 
         for (i = 0x23 - westAdj; i <= 0xCD; i += 0x11)  // Next: north corners of middle row of 5 hexes
-            nodesOnBoard.put(new Integer(i), t);
+            nodesOnLand.put(new Integer(i), t);
 
         for (i = 0x32 - westAdj; i <= 0xDC; i += 0x11) // Next: south corners of middle row of 5 hexes
-            nodesOnBoard.put(new Integer(i), t);
+            nodesOnLand.put(new Integer(i), t);
 
         for (i = 0x52 - westAdj; i <= 0xDA; i += 0x11)  // South corners of row of 4 / north corners of the southernmost 3 hexes
-            nodesOnBoard.put(new Integer(i), t);
+            nodesOnLand.put(new Integer(i), t);
 
         for (i = 0x72 - westAdj; i <= 0xD8; i += 0x11)  // Southernmost horizontal row: each south corner across 3 hexes
-            nodesOnBoard.put(new Integer(i), t);
+            nodesOnLand.put(new Integer(i), t);
 
         if (is6player)
         {
             for (i = 0x70; i <= 0xD6; i += 0x11)
-                nodesOnBoard.put(new Integer(i), t);
+                nodesOnLand.put(new Integer(i), t);
         }
     }
 
@@ -1507,58 +1507,17 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Create and initialize a {@link SOCPlayer}'s set of legal settlements.
-     * You can use {@link System#arraycopy(Object, int, Object, int, int)}
-     * to copy the returned <tt>legalSettlements[]</tt>
-     * to <tt>potentialSettlements[]</tt>.
+     * You can copy the returned <tt>legalSettlements</tt>
+     * to <tt>potentialSettlements</tt>.
      *<P>
      * Previously part of {@link SOCPlayer}, but moved here in version 1.1.12
      * to better encapsulate the board coordinate encoding.
      * @since 1.1.12
-     * @see #nodesOnBoard
+     * @see #nodesOnLand
      */
     Hashtable initPlayerLegalAndPotentialSettlements()
     {
-        // 6-player starts land 1 extra hex (2 nodes) west of standard board,
-        // and has an extra row of land hexes at north and south end.
-        final boolean is6player =
-            (boardEncodingFormat == BOARD_ENCODING_6PLAYER);
-        final int westAdj = (is6player) ? 0x22 : 0x00;
-
-        Hashtable legalSettlements = new Hashtable(is6player ? 37 : 23);
-
-        // Set each row of valid node coordinates:
-        int i;
-
-        if (is6player)
-        {
-            for (i = 0x07; i <= 0x6D; i += 0x11)
-                legalSettlements.put(new Integer(i), Boolean.TRUE);
-        }
-
-        for (i = 0x27 - westAdj; i <= 0x8D; i += 0x11)
-            legalSettlements.put(new Integer(i), Boolean.TRUE);
-
-        for (i = 0x25 - westAdj; i <= 0xAD; i += 0x11)
-            legalSettlements.put(new Integer(i), Boolean.TRUE);
-
-        for (i = 0x23 - westAdj; i <= 0xCD; i += 0x11)
-            legalSettlements.put(new Integer(i), Boolean.TRUE);
-
-        for (i = 0x32 - westAdj; i <= 0xDC; i += 0x11)
-            legalSettlements.put(new Integer(i), Boolean.TRUE);
-
-        for (i = 0x52 - westAdj; i <= 0xDA; i += 0x11)
-            legalSettlements.put(new Integer(i), Boolean.TRUE);
-
-        for (i = 0x72 - westAdj; i <= 0xD8; i += 0x11)
-            legalSettlements.put(new Integer(i), Boolean.TRUE);
-
-        if (is6player)
-        {
-            for (i = 0x70; i <= 0xD6; i += 0x11)
-                legalSettlements.put(new Integer(i), Boolean.TRUE);
-        }
-
+        Hashtable legalSettlements = (Hashtable) nodesOnLand.clone();
         return legalSettlements;
     }
 
@@ -2821,7 +2780,7 @@ public class SOCBoard implements Serializable, Cloneable
      *           from a node to another node 2 away.
      *           Facing 2 is {@link #FACING_E}, 3 is {@link #FACING_SE}, 4 is SW, etc.
      * @return the node coordinate, or -9 if that node is not
-     *   {@link #isNodeOnBoard(int) on the board}.
+     *   {@link #isNodeOnLand(int) on the board}.
      * @see #getAdjacentNodeToNode(int, int)
      * @see #getAdjacentEdgeToNode2Away(int, int)
      * @see #isNode2AwayFromNode(int, int)
@@ -2836,7 +2795,7 @@ public class SOCBoard implements Serializable, Cloneable
 
         // See RST dissertation figure A.2.
         int node = nodeCoord + NODE_2_AWAY[facing];
-        if (! isNodeOnBoard(node))
+        if (! isNodeOnLand(node))
             node = -9;
         return node;
     }
@@ -3185,11 +3144,11 @@ public class SOCBoard implements Serializable, Cloneable
      * @return true if the node is on the land of the board (not water)
      * @param node Node coordinate
      */
-    public boolean isNodeOnBoard(int node)
+    public boolean isNodeOnLand(int node)
     {
         if (node < 0)
             return false;
-        return nodesOnBoard.containsKey(new Integer(node));
+        return nodesOnLand.containsKey(new Integer(node));
     }
 
     /**

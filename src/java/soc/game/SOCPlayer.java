@@ -196,7 +196,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If {@link Hashtable#containsKey(Object) legalSettlements.containsKey(new Integer(nodeCoord))},
      * then this is a legal settlement.
      * @see #potentialSettlements
-     * @see SOCBoard#nodesOnBoard
+     * @see SOCBoard#nodesOnLand
      */
     private Hashtable legalSettlements;
 
@@ -220,7 +220,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If {@link Hashtable#containsKey(Object) potentialSettlements.containsKey(new Integer(nodeCoord))},
      * then this is a potential settlement.
      * @see #legalSettlements
-     * @see SOCBoard#nodesOnBoard
+     * @see SOCBoard#nodesOnLand
      */
     private Hashtable potentialSettlements;
 
@@ -1379,7 +1379,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 // check to see if this node is on the board
                 //
-                if (board.isNodeOnBoard(settlementNode))
+                if (board.isNodeOnLand(settlementNode))
                 {
                     legalSettlements.put(settleNodeInt, Boolean.TRUE);
 
@@ -2089,7 +2089,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         if (j == -9)
                             continue;
 
-                        if (board.isNodeOnBoard(j) && isConnectedByRoad(coord, j))
+                        if (board.isNodeOnLand(j) && isConnectedByRoad(coord, j))
                         {
                             IntPair pair = new IntPair(coord, j);
                             boolean match = false;
