@@ -272,6 +272,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Allows up to 127 x 127 board with an arbitrary mix of land and water tiles.
      * Land, water, and port locations/facings are no longer hardcoded.
      * Use {@link #getPortsCount()} to get the number of ports.
+     * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
      * @see SOCBoardLarge
      * @since 1.2.00
      */
@@ -318,6 +319,7 @@ public class SOCBoard implements Serializable, Cloneable
      *       or altogether 0x0000 to 0xFFFF hex.
      *       Arbitrary mix of land and water tiles.
      *       Added in 1.2.00, implemented in {@link SOCBoardLarge}.
+     *       Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
      *</UL>
      * Although this field is protected (not private), please treat it as read-only.
      * @since 1.1.06
@@ -680,14 +682,20 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding);
+     *              TODO largeBoard/gameopt "PLL" does not yet support maxPlayers==6.
      * @param maxPlayers Maximum players; must be 4 or 6.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      * @since 1.1.11
      */
-    public static SOCBoard createBoard(Hashtable gameOpts, final int maxPlayers)
+    public static SOCBoard createBoard
+        (Hashtable gameOpts, final boolean largeBoard, final int maxPlayers)
         throws IllegalArgumentException
     {
-        return new SOCBoard(gameOpts, maxPlayers);
+        if (! largeBoard)
+            return new SOCBoard(gameOpts, maxPlayers);
+        else
+            return new SOCBoardLarge(gameOpts, maxPlayers);
     }
 
     /**
@@ -736,7 +744,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Create a new Settlers of Catan Board.
+     * Create a new Settlers of Catan Board, with the v1 or v2 encoding.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6

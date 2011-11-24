@@ -31,6 +31,7 @@ import java.util.Vector;
  * A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
+ * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
  *<P>
  * Server and client must be 1.2.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
@@ -201,10 +202,20 @@ public class SOCBoardLarge extends SOCBoard
      */
     private int portsCount;
 
+    /**
+     * Create a new Settlers of Catan Board, with the v3 encoding.
+     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param maxPlayers Maximum players; must be 4 or 6
+     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+     */
     public SOCBoardLarge(Hashtable gameOpts, int maxPlayers)
             throws IllegalArgumentException
     {
         super(BOARD_ENCODING_LARGE);
+        if ((maxPlayers != 4) && (maxPlayers != 6))
+            throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
+        // TODO maxPlayers 6 not yet supported in our board layout for "PLL"
+
         setBoardBounds(BOARDWIDTH_LARGE, BOARDHEIGHT_LARGE);
 
         hexLayoutLg = new int[BOARDHEIGHT_LARGE][BOARDWIDTH_LARGE];

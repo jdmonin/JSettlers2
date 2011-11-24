@@ -102,6 +102,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *<UL>
      *<LI> PL  Maximum # players (2-6)
      *<LI> PLB Use 6-player board*
+     *<LI> PLL Use large board* (experimental; name may change)
      *<LI> RD  Robber can't return to the desert
      *<LI> N7  Roll no 7s during first # rounds
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
@@ -225,6 +226,9 @@ public class SOCGameOption implements Cloneable, Comparable
         final SOCGameOption plb = new SOCGameOption
                 ("PLB", 1108, 1113, false, true, "Use 6-player board");
         opt.put("PLB", plb);
+        // TODO PLL for SOCBoardLarge: Decide final name
+        opt.put("PLL", new SOCGameOption
+                ("PLL", 1200, 1200, false, true, "Experimental: Use large board"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption

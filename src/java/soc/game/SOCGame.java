@@ -458,6 +458,14 @@ public class SOCGame implements Serializable, Cloneable
     public final int maxPlayers;
 
     /**
+     * Is this game played on the large board / sea board?
+     * If true, our board's {@link SOCBoard#getBoardEncodingFormat()}
+     * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
+     * @since 1.2.00
+     */
+    public final boolean hasSeaBoard;
+
+    /**
      * the current dice result. -1 at start of game, 0 during player's turn before roll (state {@link #PLAY}).
      */
     private int currentDice;
@@ -699,16 +707,18 @@ public class SOCGame implements Serializable, Cloneable
         name = n;
         if (op != null)
         {
-           final boolean wants6board = isGameOptionSet(op, "PLB");
-           SOCGameOption maxpl = (SOCGameOption) op.get("PL");
-           if (wants6board || ((maxpl != null) && (maxpl.getIntValue() > 4)))
-               maxPlayers = MAXPLAYERS;  // == 6
-           else
-               maxPlayers = 4;
+            hasSeaBoard = isGameOptionSet(op, "PLL");
+            final boolean wants6board = isGameOptionSet(op, "PLB");
+            final int maxpl = getGameOptionIntValue(op, "PL", 4);
+            if (hasSeaBoard || wants6board || (maxpl > 4))
+                maxPlayers = MAXPLAYERS;  // == 6
+            else
+                maxPlayers = 4;
         } else {
             maxPlayers = 4;
+            hasSeaBoard = false;
         }
-        board = SOCBoard.createBoard(op, maxPlayers);
+        board = SOCBoard.createBoard(op, hasSeaBoard, maxPlayers);
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
         seatLocks = new boolean[maxPlayers];
