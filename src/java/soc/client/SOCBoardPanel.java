@@ -1865,6 +1865,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void drawHex(Graphics g, int x, int y, int hexType, int hexNum)
     {
+        if (hexType < 0)
+        {
+            playerInterface.chatPrintDebug("* bad hex type " + hexType + " at x,y(" + x + "," + y + ")");
+            return;
+        }
+
         int tmp;
 
         if (isScaledOrRotated)
@@ -2671,7 +2677,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * for the {@link #isLargeBoard large board}, draw the ports.
+     * Draw the ports for the {@link #isLargeBoard large board}.
      * These can occur anywhere on the board.
      * @since 1.2.00
      */
@@ -2928,7 +2934,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 final int rshift = (r << 8);
                 int c, x;
-                if ((r % 2) == 1)
+                if (((r/2) % 2) == 1)
                 {
                     c = 0;  // odd rows start at 0
                     x = 0;
@@ -2936,7 +2942,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     c = 1;  // even rows start at 1
                     x = halfdeltaX;
                 }
-                for (; c <= bw; c += 2, x += deltaX)
+                for (; c < bw; c += 2, x += deltaX)
                 {
                     final int hexCoord = rshift | c;
                     drawHex
