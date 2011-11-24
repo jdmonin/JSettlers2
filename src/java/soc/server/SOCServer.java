@@ -7399,6 +7399,9 @@ public class SOCServer extends Server
         }
 
         c.put(getBoardLayoutMessage(gameData).toCmd());
+        //    No need to catch IllegalArgumentException:
+        //    Since game is already started, getBoardLayoutMessage has previously
+        //    been called for the creating player, and the board encoding is OK.
 
         /**
          * if game hasn't started yet, each player's potentialSettlements are
@@ -8405,6 +8408,14 @@ public class SOCServer extends Server
         {
             final String gaName = ga.getName();
 
+            SOCMessage layoutMsg;
+            try
+            {
+                layoutMsg = getBoardLayoutMessage(ga);
+            } catch (IllegalArgumentException e) {
+                System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
+                return;
+            }
             numberOfGamesStarted++;
             ga.startGame();
             gameList.takeMonitorForGame(gaName);
@@ -8412,7 +8423,8 @@ public class SOCServer extends Server
             /**
              * send the board layout
              */
-            messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
+            messageToGameWithMon(gaName, layoutMsg);
+            layoutMsg = null;
 
             /**
              * send the player info
@@ -8652,8 +8664,10 @@ public class SOCServer extends Server
      *
      * @param  ga   the game
      * @return   a board layout message
+     * @throw IllegalArgumentException  if game board's encoding is unrecognized
      */
     private SOCMessage getBoardLayoutMessage(SOCGame ga)
+        throws IllegalArgumentException
     {
         SOCBoard board;
         int[] hexes;
@@ -8664,12 +8678,23 @@ public class SOCServer extends Server
         hexes = board.getHexLayout();
         numbers = board.getNumberLayout();
         robber = board.getRobberHex();
-        int bef = board.getBoardEncodingFormat();
+        final int bef = board.getBoardEncodingFormat();
         if ((bef == 1) && (ga.getClientVersionMinRequired() < SOCBoardLayout2.VERSION_FOR_BOARDLAYOUT2))
         {
+            // SOCBoard.BOARD_ENCODING_ORIGINAL: v1
             return new SOCBoardLayout(ga.getName(), hexes, numbers, robber);
-        } else {
+        }
+        switch (bef)
+        {
+        case SOCBoard.BOARD_ENCODING_6PLAYER:  // v2
             return new SOCBoardLayout2(ga.getName(), bef, hexes, numbers, board.getPortsLayout(), robber);
+
+        case SOCBoard.BOARD_ENCODING_LARGE:  // v3
+            return new SOCBoardLayout2
+                (ga.getName(), bef, ((SOCBoardLarge) board).getLandHexLayout(), board.getPortsLayout(), robber);
+
+        default:
+            throw new IllegalArgumentException("unknown board encoding v" + bef);
         }
     }
 

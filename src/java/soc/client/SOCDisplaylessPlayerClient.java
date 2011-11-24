@@ -23,6 +23,7 @@ package soc.client;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
@@ -987,13 +988,31 @@ public class SOCDisplaylessPlayerClient implements Runnable
             return;
 
         SOCBoard bd = ga.getBoard();
-        bd.setBoardEncodingFormat(mes.getBoardEncodingFormat());
-        bd.setHexLayout(mes.getIntArrayPart("HL"));
-        bd.setNumberLayout(mes.getIntArrayPart("NL"));
-        bd.setRobberHex(mes.getIntPart("RH"), false);
-        int[] portLayout = mes.getIntArrayPart("PL");
-        if (portLayout != null)
-            bd.setPortsLayout(portLayout);
+        final int bef = mes.getBoardEncodingFormat();
+        bd.setBoardEncodingFormat(bef);
+        if (bef == SOCBoard.BOARD_ENCODING_LARGE)
+        {
+            // v3
+            ((SOCBoardLarge) bd).setLandHexLayout(mes.getIntArrayPart("LH"));
+            bd.setRobberHex(mes.getIntPart("RH"), false);
+            int[] portLayout = mes.getIntArrayPart("PL");
+            if (portLayout != null)
+                bd.setPortsLayout(portLayout);
+        }
+        else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
+        {
+            // v1 or v2
+            bd.setHexLayout(mes.getIntArrayPart("HL"));
+            bd.setNumberLayout(mes.getIntArrayPart("NL"));
+            bd.setRobberHex(mes.getIntPart("RH"), false);
+            int[] portLayout = mes.getIntArrayPart("PL");
+            if (portLayout != null)
+                bd.setPortsLayout(portLayout);
+        } else {
+            // Should not occur: Server has sent an unrecognized format
+            System.err.println
+                ("Cannot recognize game encoding v" + bef + " for game " + ga.getName());
+        }
     }
 
     /**

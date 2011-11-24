@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -33,10 +33,17 @@ import java.util.StringTokenizer;
  *<P>
  * Names of typical parts of the board layout:
  *<UL>
- * HL: The hexes, from {@link SOCBoard#getHexLayout()}
- * NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
- * RH: The robber hex, from {@link SOCBoard#getRobberHex()}
- * PL: The ports, from {@link SOCBoard#getPortsLayout()}
+ *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}
+ *<LI> NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
+ *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}
+ *<LI> PL: The ports, from {@link SOCBoard#getPortsLayout()}
+ *<LI> LH: The land hexes (v3 board encoding), from {@link SOCBoardLarge#getLandHexLayout()}
+ *</UL>
+ * Board layout parts by board encoding version:
+ *<UL>
+ *<LI> v1: HL, NL, RH
+ *<LI> v2: HL, NL, RH, maybe PL
+ *<LI> v3: LH, RH, maybe PL
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
  * <tt>SOCBoardLayout</tt> required a mapping/unmapping step. 
@@ -87,16 +94,17 @@ public class SOCBoardLayout2 extends SOCMessage
     }
 
     /**
-     * Create a SOCBoardLayout2 message
+     * Create a SOCBoardLayout2 message for encoding format v1 or v2.
+     * ({@link SOCBoard#BOARD_ENCODING_ORIGINAL} or {@link SOCBoard#BOARD_ENCODING_6PLAYER}.)
      *
      * @param ga   the name of the game
-     * @param bev  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
+     * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
      * @param hl   the hex layout
      * @param nl   the number layout
-     * @param pl   the port layout
+     * @param pl   the port layout, or null
      * @param rh   the robber hex
      */
-    public SOCBoardLayout2(String ga, int bef, int[] hl, int[] nl, int[] pl, int rh)
+    public SOCBoardLayout2(String ga, final int bef, int[] hl, int[] nl, int[] pl, int rh)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -104,6 +112,28 @@ public class SOCBoardLayout2 extends SOCMessage
         layoutParts = new Hashtable();
         layoutParts.put("HL", hl);
         layoutParts.put("NL", nl);
+        if (pl != null)
+            layoutParts.put("PL", pl);
+        layoutParts.put("RH", new Integer(rh));        
+    }
+
+    /**
+     * Create a SOCBoardLayout2 message for encoding format v3.
+     * ({@link SOCBoardLarge}, {@link SOCBoard#BOARD_ENCODING_LARGE}.)
+     *
+     * @param ga   the name of the game
+     * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
+     * @param lh   the land hex layout
+     * @param pl   the port layout, or null
+     * @param rh   the robber hex
+     */
+    public SOCBoardLayout2(String ga, final int bef, int[] lh, int[] pl, int rh)
+    {
+        messageType = BOARDLAYOUT2;
+        game = ga;
+        boardEncodingFormat = bef;
+        layoutParts = new Hashtable();
+        layoutParts.put("LH", lh);
         if (pl != null)
             layoutParts.put("PL", pl);
         layoutParts.put("RH", new Integer(rh));        
