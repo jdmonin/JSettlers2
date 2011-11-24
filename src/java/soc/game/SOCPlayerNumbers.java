@@ -100,7 +100,12 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * the constructor
+     * the constructor for a player's dice-resource numbers.
+     *<P>
+     * If using {@link SOCBoard#BOARD_ENCODING_LARGE}, the land hex coordinates
+     * will need to be updated later when the board layout is created and sent;
+     * call {@link #setLandHexCoordinates(int[])} at that time.
+     *
      * @param boardEncodingFormat  The board's coordinate encoding format, from {@link SOCBoard#getBoardEncodingFormat()}
      * @throws IllegalArgumentException  If <tt>boardEncodingFormat</tt> value is unknown to this class
      */
@@ -113,6 +118,8 @@ public class SOCPlayerNumbers
             landHexCoords = SOCBoard.HEXCOORDS_LAND_V1;  break;
         case SOCBoard.BOARD_ENCODING_6PLAYER:
             landHexCoords = SOCBoard.HEXCOORDS_LAND_V2;  break;
+        case SOCBoard.BOARD_ENCODING_LARGE:
+            landHexCoords = null;  break;     // layout varies, created in makeNewBoard
         default:
             throw new IllegalArgumentException("boardEncodingFormat: " + boardEncodingFormat);
         }
@@ -159,6 +166,18 @@ public class SOCPlayerNumbers
         }
 
         numberAndResourceForHex.clear();
+    }
+
+    /**
+     * Set the land hex coordinates, once the board layout is known.
+     * @param landHex  Array of hex coordinates for all land hexes
+     * @since 1.2.00
+     */
+    public void setLandHexCoordinates(final int[] landHex)
+    {
+        int L = landHex.length;
+        landHexCoords = new int[L];
+        System.arraycopy(landHex, 0, landHexCoords, 0, L);
     }
 
     /**
@@ -263,6 +282,9 @@ public class SOCPlayerNumbers
     {
         Vector numbers = new Vector();
 
+        if (landHexCoords == null)
+            return numbers;
+
         for (int i = 0; i < landHexCoords.length; i++)
         {
             if (landHexCoords[i] != robberHex)
@@ -296,6 +318,9 @@ public class SOCPlayerNumbers
     public Vector getResourcesForNumber(final int diceNum, final int robberHex)
     {
         Vector resources = new Vector();
+
+        if (landHexCoords == null)
+            return resources;
 
         for (int i = 0; i < landHexCoords.length; i++)
         {
