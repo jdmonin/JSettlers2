@@ -1037,7 +1037,7 @@ public class SOCBoard implements Serializable, Cloneable
         // copy and shuffle the ports, and check vs game option BC
         final int[] portTypes = (is6player) ? PORTS_TYPE_V2 : PORTS_TYPE_V1;
         int[] portHex = new int[portTypes.length];
-    	System.arraycopy(portTypes, 0, portHex, 0, portTypes.length);
+        System.arraycopy(portTypes, 0, portHex, 0, portTypes.length);
         makeNewBoard_shufflePorts
             (portHex, opt_breakClumps);
         if (is6player)
@@ -1588,7 +1588,7 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public int[] getPortsLayout()
     {
-    	return portsLayout;
+        return portsLayout;
     }
 
     /**
@@ -2992,10 +2992,10 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public int[] getAdjacentNodesToHex(final int hexCoord)
     {
-	int[] node = new int[6];
-	for (int dir = 0; dir < 6; ++dir)
-	    node[dir] = hexCoord + HEXNODES[dir];
-	return node;
+        int[] node = new int[6];
+        for (int dir = 0; dir < 6; ++dir)
+            node[dir] = hexCoord + HEXNODES[dir];
+        return node;
     }
 
     /**

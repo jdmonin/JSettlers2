@@ -434,7 +434,7 @@ public class SOCBoardLarge extends SOCBoard
         // and the hexes' nodes to nodesOnLand.
 
         for (int i = 0; i < landHexType.length; i++)
-	    landHexLayout.add(new Integer(numPath[i]));
+            landHexLayout.add(new Integer(numPath[i]));
         makeNewBoard_fillNodesOnLandFromHexes(numPath);
 
     }  // makeNewBoard_placeHexes
@@ -450,15 +450,15 @@ public class SOCBoardLarge extends SOCBoard
      * @see #makeNewBoard_makeLegalRoadsFromLandNodes()
      */
     private void makeNewBoard_fillNodesOnLandFromHexes
-	(final int landHexCoords[])
+        (final int landHexCoords[])
     {
-	for (int i = 0; i < landHexCoords.length; ++i)
-	{
-	    final int[] nodes = getAdjacentNodesToHex(landHexCoords[i]);
-	    for (int j = 0; j < 6; ++j)
-		nodesOnLand.add(new Integer(nodes[j]));
-	    // it's ok to add if this set already contains an Integer equal to nodes[j].
-	}
+        for (int i = 0; i < landHexCoords.length; ++i)
+        {
+            final int[] nodes = getAdjacentNodesToHex(landHexCoords[i]);
+            for (int j = 0; j < 6; ++j)
+                nodesOnLand.add(new Integer(nodes[j]));
+            // it's ok to add if this set already contains an Integer equal to nodes[j].
+        }
 
     }  // makeNewBoard_makeLegalNodesFromHexes
 
@@ -470,29 +470,29 @@ public class SOCBoardLarge extends SOCBoard
      */
     private void makeNewBoard_makeLegalRoadsFromLandNodes()
     {
-	// About corners/concave parts:
-	//   Set of the valid nodes will contain both ends of the edge;
-	//   anything concave across a sea would be missing at least 1 node, in the water along the way.
+        // About corners/concave parts:
+        //   Set of the valid nodes will contain both ends of the edge;
+        //   anything concave across a sea would be missing at least 1 node, in the water along the way.
 
         // Go from nodesOnLand, iterate all nodes:
 
-	legalRoadEdges.clear();
+        legalRoadEdges.clear();
 
         Iterator nodes = nodesOnLand.iterator();
-	while (nodes.hasNext())
-	{
-	    final int node = ((Integer) nodes.next()).intValue();
-	    for (int dir = 0; dir < 3; ++dir)
-	    {
-		int nodeAdjac = getAdjacentNodeToNode(node, dir);
-		if (nodesOnLand.contains(new Integer(nodeAdjac)))
-		{
-		    legalRoadEdges.add
-			(new Integer(getAdjacentEdgeToNode(node, dir)));
+        while (nodes.hasNext())
+        {
+            final int node = ((Integer) nodes.next()).intValue();
+            for (int dir = 0; dir < 3; ++dir)
+            {
+                int nodeAdjac = getAdjacentNodeToNode(node, dir);
+                if (nodesOnLand.contains(new Integer(nodeAdjac)))
+                {
+                    legalRoadEdges.add
+                        (new Integer(getAdjacentEdgeToNode(node, dir)));
                     // it's ok to add if this set already contains an Integer equal to that edge.
-		}
-	    }
-	}
+                }
+            }
+        }
 
     }  // makeNewBoard_makeLegalRoadsFromNodes
 
@@ -618,23 +618,23 @@ public class SOCBoardLarge extends SOCBoard
      */
     public int[] getLandHexLayout()
     {
-	final int LHL = landHexLayout.size();
-	if (LHL == 0)
-	    return null;
+        final int LHL = landHexLayout.size();
+        if (LHL == 0)
+            return null;
 
-	int[] lh = new int[3 * LHL];
-	int i = 0;
+        int[] lh = new int[3 * LHL];
+        int i = 0;
         Iterator hexes = landHexLayout.iterator();
-	while (hexes.hasNext())
-	{
-	    final int hexCoord = ((Integer) hexes.next()).intValue();
+        while (hexes.hasNext())
+        {
+            final int hexCoord = ((Integer) hexes.next()).intValue();
             final int r = hexCoord >> 8,
                       c = hexCoord & 0xFF;
-	    lh[i] = hexCoord;  ++i;
-	    lh[i] = hexLayoutLg[r][c];  ++i;
-	    lh[i] = numberLayoutLg[r][c];  ++i;
-	}
-	return lh;
+            lh[i] = hexCoord;  ++i;
+            lh[i] = hexLayoutLg[r][c];  ++i;
+            lh[i] = numberLayoutLg[r][c];  ++i;
+        }
+        return lh;
     }
 
     /**
@@ -644,16 +644,16 @@ public class SOCBoardLarge extends SOCBoard
      */
     public void setLandHexLayout(final int[] lh)
     {
-	landHexLayout.clear();
-	for (int i = 0; i < lh.length; )
-	{
-	    final int hexCoord = lh[i];  ++i;
+        landHexLayout.clear();
+        for (int i = 0; i < lh.length; )
+        {
+            final int hexCoord = lh[i];  ++i;
             final int r = hexCoord >> 8,
                       c = hexCoord & 0xFF;
             landHexLayout.add(new Integer(hexCoord));
             hexLayoutLg[r][c] = lh[i];  ++i;
-	    numberLayoutLg[r][c] = lh[i];  ++i;
-	}
+            numberLayoutLg[r][c] = lh[i];  ++i;
+        }
     }
 
     /**
@@ -767,10 +767,10 @@ public class SOCBoardLarge extends SOCBoard
      */
     public int[] getAdjacentNodesToHex(final int hexCoord)
     {
-	int[] node = new int[6];
-	for (int dir = 0; dir < 6; ++dir)
-	    node[dir] = hexCoord + A_NODE2HEX[dir][0] + A_NODE2HEX[dir][1];
-	return node;
+        int[] node = new int[6];
+        for (int dir = 0; dir < 6; ++dir)
+            node[dir] = hexCoord + A_NODE2HEX[dir][0] + A_NODE2HEX[dir][1];
+        return node;
     }
 
 
@@ -1535,11 +1535,11 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int PORT_EDGE_FACING_MAINLAND[] =
     {
-	0x0002, FACING_SE,  0x0005, FACING_SW,
-	0x0208, FACING_SW,  0x050A, FACING_W,
-	0x0808, FACING_NW,  0x0A05, FACING_NW,
-	0x0A02, FACING_NE,  0x0701, FACING_E,
-	0x0301, FACING_E
+        0x0002, FACING_SE,  0x0005, FACING_SW,
+        0x0208, FACING_SW,  0x050A, FACING_W,
+        0x0808, FACING_NW,  0x0A05, FACING_NW,
+        0x0A02, FACING_NE,  0x0701, FACING_E,
+        0x0301, FACING_E
     };
 
     /**
@@ -1550,9 +1550,9 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int PORT_EDGE_FACING_ISLANDS[] =
     {
-	0x060D, FACING_NW,   // - northeast island
-	0x0A0E, FACING_SW,  0x0E0B, FACING_NW,	// - southeast island
-	0x0E05, FACING_SE    // - southwest island
+        0x060D, FACING_NW,   // - northeast island
+        0x0A0E, FACING_SW,  0x0E0B, FACING_NW,        // - southeast island
+        0x0E05, FACING_SE    // - southwest island
     };
 
     /**
@@ -1586,11 +1586,11 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int LANDHEX_COORD_MAINLAND[] =
     {
-	0x0103, 0x0105, 0x0107,
-	0x0302, 0x0304, 0x0306, 0x0308,
-	0x0501, 0x0503, 0x0505, 0x0507, 0x0509,
-	0x0702, 0x0704, 0x0706, 0x0708,
-	0x0903, 0x0905, 0x0907
+        0x0103, 0x0105, 0x0107,
+        0x0302, 0x0304, 0x0306, 0x0308,
+        0x0501, 0x0503, 0x0505, 0x0507, 0x0509,
+        0x0702, 0x0704, 0x0706, 0x0708,
+        0x0903, 0x0905, 0x0907
     };
 
     /**
@@ -1599,9 +1599,9 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int LANDHEX_COORD_ISLANDS_ALL[] =
     {
-	0x010D, 0x030C, 0x030E, 0x050D, 0x050F,
-	0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D,
-	0X0D01, 0X0D03, 0X0F04, 0X0F06
+        0x010D, 0x030C, 0x030E, 0x050D, 0x050F,
+        0x0B0C, 0x0B0E, 0X0B10, 0X0D0B, 0X0D0D,
+        0X0D01, 0X0D03, 0X0F04, 0X0F06
     };
 
     /**
@@ -1621,9 +1621,9 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int LANDHEX_TYPE_ISLANDS[] =
     {
-	CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
-	SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX, DESERT_HEX,
-	WOOD_HEX, WOOD_HEX, DESERT_HEX, DESERT_HEX // TODO: should be GOLD_HEX, GOLD_HEX
+        CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX, DESERT_HEX,
+        WOOD_HEX, WOOD_HEX, DESERT_HEX, DESERT_HEX // TODO: should be GOLD_HEX, GOLD_HEX
     };
 
     /**
