@@ -28,7 +28,6 @@ import soc.util.NodeLenVis;
 
 import java.io.Serializable;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -185,10 +184,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private Vector roadNodes;
 
     /**
-     * a graph of what nodes are connected by this
-     * player's roads
+     * A graph of what adjacent nodes are connected by this
+     * player's roads.
+     * If <tt>roadNodeGraph</tt>[node1][node2], then a road
+     * connects them; <tt>roadNodeGraph</tt>[node2][node1]
+     * will also be true.
+     *<P>
+     * Implementation: <BR>
+     *    Key = <tt>node1</tt>'s coordinate {@link Integer}.<BR>
+     *    Value = int[] array of length 3, for the 3 adjacent nodes.<BR>
+     *    If an element of the array is 0, no connection.
+     *    A non-zero element is <tt>node2</tt>'s coordinate
+     *    at the other end of the road connecting them.
+     * @see #isConnectedByRoad(int, int)
      */
-    private boolean[][] roadNodeGraph;
+    private Hashtable roadNodeGraph;
 
     /**
      * a list of edges where it is legal to place a road.
@@ -352,16 +362,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
 
         roadNodes = (Vector) player.roadNodes.clone();
-        roadNodeGraph = new boolean[SOCBoard.MAXNODEPLUSONE][SOCBoard.MAXNODEPLUSONE];
-
-        final int minNode = player.getGame().getBoard().getMinNode();
-        for (i = minNode; i < SOCBoard.MAXNODEPLUSONE; i++)
+        // Deep copy of roadNodeGraph contents:
+        roadNodeGraph = new Hashtable((int) (player.roadNodeGraph.size() * 1.4f));
+        for (Enumeration rnodes = player.roadNodeGraph.keys(); rnodes.hasMoreElements(); )
         {
-            System.arraycopy(player.roadNodeGraph[i], minNode,
-                roadNodeGraph[i], minNode, SOCBoard.MAXNODEPLUSONE - minNode);
-
-            // for (j = minNode; j < SOCBoard.MAXNODEPLUSONE; j++)
-            //    roadNodeGraph[i][j] = player.roadNodeGraph[i][j];
+            Object rnKey = rnodes.nextElement();
+            final int[] rnArr = (int[]) player.roadNodeGraph.get(rnKey);
+            roadNodeGraph.put(rnKey, (int[]) rnArr.clone());
         }
 
         /**
@@ -430,11 +437,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
 
         roadNodes = new Vector(20);
-        roadNodeGraph = new boolean[SOCBoard.MAXNODEPLUSONE][SOCBoard.MAXNODEPLUSONE];
-
-        final int minNode = board.getMinNode();
-        for (i = minNode; i < SOCBoard.MAXNODEPLUSONE; i++)
-            Arrays.fill(roadNodeGraph[i], minNode, SOCBoard.MAXNODEPLUSONE, false);
+        roadNodeGraph = new Hashtable();
 
         /**
          * init legal and potential arrays.
@@ -1002,16 +1005,26 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Are these two adjacent nodes connected by this player's road?
      * @return true if one of this player's roads connects
-     *                                 the two nodes.
+     *              the two nodes.
      *
      * @param node1         coordinates of first node
      * @param node2         coordinates of second node
      */
-    public boolean isConnectedByRoad(int node1, int node2)
+    public boolean isConnectedByRoad(final int node1, final int node2)
     {
         //D.ebugPrintln("isConnectedByRoad "+Integer.toHexString(node1)+", "+Integer.toHexString(node2)+" = "+roadNodeGraph[node1][node2]);
-        return roadNodeGraph[node1][node2];
+
+        final int[] adjac = (int[]) roadNodeGraph.get(new Integer(node1));
+        if (adjac == null)
+            return false;
+
+        for (int i = 2; i >= 0; --i)
+            if (node2 == adjac[i])
+                return true;
+
+        return false;
     }
 
     /**
@@ -1068,9 +1081,56 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 /**
                  * update the graph of nodes connected by roads
+                 * by adding this road
                  */
-                roadNodeGraph[nodeCoords[0]][nodeCoords[1]] = true;
-                roadNodeGraph[nodeCoords[1]][nodeCoords[0]] = true;
+                {
+                    final int node0 = nodeCoords[0],
+                              node1 = nodeCoords[1];
+                    final Integer node0Int = new Integer(node0),
+                                  node1Int = new Integer(node1);
+
+                    // roadNodeGraph[node0][node1]
+                    int[] rnArr = (int[]) roadNodeGraph.get(node0Int);
+                    if (rnArr == null)
+                    {
+                        rnArr = new int[3];
+                        roadNodeGraph.put(node0Int, rnArr);
+                        rnArr[0] = node1;
+                        // rnArr[1] = 0, rnArr[2] = 0 by default
+                    } else {
+                        for (int j = 0; j < 3; ++j)
+                        {
+                            if (node1 == rnArr[j])
+                                break;
+                            if (0 == rnArr[j])
+                            {
+                                rnArr[j] = node1;
+                                break;
+                            }
+                        }
+                    }
+
+                    // roadNodeGraph[node1][node0]
+                    rnArr = (int[]) roadNodeGraph.get(node1Int);
+                    if (rnArr == null)
+                    {
+                        rnArr = new int[3];
+                        roadNodeGraph.put(node1Int, rnArr);
+                        rnArr[0] = node0;
+                        // rnArr[1] = 0, rnArr[2] = 0 by default
+                    } else {
+                        for (int j = 0; j < 3; ++j)
+                        {
+                            if (node0 == rnArr[j])
+                                break;
+                            if (0 == rnArr[j])
+                            {
+                                rnArr[j] = node0;
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[0])+"]["+Integer.toHexString(nodeCoords[1])+"] = true");
                 //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[1])+"]["+Integer.toHexString(nodeCoords[0])+"] = true");
@@ -1534,10 +1594,38 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     }
 
                     /**
-                     * update the graph of nodes connected by roads
+                     * remove this road from the graph of nodes connected by roads
                      */
-                    roadNodeGraph[nodeCoords[0]][nodeCoords[1]] = false;
-                    roadNodeGraph[nodeCoords[1]][nodeCoords[0]] = false;
+                    {
+                        final int node0 = nodeCoords[0],
+                                  node1 = nodeCoords[1];
+                        final Integer node0Int = new Integer(node0),
+                                      node1Int = new Integer(node1);
+
+                        // roadNodeGraph[node0][node1]
+                        int[] rnArr = (int[]) roadNodeGraph.get(node0Int);
+                        if (rnArr != null)
+                        {
+                            for (int j = 0; j < 3; ++j)
+                                if (node1 == rnArr[j])
+                                {
+                                    rnArr[j] = 0;
+                                    break;
+                                }
+                        }
+
+                        // roadNodeGraph[node1][node0]
+                        rnArr = (int[]) roadNodeGraph.get(node1Int);
+                        if (rnArr != null)
+                        {
+                            for (int j = 0; j < 3; ++j)
+                                if (node0 == rnArr[j])
+                                {
+                                    rnArr[j] = 0;
+                                    break;
+                                }                            
+                        }
+                    }
 
                     /**
                      * update the potential places to build roads
@@ -2342,6 +2430,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         ports = null;
         roadNodes.removeAllElements();
         roadNodes = null;
+        roadNodeGraph.clear();
         roadNodeGraph = null;
         if (legalRoads != null)
         {
