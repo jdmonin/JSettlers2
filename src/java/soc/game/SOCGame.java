@@ -1252,16 +1252,6 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * set the game board
-     *
-     * @param gb  the game board
-     */
-    protected void setBoard(SOCBoard gb)
-    {
-        board = gb;
-    }
-
-    /**
      * @return the list of players
      */
     public SOCPlayer[] getPlayers()
@@ -1523,6 +1513,30 @@ public class SOCGame implements Serializable, Cloneable
         {
             return null;
         }
+    }
+
+    /**
+     * For each player, call
+     * {@link SOCPlayerNumbers#setLandHexCoordinates(int[]) pl.setLandHexCoordinates}
+     * ({@link SOCBoardLarge#getLandHexCoords()}).
+     * If the landhex coords are <tt>null</tt>, do nothing.
+     *<P>
+     * To be used with {@link #hasSeaBoard} (v3 board encoding) after creating (at server)
+     * or receiving (at client) a new board layout.  So, call from
+     * {@link #startGame()} or after {@link SOCBoardLarge#setLandHexLayout(int[])}.
+     *<P>
+     * For the v1 and v2 board encodings, the land hex coordinates never change, so
+     * {@link SOCPlayerNumbers} knows them already. 
+     *
+     * @since 1.2.00
+     */
+    public void setPlayersLandHexCoordinates()
+    {
+        final int[] landHex = board.getLandHexCoords();
+        if (landHex == null)
+            return;
+        for (int i = 0; i < maxPlayers; ++i)
+            players[i].getNumbers().setLandHexCoordinates(landHex);
     }
 
     /**
@@ -2269,6 +2283,8 @@ public class SOCGame implements Serializable, Cloneable
     public void startGame()
     {
         board.makeNewBoard(opts);
+        if (hasSeaBoard)
+            setPlayersLandHexCoordinates();
 
         /**
          * shuffle the development cards
@@ -3017,7 +3033,7 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         /**
-         * check the settlements touching cities
+         * check the hexes touching cities
          */
         Enumeration cEnum = player.getCities().elements();
 

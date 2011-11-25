@@ -994,6 +994,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         {
             // v3
             ((SOCBoardLarge) bd).setLandHexLayout(mes.getIntArrayPart("LH"));
+            ga.setPlayersLandHexCoordinates();
             bd.setRobberHex(mes.getIntPart("RH"), false);
             int[] portLayout = mes.getIntArrayPart("PL");
             if (portLayout != null)

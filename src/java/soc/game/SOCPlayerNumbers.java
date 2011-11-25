@@ -60,6 +60,8 @@ public class SOCPlayerNumbers
     /**
      * Reference to either {@link SOCBoard#HEXCOORDS_LAND_V1} or {@link SOCBoard#HEXCOORDS_LAND_V2}.
      * Hex coordinates for each land hex on the board, via {@link SOCBoard#getLandHexCoords()}.
+     * In {@link SOCBoard#BOARD_ENCODING_LARGE}, if the game hasn't yet called
+     * {@link SOCBoard#makeNewBoard(Hashtable)}, this may be <tt>null</tt>.
      * @since 1.1.08
      */
     private int[] landHexCoords;

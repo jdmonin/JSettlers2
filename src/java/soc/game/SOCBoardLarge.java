@@ -683,6 +683,9 @@ public class SOCBoardLarge extends SOCBoard
      * Set the land hex layout, sent from server to client.
      * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
      * Clears landHexLayout, diceLayoutLg and numberLayoutLg before beginning.
+     * After calling this, please call
+     * {@link SOCGame#setPlayersLandHexCoordinates() game.setPlayersLandHexCoordinates()}.
+     * @param  lh  the layout, or null if no land hexes
      */
     public void setLandHexLayout(final int[] lh)
     {
