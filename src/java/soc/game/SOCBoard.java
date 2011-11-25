@@ -1550,7 +1550,7 @@ public class SOCBoard implements Serializable, Cloneable
      *<P>
      * Before v1.2.00, this was <tt>getHexLandCoords()</tt>.
      *
-     * @return land hex coordinates, in no particular order.
+     * @return land hex coordinates, in no particular order, or null if none (all water).
      * @since 1.1.08
      */
     public int[] getLandHexCoords()
@@ -1561,7 +1561,8 @@ public class SOCBoard implements Serializable, Cloneable
             return HEXCOORDS_LAND_V2;
         default:
             return HEXCOORDS_LAND_V1;
-        }        
+        }
+        // BOARD_ENCODING_LARGE (v3) overrides this in SOCBoardLarge.
     }
 
     /**

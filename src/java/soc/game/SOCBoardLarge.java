@@ -173,6 +173,15 @@ public class SOCBoardLarge extends SOCBoard
     private int[][] hexLayoutLg;
 
     /**
+     * The set of land hex coordinates within {@link #hexLayoutLg},
+     * as returned by {@link #getLandHexCoords()}, or <tt>null</tt>.
+     * That method fills it from {@link #landHexLayout}.  If the board
+     * layout changes, this field again becomes <tt>null</tt> until the
+     * next call to {@link #getLandHexCoords()}.
+     */
+    private int[] cachedGetlandHexCoords;
+
+    /**
      * The set of land hex coordinates within {@link #hexLayoutLg}.
      * Sent from server to client, along with the land hex types / dice numbers,
      * via {@link #getLandHexLayout()} / {@link #setLandHexLayout(int[])}.
@@ -282,6 +291,7 @@ public class SOCBoardLarge extends SOCBoard
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
         // Adds to landHexLayout and nodesOnLand.
+        // Clears cachedGetlandHexCoords.
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
         // - Mainland:
         makeNewBoard_placeHexes
@@ -360,6 +370,8 @@ public class SOCBoardLarge extends SOCBoard
      * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
      * before it starts placement.  You can call it multiple times to set up multiple
      * areas of land hexes.
+     *<P>
+     * This method clears {@link #cachedGetlandHexCoords} to <tt>null</tt>.
      *
      * @param landHexType  Resource type to place into {@link #hexLayout} for each land hex; will be shuffled.
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
@@ -376,6 +388,9 @@ public class SOCBoardLarge extends SOCBoard
         final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
         final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
         boolean clumpsNotOK = checkClumps;
+
+        if (numPath.length > 0)
+            cachedGetlandHexCoords = null;  // invalidate the previous cached set
 
         do   // will re-do placement until clumpsNotOK is false
         {
@@ -553,7 +568,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @see #getPortTypeFromHexType(int)
      * @see #getHexNumFromCoord(int)
-     * @see #getHexLandCoords()
+     * @see #getLandHexCoords()
      */
     public int getHexTypeFromCoord(final int hex)
     {
@@ -614,6 +629,31 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * The hex coordinates of all land hexes.
+     *<P>
+     * Before v1.2.00, this was <tt>getHexLandCoords()</tt>.
+     *
+     * @return land hex coordinates, in no particular order, or null if none (all water).
+     * @since 1.1.08
+     */
+    public int[] getLandHexCoords()
+    {
+        final int LHL = landHexLayout.size();
+        if (LHL == 0)
+            return null;
+        if ((cachedGetlandHexCoords != null) && (LHL == cachedGetlandHexCoords.length))
+            return cachedGetlandHexCoords;
+
+        int[] hexCoords = new int[LHL];
+        Iterator hexes = landHexLayout.iterator();
+        for (int i = 0; hexes.hasNext(); ++i)
+            hexCoords[i] = ((Integer) hexes.next()).intValue();
+
+        cachedGetlandHexCoords = hexCoords;
+        return hexCoords;
+    }
+
+    /**
      * Get the land hex layout, for sending from server to client.
      * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
      * @return the layout, or null if no land hexes.
@@ -642,12 +682,13 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Set the land hex layout, sent from server to client.
      * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
-     * Clears landHexLayout, diceLayoutLg and numberLayoutLg before beginning. 
+     * Clears landHexLayout, diceLayoutLg and numberLayoutLg before beginning.
      */
     public void setLandHexLayout(final int[] lh)
     {
         // Clear the previous contents:
         landHexLayout.clear();
+        cachedGetlandHexCoords = null;
         for (int r = 0; r <= boardHeight; ++r)
         {            
             Arrays.fill(hexLayoutLg[r], WATER_HEX);
@@ -657,15 +698,18 @@ public class SOCBoardLarge extends SOCBoard
         if (lh == null)
             return;  // all water for now
 
-        for (int i = 0; i < lh.length; )
+        int[] hcoords = new int[lh.length / 3];
+        for (int i = 0, ih = 0; i < lh.length; ++ih)
         {
             final int hexCoord = lh[i];  ++i;
             final int r = hexCoord >> 8,
                       c = hexCoord & 0xFF;
+            hcoords[ih] = hexCoord;
             landHexLayout.add(new Integer(hexCoord));
             hexLayoutLg[r][c] = lh[i];  ++i;
             numberLayoutLg[r][c] = lh[i];  ++i;
         }
+        cachedGetlandHexCoords = hcoords;
     }
 
     /**
