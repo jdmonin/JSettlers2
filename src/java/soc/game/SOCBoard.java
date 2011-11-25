@@ -1449,7 +1449,13 @@ public class SOCBoard implements Serializable, Cloneable
      *<P>
      * Previously part of {@link SOCPlayer}, but moved here in version 1.1.12
      * to better encapsulate the board coordinate encoding.
-     * @return the set of legal edge coordinates for roads, as {@link Integer}s
+     *<P>
+     * <b>Note:</b> If your board is board layout v3 ({@link SOCBoardLarge}):
+     * Because the v3 board layout varies:
+     * At the server, call this after {@link #makeNewBoard(Hashtable)}.
+     * At the client, call this after {@link SOCBoardLarge#setLegalAndPotentialSettlements(java.util.Collection)}.
+     *
+     * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
      */
     HashSet initPlayerLegalRoads()

@@ -29,6 +29,7 @@ import soc.util.NodeLenVis;
 import java.io.Serializable;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -49,6 +50,14 @@ import java.util.Vector;
  * through {@link SOCGame#START2A START2A}.  Once the player's second settlement is placed,
  * all potential settlement locations are cleared.  Only when they build 2 connected road
  * segments, will another potential settlement location be set.
+ *<P>
+ * If the board layout changes from game to game, as with {@link SOCLargeBoard} /
+ * {@link SOCBoard#BOARD_ENCODING_LARGE}, use these methods to update the player's board data
+ * after {@link SOCBoard#makeNewBoard(Hashtable)}, in this order:
+ *<UL>
+ * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
+ * <LI> {@link #setPotentialSettlements(Collection, boolean)}
+ *</UL>
  *
  * @author Robert S Thomas
  */
@@ -1850,20 +1859,67 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set which nodes are potential settlements
+     * Get this player's current potential settlement nodes.
+     * At the start of the game (before/during initial placement), this is all legal nodes.
+     * Afterwards it's mostly empty, and follows from the player's road locations.
+     *<P>
+     * Please make no changes, treat the returned set as read-only.
+     * @return the player's set of {@link Integer} potential-settlement node coordinates
+     * @since 1.2.00
+     */
+    public HashSet getPotentialSettlements()
+    {
+        return potentialSettlements;
+    }
+
+    /**
+     * Set which nodes are potential settlements.
+     * Called at client when joining/creating a game.
+     * At server, the list is instead copied at start
+     * of game from legalSettlements.
      *
-     * @param psList        the list of potential settlements
+     * @param psList  the list of potential settlements,
+     *     as {@link Integer} node coordinates
+     * @see #setPotentialSettlements(Collection, boolean)
      */
     public void setPotentialSettlements(Vector psList)
     {
+        setPotentialSettlements(psList, false);
+    }
+
+    /**
+     * Set which nodes are potential settlements.
+     * Called at client when joining/creating a game.
+     * At server, the list is instead copied at start
+     * of game from legalSettlements.
+     *<P>
+     * If our game uses the large sea board ({@link SOCGame#hasSeaBoard}),
+     * and <tt>setLegalsToo</tt>, and <tt>psList</tt> is not empty,
+     * then also update the player's legal settlements
+     * and legal road sets, since they aren't constant
+     * on that type of board.
+     *<P>
+     * This method is called at the server only when <tt>game.hasSeaBoard</tt>,
+     * just after makeNewBoard in {@link SOCGame#startGame()}.
+     *
+     * @param psList  the list of potential settlements,
+     *     a {@link Vector} or {@link HashSet} of
+     *     {@link Integer} node coordinates
+     * @param setLegalsToo  If true, also update legal settlements/
+     *     roads if we're using the large board layout
+     * @see #setPotentialSettlements(Vector)
+     * @since 1.2.00
+     */
+    public void setPotentialSettlements(Collection psList, final boolean setLegalsToo)
+    {
         clearPotentialSettlements();
+        potentialSettlements.addAll(psList);
 
-        Enumeration settlementEnum = psList.elements();
-
-        while (settlementEnum.hasMoreElements())
+        if (setLegalsToo && game.hasSeaBoard && ! psList.isEmpty())
         {
-            Integer number = (Integer) settlementEnum.nextElement();
-            potentialSettlements.add(number);
+            legalSettlements.clear();
+            legalSettlements.addAll(psList);
+            legalRoads = game.getBoard().initPlayerLegalRoads();
         }
     }
 

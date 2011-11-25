@@ -26,7 +26,12 @@ import java.util.Vector;
 
 
 /**
- * This message contains a list of potential settlements
+ * This message contains a list of potential settlements.
+ *<P>
+ * In version 1.2.00 and newer, <tt>playerNumber</tt> can be -1
+ * to indicate this applies to all players, and also to
+ * indicate the legal settlements should be set and the
+ * legal roads recalculated (SOCBoardLarge encoding only).
  *
  * @author Robert S Thomas
  */

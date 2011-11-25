@@ -22,6 +22,7 @@
 package soc.game;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -278,7 +279,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
-     * client instead calls methods such as {@link #setHexLayout(int[])}.
+     * client instead calls methods such as {@link #setLandHexLayout(int[])}.
      * @param opts {@link SOCGameOption Game options}, which may affect
      *          tile placement on board, or null.  <tt>opts</tt> must be
      *          the same as passed to constructor, and thus give the same size and layout
@@ -682,15 +683,20 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Set the land hex layout, sent from server to client.
      * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
-     * Clears landHexLayout, diceLayoutLg and numberLayoutLg before beginning.
+     * Clears landHexLayout, diceLayoutLg, numberLayoutLg,
+     * nodesOnLand and legalRoadEdges before beginning.
      * After calling this, please call
      * {@link SOCGame#setPlayersLandHexCoordinates() game.setPlayersLandHexCoordinates()}.
+     * Once the potential/legal settlements are known, call each player's
+     * {@link SOCPlayer#setPotentialSettlements(Collection, boolean)}.
      * @param  lh  the layout, or null if no land hexes
      */
     public void setLandHexLayout(final int[] lh)
     {
         // Clear the previous contents:
         landHexLayout.clear();
+        nodesOnLand.clear();
+        legalRoadEdges.clear();
         cachedGetlandHexCoords = null;
         for (int r = 0; r <= boardHeight; ++r)
         {            
@@ -716,8 +722,44 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Get the legal and potential settlements, after {@link #makeNewBoard(Hashtable)}.
+     * For use only by SOCGame at server.
+     */
+    HashSet getLegalAndPotentialSettlements()
+    {
+        return nodesOnLand;
+    }
+
+    /**
+     * Set the legal and potential settlements, and recalculate
+     * the legal roads; called at client only.
+     *<P>
+     * Call this only after {@link #setLandHexLayout(int[])}.
+     * After calling this method, you can get the new legal road set
+     * with {@link #initPlayerLegalRoads()}.
+     * @param landNodes  The set of settlement node coordinates as {@link Integer}s;
+     *    typically a {@link HashSet} or {@link Vector}
+     */
+    public void setLegalAndPotentialSettlements(Collection landNodes)
+    {
+        if (landNodes instanceof HashSet)
+        {
+            nodesOnLand = (HashSet) (((HashSet) landNodes).clone());
+        } else {
+            nodesOnLand.clear();
+            nodesOnLand.addAll(landNodes);
+        }
+        makeNewBoard_makeLegalRoadsFromLandNodes();
+    }
+
+    /**
      * Create and initialize a {@link SOCPlayer}'s legalRoads set.
-     * @return the set of legal edge coordinates for roads, as {@link Integer}s
+     *<P>
+     * Because the v3 board layout varies:
+     * At the server, call this after {@link #makeNewBoard(Hashtable)}.
+     * At the client, call this after {@link #setLegalAndPotentialSettlements(Collection)}.
+     *
+     * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
      */
     HashSet initPlayerLegalRoads()

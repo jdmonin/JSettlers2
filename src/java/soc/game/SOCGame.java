@@ -30,6 +30,7 @@ import java.io.Serializable;
 
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Random;
 import java.util.Stack;
@@ -458,7 +459,7 @@ public class SOCGame implements Serializable, Cloneable
     public final int maxPlayers;
 
     /**
-     * Is this game played on the large board / sea board?
+     * Is this game played on the {@link SOCBoardLarge} large board / sea board?
      * If true, our board's {@link SOCBoard#getBoardEncodingFormat()}
      * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
      * @since 1.2.00
@@ -1529,9 +1530,15 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCPlayerNumbers} knows them already. 
      *
      * @since 1.2.00
+     * @throws IllegalStateException if the board has the v1 or v2 encoding
      */
     public void setPlayersLandHexCoordinates()
+        throws IllegalStateException
     {
+        final int bef = board.getBoardEncodingFormat();
+        if (bef < SOCBoard.BOARD_ENCODING_LARGE)
+            throw new IllegalStateException("board encoding: " + bef);
+
         final int[] landHex = board.getLandHexCoords();
         if (landHex == null)
             return;
@@ -2284,7 +2291,20 @@ public class SOCGame implements Serializable, Cloneable
     {
         board.makeNewBoard(opts);
         if (hasSeaBoard)
+        {
+            /**
+             * Set each player's legal and potential settlements and roads
+             * to reflect the new board layout.
+             *
+             * Only necessary when hasSeaBoard (v3 board encoding):
+             * In the v1 and v2 board encodings, the legal coordinates never change, so
+             * SOCPlayer knows them already. 
+             */
             setPlayersLandHexCoordinates();
+            HashSet psList = ((SOCBoardLarge) board).getLegalAndPotentialSettlements();
+            for (int i = 0; i < maxPlayers; ++i)
+                players[i].setPotentialSettlements(psList, true);
+        }
 
         /**
          * shuffle the development cards

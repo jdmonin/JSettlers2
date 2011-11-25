@@ -24,6 +24,7 @@ import soc.client.SOCDisplaylessPlayerClient;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
@@ -1135,10 +1136,12 @@ public class SOCRobotBrain extends Thread
                             if (pn != -1)
                             {
                                 SOCPlayer player = game.getPlayer(pn);
-                                player.setPotentialSettlements(vset);
+                                player.setPotentialSettlements(vset, true);
                             } else {
+                                if (game.hasSeaBoard)
+                                    ((SOCBoardLarge) game.getBoard()).setLegalAndPotentialSettlements(vset);
                                 for (pn = game.maxPlayers - 1; pn >= 0; --pn)
-                                    game.getPlayer(pn).setPotentialSettlements(vset);
+                                    game.getPlayer(pn).setPotentialSettlements(vset, true);
                             }
                         }
                         break;

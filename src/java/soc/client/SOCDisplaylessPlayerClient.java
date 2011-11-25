@@ -1607,10 +1607,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (pn != -1)
         {
             SOCPlayer player = ga.getPlayer(pn);
-            player.setPotentialSettlements(vset);
+            player.setPotentialSettlements(vset, true);
         } else {
+            if (ga.hasSeaBoard)
+                ((SOCBoardLarge) ga.getBoard()).setLegalAndPotentialSettlements(vset);
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
-                ga.getPlayer(pn).setPotentialSettlements(vset);
+                ga.getPlayer(pn).setPotentialSettlements(vset, true);
         }
     }
 

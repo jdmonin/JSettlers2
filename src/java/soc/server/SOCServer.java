@@ -42,7 +42,9 @@ import soc.util.Version;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -7415,15 +7417,8 @@ public class SOCServer extends Server
         if ((gameData.getGameState() == SOCGame.NEW)
             && (c.getVersion() >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
         {
-            Vector psList = new Vector();
-            {
-                final SOCPlayer pl = gameData.getPlayer(0);
-                for (int j = gameData.getBoard().getMinNode(); j <= SOCBoard.MAXNODE; j++)
-                {
-                    if (pl.isPotentialSettlement(j))
-                        psList.addElement(new Integer(j));
-                }
-            }
+            Vector psList = new Vector();  // all potential settlement nodes, as Integers
+            psList.addAll(gameData.getPlayer(0).getPotentialSettlements());
 
             c.put(SOCPotentialSettlements.toCmd(gameName, -1, psList));
         }
@@ -7459,15 +7454,9 @@ public class SOCServer extends Server
             if ((gameData.getGameState() != SOCGame.NEW)
                 || (c.getVersion() < SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
             {
-                Vector psList = new Vector();
-                {
-                    for (int j = gameData.getBoard().getMinNode(); j <= SOCBoard.MAXNODE; j++)
-                    {
-                        if (pl.isPotentialSettlement(j))
-                            psList.addElement(new Integer(j));
-                    }
-                }
-    
+                Vector psList = new Vector();  // all potential settlement nodes, as Integers
+                psList.addAll(pl.getPotentialSettlements());
+
                 c.put(SOCPotentialSettlements.toCmd(gameName, i, psList));
             }
 
@@ -8420,7 +8409,6 @@ public class SOCServer extends Server
             /**
              * send the board layout
              */
-            SOCMessage layoutMsg;
             try
             {
                 messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
@@ -8428,6 +8416,14 @@ public class SOCServer extends Server
                 gameList.releaseMonitorForGame(gaName);
                 System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
                 return;
+            }
+            if (ga.hasSeaBoard)
+            {
+                // Send the updated Potential/Legal Settlement node list
+                // TODO assumes all players have same potential settlements
+                Vector psList = new Vector();
+                psList.addAll(ga.getPlayer(0).getPotentialSettlements());
+                messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, psList));
             }
 
             /**
