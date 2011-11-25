@@ -59,7 +59,20 @@ import java.util.Vector;
  * All water and land hexes are within the coordinates.
  * Rows increase going north to south, Columns increase west to east.
  *<BR>
- * TODO ports/nodes
+ * TODO ports/edges
+ *<P>
+ * The first few rows of nodes are: <pre>
+ *       (0,2)  (0,4)  (0,6) ..
+ *   (0,1)  (0,3)  (0,5) ..
+ *
+ *   (2,1)  (2,3)  (2,5) ..
+ *(2,0)  (2,2)  (2,4)  (2,6) ..
+ *
+ *(4,0)  (4,2)  (4,4)  (4,6) ..
+ *   (4,1)  (4,3)  (4,5) ..
+ *
+ *   (6,1)  (6,3)  (6,5) ..
+ *(6,0)  (6,2)  (6,4)  (6,6) .. </pre>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.2.00
@@ -593,7 +606,7 @@ public class SOCBoardLarge extends SOCBoard
     {
         final int r = hex >> 8,
                   c = hex & 0xFF;
-        if ((r < 0) || (c < 0) || (r >= boardHeight) || (c >= boardWidth))
+        if ((r <= 0) || (c <= 0) || (r >= boardHeight) || (c >= boardWidth))
             return -1;
         final int hexType = hexLayoutLg[r][c];
 
@@ -1636,11 +1649,11 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int PORT_EDGE_FACING_MAINLAND[] =
     {
-        0x0002, FACING_SE,  0x0005, FACING_SW,
-        0x0208, FACING_SW,  0x050A, FACING_W,
-        0x0808, FACING_NW,  0x0A05, FACING_NW,
-        0x0A02, FACING_NE,  0x0701, FACING_E,
-        0x0301, FACING_E
+        0x0003, FACING_SE,  0x0006, FACING_SW,
+        0x0209, FACING_SW,  0x050B, FACING_W,
+        0x0809, FACING_NW,  0x0A06, FACING_NW,
+        0x0A03, FACING_NE,  0x0702, FACING_E,
+        0x0302, FACING_E
     };
 
     /**
@@ -1651,9 +1664,9 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int PORT_EDGE_FACING_ISLANDS[] =
     {
-        0x060D, FACING_NW,   // - northeast island
-        0x0A0E, FACING_SW,  0x0E0B, FACING_NW,        // - southeast island
-        0x0E05, FACING_SE    // - southwest island
+        0x060E, FACING_NW,   // - northeast island
+        0x0A0F, FACING_SW,  0x0E0C, FACING_NW,        // - southeast island
+        0x0E06, FACING_SE    // - southwest island
     };
 
     /**
@@ -1675,10 +1688,10 @@ public class SOCBoardLarge extends SOCBoard
     private static final int LANDHEX_DICEPATH_MAINLAND[] =
     {
         // clockwise from northwest
-        0x0103, 0x0105, 0x0107, 0x0308, 0x0509,
-        0x0708, 0x0907, 0x0905, 0x0903, 0x0702,
-        0x0501, 0x0302, 0x0304, 0x0306, 0x0507,
-        0x0706, 0x0704, 0x0503, 0x0505
+        0x0104, 0x0106, 0x0108, 0x0309, 0x050A,
+        0x0709, 0x0908, 0x0906, 0x0904, 0x0703,
+        0x0502, 0x0303, 0x0305, 0x0307, 0x0508,
+        0x0707, 0x0705, 0x0504, 0x0506
     };
 
     /**
@@ -1687,11 +1700,11 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int LANDHEX_COORD_MAINLAND[] =
     {
-        0x0103, 0x0105, 0x0107,
-        0x0302, 0x0304, 0x0306, 0x0308,
-        0x0501, 0x0503, 0x0505, 0x0507, 0x0509,
-        0x0702, 0x0704, 0x0706, 0x0708,
-        0x0903, 0x0905, 0x0907
+        0x0104, 0x0106, 0x0108,
+        0x0303, 0x0305, 0x0307, 0x0309,
+        0x0502, 0x0504, 0x0506, 0x0508, 0x050A,
+        0x0703, 0x0705, 0x0707, 0x0709,
+        0x0904, 0x0906, 0x0908
     };
 
     /**
@@ -1700,9 +1713,9 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int LANDHEX_COORD_ISLANDS_ALL[] =
     {
-        0x010D, 0x030C, 0x030E, 0x050D, 0x050F,
-        0x0B0C, 0x0B0E, 0x0B10, 0x0D0B, 0x0D0D,
-        0x0D01, 0x0D03, 0x0F04, 0x0F06
+        0x010E, 0x030D, 0x030F, 0x050E, 0x0510,
+        0x0B0D, 0x0B0F, 0x0B11, 0x0D0C, 0x0D0E,
+        0x0D02, 0x0D04, 0x0F05, 0x0F07
     };
 
     /**
@@ -1711,9 +1724,9 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int LANDHEX_COORD_ISLANDS_EACH[][] =
     {
-        { 0x010D, 0x030C, 0x030E, 0x050D, 0x050F },
-        { 0x0B0C, 0x0B0E, 0x0B10, 0x0D0B, 0x0D0D },
-        { 0x0D01, 0x0D03, 0x0F04, 0x0F06 }
+        { 0x010E, 0x030D, 0x030F, 0x050E, 0x0510 },
+        { 0x0B0D, 0x0B0F, 0x0B11, 0x0D0C, 0x0D0E },
+        { 0x0D02, 0x0D04, 0x0F05, 0x0F07 }
     };
 
     /**
