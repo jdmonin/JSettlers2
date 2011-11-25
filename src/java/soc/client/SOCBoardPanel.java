@@ -506,7 +506,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Null when {@link #isLargeBoard}, because of its simpler
      * coordinate encoding.  In that case, calculate (x,y) with:
      *<UL>
-     *<LI> y = halfdeltaY * r;
+     *<LI> y = halfdeltaY * (r+1);
      *<LI> x = halfdeltaX * c;
      *</UL>
      *
@@ -766,7 +766,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int[] nodeMap;
 
     /**
-     * Map grid sectors (from on-screen coordinates) to hexes.
+     * Map grid sectors (from unscaled on-screen coordinates) to hexes.
+     * The grid has 15 columns (each being 1/2 of a hex wide) and 23 rows
+     * (each 1/3 hex tall).
+     * This maps graphical coordinates to the board coordinate system.
      * Not used when {@link #isLargeBoard}.
      * @see #findHex(int, int)
      */
@@ -4234,11 +4237,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final int findEdge(int x, int y)
     {
         // find which grid section the pointer is in 
+        int secX, secY;
+
+        if (isLargeBoard)
+        {
+            secY = ((y - ((22*3)/2)) / (deltaY / 3));
+            if ((secY % 3) == 1)
+                x += 12;  // middle part of hex: adjust sector x-boundary
+            secY = ((y - 22) / halfdeltaY);
+            secX = ((x) / halfdeltaX);
+            if ((secX < 0) || (secY < 0)
+                || (secX > board.getBoardWidth())
+                || (secY > board.getBoardHeight()))
+                return 0;
+            else
+                return (secY << 8) | secX;
+        }
+
         // ( 46 is the y-distance between the centers of two hexes )
         // See edgeMap javadocs for secY, secX meanings.
 
         //int sector = (x / 18) + ((y / 10) * 15);
-        int secX, secY;
         if (is6player)
         {
             secY = (y - HEXY_OFF_6PL_FIND) / 15;
@@ -4284,9 +4303,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private final int findNode(int x, int y)
     {
         // find which grid section the pointer is in 
+        int secX, secY;
+
+        if (isLargeBoard)
+        {
+            secX = ((x + 13) / halfdeltaX);
+            secY = ((y - 20) / halfdeltaY);
+            if ((secX < 0) || (secY < 0)
+                || (secX > board.getBoardWidth())
+                || (secY > board.getBoardHeight()))
+                return 0;
+            else
+                return (secY << 8) | secX;
+        }
+
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = ((x + 9) / 18) + (((y + 5) / 10) * 15);
-        int secX, secY;
         if (is6player)
         {
             secX = ((x + 13 - HEXX_OFF_6PL) / 27);
@@ -4294,18 +4326,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         } else {
             secX = ((x + 13) / 27);
             secY = ((y + 7) / 15);
-        }
-
-        if (isLargeBoard)
-        {
-            if ((secX < 0) || (secY < 0)
-                || (secX > board.getBoardWidth())
-                || (secY > board.getBoardHeight()))
-                return 0;
-            else
-                return (secY << 8) | secX;
-
-            // TODO consider local fields for width,height
         }
 
         int sector = secX + (secY * 15);
@@ -4327,10 +4347,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final int findHex(int x, int y)
     {
-        // find which grid section the pointer is in 
+        // find which grid section the pointer is in
+        int secX, secY;
+
+        if (isLargeBoard)
+        {
+            secX = ((x + 13) / halfdeltaX);
+            secY = ((y - 20) / halfdeltaY);
+            if ((secX < 0) || (secY < 0)
+                || (secX > board.getBoardWidth())
+                || (secY > board.getBoardHeight()))
+                return 0;
+            else
+                return (secY << 8) | secX;
+        }
+
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = (x / 18) + ((y / 10) * 15);
-        int secX, secY;
+
         if (is6player)
         {
             secX = (x - HEXX_OFF_6PL) / 27;
@@ -4338,18 +4372,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         } else {
             secX = x / 27;
             secY = y / 15;
-        }
-
-        if (isLargeBoard)
-        {
-            if ((secX < 0) || (secY < 0)
-                || (secX > board.getBoardWidth())
-                || (secY > board.getBoardHeight()))
-                return 0;
-            else
-                return (secY << 8) | secX;
-
-            // TODO consider local fields for width,height
         }
 
         int sector = secX + (secY * 15);
@@ -4791,6 +4813,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * hoverRoadID, hoverSettlementID, and hoverCityID to 0.
          * Otherwise, these are set when the mouse is at a location where the
          * player can build or upgrade, and they have resources to build.
+         *<P>
+         * Priority when hovering over a point on the board:
+         *<UL>
+         *<LI> Look first for settlements or ports
+         *<LI> If not over a settlement, look for a road
+         *<LI> If no road, look for a hex
+         *</UL>
          *
          * @param x Cursor x, from upper-left of board: actual coordinates, not board-internal coordinates
          * @param y Cursor y, from upper-left of board: actual coordinates, not board-internal coordinates
@@ -4839,7 +4868,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverCityID = 0;
             }
 
-            // Look first for settlements
+            // Look first for settlements or ports
             id = findNode(xb,yb);
             if (id > 0)
             {
