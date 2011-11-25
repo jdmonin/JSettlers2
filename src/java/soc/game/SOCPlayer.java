@@ -410,7 +410,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         builtInRobotFlag = false;
         faceId = 1;
         SOCBoard board = ga.getBoard();
-        ourNumbers = new SOCPlayerNumbers(board.getBoardEncodingFormat());
+        ourNumbers = new SOCPlayerNumbers(board);
 
         // buildingSpeed = new SOCBuildingSpeedEstimate(this);
         ports = new boolean[SOCBoard.WOOD_PORT + 1];

@@ -59,7 +59,7 @@ public class SOCPlayerNumbers
 
     /**
      * Reference to either {@link SOCBoard#HEXCOORDS_LAND_V1} or {@link SOCBoard#HEXCOORDS_LAND_V2}.
-     * Hex coordinates for each land hex on the board.
+     * Hex coordinates for each land hex on the board, via {@link SOCBoard#getLandHexCoords()}.
      * @since 1.1.08
      */
     private int[] landHexCoords;
@@ -102,27 +102,29 @@ public class SOCPlayerNumbers
     /**
      * the constructor for a player's dice-resource numbers.
      *<P>
-     * If using {@link SOCBoard#BOARD_ENCODING_LARGE}, the land hex coordinates
+     * If using {@link SOCBoard#BOARD_ENCODING_LARGE}, and this is the start of
+     * a game that hasn't yet created the layout:  The land hex coordinates
      * will need to be updated later when the board layout is created and sent;
      * call {@link #setLandHexCoordinates(int[])} at that time.
      *
-     * @param boardEncodingFormat  The board's coordinate encoding format, from {@link SOCBoard#getBoardEncodingFormat()}
+     * @param board  The game board; used only for 
+     *         {@link SOCBoard#getBoardEncodingFormat()}
+     *         and {@link SOCBoard#getLandHexCoords()}.
      * @throws IllegalArgumentException  If <tt>boardEncodingFormat</tt> value is unknown to this class
      */
-    public SOCPlayerNumbers(final int boardEncodingFormat)
+    public SOCPlayerNumbers(SOCBoard board)
         throws IllegalArgumentException
     {
-        switch (boardEncodingFormat)
+        final int boardEncodingFormat = board.getBoardEncodingFormat();
+        if ((boardEncodingFormat < SOCBoard.BOARD_ENCODING_ORIGINAL)
+            || (boardEncodingFormat > SOCBoard.BOARD_ENCODING_LARGE))
         {
-        case SOCBoard.BOARD_ENCODING_ORIGINAL:
-            landHexCoords = SOCBoard.HEXCOORDS_LAND_V1;  break;
-        case SOCBoard.BOARD_ENCODING_6PLAYER:
-            landHexCoords = SOCBoard.HEXCOORDS_LAND_V2;  break;
-        case SOCBoard.BOARD_ENCODING_LARGE:
-            landHexCoords = null;  break;     // layout varies, created in makeNewBoard
-        default:
             throw new IllegalArgumentException("boardEncodingFormat: " + boardEncodingFormat);
         }
+
+        landHexCoords = board.getLandHexCoords();
+        //   landHexCoords might be null for BOARD_ENCODING_LARGE
+        //   if the layout isn't yet created in SOCBoardLarge.makeNewBoard.
 
         numbersForResource = new Vector[SOCResourceConstants.MAXPLUSONE - 1];
 

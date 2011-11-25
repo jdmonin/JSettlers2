@@ -553,6 +553,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @see #nodesOnLand
      * @see #HEXCOORDS_LAND_V1
      * @see #HEXCOORDS_LAND_V2
+     * @see #getLandHexCoords()
      */
     private int[] numToHexID = 
     {
@@ -675,7 +676,8 @@ public class SOCBoard implements Serializable, Cloneable
      * a list of nodes on the land of the board; key is node's Integer coordinate, value is Boolean.
      * nodes on outer edges of surrounding water/ports are not on the board.
      * See dissertation figure A.2.
-     * See also {@link SOCPlayer#initLegalAndPotentialSettlements()}.
+     * See also {@link #initPlayerLegalAndPotentialSettlements()}
+     * and {@link #getLandHexCoords()}.
      */
     protected HashSet nodesOnLand;
 
@@ -1536,7 +1538,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * @return the hex layout; meaning of values same as {@link #hexLayout}.
-     * @see #getHexLandCoords()
+     * @see #getLandHexCoords()
      */
     public int[] getHexLayout()
     {
@@ -1545,10 +1547,13 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * The hex coordinates of all land hexes.
+     *<P>
+     * Before v1.2.00, this was <tt>getHexLandCoords()</tt>.
+     *
      * @return land hex coordinates, in no particular order.
      * @since 1.1.08
      */
-    public int[] getHexLandCoords()
+    public int[] getLandHexCoords()
     {
         switch (boardEncodingFormat)
         {
@@ -1953,7 +1958,7 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @see #getPortTypeFromHexType(int)
      * @see #getHexNumFromCoord(int)
-     * @see #getHexLandCoords()
+     * @see #getLandHexCoords()
      */
     public int getHexTypeFromCoord(final int hex)
     {

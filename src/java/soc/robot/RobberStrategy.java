@@ -45,7 +45,7 @@ public class RobberStrategy {
        Random rand = new Random();
        log.debug("%%% MOVEROBBER");
 
-       final int[] hexes = game.getBoard().getHexLandCoords();
+       final int[] hexes = game.getBoard().getLandHexCoords();
 
        int robberHex = game.getBoard().getRobberHex();
 

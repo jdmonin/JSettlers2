@@ -3421,7 +3421,7 @@ public class SOCRobotBrain extends Thread
         int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
         SOCBoard board = game.getBoard();
         SOCResourceSet emptySet = new SOCResourceSet();
-        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board.getBoardEncodingFormat());
+        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
         int probTotal;
         int bestProbTotal;
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
@@ -3793,7 +3793,7 @@ public class SOCRobotBrain extends Thread
         int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
         SOCBoard board = game.getBoard();
         SOCResourceSet emptySet = new SOCResourceSet();
-        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board.getBoardEncodingFormat());
+        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
         int probTotal;
@@ -4423,7 +4423,7 @@ public class SOCRobotBrain extends Thread
     {
         D.ebugPrintln("%%% MOVEROBBER");
 
-        final int[] hexes = game.getBoard().getHexLandCoords();
+        final int[] hexes = game.getBoard().getLandHexCoords();
 
         int robberHex = game.getBoard().getRobberHex();
 
