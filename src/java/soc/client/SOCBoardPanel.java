@@ -85,6 +85,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link #scaledPanelX} {@link #scaledPanelY};
      * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
      * If 6-player board, the minimum size is larger.
+     *<P>
+     * Left/top margins for {@link #isLargeBoard}: 0 for x, {@link #halfdeltaY} for y.
      */
     public static final int PANELX = 379, PANELY = 340;
 
@@ -114,7 +116,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * x-offset to move over 1 hex, for each port facing direction (1-6). 0 is unused.
      * Facing is the direction to the land hex touching the port.
-     * Facing 2 is E, 3 is SE, 4 is SW, etc: see {@link #hexLayout}.
+     * Facing 1 is NE, 2 is E, 3 is SE, 4 is SW, etc: see {@link SOCBoard#hexLayout}.
      * @see #DELTAY_FACING
      * @since 1.1.08
      */
@@ -185,6 +187,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 1.1.08
      */
     private static final int HEXY_OFF_6PL_FIND = 7;
+
+    /**
+     * The vertical offset for A-nodes vs Y-nodes along a road;
+     * the height of the sloped top/bottom hex edges.
+     * @since 1.2.00
+     * @see #hexCornersY
+     */
+    private static final int HEXY_OFF_SLOPE_HEIGHT = 16;
 
     /**
      * coordinates for drawing the playing pieces
@@ -584,6 +594,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /** hex corners, clockwise from top-center.
      * @see #hexCornersX
+     * @see #HEXY_OFF_SLOPE_HEIGHT
      * @since 1.1.07
      */
     private static final int[] hexCornersY =
@@ -2105,11 +2116,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (isLargeBoard)
         {
             hx = halfdeltaX * (hexID & 0xFF);
-            hy = halfdeltaY * (hexID >> 8);
+            hy = halfdeltaY * (hexID >> 8) + 32;  // 32 == halfdeltaY + 9
         } else {
             int hexNum = hexIDtoNum[hexID];
-            hx = hexX[hexNum] + 27;
-            hy = hexY[hexNum] + 32;
+            hx = hexX[hexNum] + halfdeltaX;
+            hy = hexY[hexNum] + 32;  // 32 == halfdeltaY + 9
         }
 
         if (isRotated)
@@ -2256,6 +2267,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             //   Otherwise: s = r/2
             //   "/" if (s,c) is even,odd or odd,even
             //   "\" if (s,c) is odd,odd or even,even
+            // Remember the vertical margin of halfdeltaY (or, r+1).
 
             final int r = (edgeNum >> 8),
                       c = (edgeNum & 0xFF);
@@ -2263,7 +2275,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 // "|"
                 hx = halfdeltaX * c;
-                hy = halfdeltaY * (r-1);  // offset: scaledVertRoadY is center of hex, not upper corner
+                hy = halfdeltaY * r;  // offset: scaledVertRoadY is center of hex, not upper corner
                 roadX = scaledVertRoadX;
                 roadY = scaledVertRoadY;
             } else {
@@ -2271,13 +2283,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     // "/"
                     hx = halfdeltaX * c;
-                    hy = halfdeltaY * r;
+                    hy = halfdeltaY * (r+1);
                     roadX = scaledUpRoadX;
                     roadY = scaledUpRoadY;
                 } else {
                     // "\"
                     hx = halfdeltaX * c;
-                    hy = halfdeltaY * (r-2);  // offset: scaledDownRoadY is bottom of hex, not upper corner
+                    hy = halfdeltaY * (r-1);  // offset: scaledDownRoadY is bottom of hex, not upper corner
                     roadX = scaledDownRoadX;
                     roadY = scaledDownRoadY;
                 }
@@ -2387,8 +2399,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         } else {
             // isLargeBoard
-            hx = halfdeltaX * (nodeNum & 0xFF);
-            hy = halfdeltaY * (nodeNum >> 8);
+
+            final int r = (nodeNum >> 8),
+                      c = (nodeNum & 0xFF);
+            hx = halfdeltaX * c;
+            hy = halfdeltaY * (r+1);
+
+            // If the node isn't at the top center of a hex,
+            // it will need to move up or down a bit vertically.
+            //
+            // 'Y' nodes vertical offset: move down
+            final int s = r / 2;
+            if ((s % 2) != (c % 2))
+                hy += HEXY_OFF_SLOPE_HEIGHT;
         }
 
         if (isRotated)
@@ -2701,9 +2724,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // and base (x,y) off that.
             final int landFacing = portsFacing[i];
             final int landHexCoord = board.getAdjacentHexToEdge(portsEdges[i], landFacing);
-            px = halfdeltaX * (landHexCoord & 0xFF);
+            px = halfdeltaX * ((landHexCoord & 0xFF) - 1);
             py = halfdeltaY * (landHexCoord >> 8);
-            // now move 1 hex "backwards" from that hex's center
+            // now move 1 hex "backwards" from that hex's upper-left corner
             px -= DELTAX_FACING[landFacing];
             py -= DELTAY_FACING[landFacing];
 
@@ -2936,10 +2959,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 int c, x;
                 if (((r/2) % 2) == 1)
                 {
-                    c = 0;  // odd rows start at 0
+                    c = 1;  // odd rows start at 0
                     x = 0;
                 } else {
-                    c = 1;  // even rows start at 1
+                    c = 2;  // even rows start at 2
                     x = halfdeltaX;
                 }
                 for (; c < bw; c += 2, x += deltaX)
