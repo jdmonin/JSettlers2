@@ -394,7 +394,7 @@ public class TradeOfferPanel extends Panel
             }
         
             SOCGame ga = hp.getGame();
-            final int maxChars = (ga.maxPlayers > 4) ? 30 : 25;
+            final int maxChars = ((ga.maxPlayers > 4) || ga.hasSeaBoard) ? 30 : 25;
             String names1 = "Offered to: ";
             String names2 = null;
 
