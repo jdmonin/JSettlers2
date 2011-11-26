@@ -6538,7 +6538,7 @@ public class SOCServer extends Server
 
             if (sendDenyReply && ga.getPlayer(pn).isRobot())
             {
-                messageToPlayer(c, new SOCCancelBuildRequest(gaName, -2));
+                messageToPlayer(c, new SOCCancelBuildRequest(gaName, -2));  // == SOCPossiblePiece.CARD
             }
         }
         catch (Exception e)

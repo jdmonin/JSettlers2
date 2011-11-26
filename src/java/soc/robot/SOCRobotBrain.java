@@ -3187,7 +3187,7 @@ public class SOCRobotBrain extends Thread
      */
     protected void cancelWrongPiecePlacement(SOCCancelBuildRequest mes)
     {
-        final boolean cancelBuyDevCard = (mes.getPieceType() == -2);
+        final boolean cancelBuyDevCard = (mes.getPieceType() == SOCPossiblePiece.CARD);  // == -2
         if (cancelBuyDevCard)
         {
             waitingForDevCard = false;

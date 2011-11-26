@@ -328,10 +328,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         int i;
         game = player.game;
         playerNumber = player.playerNumber;
-        numPieces = new int[SOCPlayingPiece.MAXPLUSONE];
-        numPieces[SOCPlayingPiece.ROAD] = player.numPieces[SOCPlayingPiece.ROAD];
-        numPieces[SOCPlayingPiece.SETTLEMENT] = player.numPieces[SOCPlayingPiece.SETTLEMENT];
-        numPieces[SOCPlayingPiece.CITY] = player.numPieces[SOCPlayingPiece.CITY];
+        numPieces = (int[]) player.numPieces.clone();
         pieces = (Vector) player.pieces.clone();
         roads = (Vector) player.roads.clone();
         settlements = (Vector) player.settlements.clone();
@@ -406,6 +403,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         numPieces[SOCPlayingPiece.ROAD] = 15;
         numPieces[SOCPlayingPiece.SETTLEMENT] = 5;
         numPieces[SOCPlayingPiece.CITY] = 4;
+        if (ga.hasSeaBoard)
+            numPieces[SOCPlayingPiece.SHIP] = 15;
+        else
+            numPieces[SOCPlayingPiece.SHIP] = 0;
         pieces = new Vector(24);
         roads = new Vector(15);
         settlements = new Vector(5);

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,22 +31,31 @@ import java.util.Vector;
 public abstract class SOCPlayingPiece implements Serializable, Cloneable
 {
     /**
-     * Types of playing pieces: Road.
+     * Types of playing pieces: {@link SOCRoad Road}.
      * @see #getResourcesToBuild(int)
      */
     public static final int ROAD = 0;
 
     /**
-     * Types of playing pieces: Settlement.
+     * Types of playing pieces: {@link SOCSettlement Settlement}.
      * @see #getResourcesToBuild(int)
      */
     public static final int SETTLEMENT = 1;
 
     /**
-     * Types of playing pieces: City.
+     * Types of playing pieces: {@link SOCCity City}.
      * @see #getResourcesToBuild(int)
      */
     public static final int CITY = 2;
+
+    /**
+     * Types of playing pieces: Ship.
+     * Used only when {@link SOCGame#hasSeaBoard}.
+     * Requires client and server verson 1.2.00 or newer.
+     * @see #getResourcesToBuild(int)
+     * @since 1.2.00
+     */
+    public static final int SHIP = 3;
 
     /**
      * Minimum type number of playing piece (currently Road).
@@ -55,8 +64,10 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
 
     /**
      * One past the maximum type number of playing piece.
+     * MAXPLUSONE == 3 up through version 1.1.13.
+     * MAXPLUSONE == 4 in v1.2.00.
      */
-    public static final int MAXPLUSONE = 3;
+    public static final int MAXPLUSONE = 4;
 
     /**
      * The type of this playing piece, within range {@link #MIN} to ({@link #MAXPLUSONE} - 1)
@@ -193,9 +204,9 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
             return SOCGame.SETTLEMENT_SET;
         case CITY:
             return SOCGame.CITY_SET;
-        case -2:
-            // fall through
-        case 4:    // == SOCPossiblePiece.CARD (robots)
+        case SHIP:
+            return SOCGame.SHIP_SET;
+        case -2:  // == SOCPossiblePiece.CARD (robots)
             // fall through
         case SOCPlayingPiece.MAXPLUSONE:
             return SOCGame.CARD_SET;

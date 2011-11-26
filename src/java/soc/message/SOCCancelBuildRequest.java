@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007,2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2010,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,6 +50,7 @@ import java.util.StringTokenizer;
  *  Piece type -2 is permitted from server to client only, as a way to tell robots
  *  they can't buy a development card (insufficient resources, or no cards left).
  *  (This was added in 1.1.09.)
+ * -2 == soc.robot.SOCPossiblePiece.CARD.
  *
  * @author Robert S. Thomas
  */

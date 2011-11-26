@@ -274,26 +274,34 @@ public class SOCGame implements Serializable, Cloneable
     public static final SOCResourceSet EMPTY_RESOURCES = new SOCResourceSet();
 
     /**
-     * the set of resources a player needs to build a settlement
+     * the set of resources a player needs to build a {@link SOCSettlement settlement}
      * @see SOCPlayingPiece#getResourcesToBuild(int)
      */
     public static final SOCResourceSet SETTLEMENT_SET = new SOCResourceSet(1, 0, 1, 1, 1, 0);
 
     /**
-     * the set of resources a player needs to build a road
+     * the set of resources a player needs to build a {@link SOCRoad road}
      * @see SOCPlayingPiece#getResourcesToBuild(int)
      */
     public static final SOCResourceSet ROAD_SET = new SOCResourceSet(1, 0, 0, 0, 1, 0);
 
     /**
-     * the set of resources a player needs to build a city
+     * the set of resources a player needs to build a {@link SOCCity city}
      * @see SOCPlayingPiece#getResourcesToBuild(int)
      */
     public static final SOCResourceSet CITY_SET = new SOCResourceSet(0, 3, 0, 2, 0, 0);
 
     /**
+     * the set of resources a player needs to build a {@link SOCShip ship}
+     * @see SOCPlayingPiece#getResourcesToBuild(int)
+     * @since 1.2.00
+     */
+    public static final SOCResourceSet SHIP_SET = new SOCResourceSet(0, 0, 1, 0, 1, 0);
+
+    /**
      * the set of resources a player needs to buy a development card
      * @see SOCPlayingPiece#getResourcesToBuild(int)
+     * @see SOCDevCardSet
      */
     public static final SOCResourceSet CARD_SET = new SOCResourceSet(0, 1, 1, 1, 0, 0);
 
