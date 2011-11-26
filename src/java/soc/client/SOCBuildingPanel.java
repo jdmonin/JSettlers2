@@ -197,6 +197,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (pi.getGame().maxPlayers > 4)
         {
+            // Special Building Phase button for 6-player game
             sbIsHilight = false;
             sbPanel = new Panel();  // with default FlowLayout, alignment FlowLayout.CENTER.
             sbPanel.setBackground(ColorSquare.GREY);
@@ -284,6 +285,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (pi.getGame().maxPlayers > 4)
         {
+            // Special Building Phase button for 6-player game
             curX += (ColorSquare.WIDTH + 3);
             sbPanel.setSize(dim.width - curX - margin, rowSpaceH + 2 * lineH);
             sbPanel.setLocation(curX, curY);

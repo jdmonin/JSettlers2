@@ -84,7 +84,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * For actual current size in screen pixels, see
      * {@link #scaledPanelX} {@link #scaledPanelY};
      * If {@link #isRotated()}, the minimum size swaps {@link #PANELX} and {@link #PANELY}.
-     * If 6-player board, the minimum size is larger.
+     * If 6-player board or Large/Sea Board, the minimum size is larger.
      *<P>
      * Left/top margins for {@link #isLargeBoard}: 0 for x, {@link #halfdeltaY} for y.
      */
@@ -355,6 +355,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Minimum required width and height, as determined by options and {@link #isRotated}.
+     * Set in constructor based on {@link #PANELX}, {@link #PANELY}.
      * Used by {@link #getMinimumSize()}.
      * @since 1.1.08
      */
@@ -372,6 +373,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
      * The 6-player mode uses {@link #hexX_6pl} instead of {@link #hexX_st} for coordinates.
+     *<P>
+     * When {@link #isLargeBoard}, this field is false even if the game has 5 or 6 players.
      * @see #inactiveHexNums
      * @see #isLargeBoard
      * @since 1.1.08
@@ -889,13 +892,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             panelMinBW = scaledPanelY;
             panelMinBH = scaledPanelX;
         } else {
-            panelMinBW = scaledPanelX = PANELX;
-            panelMinBH = scaledPanelY = PANELY;
-            if (is6player)  // JM TODO: testing only, normally isRotated
+            scaledPanelX = PANELX;
+            scaledPanelY = PANELY;
+            if (isLargeBoard || is6player)
             {
+                // TODO isLargeBoard: check the board dimensions; scrollbar?
                 scaledPanelY += (2 * deltaY);
                 scaledPanelX += deltaX;
             }
+            panelMinBW = scaledPanelX;
+            panelMinBH = scaledPanelY;
         }
         minSize = new Dimension(scaledPanelX, scaledPanelY);
         hasCalledSetSize = false;
@@ -2497,7 +2503,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // just change pnum for 6-player.  Seats 0 and 1 need no change.
         // We'll use 4 for middle-right, and 5 for middle-left.
 
-        if (is6player)
+        if (is6player || isLargeBoard)
         {
             switch (pnum)
             {
@@ -2962,10 +2968,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 int c, x;
                 if (((r/2) % 2) == 1)
                 {
-                    c = 1;  // odd rows start at 0
+                    c = 1;  // odd hex rows start at 1
                     x = 0;
                 } else {
-                    c = 2;  // even rows start at 2
+                    c = 2;  // top row, even rows start at 2
                     x = halfdeltaX;
                 }
                 for (; c < bw; c += 2, x += deltaX)
@@ -4319,6 +4325,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // ( 46 is the y-distance between the centers of two hexes )
         //int sector = ((x + 9) / 18) + (((y + 5) / 10) * 15);
+
         if (is6player)
         {
             secX = ((x + 13 - HEXX_OFF_6PL) / 27);
