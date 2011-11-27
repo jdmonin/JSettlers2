@@ -222,11 +222,22 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * The legal set of land edge coordinates to build roads,
      * based on {@link #nodesOnLand}.
-     * Calculated in {@link makeNewBoard_makeLegalRoadsFromLandNodes()},
+     * Calculated in {@link #makeNewBoard_makeLegalRoadsFromLandNodes()},
      * after {@link #nodesOnLand} is filled by
-     * {@link makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     * Used by {@link #initPlayerLegalRoads()}.
      */
     private HashSet legalRoadEdges;
+
+    /**
+     * The legal set of water/coastline edge coordinates to build ships,
+     * based on {@link #hexLayoutLg}.
+     * Calculated in {@link #makeNewBoard_makeLegalShipEdges()},
+     * after {@link #hexLayoutLg} is filled by
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     * Used by {@link #initPlayerLegalShips()}.
+     */
+    private HashSet legalShipEdges;
 
     /**
      * Dice number from hex coordinate.
@@ -262,6 +273,7 @@ public class SOCBoardLarge extends SOCBoard
         numberLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
         landHexLayout = new HashSet();
         legalRoadEdges = new HashSet();
+        legalShipEdges = new HashSet();
 
         // Only odd-numbered rows are valid,
         // but we fill all rows here just in case.
@@ -332,6 +344,7 @@ public class SOCBoardLarge extends SOCBoard
             (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, (SOCGameOption) null);
         // Set up legalRoadEdges:
         makeNewBoard_makeLegalRoadsFromLandNodes();
+        makeNewBoard_makeLegalShipEdges();
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
@@ -496,6 +509,7 @@ public class SOCBoardLarge extends SOCBoard
      * Before the first call, clear <tt>nodesOnLand</tt>.
      * @param landHexCoords  Coordinates of a contiguous group of land hexes
      * @see #makeNewBoard_makeLegalRoadsFromLandNodes()
+     * @see #makeNewBoard_makeLegalShipEdges()
      */
     private void makeNewBoard_fillNodesOnLandFromHexes
         (final int landHexCoords[])
@@ -514,7 +528,8 @@ public class SOCBoardLarge extends SOCBoard
      * Once the legal settlement/city nodes ({@link #nodesOnLand})
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.
-     * @see #makeNewBoard_fillNodesOnLandFromHexes(int[])
+     * Call this only after the very last call to
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[])}.
      */
     private void makeNewBoard_makeLegalRoadsFromLandNodes()
     {
@@ -543,6 +558,44 @@ public class SOCBoardLarge extends SOCBoard
         }
 
     }  // makeNewBoard_makeLegalRoadsFromNodes
+
+    /**
+     * Once the legal settlement/city nodes ({@link #nodesOnLand})
+     * are established from land hexes, fill {@link #legalShipEdges}.
+     * Contains all 6 edges of each water hex.
+     *<P>
+     * Not iterative; clears all previous legal ship edges.
+     * Call this only after the very last call to
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     */
+    private void makeNewBoard_makeLegalShipEdges()
+    {
+        // All 6 edges of each water hex.
+
+        legalShipEdges.clear();
+
+        for (int r = 1; r < boardHeight; r += 2)
+        {
+            final int rshift = (r << 8);
+            int c;
+            if (((r/2) % 2) == 1)
+            {
+                c = 1;  // odd hex rows start at 1
+            } else {
+                c = 2;  // top row, even rows start at 2
+            }
+            for (; c < boardWidth; c += 2)
+            {
+                if (hexLayoutLg[r][c] != WATER_HEX)
+                    continue;
+
+                final int[] sides = getAdjacentEdgesToHex(rshift | c);
+                for (int i = 0; i < 6; ++i)
+                    legalShipEdges.add(new Integer(sides[i]));
+            }
+        }
+
+    }  // makeNewBoard_makeLegalShipEdges
 
 
     ////////////////////////////////////////////
@@ -762,7 +815,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set the legal and potential settlements, and recalculate
-     * the legal roads; called at client only.
+     * the legal roads and ship edges; called at client only.
      *<P>
      * Call this only after {@link #setLandHexLayout(int[])}.
      * After calling this method, you can get the new legal road set
@@ -780,6 +833,7 @@ public class SOCBoardLarge extends SOCBoard
             nodesOnLand.addAll(landNodes);
         }
         makeNewBoard_makeLegalRoadsFromLandNodes();
+        makeNewBoard_makeLegalShipEdges();
     }
 
     /**
@@ -795,6 +849,22 @@ public class SOCBoardLarge extends SOCBoard
     HashSet initPlayerLegalRoads()
     {
         return (HashSet) (legalRoadEdges.clone());
+    }
+
+    /**
+     * Create and initialize a {@link SOCPlayer}'s legalShips set.
+     * Contains all 6 edges of each water hex.
+     *<P>
+     * Because the v3 board layout varies:
+     * At the server, call this after {@link #makeNewBoard(Hashtable)}.
+     * At the client, call this after {@link #setLegalAndPotentialSettlements(Collection)}.
+     *
+     * @return the set of legal edge coordinates for ships, as a new Set of {@link Integer}s
+     * @since 1.2.00
+     */
+    HashSet initPlayerLegalShips()
+    {
+        return (HashSet) (legalShipEdges.clone());
     }
 
 

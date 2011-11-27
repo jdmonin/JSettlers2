@@ -74,6 +74,16 @@ import java.util.Vector;
  * hex (B,B) is the southernmost land hex.  The ring of water hexes are outside
  * this coordinate grid.
  *<P>
+ * For the large sea board ({@link #BOARD_ENCODING_LARGE}), see subclass {@link SOCBoardLarge}.
+ * Remember that ship pieces extend the {@link SOCRoad} class.
+ * Most methods of {@link SOCBoard}, {@link SOCGame} and {@link SOCPlayer} differentiate them
+ * ({@link SOCPlayer#hasPotentialRoad() vs {@link SOCPlayer#hasPotentialShip()}),
+ * but a few methods group them together:
+ *<UL>
+ *<LI> {@link #roadAtEdge(int)}
+ *<LI> {@link #getRoads()}
+ *</UL>
+ *<P>
  * @author Robert S Thomas
  * @see SOCBoardLarge
  */
@@ -653,7 +663,9 @@ public class SOCBoard implements Serializable, Cloneable
     protected Vector pieces;
 
     /**
-     * roads on the board; Vector of SOCPlayingPiece
+     * roads on the board; Vector of SOCPlayingPiece.
+     * On the large sea board ({@link SOCBoardLarge}), also
+     * contains all ships on the board.
      */
     protected Vector roads;
 
@@ -2033,6 +2045,7 @@ public class SOCBoard implements Serializable, Cloneable
 
         switch (pp.getType())
         {
+        case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
             roads.addElement(pp);
 
@@ -2047,6 +2060,7 @@ public class SOCBoard implements Serializable, Cloneable
             cities.addElement(pp);
 
             break;
+
         }
     }
 
@@ -2097,7 +2111,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * get the list of roads
+     * get the list of roads and ships
      */
     public Vector getRoads()
     {
@@ -3144,10 +3158,12 @@ public class SOCBoard implements Serializable, Cloneable
     }
     
     /**
-     * If there's a road placed at this node, find it.
+     * If there's a road or ship placed at this edge, find it.
      * 
      * @param edgeCoord Location coordinate (as returned by SOCBoardPanel.findEdge) 
-     * @return road or null
+     * @return road or ship, or null.  Use {@link SOCPlayingPiece#getType()}
+     *   or {@link SOCRoad#isRoadNotShip()} to determine the returned piece type.
+     *   At most one road or ship can be placed at any one edge. 
      */
     public SOCPlayingPiece roadAtEdge(int edgeCoord)
     {
