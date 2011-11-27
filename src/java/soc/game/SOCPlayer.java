@@ -57,6 +57,9 @@ import java.util.Vector;
  * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
  * <LI> {@link #setPotentialSettlements(Collection, boolean)}
  *</UL>
+ *<P>
+ * On the {@link SOCLargeBoard large sea board}, our list of the player's roads also
+ * contains their ships.  They are otherwise treated separately.
  *
  * @author Robert S Thomas
  */
@@ -92,7 +95,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private Vector pieces;
 
     /**
-     * a list of this player's roads in play
+     * a list of this player's roads and ships in play
      */
     private Vector roads;
 
@@ -112,7 +115,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     protected int lastSettlementCoord;
 
     /**
-     * The coordinates of our most recent road
+     * The coordinates of our most recent road or ship
      */
     protected int lastRoadCoord;
 
@@ -122,7 +125,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int longestRoadLength;
 
     /**
-     * list of longest paths
+     * list of longest road / longest trade-route paths
      */
     private Vector lrPaths;
 
@@ -178,15 +181,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean needToDiscard;
 
     /**
-     * all of the nodes that this player's roads touch
-     * this is used to calculate longest road
+     * all of the nodes that this player's roads and ships touch;
+     * this is used to calculate longest road / longest trade route.
      */
     private Vector roadNodes;
 
     /**
      * A graph of what adjacent nodes are connected by this
-     * player's roads.
-     * If <tt>roadNodeGraph</tt>[node1][node2], then a road
+     * player's roads and ships.
+     * If <tt>roadNodeGraph</tt>[node1][node2], then a road or ship
      * connects them; <tt>roadNodeGraph</tt>[node2][node1]
      * will also be true.
      *<P>
@@ -221,6 +224,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private HashSet legalSettlements;
 
     /**
+     * a list of edges where it is legal to place a ship.
+     * an edge is legal if a ship could eventually be
+     * placed there.
+     *<P>
+     * If the game doesn't use the large sea board (<tt>! {@link SOCGame#hasSeaBoard}</tt>),
+     * this set is empty but non-null.
+     * @since 1.2.00
+     */
+    private HashSet legalShips;
+
+    /**
      * a set of edges where a road could be placed
      * on the next turn.
      * At start of the game, this is clear/empty.
@@ -252,6 +266,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * {@link #updatePotentials(SOCPlayingPiece)}.
      */
     private HashSet potentialCities;
+
+    /**
+     * a set of edges where a ship could be placed
+     * on the next turn.
+     * At start of the game, this is clear/empty.
+     * Elements are set true when the player places adjacent settlements or ships, via
+     * {@link #updatePotentials(SOCPlayingPiece)}.
+     *<P>
+     * If the game doesn't use the large sea board (<tt>! {@link SOCGame#hasSeaBoard}</tt>),
+     * this set is empty but non-null.
+     * @since 1.2.00
+     */
+    private HashSet potentialShips;
 
     /**
      * a boolean array stating wheather this player is touching a
@@ -373,9 +400,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
          */
         legalRoads = (HashSet) (player.legalRoads.clone());
         legalSettlements = (HashSet) (player.legalSettlements.clone());
+        legalShips = (HashSet) (player.legalShips.clone());
         potentialRoads = (HashSet) (player.potentialRoads.clone());
         potentialSettlements = (HashSet) (player.potentialSettlements.clone());
         potentialCities = (HashSet) (player.potentialCities.clone());
+        potentialShips = (HashSet) (player.potentialShips.clone());
 
         if (player.currentOffer != null)
         {
@@ -446,9 +475,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
          */
         potentialRoads = new HashSet();
         potentialCities = new HashSet();
+        potentialShips = new HashSet();
 
         legalRoads = board.initPlayerLegalRoads();
         legalSettlements = board.initPlayerLegalAndPotentialSettlements();
+        if (game.hasSeaBoard)
+            legalShips = ((SOCBoardLarge) board).initPlayerLegalShips();
+        else
+            legalShips = new HashSet();  // will remain empty
+
         potentialSettlements = (HashSet) (legalSettlements.clone());
 
         currentOffer = null;
@@ -718,7 +753,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the list of roads in play
+     * @return the list of roads/ships in play
      */
     public Vector getRoads()
     {
@@ -751,7 +786,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the coordinates of the last road
+     * @return the coordinates of the last road/ship
      * played by this player
      */
     public int getLastRoadCoord()
@@ -760,7 +795,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the longest road length
+     * @return the longest road length / trade route length
      */
     public int getLongestRoadLength()
     {
@@ -794,7 +829,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * set the longest road length
+     * set the longest road / longest trade route length
      *
      * @param len         the length
      */
@@ -885,7 +920,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return true if this player has the longest road
+     * @return true if this player has the longest road / longest trade route
      */
     public boolean hasLongestRoad()
     {
@@ -980,7 +1015,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * @return the list of nodes that touch the roads in play
+     * @return the list of nodes that touch the roads/ships in play
      */
     public Vector getRoadNodes()
     {
@@ -1006,7 +1041,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Are these two adjacent nodes connected by this player's road?
+     * Are these two adjacent nodes connected by this player's road/ship?
      * @return true if one of this player's roads connects
      *              the two nodes.
      *
@@ -1051,90 +1086,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.ROAD:
                 numPieces[SOCPlayingPiece.ROAD]--;
-                roads.addElement(piece);
-                lastRoadCoord = piece.getCoordinates();
-
-                /**
-                 * add the nodes this road touches to the roadNodes list
-                 */
-                Enumeration nodes = board.getAdjacentNodesToEdge(piece.getCoordinates()).elements();
-                int[] nodeCoords = new int[2];
-                int i = 0;
-
-                while (nodes.hasMoreElements())
-                {
-                    Integer node = (Integer) nodes.nextElement();
-
-                    //D.ebugPrintln("^^^ node = "+Integer.toHexString(node.intValue()));
-                    nodeCoords[i] = node.intValue();
-                    i++;
-
-                    /**
-                     * only add nodes that aren't in the list
-                     */
-
-                    //D.ebugPrintln("(roadNodes.contains(node)) = "+(roadNodes.contains(node)));
-                    if (!(roadNodes.contains(node)))
-                    {
-                        roadNodes.addElement(node);
-                    }
-                }
-
-                /**
-                 * update the graph of nodes connected by roads
-                 * by adding this road
-                 */
-                {
-                    final int node0 = nodeCoords[0],
-                              node1 = nodeCoords[1];
-                    final Integer node0Int = new Integer(node0),
-                                  node1Int = new Integer(node1);
-
-                    // roadNodeGraph[node0][node1]
-                    int[] rnArr = (int[]) roadNodeGraph.get(node0Int);
-                    if (rnArr == null)
-                    {
-                        rnArr = new int[3];
-                        roadNodeGraph.put(node0Int, rnArr);
-                        rnArr[0] = node1;
-                        // rnArr[1] = 0, rnArr[2] = 0 by default
-                    } else {
-                        for (int j = 0; j < 3; ++j)
-                        {
-                            if (node1 == rnArr[j])
-                                break;
-                            if (0 == rnArr[j])
-                            {
-                                rnArr[j] = node1;
-                                break;
-                            }
-                        }
-                    }
-
-                    // roadNodeGraph[node1][node0]
-                    rnArr = (int[]) roadNodeGraph.get(node1Int);
-                    if (rnArr == null)
-                    {
-                        rnArr = new int[3];
-                        roadNodeGraph.put(node1Int, rnArr);
-                        rnArr[0] = node0;
-                        // rnArr[1] = 0, rnArr[2] = 0 by default
-                    } else {
-                        for (int j = 0; j < 3; ++j)
-                        {
-                            if (node0 == rnArr[j])
-                                break;
-                            if (0 == rnArr[j])
-                            {
-                                rnArr[j] = node0;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[0])+"]["+Integer.toHexString(nodeCoords[1])+"] = true");
-                //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[1])+"]["+Integer.toHexString(nodeCoords[0])+"] = true");
+                putPiece_roadOrShip((SOCRoad) piece, board);
                 break;
 
             /**
@@ -1179,10 +1131,113 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 ourNumbers.updateNumbers(piece, board);
 
                 break;
+
+            /**
+             * placing a ship
+             */
+            case SOCPlayingPiece.SHIP:
+                numPieces[SOCPlayingPiece.SHIP]--;
+                putPiece_roadOrShip((SOCShip) piece, board);
+                break;
             }
         }
 
         updatePotentials(piece);
+    }
+
+    /**
+     * For {@link #putPiece(SOCPlayingPiece)}, update road/ship-related info,
+     * such as {@link #roadNodeGraph}.
+     * @param piece  The road or ship
+     * @param board  The board
+     * @since 1.2.00
+     */
+    private void putPiece_roadOrShip(SOCRoad piece, SOCBoard board)
+    {
+        roads.addElement(piece);
+        lastRoadCoord = piece.getCoordinates();
+
+        /**
+         * add the nodes that this road or ship touches to the roadNodes list
+         */
+        Enumeration nodes = board.getAdjacentNodesToEdge(piece.getCoordinates()).elements();
+        int[] nodeCoords = new int[2];
+        int i = 0;
+
+        while (nodes.hasMoreElements())
+        {
+            Integer node = (Integer) nodes.nextElement();
+
+            //D.ebugPrintln("^^^ node = "+Integer.toHexString(node.intValue()));
+            nodeCoords[i] = node.intValue();
+            i++;
+
+            /**
+             * only add nodes that aren't in the list
+             */
+
+            //D.ebugPrintln("(roadNodes.contains(node)) = "+(roadNodes.contains(node)));
+            if (!(roadNodes.contains(node)))
+            {
+                roadNodes.addElement(node);
+            }
+        }
+
+        /**
+         * update the graph of nodes connected by roads/ships
+         * by adding this road/ship
+         */
+        {
+            final int node0 = nodeCoords[0],
+                      node1 = nodeCoords[1];
+            final Integer node0Int = new Integer(node0),
+                          node1Int = new Integer(node1);
+
+            // roadNodeGraph[node0][node1]
+            int[] rnArr = (int[]) roadNodeGraph.get(node0Int);
+            if (rnArr == null)
+            {
+                rnArr = new int[3];
+                roadNodeGraph.put(node0Int, rnArr);
+                rnArr[0] = node1;
+                // rnArr[1] = 0, rnArr[2] = 0 by default
+            } else {
+                for (int j = 0; j < 3; ++j)
+                {
+                    if (node1 == rnArr[j])
+                        break;
+                    if (0 == rnArr[j])
+                    {
+                        rnArr[j] = node1;
+                        break;
+                    }
+                }
+            }
+
+            // roadNodeGraph[node1][node0]
+            rnArr = (int[]) roadNodeGraph.get(node1Int);
+            if (rnArr == null)
+            {
+                rnArr = new int[3];
+                roadNodeGraph.put(node1Int, rnArr);
+                rnArr[0] = node0;
+                // rnArr[1] = 0, rnArr[2] = 0 by default
+            } else {
+                for (int j = 0; j < 3; ++j)
+                {
+                    if (node0 == rnArr[j])
+                        break;
+                    if (0 == rnArr[j])
+                    {
+                        rnArr[j] = node0;
+                        break;
+                    }
+                }
+            }
+        }
+
+        //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[0])+"]["+Integer.toHexString(nodeCoords[1])+"] = true");
+        //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[1])+"]["+Integer.toHexString(nodeCoords[0])+"] = true");
     }
 
     /**
@@ -1211,29 +1266,33 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         switch (piece.getType())
         {
         //
-        // undo a played road
+        // undo a played road or ship
         //
+        case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
 
             if (ours)
             {
                 //
-                // update the potential places to build roads
+                // update the potential places to build roads/ships
                 // 
                 removePiece(piece);
             }
             else
             {
                 //
-                // not our road
+                // not our road/ship
                 //
                 // make it a legal space again
                 //
-                legalRoads.add(pieceCoordInt);
+                if (piece.getType() == SOCPlayingPiece.ROAD)
+                    legalRoads.add(pieceCoordInt);
+                else
+                    legalShips.add(pieceCoordInt);
 
                 //
                 // call updatePotentials
-                // on our roads that are adjacent to 
+                // on our roads/ships that are adjacent to 
                 // this edge
                 //
                 Vector adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
@@ -1371,6 +1430,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             }
 
             break;
+
         }
     }
 
@@ -1534,18 +1594,20 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             final int pieceCoord = piece.getCoordinates();
             final Integer pieceCoordInt = new Integer(pieceCoord);
-            if ((piece.getType() == p.getType()) && (pieceCoord == p.getCoordinates()))
+            final int ptype = piece.getType();
+            if ((ptype == p.getType()) && (pieceCoord == p.getCoordinates()))
             {
                 pieces.removeElement(p);
 
-                switch (piece.getType())
+                switch (ptype)
                 {
+                case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
                     roads.removeElement(p);
-                    numPieces[SOCPlayingPiece.ROAD]++;
+                    numPieces[ptype]++;
 
                     /**
-                     * remove the nodes this road touches from the roadNodes list
+                     * remove the nodes this road/ship touches from the roadNodes list
                      */
                     Enumeration nodes = board.getAdjacentNodesToEdge(pieceCoord).elements();
                     int[] nodeCoords = new int[2];
@@ -1558,7 +1620,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         i++;
 
                         /**
-                         * only remove nodes if none of our roads are touching it
+                         * only remove a node if none of our roads/ships are touching it
                          */
                         Enumeration roadsEnum = roads.elements();
                         Vector adjEdges = board.getAdjacentEdgesToNode(node.intValue());
@@ -1595,7 +1657,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     }
 
                     /**
-                     * remove this road from the graph of nodes connected by roads
+                     * remove this road/ship from the graph of nodes connected by roads/ships
                      */
                     {
                         final int node0 = nodeCoords[0],
@@ -1634,14 +1696,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * NOTE: we're assuming that we could build a road here
                      * before, so we can make it a legal spot again
                      */
-                    potentialRoads.add(pieceCoordInt);
-                    legalRoads.add(pieceCoordInt);
+                    if (ptype == SOCPlayingPiece.ROAD)
+                    {
+                        potentialRoads.add(pieceCoordInt);
+                        legalRoads.add(pieceCoordInt);
+                    } else {
+                        potentialShips.add(pieceCoordInt);
+                        legalShips.add(pieceCoordInt);                        
+                    }
 
                     /**
                      * check each adjacent legal edge, if there are
                      * no roads touching it, then it's no longer a
                      * potential road
                      */
+                    // TODO roads/ships are not interchangeable here
                     Vector allPieces = board.getPieces();
                     Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(pieceCoord).elements();
 
@@ -1652,7 +1721,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                         if (potentialRoads.contains(adjEdge))
                         {
-                            boolean isPotentialRoad = false;
+                            boolean isPotentialRoad = false;  // or, isPotentialShip
 
                             /**
                              * check each adjacent node for blocking
@@ -1712,10 +1781,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 }
                             }
 
-                            if (isPotentialRoad)
-                                potentialRoads.add(adjEdge);
-                            else
-                                potentialRoads.remove(adjEdge);
+                            if (ptype == SOCPlayingPiece.ROAD)
+                            {
+                                if (isPotentialRoad)
+                                    potentialRoads.add(adjEdge);
+                                else
+                                    potentialRoads.remove(adjEdge);
+                            } else {
+                                if (isPotentialRoad)
+                                    potentialShips.add(adjEdge);
+                                else
+                                    potentialShips.remove(adjEdge);                                
+                            }
                         }
                     }
 
@@ -1764,20 +1841,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
          */
         ours = (piece.getPlayer().getPlayerNumber() == this.getPlayerNumber());
 
-        switch (piece.getType())
+        final int ptype = piece.getType();
+        switch (ptype)
         {
         /**
-         * a road was played
+         * a ship or road was played
          */
+        case SOCPlayingPiece.SHIP: // fall through to ROAD
         case SOCPlayingPiece.ROAD:
 
             // remove non-potentials
-            potentialRoads.remove(idInt);
-            legalRoads.remove(idInt);
+            if (ptype == SOCPlayingPiece.ROAD)
+            {
+                potentialRoads.remove(idInt);
+                legalRoads.remove(idInt);
+            } else {
+                potentialShips.remove(idInt);
+                legalShips.remove(idInt);                
+            }
 
             if (ours)
             {
                 // only add potentials if it's our piece
+                // and the far end isn't blocked by
+                // another player.
                 final int[] nodes = board.getAdjacentNodesToEdge_arr(id);
 
                 for (int ni = 0; ni < 2; ++ni)
@@ -1803,7 +1890,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         }
                     }
 
-                    if (!blocked)
+                    if (! blocked)
                     {
                         int[] edges = board.getAdjacentEdgesToNode_arr(node);
                         for (int i = 0; i < 3; ++i)
@@ -1812,8 +1899,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             if (edge != -9)
                             {
                                 final Integer edgeInt = new Integer(edge);
-                                if (legalRoads.contains(edgeInt))
-                                    potentialRoads.add(edgeInt);
+                                if (ptype == SOCPlayingPiece.ROAD)
+                                {
+                                    if (legalRoads.contains(edgeInt))
+                                        potentialRoads.add(edgeInt);
+                                } else {
+                                    if (legalShips.contains(edgeInt))
+                                        potentialShips.add(edgeInt);
+                                }
                             }
                         }
 
@@ -1849,8 +1942,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 }
             }
 
-            // if it's our piece, add potential roads and city.
-            // otherwise, check for cutoffs of our potential roads by this piece.
+            // if it's our piece, add potential roads/ships and city.
+            // otherwise, check for cutoffs of our potential roads/ships by this piece.
 
             if (ours)
             {
@@ -1865,27 +1958,32 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         final Integer tmpEdgeInt = new Integer(tmp);
                         if (legalRoads.contains(tmpEdgeInt))
                             potentialRoads.add(tmpEdgeInt);
+                        if (legalShips.contains(tmpEdgeInt))
+                            potentialShips.add(tmpEdgeInt);
                     }
                 }
             }
             else
             {
-                // see if a nearby potential road has been cut off:
+                // see if a nearby potential road/ship has been cut off:
                 // build vector of our road edge IDs placed so far.
                 // for each of 3 adjacent edges to node:
-                //  if we have potentialRoad(edge)
+                //  if we have potentialRoad(edge) or potentialShip(edge)
                 //    check ourRoads vs that edge's far-end (away from node of new settlement)
                 //    unless we have a road on far-end, this edge is no longer potential,
                 //      because we're not getting past opponent's new settlement (on this end
                 //      of the edge) to build it.
 
+                // ourRoads contains both roads and ships.
+                //  TODO may need to separate them and check twice,
+                //       or differentiate far-side roads vs ships.
                 Hashtable ourRoads = new Hashtable();  // TODO more efficient way of looking this up, with fewer temp objs
                 Object hashDummy = new Object();   // a value is needed for hashtable
                 Enumeration pEnum = (this.pieces).elements();
                 while (pEnum.hasMoreElements())
                 {
                     SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
-                    if (p.getType() == SOCPlayingPiece.ROAD)
+                    if (p instanceof SOCRoad)   // roads and ships
                         ourRoads.put(new Integer(p.getCoordinates()), hashDummy);
                 }
 
@@ -1893,7 +1991,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 for (int i = 0; i < 3; ++i)
                 {
                     tmp = adjac[i];  // edge coordinate
-                    if ((tmp == -9) || ! potentialRoads.contains(new Integer(tmp)))
+                    if (tmp == -9)
+                        continue;
+                    final Integer tmpInt = new Integer(tmp);
+                    if (! (potentialRoads.contains(tmpInt)
+                           || potentialShips.contains(tmpInt)))
                     {
                         continue;  // We don't have a potential road here, so
                                    // there's nothing to be potentially broken.
@@ -1909,10 +2011,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             farNode = enodes[0];
                     }
 
-                    // now find the 2 other edges from that node;
-                    // we may have actual roads on them already.
+                    // now find the 2 other edges past that node;
+                    // we may have actual roads/ships on them already.
                     // If so, we'll still be able to get to the edge (tmp)
-                    // that touches the new settlement's node.
+                    // which connects that node with the new settlement's node,
+                    // from its far side.
 
                     final int[] farEdges = board.getAdjacentEdgesToNode_arr(farNode);
                     boolean foundOurRoad = false;
@@ -1928,7 +2031,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     if (! foundOurRoad)
                     {
                         // the potential road is no longer connected
-                        potentialRoads.remove(new Integer(tmp));
+                        potentialRoads.remove(tmpInt);
+                        potentialShips.remove(tmpInt);
                     }
                 }
             }
@@ -1944,6 +2048,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             potentialCities.remove(idInt);
 
             break;
+
         }
     }
 
@@ -2009,6 +2114,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             legalSettlements.clear();
             legalSettlements.addAll(psList);
             legalRoads = game.getBoard().initPlayerLegalRoads();
+            legalShips = ((SOCBoardLarge) game.getBoard()).initPlayerLegalShips();
         }
     }
 
@@ -2097,6 +2203,31 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * @return true if this edge is a potential ship;
+     *   if not {@link SOCGame#hasSeaBoard}, always returns false
+     *   because the player has no potential ship locations.
+     * @param edge  the coordinates of an edge on the board
+     * @since 1.2.00
+     */
+    public boolean isPotentialShip(int edge)
+    {
+        return potentialShips.contains(new Integer(edge));
+    }
+
+    /**
+     * Set this edge to not be a potential ship.
+     * For use (by robots) when the server denies our request to build at a certain spot.
+     *
+     * @param node  coordinates of a an edge on the board
+     * @see #isPotentialRoad(int)
+     * @since 1.2.00
+     */
+    public void clearPotentialShip(int edge)
+    {
+        potentialShips.remove(new Integer(edge));
+    }
+
+    /**
      * @return true if there is at least one potential road
      */
     public boolean hasPotentialRoad()
@@ -2121,10 +2252,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Does this player have a potential edge to place a ship on,
+     * in a game using the large sea board?
+     * @return true if there is at least one potential ship
+     * @since 1.2.00
+     */
+    public boolean hasPotentialShip()
+    {
+        return ! potentialShips.isEmpty();
+    }
+
+    /**
      * Can this player build this piece type now, based on their pieces so far?
-     * Initial placement order is Settlement, Road, Settlement, Road.
-     * Once 2 settlements and 2 roads have been placed, any piece type is valid.  
+     * Initial placement order is Settlement, Road/Ship, Settlement, Road/Ship.
+     * Once 2 settlements and 2 roads/ships have been placed, any piece type is valid.
+     *<P>
      * Ignores the specific gameState (any initial state is OK).
+     * Ships are allowed only when {@link SOCGame#hasSeaBoard}.
      * @param pieceType  Piece type, such as {@link SOCPlayingPiece#SETTLEMENT}
      * @since 1.1.12
      * @return true if this piece type is the next to be placed
@@ -2148,6 +2292,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             ok = ! pieceCountOdd;
             break;
 
+        case SOCPlayingPiece.SHIP:
+            if (! game.hasSeaBoard)
+                return false;
+            // fall through to ROAD
+
         case SOCPlayingPiece.ROAD:
             ok = pieceCountOdd;
             break;
@@ -2160,7 +2309,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Calculates the longest road for this player
+     * Calculates the longest road / longest trade route for this player
      *
      * @return the length of the longest road for this player
      */

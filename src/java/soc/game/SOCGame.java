@@ -173,6 +173,12 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_SETTLEMENT = 31;
     public static final int PLACING_CITY = 32;
     public static final int PLACING_ROBBER = 33;
+    /**
+     * This game {@link #hasSeaBoard}, and a player has bought and is placing a ship.
+     * @since 1.2.00
+     */
+    public static final int PLACING_SHIP = 34;
+
     public static final int PLACING_FREE_ROAD1 = 40; // Player is placing first road
     public static final int PLACING_FREE_ROAD2 = 41; // Player is placing second road
     public static final int WAITING_FOR_DISCARDS = 50; // Waiting for players to discard
@@ -543,7 +549,7 @@ public class SOCGame implements Serializable, Cloneable
     private int oldPlayerWithLargestArmy;
 
     /**
-     * the player with the longest road, or -1 if none
+     * the player with the longest road or trade route, or -1 if none
      */
     private int playerWithLongestRoad;
 
@@ -1475,7 +1481,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return the player with the longest road, or null if none
+     * @return the player with the longest road or trade route, or null if none
      */
     public SOCPlayer getPlayerWithLongestRoad()
     {
@@ -1490,7 +1496,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * set the player with the longest road
+     * set the player with the longest road or trade route
      *
      * @param pl  the player, or null to clear
      */
@@ -1875,9 +1881,9 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         /**
-         * if this their second initial road, clear potentialSettlements.
+         * if this their second initial road or ship, clear potentialSettlements.
          */
-        if ((pieceType == SOCPlayingPiece.ROAD)
+        if ((pp instanceof SOCRoad)
             && ((gameState == START2B)
                 || (debugFreePlacementStartPlaced
                     && (pp.getPlayer().getPieces().size() == 4))))
@@ -1890,10 +1896,10 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pieceType != SOCPlayingPiece.CITY)
         {
-            if (pieceType == SOCPlayingPiece.ROAD)
+            if (pp instanceof SOCRoad)
             {
                 /**
-                 * the affected player is the one who build the road
+                 * the affected player is the one who build the road or ship
                  */
                 updateLongestRoad(pp.getPlayer().getPlayerNumber());
             }
@@ -2077,6 +2083,7 @@ public class SOCGame implements Serializable, Cloneable
         case PLACING_ROAD:
         case PLACING_SETTLEMENT:
         case PLACING_CITY:
+        case PLACING_SHIP:
             if (oldGameState != SPECIAL_BUILDING)
             {
                 gameState = PLAY1;
@@ -2148,7 +2155,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pp.getType() != SOCPlayingPiece.CITY)
         {
-            if (pp.getType() == SOCPlayingPiece.ROAD)
+            if (pp instanceof SOCRoad)
             {
                 /**
                  * the affected player is the one who build the road
@@ -3804,9 +3811,27 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * a player is buying a road
+     * @return true if the player has the resources, pieces, and
+     *         room to build a ship.  Always false if not {@link #hasSeaBoard}
+     *         because players would have 0 ship pieces.
      *
      * @param pn  the number of the player
+     * @since 1.2.00
+     */
+    public boolean couldBuildShip(int pn)
+    {
+        SOCResourceSet resources = players[pn].getResources();
+
+        return ((resources.getAmount(SOCResourceConstants.SHEEP) >= 1) && (resources.getAmount(SOCResourceConstants.WOOD) >= 1) && (players[pn].getNumPieces(SOCPlayingPiece.SHIP) >= 1) && (players[pn].hasPotentialShip()));
+    }
+
+    /**
+     * a player is buying a road.
+     * Assumes {@link #couldBuildRoad(int)} is true, does not check it here.
+     *
+     * @param pn  the number of the player
+     * @see #putPiece(SOCPlayingPiece)
+     * @see #cancelBuildRoad(int)
      */
     public void buyRoad(int pn)
     {
@@ -3818,9 +3843,12 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * a player is buying a settlement
+     * a player is buying a settlement.
+     * Assumes {@link #couldBuildSettlement(int)} is true, does not check it here.
      *
      * @param pn  the number of the player
+     * @see #putPiece(SOCPlayingPiece)
+     * @see #cancelBuildSettlement(int)
      */
     public void buySettlement(int pn)
     {
@@ -3834,9 +3862,12 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * a player is buying a city
+     * a player is buying a city.
+     * Assumes {@link #couldBuildCity(int)} is true, does not check it here.
      *
      * @param pn  the number of the player
+     * @see #putPiece(SOCPlayingPiece)
+     * @see #cancelBuildCity(int)
      */
     public void buyCity(int pn)
     {
@@ -3845,6 +3876,24 @@ public class SOCGame implements Serializable, Cloneable
         resources.subtract(2, SOCResourceConstants.WHEAT);
         oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
         gameState = PLACING_CITY;
+    }
+
+    /**
+     * a player is buying a city.
+     * Assumes {@link #couldBuildShip(int)} is true, does not check it here.
+     *
+     * @param pn  the number of the player
+     * @see #putPiece(SOCPlayingPiece)
+     * @see #cancelBuildShip(int)
+     * @since 1.2.00
+     */
+    public void buyShip(int pn)
+    {
+        SOCResourceSet resources = players[pn].getResources();
+        resources.subtract(1, SOCResourceConstants.SHEEP);
+        resources.subtract(1, SOCResourceConstants.WOOD);
+        oldGameState = gameState;  // PLAY1 or SPECIAL_BUILDING
+        gameState = PLACING_SHIP;
     }
 
     /**
@@ -3894,6 +3943,24 @@ public class SOCGame implements Serializable, Cloneable
         SOCResourceSet resources = players[pn].getResources();
         resources.add(3, SOCResourceConstants.ORE);
         resources.add(2, SOCResourceConstants.WHEAT);
+        if (oldGameState != SPECIAL_BUILDING)
+            gameState = PLAY1;
+        else
+            gameState = SPECIAL_BUILDING;
+    }
+
+    /**
+     * a player is UNbuying a ship; return resources, set gameState PLAY1
+     * (or SPECIAL_BUILDING)
+     *
+     * @param pn  the number of the player
+     * @since 1.2.00
+     */
+    public void cancelBuildShip(int pn)
+    {
+        SOCResourceSet resources = players[pn].getResources();
+        resources.add(1, SOCResourceConstants.SHEEP);
+        resources.add(1, SOCResourceConstants.WOOD);
         if (oldGameState != SPECIAL_BUILDING)
             gameState = PLAY1;
         else

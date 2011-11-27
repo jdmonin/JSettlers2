@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009,2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,6 +46,11 @@ public class SOCPlayerElement extends SOCMessage
     public static final int ROADS = 10;
     public static final int SETTLEMENTS = 11;
     public static final int CITIES = 12;
+    /**
+     * Number of SHIP pieces; added in 1.2.00.
+     * @since 1.2.00 
+     */
+    public static final int SHIPS = 13;
     public static final int NUMKNIGHTS = 15;
 
     /**

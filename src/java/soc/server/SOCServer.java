@@ -5025,6 +5025,52 @@ public class SOCServer extends Server
 
                     break;
 
+                case SOCPlayingPiece.SHIP:
+
+                    SOCShip sh = new SOCShip(player, coord, null);
+
+                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.PLACING_SHIP) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
+                    {
+                        if (player.isPotentialShip(coord))
+                        {
+                            ga.putPiece(sh);  // Changes state and sometimes player (initial placement)
+
+                            gameList.takeMonitorForGame(gaName);
+                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a ship."));
+                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.SHIP, coord));
+                            gameList.releaseMonitorForGame(gaName);
+                            boolean toldRoll = sendGameState(ga, false);
+                            broadcastGameStats(ga);
+
+                            if (!checkTurn(c, ga))
+                            {
+                                // Player changed (or play started), announce new player.
+                                sendTurn(ga, true);
+                            }
+                            else if (toldRoll)
+                            {
+                                // When play starts, or after placing 2nd free road,
+                                // announce even though player unchanged,
+                                // to trigger auto-roll for the player.
+                                // If the client is too old (1.0.6), it will ignore the prompt.
+                                messageToGame(gaName, new SOCRollDicePrompt (gaName, player.getPlayerNumber()));
+                            }
+                        }
+                        else
+                        {
+                            D.ebugPrintln("ILLEGAL SHIP: 0x" + Integer.toHexString(coord)
+                                + ": player " + player.getPlayerNumber());
+                            messageToPlayer(c, gaName, "You can't build a ship there.");
+                            sendDenyReply = true;
+                        }
+                    }
+                    else
+                    {
+                        messageToPlayer(c, gaName, "You can't build a ship right now.");
+                    }
+
+                    break;
+
                 }  // switch (mes.getPieceType())
 
                 if (sendDenyReply)
@@ -6291,6 +6337,23 @@ public class SOCServer extends Server
                         }
 
                         break;
+
+                    case SOCPlayingPiece.SHIP:
+
+                        if (ga.couldBuildShip(pn))
+                        {
+                            ga.buyShip(pn);
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.SHEEP, 1));
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WOOD, 1));
+                            sendGameState(ga);
+                        }
+                        else
+                        {
+                            messageToPlayer(c, gaName, "You can't build a ship.");
+                            sendDenyReply = true;
+                        }
+
+                        break;
                     }
                 }
                 else if (pieceType == -1)
@@ -7254,6 +7317,14 @@ public class SOCServer extends Server
             }
             break;
 
+        case SOCPlayingPiece.SHIP:
+            if (player.isPotentialShip(coord) && ! initialDeny)
+            {
+                ga.putPiece(new SOCShip(player, coord, null));
+                didPut = true;
+            }
+            break;
+
         default:
             messageToPlayer(c, gaName, "* Unknown piece type: " + pieceType);
         }
@@ -7471,6 +7542,8 @@ public class SOCServer extends Server
             c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
             c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
             c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
+            if (gameData.hasSeaBoard)
+                c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
 
             c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.UNKNOWN, pl.getResources().getTotal()));
 
@@ -8437,6 +8510,8 @@ public class SOCServer extends Server
                     messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
                     messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
                     messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
+                    if (ga.hasSeaBoard)
+                        messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
                     messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
                 }
             }

@@ -1108,6 +1108,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.CITY);
                 break;
 
+            case SOCPlayerElement.SHIPS:
+                handlePLAYERELEMENT_numPieces(mes, pl, SOCPlayingPiece.SHIP);
+                break;
+
             case SOCPlayerElement.NUMKNIGHTS:
 
                 // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.

@@ -46,6 +46,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     static final String STLMT = "stlmt";
     static final String CITY = "city";
     static final String CARD = "card";
+    static final String SHIP = "ship";  // Ship for large sea board; @since 1.2.00
     private static final String SBP = "sbp";  // Special Building Phase button; @since 1.1.08
     Label title;
     Button roadBut;
@@ -74,6 +75,19 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     ColorSquare cardSheep;
     ColorSquare cardOre;
     ColorSquare cardCount;
+
+    // Large Sea Board Ship button; @since 1.2.00
+    private Label shipT;  // text
+    private Label shipC;  // cost
+    private ColorSquare shipWood;
+    private ColorSquare shipSheep;
+    /**
+     * For large sea board ({@link SOCGame#hasSeaBoard}, button to buy a ship.
+     * Null if this game doesn't have that board.
+     * @since 1.2.00
+     */
+    private Button shipBut;
+
     // For 6-player board: request Special Building Phase: @since 1.1.08
     private Panel sbPanel;
     private Button sbBut;
@@ -195,7 +209,30 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         cardCount.setTooltipZeroText("No more development cards available to buy");
         add(cardCount);
 
-        if (pi.getGame().maxPlayers > 4)
+        final SOCGame ga = pi.getGame();
+
+        if (ga.hasSeaBoard)
+        {
+            shipT = new Label("Ship: ");
+            shipT.setAlignment(Label.RIGHT);
+            add(shipT);
+            new AWTToolTip ("0 VP  (longest route = 2 VP) ", shipT);
+            shipC = new Label("Cost: ");
+            add(shipC);
+            shipWood = new ColorSquare(ColorSquare.WOOD, 1);
+            add(shipWood);
+            shipSheep = new ColorSquare(ColorSquare.SHEEP, 1);
+            add(shipSheep);
+            shipBut = new Button("---");
+            shipBut.setEnabled(false);
+            add(shipBut);
+            shipBut.setActionCommand(SHIP);
+            shipBut.addActionListener(this);
+        } else {
+            shipBut = null;
+        }
+
+        if (ga.maxPlayers > 4)
         {
             // Special Building Phase button for 6-player game
             sbIsHilight = false;
@@ -212,6 +249,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             new AWTToolTip("This phase allows building between player turns.", sbPanel);
             new AWTToolTip("This phase allows building between player turns.", sbLab);
         }
+
     }
 
     /**
@@ -255,10 +293,26 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         roadClay.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         roadClay.setLocation(curX, curY);
 
-        // Game Options button is top-right of panel
-        curX = dim.width - (2 * butW) - margin;
-        optsBut.setSize(butW * 2, lineH);
-        optsBut.setLocation(curX, curY);
+        if (shipBut != null)
+        {
+            // Ship buying button is top-right of panel
+            // (3 squares over from Road)
+            curX += 3 * (ColorSquare.WIDTH + 3);
+            shipT.setSize(settlementTW, lineH);
+            shipT.setLocation(curX, curY);
+            curX += settlementTW + margin;
+            shipBut.setSize(butW, lineH);
+            shipBut.setLocation(curX, curY);
+            curX += butW + margin;
+            shipC.setSize(costW, lineH);
+            shipC.setLocation(curX, curY);
+            curX += 1 + costW + 3;
+            shipWood.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
+            shipWood.setLocation(curX, curY);
+            curX += (ColorSquare.WIDTH + 3);
+            shipSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
+            shipSheep.setLocation(curX, curY);
+        }
 
         curY += (rowSpaceH + lineH);
 
@@ -336,7 +390,11 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX += (ColorSquare.WIDTH + 3);
         cardCountLab.setLocation(curX, curY);
         cardCountLab.setSize(cardCLabW + 2, lineH);
-        
+
+        // Game Options button is bottom-right of panel
+        curX = dim.width - (2 * butW) - margin;
+        optsBut.setSize(butW * 2, lineH);
+        optsBut.setLocation(curX, curY);
     }
 
     /**
@@ -358,7 +416,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (player != null)
         {
-            clickBuildingButton(game, pi.getClient(), target, false);
+            clickBuildingButton(game, target, false);
         }
         } catch (Throwable th) {
             pi.chatPrintStackTrace(th);
@@ -369,12 +427,13 @@ public class SOCBuildingPanel extends Panel implements ActionListener
      * Assumes client is currently allowed to build, and sends request to server.
      *
      * @param game   The game, for status
-     * @param client The client, for sending build or cancel request
      * @param target Button clicked, as returned by ActionEvent.getActionCommand
      * @param doNotClearPopup Do not call {@link SOCBoardPanel#popupClearBuildRequest()}
      */
-    public void clickBuildingButton(SOCGame game, SOCPlayerClient client, String target, boolean doNotClearPopup)
+    public void clickBuildingButton(SOCGame game, String target, boolean doNotClearPopup)
     {
+        SOCPlayerClient client = pi.getClient();
+
         if (! doNotClearPopup)
             pi.getBoardPanel().popupClearBuildRequest();  // Just in case
 
@@ -441,6 +500,20 @@ public class SOCBuildingPanel extends Panel implements ActionListener
                     client.buyDevCard(game);
                     pi.getClientHand().disableBankUndoButton();
                 }
+            }
+        }
+        else if (target == SHIP)
+        {
+            if (shipBut.getLabel().equals("Buy"))
+            {
+                if (stateBuyOK)
+                    sendBuildRequest = SOCPlayingPiece.SHIP;
+                else if (canAskSBP)
+                    sendBuildRequest = -1;
+            }
+            else if (shipBut.getLabel().equals("Cancel"))
+            {
+                client.cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
         }
         else if (target == SBP)
@@ -536,6 +609,25 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 cardBut.setEnabled(false);
                 cardBut.setLabel("---");
+            }
+
+            if (shipBut != null)
+            {
+                if (isCurrent && (gstate == SOCGame.PLACING_SHIP))
+                {
+                    shipBut.setEnabled(true);
+                    shipBut.setLabel("Cancel");
+                }
+                else if (game.couldBuildShip(pnum))
+                {
+                    shipBut.setEnabled(currentCanBuy);
+                    shipBut.setLabel("Buy");
+                }
+                else
+                {
+                    shipBut.setEnabled(false);
+                    shipBut.setLabel("---");
+                }
             }
 
             if ((sbBut != null) && (player != null))

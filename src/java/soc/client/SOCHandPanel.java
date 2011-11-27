@@ -70,6 +70,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     public static final int ROADS = 0;
     public static final int SETTLEMENTS = 1;
     public static final int CITIES = 2;
+    // see below for SHIPS
     public static final int NUMRESOURCES = 3;
     public static final int NUMDEVCARDS = 4;
     public static final int NUMKNIGHTS = 5;
@@ -81,6 +82,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     public static final int SHEEP = 11;
     public static final int WHEAT = 12;
     public static final int WOOD = 13;
+    public static final int SHIPS = 14;  // added in 1.2.00
 
     /**
      * Item flag for asked special build in {@link #updateValue(int)}.
@@ -223,9 +225,12 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected ColorSquare settlementSq;
     protected ColorSquare citySq;
     protected ColorSquare roadSq;
+    /** shipSq = the number of ships remaining, or null if not {@link SOCGame#hasSeaBoard}. @since 1.2.00 */
+    protected ColorSquare shipSq;
     protected Label settlementLab;
     protected Label cityLab;
     protected Label roadLab;
+    protected Label shipLab;
     protected ColorSquare resourceSq;
     protected Label resourceLab;
     protected ColorSquare developmentSq;
@@ -556,6 +561,20 @@ public class SOCHandPanel extends Panel implements ActionListener
         citySq.setTooltipZeroText("No more cities available");
         cityLab = new Label("Cities:");
         add(cityLab);
+
+        if (game.hasSeaBoard)
+        {
+            shipSq = new ColorSquare(ColorSquare.GREY, 0);
+            add(shipSq);
+            shipSq.setTooltipText("Pieces available to place");
+            shipSq.setTooltipLowWarningLevel("Almost out of ships to place", 2);
+            shipSq.setTooltipZeroText("No more ships available");
+            shipLab = new Label("Ships:");
+            add(shipLab);
+        } else {
+            shipSq = null;
+            shipLab = null;
+        }
 
         knightsLab = new Label("Soldiers:");  // No trailing space (room for wider colorsquares at left)
         add(knightsLab);
@@ -1196,6 +1215,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         settlementSq.setVisible(false);
         cityLab.setVisible(false);
         citySq.setVisible(false);
+        if (shipSq != null)
+        {
+            shipSq.setVisible(false);
+            shipLab.setVisible(false);
+        }
         knightsSq.setVisible(false);
         knightsLab.setVisible(false);
 
@@ -1340,6 +1364,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         settlementLab.setVisible(true);
         citySq.setVisible(true);
         cityLab.setVisible(true);
+        if (shipSq != null)
+        {
+            shipSq.setVisible(true);
+            shipLab.setVisible(true);
+        }
         knightsLab.setVisible(true);
         knightsSq.setVisible(true);
 
@@ -2439,6 +2468,11 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             break;
 
+        case SHIPS:
+            if (shipSq != null)
+                shipSq.setIntValue(player.getNumPieces(SOCPlayingPiece.SHIP));
+            break;
+
         case NUMDEVCARDS:
 
             developmentSq.setIntValue(player.getDevCards().getTotal());
@@ -2737,6 +2771,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                 settlementSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 cityLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (3 * (lineH + space)), knightsW, lineH);
                 citySq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                if (shipSq != null)
+                {
+                    shipLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + (4 * (lineH + space)), knightsW, lineH);
+                    shipSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY + (4 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                }
 
                 // Player's resource counts
                 //   center the group vertical between bottom of Clear button, top of Quit button
@@ -2845,6 +2884,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                 knightsLab.setBounds(inset, inset + balloonH + (lineH + space), dcardsW, lineH);
                 knightsSq.setBounds(inset + dcardsW + space, inset + balloonH + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
+                if (shipSq != null)
+                {
+                    shipLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, inset + balloonH, stlmtsW, lineH);
+                    shipSq.setBounds(dim.width - inset - ColorSquare.WIDTH, inset + balloonH, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                }
                 roadLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, inset + balloonH + (lineH + space), stlmtsW, lineH);
                 roadSq.setBounds(dim.width - inset - ColorSquare.WIDTH, inset + balloonH + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 settlementLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, inset + balloonH + (2 * (lineH + space)), stlmtsW, lineH);

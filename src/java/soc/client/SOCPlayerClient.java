@@ -34,6 +34,7 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
+import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 
 import soc.message.*;
@@ -2785,6 +2786,8 @@ public class SOCPlayerClient extends Applet
             hp.updateValue(SOCHandPanel.ROADS);
             hp.updateValue(SOCHandPanel.SETTLEMENTS);
             hp.updateValue(SOCHandPanel.CITIES);
+            if (ga.hasSeaBoard)
+                hp.updateValue(SOCHandPanel.SHIPS);
             hp.updateValue(SOCHandPanel.NUMKNIGHTS);
             hp.updateValue(SOCHandPanel.VICTORYPOINTS);
             hp.updateValue(SOCHandPanel.LONGESTROAD);
@@ -3009,6 +3012,12 @@ public class SOCPlayerClient extends Applet
                 hpan.updateValue(SOCHandPanel.CITIES);
                 break;
 
+            case SOCPlayerElement.SHIPS:
+                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                    (mes, pl, SOCPlayingPiece.SHIP);
+                hpan.updateValue(SOCHandPanel.SHIPS);
+                break;
+
             case SOCPlayerElement.NUMKNIGHTS:
 
                 // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
@@ -3221,6 +3230,14 @@ public class SOCPlayerClient extends Applet
                 mesHp.updateValue(SOCHandPanel.CITIES);
 
                 break;
+
+            case SOCPlayingPiece.SHIP:
+                SOCRoad sh = new SOCShip(pl, mes.getCoordinates(), null);
+                ga.putPiece(sh);
+                mesHp.updateValue(SOCHandPanel.SHIPS);
+
+                break;
+
             }
 
             mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);
