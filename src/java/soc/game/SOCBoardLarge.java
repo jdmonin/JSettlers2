@@ -38,6 +38,10 @@ import java.util.Vector;
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
  * followed by the robber hex and (separately) the legal settlement/city nodes.
  *<P>
+ * Ship pieces extend the {@link SOCRoad} class; road-related getters/setters will work on them,
+ * but check {@link SOCRoad#isRoadNotShip()} to differentiate.
+ * You cannot place both a road and a ship on the same coastal edge coordinate.
+ *<P>
  * Unlike earlier encodings, here the "hex number" ("ID") is not an index into a dense array
  * of land hexes.  Thus it's not efficient to iterate through all hex numbers. <br>
  * Instead: Hex ID = (r &lt;&lt; 8) | c   // 2 bytes: 0xRRCC
@@ -97,6 +101,19 @@ public class SOCBoardLarge extends SOCBoard
     private final static int[][] A_NODE2HEX = {
         { -0x100, 0 }, { -0x100, +1 }, { +0x100, +1 },  // N, NE, SE
         { +0x100, 0 }, { +0x100, -1 }, { -0x100, -1 }   // S, SW, NW
+    };
+
+    /**
+     * For {@link #getAdjacentEdgesToHex(int)}, the offset to add to the hex
+     * coordinate to get all adjacent edge coords, starting at
+     * index 0 at the top (northeastern edge of hex) and going clockwise.
+     *<P>
+     * For each direction, array of adds to the coordinate to change the row & column.
+     * The row delta in hex is +-0xRR00, the column is small (+-1) so doesn't need hex format.
+     */
+    private final static int[][] A_EDGE2HEX = {
+        { -0x100,  0 }, { 0x0, +1 }, { +0x100,  0 },  // NE, E, SE
+        { +0x100, -1 }, { 0x0, -1 }, { -0x100, -1 }   // SW, W, NW
     };
 
     /**
@@ -848,6 +865,25 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * The edge coordinates adjacent to this hex in all 6 directions.
+     * (The 6 sides of this hex.)
+     * Since all hexes have 6 edges, all edge coordinates are valid
+     * if the hex coordinate is valid.
+     *
+     * @param hexCoord Coordinate of this hex; not checked for validity
+     * @param hexCoord  Hex coordinate
+     * @return  The 6 edges adjacent to this hex
+     * @since 1.2.00
+     */
+    public int[] getAdjacentEdgesToHex(final int hexCoord)
+    {
+        int[] edge = new int[6];
+        for (int dir = 0; dir < 6; ++dir)
+            edge[dir] = hexCoord + A_EDGE2HEX[dir][0] + A_EDGE2HEX[dir][1];
+        return edge;
+    }
+
+    /**
      * The node coordinate adjacent to this hex in a given direction.
      * Since all hexes have 6 nodes, all node coordinates are valid
      * if the hex coordinate is valid.
@@ -869,10 +905,11 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * The node coordinates adjacent to this hex in all 6 directions.
+     * (The 6 corners of this hex.)
      * Since all hexes have 6 nodes, all node coordinates are valid
      * if the hex coordinate is valid.
      *
-     * @param hexCoord Coordinate of this hex
+     * @param hexCoord Coordinate of this hex; not checked for validity
      * @return Node coordinate in all 6 directions,
      *           clockwise from top (northern point of hex):
      *           0 is north, 1 is northeast, etc, 5 is northwest.
