@@ -31,7 +31,7 @@ public class SOCSettlement extends SOCPlayingPiece
     /**
      * Make a new settlement
      *
-     * @param pl  player who owns the city
+     * @param pl  player who owns the settlement
      * @param co  coordinates
      * @param board  board if known; otherwise will extract from <tt>pl</tt>
      * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null

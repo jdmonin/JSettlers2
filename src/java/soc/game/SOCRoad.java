@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,14 +22,17 @@ package soc.game;
 
 
 /**
- * A road playing piece
+ * A road playing piece, or (on the large sea board) a {@link SOCShip ship} playing piece.
+ *<P>
+ * To simplify some game code, ships are a subclass of roads.
+ * To see if this piece is actually a road, check {@link #isRoadNotShip()}.
  */
 public class SOCRoad extends SOCPlayingPiece
 {
     /**
      * Make a new road
      *
-     * @param pl  player who owns the city
+     * @param pl  player who owns the road
      * @param co  coordinates
      * @param board  board if known; otherwise will extract from <tt>pl</tt>
      * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
@@ -47,6 +50,16 @@ public class SOCRoad extends SOCPlayingPiece
     public int[] getAdjacentNodes()
     {
         return board.getAdjacentNodesToEdge_arr(coord);
+    }
+
+    /**
+     * Is this piece really a road on land, and not a ship on water (our subclass)?
+     * @return True for roads (pieceType {@link SOCPlayingPiece#ROAD}), false otherwise
+     * @since 1.2.00
+     */
+    public final boolean isRoadNotShip()
+    {
+        return (pieceType == SOCPlayingPiece.ROAD);
     }
 
 }
