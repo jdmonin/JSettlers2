@@ -713,6 +713,16 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * The hex coordinates of all land hexes.  Please treat as read-only.
+     * @return land hex coordinates, as a set of {@link Integer}s
+     * @since 1.2.00
+     */
+    public HashSet getLandHexCoordsSet()
+    {
+        return landHexLayout;
+    }
+
+    /**
      * The hex coordinates of all land hexes.
      *<P>
      * Before v1.2.00, this was <tt>getHexLandCoords()</tt>.

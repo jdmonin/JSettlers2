@@ -21,6 +21,7 @@
 package soc.client;
 
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -46,7 +47,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Timer;
 
 
@@ -486,6 +489,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private long drawnEmptyAt;
 
     /**
+     * For debugging, flags to show player 0's potential/legal coordinate sets.
+     * The drawing happens in {@link #drawBoardEmpty(Graphics)}.
+     *<P>
+     * Stored in same order as piece types:
+     *<UL>
+     *<LI> 0: Legal roads - yellow lines
+     *<LI> 1: Legal settlements - yellow squares
+     *<LI> 2: N/A - Legal cities, no set for that
+     *<LI> 3: Legal ships - yellow diamonds
+     *<LI> 4: Potential roads - green lines
+     *<LI> 5: Potential settlements - green squares
+     *<LI> 6: Potential cities - green larger squares
+     *<LI> 7: Potential ships - yellow diamonds
+     *<LI> 8: Land hexes - red round rects
+     *<LI> 9: Nodes on land - red round rects
+     *</UL>
+     * @since 1.2.00
+     */
+    private boolean[] debugShowPotentials;
+
+    /**
      * Font of dice-number circles appearing on hexes.
      * @since 1.1.08
      */
@@ -921,6 +945,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         minSize = new Dimension(scaledPanelX, scaledPanelY);
         hasCalledSetSize = false;
+        debugShowPotentials = new boolean[10];
 
         int i;
 
@@ -1841,6 +1866,33 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             for (int i = yorig.length - 1; i >= 0; --i)
                 xr[i] = (int) ((xr[i] * (long) scaledPanelX) / panelMinBW);
         return xr;
+    }
+
+    /**
+     * Set or clear a debug flag to show player 0's potential/legal coordinate sets.
+     * @param pieceType  Piece type; 0=road, 1=settle, 2=city, 3=ship;
+     *         Use 8 for land hexes, 9 for nodes on board.  Or, -1 for all.
+     * @param setPotential  If true, show/hide the potential set, not the legal set
+     * @param setOn  If true, set the flag; if false, clear it
+     * @since 1.2.00
+     */
+    void setDebugShowPotentialsFlag
+        (int pieceType, final boolean setPotential, final boolean setOn)
+    {
+        if (pieceType == -1)
+        {
+            Arrays.fill(debugShowPotentials, setOn);  // all flags
+        } else {
+            if (setPotential && (pieceType < 4))
+                pieceType += 4;
+            if (setOn == debugShowPotentials[pieceType])
+                return;  // nothing to do
+
+            debugShowPotentials[pieceType] = setOn;
+        }
+
+        scaledMissedImage = true;  // force redraw of the empty board
+        repaint();  // to call drawBoard, drawBoardEmpty
     }
 
     /**
@@ -2980,6 +3032,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private void drawBoardEmpty(Graphics g)
     {
+        HashSet landHexShow;
+        if (debugShowPotentials[8] && isLargeBoard)
+            landHexShow = ((SOCBoardLarge) board).getLandHexCoordsSet();
+        else
+            landHexShow = null;
+
         g.setPaintMode();
 
         g.setColor(getBackground());
@@ -3026,10 +3084,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     final int hexCoord = rshift | c;
                     drawHex
                         (g, x, y, board.getHexTypeFromCoord(hexCoord), hexCoord);
+                    if ((landHexShow != null)
+                        && landHexShow.contains(new Integer(hexCoord)))
+                   {
+                       g.setColor(Color.RED);
+                       g.drawRoundRect
+                           (x + (halfdeltaX / 2),
+                            y + ((halfdeltaY + HEXY_OFF_SLOPE_HEIGHT) / 2),
+                            halfdeltaX, halfdeltaY, 6, 6);
+                   }
                 }
             }
 
             drawPorts_LargeBoard(g);
+
+            // check debugShowPotentials[0 - 9]
+            drawBoardEmpty_drawDebugShowPotentials(g);
         }
 
         if (scaledMissedImage)
@@ -3041,6 +3111,78 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledAt = System.currentTimeMillis();
             repaint();
             new DelayedRepaint(this).start();            
+        }
+    }
+
+    /**
+     * If any bit in {@link #debugShowPotentials}[] is set, besides 8,
+     * draw it on the board.
+     * (<tt>debugShowPotentials[8]</tt> is drawn in the per-hex loop
+     *  of {@link #drawBoardEmpty(Graphics)}).
+     *<P>
+     * <b>Note:</b> For {@link #isLargeBoard} only for now (TODO).
+     * @since 1.2.00
+     * @throws IllegalStateException if ! isLargeBoard; temporary restriction
+     */
+    private void drawBoardEmpty_drawDebugShowPotentials(Graphics g)
+        throws IllegalStateException
+    {
+        if (! isLargeBoard)
+            throw new IllegalStateException("not supported yet");
+
+        final SOCPlayer pl = game.getPlayer(0);
+
+        // 0: roads are edge-based
+        // 3,7: ships are edge-baed
+        //    pl.isLegalRoad, .isLegalShip
+        //    isPotentialRoad, isPotentialShip
+        // 3,7: ships: diamonds (Legal yellow, potential green)
+        //   TODO draw ships,roads
+
+        // All others are node-based.
+
+        // Iterate over all nodes for:
+        // 1,5: settlements: squares (Legal yellow, potential green)
+        // 2,6: cities: larger squares (potential green; there is no legal set)
+        // 9: nodes on land: red round rects
+
+        final int bw = board.getBoardWidth();
+        for (int r = 0, y = halfdeltaY + (HEXY_OFF_SLOPE_HEIGHT / 2);
+             r <= board.getBoardHeight();
+             ++r, y += halfdeltaY)
+        {
+            final int rshift = (r << 8);
+            for (int c=0, x=0; c <= bw; ++c, x += halfdeltaX)
+            {
+                final int nodeCoord = rshift | c;
+                // TODO each node, adjust y by +- HEXY_OFF_SLOPE_HEIGHT
+
+                    // 1,5: settlements
+                if (debugShowPotentials[1] && pl.isLegalSettlement(nodeCoord))
+                {
+                    g.setColor(Color.YELLOW);
+                    g.drawRect(x-6, y-6, 12, 12);
+                }
+                if (debugShowPotentials[5] && pl.isPotentialSettlement(nodeCoord))
+                {
+                    g.setColor(Color.GREEN);
+                    g.drawRect(x-7, y-7, 14, 14);
+                }
+
+                    // 6: cities
+                if (debugShowPotentials[6] && pl.isPotentialCity(nodeCoord))
+                {
+                    g.setColor(Color.GREEN);
+                    g.drawRect(x-7, y-7, 16, 16);
+                }
+
+                    // 9: nodes on land
+                if (debugShowPotentials[9] && board.isNodeOnLand(nodeCoord))
+                {
+                    g.setColor(Color.RED);
+                    g.drawRoundRect(x-5, y-5, 10, 10, 3, 3);
+                }
+            }
         }
     }
 

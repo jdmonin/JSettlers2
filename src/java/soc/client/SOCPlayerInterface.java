@@ -1092,6 +1092,39 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
             // Clear and send to game at server
             textInput.setText("");
+            if (s.startsWith("=*="))
+            {
+                String sLower = s.toLowerCase();
+                boolean doSet;
+                int i = sLower.indexOf("show:");
+                if (i > 0)
+                {
+                    doSet = true;
+                } else {
+                    i = sLower.indexOf("hide:");
+                    doSet = false;
+                }
+                if (i > 0)
+                {
+                    s = sLower.substring(i+5).trim();
+                    int flagnum;
+                    if (s.equalsIgnoreCase("all"))
+                    {
+                        flagnum = -1;
+                    } else{
+                        try
+                        {
+                            flagnum = Integer.parseInt(s);
+                        } catch (NumberFormatException e2) {
+                            chatPrintDebug
+                                ("Usage: =*= show: n  or =*= hide: n   where n is all or a number 0-9\n");
+                            return;
+                        }
+                    }
+                    boardPanel.setDebugShowPotentialsFlag(flagnum, false, doSet);
+                    return;
+                }
+            }
             client.sendText(game, s + "\n");
         }
     }
