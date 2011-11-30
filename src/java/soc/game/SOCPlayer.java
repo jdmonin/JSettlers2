@@ -264,6 +264,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * At start of the game, this is clear/empty because the player has no settlements yet.
      * Elements are set true when the player places settlements, via
      * {@link #updatePotentials(SOCPlayingPiece)}.
+     * Unlike other piece types, there is no "<tt>legalCities</tt>" set,
+     * because we use {@link #legalSettlements} before placing a settlement,
+     * and settlements can always become cities.
      */
     private HashSet potentialCities;
 
@@ -2141,6 +2144,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this node to a legal settlement?
+     * @return true if this edge is a legal settlement
+     * @param node        the coordinates of a node on the board
+     * @since 1.2.00
+     */
+    public boolean isLegalSettlement(final int node)
+    {
+        return legalSettlements.contains(new Integer(node));
+    }
+
+    /**
      * @return true if this node is a potential city
      * @param node        the coordinates of a node on the board
      */
@@ -2225,6 +2239,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public void clearPotentialShip(int edge)
     {
         potentialShips.remove(new Integer(edge));
+    }
+
+    /**
+     * Is this edge a legal ship placement?
+     * @return true if this edge is a legal ship
+     * @param edge        the coordinates of an edge on the board
+     * @since 1.2.00
+     */
+    public boolean isLegalShip(final int edge)
+    {
+        if (edge < 0)
+            return false;
+        return legalShips.contains(new Integer(edge));
     }
 
     /**
