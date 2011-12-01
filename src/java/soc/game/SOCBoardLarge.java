@@ -550,8 +550,15 @@ public class SOCBoardLarge extends SOCBoard
                 int nodeAdjac = getAdjacentNodeToNode(node, dir);
                 if (nodesOnLand.contains(new Integer(nodeAdjac)))
                 {
+                    final int edge = getAdjacentEdgeToNode(node, dir);
+
+                    // Ensure it doesn't cross water
+                    //   TODO
+                    //final int[] hexes = getAdjacentHexesToEdge(edge);
+
+                    // OK to add
                     legalRoadEdges.add
-                        (new Integer(getAdjacentEdgeToNode(node, dir)));
+                        (new Integer(edge));
                     // it's ok to add if this set already contains an Integer equal to that edge.
                 }
             }
@@ -1170,14 +1177,14 @@ public class SOCBoardLarge extends SOCBoard
         if ((r%2) == 1)
         {
             // "|" if r is odd
-            nodes[0] = coord;           // (r,c)
-            nodes[1] = coord + 0x0001;  // (r,c+1)
+            nodes[0] = coord - 0x0100;  // (r-1,c)
+            nodes[1] = coord + 0x0100;  // (r+1,c)
         }
         else
         {
             // either "/" or "\"
-            nodes[0] = coord - 0x0100;  // (r-1,c)
-            nodes[1] = coord + 0x0100;  // (r+1,c)
+            nodes[0] = coord;           // (r,c)
+            nodes[1] = coord + 0x0001;  // (r,c+1)
         }
 
         return nodes;

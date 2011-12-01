@@ -3181,79 +3181,8 @@ public class SOCPlayerClient extends Applet
 
         if (ga != null)
         {
-            final int mesPn = mes.getPlayerNumber();
-            final SOCPlayer pl = ga.getPlayer(mesPn);
             final SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            final SOCHandPanel mesHp = pi.getPlayerHandPanel(mesPn);
-            final SOCPlayer oldLongestRoadPlayer = ga.getPlayerWithLongestRoad();
-
-
-            switch (mes.getPieceType())
-            {
-            case SOCPlayingPiece.ROAD:
-
-                SOCRoad rd = new SOCRoad(pl, mes.getCoordinates(), null);
-                ga.putPiece(rd);
-                mesHp.updateValue(SOCHandPanel.ROADS);
-
-                break;
-
-            case SOCPlayingPiece.SETTLEMENT:
-
-                SOCSettlement se = new SOCSettlement(pl, mes.getCoordinates(), null);
-                ga.putPiece(se);
-                mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
-
-                /**
-                 * if this is the second initial settlement, then update the resource display
-                 */
-                if (mesHp.isClientPlayer())
-                {
-                    mesHp.updateValue(SOCHandPanel.CLAY);
-                    mesHp.updateValue(SOCHandPanel.ORE);
-                    mesHp.updateValue(SOCHandPanel.SHEEP);
-                    mesHp.updateValue(SOCHandPanel.WHEAT);
-                    mesHp.updateValue(SOCHandPanel.WOOD);
-                }
-                else
-                {
-                    mesHp.updateValue(SOCHandPanel.NUMRESOURCES);
-                }
-
-                break;
-
-            case SOCPlayingPiece.CITY:
-
-                SOCCity ci = new SOCCity(pl, mes.getCoordinates(), null);
-                ga.putPiece(ci);
-                mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
-                mesHp.updateValue(SOCHandPanel.CITIES);
-
-                break;
-
-            case SOCPlayingPiece.SHIP:
-                SOCRoad sh = new SOCShip(pl, mes.getCoordinates(), null);
-                ga.putPiece(sh);
-                mesHp.updateValue(SOCHandPanel.SHIPS);
-
-                break;
-
-            }
-
-            mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);
-            pi.getBoardPanel().repaint();
-            pi.getBuildingPanel().updateButtonStatus();
-            if (ga.isDebugFreePlacement() && ga.isInitialPlacement())
-                pi.getBoardPanel().updateMode();  // update here, since gamestate doesn't change
-
-            /**
-             * Check for and announce change in longest road; update all players' victory points.
-             */
-            SOCPlayer newLongestRoadPlayer = ga.getPlayerWithLongestRoad();
-            if (newLongestRoadPlayer != oldLongestRoadPlayer)
-            {
-                pi.updateLongestLargest(true, oldLongestRoadPlayer, newLongestRoadPlayer);
-            }
+            pi.updateAtPutPiece(mes);
         }
     }
 
@@ -3525,7 +3454,8 @@ public class SOCPlayerClient extends Applet
      */
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        final String gaName = mes.getGame();
+        SOCGame ga = (SOCGame) games.get(gaName);
         if (ga == null)
             return;
 
@@ -3541,6 +3471,11 @@ public class SOCPlayerClient extends Applet
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
                 ga.getPlayer(pn).setPotentialSettlements(vset, true);
         }
+
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+        if (pi == null)
+            return;
+        pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
     }
 
     /**

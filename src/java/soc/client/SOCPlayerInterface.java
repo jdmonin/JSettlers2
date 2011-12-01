@@ -22,8 +22,14 @@ package soc.client;
 
 import soc.debug.D;  // JM
 
+import soc.game.SOCCity;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+import soc.game.SOCRoad;
+import soc.game.SOCSettlement;
+import soc.game.SOCShip;
+import soc.message.SOCPutPiece;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -1117,7 +1123,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                             flagnum = Integer.parseInt(s);
                         } catch (NumberFormatException e2) {
                             chatPrintDebug
-                                ("Usage: =*= show: n  or =*= hide: n   where n is all or a number 0-9\n");
+                                ("Usage: =*= show: n  or =*= hide: n   where n is all or a number 0-9");
                             return;
                         }
                     }
@@ -1718,6 +1724,101 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
+     * Handle updates after putting a piece on the board.
+     * @since 1.2.00
+     */
+    public void updateAtPutPiece(SOCPutPiece mes)
+    {
+        // TODO consider more effic way for flushBoardLayoutAndRepaint, without the =null
+
+        final int mesPn = mes.getPlayerNumber();
+        final SOCPlayer pl = game.getPlayer(mesPn);
+        final SOCPlayer oldLongestRoadPlayer = game.getPlayerWithLongestRoad();
+        final SOCHandPanel mesHp = getPlayerHandPanel(mesPn);
+        final boolean[] debugShowPotentials = boardPanel.debugShowPotentials;
+        final SOCPlayingPiece pp;
+
+        switch (mes.getPieceType())
+        {
+        case SOCPlayingPiece.ROAD:
+            pp = new SOCRoad(pl, mes.getCoordinates(), null);
+            game.putPiece(pp);
+            mesHp.updateValue(SOCHandPanel.ROADS);
+            if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
+                boardPanel.flushBoardLayoutAndRepaint();
+
+            break;
+
+        case SOCPlayingPiece.SETTLEMENT:
+            pp = new SOCSettlement(pl, mes.getCoordinates(), null);
+            game.putPiece(pp);
+            mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
+
+            /**
+             * if this is the second initial settlement, then update the resource display
+             */
+            if (mesHp.isClientPlayer())
+            {
+                mesHp.updateValue(SOCHandPanel.CLAY);
+                mesHp.updateValue(SOCHandPanel.ORE);
+                mesHp.updateValue(SOCHandPanel.SHEEP);
+                mesHp.updateValue(SOCHandPanel.WHEAT);
+                mesHp.updateValue(SOCHandPanel.WOOD);
+            } else {
+                mesHp.updateValue(SOCHandPanel.NUMRESOURCES);
+            }
+
+            if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
+                || debugShowPotentials[6])
+                boardPanel.flushBoardLayoutAndRepaint();
+
+            break;
+
+        case SOCPlayingPiece.CITY:
+            pp = new SOCCity(pl, mes.getCoordinates(), null);
+            game.putPiece(pp);
+            mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
+            mesHp.updateValue(SOCHandPanel.CITIES);
+
+            if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
+                || debugShowPotentials[6])
+                boardPanel.flushBoardLayoutAndRepaint();
+
+            break;
+
+        case SOCPlayingPiece.SHIP:
+            pp = new SOCShip(pl, mes.getCoordinates(), null);
+            game.putPiece(pp);
+            mesHp.updateValue(SOCHandPanel.SHIPS);
+
+            if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
+                boardPanel.flushBoardLayoutAndRepaint();
+
+            break;
+
+        default:
+            chatPrintDebug("* Unknown piece type " + mes.getPieceType() + " at coord 0x" + mes.getCoordinates());
+
+            return;  // <--- Early return ---
+        }
+
+        mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);
+        boardPanel.repaint();
+        buildingPanel.updateButtonStatus();
+        if (game.isDebugFreePlacement() && game.isInitialPlacement())
+            boardPanel.updateMode();  // update here, since gamestate doesn't change to trigger update
+
+        /**
+         * Check for and announce change in longest road; update all players' victory points.
+         */
+        SOCPlayer newLongestRoadPlayer = game.getPlayerWithLongestRoad();
+        if (newLongestRoadPlayer != oldLongestRoadPlayer)
+        {
+            updateLongestLargest(true, oldLongestRoadPlayer, newLongestRoadPlayer);
+        }
+    }
+
+    /**
      * Gamestate just became {@link SOCGame#WAITING_FOR_DISCARDS}.
      * Set up a timer to wait 1 second before showing "Discarding..."
      * balloons in players' handpanels.
@@ -1787,13 +1888,17 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             hands[i].disable();
             hands[i].destroy();
         }
+        final boolean[] boardDebugShow = (boolean[]) boardPanel.debugShowPotentials.clone();
         clientHand = null;
         clientHandPlayerNum = -1;
+
         removeAll();  // old sub-components
         initInterfaceElements(false);  // new sub-components
+
         // Clear from possible TITLEBAR_GAME_OVER
         setTitle(TITLEBAR_GAME + game.getName() +
                  (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+        boardPanel.debugShowPotentials = boardDebugShow;
         validate();
         repaint();
         String requesterName = game.getPlayer(requesterNumber).getName();

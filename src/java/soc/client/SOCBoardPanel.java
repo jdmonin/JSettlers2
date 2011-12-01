@@ -494,20 +494,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * Stored in same order as piece types:
      *<UL>
-     *<LI> 0: Legal roads - yellow lines
+     *<LI> 0: Legal roads - yellow parallel lines
      *<LI> 1: Legal settlements - yellow squares
-     *<LI> 2: N/A - Legal cities, no set for that
+     *<LI> 2: N/A - Legal cities; no set for that
      *<LI> 3: Legal ships - yellow diamonds
-     *<LI> 4: Potential roads - green lines
+     *<LI> 4: Potential roads - green parallel lines
      *<LI> 5: Potential settlements - green squares
      *<LI> 6: Potential cities - green larger squares
      *<LI> 7: Potential ships - yellow diamonds
      *<LI> 8: Land hexes - red round rects
      *<LI> 9: Nodes on land - red round rects
      *</UL>
+     *<P>
+     * Has package-level visibility, for use by {@link SOCPlayerInterface#updateAtPutPiece(SOCPlayingPiece)}.
      * @since 1.2.00
      */
-    private boolean[] debugShowPotentials;
+    boolean[] debugShowPotentials;
 
     /**
      * Font of dice-number circles appearing on hexes.
@@ -1612,6 +1614,31 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (isScaled)
             scaledAt = System.currentTimeMillis();  // reset the image-scaling timeout 
         repaint();
+    }
+
+    /**
+     * Clear the board layout (as rendered in the
+     * empty-board buffer) and trigger a repaint,
+     * only if we're showing potential/legal
+     * settlements/roads/cities for debug purposes.
+     * @since 1.2.00
+     */
+    public void flushBoardLayoutAndRepaintIfDebugShowPotentials()
+    {
+        boolean foundAny = false;
+        for (int i = debugShowPotentials.length - 1; i >= 0; --i)
+        {
+            if (debugShowPotentials[i])
+            {
+                foundAny = true;
+                break;
+            }
+        }
+
+        if (! foundAny)
+            return;
+
+        flushBoardLayoutAndRepaint();
     }
 
     /**
@@ -3090,8 +3117,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                        g.setColor(Color.RED);
                        g.drawRoundRect
                            (x + (halfdeltaX / 2),
-                            y + ((halfdeltaY + HEXY_OFF_SLOPE_HEIGHT) / 2),
-                            halfdeltaX, halfdeltaY, 6, 6);
+                            y + ((halfdeltaY + HEXY_OFF_SLOPE_HEIGHT) / 2) + 1,
+                            halfdeltaX, halfdeltaY + 1, 6, 6);
                    }
                 }
             }
@@ -3131,22 +3158,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             throw new IllegalStateException("not supported yet");
 
         final SOCPlayer pl = game.getPlayer(0);
-
-        // 0: roads are edge-based
-        // 3,7: ships are edge-baed
-        //    pl.isLegalRoad, .isLegalShip
-        //    isPotentialRoad, isPotentialShip
-        // 3,7: ships: diamonds (Legal yellow, potential green)
-        //   TODO draw ships,roads
-
-        // All others are node-based.
+        final int bw = board.getBoardWidth();
 
         // Iterate over all nodes for:
         // 1,5: settlements: squares (Legal yellow, potential green)
         // 2,6: cities: larger squares (potential green; there is no legal set)
         // 9: nodes on land: red round rects
 
-        final int bw = board.getBoardWidth();
         for (int r = 0, y = halfdeltaY + (HEXY_OFF_SLOPE_HEIGHT / 2);
              r <= board.getBoardHeight();
              ++r, y += halfdeltaY)
@@ -3169,11 +3187,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     g.drawRect(x-7, y-7, 14, 14);
                 }
 
-                    // 6: cities
+                    // 6: cities (potential only)
                 if (debugShowPotentials[6] && pl.isPotentialCity(nodeCoord))
                 {
                     g.setColor(Color.GREEN);
-                    g.drawRect(x-7, y-7, 16, 16);
+                    g.drawRect(x-9, y-9, 18, 18);
                 }
 
                     // 9: nodes on land
@@ -3183,6 +3201,101 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     g.drawRoundRect(x-5, y-5, 10, 10, 3, 3);
                 }
             }
+        }
+
+        // Iterate over all edges for:
+        // 0,4: roads: parallel lines (Legal yellow, potential green)
+        // 3,7: ships: diamonds (Legal yellow, potential green)
+
+        for (int r = 0, y = halfdeltaY + (HEXY_OFF_SLOPE_HEIGHT / 2);
+             r <= board.getBoardHeight();
+             ++r, y += halfdeltaY)
+        {
+            final int rshift = (r << 8);
+            final boolean edgeIsVert = ((r % 2) == 1);
+            int x = (edgeIsVert) ? 0 : (halfdeltaX / 2);
+
+            for (int c=0; c <= bw; ++c, x += halfdeltaX)
+            {
+                final int edgeCoord = rshift | c;
+
+                    // 3,7: ships - diamonds
+                if (debugShowPotentials[3] && pl.isLegalShip(edgeCoord))
+                {
+                    g.setColor(Color.YELLOW);
+                    g.drawLine(x-4, y, x, y-4);
+                    g.drawLine(x, y-4, x+4, y);
+                    g.drawLine(x+4, y, x, y+4);
+                    g.drawLine(x, y+4, x-4, y);
+                }
+                if (debugShowPotentials[7] && pl.isPotentialShip(edgeCoord))
+                {
+                    g.setColor(Color.GREEN);
+                    g.drawLine(x-6, y, x, y-6);
+                    g.drawLine(x, y-6, x+6, y);
+                    g.drawLine(x+6, y, x, y+6);
+                    g.drawLine(x, y+6, x-6, y);
+                }
+
+                    // 0,4: roads - parallel lines
+                if (debugShowPotentials[0] && pl.isLegalRoad(edgeCoord))
+                {
+                    drawBoardEmpty_drawDebugShowPotentialRoad
+                        (g, x, y, r, c, edgeIsVert, Color.YELLOW, 4);
+                }
+                if (debugShowPotentials[4] && pl.isPotentialRoad(edgeCoord))
+                    drawBoardEmpty_drawDebugShowPotentialRoad
+                        (g, x, y, r, c, edgeIsVert, Color.GREEN, 6);
+            }
+        }
+
+    }
+
+    /**
+     * Draw around one potential/legal road edge,
+     * for {@link #drawBoardEmpty_drawDebugShowPotentials(Graphics)}.
+     * (x,y) is the center of the edge.
+     *<P>
+     * For large board only for now (TODO).
+     *
+     * @param g  Graphics
+     * @param x  Pixel x-coordinate of center of this edge
+     * @param y  Pixel y-coordinate of center of this edge
+     * @param r  Board row coordinate of this edge
+     * @param c  Board column coordinate of this edge
+     * @param isVert  Is this edge vertical (running north-south), not diagonal?
+     * @param co  Color to draw the edge
+     * @param offset  Approx pixel offset, outwards parallel to road
+     */
+    private final void drawBoardEmpty_drawDebugShowPotentialRoad
+        (Graphics g, final int x, final int y, final int r, final int c,
+         final boolean isVert, final Color co, final int offset)
+    {
+        g.setColor(co);
+
+        if (isVert)
+        {
+            g.drawLine(x-offset, y-10, x-offset, y+10);
+            g.drawLine(x+offset, y-10, x+offset, y+10);
+            return;
+        }
+
+        // Determining SOCBoardLarge (r,c) edge direction: | / \
+        //   "|" if r is odd
+        //   Otherwise: s = r/2
+        //   "/" if (s,c) is even,odd or odd,even
+        //   "\" if (s,c) is odd,odd or even,even
+
+        final int off2 = offset / 2;
+        if ((c % 2) != ((r/2) % 2))
+        {
+            // road is "/"
+            g.drawLine(x-10-off2, y+6-offset, x+10-off2, y-6-offset);
+            g.drawLine(x-10+off2, y+6+offset, x+10+off2, y-6+offset);
+        } else {
+            // road is "\"
+            g.drawLine(x+10+off2, y+6-offset, x-10+off2, y-6-offset);
+            g.drawLine(x+10-off2, y+6+offset, x-10-off2, y-6+offset);
         }
     }
 
@@ -5034,7 +5147,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hoverRoadID != 0)
                 {
                     drawRoadOrShip(g, hoverRoadID, playerNumber, true, true);
-                } else if (hoverShipID != 0)
+                }
+                if (hoverShipID != 0)
                 {
                     drawRoadOrShip(g, hoverShipID, playerNumber, true, false);
                 }
