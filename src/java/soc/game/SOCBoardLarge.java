@@ -553,13 +553,23 @@ public class SOCBoardLarge extends SOCBoard
                     final int edge = getAdjacentEdgeToNode(node, dir);
 
                     // Ensure it doesn't cross water
-                    //   TODO
-                    //final int[] hexes = getAdjacentHexesToEdge(edge);
+                    boolean hasLand = false;
+                    final int[] hexes = getAdjacentHexesToEdge_arr(edge);
+                    if ((hexes[0] != 0)
+                        && (getHexTypeFromCoord(hexes[0]) <= MAX_LAND_HEX))
+                    {
+                        hasLand = true;
+                    }
+                    else if ((hexes[1] != 0)
+                        && (getHexTypeFromCoord(hexes[1]) <= MAX_LAND_HEX))
+                    {
+                        hasLand = true;
+                    }
 
                     // OK to add
-                    legalRoadEdges.add
-                        (new Integer(edge));
-                    // it's ok to add if this set already contains an Integer equal to that edge.
+                    if (hasLand)
+                        legalRoadEdges.add(new Integer(edge));
+                        // it's ok to add if this set already contains an Integer equal to that edge.
                 }
             }
         }
@@ -1036,6 +1046,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return hex coordinate of hex in the facing direction,
      *           or 0 if that hex would be off the edge of the board.
      * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6
+     * @see #getAdjacentHexesToEdge_arr(int)
      */
     public int getAdjacentHexToEdge(final int edgeCoord, final int facing)
         throws IllegalArgumentException
@@ -1114,6 +1125,59 @@ public class SOCBoardLarge extends SOCBoard
             return ( (r << 8) | c );   // bounds-check OK: within the outer edge
         else
             return 0;  // hex is not on the board
+    }
+
+    /**
+     * The valid hex or two hexes touching an edge along its length.
+     * @param edgeCoord The edge's coordinate. Not checked for validity.
+     * @return hex coordinate of each adjacent hex,
+     *           or 0 if that hex would be off the edge of the board.
+     * @see #getAdjacentHexToEdge(int, int)
+     */
+    public int[] getAdjacentHexesToEdge_arr(final int edgeCoord)
+        throws IllegalArgumentException
+    {
+        int[] hexes = new int[2];
+        final int r = (edgeCoord >> 8),
+                  c = (edgeCoord & 0xFF);
+
+        // "|" if r is odd
+        if ((r%2) == 1)
+        {
+            // FACING_E: (r, c+1)
+            if (c < boardWidth)
+                hexes[0] = edgeCoord + 1;
+
+            // FACING_W: (r, c-1)
+            if (c > 0)
+                hexes[1] = edgeCoord - 1;
+        }
+
+        // "/" if (s,c) is even,odd or odd,even
+        else if ((c % 2) != ((r/2) % 2))
+        {
+            // FACING_NW: (r-1, c)
+            if (r > 0)
+                hexes[0] = edgeCoord - 0x100;
+
+            // FACING_SE: (r+1, c+1)
+            if ((r < boardHeight) && (c < boardWidth))
+                hexes[1] = edgeCoord + 0x101;
+        }
+        else
+        {
+            // "\" if (s,c) is odd,odd or even,even
+
+            // FACING_NE: (r-1, c+1)
+            if ((r > 0) && (c < boardWidth))
+                hexes[0] = edgeCoord - 0x100 + 0x01;
+
+            // FACING_SW: (r+1, c)
+            if (r < boardHeight)
+                hexes[1] = edgeCoord + 0x100;
+        }
+
+        return hexes;
     }
 
     /**
