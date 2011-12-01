@@ -301,6 +301,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public final static int PLACE_CITY = 3;
     public final static int PLACE_ROBBER = 4;
     public final static int PLACE_INIT_SETTLEMENT = 5;
+    /** Place an initial road or ship. */
     public final static int PLACE_INIT_ROAD = 6;
     public final static int CONSIDER_LM_SETTLEMENT = 7;
     public final static int CONSIDER_LM_ROAD = 8;
@@ -730,6 +731,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Edge or node being pointed to. When placing a road/settlement/city,
      * used for coordinate of "ghost" piece under the mouse pointer.
      * 0 when nothing is hilighted. -1 for a road at edge 0x00.
+     *<P>
+     * During {@link #PLACE_INIT_ROAD}, this can be either a road or a ship.
+     * Along coastal edges it could be either one.
+     * Default to road:
+     * Check {@link #player}.{@link SOCPlayer#isPotentialRoad(int) isPotentialRoad(hilight)}
+     * first, then {@link SOCPlayer#isPotentialShip(int) .isPotentialShip}.
+     * Player can right-click to build an initial ship along a coastal edge.
      */
     private int hilight;
 
@@ -2972,7 +2980,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight != 0)
             {
-                drawRoadOrShip(g, hilight, player.getPlayerNumber(), true, true);
+                drawRoadOrShip(g, hilight, player.getPlayerNumber(), true, player.isLegalRoad(hilight));
             }
             break;
 
@@ -3732,7 +3740,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         case PLACE_INIT_ROAD:
         case CONSIDER_LM_ROAD:
         case CONSIDER_LT_ROAD:
-            expectedPtype = SOCPlayingPiece.ROAD;
+            expectedPtype = SOCPlayingPiece.ROAD;  // also will expect SHIP
             break;
 
         case PLACE_SETTLEMENT:
@@ -3760,7 +3768,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             expectedPtype = ptype;  // Not currently placing
         }
 
-        if (ptype == expectedPtype)
+        if ((ptype == expectedPtype)
+            || ((mode == PLACE_INIT_ROAD) && (ptype == SOCPlayingPiece.SHIP)))
         {
             mode = NONE;
             hilight = 0;
@@ -4273,6 +4282,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (tempChangedMode)
                         hoverTip.hideHoverAndPieces();
                 }
+                else if (player.isPotentialShip(hilight))
+                {
+                    client.putPiece(game, new SOCShip(player, hilight, board));
+
+                    // Now that we've placed, clear the mode and the hilight.
+                    clearModeAndHilight(SOCPlayingPiece.SHIP);
+                    if (tempChangedMode)
+                        hoverTip.hideHoverAndPieces();
+                }
 
                 break;
 
@@ -4463,7 +4481,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
 
         case PLACE_INIT_ROAD:
-            popupMenu.showBuild(x, y, hilight, 0, 0, 0);
+            // might be road or ship
+            {
+                final int hilightRoad =
+                    ((! game.hasSeaBoard) || player.isLegalRoad(hilight)) ? hilight : 0;
+                final int hilightShip =
+                    (game.hasSeaBoard && player.isLegalShip(hilight)) ? hilight : 0;
+                popupMenu.showBuild
+                    (x, y, hilightRoad, 0, 0, hilightShip);
+            }
             break;
             
         case PLACE_INIT_SETTLEMENT:
@@ -4471,7 +4497,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
             
         default:  // NONE, GAME_FORMING, PLACE_ROBBER, etc
-            popupMenu.showBuild(x, y, hoverTip.hoverRoadID, hoverTip.hoverSettlementID, hoverTip.hoverCityID, hoverTip.hoverShipID);
+
+            // Along coastline, can build either road or ship
+            final int hilightRoad, hilightShip;
+            if (game.hasSeaBoard &&
+                ((hoverTip.hoverRoadID != 0) || (hoverTip.hoverShipID != 0)))
+            {
+                int edge = hoverTip.hoverRoadID;
+                if (edge == 0)
+                    edge = hoverTip.hoverShipID;
+                hilightRoad =
+                    (player.isLegalRoad(edge)) ? edge : 0;
+                hilightShip =
+                    (player.isLegalShip(edge)) ? edge : 0;
+            } else {
+                hilightRoad = hoverTip.hoverRoadID;
+                hilightShip = 0;
+            }
+
+            popupMenu.showBuild(x, y, hilightRoad, hoverTip.hoverSettlementID, hoverTip.hoverCityID, hilightShip);
         }
     }
     
@@ -4985,6 +5029,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         /** hover road ID, or 0. Readonly please from outside this inner class. Drawn in {@link #paint(Graphics)}.
          *  value is -1 for a road at edge 0x00.
+         *<P>
+         *  If both <tt>hoverRoadID</tt> and {@link #hoverShipID} are non-zero, they must be the same coordinate,
+         *  never different non-zero values.
          */
         int hoverRoadID;
 
@@ -4993,6 +5040,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         /**
          * hover ship ID, or 0. Readonly please from outside this inner class. Drawn in {@link #paint(Graphics)}.
+         *<P>
+         *  If both {@link #hoverRoadID} and <tt>hoverShipID</tt> are non-zero, they must be the same coordinate,
+         *  never different non-zero values.
          * @since 1.2.00
          */
         int hoverShipID;
@@ -5781,7 +5831,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   buildSettleItem.setEnabled(false);
                   upgradeCityItem.setEnabled(false);
                   if (buildShipItem != null)
-                      buildShipItem.setEnabled(false);
+                      buildShipItem.setEnabled(hSh != 0);
                   if (! game.isDebugFreePlacement())
                   {
                       cancelBuildItem.setLabel("Cancel settlement");  // Initial settlement
