@@ -1670,7 +1670,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         // Check for placement states (board panel popup, build via right-click)
         if ((gs == SOCGame.PLACING_ROAD) || (gs == SOCGame.PLACING_SETTLEMENT)
-            || (gs == SOCGame.PLACING_CITY))
+            || (gs == SOCGame.PLACING_CITY) || (gs == SOCGame.PLACING_SHIP))
         {
             if (getBoardPanel().popupExpectingBuildRequest())
                 getBoardPanel().popupFireBuildingRequest();
