@@ -72,7 +72,6 @@ public class OpeningBuildStrategy {
         log.debug("--- planInitialSettlements");
 
         int[] rolls;
-        Enumeration hexes;  // Integers
         int speed;
         boolean allTheWay;
         firstSettlement = 0;
@@ -104,19 +103,10 @@ public class OpeningBuildStrategy {
                 
                 StringBuffer sb = new StringBuffer();
                 sb.append("numbers:[");
-                playerNumbers.clear();
-                probTotal = 0;
-                hexes = board.getAdjacentHexesToNode(firstNode).elements();
 
-                while (hexes.hasMoreElements())
-                {
-                    final int hex = ((Integer) hexes.nextElement()).intValue();
-                    final int number = board.getNumberOnHexFromCoord(hex);
-                    final int resource = board.getHexTypeFromCoord(hex);
-                    playerNumbers.addNumberForResource(number, resource, hex);
-                    probTotal += prob[number];
-                    sb.append(number + " ");
-                }
+                playerNumbers.clear();
+                probTotal = playerNumbers.updateNumbersAndProbability
+                    (firstNode, board, prob, sb);
 
                 sb.append("]");
                 log.debug(sb.toString());
@@ -180,32 +170,15 @@ public class OpeningBuildStrategy {
                          */
                         sb = new StringBuffer();
                         sb.append("numbers:[");
-                        playerNumbers.clear();
-                        probTotal = 0;
-                        hexes = board.getAdjacentHexesToNode(firstNode).elements();
 
-                        while (hexes.hasMoreElements())
-                        {
-                            final int hex = ((Integer) hexes.nextElement()).intValue();
-                            final int number = board.getNumberOnHexFromCoord(hex);
-                            final int resource = board.getHexTypeFromCoord(hex);
-                            playerNumbers.addNumberForResource(number, resource, hex);
-                            probTotal += prob[number];
-                            sb.append(number + " ");
-                        }
+                        playerNumbers.clear();
+                        probTotal = playerNumbers.updateNumbersAndProbability
+                            (firstNode, board, prob, sb);
 
                         sb.append("] [");
-                        hexes = board.getAdjacentHexesToNode(secondNode).elements();
 
-                        while (hexes.hasMoreElements())
-                        {
-                            final int hex = ((Integer) hexes.nextElement()).intValue();
-                            final int number = board.getNumberOnHexFromCoord(hex);
-                            final int resource = board.getHexTypeFromCoord(hex);
-                            playerNumbers.addNumberForResource(number, resource, hex);
-                            probTotal += prob[number];
-                            sb.append(number + " ");
-                        }
+                        probTotal += playerNumbers.updateNumbersAndProbability
+                            (secondNode, board, prob, sb);
 
                         sb.append("]");
                         log.debug(sb.toString());
@@ -473,31 +446,10 @@ public class OpeningBuildStrategy {
                 StringBuffer sb = new StringBuffer();
                 sb.append("numbers: ");
                 playerNumbers.clear();
-                probTotal = 0;
-
-                Enumeration hexes = board.getAdjacentHexesToNode(firstNode).elements();  // Integers
-
-                while (hexes.hasMoreElements())
-                {
-                    final int hex = ((Integer) hexes.nextElement()).intValue();
-                    final int number = board.getNumberOnHexFromCoord(hex);
-                    final int resource = board.getHexTypeFromCoord(hex);
-                    playerNumbers.addNumberForResource(number, resource, hex);
-                    probTotal += prob[number];
-                    sb.append(number + " ");
-                }
-
-                hexes = board.getAdjacentHexesToNode(secondNode).elements();
-
-                while (hexes.hasMoreElements())
-                {
-                    final int hex = ((Integer) hexes.nextElement()).intValue();
-                    final int number = board.getNumberOnHexFromCoord(hex);
-                    final int resource = board.getHexTypeFromCoord(hex);
-                    playerNumbers.addNumberForResource(number, resource, hex);
-                    probTotal += prob[number];
-                    sb.append(number + " ");
-                }
+                probTotal = playerNumbers.updateNumbersAndProbability
+                    (firstNode, board, prob, sb);
+                probTotal += playerNumbers.updateNumbersAndProbability
+                    (secondNode, board, prob, sb);
 
                 /**
                  * see if the settlements are on any ports

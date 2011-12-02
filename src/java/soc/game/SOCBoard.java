@@ -543,6 +543,7 @@ public class SOCBoard implements Serializable, Cloneable
      *  For coord mapping, see {@link #numToHexID}
      *<P>
      *  <tt>numberLayout</tt>[i] is the dice number for the land hex stored in {@link #hexLayout}[i].
+     *  The robber hex is 0.  Water hexes are -1.
      */
     private int[] numberLayout =    // TODO largerboard: assumes hexLayout.length == 37 (is valid for ORIGINAL, 6PLAYER encodings)
     {
@@ -2381,6 +2382,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Get the coordinates of the valid hexes adjacent to this node.
+     * These hexes may contain land or water.
      * @param coord  Node coordinate.  Is not checked for validity.
      * @return the coordinates (Integers) of the 1 to 3 hexes touching this node
      */

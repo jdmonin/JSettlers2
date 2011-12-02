@@ -1290,9 +1290,11 @@ public class SOCBoardLarge extends SOCBoard
 
 
     /**
-     * Get the coordinates of the valid hexes adjacent to this node.
-     * @param coord  Node coordinate.  Is not checked for validity.
+     * Get the coordinates of the hexes adjacent to this node.
+     * These hexes may contain land or water.
+     * @param nodeCoord  Node coordinate.  Is not checked for validity.
      * @return the coordinates (Integers) of the 1 to 3 hexes touching this node
+     *         within the boundaries (0, 0, boardHeight, boardWidth).
      */
     public Vector getAdjacentHexesToNode(final int nodeCoord)
     {

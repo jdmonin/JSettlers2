@@ -209,6 +209,8 @@ public class SOCPlayerNumbers
      *
      * @param nodeCoord   the node coordinate
      * @param board   the game board
+     *
+     * @see #updateNumbersAndProbability(int, SOCBoard, int[], StringBuffer)
      */
     public void updateNumbers(final int nodeCoord, SOCBoard board)
     {
@@ -221,6 +223,52 @@ public class SOCPlayerNumbers
             final int resource = board.getHexTypeFromCoord(hex);
             addNumberForResource(number, resource, hex);
         }
+    }
+
+    /**
+     * Update the numbers data, based on placing a settlement or upgrading to a city at a node,
+     * and total the probability for those dice numbers.
+     *<P>
+     * Given a node coordinate and a board, add numbers for this player to the list:
+     * Call {@link #addNumberForResource(int, int, int)} for each dice number and resource
+     * on the node's adjacent hexes.
+     * Hexes are ignored if their {@link SOCBoard#getNumberOnHexFromCoord(int)} &lt 1.
+     *
+     * @param nodeCoord   the settlement or city's node coordinate
+     * @param board   the game board
+     * @param numProb  probability factor for each dice number,
+     *           as integers between 0 and 100 (percentage).
+     *           <tt>numProb[i]</tt> is the percentage chance of rolling <tt>i</tt>.
+     * @param sb  if not null, a StringBuffer to append each adjacent dice number into for debugging
+     * @return Total probability, based on <tt>numProb</tt> for each adjacent dice number
+     * @since 1.2.00
+     * @see #updateNumbers(int, SOCBoard)
+     */
+    public int updateNumbersAndProbability
+        (final int nodeCoord, SOCBoard board, final int[] numProb, final StringBuffer sb)
+    {
+        int probTotal = 0;
+        Enumeration hexes = board.getAdjacentHexesToNode(nodeCoord).elements();
+
+        while (hexes.hasMoreElements())
+        {
+            final int hex = ((Integer) hexes.nextElement()).intValue();
+            final int number = board.getNumberOnHexFromCoord(hex);
+            if (number > 0)
+            {
+                final int resource = board.getHexTypeFromCoord(hex);
+                addNumberForResource(number, resource, hex);
+                probTotal += numProb[number];
+            }
+
+            if (sb != null)
+            {
+                sb.append(number);
+                sb.append(' ');
+            }
+        }
+
+        return probTotal;
     }
 
     /**
@@ -350,7 +398,8 @@ public class SOCPlayerNumbers
      * add a number to the list of dice numbers for a resource
      *
      * @param diceNum    the dice-roll number
-     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD};
+     *                   resources outside this range are ignored.
      * @param hex       the hex coordinate ID
      */
     public void addNumberForResource(final int diceNum, final int resource, final int hex)

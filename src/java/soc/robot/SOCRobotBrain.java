@@ -3415,7 +3415,6 @@ public class SOCRobotBrain extends Thread
         D.ebugPrintln("--- planInitialSettlements");
 
         int[] rolls;
-        Enumeration hexes;
         int speed;
         boolean allTheWay;
         firstSettlement = 0;
@@ -3444,22 +3443,11 @@ public class SOCRobotBrain extends Thread
                 //
                 D.ebugPrintln("FIRST NODE -----------");
                 D.ebugPrintln("firstNode = " + board.nodeCoordToString(firstNode));
-                D.ebugPrint("numbers:[");
+
                 playerNumbers.clear();
-                probTotal = 0;
-                hexes = board.getAdjacentHexesToNode(firstNode).elements();
+                probTotal = playerNumbers.updateNumbersAndProbability
+                    (firstNode, board, prob, null);
 
-                while (hexes.hasMoreElements())
-                {
-                    final int hex = ((Integer) hexes.nextElement()).intValue();
-                    final int number = board.getNumberOnHexFromCoord(hex);
-                    final int resource = board.getHexTypeFromCoord(hex);
-                    playerNumbers.addNumberForResource(number, resource, hex);
-                    probTotal += prob[number];
-                    D.ebugPrint(number + " ");
-                }
-
-                D.ebugPrintln("]");
                 D.ebugPrint("ports: ");
 
                 for (int portType = SOCBoard.MISC_PORT;
@@ -3515,35 +3503,11 @@ public class SOCRobotBrain extends Thread
                         /**
                          * get the numbers for these settlements
                          */
-                        D.ebugPrint("numbers:[");
                         playerNumbers.clear();
-                        probTotal = 0;
-                        hexes = board.getAdjacentHexesToNode(firstNode).elements();
-
-                        while (hexes.hasMoreElements())
-                        {
-                            final int hex = ((Integer) hexes.nextElement()).intValue();
-                            final int number = board.getNumberOnHexFromCoord(hex);
-                            final int resource = board.getHexTypeFromCoord(hex);
-                            playerNumbers.addNumberForResource(number, resource, hex);
-                            probTotal += prob[number];
-                            D.ebugPrint(number + " ");
-                        }
-
-                        D.ebugPrint("] [");
-                        hexes = board.getAdjacentHexesToNode(secondNode).elements();
-
-                        while (hexes.hasMoreElements())
-                        {
-                            final int hex = ((Integer) hexes.nextElement()).intValue();
-                            final int number = board.getNumberOnHexFromCoord(hex);
-                            final int resource = board.getHexTypeFromCoord(hex);
-                            playerNumbers.addNumberForResource(number, resource, hex);
-                            probTotal += prob[number];
-                            D.ebugPrint(number + " ");
-                        }
-
-                        D.ebugPrintln("]");
+                        probTotal = playerNumbers.updateNumbersAndProbability
+                            (firstNode, board, prob, null);
+                        probTotal += playerNumbers.updateNumbersAndProbability
+                            (secondNode, board, prob, null);
 
                         /**
                          * see if the settlements are on any ports
@@ -3801,33 +3765,11 @@ public class SOCRobotBrain extends Thread
                 /**
                  * get the numbers for these settlements
                  */
-                D.ebugPrint("numbers: ");
                 playerNumbers.clear();
-                probTotal = 0;
-
-                Enumeration hexes = board.getAdjacentHexesToNode(firstNode).elements();
-
-                while (hexes.hasMoreElements())
-                {
-                    final int hex = ((Integer) hexes.nextElement()).intValue();
-                    final int number = board.getNumberOnHexFromCoord(hex);
-                    final int resource = board.getHexTypeFromCoord(hex);
-                    playerNumbers.addNumberForResource(number, resource, hex);
-                    probTotal += prob[number];
-                    D.ebugPrint(number + " ");
-                }
-
-                hexes = board.getAdjacentHexesToNode(secondNode).elements();
-
-                while (hexes.hasMoreElements())
-                {
-                    final int hex = ((Integer) hexes.nextElement()).intValue();
-                    final int number = board.getNumberOnHexFromCoord(hex);
-                    final int resource = board.getHexTypeFromCoord(hex);
-                    playerNumbers.addNumberForResource(number, resource, hex);
-                    probTotal += prob[number];
-                    D.ebugPrint(number + " ");
-                }
+                probTotal = playerNumbers.updateNumbersAndProbability
+                    (firstNode, board, prob, null);
+                probTotal += playerNumbers.updateNumbersAndProbability
+                    (secondNode, board, prob, null);
 
                 /**
                  * see if the settlements are on any ports
