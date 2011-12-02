@@ -110,10 +110,10 @@ public class OpeningBuildStrategy {
 
                 while (hexes.hasMoreElements())
                 {
-                    Integer hex = (Integer) hexes.nextElement();
-                    int number = board.getNumberOnHexFromCoord(hex.intValue());
-                    int resource = board.getHexTypeFromCoord(hex.intValue());
-                    playerNumbers.addNumberForResource(number, resource, hex.intValue());
+                    final int hex = ((Integer) hexes.nextElement()).intValue();
+                    final int number = board.getNumberOnHexFromCoord(hex);
+                    final int resource = board.getHexTypeFromCoord(hex);
+                    playerNumbers.addNumberForResource(number, resource, hex);
                     probTotal += prob[number];
                     sb.append(number + " ");
                 }
@@ -186,10 +186,10 @@ public class OpeningBuildStrategy {
 
                         while (hexes.hasMoreElements())
                         {
-                            Integer hex = (Integer) hexes.nextElement();
-                            int number = board.getNumberOnHexFromCoord(hex.intValue());
-                            int resource = board.getHexTypeFromCoord(hex.intValue());
-                            playerNumbers.addNumberForResource(number, resource, hex.intValue());
+                            final int hex = ((Integer) hexes.nextElement()).intValue();
+                            final int number = board.getNumberOnHexFromCoord(hex);
+                            final int resource = board.getHexTypeFromCoord(hex);
+                            playerNumbers.addNumberForResource(number, resource, hex);
                             probTotal += prob[number];
                             sb.append(number + " ");
                         }
@@ -199,10 +199,10 @@ public class OpeningBuildStrategy {
 
                         while (hexes.hasMoreElements())
                         {
-                            Integer hex = (Integer) hexes.nextElement();
-                            int number = board.getNumberOnHexFromCoord(hex.intValue());
-                            int resource = board.getHexTypeFromCoord(hex.intValue());
-                            playerNumbers.addNumberForResource(number, resource, hex.intValue());
+                            final int hex = ((Integer) hexes.nextElement()).intValue();
+                            final int number = board.getNumberOnHexFromCoord(hex);
+                            final int resource = board.getHexTypeFromCoord(hex);
+                            playerNumbers.addNumberForResource(number, resource, hex);
                             probTotal += prob[number];
                             sb.append(number + " ");
                         }
@@ -316,9 +316,9 @@ public class OpeningBuildStrategy {
 
         while (hexes.hasMoreElements())
         {
-            int hex = ((Integer) hexes.nextElement()).intValue();
-            int number = board.getNumberOnHexFromCoord(hex);
-            int resource = board.getHexTypeFromCoord(hex);
+            final int hex = ((Integer) hexes.nextElement()).intValue();
+            final int number = board.getNumberOnHexFromCoord(hex);
+            final int resource = board.getHexTypeFromCoord(hex);
             playerNumbers.addNumberForResource(number, resource, hex);
         }
 
@@ -383,9 +383,9 @@ public class OpeningBuildStrategy {
 
         while (hexes.hasMoreElements())
         {
-            int hex = ((Integer) hexes.nextElement()).intValue();
-            int number = board.getNumberOnHexFromCoord(hex);
-            int resource = board.getHexTypeFromCoord(hex);
+            final int hex = ((Integer) hexes.nextElement()).intValue();
+            final int number = board.getNumberOnHexFromCoord(hex);
+            final int resource = board.getHexTypeFromCoord(hex);
             playerNumbers.addNumberForResource(number, resource, hex);
         }
 
@@ -496,8 +496,8 @@ public class OpeningBuildStrategy {
                 while (hexes.hasMoreElements())
                 {
                     final int hex = ((Integer) hexes.nextElement()).intValue();
-                    int number = board.getNumberOnHexFromCoord(hex);
-                    int resource = board.getHexTypeFromCoord(hex);
+                    final int number = board.getNumberOnHexFromCoord(hex);
+                    final int resource = board.getHexTypeFromCoord(hex);
                     playerNumbers.addNumberForResource(number, resource, hex);
                     probTotal += prob[number];
                     sb.append(number + " ");
@@ -508,8 +508,8 @@ public class OpeningBuildStrategy {
                 while (hexes.hasMoreElements())
                 {
                     final int hex = ((Integer) hexes.nextElement()).intValue();
-                    int number = board.getNumberOnHexFromCoord(hex);
-                    int resource = board.getHexTypeFromCoord(hex);
+                    final int number = board.getNumberOnHexFromCoord(hex);
+                    final int resource = board.getHexTypeFromCoord(hex);
                     playerNumbers.addNumberForResource(number, resource, hex);
                     probTotal += prob[number];
                     sb.append(number + " ");
@@ -766,17 +766,18 @@ public class OpeningBuildStrategy {
 
         while (cenum.hasMoreElements())
         {
-            Integer coord = (Integer) cenum.nextElement();
-            final int score = ((Integer) twoAway.get(coord)).intValue();
+            Integer coordInt = (Integer) cenum.nextElement();
+            final int coord = coordInt.intValue();
+            final int score = ((Integer) twoAway.get(coordInt)).intValue();
 
-            log.debug("Considering " + Integer.toHexString(coord.intValue()) + " with a score of " + score);
+            log.debug("Considering " + Integer.toHexString(coord) + " with a score of " + score);
 
-            if (dummy.isPotentialSettlement(coord.intValue()))
+            if (dummy.isPotentialSettlement(coord))
             {
                 if (bestNodePair.getScore() < score)
                 {
                     bestNodePair.setScore(score);
-                    bestNodePair.setNode(coord.intValue());
+                    bestNodePair.setNode(coord);
                 }
             }
             else
@@ -868,7 +869,7 @@ public class OpeningBuildStrategy {
         while (nodesInEnum.hasMoreElements())
         {
             Integer nodeCoord = (Integer) nodesInEnum.nextElement();
-            int node = nodeCoord.intValue();
+            final int node = nodeCoord.intValue();
             int score = 0;
             final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
 
@@ -876,7 +877,7 @@ public class OpeningBuildStrategy {
 
             while (nodeSetEnum.hasMoreElements())
             {
-                int target = ((Integer) nodeSetEnum.nextElement()).intValue();
+                final int target = ((Integer) nodeSetEnum.nextElement()).intValue();
 
                 if (node == target)
                 {
@@ -917,7 +918,7 @@ public class OpeningBuildStrategy {
         while (nodesInEnum.hasMoreElements())
         {
             Integer nodeCoord = (Integer) nodesInEnum.nextElement();
-            int node = nodeCoord.intValue();
+            final int node = nodeCoord.intValue();
             int score = 0;
             final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
 
@@ -925,7 +926,7 @@ public class OpeningBuildStrategy {
 
             while (nodeSetEnum.hasMoreElements())
             {
-                int target = ((Integer) nodeSetEnum.nextElement()).intValue();
+                final int target = ((Integer) nodeSetEnum.nextElement()).intValue();
 
                 if (node == target)
                 {
@@ -1015,7 +1016,7 @@ public class OpeningBuildStrategy {
 
             while (hexesEnum.hasMoreElements())
             {
-                int hex = ((Integer) hexesEnum.nextElement()).intValue();
+                final int hex = ((Integer) hexesEnum.nextElement()).intValue();
                 score += numRating[board.getNumberOnHexFromCoord(hex)];
 
                 //log.debug(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex)]);

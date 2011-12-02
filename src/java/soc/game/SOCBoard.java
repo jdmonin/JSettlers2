@@ -3203,8 +3203,8 @@ public class SOCBoard implements Serializable, Cloneable
         {
             return "(node 0x" + Integer.toHexString(node) + ")";
         }
-        Integer hex = (Integer) hexes.nextElement();
-        int number = getNumberOnHexFromCoord(hex.intValue());
+        int hex = ((Integer) hexes.nextElement()).intValue();
+        int number = getNumberOnHexFromCoord(hex);
 
         if (number == 0)
         {
@@ -3217,8 +3217,8 @@ public class SOCBoard implements Serializable, Cloneable
 
         while (hexes.hasMoreElements())
         {
-            hex = (Integer) hexes.nextElement();
-            number = getNumberOnHexFromCoord(hex.intValue());
+            hex = ((Integer) hexes.nextElement()).intValue();
+            number = getNumberOnHexFromCoord(hex);
 
             if (number == 0)
             {

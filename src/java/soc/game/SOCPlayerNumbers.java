@@ -194,15 +194,7 @@ public class SOCPlayerNumbers
      */
     public void updateNumbers(SOCPlayingPiece piece, SOCBoard board)
     {
-        Enumeration hexes = board.getAdjacentHexesToNode(piece.getCoordinates()).elements();
-
-        while (hexes.hasMoreElements())
-        {
-            Integer hex = (Integer) hexes.nextElement();
-            int number = board.getNumberOnHexFromCoord(hex.intValue());
-            int resource = board.getHexTypeFromCoord(hex.intValue());
-            addNumberForResource(number, resource, hex.intValue());
-        }
+        updateNumbers(piece.getCoordinates(), board);
     }
 
     /**
@@ -219,10 +211,10 @@ public class SOCPlayerNumbers
 
         while (hexes.hasMoreElements())
         {
-            final int hexCoord = ((Integer) hexes.nextElement()).intValue();
-            int number = board.getNumberOnHexFromCoord(hexCoord);
-            int resource = board.getHexTypeFromCoord(hexCoord);
-            addNumberForResource(number, resource, hexCoord);
+            final int hex = ((Integer) hexes.nextElement()).intValue();
+            final int number = board.getNumberOnHexFromCoord(hex);
+            final int resource = board.getHexTypeFromCoord(hex);
+            addNumberForResource(number, resource, hex);
         }
     }
 
@@ -391,15 +383,7 @@ public class SOCPlayerNumbers
      */
     public void undoUpdateNumbers(SOCPlayingPiece piece, SOCBoard board)
     {
-        Enumeration hexes = board.getAdjacentHexesToNode(piece.getCoordinates()).elements();
-
-        while (hexes.hasMoreElements())
-        {
-            Integer hex = (Integer) hexes.nextElement();
-            int number = board.getNumberOnHexFromCoord(hex.intValue());
-            int resource = board.getHexTypeFromCoord(hex.intValue());
-            undoAddNumberForResource(number, resource, hex.intValue());
-        }
+        undoUpdateNumbers(piece.getCoordinates(), board);
     }
 
     /**
@@ -410,16 +394,16 @@ public class SOCPlayerNumbers
      * @param coord   the node coordinate
      * @param board   the game board
      */
-    public void undoUpdateNumbers(int coord, SOCBoard board)
+    public void undoUpdateNumbers(final int coord, SOCBoard board)
     {
         Enumeration hexes = board.getAdjacentHexesToNode(coord).elements();
 
         while (hexes.hasMoreElements())
         {
-            Integer hex = (Integer) hexes.nextElement();
-            int number = board.getNumberOnHexFromCoord(hex.intValue());
-            int resource = board.getHexTypeFromCoord(hex.intValue());
-            undoAddNumberForResource(number, resource, hex.intValue());
+            final int hex = ((Integer) hexes.nextElement()).intValue();
+            final int number = board.getNumberOnHexFromCoord(hex);
+            final int resource = board.getHexTypeFromCoord(hex);
+            undoAddNumberForResource(number, resource, hex);
         }
     }
 

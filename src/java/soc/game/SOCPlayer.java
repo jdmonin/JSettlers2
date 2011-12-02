@@ -1316,9 +1316,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                     while (edgeEnum.hasMoreElements())
                     {
-                        Integer edge = (Integer) edgeEnum.nextElement();
+                        final int edge = ((Integer) edgeEnum.nextElement()).intValue();
 
-                        if (road.getCoordinates() == edge.intValue())
+                        if (road.getCoordinates() == edge)
                         {
                             updatePotentials(road);
                         }
@@ -1410,8 +1410,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             while (adjNodesEnum.hasMoreElements())
             {
-                Integer adjNode = (Integer) adjNodesEnum.nextElement();
-                undoPutPieceAuxSettlement(adjNode.intValue());
+                final int adjNode = ((Integer) adjNodesEnum.nextElement()).intValue();
+                undoPutPieceAuxSettlement(adjNode);
             }
 
             if (ours && (game.getGameState() == SOCGame.START2B))
@@ -1470,9 +1470,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             while (adjNodesEnum.hasMoreElements())
             {
-                Integer adjNode = (Integer) adjNodesEnum.nextElement();
+                final int adjNode = ((Integer) adjNodesEnum.nextElement()).intValue();
 
-                if (adjNode.intValue() == settlement.getCoordinates())
+                if (adjNode == settlement.getCoordinates())
                 {
                     haveNeighbor = true;
 
@@ -1498,9 +1498,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 while (adjNodesEnum.hasMoreElements())
                 {
-                    Integer adjNode = (Integer) adjNodesEnum.nextElement();
+                    final int adjNode = ((Integer) adjNodesEnum.nextElement()).intValue();
 
-                    if (adjNode.intValue() == city.getCoordinates())
+                    if (adjNode == city.getCoordinates())
                     {
                         haveNeighbor = true;
 
@@ -1553,9 +1553,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                             while (adjEdgesEnum.hasMoreElements())
                             {
-                                Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
+                                final int adjEdge = ((Integer) adjEdgesEnum.nextElement()).intValue();
 
-                                if (road.getCoordinates() == adjEdge.intValue())
+                                if (road.getCoordinates() == adjEdge)
                                 {
                                     //D.ebugPrintln("))) found adj road at "+Integer.toHexString(adjEdge.intValue()));
                                     adjRoad = true;
@@ -1626,7 +1626,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                     while (nodes.hasMoreElements())
                     {
-                        Integer node = (Integer) nodes.nextElement();
+                        final Integer node = (Integer) nodes.nextElement();
                         nodeCoords[i] = node.intValue();
                         i++;
 
@@ -1644,9 +1644,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                             while (adjEdgesEnum.hasMoreElements())
                             {
-                                Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
+                                final int adjEdge = ((Integer) adjEdgesEnum.nextElement()).intValue();
 
-                                if (adjEdge.intValue() == rd.getCoordinates())
+                                if (adjEdge == rd.getCoordinates())
                                 {
                                     match = true;
 
@@ -1777,11 +1777,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 {
                                     Enumeration adjAdjEdgesEnum = board.getAdjacentEdgesToNode(adjNode).elements();
 
-                                    while ((adjAdjEdgesEnum.hasMoreElements()) && (isPotentialRoad == false))
+                                    while ((adjAdjEdgesEnum.hasMoreElements()) && ! isPotentialRoad)
                                     {
-                                        Integer adjAdjEdge = (Integer) adjAdjEdgesEnum.nextElement();
+                                        final int adjAdjEdge = ((Integer) adjAdjEdgesEnum.nextElement()).intValue();
 
-                                        if (adjAdjEdge.intValue() != adjEdgeID)
+                                        if (adjAdjEdge != adjEdgeID)
                                         {
                                             Enumeration ourRoadsEnum = roads.elements();
 
@@ -1789,7 +1789,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                             {
                                                 SOCRoad ourRoad = (SOCRoad) ourRoadsEnum.nextElement();
 
-                                                if (ourRoad.getCoordinates() == adjAdjEdge.intValue())
+                                                if (ourRoad.getCoordinates() == adjAdjEdge)
                                                 {
                                                     /**
                                                      * we're still connected
@@ -2379,9 +2379,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         for (Enumeration e = roadNodes.elements(); e.hasMoreElements();)
         {
-            Integer roadNode = (Integer) e.nextElement();
-            int pathStartCoord = roadNode.intValue();
-            pending.push(new NodeLenVis(pathStartCoord, 0, new Vector()));
+            final int pathStartNodeCoord = ((Integer) e.nextElement()).intValue();
+            pending.push(new NodeLenVis(pathStartNodeCoord, 0, new Vector()));
 
             while (!pending.isEmpty())
             {
@@ -2538,7 +2537,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                     if (addNewPath)
                     {
-                        SOCLRPathData newPathData = new SOCLRPathData(pathStartCoord, coord, len, visited);
+                        SOCLRPathData newPathData = new SOCLRPathData(pathStartNodeCoord, coord, len, visited);
                         //D.ebugPrintln("ADDING PATH: " + newPathData);
                         lrPaths.addElement(newPathData);
                     }

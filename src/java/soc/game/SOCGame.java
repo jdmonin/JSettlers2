@@ -1858,9 +1858,9 @@ public class SOCGame implements Serializable, Cloneable
 
             while (hexes.hasMoreElements())
             {
-                Integer hex = (Integer) hexes.nextElement();
+                final int hexCoord = ((Integer) hexes.nextElement()).intValue();
 
-                switch (board.getHexTypeFromCoord(hex.intValue()))
+                switch (board.getHexTypeFromCoord(hexCoord))
                 {
                 case SOCBoard.CLAY_HEX:
                     resources.add(1, SOCResourceConstants.CLAY);
@@ -1930,7 +1930,7 @@ public class SOCGame implements Serializable, Cloneable
 
                 while (adjEdgeEnum.hasMoreElements())
                 {
-                    Integer adjEdge = (Integer) adjEdgeEnum.nextElement();
+                    final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
 
                     /**
                      * look for other player's roads adjacent to this node
@@ -1941,7 +1941,7 @@ public class SOCGame implements Serializable, Cloneable
                     {
                         SOCRoad road = (SOCRoad) allRoadsEnum.nextElement();
 
-                        if (adjEdge.intValue() == road.getCoordinates())
+                        if (adjEdge == road.getCoordinates())
                         {
                             roads[road.getPlayer().getPlayerNumber()]++;
                         }
@@ -2189,7 +2189,7 @@ public class SOCGame implements Serializable, Cloneable
 
                 while (adjEdgeEnum.hasMoreElements())
                 {
-                    Integer adjEdge = (Integer) adjEdgeEnum.nextElement();
+                    final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
 
                     /**
                      * look for other player's roads adjacent to this node
@@ -2200,7 +2200,7 @@ public class SOCGame implements Serializable, Cloneable
                     {
                         SOCRoad road = (SOCRoad) allRoadsEnum.nextElement();
 
-                        if (adjEdge.intValue() == road.getCoordinates())
+                        if (adjEdge == road.getCoordinates())
                         {
                             roads[road.getPlayer().getPlayerNumber()]++;
                         }

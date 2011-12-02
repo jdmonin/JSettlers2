@@ -1571,14 +1571,14 @@ public class SOCPlayerTracker
 
                 while (adjEdgeEnum.hasMoreElements())
                 {
-                    Integer adjEdge = (Integer) adjEdgeEnum.nextElement();
+                    final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
                     Enumeration realRoadEnum = player.getRoads().elements();
 
                     while (realRoadEnum.hasMoreElements())
                     {
                         SOCRoad realRoad = (SOCRoad) realRoadEnum.nextElement();
 
-                        if (adjEdge.intValue() == realRoad.getCoordinates())
+                        if (adjEdge == realRoad.getCoordinates())
                         {
                             /**
                              * found a supporting road, now find the node between
@@ -2147,9 +2147,9 @@ public class SOCPlayerTracker
 
             while (adjEdgeEnum.hasMoreElements())
             {
-                Integer adjEdge = (Integer) adjEdgeEnum.nextElement();
+                final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
 
-                if (dummy.isPotentialRoad(adjEdge.intValue()))
+                if (dummy.isPotentialRoad(adjEdge))
                 {
                     noMoreExpansion = false;
 
@@ -2181,11 +2181,11 @@ public class SOCPlayerTracker
 
             while (adjEdgeEnum.hasMoreElements())
             {
-                Integer adjEdge = (Integer) adjEdgeEnum.nextElement();
+                final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
 
-                if (dummy.isPotentialRoad(adjEdge.intValue()))
+                if (dummy.isPotentialRoad(adjEdge))
                 {
-                    SOCRoad newDummyRoad = new SOCRoad(dummy, adjEdge.intValue(), board);
+                    SOCRoad newDummyRoad = new SOCRoad(dummy, adjEdge, board);
                     dummy.putPiece(newDummyRoad);
                     updateLRPotential(posRoad, dummy, newDummyRoad, lrLength, level - 1);
                     dummy.removePiece(newDummyRoad);
