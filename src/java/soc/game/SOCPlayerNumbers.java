@@ -52,7 +52,8 @@ public class SOCPlayerNumbers
      * Hex dice-roll resource information, by land-hex coordinate ID.
      * Key = Integer hexCoord; value = Vector.
      * Each hex coordinate's vector contains 0 or more {@link IntPair}(diceNum, resource).
-     * Until {@link #addNumberForResource(int, int, int)} is called,
+     * Until {@link #addNumberForResource(int, int, int)} or
+     * {@link #updateNumbers(int, SOCBoard)} is called,
      * any land hex's entry in this hashtable may be null.
      */
     private Hashtable numberAndResourceForHex;
@@ -185,11 +186,13 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * update the numbers data
+     * Update the numbers data, based on placing a settlement or upgrading to a city at a node.
+     *<P>
+     * Given a piece and a board, add numbers for this player to the list:
+     * Call {@link #addNumberForResource(int, int, int)} for each dice number and resource
+     * on the piece node's adjacent hexes.
      *
-     * given a piece and a board, add numbers for this player to the list
-     *
-     * @param piece   the playing piece
+     * @param piece   the playing piece, used only for its node coordinate
      * @param board   the game board
      */
     public void updateNumbers(SOCPlayingPiece piece, SOCBoard board)
@@ -198,9 +201,11 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * update the numbers data, based on placing a settlement or upgrading at a node.
-     *
-     * given a node coordinate and a board, add numbers for this player to the list
+     * update the numbers data, based on placing a settlement or upgrading to a city at a node.
+     *<P>
+     * Given a node coordinate and a board, add numbers for this player to the list:
+     * Call {@link #addNumberForResource(int, int, int)} for each dice number and resource
+     * on the node's adjacent hexes.
      *
      * @param nodeCoord   the node coordinate
      * @param board   the game board

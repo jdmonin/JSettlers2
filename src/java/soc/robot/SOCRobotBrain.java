@@ -3644,15 +3644,7 @@ public class SOCRobotBrain extends Thread
          * choose which settlement to place first
          */
         playerNumbers.clear();
-        hexes = board.getAdjacentHexesToNode(firstSettlement).elements();
-
-        while (hexes.hasMoreElements())
-        {
-            final int hex = ((Integer) hexes.nextElement()).intValue();
-            final int number = board.getNumberOnHexFromCoord(hex);
-            final int resource = board.getHexTypeFromCoord(hex);
-            playerNumbers.addNumberForResource(number, resource, hex);
-        }
+        playerNumbers.updateNumbers(firstSettlement, board);
 
         Integer firstSettlementInt = new Integer(firstSettlement);
 
@@ -3711,15 +3703,7 @@ public class SOCRobotBrain extends Thread
         }
 
         playerNumbers.clear();
-        hexes = board.getAdjacentHexesToNode(secondSettlement).elements();
-
-        while (hexes.hasMoreElements())
-        {
-            final int hex = ((Integer) hexes.nextElement()).intValue();
-            final int number = board.getNumberOnHexFromCoord(hex);
-            final int resource = board.getHexTypeFromCoord(hex);
-            playerNumbers.addNumberForResource(number, resource, hex);
-        }
+        playerNumbers.updateNumbers(secondSettlement, board);
 
         Integer secondSettlementInt = new Integer(secondSettlement);
 

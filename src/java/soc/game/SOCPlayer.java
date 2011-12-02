@@ -1128,7 +1128,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 buildingVP += 2;
 
                 /**
-                 * update what numbers we're touching
+                 * update what numbers we're touching;
                  * a city counts as touching a number twice
                  */
                 ourNumbers.updateNumbers(piece, board);
