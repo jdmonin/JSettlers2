@@ -173,14 +173,23 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_SETTLEMENT = 31;
     public static final int PLACING_CITY = 32;
     public static final int PLACING_ROBBER = 33;
+
     /**
      * This game {@link #hasSeaBoard}, and a player has bought and is placing a ship.
      * @since 1.2.00
      */
     public static final int PLACING_SHIP = 34;
 
-    public static final int PLACING_FREE_ROAD1 = 40; // Player is placing first road
-    public static final int PLACING_FREE_ROAD2 = 41; // Player is placing second road
+    /**
+     * Player is placing first free road/ship
+     */
+    public static final int PLACING_FREE_ROAD1 = 40;
+
+    /**
+     * Player is placing second free road/ship
+     */
+    public static final int PLACING_FREE_ROAD2 = 41;
+
     public static final int WAITING_FOR_DISCARDS = 50; // Waiting for players to discard
     public static final int WAITING_FOR_CHOICE = 51; // Waiting for player to choose a player
     public static final int WAITING_FOR_DISCOVERY = 52; // Waiting for player to choose 2 resources
@@ -4039,17 +4048,20 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        if (players[pn].hasPlayedDevCard())
+        final SOCPlayer player = players[pn];
+
+        if (player.hasPlayedDevCard())
         {
             return false;
         }
 
-        if (players[pn].getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) == 0)
+        if (player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) == 0)
         {
             return false;
         }
 
-        if (players[pn].getNumPieces(SOCPlayingPiece.ROAD) < 1)
+        if ((player.getNumPieces(SOCPlayingPiece.ROAD) < 1)
+             && (player.getNumPieces(SOCPlayingPiece.SHIP) < 1))
         {
             return false;
         }
@@ -4126,10 +4138,10 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * The current player plays a Road Building card.
-     * This card directs the player to place 2 roads.
+     * This card directs the player to place 2 roads or ships.
      * Checks of game rules online show "MAY" or "CAN", not "MUST" place 2.
-     * If they have 2 or more roads, may place 2; gameState becomes PLACING_FREE_ROAD1.
-     * If they have just 1 road, may place that; gameState becomes PLACING_FREE_ROAD2.
+     * If they have 2 or more roads or ships, may place 2; gameState becomes PLACING_FREE_ROAD1.
+     * If they have just 1 road/ship, may place that; gameState becomes PLACING_FREE_ROAD2.
      * If they have 0 roads, cannot play the card.
      * Assumes {@link #canPlayRoadBuilding(int)} has already been called, and move is valid.
      */
@@ -4137,10 +4149,14 @@ public class SOCGame implements Serializable, Cloneable
     {
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        players[currentPlayerNumber].setPlayedDevCard(true);
-        players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
+        final SOCPlayer player = players[currentPlayerNumber];
+        player.setPlayedDevCard(true);
+        player.getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
         oldGameState = gameState;
-        if (players[currentPlayerNumber].getNumPieces(SOCPlayingPiece.ROAD) > 1)
+
+        final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
+            + player.getNumPieces(SOCPlayingPiece.SHIP);
+        if (roadShipCount > 1)
         {
             gameState = PLACING_FREE_ROAD1;  // First of 2 free roads
         } else {

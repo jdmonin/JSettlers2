@@ -296,6 +296,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * If a mode is added, please also update {@link #clearModeAndHilight(int)}.
      */
     public final static int NONE = 0;
+    /**
+     * Place a road, or place a free road when not {@link #isLargeBoard}.
+     * @see #PLACE_FREE_ROAD_OR_SHIP
+     */
     public final static int PLACE_ROAD = 1;
     public final static int PLACE_SETTLEMENT = 2;
     public final static int PLACE_CITY = 3;
@@ -311,6 +315,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public final static int CONSIDER_LT_CITY = 12;
     /** Place a ship on the large sea board. @since 1.2.00 */
     public final static int PLACE_SHIP = 13;
+    /**
+     * Place a free road or ship on the large sea board.
+     * If not {@link #isLargeBoard}, use {@link #PLACE_ROAD} instead.
+     * @since 1.2.00
+     */
+    public final static int PLACE_FREE_ROAD_OR_SHIP = 14;
     public final static int TURN_STARTING = 97;
     public final static int GAME_FORMING = 98;
     public final static int GAME_OVER = 99;
@@ -2977,6 +2987,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
         case PLACE_ROAD:
         case PLACE_INIT_ROAD:
+        case PLACE_FREE_ROAD_OR_SHIP:
 
             if (hilight != 0)
             {
@@ -3614,10 +3625,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     break;
 
                 case SOCGame.PLACING_ROAD:
+                    mode = PLACE_ROAD;
+                    break;
+
                 case SOCGame.PLACING_FREE_ROAD1:
                 case SOCGame.PLACING_FREE_ROAD2:
-                    mode = PLACE_ROAD;
-
+                    if (isLargeBoard)
+                        mode = PLACE_FREE_ROAD_OR_SHIP;
+                    else
+                        mode = PLACE_ROAD;
                     break;
 
                 case SOCGame.PLACING_SETTLEMENT:
@@ -3738,6 +3754,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
         case PLACE_ROAD:
         case PLACE_INIT_ROAD:
+        case PLACE_FREE_ROAD_OR_SHIP:
         case CONSIDER_LM_ROAD:
         case CONSIDER_LT_ROAD:
             expectedPtype = SOCPlayingPiece.ROAD;  // also will expect SHIP
@@ -3769,7 +3786,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         if ((ptype == expectedPtype)
-            || ((mode == PLACE_INIT_ROAD) && (ptype == SOCPlayingPiece.SHIP)))
+            || (  ((mode == PLACE_INIT_ROAD) || (mode == PLACE_FREE_ROAD_OR_SHIP))
+                  && (ptype == SOCPlayingPiece.SHIP)  ))
         {
             mode = NONE;
             hilight = 0;
@@ -3966,6 +3984,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
 
         case PLACE_ROAD:
+        case PLACE_FREE_ROAD_OR_SHIP:
 
             /**** Code for finding an edge; see also PLACE_SHIP ********/
             edgeNum = 0;
@@ -3978,7 +3997,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (edgeNum != 0)
                 {
-                    if ((player == null) || !player.isPotentialRoad(edgeNum))
+                    if ((player == null) ||
+                        ! (player.isPotentialRoad(edgeNum)
+                           || ((mode == PLACE_FREE_ROAD_OR_SHIP) && player.isPotentialShip(edgeNum))))
                         edgeNum = 0;
                 }
 
@@ -4270,6 +4291,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             case PLACE_INIT_ROAD:
             case PLACE_ROAD:
+            case PLACE_FREE_ROAD_OR_SHIP:
 
                 if (hilight == -1)
                     hilight = 0;  // Road on edge 0x00
@@ -4481,6 +4503,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
 
         case PLACE_INIT_ROAD:
+        case PLACE_FREE_ROAD_OR_SHIP:
             // might be road or ship
             {
                 final int hilightRoad =
@@ -5016,7 +5039,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         private String hoverText;
 
         /** Uses board mode constants: Will be {@link SOCBoardPanel#NONE NONE},
-         *  {@link SOCBoardPanel#PLACE_ROAD PLACE_ROAD}, PLACE_SETTLEMENT,
+         *  {@link SOCBoardPanel#PLACE_ROAD PLACE_ROAD}, PLACE_SHIP, PLACE_SETTLEMENT,
          *  PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
          */
         private int hoverMode;

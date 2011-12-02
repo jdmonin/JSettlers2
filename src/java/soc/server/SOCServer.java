@@ -6672,11 +6672,17 @@ public class SOCServer extends Server
                                 sendGameState(ga);
                                 if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
                                 {
-                                    messageToPlayer(c, gaName, "You may place 2 roads.");
+                                    if (ga.hasSeaBoard)
+                                        messageToPlayer(c, gaName, "You may place 2 roads/ships.");
+                                    else
+                                        messageToPlayer(c, gaName, "You may place 2 roads.");
                                 }
                                 else
                                 {
-                                    messageToPlayer(c, gaName, "You may place your 1 remaining road.");
+                                    if (ga.hasSeaBoard)
+                                        messageToPlayer(c, gaName, "You may place your 1 remaining road or ship.");
+                                    else
+                                        messageToPlayer(c, gaName, "You may place your 1 remaining road.");
                                 }
                             }
                             else
