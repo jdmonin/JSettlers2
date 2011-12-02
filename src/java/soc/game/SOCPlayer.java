@@ -1288,10 +1288,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 // make it a legal space again
                 //
+                final boolean isCoastline = game.hasSeaBoard
+                    && ((SOCBoardLarge) board).isEdgeCoastline(pieceCoord);
                 if (piece.getType() == SOCPlayingPiece.ROAD)
+                {
                     legalRoads.add(pieceCoordInt);
-                else
+                    if (isCoastline)
+                        legalShips.add(pieceCoordInt);
+                } else {
                     legalShips.add(pieceCoordInt);
+                    if (isCoastline)
+                        legalRoads.add(pieceCoordInt);
+                }
 
                 //
                 // call updatePotentials
@@ -1694,18 +1702,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     }
 
                     /**
-                     * update the potential places to build roads
+                     * update the potential places to build roads/ships.
                      *
-                     * NOTE: we're assuming that we could build a road here
-                     * before, so we can make it a legal spot again
+                     * NOTE: we're assuming that we could build it here
+                     * before, so we can make it a legal spot again.
                      */
+                    final boolean isCoastline = game.hasSeaBoard
+                        && ((SOCBoardLarge) board).isEdgeCoastline(pieceCoord);
                     if (ptype == SOCPlayingPiece.ROAD)
                     {
                         potentialRoads.add(pieceCoordInt);
                         legalRoads.add(pieceCoordInt);
+                        if (isCoastline)
+                        {
+                            potentialShips.add(pieceCoordInt);
+                            legalShips.add(pieceCoordInt);
+                        }
                     } else {
                         potentialShips.add(pieceCoordInt);
-                        legalShips.add(pieceCoordInt);                        
+                        legalShips.add(pieceCoordInt);
+                        if (isCoastline)
+                        {
+                            potentialRoads.add(pieceCoordInt);
+                            legalRoads.add(pieceCoordInt);
+                        }
                     }
 
                     /**
@@ -1853,15 +1873,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         case SOCPlayingPiece.SHIP: // fall through to ROAD
         case SOCPlayingPiece.ROAD:
 
-            // remove non-potentials
-            if (ptype == SOCPlayingPiece.ROAD)
-            {
-                potentialRoads.remove(idInt);
-                legalRoads.remove(idInt);
-            } else {
-                potentialShips.remove(idInt);
-                legalShips.remove(idInt);                
-            }
+            // remove non-potentials;
+            // if not in that set, does nothing
+            potentialRoads.remove(idInt);
+            legalRoads.remove(idInt);
+
+            potentialShips.remove(idInt);
+            legalShips.remove(idInt);                
 
             if (ours)
             {

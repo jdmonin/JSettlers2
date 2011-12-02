@@ -555,15 +555,14 @@ public class SOCBoardLarge extends SOCBoard
                     // Ensure it doesn't cross water
                     boolean hasLand = false;
                     final int[] hexes = getAdjacentHexesToEdge_arr(edge);
-                    if ((hexes[0] != 0)
-                        && (getHexTypeFromCoord(hexes[0]) <= MAX_LAND_HEX))
+                    for (int i = 0; i <= 1; ++i)
                     {
-                        hasLand = true;
-                    }
-                    else if ((hexes[1] != 0)
-                        && (getHexTypeFromCoord(hexes[1]) <= MAX_LAND_HEX))
-                    {
-                        hasLand = true;
+                        if ((hexes[i] != 0)
+                            && (getHexTypeFromCoord(hexes[i]) <= MAX_LAND_HEX))
+                        {
+                            hasLand = true;
+                            break;
+                        }
                     }
 
                     // OK to add
@@ -727,6 +726,29 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         return -1;
+    }
+
+    /**
+     * Is this edge along the coastline (land/water border)?
+     * @param edge  Edge coordinate, not checked for validity
+     * @return  true if this edge's hexes are land and water,
+     *           or a land hex at the edge of the board 
+     */
+    public final boolean isEdgeCoastline(final int edge)
+    {
+        boolean hasLand = false, hasWater = false;
+        final int[] hexes = getAdjacentHexesToEdge_arr(edge);
+
+        for (int i = 0; i <= 1; ++i)
+        {
+            if ((hexes[i] != 0)
+                && (getHexTypeFromCoord(hexes[i]) <= MAX_LAND_HEX))
+                hasLand = true;
+            else
+                hasWater = true;  // treat off-board as water
+        }
+
+        return (hasLand && hasWater);
     }
 
     /**

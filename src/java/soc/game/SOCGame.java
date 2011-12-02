@@ -476,6 +476,7 @@ public class SOCGame implements Serializable, Cloneable
      * Is this game played on the {@link SOCBoardLarge} large board / sea board?
      * If true, our board's {@link SOCBoard#getBoardEncodingFormat()}
      * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
+     * When <tt>hasSeaBoard</tt>, {@link #getBoard()} can be cast to {@link SOCBoardLarge}.
      * @since 1.2.00
      */
     public final boolean hasSeaBoard;
@@ -1259,6 +1260,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the game board.
+     * When {@link #hasSeaBoard}, <tt>getBoard()</tt> can be cast to {@link SOCBoardLarge}.
      * @return the game board
      */
     public SOCBoard getBoard()
