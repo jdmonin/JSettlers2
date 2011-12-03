@@ -2991,7 +2991,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight != 0)
             {
-                drawRoadOrShip(g, hilight, player.getPlayerNumber(), true, player.isLegalRoad(hilight));
+                drawRoadOrShip(g, hilight, playerNumber, true, player.isLegalRoad(hilight));
             }
             break;
 
@@ -3000,7 +3000,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawSettlement(g, hilight, player.getPlayerNumber(), true);
+                drawSettlement(g, hilight, playerNumber, true);
             }
             break;
 
@@ -3008,7 +3008,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawCity(g, hilight, player.getPlayerNumber(), true);
+                drawCity(g, hilight, playerNumber, true);
             }
             break;
 
@@ -3016,7 +3016,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawRoadOrShip(g, hilight, player.getPlayerNumber(), true, false);
+                drawRoadOrShip(g, hilight, playerNumber, true, false);
             }
             break;
 
@@ -3608,7 +3608,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     mode = NONE;
                 }
             }
-            else if (cpn == player.getPlayerNumber())
+            else if (cpn == playerNumber)
             {
                 switch (game.getGameState())
                 {
@@ -4317,7 +4317,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             case PLACE_INIT_SETTLEMENT:
-                if (player.getPlayerNumber() == playerInterface.getClientPlayerNumber())
+                if (playerNumber == playerInterface.getClientPlayerNumber())
                 {
                     initstlmt = hilight;
                 }
@@ -4454,7 +4454,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
         }
         else if ((player != null)
-                 && ((game.getCurrentPlayerNumber() == player.getPlayerNumber()))
+                 && ((game.getCurrentPlayerNumber() == playerNumber))
                      || game.isDebugFreePlacement())
         {
             // No hilight. But, they clicked the board, expecting something.
