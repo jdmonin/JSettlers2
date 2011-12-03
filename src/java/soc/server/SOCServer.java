@@ -4892,6 +4892,8 @@ public class SOCServer extends Server
 
                 final int gameState = ga.getGameState();
                 final int coord = mes.getCoordinates();
+                final int pn = player.getPlayerNumber();
+
                 switch (mes.getPieceType())
                 {
                 case SOCPlayingPiece.ROAD:
@@ -4919,7 +4921,7 @@ public class SOCServer extends Server
                              */
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a road."));
-                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.ROAD, coord));
+                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
                             gameList.releaseMonitorForGame(gaName);
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);
@@ -4935,13 +4937,13 @@ public class SOCServer extends Server
                                 // announce even though player unchanged,
                                 // to trigger auto-roll for the player.
                                 // If the client is too old (1.0.6), it will ignore the prompt.
-                                messageToGame(gaName, new SOCRollDicePrompt (gaName, player.getPlayerNumber()));
+                                messageToGame(gaName, new SOCRollDicePrompt (gaName, pn));
                             }
                         }
                         else
                         {
                             D.ebugPrintln("ILLEGAL ROAD: 0x" + Integer.toHexString(coord)
-                                + ": player " + player.getPlayerNumber());
+                                + ": player " + pn);
                             messageToPlayer(c, gaName, "You can't build a road there.");
                             sendDenyReply = true;
                         }
@@ -4964,7 +4966,7 @@ public class SOCServer extends Server
                             ga.putPiece(se);   // Changes game state and (if game start) player
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a settlement."));
-                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.SETTLEMENT, coord));
+                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
                             sendGameState(ga);
@@ -4977,7 +4979,7 @@ public class SOCServer extends Server
                         else
                         {
                             D.ebugPrintln("ILLEGAL SETTLEMENT: 0x" + Integer.toHexString(coord)
-                                + ": player " + player.getPlayerNumber());
+                                + ": player " + pn);
                             messageToPlayer(c, gaName, "You can't build a settlement there.");
                             sendDenyReply = true;
                         }
@@ -5000,7 +5002,7 @@ public class SOCServer extends Server
                             ga.putPiece(ci);  // changes game state and maybe player
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a city."));
-                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.CITY, coord));
+                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
                             sendGameState(ga);
@@ -5013,7 +5015,7 @@ public class SOCServer extends Server
                         else
                         {
                             D.ebugPrintln("ILLEGAL CITY: 0x" + Integer.toHexString(coord)
-                                + ": player " + player.getPlayerNumber());
+                                + ": player " + pn);
                             messageToPlayer(c, gaName, "You can't build a city there.");
                             sendDenyReply = true;
                         }
@@ -5037,7 +5039,7 @@ public class SOCServer extends Server
 
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a ship."));
-                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, player.getPlayerNumber(), SOCPlayingPiece.SHIP, coord));
+                            messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
                             gameList.releaseMonitorForGame(gaName);
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);
@@ -5053,13 +5055,13 @@ public class SOCServer extends Server
                                 // announce even though player unchanged,
                                 // to trigger auto-roll for the player.
                                 // If the client is too old (1.0.6), it will ignore the prompt.
-                                messageToGame(gaName, new SOCRollDicePrompt (gaName, player.getPlayerNumber()));
+                                messageToGame(gaName, new SOCRollDicePrompt (gaName, pn));
                             }
                         }
                         else
                         {
                             D.ebugPrintln("ILLEGAL SHIP: 0x" + Integer.toHexString(coord)
-                                + ": player " + player.getPlayerNumber());
+                                + ": player " + pn);
                             messageToPlayer(c, gaName, "You can't build a ship there.");
                             sendDenyReply = true;
                         }
@@ -6431,7 +6433,8 @@ public class SOCServer extends Server
                     final String gaName = ga.getName();
                     if (checkTurn(c, ga))
                     {
-                        SOCPlayer player = ga.getPlayer((String) c.getData());
+                        final SOCPlayer player = ga.getPlayer((String) c.getData());
+                        final int pn = player.getPlayerNumber();
 
                         switch (mes.getPieceType())
                         {
@@ -6439,9 +6442,9 @@ public class SOCServer extends Server
 
                             if (ga.getGameState() == SOCGame.PLACING_ROAD)
                             {
-                                ga.cancelBuildRoad(player.getPlayerNumber());
-                                messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
-                                messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                ga.cancelBuildRoad(pn);
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                                 sendGameState(ga);
                             }
                             else
@@ -6455,12 +6458,12 @@ public class SOCServer extends Server
 
                             if (ga.getGameState() == SOCGame.PLACING_SETTLEMENT)
                             {
-                                ga.cancelBuildSettlement(player.getPlayerNumber());
+                                ga.cancelBuildSettlement(pn);
                                 gameList.takeMonitorForGame(gaName);
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1));
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                                 gameList.releaseMonitorForGame(gaName);
                                 sendGameState(ga);
                             }
@@ -6484,9 +6487,9 @@ public class SOCServer extends Server
 
                             if (ga.getGameState() == SOCGame.PLACING_CITY)
                             {
-                                ga.cancelBuildCity(player.getPlayerNumber());
-                                messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
-                                messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
+                                ga.cancelBuildCity(pn);
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
                                 sendGameState(ga);
                             }
                             else
@@ -6634,20 +6637,21 @@ public class SOCServer extends Server
                     final String gaName = ga.getName();
                     if (checkTurn(c, ga))
                     {
-                        SOCPlayer player = ga.getPlayer((String) c.getData());
+                        final SOCPlayer player = ga.getPlayer((String) c.getData());
+                        final int pn = player.getPlayerNumber();
 
                         switch (mes.getDevCard())
                         {
                         case SOCDevCardConstants.KNIGHT:
 
-                            if (ga.canPlayKnight(player.getPlayerNumber()))
+                            if (ga.canPlayKnight(pn))
                             {
                                 ga.playKnight();
                                 gameList.takeMonitorForGame(gaName);
                                 messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Soldier card."));
-                                messageToGameWithMon(gaName, new SOCDevCard(gaName, player.getPlayerNumber(), SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
-                                messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, player.getPlayerNumber(), true));
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.NUMKNIGHTS, 1));
+                                messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
+                                messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.NUMKNIGHTS, 1));
                                 gameList.releaseMonitorForGame(gaName);
                                 broadcastGameStats(ga);
                                 sendGameState(ga);
@@ -6661,12 +6665,12 @@ public class SOCServer extends Server
 
                         case SOCDevCardConstants.ROADS:
 
-                            if (ga.canPlayRoadBuilding(player.getPlayerNumber()))
+                            if (ga.canPlayRoadBuilding(pn))
                             {
                                 ga.playRoadBuilding();
                                 gameList.takeMonitorForGame(gaName);
-                                messageToGameWithMon(gaName, new SOCDevCard(gaName, player.getPlayerNumber(), SOCDevCard.PLAY, SOCDevCardConstants.ROADS));
-                                messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, player.getPlayerNumber(), true));
+                                messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.ROADS));
+                                messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                                 messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Road Building card."));
                                 gameList.releaseMonitorForGame(gaName);
                                 sendGameState(ga);
@@ -6694,12 +6698,12 @@ public class SOCServer extends Server
 
                         case SOCDevCardConstants.DISC:
 
-                            if (ga.canPlayDiscovery(player.getPlayerNumber()))
+                            if (ga.canPlayDiscovery(pn))
                             {
                                 ga.playDiscovery();
                                 gameList.takeMonitorForGame(gaName);
-                                messageToGameWithMon(gaName, new SOCDevCard(gaName, player.getPlayerNumber(), SOCDevCard.PLAY, SOCDevCardConstants.DISC));
-                                messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, player.getPlayerNumber(), true));
+                                messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.DISC));
+                                messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                                 messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Year of Plenty card."));
                                 gameList.releaseMonitorForGame(gaName);
                                 sendGameState(ga);
@@ -6713,12 +6717,12 @@ public class SOCServer extends Server
 
                         case SOCDevCardConstants.MONO:
 
-                            if (ga.canPlayMonopoly(player.getPlayerNumber()))
+                            if (ga.canPlayMonopoly(pn))
                             {
                                 ga.playMonopoly();
                                 gameList.takeMonitorForGame(gaName);
-                                messageToGameWithMon(gaName, new SOCDevCard(gaName, player.getPlayerNumber(), SOCDevCard.PLAY, SOCDevCardConstants.MONO));
-                                messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, player.getPlayerNumber(), true));
+                                messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.MONO));
+                                messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                                 messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Monopoly card."));
                                 gameList.releaseMonitorForGame(gaName);
                                 sendGameState(ga);

@@ -60,18 +60,19 @@ public class RobberStrategy {
        while (trackersIter.hasNext())
        {
            SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
-           log.debug("%%%%%%%%% TRACKER FOR PLAYER " + tracker.getPlayer().getPlayerNumber());
+           final int trackerPN = tracker.getPlayer().getPlayerNumber();
+           log.debug("%%%%%%%%% TRACKER FOR PLAYER " + trackerPN);
 
            try
            {
                tracker.recalcWinGameETA();
-               winGameETAs[tracker.getPlayer().getPlayerNumber()] = tracker.getWinGameETA();
+               winGameETAs[trackerPN] = tracker.getWinGameETA();
                log.debug("winGameETA = " + tracker.getWinGameETA());
            }
            catch (NullPointerException e)
            {
                log.debug("Null Pointer Exception calculating winGameETA");
-               winGameETAs[tracker.getPlayer().getPlayerNumber()] = 500;
+               winGameETAs[trackerPN] = 500;
            }
        }
 

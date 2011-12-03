@@ -1703,9 +1703,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         // React if we are current player
         if (clientHand != null)
-        {            
-            SOCPlayer ourPlayerData = clientHand.getPlayer();
-            if (ourPlayerData.getPlayerNumber() == game.getCurrentPlayerNumber())
+        {
+            if (clientHandPlayerNum == game.getCurrentPlayerNumber())
             {
                 if (gs == SOCGame.WAITING_FOR_DISCOVERY)
                 {
