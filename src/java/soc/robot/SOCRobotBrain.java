@@ -141,9 +141,16 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Our player data
+     * Set in {@link #setOurPlayerData()}
      */
     protected SOCPlayer ourPlayerData;
-    
+
+    /**
+     * Our player number; set in {@link #setOurPlayerData()}.
+     * @since 1.2.00
+     */
+    private int ourPlayerNumber;
+
     /**
      * Dummy player for cancelling bad placements
      */
@@ -478,6 +485,8 @@ public class SOCRobotBrain extends Thread
      * Depending on {@link SOCGame#getGameOptions() game options},
      * constructor might copy and alter the robot parameters
      * (for example, to clear {@link SOCRobotParameters#getTradeFlag()}).
+     *<P>
+     * Please call {@link #setOurPlayerData()} before using this brain or starting its thread.
      *
      * @param rc  the robot client
      * @param params  the robot parameters
@@ -699,13 +708,13 @@ public class SOCRobotBrain extends Thread
     {
         ourPlayerData = game.getPlayer(client.getNickname());
         ourPlayerTracker = new SOCPlayerTracker(ourPlayerData, this);
-        int opn = ourPlayerData.getPlayerNumber();
+        ourPlayerNumber = ourPlayerData.getPlayerNumber();
         playerTrackers = new HashMap();
-        playerTrackers.put(new Integer(opn), ourPlayerTracker);
+        playerTrackers.put(new Integer(ourPlayerNumber), ourPlayerTracker);
 
         for (int pn = 0; pn < game.maxPlayers; pn++)
         {
-            if ((pn != opn) && ! game.isSeatVacant(pn))
+            if ((pn != ourPlayerNumber) && ! game.isSeatVacant(pn))
             {
                 SOCPlayerTracker tracker = new SOCPlayerTracker(game.getPlayer(pn), this);
                 playerTrackers.put(new Integer(pn), tracker);
@@ -840,9 +849,6 @@ public class SOCRobotBrain extends Thread
 
             try
             {
-                /** Our player number */
-                final int ourPN = ourPlayerData.getPlayerNumber();
-
                 //
                 // Along with actual game events, the pinger sends a SOCGameTextMsg
                 // once per second, to aid the robot's timekeeping counter.
@@ -989,7 +995,7 @@ public class SOCRobotBrain extends Thread
                         }
                     }
 
-                    if (game.getCurrentPlayerNumber() == ourPN)
+                    if (game.getCurrentPlayerNumber() == ourPlayerNumber)
                     {
                         ourTurn = true;
                         waitingForSpecialBuild = false;
@@ -1043,7 +1049,7 @@ public class SOCRobotBrain extends Thread
                             //
                             //  fix it
                             //
-                            if (pl.getPlayerNumber() != ourPN)
+                            if (pl.getPlayerNumber() != ourPlayerNumber)
                             {
                                 rsrcs.clear();
                                 rsrcs.setAmount(((SOCResourceCount) mes).getCount(), SOCResourceConstants.UNKNOWN);
@@ -1101,8 +1107,8 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.ACCEPTOFFER:
                         if (waitingForTradeResponse && (robotParameters.getTradeFlag() == 1))
                         {
-                            if ((ourPN == (((SOCAcceptOffer) mes).getOfferingNumber()))
-                                || (ourPN == ((SOCAcceptOffer) mes).getAcceptingNumber()))
+                            if ((ourPlayerNumber == (((SOCAcceptOffer) mes).getOfferingNumber()))
+                                || (ourPlayerNumber == ((SOCAcceptOffer) mes).getAcceptingNumber()))
                             {
                                 waitingForTradeResponse = false;
                             }
@@ -1288,7 +1294,7 @@ public class SOCRobotBrain extends Thread
                                 if (!buildingPlan.empty())
                                 {
                                     lastTarget = (SOCPossiblePiece) buildingPlan.peek();
-                                    negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), (SOCPossiblePiece) buildingPlan.peek());
+                                    negotiator.setTargetPiece(ourPlayerNumber, (SOCPossiblePiece) buildingPlan.peek());
                                 }
                                  */
 
@@ -1337,7 +1343,7 @@ public class SOCRobotBrain extends Thread
                                 {
                                     SOCPlayer laPlayer = game.getPlayerWithLargestArmy();
 
-                                    if (((laPlayer != null) && (laPlayer.getPlayerNumber() != ourPN)) || (laPlayer == null))
+                                    if (((laPlayer != null) && (laPlayer.getPlayerNumber() != ourPlayerNumber)) || (laPlayer == null))
                                     {
                                         int larmySize;
 
@@ -1381,7 +1387,7 @@ public class SOCRobotBrain extends Thread
                                     if (!buildingPlan.empty())
                                     {
                                         lastTarget = (SOCPossiblePiece) buildingPlan.peek();
-                                        negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), (SOCPossiblePiece) buildingPlan.peek());
+                                        negotiator.setTargetPiece(ourPlayerNumber, (SOCPossiblePiece) buildingPlan.peek());
                                     }
                                      */
                                 }
@@ -1961,7 +1967,7 @@ public class SOCRobotBrain extends Thread
             //D.ebugPrintln("^^^ targetPiece = "+targetPiece);
             //D.ebugPrintln("^^^ ourResources = "+ourPlayerData.getResources());
 
-            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+            negotiator.setTargetPiece(ourPlayerNumber, targetPiece);
 
             ///
             /// if we have a 2 free resources card and we need
@@ -2209,7 +2215,7 @@ public class SOCRobotBrain extends Thread
         SOCTradeOffer offer = mes.getOffer();
         game.getPlayer(offer.getFrom()).setCurrentOffer(offer);
 
-        if ((offer.getFrom() == ourPlayerData.getPlayerNumber()))
+        if ((offer.getFrom() == ourPlayerNumber))
         {
             return;  // <---- Ignore our own offers ----
         }
@@ -2303,7 +2309,7 @@ public class SOCRobotBrain extends Thread
             /// clear our building plan, so that we replan
             ///
             buildingPlan.clear();
-            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), null);
+            negotiator.setTargetPiece(ourPlayerNumber, null);
 
             break;
 
@@ -2505,7 +2511,7 @@ public class SOCRobotBrain extends Thread
             SOCPlayerTracker.playerTrackersDebug(playerTrackers);
         }
 
-        if (pn != ourPlayerData.getPlayerNumber())
+        if (pn != ourPlayerNumber)
         {
             return;  // <---- Not our piece ----
         }
@@ -2558,7 +2564,7 @@ public class SOCRobotBrain extends Thread
         D.ebugPrintln("$ POPPED " + targetPiece);
         lastMove = targetPiece;
         currentDRecorder = (currentDRecorder + 1) % 2;
-        negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+        negotiator.setTargetPiece(ourPlayerNumber, targetPiece);
 
         switch (targetPiece.getType())
         {
@@ -2641,7 +2647,7 @@ public class SOCRobotBrain extends Thread
         if (!buildingPlan.empty())
         {
             lastTarget = (SOCPossiblePiece) buildingPlan.peek();
-            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), (SOCPossiblePiece) buildingPlan.peek());
+            negotiator.setTargetPiece(ourPlayerNumber, (SOCPossiblePiece) buildingPlan.peek());
         }
     }
 
@@ -2917,7 +2923,7 @@ public class SOCRobotBrain extends Thread
 
                     if (roadCount[roadPN] == 2)
                     {
-                        if (roadPN != ourPlayerData.getPlayerNumber())
+                        if (roadPN != ourPlayerNumber)
                         {
                             ///
                             /// this settlement bisects another players road
@@ -3955,7 +3961,7 @@ public class SOCRobotBrain extends Thread
          * taking into account where other players will build before
          * we can.
          */
-        SOCPlayer dummy = new SOCPlayer(ourPlayerData.getPlayerNumber(), game);
+        SOCPlayer dummy = new SOCPlayer(ourPlayerNumber, game);
 
         if (game.getGameState() == SOCGame.START1B)
         {
@@ -4394,13 +4400,13 @@ public class SOCRobotBrain extends Thread
         {
             if (! game.isSeatVacant(pnum))
             {
-                if ((victimNum < 0) && (pnum != ourPlayerData.getPlayerNumber()))
+                if ((victimNum < 0) && (pnum != ourPlayerNumber))
                 {
                     // The first pick
                     D.ebugPrintln("Picking a robber victim: pnum=" + pnum);
                     victimNum = pnum;
                 }
-                else if ((pnum != ourPlayerData.getPlayerNumber()) && (winGameETAs[pnum] < winGameETAs[victimNum]))
+                else if ((pnum != ourPlayerNumber) && (winGameETAs[pnum] < winGameETAs[victimNum]))
                 {
                     // A better pick
                     D.ebugPrintln("Picking a better robber victim: pnum=" + pnum);
@@ -4513,7 +4519,7 @@ public class SOCRobotBrain extends Thread
         if (!buildingPlan.empty())
         {
             SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.peek();
-            negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
+            negotiator.setTargetPiece(ourPlayerNumber, targetPiece);
 
             //D.ebugPrintln("targetPiece="+targetPiece);
             SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
@@ -5107,9 +5113,9 @@ public class SOCRobotBrain extends Thread
         {
             boolean[] offeredTo = offer.getTo();
 
-            if (offeredTo[ourPlayerData.getPlayerNumber()])
+            if (offeredTo[ourPlayerNumber])
             {
-                response = negotiator.considerOffer2(offer, ourPlayerData.getPlayerNumber());
+                response = negotiator.considerOffer2(offer, ourPlayerNumber);
             }
         }
 
@@ -5265,7 +5271,7 @@ public class SOCRobotBrain extends Thread
 
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
-                if (ourPlayerData.getPlayerNumber() != pn)
+                if (ourPlayerNumber != pn)
                 {
                     resourceTotal += game.getPlayer(pn).getResources().getAmount(resource);
 

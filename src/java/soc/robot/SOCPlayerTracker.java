@@ -75,7 +75,8 @@ public class SOCPlayerTracker
     static protected int EXPAND_LEVEL = 1;
     static protected int LR_CALC_LEVEL = 2;
     protected SOCRobotBrain brain;
-    protected SOCPlayer player;
+    private final SOCPlayer player;
+    private final int playerNumber;
     protected TreeMap possibleSettlements;
     protected TreeMap possibleRoads;
     protected TreeMap possibleCities;
@@ -109,6 +110,7 @@ public class SOCPlayerTracker
         inUse = false;
         brain = br;
         player = pl;
+        playerNumber = pl.getPlayerNumber();
         possibleRoads = new TreeMap();
         possibleSettlements = new TreeMap();
         possibleCities = new TreeMap();
@@ -131,6 +133,7 @@ public class SOCPlayerTracker
         inUse = false;
         brain = pt.getBrain();
         player = pt.getPlayer();
+        playerNumber = player.getPlayerNumber();
         possibleRoads = new TreeMap();
         possibleSettlements = new TreeMap();
         possibleCities = new TreeMap();
@@ -491,7 +494,7 @@ public class SOCPlayerTracker
      */
     public void addNewRoad(SOCRoad road, HashMap trackers)
     {
-        if (road.getPlayerNumber() == player.getPlayerNumber())
+        if (road.getPlayerNumber() == playerNumber)
         {
             addOurNewRoad(road, trackers, EXPAND_LEVEL);
         }
@@ -992,7 +995,7 @@ public class SOCPlayerTracker
     {
         //D.ebugPrintln("%$% settlement owner ="+settlement.getPlayer().getPlayerNumber());
         //D.ebugPrintln("%$% tracker owner ="+player.getPlayerNumber());
-        if (settlement.getPlayerNumber() == player.getPlayerNumber())
+        if (settlement.getPlayerNumber() == playerNumber)
         {
             addOurNewSettlement(settlement, trackers);
         }
@@ -1553,7 +1556,6 @@ public class SOCPlayerTracker
         /**
          * check roads that need updating and don't have necessary roads
          */
-        int ourPlayerNumber = player.getPlayerNumber();
         SOCBoard board = player.getGame().getBoard();
         Iterator posRoadsIter = possibleRoads.values().iterator();
 
@@ -1609,7 +1611,7 @@ public class SOCPlayerTracker
                                         {
                                             SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-                                            if (tracker.getPlayer().getPlayerNumber() != ourPlayerNumber)
+                                            if (tracker.getPlayer().getPlayerNumber() != playerNumber)
                                             {
                                                 SOCPossibleSettlement posEnemySet = (SOCPossibleSettlement) tracker.getPossibleSettlements().get(adjNodeToPosRoadInt);
 
@@ -1640,7 +1642,7 @@ public class SOCPlayerTracker
                 {
                     SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-                    if (tracker.getPlayer().getPlayerNumber() != ourPlayerNumber)
+                    if (tracker.getPlayer().getPlayerNumber() != playerNumber)
                     {
                         SOCPossibleRoad posEnemyRoad = (SOCPossibleRoad) tracker.getPossibleRoads().get(new Integer(posRoad.getCoordinates()));
 
@@ -1734,7 +1736,7 @@ public class SOCPlayerTracker
                 {
                     SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-                    if (tracker.getPlayer().getPlayerNumber() != ourPlayerNumber)
+                    if (tracker.getPlayer().getPlayerNumber() != playerNumber)
                     {
                         SOCPossibleRoad posEnemyRoad = (SOCPossibleRoad) tracker.getPossibleRoads().get(new Integer(posRoad.getCoordinates()));
 
@@ -1787,7 +1789,7 @@ public class SOCPlayerTracker
                                 {
                                     SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-                                    if (tracker.getPlayer().getPlayerNumber() != ourPlayerNumber)
+                                    if (tracker.getPlayer().getPlayerNumber() != playerNumber)
                                     {
                                         SOCPossibleSettlement posEnemySet = (SOCPossibleSettlement) tracker.getPossibleSettlements().get(adjNodeInt);
 
@@ -1834,7 +1836,7 @@ public class SOCPlayerTracker
                 {
                     SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-                    if (tracker.getPlayer().getPlayerNumber() != ourPlayerNumber)
+                    if (tracker.getPlayer().getPlayerNumber() != playerNumber)
                     {
                         SOCPossibleSettlement posEnemySet = (SOCPossibleSettlement) tracker.getPossibleSettlements().get(new Integer(posSet.getCoordinates()));
 
@@ -1915,7 +1917,7 @@ public class SOCPlayerTracker
      */
     public void recalcLongestRoadETA()
     {
-        D.ebugPrintln("===  recalcLongestRoadETA for player " + player.getPlayerNumber());
+        D.ebugPrintln("===  recalcLongestRoadETA for player " + playerNumber);
 
         int roadETA;
         SOCBuildingSpeedEstimate bse = new SOCBuildingSpeedEstimate(player.getNumbers());
@@ -1935,7 +1937,7 @@ public class SOCPlayerTracker
         int longestRoadLength;
         SOCPlayer lrPlayer = player.getGame().getPlayerWithLongestRoad();
 
-        if ((lrPlayer != null) && (lrPlayer.getPlayerNumber() == player.getPlayerNumber()))
+        if ((lrPlayer != null) && (lrPlayer.getPlayerNumber() == playerNumber))
         {
             ///
             /// we have longest road
@@ -2011,7 +2013,7 @@ public class SOCPlayerTracker
             ///
             laSize = 3;
         }
-        else if (laPlayer.getPlayerNumber() == player.getPlayerNumber())
+        else if (laPlayer.getPlayerNumber() == playerNumber)
         {
             ///
             /// we have largest army
@@ -2299,12 +2301,12 @@ public class SOCPlayerTracker
                 }
             }
 
-            if ((laPlayer != null) && (player.getPlayerNumber() == laPlayer.getPlayerNumber()))
+            if ((laPlayer != null) && (playerNumber == laPlayer.getPlayerNumber()))
             {
                 haveLA = true;
             }
 
-            if ((lrPlayer != null) && (player.getPlayerNumber() == lrPlayer.getPlayerNumber()))
+            if ((lrPlayer != null) && (playerNumber == lrPlayer.getPlayerNumber()))
             {
                 haveLR = true;
             }
@@ -3059,7 +3061,7 @@ public class SOCPlayerTracker
                             ///
                             laSize = 3;
                         }
-                        else if (laPlayer.getPlayerNumber() == player.getPlayerNumber())
+                        else if (laPlayer.getPlayerNumber() == playerNumber)
                         {
                             ///
                             /// we have largest army
@@ -3124,7 +3126,7 @@ public class SOCPlayerTracker
                     D.ebugPrintln("WWW Adding " + fastestETA + " to win eta");
                     points += 2;
                     winGameETA += fastestETA;
-                    D.ebugPrintln("WWW WGETA SO FAR FOR PLAYER " + player.getPlayerNumber() + " = " + winGameETA);
+                    D.ebugPrintln("WWW WGETA SO FAR FOR PLAYER " + playerNumber + " = " + winGameETA);
 
                     if ((settlementPiecesLeft > 1) && (posSetsCopy.size() > 1) && (canBuild2Settlements) && (fastestETA == twoSettlements))
                     {
@@ -3364,7 +3366,7 @@ public class SOCPlayerTracker
                 }
             }
 
-            D.ebugPrintln("WWW TOTAL WGETA FOR PLAYER " + player.getPlayerNumber() + " = " + winGameETA);
+            D.ebugPrintln("WWW TOTAL WGETA FOR PLAYER " + playerNumber + " = " + winGameETA);
 
             if (brain.getDRecorder().isOn())
             {
