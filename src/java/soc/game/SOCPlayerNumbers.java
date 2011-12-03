@@ -189,7 +189,7 @@ public class SOCPlayerNumbers
      * Update the numbers data, based on placing a settlement or upgrading to a city at a node.
      *<P>
      * Given a piece and a board, add numbers for this player to the list:
-     * Call {@link #addNumberForResource(int, int, int)} for each dice number and resource
+     * Calls {@link #addNumberForResource(int, int, int)} for each dice number and resource
      * on the piece node's adjacent hexes.
      *
      * @param piece   the playing piece, used only for its node coordinate
@@ -204,7 +204,7 @@ public class SOCPlayerNumbers
      * update the numbers data, based on placing a settlement or upgrading to a city at a node.
      *<P>
      * Given a node coordinate and a board, add numbers for this player to the list:
-     * Call {@link #addNumberForResource(int, int, int)} for each dice number and resource
+     * Calls {@link #addNumberForResource(int, int, int)} for each dice number and resource
      * on the node's adjacent hexes.
      *
      * @param nodeCoord   the node coordinate
@@ -230,7 +230,7 @@ public class SOCPlayerNumbers
      * and total the probability for those dice numbers.
      *<P>
      * Given a node coordinate and a board, add numbers for this player to the list:
-     * Call {@link #addNumberForResource(int, int, int)} for each dice number and resource
+     * Calls {@link #addNumberForResource(int, int, int)} for each dice number and resource
      * on the node's adjacent hexes.
      * Hexes are ignored if their {@link SOCBoard#getNumberOnHexFromCoord(int)} &lt 1.
      *

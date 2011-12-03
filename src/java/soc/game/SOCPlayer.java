@@ -1067,8 +1067,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * put a piece into play
-     * note: placing a city automatically removes the settlement there
+     * Put a piece into play.
+     *<P>
+     * <b>Note:</b> Placing a city automatically removes the settlement there
+     *<P>
+     * Call this before calling {@link SOCBoard#putPiece(SOCPlayingPiece)}.
      *
      * @param piece         the piece to be put into play; coordinates are not checked for validity
      */
@@ -1250,6 +1253,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Updates the potential building lists
      * for removing settlements or cities.
      * Updates port flags, this player's dice resource numbers, etc.
+     *<P>
+     * Call this only after calling {@link SOCBoard#removePiece(SOCPlayingPiece)}.
      *<P>
      * If the piece is ours, calls {@link #removePiece(SOCPlayingPiece)}.
      *<P>
