@@ -1814,6 +1814,20 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void putPiece(SOCPlayingPiece pp)
     {
+        putPieceCommon(pp, false);
+    }
+
+    /**
+     * Put a piece or temporary piece on the board, and update all related game state.
+     * Update player potentials, longest road, etc.
+     * Common to {@link #putPiece(SOCPlayingPiece)} and {@link #putTempPiece(SOCPlayingPiece)}.
+     * @param pp  The piece to put on the board; coordinates are not checked for validity
+     * @param isTempPiece  Is this a temporary piece?  If so, do not change current
+     *                     player or gamestate.
+     * @since 1.2.00
+     */
+    private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
+    {
         /**
          * call putPiece() on every player so that each
          * player's updatePotentials() function gets called
@@ -1825,7 +1839,7 @@ public class SOCGame implements Serializable, Cloneable
 
         board.putPiece(pp);
 
-        if (debugFreePlacement && (gameState <= START2B))
+        if ((! isTempPiece) && debugFreePlacement && (gameState <= START2B))
             debugFreePlacementStartPlaced = true;
 
         /**
@@ -1847,8 +1861,10 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * if this their second initial settlement, give the
          * player some resources.
+         * (skip for temporary pieces)
          */
-        if ((pieceType == SOCPlayingPiece.SETTLEMENT)
+        if ((! isTempPiece)
+            && (pieceType == SOCPlayingPiece.SETTLEMENT)
             && ((gameState == START2A)
                 || (debugFreePlacementStartPlaced
                     && (pp.getPlayer().getPieces().size() == 3))))
@@ -1894,8 +1910,10 @@ public class SOCGame implements Serializable, Cloneable
 
         /**
          * if this their second initial road or ship, clear potentialSettlements.
+         * (skip for temporary pieces)
          */
-        if ((pp instanceof SOCRoad)
+        if ((! isTempPiece)
+            && (pp instanceof SOCRoad)
             && ((gameState == START2B)
                 || (debugFreePlacementStartPlaced
                     && (pp.getPlayer().getPieces().size() == 4))))
@@ -1904,7 +1922,7 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         /**
-         * update which player has longest road
+         * update which player has longest road or trade route
          */
         if (pieceType != SOCPlayingPiece.CITY)
         {
@@ -1918,7 +1936,7 @@ public class SOCGame implements Serializable, Cloneable
             else
             {
                 /**
-                 * this is a settlement, check if it cut anyone else's road
+                 * this is a settlement, check if it cut anyone else's road or trade route
                  */
                 int[] roads = new int[maxPlayers];
                 for (int i = 0; i < maxPlayers; i++)
@@ -1950,8 +1968,8 @@ public class SOCGame implements Serializable, Cloneable
 
                 /**
                  * if a player other than the one who put the settlement
-                 * down has 2 roads adjacent to it, then we need to recalculate
-                 * their longest road
+                 * down has 2 roads or ships adjacent to it, then we need to recalculate
+                 * their longest road / trade route
                  */
                 for (int i = 0; i < maxPlayers; i++)
                 {
@@ -1966,6 +1984,14 @@ public class SOCGame implements Serializable, Cloneable
                     }
                 }
             }
+        }
+
+        /**
+         * If temporary piece, don't update gamestate-related info.
+         */
+        if (isTempPiece)
+        {
+            return;   // <--- Early return: Temporary piece ---
         }
 
         lastActionTime = System.currentTimeMillis();
@@ -2123,7 +2149,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * a temporary piece has been put on the board
+     * A temporary piece has been put on the board; update all related game state.
+     * Update player potentials, longest road, etc.
+     * Does not advance turn or update gamestate-related fields.
      *
      * @param pp the piece to put on the board
      */
@@ -2136,102 +2164,13 @@ public class SOCGame implements Serializable, Cloneable
          */
         oldPlayerWithLongestRoad.push(new SOCOldLRStats(this));
 
-        /**
-         * call putPiece() on every player so that each
-         * player's updatePotentials() function gets called
-         */
-        for (int i = 0; i < maxPlayers; i++)
-        {
-            players[i].putPiece(pp);
-        }
-
-        board.putPiece(pp);
-
-        /**
-         * if the piece is a city, remove the settlement there
-         */
-        if (pp.getType() == SOCPlayingPiece.CITY)
-        {
-            SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
-
-            for (int i = 0; i < maxPlayers; i++)
-            {
-                players[i].removePiece(se);
-            }
-
-            board.removePiece(se);
-        }
-
-        /**
-         * update which player has longest road
-         */
-        if (pp.getType() != SOCPlayingPiece.CITY)
-        {
-            if (pp instanceof SOCRoad)
-            {
-                /**
-                 * the affected player is the one who build the road
-                 */
-                updateLongestRoad(pp.getPlayer().getPlayerNumber());
-            }
-            else
-            {
-                /**
-                 * this is a settlement, check if it cut anyone else's road
-                 */
-                int[] roads = new int[maxPlayers];
-                for (int i = 0; i < maxPlayers; i++)
-                {
-                    roads[i] = 0;
-                }
-
-                Enumeration adjEdgeEnum = board.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
-
-                while (adjEdgeEnum.hasMoreElements())
-                {
-                    final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
-
-                    /**
-                     * look for other player's roads adjacent to this node
-                     */
-                    Enumeration allRoadsEnum = board.getRoads().elements();
-
-                    while (allRoadsEnum.hasMoreElements())
-                    {
-                        SOCRoad road = (SOCRoad) allRoadsEnum.nextElement();
-
-                        if (adjEdge == road.getCoordinates())
-                        {
-                            roads[road.getPlayer().getPlayerNumber()]++;
-                        }
-                    }
-                }
-
-                /**
-                 * if a player other than the one who put the settlement
-                 * down has 2 roads adjacent to it, then we need to recalculate
-                 * their longest road
-                 */
-                for (int i = 0; i < maxPlayers; i++)
-                {
-                    if ((i != pp.getPlayer().getPlayerNumber()) && (roads[i] == 2))
-                    {
-                        updateLongestRoad(i);
-
-                        /**
-                         * check to see if this created a tie
-                         */
-                        break;
-                    }
-                }
-            }
-        }
+        putPieceCommon(pp, true);
     }
 
     /**
      * undo the putting of a temporary or initial piece
      *
-     * @param pp the piece to put on the board
+     * @param pp  the piece to remove from the board
      */
     protected void undoPutPieceCommon(SOCPlayingPiece pp)
     {
@@ -2266,7 +2205,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * undo the putting of a temporary piece
      *
-     * @param pp the piece to put on the board
+     * @param pp  the piece to remove from the board
      *
      * @see #undoPutInitSettlement(SOCPlayingPiece)
      */
