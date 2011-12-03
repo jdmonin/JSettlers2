@@ -35,7 +35,6 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 
 import soc.util.CutoffExceededException;
-import soc.util.NodeLenVis;
 import soc.util.Pair;
 import soc.util.Queue;
 
@@ -492,7 +491,7 @@ public class SOCPlayerTracker
      */
     public void addNewRoad(SOCRoad road, HashMap trackers)
     {
-        if (road.getPlayer().getPlayerNumber() == player.getPlayerNumber())
+        if (road.getPlayerNumber() == player.getPlayerNumber())
         {
             addOurNewRoad(road, trackers, EXPAND_LEVEL);
         }
@@ -993,7 +992,7 @@ public class SOCPlayerTracker
     {
         //D.ebugPrintln("%$% settlement owner ="+settlement.getPlayer().getPlayerNumber());
         //D.ebugPrintln("%$% tracker owner ="+player.getPlayerNumber());
-        if (settlement.getPlayer().getPlayerNumber() == player.getPlayerNumber())
+        if (settlement.getPlayerNumber() == player.getPlayerNumber())
         {
             addOurNewSettlement(settlement, trackers);
         }
@@ -1247,13 +1246,15 @@ public class SOCPlayerTracker
                     ///
                     if (! isCancel)
                     {
+                        final int settleCoord = settlement.getCoordinates(),
+                                  settlePN    = settlement.getPlayerNumber();
                         Enumeration threatEnum = pr.getThreats().elements();
     
                         while (threatEnum.hasMoreElements())
                         {
                             SOCPossiblePiece threat = (SOCPossiblePiece) threatEnum.nextElement();
     
-                            if ((threat.getType() == SOCPossiblePiece.SETTLEMENT) && (threat.getCoordinates() == settlement.getCoordinates()) && (threat.getPlayer().getPlayerNumber() == settlement.getPlayer().getPlayerNumber()))
+                            if ((threat.getType() == SOCPossiblePiece.SETTLEMENT) && (threat.getCoordinates() == settleCoord) && (threat.getPlayer().getPlayerNumber() == settlePN))
                             {
                                 D.ebugPrintln("$$$ new settlement cuts off road at " + Integer.toHexString(pr.getCoordinates()));
                                 prTrash.addElement(pr);
@@ -1272,15 +1273,16 @@ public class SOCPlayerTracker
                     while (nrEnum.hasMoreElements())
                     {
                         SOCPossibleRoad nr = (SOCPossibleRoad) nrEnum.nextElement();
+                        final int nrEdge = nr.getCoordinates();
                         Enumeration edge2Enum = adjEdges.elements();
 
                         while (edge2Enum.hasMoreElements())
                         {
                             Integer edge2 = (Integer) edge2Enum.nextElement();
 
-                            if (nr.getCoordinates() == edge2.intValue())
+                            if (nrEdge == edge2.intValue())
                             {
-                                D.ebugPrintln("$$$ removing dependency " + Integer.toHexString(nr.getCoordinates()) + " from " + Integer.toHexString(pr.getCoordinates()));
+                                D.ebugPrintln("$$$ removing dependency " + Integer.toHexString(nrEdge) + " from " + Integer.toHexString(pr.getCoordinates()));
                                 nrTrash.addElement(nr);
 
                                 break;

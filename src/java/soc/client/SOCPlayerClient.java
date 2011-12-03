@@ -4249,9 +4249,9 @@ public class SOCPlayerClient extends Applet
     {
         String ppm;
         if (ga.isDebugFreePlacement())
-            ppm = SOCDebugFreePlace.toCmd(ga.getName(), pp.getPlayer().getPlayerNumber(), pp.getType(), pp.getCoordinates());
+            ppm = SOCDebugFreePlace.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), pp.getCoordinates());
         else
-            ppm = SOCPutPiece.toCmd(ga.getName(), pp.getPlayer().getPlayerNumber(), pp.getType(), pp.getCoordinates());
+            ppm = SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), pp.getCoordinates());
 
         /**
          * send the command

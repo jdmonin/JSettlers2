@@ -961,7 +961,7 @@ public class SOCRobotDM {
           final int pn = pl.getPlayerNumber();
           SOCPlayingPiece p = board.settlementAtNode(coord);
           if ((p != null)
-              && (p.getPlayer().getPlayerNumber() != pn))
+              && (p.getPlayerNumber() != pn))
           {
               pathEnd = true;
               //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));

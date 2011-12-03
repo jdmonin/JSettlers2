@@ -2950,7 +2950,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         while (roads.hasMoreElements())
         {
             SOCRoad r = (SOCRoad) roads.nextElement();
-            drawRoadOrShip(g, r.getCoordinates(), r.getPlayer().getPlayerNumber(), false, r.isRoadNotShip());
+            drawRoadOrShip(g, r.getCoordinates(), r.getPlayerNumber(), false, r.isRoadNotShip());
         }
 
         /**
@@ -2961,7 +2961,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         while (settlements.hasMoreElements())
         {
             SOCSettlement s = (SOCSettlement) settlements.nextElement();
-            drawSettlement(g, s.getCoordinates(), s.getPlayer().getPlayerNumber(), false);
+            drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), false);
         }
 
         /**
@@ -2972,7 +2972,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         while (cities.hasMoreElements())
         {
             SOCCity c = (SOCCity) cities.nextElement();
-            drawCity(g, c.getCoordinates(), c.getPlayer().getPlayerNumber(), false);
+            drawCity(g, c.getCoordinates(), c.getPlayerNumber(), false);
         }
 
         if (player != null)
@@ -5323,7 +5323,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverShipID = 0;
             }
 
-            // Look first for settlements or ports
+            // Look first for settlements/cities or ports
             id = findNode(xb,yb);
             if (id > 0)
             {

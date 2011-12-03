@@ -2911,11 +2911,13 @@ public class SOCRobotBrain extends Thread
 
                 if (road.getCoordinates() == adjEdge)
                 {
-                    roadCount[road.getPlayer().getPlayerNumber()]++;
+                    final int roadPN = road.getPlayerNumber();
 
-                    if (roadCount[road.getPlayer().getPlayerNumber()] == 2)
+                    roadCount[roadPN]++;
+
+                    if (roadCount[roadPN] == 2)
                     {
-                        if (road.getPlayer().getPlayerNumber() != ourPlayerData.getPlayerNumber())
+                        if (roadPN != ourPlayerData.getPlayerNumber())
                         {
                             ///
                             /// this settlement bisects another players road
@@ -2926,7 +2928,7 @@ public class SOCRobotBrain extends Thread
                             {
                                 SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-                                if (tracker.getPlayer().getPlayerNumber() == road.getPlayer().getPlayerNumber())
+                                if (tracker.getPlayer().getPlayerNumber() == roadPN)
                                 {
                                     //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
                                     //tracker.updateLRValues();
@@ -2942,7 +2944,7 @@ public class SOCRobotBrain extends Thread
             }
         }
         
-        int pNum = newSettlement.getPlayer().getPlayerNumber();
+        final int pNum = newSettlement.getPlayerNumber();
 
         ///
         /// update the speedups from possible settlements
@@ -2995,15 +2997,17 @@ public class SOCRobotBrain extends Thread
      * @param isCancel Is this our own robot's city placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data. 
      */
-    private void trackNewCity(SOCCity newCity, final boolean isCancel)
+    private void trackNewCity(final SOCCity newCity, final boolean isCancel)
     {
+        final int newCityPN = newCity.getPlayerNumber();
+
         Iterator trackersIter = playerTrackers.values().iterator();
 
         while (trackersIter.hasNext())
         {
             SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-            if (tracker.getPlayer().getPlayerNumber() == newCity.getPlayer().getPlayerNumber())
+            if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
                 if (! isCancel)
                     tracker.addOurNewCity(newCity);
@@ -3028,7 +3032,7 @@ public class SOCRobotBrain extends Thread
         {
             SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-            if (tracker.getPlayer().getPlayerNumber() == newCity.getPlayer().getPlayerNumber())
+            if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
                 Iterator posSetsIter = tracker.getPossibleSettlements().values().iterator();
 
@@ -3050,7 +3054,7 @@ public class SOCRobotBrain extends Thread
         {
             SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
 
-            if (tracker.getPlayer().getPlayerNumber() == newCity.getPlayer().getPlayerNumber())
+            if (tracker.getPlayer().getPlayerNumber() == newCityPN)
             {
                 Iterator posCitiesIter = tracker.getPossibleCities().values().iterator();
 
@@ -3071,8 +3075,10 @@ public class SOCRobotBrain extends Thread
      * @param isCancel Is this our own robot's road placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data. 
      */
-    protected void trackNewRoad(SOCRoad newRoad, final boolean isCancel)
+    protected void trackNewRoad(final SOCRoad newRoad, final boolean isCancel)
     {
+        final int newRoadPN = newRoad.getPlayerNumber();
+
         Iterator trackersIter = playerTrackers.values().iterator();
 
         while (trackersIter.hasNext())
@@ -3149,7 +3155,7 @@ public class SOCRobotBrain extends Thread
 
             try
             {
-                if (tracker.getPlayer().getPlayerNumber() == newRoad.getPlayer().getPlayerNumber())
+                if (tracker.getPlayer().getPlayerNumber() == newRoadPN)
                 {
                     //D.ebugPrintln("$$ updating LR Value for player "+tracker.getPlayer().getPlayerNumber());
                     //tracker.updateLRValues();

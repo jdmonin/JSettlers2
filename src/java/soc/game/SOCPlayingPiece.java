@@ -144,6 +144,16 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     }
 
     /**
+     * Get the owner's player number.
+     * @return {@link #getPlayer()}.{@link SOCPlayer#getPlayerNumber() getPlayerNumber()}
+     * @since 1.2.00
+     */
+    public int getPlayerNumber()
+    {
+        return player.getPlayerNumber();
+    }
+
+    /**
      * @return the coordinates for this piece
      */
     public int getCoordinates()

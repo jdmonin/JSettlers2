@@ -1846,9 +1846,10 @@ public class SOCGame implements Serializable, Cloneable
          * if the piece is a city, remove the settlement there
          */
         final int pieceType = pp.getType();
+        final SOCPlayer ppPlayer = pp.getPlayer();
         if (pieceType == SOCPlayingPiece.CITY)
         {
-            SOCSettlement se = new SOCSettlement(pp.getPlayer(), pp.getCoordinates(), board);
+            SOCSettlement se = new SOCSettlement(ppPlayer, pp.getCoordinates(), board);
 
             for (int i = 0; i < maxPlayers; i++)
             {
@@ -1867,7 +1868,7 @@ public class SOCGame implements Serializable, Cloneable
             && (pieceType == SOCPlayingPiece.SETTLEMENT)
             && ((gameState == START2A)
                 || (debugFreePlacementStartPlaced
-                    && (pp.getPlayer().getPieces().size() == 3))))
+                    && (ppPlayer.getPieces().size() == 3))))
         {
             SOCResourceSet resources = new SOCResourceSet();
             Enumeration hexes = board.getAdjacentHexesToNode(pp.getCoordinates()).elements();
@@ -1905,7 +1906,7 @@ public class SOCGame implements Serializable, Cloneable
                 }
             }
 
-            pp.getPlayer().getResources().add(resources);
+            ppPlayer.getResources().add(resources);
         }
 
         /**
@@ -1916,9 +1917,9 @@ public class SOCGame implements Serializable, Cloneable
             && (pp instanceof SOCRoad)
             && ((gameState == START2B)
                 || (debugFreePlacementStartPlaced
-                    && (pp.getPlayer().getPieces().size() == 4))))
+                    && (ppPlayer.getPieces().size() == 4))))
         {
-            pp.getPlayer().clearPotentialSettlements();
+            ppPlayer.clearPotentialSettlements();
         }
 
         /**
@@ -1931,7 +1932,7 @@ public class SOCGame implements Serializable, Cloneable
                 /**
                  * the affected player is the one who build the road or ship
                  */
-                updateLongestRoad(pp.getPlayer().getPlayerNumber());
+                updateLongestRoad(ppPlayer.getPlayerNumber());
             }
             else
             {
@@ -1961,7 +1962,7 @@ public class SOCGame implements Serializable, Cloneable
 
                         if (adjEdge == road.getCoordinates())
                         {
-                            roads[road.getPlayer().getPlayerNumber()]++;
+                            roads[road.getPlayerNumber()]++;
                         }
                     }
                 }
@@ -1973,7 +1974,7 @@ public class SOCGame implements Serializable, Cloneable
                  */
                 for (int i = 0; i < maxPlayers; i++)
                 {
-                    if ((i != pp.getPlayer().getPlayerNumber()) && (roads[i] == 2))
+                    if ((i != ppPlayer.getPlayerNumber()) && (roads[i] == 2))
                     {
                         updateLongestRoad(i);
 

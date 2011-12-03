@@ -933,7 +933,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
         else
         {
-            return (game.getPlayerWithLongestRoad().getPlayerNumber() == this.getPlayerNumber());
+            return (game.getPlayerWithLongestRoad().getPlayerNumber() == playerNumber);
         }
     }
 
@@ -948,7 +948,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
         else
         {
-            return (game.getPlayerWithLargestArmy().getPlayerNumber() == this.getPlayerNumber());
+            return (game.getPlayerWithLargestArmy().getPlayerNumber() == playerNumber);
         }
     }
 
@@ -1080,7 +1080,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         /**
          * only do this stuff if it's our piece
          */
-        if (piece.getPlayer().getPlayerNumber() == this.getPlayerNumber())
+        if (piece.getPlayerNumber() == playerNumber)
         {
             pieces.addElement(piece);
 
@@ -1266,7 +1266,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void undoPutPiece(SOCPlayingPiece piece)
     {
-        final boolean ours = (piece.getPlayer().getPlayerNumber() == this.getPlayerNumber());
+        final boolean ours = (piece.getPlayerNumber() == playerNumber);
         final int pieceCoord = piece.getCoordinates();
         final Integer pieceCoordInt = new Integer(pieceCoord);
 
@@ -1762,7 +1762,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 final int adjNode = adjNodes[ni];
                                 final SOCPlayingPiece aPiece = board.settlementAtNode(adjNode);
                                 if ((aPiece != null)
-                                    && (aPiece.getPlayer().getPlayerNumber() != playerNumber))
+                                    && (aPiece.getPlayerNumber() != playerNumber))
                                 {
                                     /**
                                      * we're blocked, don't bother checking adjacent edges
@@ -1858,7 +1858,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         /**
          * check if this piece is ours
          */
-        ours = (piece.getPlayer().getPlayerNumber() == this.getPlayerNumber());
+        ours = (piece.getPlayerNumber() == playerNumber);
 
         final int ptype = piece.getType();
         switch (ptype)
@@ -1894,7 +1894,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     blocked = false;
 
                     SOCPlayingPiece p = board.settlementAtNode(node);
-                    if ((p != null) && (p.getPlayer().getPlayerNumber() != playerNumber))
+                    if ((p != null) && (p.getPlayerNumber() != playerNumber))
                     {
                         blocked = true;
                     }
@@ -2385,7 +2385,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 {
                     final SOCPlayingPiece p = board.settlementAtNode(coord);
                     if ((p != null)
-                        && (p.getPlayer().getPlayerNumber() != playerNumber))
+                        && (p.getPlayerNumber() != playerNumber))
                     {
                         pathEnd = true;
 

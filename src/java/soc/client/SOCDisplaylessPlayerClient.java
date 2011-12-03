@@ -1823,7 +1823,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         /**
          * send the command
          */
-        put(SOCPutPiece.toCmd(ga.getName(), pp.getPlayer().getPlayerNumber(), pp.getType(), pp.getCoordinates()));
+        put(SOCPutPiece.toCmd(ga.getName(), pp.getPlayerNumber(), pp.getType(), pp.getCoordinates()));
     }
 
     /**
