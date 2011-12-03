@@ -2116,14 +2116,6 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * get the list of pieces on the board
-     */
-    public Vector getPieces()
-    {
-        return pieces;
-    }
-
-    /**
      * get the list of roads and ships
      */
     public Vector getRoads()
@@ -3150,24 +3142,30 @@ public class SOCBoard implements Serializable, Cloneable
      * If there's a settlement or city at this node, find it.
      * 
      * @param nodeCoord Location coordinate (as returned by SOCBoardPanel.findNode)
-     * @return Settlement or city or null
+     * @return  Settlement or city at <tt>nodeCoord</tt>, or null
      */
-    public SOCPlayingPiece settlementAtNode(int nodeCoord)
+    public SOCPlayingPiece settlementAtNode(final int nodeCoord)
     {
-        Enumeration pEnum = pieces.elements();
-
+        Enumeration pEnum = settlements.elements();
         while (pEnum.hasMoreElements())
         {
             SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
-            int typ = p.getType(); 
-
-            if ((nodeCoord == p.getCoordinates()) &&
-                ( (typ == SOCPlayingPiece.SETTLEMENT) || (typ == SOCPlayingPiece.CITY) ))
+            if (nodeCoord == p.getCoordinates())
             {
                 return p;  // <-- Early return: Found it ---
             }
         }
-        
+
+        pEnum = cities.elements();
+        while (pEnum.hasMoreElements())
+        {
+            SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+            if (nodeCoord == p.getCoordinates())
+            {
+                return p;  // <-- Early return: Found it ---
+            }
+        }
+
         return null;
     }
     

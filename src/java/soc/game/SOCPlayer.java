@@ -1739,7 +1739,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * potential road
                      */
                     // TODO roads/ships are not interchangeable here
-                    Vector allPieces = board.getPieces();
                     Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(pieceCoord).elements();
 
                     while (adjEdgesEnum.hasMoreElements())
@@ -1761,21 +1760,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             {
                                 boolean blocked = false;  // Are we blocked in this node's direction?
                                 final int adjNode = adjNodes[ni];
-                                Enumeration allPiecesEnum = allPieces.elements();
-
-                                while (allPiecesEnum.hasMoreElements())
+                                final SOCPlayingPiece aPiece = board.settlementAtNode(adjNode);
+                                if ((aPiece != null)
+                                    && (aPiece.getPlayer().getPlayerNumber() != playerNumber))
                                 {
-                                    SOCPlayingPiece aPiece = (SOCPlayingPiece) allPiecesEnum.nextElement();
-
-                                    if ((aPiece.getCoordinates() == adjNode) && (aPiece.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((aPiece.getType() == SOCPlayingPiece.SETTLEMENT) || (aPiece.getType() == SOCPlayingPiece.CITY)))
-                                    {
-                                        /**
-                                         * we're blocked, don't bother checking adjacent edges
-                                         */
-                                        blocked = true;
-
-                                        break;
-                                    }
+                                    /**
+                                     * we're blocked, don't bother checking adjacent edges
+                                     */
+                                    blocked = true;
                                 }
 
                                 if (!blocked)
@@ -1862,7 +1854,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         final int id = piece.getCoordinates();
         final Integer idInt = new Integer(id);
         SOCBoard board = game.getBoard();
-        Vector allPieces = board.getPieces();
 
         /**
          * check if this piece is ours
@@ -1902,18 +1893,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      */
                     blocked = false;
 
-                    Enumeration pEnum = allPieces.elements();
-
-                    while (pEnum.hasMoreElements())
+                    SOCPlayingPiece p = board.settlementAtNode(node);
+                    if ((p != null) && (p.getPlayer().getPlayerNumber() != playerNumber))
                     {
-                        SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
-
-                        if ((p.getCoordinates() == node) && (p.getPlayer().getPlayerNumber() != this.getPlayerNumber()) && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)))
-                        {
-                            blocked = true;
-
-                            break;
-                        }
+                        blocked = true;
                     }
 
                     if (! blocked)
@@ -2400,21 +2383,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                  */
                 if (len > 0)
                 {
-                    Enumeration pEnum = board.getPieces().elements();
-    
-                    while (pEnum.hasMoreElements())
+                    final SOCPlayingPiece p = board.settlementAtNode(coord);
+                    if ((p != null)
+                        && (p.getPlayer().getPlayerNumber() != playerNumber))
                     {
-                        SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
-    
-                        if ((p.getCoordinates() == coord)
-                            && (p.getPlayer().getPlayerNumber() != playerNumber)
-                            && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)))
-                        {
-                            pathEnd = true;
-    
-                            //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
-                            break;
-                        }
+                        pathEnd = true;
+
+                        //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
                     }
                 }
 

@@ -959,19 +959,12 @@ public class SOCRobotDM {
       if (len > 0)
       {
           final int pn = pl.getPlayerNumber();
-          Enumeration pEnum = board.getPieces().elements();
-
-          while (pEnum.hasMoreElements())
+          SOCPlayingPiece p = board.settlementAtNode(coord);
+          if ((p != null)
+              && (p.getPlayer().getPlayerNumber() != pn))
           {
-              SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
-              if ((p.getCoordinates() == coord)
-                  && (p.getPlayer().getPlayerNumber() != pn)
-                  && ((p.getType() == SOCPlayingPiece.SETTLEMENT) || (p.getType() == SOCPlayingPiece.CITY)))
-              {
-                  pathEnd = true;
-                  //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
-                  break;
-              }
+              pathEnd = true;
+              //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
           }
       }
 
