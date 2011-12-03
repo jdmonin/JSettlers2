@@ -2037,7 +2037,12 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * put a piece on the board
+     * put a piece on the board.
+     *<P>
+     * Call this only after calling
+     * {@link SOCPlayer#putPiece(SOCPlayingPiece) pl.putPiece(pp)}
+     * for each player.
+     *
      * @param pp  Piece to place on the board; coordinates are not checked for validity
      */
     public void putPiece(SOCPlayingPiece pp)
@@ -2066,22 +2071,29 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * remove a piece from the board
+     * remove a piece from the board.
+     *<P>
+     * If you're calling {@link SOCPlayer#undoPutPiece(SOCPlayingPiece)},
+     * call this method first.
      */
     public void removePiece(SOCPlayingPiece piece)
     {
+        final int ptype = piece.getType(),
+                  pcoord = piece.getCoordinates();
+
         Enumeration pEnum = pieces.elements();
 
         while (pEnum.hasMoreElements())
         {
             SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
 
-            if ((piece.getType() == p.getType()) && (piece.getCoordinates() == p.getCoordinates()))
+            if ((ptype == p.getType()) && (pcoord == p.getCoordinates()))
             {
                 pieces.removeElement(p);
 
-                switch (piece.getType())
+                switch (ptype)
                 {
+                case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
                     roads.removeElement(p);
 
