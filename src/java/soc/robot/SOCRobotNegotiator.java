@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -57,7 +57,12 @@ public class SOCRobotNegotiator
     protected Stack buildingPlan;
     protected HashMap playerTrackers;
     protected SOCPlayerTracker ourPlayerTracker;
-    protected SOCPlayer ourPlayerData;
+    protected final SOCPlayer ourPlayerData;
+    /**
+     * {@link #ourPlayerData}'s player number.
+     * @since 1.2.00
+     */
+    private final int ourPlayerNumber;
     protected SOCRobotDM decisionMaker;
     protected boolean[][] isSellingResource;
     protected boolean[][] wantsAnotherOffer;
@@ -76,6 +81,7 @@ public class SOCRobotNegotiator
         playerTrackers = brain.getPlayerTrackers();
         ourPlayerTracker = brain.getOurPlayerTracker();
         ourPlayerData = brain.getOurPlayerData();
+        ourPlayerNumber = ourPlayerData.getPlayerNumber();
         buildingPlan = brain.getBuildingPlan();
         decisionMaker = brain.getDecisionMaker();
         game = brain.getGame();
@@ -399,7 +405,7 @@ public class SOCRobotNegotiator
 
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
-                if ((pn != ourPlayerData.getPlayerNumber()) && (isSellingResource[pn][rsrcType]))
+                if ((pn != ourPlayerNumber) && (isSellingResource[pn][rsrcType]))
                 {
                     someoneIsSellingResource[rsrcType] = true;
                     D.ebugPrintln("*** player " + pn + " is selling " + rsrcType);
@@ -773,10 +779,9 @@ public class SOCRobotNegotiator
         ///
         if (!match)
         {
-            int opn = ourPlayerData.getPlayerNumber();
             for (int i = 0; i < game.maxPlayers; i++)
             {
-                if (i != opn)
+                if (i != ourPlayerNumber)
                 {
                     SOCTradeOffer outsideOffer = game.getPlayer(i).getCurrentOffer();
 
@@ -801,12 +806,11 @@ public class SOCRobotNegotiator
 
             int numOfferedTo = 0;
             boolean[] offeredTo = new boolean[game.maxPlayers];
-            int opn = ourPlayerData.getPlayerNumber();
 
             ///
             /// if it's our turn
             ///			
-            if (game.getCurrentPlayerNumber() == opn)
+            if (game.getCurrentPlayerNumber() == ourPlayerNumber)
             {
                 ///
                 /// only offer to players that are selling what we're asking for
@@ -816,7 +820,8 @@ public class SOCRobotNegotiator
                 {
                     D.ebugPrintln("** isSellingResource[" + i + "][" + neededResource + "] = " + isSellingResource[i][neededResource]);
 
-                    if ((i != opn) && isSellingResource[i][neededResource] &&
+                    if ((i != ourPlayerNumber)
+                        && isSellingResource[i][neededResource] &&
                         (! game.isSeatVacant(i)) &&
                         (game.getPlayer(i).getResources().getTotal() >= getResourceSet.getTotal()))
                     {
@@ -862,7 +867,7 @@ public class SOCRobotNegotiator
                 ///
                 ///  the offer
                 ///
-                offer = new SOCTradeOffer(game.getName(), ourPlayerData.getPlayerNumber(), offeredTo, giveResourceSet, getResourceSet);
+                offer = new SOCTradeOffer(game.getName(), ourPlayerNumber, offeredTo, giveResourceSet, getResourceSet);
 
                 ///
                 /// only make the offer if we think somone will take it
@@ -995,7 +1000,7 @@ public class SOCRobotNegotiator
             Stack receiverBuildingPlan = new Stack();
             simulator = new SOCRobotDM(brain.getRobotParameters(), playerTrackers, receiverPlayerTracker, receiverPlayerData, receiverBuildingPlan);
 
-            if (receiverNum == ourPlayerData.getPlayerNumber())
+            if (receiverNum == ourPlayerNumber)
             {
                 simulator.planStuff(strategyType);
             }
@@ -1026,7 +1031,7 @@ public class SOCRobotNegotiator
             Stack senderBuildingPlan = new Stack();
             simulator = new SOCRobotDM(brain.getRobotParameters(), playerTrackers, senderPlayerTracker, senderPlayerData, senderBuildingPlan);
 
-            if (senderNum == ourPlayerData.getPlayerNumber())
+            if (senderNum == ourPlayerNumber)
             {
                 simulator.planStuff(strategyType);
             }
@@ -1561,7 +1566,7 @@ public class SOCRobotNegotiator
 
         SOCTradeOffer counterOffer = null;
 
-        SOCPossiblePiece targetPiece = targetPieces[ourPlayerData.getPlayerNumber()];
+        SOCPossiblePiece targetPiece = targetPieces[ourPlayerNumber];
 
         if (targetPiece == null)
         {
@@ -1581,7 +1586,7 @@ public class SOCRobotNegotiator
             }
 
             targetPiece = (SOCPossiblePiece) ourBuildingPlan.peek();
-            targetPieces[ourPlayerData.getPlayerNumber()] = targetPiece;
+            targetPieces[ourPlayerNumber] = targetPiece;
         }
 
         SOCResourceSet targetResources = null;
@@ -2400,7 +2405,7 @@ public class SOCRobotNegotiator
                     to[i] = false;
                 }
 
-                bankTrade = new SOCTradeOffer(game.getName(), ourPlayerData.getPlayerNumber(), to, give, get);
+                bankTrade = new SOCTradeOffer(game.getName(), ourPlayerNumber, to, give, get);
 
                 return bankTrade;
             }
@@ -2462,7 +2467,7 @@ public class SOCRobotNegotiator
                         to[i] = false;
                     }
 
-                    bankTrade = new SOCTradeOffer(game.getName(), ourPlayerData.getPlayerNumber(), to, give, get);
+                    bankTrade = new SOCTradeOffer(game.getName(), ourPlayerNumber, to, give, get);
 
                     return bankTrade;
                 }
@@ -2494,7 +2499,7 @@ public class SOCRobotNegotiator
                         to[i] = false;
                     }
 
-                    bankTrade = new SOCTradeOffer(game.getName(), ourPlayerData.getPlayerNumber(), to, give, get);
+                    bankTrade = new SOCTradeOffer(game.getName(), ourPlayerNumber, to, give, get);
 
                     return bankTrade;
                 }

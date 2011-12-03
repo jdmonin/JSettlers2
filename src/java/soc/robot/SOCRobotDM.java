@@ -96,7 +96,12 @@ public class SOCRobotDM {
   protected SOCRobotBrain brain;
   protected HashMap playerTrackers;
   protected SOCPlayerTracker ourPlayerTracker;
-  protected SOCPlayer ourPlayerData;
+  protected final SOCPlayer ourPlayerData;
+  /**
+   * {@link #ourPlayerData}'s player number.
+   * @since 1.2.00
+   */
+  private final int ourPlayerNumber;
   protected Stack buildingPlan;
   protected SOCGame game;
   protected Vector threatenedRoads;
@@ -119,6 +124,7 @@ public class SOCRobotDM {
     playerTrackers = brain.getPlayerTrackers();
     ourPlayerTracker = brain.getOurPlayerTracker();
     ourPlayerData = brain.getOurPlayerData();
+    ourPlayerNumber = ourPlayerData.getPlayerNumber();
     buildingPlan = brain.getBuildingPlan();
     game = brain.getGame();
 
@@ -157,6 +163,7 @@ public class SOCRobotDM {
     playerTrackers = pt;
     ourPlayerTracker = opt;
     ourPlayerData = opd;
+    ourPlayerNumber = opd.getPlayerNumber();
     buildingPlan = bp;
     game = ourPlayerData.getGame();
 
@@ -325,7 +332,7 @@ public class SOCRobotDM {
 	HashMap trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
 	SOCPlayerTracker.updateWinGameETAs(trackersCopy);
 				
-	SOCPlayerTracker ourPlayerTrackerCopy = (SOCPlayerTracker)trackersCopy.get(new Integer(ourPlayerData.getPlayerNumber()));
+	SOCPlayerTracker ourPlayerTrackerCopy = (SOCPlayerTracker) trackersCopy.get(new Integer(ourPlayerNumber));
 
 	int ourCurrentWGETACopy = ourPlayerTrackerCopy.getWinGameETA();
 	D.ebugPrintln("ourCurrentWGETACopy = "+ourCurrentWGETACopy);
@@ -452,7 +459,7 @@ public class SOCRobotDM {
     // If this game is on the 6-player board, check whether we're planning for
     // the Special Building Phase.  Can't buy cards or trade in that phase.
     final boolean forSpecialBuildingPhase =
-        game.isSpecialBuilding() || (game.getCurrentPlayerNumber() != ourPlayerData.getPlayerNumber());
+        game.isSpecialBuilding() || (game.getCurrentPlayerNumber() != ourPlayerNumber);
 
     int bestETA = 500;
     SOCBuildingSpeedEstimate ourBSE = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
@@ -583,7 +590,7 @@ public class SOCRobotDM {
 	/// no one has largest army
 	///
 	laSize = 3;
-      } else if (laPlayer.getPlayerNumber() == ourPlayerData.getPlayerNumber()) {
+      } else if (laPlayer.getPlayerNumber() == ourPlayerNumber) {
 	///
 	/// we have largest army
 	///
@@ -638,7 +645,7 @@ public class SOCRobotDM {
       int lrLength;
       SOCPlayer lrPlayer = game.getPlayerWithLongestRoad();
       if ((lrPlayer != null) && 
-	  (lrPlayer.getPlayerNumber() == ourPlayerData.getPlayerNumber())) {
+	  (lrPlayer.getPlayerNumber() == ourPlayerNumber)) {
 	///
 	/// we have longest road
 	///
@@ -1127,7 +1134,7 @@ public class SOCRobotDM {
     // If this game is on the 6-player board, check whether we're planning for
     // the Special Building Phase.  Can't buy cards or trade in that phase.
     final boolean forSpecialBuildingPhase =
-        game.isSpecialBuilding() || (game.getCurrentPlayerNumber() != ourPlayerData.getPlayerNumber());
+        game.isSpecialBuilding() || (game.getCurrentPlayerNumber() != ourPlayerNumber);
 
     //
     // save the lr paths list to restore later
@@ -1349,7 +1356,7 @@ public class SOCRobotDM {
     ///
     if (ourPlayerData.getNumPieces(SOCPlayingPiece.CITY) > 0) {
       HashMap trackersCopy = SOCPlayerTracker.copyPlayerTrackers(playerTrackers);
-      SOCPlayerTracker ourTrackerCopy = (SOCPlayerTracker)trackersCopy.get(new Integer(ourPlayerData.getPlayerNumber()));
+      SOCPlayerTracker ourTrackerCopy = (SOCPlayerTracker) trackersCopy.get(new Integer(ourPlayerNumber));
       int originalWGETAs[] = new int[game.maxPlayers];	 
       int WGETAdiffs[] = new int[game.maxPlayers];	 
       Vector leaders = new Vector();
@@ -1375,9 +1382,10 @@ public class SOCRobotDM {
 	Iterator trackersBeforeIter = trackersCopy.values().iterator();
 	while (trackersBeforeIter.hasNext()) {
 	  SOCPlayerTracker trackerBefore = (SOCPlayerTracker)trackersBeforeIter.next();
-	  D.ebugPrintln("$$$ win game ETA for player "+trackerBefore.getPlayer().getPlayerNumber()+" = "+trackerBefore.getWinGameETA());
-	  originalWGETAs[trackerBefore.getPlayer().getPlayerNumber()] = trackerBefore.getWinGameETA();
-	  WGETAdiffs[trackerBefore.getPlayer().getPlayerNumber()] = trackerBefore.getWinGameETA();
+	  final int pn = trackerBefore.getPlayer().getPlayerNumber();
+	  D.ebugPrintln("$$$ win game ETA for player " + pn + " = " + trackerBefore.getWinGameETA());
+	  originalWGETAs[pn] = trackerBefore.getWinGameETA();
+	  WGETAdiffs[pn] = trackerBefore.getWinGameETA();
 	  if (trackerBefore.getWinGameETA() < bestWGETA) {
 	    bestWGETA = trackerBefore.getWinGameETA();
 	    leaders.removeAllElements();
@@ -1643,7 +1651,7 @@ public class SOCRobotDM {
       tmpCity = new SOCCity(ourPlayerData, 
 			    posPiece.getCoordinates(), null);
       game.putTempPiece(tmpCity);
-      SOCPlayerTracker trackerCopy = (SOCPlayerTracker)trackersCopy.get(new Integer(ourPlayerData.getPlayerNumber()));
+      SOCPlayerTracker trackerCopy = (SOCPlayerTracker) trackersCopy.get(new Integer(ourPlayerNumber));
       if (trackerCopy != null) {
 	trackerCopy.addOurNewCity(tmpCity);
       }
@@ -1770,9 +1778,10 @@ public class SOCRobotDM {
     Iterator trackersBeforeIter = trackersBefore.values().iterator();
     while (trackersBeforeIter.hasNext()) {
       SOCPlayerTracker trackerBefore = (SOCPlayerTracker)trackersBeforeIter.next();
-      D.ebugPrintln("$$$ win game ETA for player "+trackerBefore.getPlayer().getPlayerNumber()+" = "+trackerBefore.getWinGameETA());
-      originalWGETAs[trackerBefore.getPlayer().getPlayerNumber()] = trackerBefore.getWinGameETA();
-      WGETAdiffs[trackerBefore.getPlayer().getPlayerNumber()] = trackerBefore.getWinGameETA();
+      final int pn = trackerBefore.getPlayer().getPlayerNumber();
+      D.ebugPrintln("$$$ win game ETA for player " + pn + " = " + trackerBefore.getWinGameETA());
+      originalWGETAs[pn] = trackerBefore.getWinGameETA();
+      WGETAdiffs[pn] = trackerBefore.getWinGameETA();
 
       if (trackerBefore.getWinGameETA() < bestWGETA) {
 	bestWGETA = trackerBefore.getWinGameETA();
@@ -1815,9 +1824,10 @@ public class SOCRobotDM {
     Iterator trackersAfterIter = trackersAfter.values().iterator();
     while (trackersAfterIter.hasNext()) {
       SOCPlayerTracker trackerAfter = (SOCPlayerTracker)trackersAfterIter.next();
-      WGETAdiffs[trackerAfter.getPlayer().getPlayerNumber()] -= trackerAfter.getWinGameETA();
-      D.ebugPrintln("$$$ win game ETA diff for player "+trackerAfter.getPlayer().getPlayerNumber()+" = "+WGETAdiffs[trackerAfter.getPlayer().getPlayerNumber()]);
-      if (trackerAfter.getPlayer().getPlayerNumber() == ourPlayerData.getPlayerNumber()) {
+      final int pn = trackerAfter.getPlayer().getPlayerNumber();
+      WGETAdiffs[pn] -= trackerAfter.getWinGameETA();
+      D.ebugPrintln("$$$ win game ETA diff for player " + pn + " = " + WGETAdiffs[pn]);
+      if (pn == ourPlayerNumber) {
 	if (trackerAfter.getWinGameETA() == 0) {
 	  D.ebugPrintln("$$$$ adding win game bonus : +"+(100 / game.maxPlayers));
 	  bonus += (100.0f / (float) game.maxPlayers);
@@ -1836,9 +1846,9 @@ public class SOCRobotDM {
     // bonus is based on lowering your WGETA
     // and increaseing the leaders' WGETA
     //
-    if ((originalWGETAs[ourPlayerData.getPlayerNumber()] > 0) &&
+    if ((originalWGETAs[ourPlayerNumber] > 0) &&
 	(bonus == 0)) {
-      bonus += ((100.0f / (float) game.maxPlayers) * ((float)WGETAdiffs[ourPlayerData.getPlayerNumber()] / (float)originalWGETAs[ourPlayerData.getPlayerNumber()]));
+      bonus += ((100.0f / (float) game.maxPlayers) * ((float)WGETAdiffs[ourPlayerNumber] / (float)originalWGETAs[ourPlayerNumber]));
     }			
 		
     D.ebugPrintln("^^^^ our current bonus = "+bonus);
@@ -1854,7 +1864,7 @@ public class SOCRobotDM {
       Enumeration leadersEnum = leaders.elements();
       while (leadersEnum.hasMoreElements()) {
 	SOCPlayerTracker leader = (SOCPlayerTracker)leadersEnum.nextElement();
-	if ((pn != ourPlayerData.getPlayerNumber()) &&
+	if ((pn != ourPlayerNumber) &&
 	    (pn != leader.getPlayer().getPlayerNumber())) {
 	  if (originalWGETAs[pn] > 0) {
 	    float takedownBonus = -1.0f * (100.0f / (float) game.maxPlayers) * adversarialFactor * ((float)WGETAdiffs[pn] / (float)originalWGETAs[pn]) * ((float)bestWGETA / (float)originalWGETAs[pn]);
@@ -1881,21 +1891,25 @@ public class SOCRobotDM {
     Enumeration leadersEnum = leaders.elements();
     while (leadersEnum.hasMoreElements()) {
       SOCPlayerTracker leader = (SOCPlayerTracker)leadersEnum.nextElement();
-      if (leader.getPlayer().getPlayerNumber() != ourPlayerData.getPlayerNumber()) {
-	if (originalWGETAs[leader.getPlayer().getPlayerNumber()] > 0) {
-	  float takedownBonus = -1.0f * (100.0f / (float) game.maxPlayers) * leaderAdversarialFactor * ((float)WGETAdiffs[leader.getPlayer().getPlayerNumber()] / (float)originalWGETAs[leader.getPlayer().getPlayerNumber()]);
+      final int leaderPN = leader.getPlayer().getPlayerNumber();
+      if (leaderPN != ourPlayerNumber) {
+	if (originalWGETAs[leaderPN] > 0) {
+	  float takedownBonus = -1.0f
+	      * (100.0f / (float) game.maxPlayers)
+	      * leaderAdversarialFactor
+	      * ((float) WGETAdiffs[leaderPN] / (float) originalWGETAs[leaderPN]);
 	  bonus += takedownBonus;
-	  D.ebugPrintln("^^^^ added takedown bonus for leader "+leader.getPlayer().getPlayerNumber()+" : +"+takedownBonus);
+	  D.ebugPrintln("^^^^ added takedown bonus for leader " + leaderPN + " : +" + takedownBonus);
 	  if (((brain != null) && (brain.getDRecorder().isOn())) && (takedownBonus != 0)){
-	    brain.getDRecorder().record("Bonus for LI with "+leader.getPlayer().getName()+" : +"+df1.format(takedownBonus));
+	    brain.getDRecorder().record("Bonus for LI with " + leader.getPlayer().getName() + " : +"+df1.format(takedownBonus));
 	  } 
 	  
-	} else if (WGETAdiffs[leader.getPlayer().getPlayerNumber()] < 0) {
+	} else if (WGETAdiffs[leaderPN] < 0) {
 	  float takedownBonus = (100.0f / (float) game.maxPlayers) * leaderAdversarialFactor;
 	  bonus += takedownBonus;
-	  D.ebugPrintln("^^^^ added takedown bonus for leader "+leader.getPlayer().getPlayerNumber()+" : +"+takedownBonus);
+	  D.ebugPrintln("^^^^ added takedown bonus for leader " + leaderPN + " : +" + takedownBonus);
 	  if (((brain != null) && (brain.getDRecorder().isOn())) && (takedownBonus != 0)) {
-	    brain.getDRecorder().record("Bonus for LI with "+leader.getPlayer().getName()+" : +"+df1.format(takedownBonus));
+	    brain.getDRecorder().record("Bonus for LI with " + leader.getPlayer().getName() + " : +"+df1.format(takedownBonus));
 	  } 
 	}
       }
@@ -1923,9 +1937,10 @@ public class SOCRobotDM {
     Iterator trackersIter = playerTrackers.values().iterator();
     while (trackersIter.hasNext()) {
       SOCPlayerTracker tracker = (SOCPlayerTracker)trackersIter.next();
-      originalWGETAs[tracker.getPlayer().getPlayerNumber()] = tracker.getWinGameETA();
-      WGETAdiffs[tracker.getPlayer().getPlayerNumber()] = tracker.getWinGameETA();
-      D.ebugPrintln("$$$$ win game ETA for player "+tracker.getPlayer().getPlayerNumber()+" = "+tracker.getWinGameETA());
+      final int pn = tracker.getPlayer().getPlayerNumber();
+      originalWGETAs[pn] = tracker.getWinGameETA();
+      WGETAdiffs[pn] = tracker.getWinGameETA();
+      D.ebugPrintln("$$$$ win game ETA for player " + pn + " = " + tracker.getWinGameETA());
 
       if (tracker.getWinGameETA() < bestWGETA) {
 	bestWGETA = tracker.getWinGameETA();
