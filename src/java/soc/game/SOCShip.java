@@ -29,19 +29,44 @@ package soc.game;
  */
 public class SOCShip extends SOCRoad
 {
+    private static final long serialVersionUID = 1200L;
+
+    /**
+     * Is this ship part of an closed trade route, not an open one?
+     */
+    private boolean isClosed;
+
     /**
      * Make a new ship.
+     * The ship is considered part of an open trade route, until {@link #setClosed()} is called. 
      *
      * @param pl  player who owns the ship
-     * @param co  coordinates
+     * @param edge  edge coordinate
      * @param board  board if known; otherwise will extract from <tt>pl</tt>
      * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
      */
-    public SOCShip(SOCPlayer pl, int co, SOCBoard board)
+    public SOCShip(SOCPlayer pl, final int edge, SOCBoard board)
         throws IllegalArgumentException
     {
-        super(pl, co, board);
+        super(pl, edge, board);
         pieceType = SOCPlayingPiece.SHIP;
+    }
+
+    /**
+     * Is this ship part of a closed trade route, not an open one?
+     * @return  True if {@link #setClosed()} has been called
+     */
+    public boolean isClosed()
+    {
+        return isClosed;
+    }
+
+    /**
+     * Call when this ship's trade route has been closed. 
+     */
+    public void setClosed()
+    {
+        isClosed = true;
     }
 
 }
