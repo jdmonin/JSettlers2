@@ -766,6 +766,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get this player's road or ship on an edge.
+     * @param  edge  Edge coordinate of the road or ship
+     * @return  The player's road or ship in play at this edge, or null
+     * @since 1.2.00
+     */
+    public SOCRoad getRoadOrShip(final int edge)
+    {
+        Enumeration roadEnum = roads.elements();
+        while (roadEnum.hasMoreElements())
+        {
+            SOCRoad roadOrShip = (SOCRoad) roadEnum.nextElement();
+            if (roadOrShip.getCoordinates() == edge)
+                return roadOrShip;
+        }
+
+        return null;
+    }
+
+    /**
      * @return the list of settlements in play
      */
     public Vector getSettlements()
@@ -779,6 +798,91 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public Vector getCities()
     {
         return cities;
+    }
+
+    /**
+     * Can we move this ship, based on our trade routes
+     * and settlements/cities?
+     * Only the ship at the newer end of an open trade route can be moved.
+     * So, to move a ship, one of its end nodes must be clear: No
+     * settlement or city, and no other adjacent ship on the other
+     * side of the node.
+     *<P>
+     * Does not check game state, only this player's pieces.
+     * Trade routes can branch, so it may be that more than one ship
+     * could be moved.  The game limits players to one move per turn.
+     * That limit isn't checked here.
+     *<P>
+     * @see SOCGame#canMoveShip(int, int, int)
+     * @param sh  One of our ships
+     * @since 1.2.00
+     */
+    public boolean canMoveShip(SOCShip sh)
+    {
+        if (sh.isClosed())
+            return false;
+
+        final SOCBoard board = game.getBoard();
+        final int shipEdge = sh.getCoordinates();
+        final int[] shipNodes = board.getAdjacentNodesToEdge_arr(shipEdge);
+
+        final boolean clearPastNode0, clearPastNode1;
+
+        clearPastNode0 =
+            (null == board.settlementAtNode(shipNodes[0]))
+            && ! doesTradeRouteContinuePastNode
+                   (board, shipEdge, shipNodes[0]);
+        clearPastNode1 =
+             (null == board.settlementAtNode(shipNodes[1]))
+             && ! doesTradeRouteContinuePastNode
+                    (board, shipEdge, shipNodes[1]);
+
+        return (clearPastNode0 || clearPastNode1);
+    }
+
+    /**
+     * Does this trade route (ships only) continue past
+     * an unoccupied node?
+     *
+     * @param board  game board
+     * @param shipEdge  Edge with a ship on the trade route
+     * @param node  Node at one end of <tt>shipEdge</tt>,
+     *              which does not have a settlement or city;
+     *              check this node's other 2 edges for ships
+     *              continuing the trade route
+     * @return  True if a ship continues the route past <tt>node</tt>
+     *              along one or both of the node's 2 other edges
+     * @since 1.2.00
+     */
+    private final boolean doesTradeRouteContinuePastNode
+        (final SOCBoard board, final int shipEdge, final int node)
+    {
+        boolean routeContinues = false;
+
+        int[] adjEdges = board.getAdjacentEdgesToNode_arr(node);
+        for (int i = 0; i < 3; ++i)
+            if (adjEdges[i] == shipEdge)
+                adjEdges[i] = -9;  // ignore shipEdge
+
+        Enumeration roadEnum = roads.elements();
+        while (roadEnum.hasMoreElements() && ! routeContinues)
+        {
+            SOCRoad road = (SOCRoad) roadEnum.nextElement();
+            final int edge = road.getCoordinates();
+            for (int i = 0; i < 3; ++i)
+            {
+                if (edge == adjEdges[i])
+                {
+                    if (road.isRoadNotShip())
+                        continue;  // interested in ships only
+
+                    routeContinues = true;
+                    break;
+                }
+            }
+        }
+
+        return routeContinues;
     }
 
     /**

@@ -633,6 +633,13 @@ public class SOCGame implements Serializable, Cloneable
     private boolean lastActionWasBankTrade;
 
     /**
+     * Has the current player moved a ship already this turn?
+     * Valid only when {@link #hasSeaBoard}.
+     * @since 1.2.00
+     */
+    private boolean movedShipThisTurn;
+
+    /**
      * The number of normal turns (not rounds, not initial placements), including this turn.
      *  This is 0 during initial piece placement, and 1 when the first player is about to
      *  roll dice for the first time.
@@ -771,6 +778,7 @@ public class SOCGame implements Serializable, Cloneable
         placingRobberForKnightCard = false;
         oldPlayerWithLongestRoad = new Stack();
         lastActionWasBankTrade = false;
+        movedShipThisTurn = false;
 
         opts = op;
         if (op == null)
@@ -2169,7 +2177,79 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can this player currently move this ship, based on game state and
+     * their trade routes and settlements/cities?
+     * Must be current player.  Game state must be {@link #PLAY1}.
+     *<P>
+     * Only the ship at the newer end of an open trade route can be moved.
+     * So, to move a ship, one of its end nodes must be clear: No
+     * settlement or city, and no other adjacent ship on the other
+     * side of the node.
+     *<P>
+     * Trade routes can branch, so it may be that more than one ship
+     * could be moved.  The game limits players to one move per turn.
+     *
+     * @param pn   Player number
+     * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship.
+     * @param toEdge    Edge coordinate to move to; must be different than <tt>fromEdge</tt>.
+     *            Checks {@link SOCPlayer#isPotentialShip(int) players[pn].isPotentialShip(toEdge)}.
+     * @return  The ship, if the player can move the ship now; null otherwise
+     * @see #moveShip(SOCShip, int)
+     * @since 1.2.00
+     */
+    public SOCShip canMoveShip(final int pn, final int fromEdge, final int toEdge)
+    {
+        if (fromEdge == toEdge)
+            return null;
+        if (movedShipThisTurn || ! (hasSeaBoard && (currentPlayerNumber == pn) && (gameState == PLAY1)))
+            return null;
+
+        final SOCPlayer pl = players[pn];
+        if (! pl.isPotentialShip(toEdge))
+            return null;
+        final SOCRoad pieceAtFrom = pl.getRoadOrShip(fromEdge);
+        if ((pieceAtFrom == null) || pieceAtFrom.isRoadNotShip())
+            return null;
+        SOCShip canShip = (SOCShip) pieceAtFrom;
+        if (! pl.canMoveShip(canShip))
+            return null;
+        // TODO cannot move if ship was bought and placed this turn
+
+        return canShip;
+    }
+
+    /**
+     * Move this ship on the board and update all related game state.
+     * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}
+     * if a player gets the longest trade route.
+     *<P>
+     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece)}
+     * and {@link #putPiece(SOCPlayingPiece)}.
+     * Updates longest trade route.
+     *<P>
+     *<b>Note:</b> Because <tt>sh</tt> and <tt>toEdge</tt>
+     * are not checked for validity, please call
+     * {@link #canMoveShip(int, int, int) before calling this method.
+     *<P>
+     * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
+     * unless the current player gains enough points to win.
+     *
+     * @param sh the ship to move on the board; its coordinate must be
+     *           the edge to move from
+     * @param toEdge    Edge coordinate to move to
+     * @since 1.2.00
+     */
+    public void moveShip(SOCShip sh, final int toEdge)
+    {
+        undoPutPieceCommon(sh);
+        SOCShip sh2 = new SOCShip(sh.getPlayer(), toEdge, board);
+        putPiece(sh2);  // calls checkForWinner, etc
+        movedShipThisTurn = true;
+    }
+
+    /**
      * undo the putting of a temporary or initial piece
+     * or a ship being moved.
      *
      * @param pp  the piece to remove from the board
      */
@@ -2497,6 +2577,7 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
         currPlayer.lastActionBankTrade_give = null;
         currPlayer.lastActionBankTrade_get = null;
+        movedShipThisTurn = false;
 
         if (gameState == PLAY)
         {
