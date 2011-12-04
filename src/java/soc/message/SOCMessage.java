@@ -75,7 +75,7 @@ import java.util.StringTokenizer;
  *      and possibly to {@link soc.robot.SOCRobotBrain#run()}. 
  *</UL>
  *<P>
- * Backwards compatability: Unknown message types are ignored by client and by server.
+ * Backwards compatibility: Unknown message types are ignored by client and by server.
  * Technically they are returned as null from {@link #toMsg(String)} if the local copy
  * of SOCMessage doesn't know that message type.
  *<P>
@@ -203,6 +203,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /** @since 1.1.13 */
     public static final int TIMINGPING = 1088;  // robot timing ping, 20111011, v1.1.13
+
+    /** Ask server to move a piece to another location.
+     *  @since 1.2.00 */
+    public static final int MOVEPIECEREQUEST = 1089;  // move piece request, 20111203, v1.2.00
+
+    /** Move a piece to another location; server reply to {@link #MOVEPIECEREQUEST}.
+     *  @since 1.2.00 */
+    public static final int MOVEPIECE = 1090;  // move piece, 20111203, v1.2.00
 
 
     /////////////////////////////////////////
@@ -737,6 +745,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case TIMINGPING:        // robot timing ping, 20111011, v1.1.13
                 return SOCTimingPing.parseDataStr(data);
+
+            case MOVEPIECEREQUEST:  // move piece request, 20111203, v1.2.00
+                return SOCMovePieceRequest.parseDataStr(data);
+
+            case MOVEPIECE:         // move piece announcement, 20111203, v1.2.00
+                return SOCMovePiece.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
