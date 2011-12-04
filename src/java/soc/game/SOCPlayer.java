@@ -110,12 +110,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private Vector cities;
 
     /**
-     * The coordinates of our most recent settlement
+     * The node coordinate of our most recent settlement.
+     * Useful during initial placement.
      */
     protected int lastSettlementCoord;
 
     /**
-     * The coordinates of our most recent road or ship
+     * The edge coordinate of our most recent road or ship.
+     * Useful during initial placement.
      */
     protected int lastRoadCoord;
 
@@ -780,6 +782,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the location of this player's most recent
+     * settlement.  Useful during initial placement.
      * @return the coordinates of the last settlement
      * played by this player
      */
@@ -789,6 +793,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the location of this player's most recent
+     * road or ship.  Useful during initial placement.
      * @return the coordinates of the last road/ship
      * played by this player
      */
@@ -798,6 +804,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the length of this player's longest road or trade route,
+     * as calculated by the most recent call to {@link #calcLongestRoad2()}.
      * @return the longest road length / trade route length
      */
     public int getLongestRoadLength()
@@ -1045,8 +1053,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Are these two adjacent nodes connected by this player's road/ship?
-     * @return true if one of this player's roads connects
-     *              the two nodes.
+     * @return true if one of this player's roads or ships
+     *         connects the two nodes.
      *
      * @param node1         coordinates of first node
      * @param node2         coordinates of second node
@@ -1068,6 +1076,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Put a piece into play.
+     * Update potential piece lists.
+     * For roads, update {@link #roadNodes} and {@link #roadNodeGraph}.
+     * Does not update longest road; instead, {@link SOCGame#putPiece(SOCPlayingPiece)}
+     * calls {@link #calcLongestRoad2()}.
      *<P>
      * <b>Note:</b> Placing a city automatically removes the settlement there
      *<P>
@@ -1153,7 +1165,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * For {@link #putPiece(SOCPlayingPiece)}, update road/ship-related info,
-     * such as {@link #roadNodeGraph}.
+     * {@link #roadNodes}, {@link #roadNodeGraph} and {@link #lastRoadCoord}.
      * @param piece  The road or ship
      * @param board  The board
      * @since 1.2.00
@@ -1257,6 +1269,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Call this only after calling {@link SOCBoard#removePiece(SOCPlayingPiece)}.
      *<P>
      * If the piece is ours, calls {@link #removePiece(SOCPlayingPiece)}.
+     *<P>
+     * For roads, does not update longest road; if you need to,
+     * call {@link #calcLongestRoad2()} after this call.
      *<P>
      * For removing second initial settlement (state START2B),
      *   will zero the player's resource cards. 
@@ -1591,10 +1606,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * remove a player's piece from the board,
      * and put it back in the player's hand.
      *<P>
-     * NOTE: Does NOT update the potential building lists
+     * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece)}
+     * which calls removePiece and does more.
+     *<P>
+     *<B>Note:</b> removePiece does NOT update the potential building lists
      *           for removing settlements or cities.
-     *       DOES update potential road lists.
+     * It does update potential road lists.
+     * For roads, updates {@link #roadNodes} and {@link #roadNodeGraph}.
      *
+     * @param piece  Our player's piece, to be removed from the board
      * @see #undoPutPiece(SOCPlayingPiece)
      */
     public void removePiece(SOCPlayingPiece piece)
@@ -1841,9 +1861,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * update the arrays that keep track of where
      * this player can play further pieces, after a
-     * piece has just been played.
+     * piece has just been played, or after another
+     * player's adjacent piece has been removed.
      *
      * @param piece         a piece that has just been played
+     *          or our piece adjacent to another player's
+     *          removed piece
      */
     public void updatePotentials(SOCPlayingPiece piece)
     {
