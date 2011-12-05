@@ -3253,6 +3253,7 @@ public class SOCServer extends Server
                 /**
                  * Game option messages. For the best writeup of these messages' interaction with
                  * the client, see {@link soc.client.SOCPlayerClient.GameOptionServerSet}'s javadoc.
+                 * Added 2009-06-01 for v1.1.07.
                  */
 
                 case SOCMessage.GAMEOPTIONGETDEFAULTS:
@@ -3272,6 +3273,14 @@ public class SOCServer extends Server
                  */
                 case SOCMessage.DEBUGFREEPLACE:
                     handleDEBUGFREEPLACE(c, (SOCDebugFreePlace) mes);
+                    break;
+
+                /**
+                 * Asking to move a previous piece (a ship) somewhere else on the board.
+                 * Added 2011-12-04 for v1.2.00.
+                 */
+                case SOCMessage.MOVEPIECEREQUEST:
+                    handleMOVEPIECEREQUEST(c, (SOCMovePieceRequest) mes);
                     break;
 
                 }  // switch (mes.getType)
@@ -7360,6 +7369,51 @@ public class SOCServer extends Server
             } else {
                 messageToPlayer(c, gaName, "Not a valid location to place that.");
             }
+        }
+    }
+
+    /**
+     * Handle the client's "move piece request" message.
+     * @since 1.2.00 
+     */
+    private final void handleMOVEPIECEREQUEST(StringConnection c, SOCMovePieceRequest mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+
+        boolean denyRequest = false;
+        final int pn = mes.getPlayerNumber();
+        final int fromEdge = mes.getFromCoord(),
+                  toEdge   = mes.getToCoord();
+        if ((mes.getPieceType() != SOCPlayingPiece.SHIP)
+            || ! checkTurn(c, ga))
+        {
+            denyRequest = true;
+        } else {
+            SOCShip moveShip = ga.canMoveShip
+                (pn, fromEdge, toEdge);
+            if (moveShip == null)
+            {
+                denyRequest = true;
+            } else {
+                ga.moveShip(moveShip, toEdge);
+                messageToGame(gaName, new SOCMovePiece
+                        (gaName, pn, SOCPlayingPiece.SHIP, fromEdge, toEdge));
+                if (ga.getGameState() >= SOCGame.OVER)
+                {
+                    // announce end of game
+                    sendGameState(ga, false);
+                }
+            }
+        }
+        if (denyRequest)
+        {
+            D.ebugPrintln("ILLEGAL MOVEPIECE: 0x" + Integer.toHexString(fromEdge) + " -> 0x" + Integer.toHexString(toEdge)
+                + ": player " + pn);
+            messageToPlayer(c, gaName, "You can't move that ship right now.");
+            messageToPlayer(c, new SOCCancelBuildRequest(gaName, SOCPlayingPiece.SHIP));
         }
     }
 
