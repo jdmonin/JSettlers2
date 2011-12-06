@@ -33,6 +33,7 @@ import soc.game.SOCPlayerNumbers;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
+import soc.game.SOCShip;
 
 import soc.util.CutoffExceededException;
 import soc.util.Pair;
@@ -77,9 +78,19 @@ public class SOCPlayerTracker
     protected SOCRobotBrain brain;
     private final SOCPlayer player;
     private final int playerNumber;
+
+    /** Key = {@link Integer} node coordinate, value = {@link SOCPossibleSettlement} */
     protected TreeMap possibleSettlements;
+
+    /**
+     * Includes both roads and ships.
+     * Key = {@link Integer} edge coordinate, value = {@link SOCPossibleRoad} or {@link SOCPossibleShip}
+     */
     protected TreeMap possibleRoads;
+
+    /** Key = {@link Integer} node coordinate, value = {@link SOCPossibleCity} */
     protected TreeMap possibleCities;
+
     protected int longestRoadETA;
     protected int roadsToGo;
     protected int largestArmyETA;
@@ -154,7 +165,11 @@ public class SOCPlayerTracker
         while (posRoadsIter.hasNext())
         {
             SOCPossibleRoad posRoad = (SOCPossibleRoad) posRoadsIter.next();
-            SOCPossibleRoad posRoadCopy = new SOCPossibleRoad(posRoad);
+            SOCPossibleRoad posRoadCopy;
+            if (posRoad instanceof SOCPossibleShip)
+                posRoadCopy = new SOCPossibleShip((SOCPossibleShip) posRoad);
+            else
+                posRoadCopy = new SOCPossibleRoad(posRoad);
             possibleRoads.put(new Integer(posRoadCopy.getCoordinates()), posRoadCopy);
         }
 
@@ -262,6 +277,7 @@ public class SOCPlayerTracker
                     //
                     switch (newPos.getType())
                     {
+                    case SOCPossiblePiece.SHIP:  // fall through to ROAD
                     case SOCPossiblePiece.ROAD:
 
                         SOCPossibleRoad newPosRoadCopy = (SOCPossibleRoad) possibleRoadsCopy.get(new Integer(newPos.getCoordinates()));
@@ -409,7 +425,7 @@ public class SOCPlayerTracker
     }
 
     /**
-     * @return the list of possible roads
+     * @return the list of possible roads and ships
      */
     public TreeMap getPossibleRoads()
     {
@@ -487,9 +503,9 @@ public class SOCPlayerTracker
     }
 
     /**
-     * add a road that has just been built
+     * add a road or ship that has just been built
      *
-     * @param road       the road
+     * @param road       the road or ship
      * @param trackers   player trackers for the players
      */
     public void addNewRoad(SOCRoad road, HashMap trackers)
@@ -505,9 +521,9 @@ public class SOCPlayerTracker
     }
     
     /**
-     * Remove our incorrect road placement, it's been rejected by the server.
+     * Remove our incorrect road or ship placement, it's been rejected by the server.
      * 
-     * @param road Location of our bad road
+     * @param road Location of our bad road or ship
      * 
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
      */
@@ -541,11 +557,14 @@ public class SOCPlayerTracker
     }
 
     /**
-     * Add one of our roads that has just been built
+     * Add one of our roads or ships that has just been built.
+     * Look for new adjacent possible settlements.
+     * Call {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
+     * on newly possible adjacent roads.
      *
-     * @param road         the road
+     * @param road         the road or ship
      * @param trackers     player trackers for the players
-     * @param expandLevel  how far out we should expand roads
+     * @param expandLevel  how far out we should expand roads/ships
      */
     public void addOurNewRoad(SOCRoad road, HashMap trackers, int expandLevel)
     {
@@ -579,7 +598,7 @@ public class SOCPlayerTracker
 
         //D.ebugPrintln("$$$ checking for possible settlements");
         //
-        // see if this road adds any new possible settlements
+        // see if this road/ship adds any new possible settlements
         //
         // check adjacent nodes to road for potential settlements
         //
@@ -642,7 +661,8 @@ public class SOCPlayerTracker
             //
             // see if edge is a potential road
             //
-            if (player.isPotentialRoad(adjEdge.intValue()))
+            if ( (road.isRoadNotShip() && player.isPotentialRoad(adjEdge.intValue()))
+                 || ((! road.isRoadNotShip()) && player.isPotentialShip(adjEdge.intValue())) )
             {
                 //
                 // see if possible road is already in the list
@@ -672,7 +692,11 @@ public class SOCPlayerTracker
                     // else, add new possible road
                     //
                     //D.ebugPrintln("$$$ adding new pr at "+Integer.toHexString(adjEdge.intValue()));
-                    SOCPossibleRoad newPR = new SOCPossibleRoad(player, adjEdge.intValue(), new Vector());
+                    SOCPossibleRoad newPR;
+                    if (road.isRoadNotShip())
+                        newPR = new SOCPossibleRoad(player, adjEdge.intValue(), new Vector());
+                    else
+                        newPR = new SOCPossibleShip(player, adjEdge.intValue(), new Vector());
                     newPR.setNumberOfNecessaryRoads(0);
                     newPossibleRoads.addElement(newPR);
                     roadsToExpand.addElement(newPR);
@@ -701,30 +725,35 @@ public class SOCPlayerTracker
         while (expandPREnum.hasMoreElements())
         {
             SOCPossibleRoad expandPR = (SOCPossibleRoad) expandPREnum.nextElement();
-            expandRoad(expandPR, player, dummy, trackers, expandLevel);
+            expandRoadOrShip(expandPR, player, dummy, trackers, expandLevel);
         }
 
         dummy.destroyPlayer();
     }
 
     /**
-     * Expand a possible road to see what this road makes possible
+     * Expand a possible road or ship, to see what placements it makes possible.
      *
      * @param targetRoad   the possible road
      * @param player    the player who owns the original road
      * @param dummy     the dummy player used to see what's legal
      * @param trackers  player trackers
-     * @param level     how many levels to expand
+     * @param level     how many levels (additional pieces) to expand
      */
-    public void expandRoad(SOCPossibleRoad targetRoad, SOCPlayer player, SOCPlayer dummy, HashMap trackers, int level)
+    public void expandRoadOrShip
+        (SOCPossibleRoad targetRoad, SOCPlayer player, SOCPlayer dummy, HashMap trackers, final int level)
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
         SOCBoard board = player.getGame().getBoard();
-        SOCRoad dummyRoad = new SOCRoad(dummy, targetRoad.getCoordinates(), board);
+        SOCRoad dummyRoad;
+        if (targetRoad.isRoadNotShip())
+            dummyRoad = new SOCRoad(dummy, targetRoad.getCoordinates(), board);
+        else
+            dummyRoad = new SOCShip(dummy, targetRoad.getCoordinates(), board);
         dummy.putPiece(dummyRoad);
 
         //
-        // see if this road adds any new possible settlements
+        // see if this road/ship adds any new possible settlements
         //
         //D.ebugPrintln("$$$ checking for possible settlements");
         //
@@ -807,7 +836,8 @@ public class SOCPlayerTracker
                 //
                 // see if edge is a potential road
                 //
-                if (dummy.isPotentialRoad(adjEdge.intValue()))
+                if ( (targetRoad.isRoadNotShip() && dummy.isPotentialRoad(adjEdge.intValue()))
+                     || ((! targetRoad.isRoadNotShip()) && dummy.isPotentialShip(adjEdge.intValue())) )
                 {
                     //
                     // see if possible road is already in the list
@@ -855,7 +885,11 @@ public class SOCPlayerTracker
                         Vector neededRoads = new Vector();
                         neededRoads.addElement(targetRoad);
 
-                        SOCPossibleRoad newPR = new SOCPossibleRoad(player, adjEdge.intValue(), neededRoads);
+                        SOCPossibleRoad newPR;
+                        if (targetRoad.isRoadNotShip())
+                            newPR = new SOCPossibleRoad(player, adjEdge.intValue(), neededRoads);
+                        else
+                            newPR = new SOCPossibleShip(player, adjEdge.intValue(), neededRoads);
                         newPR.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
                         targetRoad.addNewPossibility(newPR);
                         newPossibleRoads.addElement(newPR);
@@ -884,7 +918,7 @@ public class SOCPlayerTracker
             while (expandPREnum.hasMoreElements())
             {
                 SOCPossibleRoad expandPR = (SOCPossibleRoad) expandPREnum.nextElement();
-                expandRoad(expandPR, player, dummy, trackers, level - 1);
+                expandRoadOrShip(expandPR, player, dummy, trackers, level - 1);
             }
         }
 
@@ -895,11 +929,11 @@ public class SOCPlayerTracker
     }
 
     /**
-     * add another player's new road, or cancel our own bad road
+     * add another player's new road or ship, or cancel our own bad road
      * by acting as if another player has placed there.
      * (That way, we won't decide to place there again.)
      *
-     * @param road  the new road
+     * @param road  the new road or ship
      * @param isCancel Is this our own robot's road placement, rejected by the server?
      *     If so, this method call will cancel its placement within the tracker data.
      */
@@ -1356,6 +1390,7 @@ public class SOCPlayerTracker
 
             switch (newPos.getType())
             {
+            case SOCPossiblePiece.SHIP:  // fall through to ROAD
             case SOCPossiblePiece.ROAD:
                 nr = ((SOCPossibleRoad) newPos).getNecessaryRoads();
 
@@ -1917,6 +1952,8 @@ public class SOCPlayerTracker
      */
     public void recalcLongestRoadETA()
     {
+        // TODO handle ships here (different resources, etc)
+
         D.ebugPrintln("===  recalcLongestRoadETA for player " + playerNumber);
 
         int roadETA;
@@ -1994,6 +2031,7 @@ public class SOCPlayerTracker
     private int recalcLongestRoadETAAux
         (final int startNode, final int pathLength, final int lrLength, final int searchDepth)
     {
+        // TODO handle ships here
         return ((Integer) SOCRobotDM.recalcLongestRoadETAAux
             (player, false, startNode, pathLength, lrLength, searchDepth)).intValue();
     }
@@ -2057,16 +2095,16 @@ public class SOCPlayerTracker
     }
 
     /**
-     * update the longest road values for all possible roads
-     *
+     * update the longest road values for all possible roads/ships.
+     *<P>
      * longest road value is how much this
-     * road would increase our longest road
-     * if it were built
-     *
+     * road/ship would increase our longest road
+     * if it were built.
+     *<P>
      * the longest road potential is how much
-     * this road would increase our LR value
+     * this road/ship would increase our LR value
      * if other roads supported by this one were
-     * built
+     * built.
      */
     public void updateLRValues()
     {
@@ -2087,7 +2125,11 @@ public class SOCPlayerTracker
                 //
                 // calc longest road value
                 //
-                SOCRoad dummyRoad = new SOCRoad(dummy, posRoad.getCoordinates(), null);
+                SOCRoad dummyRoad;
+                if (posRoad.isRoadNotShip())
+                    dummyRoad = new SOCRoad(dummy, posRoad.getCoordinates(), null);
+                else
+                    dummyRoad = new SOCShip(dummy, posRoad.getCoordinates(), null);
                 dummy.putPiece(dummyRoad);
 
                 int newLRLength = dummy.calcLongestRoad2();
@@ -2120,15 +2162,16 @@ public class SOCPlayerTracker
     }
 
     /**
-     * update the potential LR value of a possible road
-     * by placing dummy roads and calculating LR
+     * update the potential LR value of a possible road or ship
+     * by placing dummy roads/ships and calculating LR (longest road).
      *
-     * @param posRoad   the possible road
+     * @param posRoad   the possible road or ship
      * @param dummy     the dummy player
-     * @param lrLength  the current lr length
+     * @param lrLength  the current LR length
      * @param level     how many levels of recursion
      */
-    public void updateLRPotential(SOCPossibleRoad posRoad, SOCPlayer dummy, SOCRoad dummyRoad, int lrLength, int level)
+    public void updateLRPotential
+        (SOCPossibleRoad posRoad, SOCPlayer dummy, SOCRoad dummyRoad, final int lrLength, final int level)
     {
         //D.ebugPrintln("$$$ updateLRPotential for road at "+Integer.toHexString(posRoad.getCoordinates())+" level="+level);
         //
@@ -2153,7 +2196,8 @@ public class SOCPlayerTracker
             {
                 final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
 
-                if (dummy.isPotentialRoad(adjEdge))
+                if ( (dummyRoad.isRoadNotShip() && dummy.isPotentialRoad(adjEdge))
+                     || ((! dummyRoad.isRoadNotShip()) && dummy.isPotentialShip(adjEdge)) )
                 {
                     noMoreExpansion = false;
 
@@ -2187,9 +2231,14 @@ public class SOCPlayerTracker
             {
                 final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
 
-                if (dummy.isPotentialRoad(adjEdge))
+                if ( (dummyRoad.isRoadNotShip() && dummy.isPotentialRoad(adjEdge))
+                     || ((! dummyRoad.isRoadNotShip()) && dummy.isPotentialShip(adjEdge)) )
                 {
-                    SOCRoad newDummyRoad = new SOCRoad(dummy, adjEdge, board);
+                    SOCRoad newDummyRoad;
+                    if (dummyRoad.isRoadNotShip())
+                        newDummyRoad = new SOCRoad(dummy, adjEdge, board);
+                    else
+                        newDummyRoad = new SOCShip(dummy, adjEdge, board);
                     dummy.putPiece(newDummyRoad);
                     updateLRPotential(posRoad, dummy, newDummyRoad, lrLength, level - 1);
                     dummy.removePiece(newDummyRoad);
@@ -3510,9 +3559,13 @@ public class SOCPlayerTracker
                 while (prIter.hasNext())
                 {
                     SOCPossibleRoad pr = (SOCPossibleRoad) prIter.next();
-                    D.ebugPrintln("%%% possible road at " + Integer.toHexString(pr.getCoordinates()));
+                    if (pr.isRoadNotShip())
+                        D.ebugPrint("%%% possible road at ");
+                    else
+                        D.ebugPrint("%%% possible ship at ");
+                    D.ebugPrintln(Integer.toHexString(pr.getCoordinates()));
                     D.ebugPrint("   eta:" + pr.getETA());
-                    D.ebugPrint("   this road needs:");
+                    D.ebugPrint("   this road/ship needs:");
 
                     Enumeration nrEnum = pr.getNecessaryRoads().elements();
 
@@ -3522,7 +3575,7 @@ public class SOCPlayerTracker
                     }
 
                     D.ebugPrintln();
-                    D.ebugPrint("   this road supports:");
+                    D.ebugPrint("   this road/ship supports:");
 
                     Enumeration newPosEnum = pr.getNewPossibilities().elements();
 
@@ -3564,7 +3617,7 @@ public class SOCPlayerTracker
                     }
 
                     D.ebugPrintln();
-                    D.ebugPrint("%%%   necessary roads");
+                    D.ebugPrint("%%%   necessary roads/ships");
 
                     Enumeration nrEnum = ps.getNecessaryRoads().elements();
 

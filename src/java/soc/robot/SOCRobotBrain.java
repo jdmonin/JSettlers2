@@ -36,6 +36,7 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
+import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 
 import soc.message.SOCAcceptOffer;
@@ -51,6 +52,7 @@ import soc.message.SOCGameState;
 import soc.message.SOCGameTextMsg;
 import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
+import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPotentialSettlements;
@@ -306,6 +308,12 @@ public class SOCRobotBrain extends Thread
     protected boolean expectPLACING_CITY;
 
     /**
+     * true if we're expecting the PLACING_SHIP game state
+     * @since 1.2.00
+     */
+    protected boolean expectPLACING_SHIP;
+
+    /**
      * true if we're expecting the PLACING_ROBBER state
      */
     protected boolean expectPLACING_ROBBER;
@@ -514,6 +522,7 @@ public class SOCRobotBrain extends Thread
         expectPLACING_ROAD = false;
         expectPLACING_SETTLEMENT = false;
         expectPLACING_CITY = false;
+        expectPLACING_SHIP = false;
         expectPLACING_ROBBER = false;
         expectPLACING_FREE_ROAD1 = false;
         expectPLACING_FREE_ROAD2 = false;
@@ -760,7 +769,7 @@ public class SOCRobotBrain extends Thread
             "ourTurn", "doneTrading",
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard", "waitingForTradeResponse",
             "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B",
-            "expectPLAY", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY",
+            "expectPLAY", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY", "expectPLACING_SHIP",
             "expectPLACING_ROBBER", "expectPLACING_FREE_ROAD1", "expectPLACING_FREE_ROAD2",
             "expectPUTPIECE_FROM_START1A", "expectPUTPIECE_FROM_START1B", "expectPUTPIECE_FROM_START2A", "expectPUTPIECE_FROM_START2B",
             "expectDICERESULT", "expectDISCARD", "expectMOVEROBBER", "expectWAITING_FOR_DISCOVERY", "expectWAITING_FOR_MONOPOLY"
@@ -769,7 +778,7 @@ public class SOCRobotBrain extends Thread
             ourTurn, doneTrading,
             waitingForGameState, waitingForOurTurn, waitingForTradeMsg, waitingForDevCard, waitingForTradeResponse,
             moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B,
-            expectPLAY, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY,
+            expectPLAY, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY, expectPLACING_SHIP,
             expectPLACING_ROBBER, expectPLACING_FREE_ROAD1, expectPLACING_FREE_ROAD2,
             expectPUTPIECE_FROM_START1A, expectPUTPIECE_FROM_START1B, expectPUTPIECE_FROM_START2A, expectPUTPIECE_FROM_START2B,
             expectDICERESULT, expectDISCARD, expectMOVEROBBER, expectWAITING_FOR_DISCOVERY, expectWAITING_FOR_MONOPOLY
@@ -933,6 +942,7 @@ public class SOCRobotBrain extends Thread
                         expectPLACING_ROAD = false;
                         expectPLACING_SETTLEMENT = false;
                         expectPLACING_CITY = false;
+                        expectPLACING_SHIP = false;
                         expectPLACING_ROBBER = false;
                         expectPLACING_FREE_ROAD1 = false;
                         expectPLACING_FREE_ROAD2 = false;
@@ -1065,6 +1075,15 @@ public class SOCRobotBrain extends Thread
                     case SOCMessage.PUTPIECE:
                         handlePUTPIECE_updateGameData((SOCPutPiece) mes);
                         // For initial roads, also tracks their initial settlement in SOCPlayerTracker.
+                        break;
+
+                    case SOCMessage.MOVEPIECE:
+                        {
+                            SOCMovePiece mpm = (SOCMovePiece) mes;
+                            SOCShip sh = new SOCShip
+                                (game.getPlayer(mpm.getPlayerNumber()), mpm.getFromCoord(), null);
+                            game.moveShip(sh, mpm.getToCoord());
+                        }
                         break;
 
                     case SOCMessage.CANCELBUILDREQUEST:
@@ -1260,7 +1279,8 @@ public class SOCRobotBrain extends Thread
 
                     if (((game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING))
                         && (!waitingForGameState) && (!waitingForTradeMsg) && (!waitingForTradeResponse) && (!waitingForDevCard)
-                        && (!expectPLACING_ROAD) && (!expectPLACING_SETTLEMENT) && (!expectPLACING_CITY) && (!expectPLACING_ROBBER) && (!expectPLACING_FREE_ROAD1) && (!expectPLACING_FREE_ROAD2) && (!expectWAITING_FOR_DISCOVERY) && (!expectWAITING_FOR_MONOPOLY))
+                        && (!expectPLACING_ROAD) && (!expectPLACING_SETTLEMENT) && (!expectPLACING_CITY) && (!expectPLACING_SHIP)
+                        && (!expectPLACING_ROBBER) && (!expectPLACING_FREE_ROAD1) && (!expectPLACING_FREE_ROAD2) && (!expectWAITING_FOR_DISCOVERY) && (!expectWAITING_FOR_MONOPOLY))
                     {
                         // Time to decide to build, or take other normal actions.
 
@@ -1405,7 +1425,8 @@ public class SOCRobotBrain extends Thread
                                 /**
                                  * see if we're done with our turn
                                  */
-                                if (!(expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectPLACING_ROAD || expectPLACING_CITY || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard))
+                                if (! (expectPLACING_SETTLEMENT || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectPLACING_ROAD || expectPLACING_CITY || expectPLACING_SHIP
+                                       || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY || expectPLACING_ROBBER || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard))
                                 {
                                     waitingForGameState = true;
                                     counter = 0;
@@ -1471,13 +1492,33 @@ public class SOCRobotBrain extends Thread
                         /**
                          * this is for player tracking
                          */
-                        handlePUTPIECE_updateTrackers((SOCPutPiece) mes);
+                        {
+                            final SOCPutPiece mpp = (SOCPutPiece) mes;
+                            final int pn = mpp.getPlayerNumber();
+                            final int coord = mpp.getCoordinates();
+                            final int pieceType = mpp.getPieceType();
+                            handlePUTPIECE_updateTrackers(pn, coord, pieceType);
+                        }
 
                         // For initial placement of our own pieces, also checks
                         // and clears expectPUTPIECE_FROM_START1A,
                         // and sets expectSTART1B, etc.  The final initial putpiece
                         // clears expectPUTPIECE_FROM_START2B and sets expectPLAY.
 
+                        break;
+
+                    case SOCMessage.MOVEPIECE:
+                        /**
+                         * this is for player tracking of moved ships
+                         */
+                        {
+                            final SOCMovePiece mpp = (SOCMovePiece) mes;
+                            final int pn = mpp.getPlayerNumber();
+                            final int coord = mpp.getToCoord();
+                            final int pieceType = mpp.getPieceType();
+                            // TODO what about getFromCoord()?
+                            handlePUTPIECE_updateTrackers(pn, coord, pieceType);
+                        }
                         break;
 
                     case SOCMessage.DICERESULT:
@@ -1660,6 +1701,7 @@ public class SOCRobotBrain extends Thread
      * <LI> {@link SOCGame#PLACING_SETTLEMENT}
      * <LI> {@link SOCGame#PLACING_ROAD}
      * <LI> {@link SOCGame#PLACING_CITY}
+     * <LI> {@link SOCGame#PLACING_SHIP}
      * <LI> {@link SOCGame#PLACING_FREE_ROAD1}
      * <LI> {@link SOCGame#PLACING_FREE_ROAD2}
      *</UL>
@@ -1721,6 +1763,22 @@ public class SOCRobotBrain extends Thread
             }
             break;
 
+            case SOCGame.PLACING_SHIP:
+                {
+                    if ((ourTurn) && (! waitingForOurTurn) && (expectPLACING_SHIP))
+                    {
+                        expectPLACING_SHIP = false;
+                        waitingForGameState = true;
+                        counter = 0;
+                        expectPLAY1 = true;
+
+                        pause(500);
+                        client.putPiece(game, whatWeWantToBuild);
+                        pause(1000);
+                    }
+                }
+                break;
+
             case SOCGame.PLACING_FREE_ROAD1:
             {
                 if ((ourTurn) && (!waitingForOurTurn) && (expectPLACING_FREE_ROAD1))
@@ -1731,7 +1789,7 @@ public class SOCRobotBrain extends Thread
                     expectPLACING_FREE_ROAD2 = true;
                     // D.ebugPrintln("!!! PUTTING PIECE 1 " + whatWeWantToBuild + " !!!");
                     pause(500);
-                    client.putPiece(game, whatWeWantToBuild);
+                    client.putPiece(game, whatWeWantToBuild);  // either ROAD or SHIP
                     pause(1000);
                 }
             }
@@ -1749,15 +1807,16 @@ public class SOCRobotBrain extends Thread
                     SOCPossiblePiece posPiece = (SOCPossiblePiece) buildingPlan.pop();
     
                     if (posPiece.getType() == SOCPossiblePiece.ROAD)
-                    {
-                        // D.ebugPrintln("posPiece = " + posPiece);
                         whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
-                        // D.ebugPrintln("$ POPPED OFF");
-                        // D.ebugPrintln("!!! PUTTING PIECE 2 " + whatWeWantToBuild + " !!!");
-                        pause(500);
-                        client.putPiece(game, whatWeWantToBuild);
-                        pause(1000);
-                    }
+                    else
+                        whatWeWantToBuild = new SOCShip(ourPlayerData, posPiece.getCoordinates(), null);
+
+                    // D.ebugPrintln("posPiece = " + posPiece);
+                    // D.ebugPrintln("$ POPPED OFF");
+                    // D.ebugPrintln("!!! PUTTING PIECE 2 " + whatWeWantToBuild + " !!!");
+                    pause(500);
+                    client.putPiece(game, whatWeWantToBuild);
+                    pause(1000);
                 }
             }
             break;
@@ -1912,6 +1971,7 @@ public class SOCRobotBrain extends Thread
          * check to see if this is a Road Building plan
          */
         boolean roadBuildingPlan = false;
+        // TODO handle ships here
 
         if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
         {
@@ -2079,12 +2139,13 @@ public class SOCRobotBrain extends Thread
 
         switch (mes.getPieceType())
         {
+        case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
 
             if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
             {
                 //
-                // Before processing this road, track the settlement that goes with it.
+                // Before processing this road/ship, track the settlement that goes with it.
                 // This was deferred until road placement, in case a human player decides
                 // to cancel their settlement and place it elsewhere.
                 //
@@ -2094,7 +2155,11 @@ public class SOCRobotBrain extends Thread
                 if (se != null)
                     trackNewSettlement(se, false);
             }
-            SOCRoad rd = new SOCRoad(pl, coord, null);
+            SOCRoad rd;
+            if (mes.getPieceType() == SOCPlayingPiece.ROAD)
+                rd = new SOCRoad(pl, coord, null);
+            else
+                rd = new SOCShip(pl, coord, null);
             game.putPiece(rd);
             break;
 
@@ -2109,6 +2174,7 @@ public class SOCRobotBrain extends Thread
             SOCCity ci = new SOCCity(pl, coord, null);
             game.putPiece(ci);
             break;
+
         }
     }
 
@@ -2450,6 +2516,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Handle a PUTPIECE for this game, by updating {@link SOCPlayerTracker}s.
+     * Also handles the "move piece to here" part of MOVEPIECE.
      *<P>
      * For initial placement of our own pieces, this method also checks
      * and clears expectPUTPIECE_FROM_START1A, and sets expectSTART1B, etc.
@@ -2461,21 +2528,19 @@ public class SOCRobotBrain extends Thread
      * This prevents the need for tracker "undo" work if a human
      * player changes their mind on where to place the settlement.
      *
+     * @param pn  Piece's player number
+     * @param coord  Piece coordinate
+     * @param pieceType  Piece type, as in {@link SOCPlayingPiece#SETTLEMENT}
      * @since 1.1.08
      */
-    private void handlePUTPIECE_updateTrackers(SOCPutPiece mes)
+    private void handlePUTPIECE_updateTrackers(final int pn, final int coord, final int pieceType)
     {
-        final int pn = mes.getPlayerNumber();
-        final int coord = mes.getCoordinates();
-        final int pieceType = mes.getPieceType();
-
         switch (pieceType)
         {
         case SOCPlayingPiece.ROAD:
 
             SOCRoad newRoad = new SOCRoad(game.getPlayer(pn), coord, null);
-            trackNewRoad(newRoad, false);
-
+            trackNewRoadOrShip(newRoad, false);
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
@@ -2494,15 +2559,19 @@ public class SOCRobotBrain extends Thread
             {
                 // Track it now
                 trackNewSettlement(newSettlement, false);
-            }                            
-
+            }
             break;
 
         case SOCPlayingPiece.CITY:
 
             SOCCity newCity = new SOCCity(game.getPlayer(pn), coord, null);
             trackNewCity(newCity, false);
+            break;
 
+        case SOCPlayingPiece.SHIP:
+
+            SOCShip newShip = new SOCShip(game.getPlayer(pn), coord, null);
+            trackNewRoadOrShip(newShip, false);
             break;
         }
 
@@ -2520,25 +2589,29 @@ public class SOCRobotBrain extends Thread
          * Update expect-vars during initial placement of our pieces.
          */
 
-        if (expectPUTPIECE_FROM_START1A && (pieceType == SOCPlayingPiece.SETTLEMENT) && (mes.getCoordinates() == ourPlayerData.getLastSettlementCoord()))
+        if (expectPUTPIECE_FROM_START1A && (pieceType == SOCPlayingPiece.SETTLEMENT) && (coord == ourPlayerData.getLastSettlementCoord()))
         {
             expectPUTPIECE_FROM_START1A = false;
             expectSTART1B = true;
         }
 
-        if (expectPUTPIECE_FROM_START1B && (pieceType == SOCPlayingPiece.ROAD) && (mes.getCoordinates() == ourPlayerData.getLastRoadCoord()))
+        if (expectPUTPIECE_FROM_START1B
+            && ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
+            && (coord == ourPlayerData.getLastRoadCoord()))
         {
             expectPUTPIECE_FROM_START1B = false;
             expectSTART2A = true;
         }
 
-        if (expectPUTPIECE_FROM_START2A && (pieceType == SOCPlayingPiece.SETTLEMENT) && (mes.getCoordinates() == ourPlayerData.getLastSettlementCoord()))
+        if (expectPUTPIECE_FROM_START2A && (pieceType == SOCPlayingPiece.SETTLEMENT) && (coord == ourPlayerData.getLastSettlementCoord()))
         {
             expectPUTPIECE_FROM_START2A = false;
             expectSTART2B = true;
         }
 
-        if (expectPUTPIECE_FROM_START2B && (pieceType == SOCPlayingPiece.ROAD) && (mes.getCoordinates() == ourPlayerData.getLastRoadCoord()))
+        if (expectPUTPIECE_FROM_START2B
+            && ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
+            && (coord == ourPlayerData.getLastRoadCoord()))
         {
             expectPUTPIECE_FROM_START2B = false;
             expectPLAY = true;
@@ -2624,6 +2697,24 @@ public class SOCRobotBrain extends Thread
             }
 
             break;
+
+        case SOCPossiblePiece.SHIP:
+            waitingForGameState = true;
+            counter = 0;
+            expectPLACING_SHIP = true;
+            whatWeWantToBuild = new SOCShip(ourPlayerData, targetPiece.getCoordinates(), null);
+            if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
+            {
+                D.ebugPrintln("!!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
+                client.buildRequest(game, SOCPlayingPiece.SHIP);
+            } else {
+                // We already tried to build this.
+                cancelWrongPiecePlacementLocal(whatWeWantToBuild);
+                // cancel sets whatWeWantToBuild = null;
+            }
+            
+            break;
+
         }
     }
 
@@ -2688,6 +2779,11 @@ public class SOCRobotBrain extends Thread
 
             SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                 (mes, pl, SOCPlayingPiece.CITY);
+            break;
+
+        case SOCPlayerElement.SHIPS:
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
+                (mes, pl, SOCPlayingPiece.SHIP);
             break;
 
         case SOCPlayerElement.NUMKNIGHTS:
@@ -3075,13 +3171,13 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Run a newly placed road through the playerTrackers.
+     * Run a newly placed road or ship through the playerTrackers.
      * 
-     * @param newRoad  The newly placed road
-     * @param isCancel Is this our own robot's road placement, rejected by the server?
+     * @param newRoad  The newly placed road or ship
+     * @param isCancel Is this our own robot's placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data. 
      */
-    protected void trackNewRoad(final SOCRoad newRoad, final boolean isCancel)
+    protected void trackNewRoadOrShip(final SOCRoad newRoad, final boolean isCancel)
     {
         final int newRoadPN = newRoad.getPlayerNumber();
 
@@ -3255,6 +3351,10 @@ public class SOCRobotBrain extends Thread
                 case SOCPlayingPiece.CITY:
                     cancelPiece = new SOCCity(dummyCancelPlayerData, coord, null);
                     break;
+
+                case SOCPlayingPiece.SHIP:
+                    cancelPiece = new SOCShip(dummyCancelPlayerData, coord, null);
+                    break;
     
                 default:
                     cancelPiece = null;  // To satisfy javac
@@ -3289,6 +3389,7 @@ public class SOCRobotBrain extends Thread
             expectPLACING_ROAD = false;
             expectPLACING_SETTLEMENT = false;
             expectPLACING_CITY = false;
+            expectPLACING_SHIP = false;
             decidedIfSpecialBuild = true;
             if (cancelBuyDevCard)
             {
@@ -3357,9 +3458,13 @@ public class SOCRobotBrain extends Thread
 
             switch (cancelPiece.getType())
             {
+            case SOCPlayingPiece.SHIP:  // fall through to ROAD
             case SOCPlayingPiece.ROAD:
-                trackNewRoad((SOCRoad) cancelPiece, true);
-                ourPlayerData.clearPotentialRoad(coord);
+                trackNewRoadOrShip((SOCRoad) cancelPiece, true);
+                if (cancelPiece.getType() == SOCPlayingPiece.ROAD)
+                    ourPlayerData.clearPotentialRoad(coord);
+                else
+                    ourPlayerData.clearPotentialShip(coord);
                 if (game.getGameState() <= SOCGame.START2B)
                 {
                     // needed for placeInitRoad() calculations
@@ -3929,6 +4034,8 @@ public class SOCRobotBrain extends Thread
      */
     public void placeInitRoad()
     {
+        // TODO handle ships here
+
         final int settlementNode = ourPlayerData.getLastSettlementCoord();
 
         /**

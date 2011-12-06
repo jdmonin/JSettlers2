@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
+ * Portions of this file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,15 +21,16 @@
 package soc.robot;
 
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
 
 import java.util.Vector;
 
 
 /**
- * This is a possible road that we can build
+ * This is a possible road that we can build.
+ * Note that {@link SOCPossibleShip} is a subclass.
  *
  * @author Robert S Thomas
- *
  */
 public class SOCPossibleRoad extends SOCPossiblePiece
 {
@@ -88,7 +90,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     }
 
     /**
-     * @return the list of necessary roads
+     * @return the list of necessary roads or ships
      */
     public Vector getNecessaryRoads()
     {
@@ -96,7 +98,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     }
 
     /**
-     * @return the minimum number of necessary roads
+     * @return the minimum number of necessary roads or ships
      */
     public int getNumberOfNecessaryRoads()
     {
@@ -104,7 +106,7 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     }
 
     /**
-     * set the minimum number of necessary roads
+     * set the minimum number of necessary roads or ships
      *
      * @param num  the minimum number of necessary roads
      */
@@ -176,4 +178,15 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     {
         longestRoadPotential = value;
     }
+
+    /**
+     * Is this piece really a road on land, and not a ship on water (our subclass)?
+     * @return True for roads (pieceType {@link SOCPlayingPiece#ROAD}), false otherwise
+     * @since 1.2.00
+     */
+    public final boolean isRoadNotShip()
+    {
+        return (pieceType == SOCPlayingPiece.ROAD);
+    }
+
 }

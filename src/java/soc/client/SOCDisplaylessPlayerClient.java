@@ -33,6 +33,7 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
+import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 
 import soc.message.SOCAcceptOffer;
@@ -77,6 +78,7 @@ import soc.message.SOCMakeOffer;
 import soc.message.SOCMembers;
 import soc.message.SOCMessage;
 import soc.message.SOCMonopolyPick;
+import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCNewChannel;
 import soc.message.SOCNewGame;
@@ -739,6 +741,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
             case SOCMessage.RESETBOARDAUTH:
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
 
+                break;
+
+            /**
+             * move a previous piece (a ship) somewhere else on the board.
+             * Added 2011-12-05 for v1.2.00.
+             */
+            case SOCMessage.MOVEPIECE:
+                handleMOVEPIECE((SOCMovePiece) mes);
                 break;
 
             }
@@ -1733,6 +1743,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
         greset.isPractice = ga.isPractice;
         games.put(gname, greset);
         ga.destroyGame();
+    }
+
+    /**
+     * Handle moving a piece (a ship) around on the board.
+     * @since 1.2.00
+     */
+    protected void handleMOVEPIECE(SOCMovePiece mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = (SOCGame) games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        SOCShip sh = new SOCShip
+            (ga.getPlayer(mes.getPlayerNumber()), mes.getFromCoord(), null);
+        ga.moveShip(sh, mes.getToCoord());
+
     }
 
     /**
