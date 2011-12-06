@@ -110,6 +110,8 @@ import java.util.Vector;
  *</UL>
  * At most, the client is connected to the practice server and one TCP server.
  * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
+ *<P>
+ * Once connected, messages from the server are processed in {@link #treat(SOCMessage, boolean)}.
  *
  * @author Robert S Thomas
  */
@@ -1719,7 +1721,7 @@ public class SOCPlayerClient extends Applet
      * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
      *
      * @param mes    the message
-     * @param isPractice Server is local (practice game, not network)
+     * @param isLocal  Server is local (practice game, not network)
      */
     public void treat(SOCMessage mes, boolean isLocal)
     {
@@ -2206,6 +2208,14 @@ public class SOCPlayerClient extends Applet
              */
             case SOCMessage.DEBUGFREEPLACE:
                 handleDEBUGFREEPLACE((SOCDebugFreePlace) mes);
+                break;
+
+            /**
+             * move a previous piece (a ship) somewhere else on the board.
+             * Added 2011-12-05 for v1.2.00.
+             */
+            case SOCMessage.MOVEPIECE:
+                handleMOVEPIECE((SOCMovePiece) mes);
                 break;
 
             }  // switch (mes.getType())            
@@ -3178,12 +3188,15 @@ public class SOCPlayerClient extends Applet
     protected void handlePUTPIECE(SOCPutPiece mes)
     {
         SOCGame ga = (SOCGame) games.get(mes.getGame());
+        if (ga == null)
+            return;
 
-        if (ga != null)
-        {
-            final SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            pi.updateAtPutPiece(mes);
-        }
+        final SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        if (pi == null)
+            return;
+
+        pi.updateAtPutPiece
+            (mes.getPlayerNumber(), mes.getCoordinates(), mes.getPieceType(), false, 0);
     }
 
     /**
@@ -3893,6 +3906,27 @@ public class SOCPlayerClient extends Applet
             return;  // Not one of our games
 
         pi.setDebugFreePlacementMode(mes.getCoordinates() == 1);
+    }
+
+    /**
+     * Handle moving a piece (a ship) around on the board.
+     * @since 1.2.00
+     */
+    private final void handleMOVEPIECE(SOCMovePiece mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = (SOCGame) games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+        if (pi == null)
+            return;  // Not one of our games
+
+        pi.updateAtPutPiece
+            (mes.getPlayerNumber(), mes.getFromCoord(), mes.getPieceType(),
+             true, mes.getToCoord());
     }
 
     /**

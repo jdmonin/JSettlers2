@@ -1723,24 +1723,34 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
-     * Handle updates after putting a piece on the board.
+     * Handle updates after putting a piece on the board,
+     * or moving a ship that was already placed.
+     * Place or move the piece within our {@link SOCGame}
+     * and visually on our {@link SOCBoardPanel}.
      * @since 1.2.00
+     *
+     * @param mesPn  The piece's player number
+     * @param coord  The piece's coordinate.  If <tt>isMove</tt>, the coordinate to move <em>from</em>.
+     * @param pieceType  Piece type, like {@link SOCPlayingPiece#CITY}
+     * @param isMove   If true, it's a move, not a new placement; valid only for ships.
+     * @param moveToCoord  If <tt>isMove</tt>, the coordinate to move <em>to</em>.  Otherwise ignored.
      */
-    public void updateAtPutPiece(SOCPutPiece mes)
+    public void updateAtPutPiece
+        (final int mesPn, final int coord, final int pieceType,
+         final boolean isMove, final int moveToCoord)
     {
         // TODO consider more effic way for flushBoardLayoutAndRepaint, without the =null
 
-        final int mesPn = mes.getPlayerNumber();
         final SOCPlayer pl = game.getPlayer(mesPn);
         final SOCPlayer oldLongestRoadPlayer = game.getPlayerWithLongestRoad();
         final SOCHandPanel mesHp = getPlayerHandPanel(mesPn);
         final boolean[] debugShowPotentials = boardPanel.debugShowPotentials;
         final SOCPlayingPiece pp;
 
-        switch (mes.getPieceType())
+        switch (pieceType)
         {
         case SOCPlayingPiece.ROAD:
-            pp = new SOCRoad(pl, mes.getCoordinates(), null);
+            pp = new SOCRoad(pl, coord, null);
             game.putPiece(pp);
             mesHp.updateValue(SOCHandPanel.ROADS);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
@@ -1749,7 +1759,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-            pp = new SOCSettlement(pl, mes.getCoordinates(), null);
+            pp = new SOCSettlement(pl, coord, null);
             game.putPiece(pp);
             mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
 
@@ -1774,7 +1784,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             break;
 
         case SOCPlayingPiece.CITY:
-            pp = new SOCCity(pl, mes.getCoordinates(), null);
+            pp = new SOCCity(pl, coord, null);
             game.putPiece(pp);
             mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
             mesHp.updateValue(SOCHandPanel.CITIES);
@@ -1786,9 +1796,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             break;
 
         case SOCPlayingPiece.SHIP:
-            pp = new SOCShip(pl, mes.getCoordinates(), null);
-            game.putPiece(pp);
-            mesHp.updateValue(SOCHandPanel.SHIPS);
+            pp = new SOCShip(pl, coord, null);
+            if (! isMove)
+            {
+                game.putPiece(pp);
+                mesHp.updateValue(SOCHandPanel.SHIPS);
+            } else {
+                game.moveShip((SOCShip) pp, moveToCoord);
+            }
 
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
                 boardPanel.flushBoardLayoutAndRepaint();
@@ -1796,7 +1811,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             break;
 
         default:
-            chatPrintDebug("* Unknown piece type " + mes.getPieceType() + " at coord 0x" + mes.getCoordinates());
+            chatPrintDebug("* Unknown piece type " + pieceType + " at coord 0x" + coord);
 
             return;  // <--- Early return ---
         }
