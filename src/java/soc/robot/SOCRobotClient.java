@@ -48,7 +48,10 @@ import java.util.Vector;
 
 
 /**
- * This is a client that can play Settlers of Catan.
+ * This is a robot client that can play Settlers of Catan.
+ *<P>
+ * Once connected, messages from the server are processed in {@link #treat(SOCMessage)}.
+ * For each game this robot client plays, there is a {@link SOCRobotBrain}.
  *
  * @author Robert S Thomas
  */

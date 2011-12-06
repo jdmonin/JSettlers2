@@ -4159,7 +4159,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * The current player plays a Road Building card.
-     * This card directs the player to place 2 roads or ships.
+     * This card directs the player to place 2 roads or ships,
+     * or 1 road and 1 ship.
      * Checks of game rules online show "MAY" or "CAN", not "MUST" place 2.
      * If they have 2 or more roads or ships, may place 2; gameState becomes PLACING_FREE_ROAD1.
      * If they have just 1 road/ship, may place that; gameState becomes PLACING_FREE_ROAD2.
@@ -4179,9 +4180,9 @@ public class SOCGame implements Serializable, Cloneable
             + player.getNumPieces(SOCPlayingPiece.SHIP);
         if (roadShipCount > 1)
         {
-            gameState = PLACING_FREE_ROAD1;  // First of 2 free roads
+            gameState = PLACING_FREE_ROAD1;  // First of 2 free roads / ships
         } else {
-            gameState = PLACING_FREE_ROAD2;  // "Second", just 1 free road
+            gameState = PLACING_FREE_ROAD2;  // "Second", just 1 free road or ship
         }
     }
 
