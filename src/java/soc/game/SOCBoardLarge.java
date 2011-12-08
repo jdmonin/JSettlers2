@@ -1237,9 +1237,94 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * The node at the end of an edge in a given direction.
+     * @param edgeCoord The edge's coordinate. Not checked for validity.
+     * @param facing  Direction along the edge towards the node; 1 to 6.
+     *           To face southeast along a diagonal edge, use {@link #FACING_SE}.
+     *           To face north along a vertical edge, use either {@link #FACING_NW} or {@link #FACING_NE}.
+     * @return node coordinate of node in the facing direction.
+     *           If <tt>edgeCoord</tt> is valid, both its node coordinates
+     *           are valid and on the board.
+     * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6,
+     *           or if the facing is perpendicular to the edge direction.
+     *           ({@link #FACING_E} or {@link #FACING_W} for a north-south vertical edge,
+     *            {@link #FACING_NW} for a northeast-southwest edge, etc.)
+     * @see #getAdjacentNodesToEdge(int)
+     */
+    public int getAdjacentNodeToEdge(final int edgeCoord, final int facing)
+        throws IllegalArgumentException
+    {
+        if ((facing < 1) && (facing > 6))
+            throw new IllegalArgumentException("facing out of range");
+        int r = (edgeCoord >> 8),
+            c = (edgeCoord & 0xFF);
+        boolean perpendicular = false;
+
+        // "|" if r is odd
+        if ((r%2) == 1)
+        {
+            switch (facing)
+            {
+            case FACING_NE: case FACING_NW:
+                --r;
+                break;
+            case FACING_SE: case FACING_SW:
+                ++r;
+                break;
+            case FACING_E:
+            case FACING_W:
+                perpendicular = true;
+            }
+        }
+
+        // "/" if (s,c) is even,odd or odd,even
+        else if ((c % 2) != ((r/2) % 2))
+        {
+            switch (facing)
+            {
+            case FACING_NE: case FACING_E:
+                ++c;
+                break;
+            case FACING_SW: case FACING_W:
+                // this node coord == edge coord
+                break;
+            case FACING_NW:
+            case FACING_SE:
+                perpendicular = true;
+            }
+        }
+        else
+        {
+            // "\" if (s,c) is odd,odd or even,even
+            switch (facing)
+            {
+            case FACING_E: case FACING_SE:
+                ++c;
+                break;
+            case FACING_W: case FACING_NW:
+                // this node coord == edge coord
+                break;
+            case FACING_NE:
+            case FACING_SW:
+                perpendicular = true;
+            }
+        }
+
+        if (perpendicular)
+            throw new IllegalArgumentException
+                ("facing " + facing + " perpendicular from edge 0x"
+                 + Integer.toHexString(edgeCoord));
+
+        return ( (r << 8) | c );
+
+        // Bounds-check OK: if edge coord is valid, its nodes are both valid
+    }
+
+    /**
      * Adjacent node coordinates to an edge (that is, the nodes that are the two ends of the edge).
      * @return the nodes that touch this edge, as a Vector of Integer coordinates
      * @see #getAdjacentNodesToEdge_arr(int)
+     * @see #getAdjacentNodeToEdge(int, int)
      */
     public Vector getAdjacentNodesToEdge(final int coord)
     {
@@ -1254,6 +1339,7 @@ public class SOCBoardLarge extends SOCBoard
      * Adjacent node coordinates to an edge (that is, the nodes that are the two ends of the edge).
      * @return the nodes that touch this edge, as an array of 2 integer coordinates
      * @see #getAdjacentNodesToEdge(int)
+     * @see #getAdjacentNodeToEdge(int, int)
      */
     public int[] getAdjacentNodesToEdge_arr(final int coord)
     {
