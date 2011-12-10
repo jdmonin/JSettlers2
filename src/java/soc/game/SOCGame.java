@@ -2190,23 +2190,17 @@ public class SOCGame implements Serializable, Cloneable
      * could be moved.  The game limits players to one move per turn.
      *
      * @param pn   Player number
-     * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship.
-     * @param toEdge    Edge coordinate to move to; must be different than <tt>fromEdge</tt>.
-     *            Checks {@link SOCPlayer#isPotentialShip(int) players[pn].isPotentialShip(toEdge)}.
+     * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship
      * @return  The ship, if the player can move the ship now; null otherwise
-     * @see #moveShip(SOCShip, int)
+     * @see canMoveShip(int, int, int)
      * @since 1.2.00
      */
-    public SOCShip canMoveShip(final int pn, final int fromEdge, final int toEdge)
+    public SOCShip canMoveShip(final int pn, final int fromEdge)
     {
-        if (fromEdge == toEdge)
-            return null;
         if (movedShipThisTurn || ! (hasSeaBoard && (currentPlayerNumber == pn) && (gameState == PLAY1)))
             return null;
 
         final SOCPlayer pl = players[pn];
-        if (! pl.isPotentialShip(toEdge))
-            return null;
         final SOCRoad pieceAtFrom = pl.getRoadOrShip(fromEdge);
         if ((pieceAtFrom == null) || pieceAtFrom.isRoadNotShip())
             return null;
@@ -2216,6 +2210,38 @@ public class SOCGame implements Serializable, Cloneable
         // TODO cannot move if ship was bought and placed this turn
 
         return canShip;
+    }
+
+    /**
+     * Can this player currently move this ship to this new coordinate,
+     * based on game state and their trade routes and settlements/cities?
+     * Must be current player.  Game state must be {@link #PLAY1}.
+     *<P>
+     * Only the ship at the newer end of an open trade route can be moved.
+     * So, to move a ship, one of its end nodes must be clear: No
+     * settlement or city, and no other adjacent ship on the other
+     * side of the node.
+     *<P>
+     * Trade routes can branch, so it may be that more than one ship
+     * could be moved.  The game limits players to one move per turn.
+     *
+     * @param pn   Player number
+     * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship.
+     * @param toEdge    Edge coordinate to move to; must be different than <tt>fromEdge</tt>.
+     *            Checks {@link SOCPlayer#isPotentialShip(int) players[pn].isPotentialShip(toEdge)}.
+     * @return  The ship, if the player can move the ship now; null otherwise
+     * @see #canMoveShip(int, int)
+     * @see #moveShip(SOCShip, int)
+     * @since 1.2.00
+     */
+    public SOCShip canMoveShip(final int pn, final int fromEdge, final int toEdge)
+    {
+        if (fromEdge == toEdge)
+            return null;
+        final SOCPlayer pl = players[pn];
+        if (! pl.isPotentialShip(toEdge))
+            return null;
+        return canMoveShip(pn, fromEdge);  // <-- checks most other conditions
     }
 
     /**
