@@ -4297,6 +4297,21 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
+     * Ask the server to move this piece to a different coordinate.
+     * @param ga  the game where the action is taking place
+     * @param pn  The piece's player number
+     * @param ptype    The piece type, such as {@link SOCPlayingPiece#SHIP}
+     * @param fromCoord  Move the piece from here  
+     * @param toCoord    Move the piece to here
+     * @since 1.2.00
+     */
+    public void movePieceRequest
+        (final SOCGame ga, final int pn, final int ptype, final int fromCoord, final int toCoord)
+    {
+        put(SOCMovePieceRequest.toCmd(ga.getName(), pn, ptype, fromCoord, toCoord), ga.isPractice);
+    }
+
+    /**
      * the player wants to move the robber
      *
      * @param ga  the game
