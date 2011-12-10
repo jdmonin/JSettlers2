@@ -1631,9 +1631,9 @@ public class SOCPlayerClient extends Applet
     /**
      * resend the last message (to the local practice server)
      */
-    public void resendLocal()
+    public void resendPractice()
     {
-        putLocal(lastMessage_L);
+        putPractice(lastMessage_L);
     }
 
     /**
@@ -1676,12 +1676,15 @@ public class SOCPlayerClient extends Applet
      * write a message to the practice server. {@link #localTCPServer} is not
      * the same as the practice server; use {@link #putNet(String)} to send
      * a message to the local TCP server.
+     * Use <tt>putPractice</tt> only with {@link #practiceServer}.
+     *<P>
+     * Before version 1.2.00, this was <tt>putLocal</tt>.
      *
      * @param s  the message
      * @return true if the message was sent, false if not
      * @see #put(String, boolean)
      */
-    public synchronized boolean putLocal(String s)
+    public synchronized boolean putPractice(String s)
     {
         lastMessage_L = s;
 
@@ -1704,14 +1707,15 @@ public class SOCPlayerClient extends Applet
      * we must route to the appropriate client-server connection.
      * 
      * @param s  the message
-     * @param isPractice Is the server local (practice game), or network?
+     * @param isPractice Is the server local (practice game), not network?
      *                {@link #localTCPServer} is considered "network" here.
+     *                Use <tt>isPractice</tt> only with {@link #practiceServer}.
      * @return true if the message was sent, false if not
      */
-    public synchronized boolean put(String s, boolean isLocal)
+    public synchronized boolean put(String s, final boolean isPractice)
     {
-        if (isLocal)
-            return putLocal(s);
+        if (isPractice)
+            return putPractice(s);
         else
             return putNet(s);
     }
@@ -1721,9 +1725,9 @@ public class SOCPlayerClient extends Applet
      * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
      *
      * @param mes    the message
-     * @param isLocal  Server is local (practice game, not network)
+     * @param isPractice  Server is local (practice game, not network)
      */
-    public void treat(SOCMessage mes, boolean isLocal)
+    public void treat(SOCMessage mes, final boolean isPractice)
     {
         if (mes == null)
             return;  // Parsing error
@@ -1740,14 +1744,14 @@ public class SOCPlayerClient extends Applet
              * (ignored before version 1.1.08)
              */
             case SOCMessage.SERVERPING:
-                handleSERVERPING((SOCServerPing) mes, isLocal);
+                handleSERVERPING((SOCServerPing) mes, isPractice);
                 break;
 
             /**
              * server's version message
              */
             case SOCMessage.VERSION:
-                handleVERSION(isLocal, (SOCVersion) mes);
+                handleVERSION(isPractice, (SOCVersion) mes);
 
                 break;
 
@@ -1755,7 +1759,7 @@ public class SOCPlayerClient extends Applet
              * status message
              */
             case SOCMessage.STATUSMESSAGE:
-                handleSTATUSMESSAGE((SOCStatusMessage) mes, isLocal);
+                handleSTATUSMESSAGE((SOCStatusMessage) mes, isPractice);
 
                 break;
 
@@ -1795,7 +1799,7 @@ public class SOCPlayerClient extends Applet
              * list of channels on the server
              */
             case SOCMessage.CHANNELS:
-                handleCHANNELS((SOCChannels) mes, isLocal);
+                handleCHANNELS((SOCChannels) mes, isPractice);
 
                 break;
 
@@ -1827,7 +1831,7 @@ public class SOCPlayerClient extends Applet
              * list of games on the server
              */
             case SOCMessage.GAMES:
-                handleGAMES((SOCGames) mes, isLocal);
+                handleGAMES((SOCGames) mes, isPractice);
 
                 break;
 
@@ -1835,7 +1839,7 @@ public class SOCPlayerClient extends Applet
              * join game authorization
              */
             case SOCMessage.JOINGAMEAUTH:
-                handleJOINGAMEAUTH((SOCJoinGameAuth) mes, isLocal);
+                handleJOINGAMEAUTH((SOCJoinGameAuth) mes, isPractice);
 
                 break;
 
@@ -1859,7 +1863,7 @@ public class SOCPlayerClient extends Applet
              * new game has been created
              */
             case SOCMessage.NEWGAME:
-                handleNEWGAME((SOCNewGame) mes, isLocal);
+                handleNEWGAME((SOCNewGame) mes, isPractice);
 
                 break;
 
@@ -1867,7 +1871,7 @@ public class SOCPlayerClient extends Applet
              * game has been destroyed
              */
             case SOCMessage.DELETEGAME:
-                handleDELETEGAME((SOCDeleteGame) mes, isLocal);
+                handleDELETEGAME((SOCDeleteGame) mes, isPractice);
 
                 break;
 
@@ -2181,19 +2185,19 @@ public class SOCPlayerClient extends Applet
              * for game options (1.1.07)
              */
             case SOCMessage.GAMEOPTIONGETDEFAULTS:
-                handleGAMEOPTIONGETDEFAULTS((SOCGameOptionGetDefaults) mes, isLocal);
+                handleGAMEOPTIONGETDEFAULTS((SOCGameOptionGetDefaults) mes, isPractice);
                 break;
 
             case SOCMessage.GAMEOPTIONINFO:
-                handleGAMEOPTIONINFO((SOCGameOptionInfo) mes, isLocal);
+                handleGAMEOPTIONINFO((SOCGameOptionInfo) mes, isPractice);
                 break;
 
             case SOCMessage.NEWGAMEWITHOPTIONS:
-                handleNEWGAMEWITHOPTIONS((SOCNewGameWithOptions) mes, isLocal);
+                handleNEWGAMEWITHOPTIONS((SOCNewGameWithOptions) mes, isPractice);
                 break;
 
             case SOCMessage.GAMESWITHOPTIONS:
-                handleGAMESWITHOPTIONS((SOCGamesWithOptions) mes, isLocal);
+                handleGAMESWITHOPTIONS((SOCGamesWithOptions) mes, isPractice);
                 break;
 
             /**
@@ -2235,15 +2239,15 @@ public class SOCPlayerClient extends Applet
      * and display the version on the main panel.
      * (Local server's version is always {@link Version#versionNumber()}.)
      *
-     * @param isPractice Is the server local, or remote?  Client can be connected
-     *                only to local, or remote.
+     * @param isPractice Is the server {@link #practiceServer}, not remote?  Client can be connected
+     *                only to one at a time.
      * @param mes  the messsage
      */
-    private void handleVERSION(boolean isLocal, SOCVersion mes)
+    private void handleVERSION(final boolean isPractice, SOCVersion mes)
     {
         D.ebugPrintln("handleVERSION: " + mes);
         int vers = mes.getVersionNumber();
-        if (! isLocal)
+        if (! isPractice)
         {
             sVersion = vers;
 
@@ -2276,9 +2280,9 @@ public class SOCPlayerClient extends Applet
         if (sVersion > cliVersion)
         {
             // Newer server: Ask it to list any options we don't know about yet.
-            if (! isLocal)
+            if (! isPractice)
                 gameOptionsSetTimeoutTask();
-            put(SOCGameOptionGetInfos.toCmd(null), isLocal);  // sends "-"
+            put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
         } else if (sVersion < cliVersion)
         {
             if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
@@ -2288,23 +2292,23 @@ public class SOCPlayerClient extends Applet
                 Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
                 if (tooNewOpts != null)
                 {
-                    if (! isLocal)
+                    if (! isPractice)
                         gameOptionsSetTimeoutTask();
-                    put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isLocal);
+                    put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isPractice);
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
                 // because that's our version (it runs from our own JAR file).
-                if (! isLocal)
+                if (! isPractice)
                     tcpServGameOpts.noMoreOptions(true);
             }
         } else {
             // sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
             // For local practice games, optionSet may already be initialized, so check vs null.
-            GameOptionServerSet opts = (isLocal ? practiceServGameOpts : tcpServGameOpts);
+            GameOptionServerSet opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
             if (opts.optionSet == null)
                 opts.optionSet = SOCGameOption.getAllKnownOptions();
-            opts.noMoreOptions(isLocal);  // defaults not known unless it's local practice
+            opts.noMoreOptions(isPractice);  // defaults not known unless it's local practice
         }
     }
 
@@ -2313,9 +2317,9 @@ public class SOCPlayerClient extends Applet
      * Used for server events, also used if player tries to join a game
      * but their nickname is not OK.
      * @param mes  the message
-     * @param isPractice from practice server, or remote server?
+     * @param isPractice from practice server, not remote server?
      */
-    protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isLocal)
+    protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isPractice)
     {
         status.setText(mes.getStatus());
         // If was trying to join a game, reset cursor from WAIT_CURSOR.
@@ -2339,7 +2343,7 @@ public class SOCPlayerClient extends Applet
                 err.append(gameName);
                 err.append("\nThere is a problem with the option values chosen.\n");
                 err.append(errMsg);
-                Hashtable knowns = isLocal ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
+                Hashtable knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
                 for (int i = 0; i < optNames.size(); ++i)
                 {
                     err.append("\nThis option must be changed: ");
@@ -2434,12 +2438,12 @@ public class SOCPlayerClient extends Applet
      * @param mes  the message
      * @param isPractice is the server actually local (practice game)?
      */
-    protected void handleCHANNELS(SOCChannels mes, boolean isLocal)
+    protected void handleCHANNELS(SOCChannels mes, final boolean isPractice)
     {
         //
         // this message indicates that we're connected to the server
         //
-        if (! isLocal)
+        if (! isPractice)
         {
             cardLayout.show(this, MAIN_PANEL);
             validate();
@@ -2524,7 +2528,7 @@ public class SOCPlayerClient extends Applet
      * handle the "list of games" message
      * @param mes  the message
      */
-    protected void handleGAMES(SOCGames mes, boolean isLocal)
+    protected void handleGAMES(SOCGames mes, final boolean isPractice)
     {
         // Any game's name in this msg may start with the "unjoinable" prefix
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
@@ -2532,7 +2536,7 @@ public class SOCPlayerClient extends Applet
 
         Enumeration gameNamesEnum = mes.getGames().elements();
 
-        if (! isLocal)  // local's gameoption data is set up in handleVERSION
+        if (! isPractice)  // local's gameoption data is set up in handleVERSION
         {
             if (serverGames == null)
                 serverGames = new SOCGameList();
@@ -2560,7 +2564,7 @@ public class SOCPlayerClient extends Applet
      * @param mes  the message
      * @param isPractice server is local for practice (vs. normal network)
      */
-    protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, boolean isLocal)
+    protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
     {
         nick.setEditable(false);
         pass.setEditable(false);
@@ -2579,7 +2583,7 @@ public class SOCPlayerClient extends Applet
 
         final String gaName = mes.getGame();
         Hashtable gameOpts;
-        if (isLocal)
+        if (isPractice)
         {
             gameOpts = practiceServGameOpts.optionSet;  // holds most recent settings by user
             if (gameOpts != null)
@@ -2594,7 +2598,7 @@ public class SOCPlayerClient extends Applet
         SOCGame ga = new SOCGame(gaName, gameOpts);
         if (ga != null)
         {
-            ga.isPractice = isLocal;
+            ga.isPractice = isPractice;
             SOCPlayerInterface pi = new SOCPlayerInterface(gaName, this, ga);
             pi.setVisible(true);
             playerInterfaces.put(gaName, pi);
@@ -2655,19 +2659,19 @@ public class SOCPlayerClient extends Applet
      * handle the "new game" message
      * @param mes  the message
      */
-    protected void handleNEWGAME(SOCNewGame mes, boolean isLocal)
+    protected void handleNEWGAME(SOCNewGame mes, final boolean isPractice)
     {
-        addToGameList(mes.getGame(), null, ! isLocal);
+        addToGameList(mes.getGame(), null, ! isPractice);
     }
 
     /**
      * handle the "delete game" message
      * @param mes  the message
      */
-    protected void handleDELETEGAME(SOCDeleteGame mes, boolean isLocal)
+    protected void handleDELETEGAME(SOCDeleteGame mes, final boolean isPractice)
     {
-        if (! deleteFromGameList(mes.getGame(), isLocal))
-            deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + mes.getGame(), isLocal);
+        if (! deleteFromGameList(mes.getGame(), isPractice))
+            deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + mes.getGame(), isPractice);
     }
 
     /**
@@ -2845,12 +2849,12 @@ public class SOCPlayerClient extends Applet
      * (ignored before version 1.1.08)
      * @since 1.1.08
      */
-    private void handleSERVERPING(SOCServerPing mes, boolean isLocal)
+    private void handleSERVERPING(SOCServerPing mes, final boolean isPractice)
     {
         int timeval = mes.getSleepTime();
         if (timeval != -1)
         {
-            put(mes.toCmd(), isLocal);
+            put(mes.toCmd(), isPractice);
         } else {
             ex = new RuntimeException("Kicked by player with same name.");
             destroy();
@@ -3731,10 +3735,10 @@ public class SOCPlayerClient extends Applet
      * @see GameOptionServerSet
      * @since 1.1.07
      */
-    private void handleGAMEOPTIONGETDEFAULTS(SOCGameOptionGetDefaults mes, boolean isLocal)
+    private void handleGAMEOPTIONGETDEFAULTS(SOCGameOptionGetDefaults mes, final boolean isPractice)
     {
         GameOptionServerSet opts;
-        if (isLocal)
+        if (isPractice)
             opts = practiceServGameOpts;
         else
             opts = tcpServGameOpts;
@@ -3749,9 +3753,9 @@ public class SOCPlayerClient extends Applet
 
         if (unknowns != null)
         {
-            if (! isLocal)
+            if (! isPractice)
                 gameOptionsSetTimeoutTask();
-            put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isLocal);
+            put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             if (gameOptsDefsTask != null)
@@ -3760,7 +3764,7 @@ public class SOCPlayerClient extends Applet
                 gameOptsDefsTask = null;
             }
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (this, (String) null, opts.optionSet, isLocal, false);
+                (this, (String) null, opts.optionSet, isPractice, false);
         }
     }
 
@@ -3775,10 +3779,10 @@ public class SOCPlayerClient extends Applet
      *
      * @since 1.1.07
      */
-    private void handleGAMEOPTIONINFO(SOCGameOptionInfo mes, boolean isLocal)
+    private void handleGAMEOPTIONINFO(SOCGameOptionInfo mes, final boolean isPractice)
     {
         GameOptionServerSet opts;
-        if (isLocal)
+        if (isPractice)
             opts = practiceServGameOpts;
         else
             opts = tcpServGameOpts;
@@ -3792,7 +3796,7 @@ public class SOCPlayerClient extends Applet
             gameInfoWaiting = opts.gameInfoWaitingForOpts;
         }
 
-        if ((! isLocal) && mes.getOptionNameKey().equals("-"))
+        if ((! isPractice) && mes.getOptionNameKey().equals("-"))
             gameOptionsCancelTimeoutTask();
 
         if (hasAllNow)
@@ -3801,11 +3805,11 @@ public class SOCPlayerClient extends Applet
             {
                 Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, gameInfoWaiting, gameOpts, isLocal, true);
+                    (this, gameInfoWaiting, gameOpts, isPractice, true);
             } else if (newGameWaiting)
             {
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, (String) null, opts.optionSet, isLocal, false);
+                    (this, (String) null, opts.optionSet, isPractice, false);
             }
         }
     }
@@ -3814,7 +3818,7 @@ public class SOCPlayerClient extends Applet
      * process the "new game with options" message
      * @since 1.1.07
      */
-    private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, boolean isLocal)
+    private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, final boolean isPractice)
     {
         String gname = mes.getGame();
         String opts = mes.getOptionsString();
@@ -3824,14 +3828,14 @@ public class SOCPlayerClient extends Applet
             gname = gname.substring(1);
             canJoin = false;
         }
-        addToGameList(! canJoin, gname, opts, ! isLocal);
+        addToGameList(! canJoin, gname, opts, ! isPractice);
     }
 
     /**
      * handle the "list of games with options" message
      * @since 1.1.07
      */
-    private void handleGAMESWITHOPTIONS(SOCGamesWithOptions mes, boolean isLocal)
+    private void handleGAMESWITHOPTIONS(SOCGamesWithOptions mes, final boolean isPractice)
     {
         // Any game's name in this msg may start with the "unjoinable" prefix
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
@@ -3840,8 +3844,8 @@ public class SOCPlayerClient extends Applet
         SOCGameList msgGames = mes.getGameList();
         if (msgGames == null)
             return;
-        if (! isLocal)  // local's gameoption data is set up in handleVERSION;
-        {               // local's gamelist is reached through practiceServer obj.
+        if (! isPractice)  // practice gameoption data is set up in handleVERSION;
+        {                  // practice srv's gamelist is reached through practiceServer obj.
             if (serverGames == null)
                 serverGames = msgGames;
             else
@@ -3918,7 +3922,6 @@ public class SOCPlayerClient extends Applet
         SOCGame ga = (SOCGame) games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
-
 
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
         if (pi == null)
@@ -4112,10 +4115,10 @@ public class SOCPlayerClient extends Applet
      * If it's on the list, also remove from {@link #serverGames}.
      *
      * @param gameName  the game to remove
-     * @param isPractice   local practice, or at remote server?
+     * @param isPractice   local practice, not at remote server?
      * @return true if deleted, false if not found in list
      */
-    public boolean deleteFromGameList(String gameName, boolean isLocal)
+    public boolean deleteFromGameList(String gameName, final boolean isPractice)
     {
         //String testString = gameName + STATSPREFEX;
         String testString = gameName;
@@ -4127,7 +4130,7 @@ public class SOCPlayerClient extends Applet
                 gmlist.replaceItem(" ", 0);
                 gmlist.deselect(0);
 
-                if ((! isLocal) && (serverGames != null)) 
+                if ((! isPractice) && (serverGames != null)) 
                 {
                     serverGames.deleteGame(gameName);  // may not be in there
                 }
@@ -4153,7 +4156,7 @@ public class SOCPlayerClient extends Applet
             gmlist.select(gmlist.getItemCount() - 1);
         }
 
-        if (found && (! isLocal) && (serverGames != null))
+        if (found && (! isPractice) && (serverGames != null))
         {
             serverGames.deleteGame(gameName);  // may not be in there
         }
@@ -4871,7 +4874,7 @@ public class SOCPlayerClient extends Applet
                 new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
                 // Reader will start its own thread.
                 // Send VERSION right away (1.1.06 and later)
-                putLocal(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+                putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
 
                 // local server will support per-game options
                 if (so != null)
@@ -4886,9 +4889,9 @@ public class SOCPlayerClient extends Applet
 
         // Ask local "server" to create the game
         if (gameOpts == null)
-            putLocal(SOCJoinGame.toCmd(nickname, password, host, practiceGameName));
+            putPractice(SOCJoinGame.toCmd(nickname, password, host, practiceGameName));
         else
-            putLocal(SOCNewGameWithOptionsRequest.toCmd(nickname, password, host, practiceGameName, gameOpts));
+            putPractice(SOCNewGameWithOptionsRequest.toCmd(nickname, password, host, practiceGameName, gameOpts));
     }
 
     /**
@@ -5078,7 +5081,7 @@ public class SOCPlayerClient extends Applet
         SOCLeaveAll leaveAllMes = new SOCLeaveAll();
         putNet(leaveAllMes.toCmd());
         if ((prCli != null) && ! canLocal)
-            putLocal(leaveAllMes.toCmd());
+            putPractice(leaveAllMes.toCmd());
         if ((localTCPServer != null) && (localTCPServer.isUp()))
         {
             localTCPServer.stopServer();
