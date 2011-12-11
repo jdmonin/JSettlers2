@@ -104,7 +104,8 @@ public class SOCGameList
     }
 
     /**
-     * take the monitor for this game
+     * take the monitor for this game.
+     * When done with it, you must call {@link #releaseMonitorForGame(String)}.
      *
      * @param game  the name of the game
      * @return false if the game has no mutex, or game not found in the list
@@ -160,7 +161,8 @@ public class SOCGameList
     }
 
     /**
-     * release the monitor for this game
+     * Release the monitor for this game,
+     * recently taken by {@link #takeMonitorForGame(String)}.
      *
      * @param game  the name of the game
      * @return false if the game has no mutex
