@@ -28,10 +28,12 @@ import soc.util.NodeLenVis;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -802,18 +804,26 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Can we move this ship, based on our trade routes
-     * and settlements/cities?
+     * and settlements/cities near its current location?
+     *<P>
      * Only the ship at the newer end of an open trade route can be moved.
      * So, to move a ship, one of its end nodes must be clear: No
      * settlement or city, and no other adjacent ship on the other
      * side of the node.
+     * The ship must be part of an open trade route;
+     * {@link SOCShip#isClosed() sh.isClosed()} must be false.
      *<P>
      * Does not check game state, only this player's pieces.
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
      * That limit isn't checked here.
+     * {@link SOCGame#canMoveShip(int, int, int)} checks that limit,
+     * the other game conditions, and calls this method to check the
+     * player's piece conditions.
      *<P>
-     * @see SOCGame#canMoveShip(int, int, int)
+     * The ship's requested new location will be checked
+     * with {@link #isPotentialShip(int, int)}.
+     *<P>
      * @param sh  One of our ships
      * @since 1.2.00
      */
@@ -831,11 +841,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         clearPastNode0 =
             (null == board.settlementAtNode(shipNodes[0]))
             && ! doesTradeRouteContinuePastNode
-                   (board, shipEdge, shipNodes[0]);
+                   (board, shipEdge, -9, shipNodes[0]);
         clearPastNode1 =
              (null == board.settlementAtNode(shipNodes[1]))
              && ! doesTradeRouteContinuePastNode
-                    (board, shipEdge, shipNodes[1]);
+                    (board, shipEdge, -9, shipNodes[1]);
 
         return (clearPastNode0 || clearPastNode1);
     }
@@ -846,6 +856,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param board  game board
      * @param shipEdge  Edge with a ship on the trade route
+     * @param ignoreEdge  Edge to ignore our pieces on, or -9; used
+     *                    during the check before moving one of our ships.
      * @param node  Node at one end of <tt>shipEdge</tt>,
      *              which does not have a settlement or city;
      *              check this node's other 2 edges for ships
@@ -855,15 +867,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 1.2.00
      */
     private final boolean doesTradeRouteContinuePastNode
-        (final SOCBoard board, final int shipEdge, final int node)
+        (final SOCBoard board, final int shipEdge, final int ignoreEdge, final int node)
     {
         boolean routeContinues = false;
 
         int[] adjEdges = board.getAdjacentEdgesToNode_arr(node);
         for (int i = 0; i < 3; ++i)
-            if (adjEdges[i] == shipEdge)
-                adjEdges[i] = -9;  // ignore shipEdge
+            if ((adjEdges[i] == shipEdge) || (adjEdges[i] == ignoreEdge))
+                adjEdges[i] = -9;  // ignore this edge
 
+        // Look for a ship of ours, adjacent to node
         Enumeration roadEnum = roads.elements();
         while (roadEnum.hasMoreElements() && ! routeContinues)
         {
@@ -1003,7 +1016,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * 
      * @see #getDevCards()
      */     
-    public boolean hasUnplayedDevCards()  // hasUnplayedDevCards
+    public boolean hasUnplayedDevCards()
     {
         return (0 < devCards.getNumUnplayed());
     }
@@ -2350,10 +2363,59 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this edge coordinate a potential ship, even if another ship
+     * edge was not?  Used by {@link SOCGame#canMoveShip(int, int, int)}
+     * to check the ship's requested new location.
+     *<P>
+     * First, <tt>edge</tt> must be a potential ship now.
+     * Then, we check to see if even without the ship at <tt>ignoreEdge</tt>,
+     * edge is still potential:
+     * If either end node of <tt>edge</tt> has a settlement/city of ours,
+     * or has an adjacent edge with a ship of ours
+     * (except <tt>ignoreEdge</tt>), then <tt>edge</tt> is potential.
+     *
+     * @return true if this edge is still a potential ship
+     * @param edge  the coordinates of an edge on the board;
+     *       {@link #isPotentialShip(int) isPotentialShip(edge)}
+     *       must currently be true.
+     * @param ignoreShipEdge  the coordinates of another ship edge, to
+     *   ignore when determining if <tt>edge</tt> is still potential.
+     * @see #isPotentialShip(int)
+     * @since 1.2.00
+     */
+    public boolean isPotentialShip(final int edge, final int ignoreShipEdge)
+    {
+        if (! potentialShips.contains(new Integer(edge)))
+            return false;
+
+        final SOCBoard board = game.getBoard();
+        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
+
+        SOCPlayingPiece pp = board.settlementAtNode(edgeNodes[0]);
+        if (pp.getPlayerNumber() != playerNumber)
+            pp = null;
+        if ((pp != null)
+            || doesTradeRouteContinuePastNode
+                 (board, edge, ignoreShipEdge, edgeNodes[0]))
+            return true;
+
+        pp = board.settlementAtNode(edgeNodes[1]);
+        if (pp.getPlayerNumber() != playerNumber)
+            pp = null;
+        if ((pp != null)
+            || doesTradeRouteContinuePastNode
+                 (board, edge, ignoreShipEdge, edgeNodes[1]))
+            return true;
+
+        return false;
+    }
+
+    /**
      * @return true if this edge is a potential ship;
      *   if not {@link SOCGame#hasSeaBoard}, always returns false
      *   because the player has no potential ship locations.
      * @param edge  the coordinates of an edge on the board
+     * @see #isPotentialShip(int, int)
      * @since 1.2.00
      */
     public boolean isPotentialShip(int edge)

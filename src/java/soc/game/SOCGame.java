@@ -2218,9 +2218,14 @@ public class SOCGame implements Serializable, Cloneable
      * Must be current player.  Game state must be {@link #PLAY1}.
      *<P>
      * Only the ship at the newer end of an open trade route can be moved.
-     * So, to move a ship, one of its end nodes must be clear: No
-     * settlement or city, and no other adjacent ship on the other
+     * So, to move a ship, one of <tt>fromEdge</tt>'s end nodes must be
+     * clear: No settlement or city, and no other adjacent ship on the other
      * side of the node.
+     *<P>
+     * The new location <tt>toEdge</tt> must also be a potential ship location,
+     * even if <tt>fromEdge</tt> was unoccupied; calls
+     * {@link SOCPlayer#isPotentialShip(int, int) pn.isPotentialShip(toEdge, fromEdge)}
+     * to check that.
      *<P>
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
@@ -2239,7 +2244,7 @@ public class SOCGame implements Serializable, Cloneable
         if (fromEdge == toEdge)
             return null;
         final SOCPlayer pl = players[pn];
-        if (! pl.isPotentialShip(toEdge))
+        if (! pl.isPotentialShip(toEdge, fromEdge))
             return null;
         return canMoveShip(pn, fromEdge);  // <-- checks most other conditions
     }
