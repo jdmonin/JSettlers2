@@ -640,6 +640,14 @@ public class SOCGame implements Serializable, Cloneable
     private boolean movedShipThisTurn;
 
     /**
+     * List of ship edge coordinates placed this turn.
+     * A ship cannot be placed and moved on the same turn.
+     * Null when not {@link #hasSeaBoard}.
+     * @since 1.2.00
+     */
+    private Vector placedShipsThisTurn;
+
+    /**
      * The number of normal turns (not rounds, not initial placements), including this turn.
      *  This is 0 during initial piece placement, and 1 when the first player is about to
      *  roll dice for the first time.
@@ -779,6 +787,8 @@ public class SOCGame implements Serializable, Cloneable
         oldPlayerWithLongestRoad = new Stack();
         lastActionWasBankTrade = false;
         movedShipThisTurn = false;
+        if (hasSeaBoard)
+            placedShipsThisTurn = new Vector();
 
         opts = op;
         if (op == null)
@@ -2007,6 +2017,14 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
 
         /**
+         * Remember ships placed this turn
+         */
+        if (pp.getType() == SOCPlayingPiece.SHIP)
+        {
+            placedShipsThisTurn.add(new Integer(pp.getCoordinates()));
+        }
+
+        /**
          * check if the game is over
          */
         if (oldGameState != SPECIAL_BUILDING)
@@ -2186,6 +2204,8 @@ public class SOCGame implements Serializable, Cloneable
      * settlement or city, and no other adjacent ship on the other
      * side of the node.
      *<P>
+     * You cannot place a ship, and then move the same ship, during the same turn.
+     *<P>
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
      *
@@ -2198,6 +2218,8 @@ public class SOCGame implements Serializable, Cloneable
     public SOCShip canMoveShip(final int pn, final int fromEdge)
     {
         if (movedShipThisTurn || ! (hasSeaBoard && (currentPlayerNumber == pn) && (gameState == PLAY1)))
+            return null;
+        if (placedShipsThisTurn.contains(new Integer(fromEdge)))
             return null;
 
         final SOCPlayer pl = players[pn];
@@ -2260,7 +2282,11 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      *<b>Note:</b> Because <tt>sh</tt> and <tt>toEdge</tt>
      * are not checked for validity, please call
-     * {@link #canMoveShip(int, int, int) before calling this method.
+     * {@link #canMoveShip(int, int, int)} before calling this method.
+     *<P>
+     * The call to putPiece incorrectly adds the moved ship's
+     * new location to <tt>placedShipsThisTurn</tt>, but since
+     * we can only move 1 ship per turn, the add is harmless.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
@@ -2580,12 +2606,16 @@ public class SOCGame implements Serializable, Cloneable
      * Update game state as needed when a player begins their turn (before dice are rolled).
      *<P>
      * May be called during initial placement.
+     * (Game methods don't call during this time, but the server sends each client
+     *  a message to call <tt>updateAtTurn</tt> whenever the current player changes.) 
+     * Is called at the end of initial placement, before the first player's first roll.
      * On the 6-player board, is called at the start of
      * each player's {@link #SPECIAL_BUILDING Special Building Phase}.
      *<UL>
      *<LI> Set first player and last player, if they're currently -1
      *<LI> Set current dice to 0
      *<LI> Mark current player's new dev cards as old
+     *<LI> Clear any "x happened this turn" flags/lists
      *<LI> Clear any votes to reset the board
      *<LI> If game state is {@link #PLAY}, increment turnCount (and roundCount if necessary).
      *     These include the current turn; they both are 1 during the first player's first turn.
@@ -2608,7 +2638,11 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
         currPlayer.lastActionBankTrade_give = null;
         currPlayer.lastActionBankTrade_get = null;
-        movedShipThisTurn = false;
+        if (hasSeaBoard)
+        {
+            movedShipThisTurn = false;
+            placedShipsThisTurn.clear();
+        }
 
         if (gameState == PLAY)
         {

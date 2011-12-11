@@ -8777,6 +8777,9 @@ public class SOCServer extends Server
     /**
      * send {@link SOCTurn whose turn it is}. Optionally also send a prompt to roll.
      * If the client is too old (1.0.6), it will ignore the prompt.
+     *<P>
+     * sendTurn should be called whenever the current player changes, including
+     * during and after initial placement.
      *
      * @param ga  the game
      * @param sendRollPrompt  whether to send a RollDicePrompt message afterwards
