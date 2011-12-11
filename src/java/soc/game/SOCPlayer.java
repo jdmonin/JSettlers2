@@ -807,9 +807,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * and settlements/cities near its current location?
      *<P>
      * Only the ship at the newer end of an open trade route can be moved.
-     * So, to move a ship, one of its end nodes must be clear: No
-     * settlement or city, and no other adjacent ship on the other
-     * side of the node.
+     * So, to move a ship, one of its end nodes must be clear of this
+     * player's pieces: No settlement or city, and no other adjacent ship on
+     * the other side of the node.  Other players' pieces are ignored.
      * The ship must be part of an open trade route;
      * {@link SOCShip#isClosed() sh.isClosed()} must be false.
      *<P>
@@ -839,12 +839,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         final boolean clearPastNode0, clearPastNode1;
 
+        SOCPlayingPiece pp = board.settlementAtNode(shipNodes[0]);
+        if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
+            pp = null;
         clearPastNode0 =
-            (null == board.settlementAtNode(shipNodes[0]))
+            (null == pp)
             && ! doesTradeRouteContinuePastNode
                    (board, shipEdge, -9, shipNodes[0]);
+
+        pp = board.settlementAtNode(shipNodes[1]);
+        if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
+            pp = null;
         clearPastNode1 =
-             (null == board.settlementAtNode(shipNodes[1]))
+             (null == pp)
              && ! doesTradeRouteContinuePastNode
                     (board, shipEdge, -9, shipNodes[1]);
 
