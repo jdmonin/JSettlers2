@@ -170,7 +170,7 @@ public abstract class SOCMessageTemplate4i extends SOCMessage
      * @param param2 The second parameter
      * @return    the command string
      */
-    public static String toCmd(final int messageType, final String ga, final int p1, final int p2, final int p3, final int p4)
+    protected static String toCmd(final int messageType, final String ga, final int p1, final int p2, final int p3, final int p4)
     {
         return Integer.toString(messageType) + sep + ga + sep2 + p1 + sep2 + p2 + sep2 + p3 + sep2 + p4;
     }
