@@ -817,12 +817,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
      * That limit isn't checked here.
+     * After the player picks the ship's requested new location,
      * {@link SOCGame#canMoveShip(int, int, int)} checks that limit,
      * the other game conditions, and calls this method to check the
      * player's piece conditions.
      *<P>
-     * The ship's requested new location will be checked
-     * with {@link #isPotentialShip(int, int)}.
+     * Once the player picks the ship's requested new location,
+     * that edge will be checked with {@link #isPotentialShip(int, int)}.
      *<P>
      * @param sh  One of our ships
      * @since 1.2.00
@@ -2392,7 +2393,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
 
         SOCPlayingPiece pp = board.settlementAtNode(edgeNodes[0]);
-        if (pp.getPlayerNumber() != playerNumber)
+        if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
             pp = null;
         if ((pp != null)
             || doesTradeRouteContinuePastNode
@@ -2400,7 +2401,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             return true;
 
         pp = board.settlementAtNode(edgeNodes[1]);
-        if (pp.getPlayerNumber() != playerNumber)
+        if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
             pp = null;
         if ((pp != null)
             || doesTradeRouteContinuePastNode

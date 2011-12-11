@@ -2490,7 +2490,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.translate(hx, hy);
         g.fillPolygon(roadX, roadY, roadX.length);
 
-        if (pn != -1)
+        if (! ((pn == -1) && isHilight))
         {
             if (isHilight)
                 g.setColor(playerInterface.getPlayerColor(pn, false));
@@ -4035,7 +4035,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     if (mode == MOVE_SHIP)
                     {
-                        if (! player.isPotentialShip(edgeNum))
+                        if (! player.isPotentialShip(edgeNum, moveShip_fromEdge))
                             edgeNum = 0;
                     }
                     else if ( !(player.isPotentialRoad(edgeNum)
@@ -5295,7 +5295,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             positionToMouse(mouseX, mouseY);  // Also calls repaint
         }
         
-        /** Clear hover text, and cancel any hovering roads/settlements/cities */
+        /**
+         * Clear hover text, and cancel any hovering roads/settlements/cities.
+         * Repaint the board.
+         * The next call to {@link #handleHover(int, int)} will set up the
+         * hovering pieces/text for the current mode.
+         */
         public void hideHoverAndPieces()
         {
             hoverRoadID = 0;
@@ -5903,7 +5908,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   cancelBuildItem.setLabel("Cancel ship move");
               else
                   cancelBuildItem.setLabel("Cancel ship");
-              upgradeCityItem.setEnabled(menuPlayerIsCurrent);
               hoverShipID = hilightAt;
               break;
 
@@ -6258,7 +6262,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           playerInterface.print("Click the ship's new location.");
           moveShip_fromEdge = hoverShipID;
           mode = MOVE_SHIP;
-          repaint();
+          hilight = 0;
+          hoverTip.hideHoverAndPieces();  // calls repaint
       }
 
     }  // inner class BoardPopupMenu    
