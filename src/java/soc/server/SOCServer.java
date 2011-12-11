@@ -7399,8 +7399,12 @@ public class SOCServer extends Server
                 denyRequest = true;
             } else {
                 ga.moveShip(moveShip, toEdge);
-                messageToGame(gaName, new SOCMovePiece
-                        (gaName, pn, SOCPlayingPiece.SHIP, fromEdge, toEdge));
+                gameList.takeMonitorForGame(gaName);
+                messageToGameWithMon(gaName, new SOCGameTextMsg
+                    (gaName, SERVERNAME, ga.getPlayer(pn).getName() + " moved a ship."));
+                messageToGameWithMon(gaName, new SOCMovePiece
+                    (gaName, pn, SOCPlayingPiece.SHIP, fromEdge, toEdge));
+                gameList.releaseMonitorForGame(gaName);
                 if (ga.getGameState() >= SOCGame.OVER)
                 {
                     // announce end of game
