@@ -2239,8 +2239,10 @@ public class SOCBoard implements Serializable, Cloneable
      * Adjacent node coordinates to an edge.
      * Does not check against range {@link #MINNODE_V1} to {@link #MAXNODE},
      * so nodes in the water (off the land board) may be returned.
+     * @param coord  Edge coordinate; not checked for validity
      * @return the nodes that touch this edge, as an array of 2 integer coordinates
      * @see #getAdjacentNodesToEdge(int)
+     * @see #getAdjacentNodeOtherToEdge(int, int)
      * @since 1.1.08
      */
     public int[] getAdjacentNodesToEdge_arr(final int coord)
@@ -2264,6 +2266,25 @@ public class SOCBoard implements Serializable, Cloneable
         }
 
         return nodes;
+    }
+
+    /**
+     * Get an edge's other adjacent node (its other end).
+     * Calls {@link #getAdjacentNodesToEdge_arr(int)} and
+     * returns the node that isn't <tt>nodeCoord</tt>.
+     * @param edgeCoord  Edge coordinate; not checked for validity
+     * @param nodeCoord  Node at one end of <tt>edgeCoord</tt>; the opposite end node
+     *           will be returned.
+     * @return the edge's other end node, opposite <tt>nodeCoord</tt>
+     * @since 1.2.00
+     */
+    public int getAdjacentNodeOtherToEdge(final int edgeCoord, final int nodeCoord)
+    {
+        final int[] nodes = getAdjacentNodesToEdge_arr(edgeCoord);
+        if (nodeCoord == nodes[0])
+            return nodes[1];
+        else
+            return nodes[0];
     }
 
     /**
