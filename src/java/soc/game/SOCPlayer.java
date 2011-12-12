@@ -907,6 +907,223 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Follow a trade route (a line of {@link SOCShip}s) away from a "closed end" to
+     * determine if the other end is closed or still open.
+     *<P>
+     * The route and its segments may end at a settlement/city, a branch where 3 ships
+     * meet at a node (and 2 of the 3 ships are closed), or may end "open" with no further pieces.
+     *<P>
+     * Valid only when {@link SOCGame#hasSeaBoard}.
+     *
+     *
+     * @param newShipEdge  A ship in a currently-open trade route, either newly placed
+     *                  or adjacent to a newly placed settlement
+     * @param moveDir  Check in this direction; assume that the other end of <tt>newShipEdge</tt>
+     *                 has a settlement, or that it branches from an already-closed trade route.
+     *           Uses the "facing" direction constants for consistency with other methods,
+     *           such as {@link SOCBoardLarge#getAdjacentNodeToEdge(int, int)}.
+     *           To move southeast from a diagonal edge, use {@link #FACING_SE}.
+     *           To move north from a vertical edge, use either {@link #FACING_NW} or {@link #FACING_NE}.
+     * @return  null if open, otherwise all the {@link SOCShip}s to close
+     * @since 1.2.00
+     */
+    private Vector isTradeRouteFarEndClosed
+        (final SOCShip newShipEdge, final int moveDir)
+        throws ClassCastException
+    {
+        if (! game.hasSeaBoard)
+            throw new IllegalStateException();
+
+        ArrayList encounteredSelf = new ArrayList();  // if route loops around, contains Vectors of node coords & SOCShips
+        HashSet alreadyVisited = new HashSet();  // contains Integer coords as segment is built
+
+        // TODO javadoc note the ship itself isn't on the board yet
+        //    (for ship placement); TODO what about settle placement?
+
+        // Check the far end node of fromEdge
+        // for a settlement/city, then for ships in each
+        // of that node's directions.
+        // Note that if it becomes closed, segment will contain newShipEdge.
+
+        int edgeFarNode = ((SOCBoardLarge) game.getBoard()).getAdjacentNodeToEdge
+            (newShipEdge.getCoordinates(), moveDir);
+        
+        Vector segment = isTradeRouteFarEndClosed
+            (newShipEdge, edgeFarNode, alreadyVisited, encounteredSelf);
+
+        if (segment == null)
+            return null;
+
+        // TODO watch for encounteredSelf
+        //   and consider closing things here, then revisiting encounteredSelf segments
+
+        return segment;
+    }
+
+    /**
+     * Recursive call for {@link #isTradeRouteFarEndClosed(int, int)}.
+     * Check one segment of the trade route going from a branch.
+     * The segment may end at a settlement/city, another branch, or end with no further pieces.
+     * Valid only when {@link SOCGame#hasSeaBoard}.
+     * See that method for more information.
+     *
+     * @param edgeFirstShip  First edge along the segment; ship required here.
+     *                  All edges, including this first edge, are checked against <tt>encounteredSelf</tt>.
+     * @param edgeFarNode  The unvisited node at the far end of <tt>fromEdge</tt>.
+     *                  We'll examine this node and then continue to move along edges past it.
+     *                  If the "facing direction" we're moving in is called "moveDir",
+     *                  then <tt>edgeFarNode</tt> = 
+     *                  {@link SOCBoardLarge#getAdjacentNodeToEdge(int, int)
+     *                   board.getAdjacentNodeToEdge(edgeFirstShip.getCoordinates(), moveDir)}.
+     * @param alreadyVisited   contains Integer edge coordinates as the segment is built;
+     *               added to in this method
+     * @param encounteredSelf  contains Vectors, each with a node coord Integer and SOCShips;
+     *               might be added to in this method
+     * @return a closed route of {@link SOCShip} or null, from <tt>fromEdge</tt> to far end;
+     *         may also add to <tt>alreadyVisited</tt> and <tt>encounteredSelf</tt>
+     * @throws ClassCastException if not {@link SOCGame#hasSeaBoard}.
+     * @since 1.2.00
+     */
+    private Vector isTradeRouteFarEndClosed
+        (final SOCShip edgeFirstShip, final int edgeFarNode,
+         HashSet alreadyVisited, List encounteredSelf)
+        throws ClassCastException
+    {
+        final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
+        Vector segment = new Vector();  // will contain ships
+
+        SOCShip edgeShip = edgeFirstShip;
+        segment.add(edgeShip);
+        int edge = edgeShip.getCoordinates();
+        int node = edgeFarNode;
+
+        boolean foundClosedEnd = false;
+        while ((edge != 0) && ! foundClosedEnd)
+        {
+            // Loop invariant:
+            // - edge is an edge with a ship, we're currently at edge
+            // - node is the "far end" of edge, next to be inspected
+            // - segment's most recently added ship is the one at edge
+
+            final Integer edgeInt = new Integer(edge);
+
+            // have we already visited this edge?
+            if (alreadyVisited.contains(edgeInt))
+            {
+                // Build an encounteredSelf list entry.
+                Vector already = new Vector();
+                already.add(new Integer(node));
+                already.addAll(segment);
+
+                encounteredSelf.add(already);
+                return null;  // TODO already visited? what if closed?
+            }
+
+            alreadyVisited.add(edgeInt);
+
+            // check the node
+            SOCPlayingPiece pp = board.settlementAtNode(node);
+            if (pp != null)
+            {
+                if (pp.getPlayerNumber() == playerNumber)
+                    foundClosedEnd = true;
+
+                break;  // won't continue past here
+
+            } else {
+
+                // check node's other 2 adjacent edges
+                // to see where the trade route goes next
+
+                final int[] nodeEdges = board.getAdjacentEdgesToNode_arr(node);
+                SOCShip nextShip1 = null, nextShip2 = null;
+                for (int i = 0; i < 3; ++i)
+                {
+                    if ((nodeEdges[i] == edge) || (nodeEdges[i] == -9))
+                        continue;  // not a new direction
+
+                    SOCRoad rs = getRoadOrShip(nodeEdges[i]);
+                    if ((rs == null) || rs.isRoadNotShip())
+                        continue;  // not a ship
+
+                    if (nextShip1 == null)
+                        nextShip1 = (SOCShip) rs;
+                    else
+                        nextShip2 = (SOCShip) rs;
+                }
+
+                if (nextShip1 == null)
+                    break;  // open end, won't continue past here
+
+                // move next
+                if (nextShip2 == null)
+                {
+                    // Trade route continues in just 1 direction,
+                    // so follow it along
+
+                    edge = nextShip1.getCoordinates();
+                    node = board.getAdjacentNodeFarEndOfEdge(edge, node);
+                    segment.add(nextShip1);
+
+                } else {
+
+                    // Found ships in 2 directions (a branch)
+
+                    if (nextShip2.isClosed())
+                    {
+                        // If one ship is already closed, they both are.
+                        // Stop here.
+                        foundClosedEnd = true;
+                        break;
+                    }
+
+                    // Recursive call to the 2 directions out from node:
+
+                    final int encounterSoFar = encounteredSelf.size();
+                    Vector shipsFrom1 = isTradeRouteFarEndClosed
+                        (nextShip1, board.getAdjacentNodeFarEndOfEdge(nextShip1.getCoordinates(), node),
+                         alreadyVisited, encounteredSelf);
+                    Vector shipsFrom2 = isTradeRouteFarEndClosed
+                        (nextShip2, board.getAdjacentNodeFarEndOfEdge(nextShip2.getCoordinates(), node),
+                            alreadyVisited, encounteredSelf);
+
+                    // TODO watch for encounteredSelf size change
+
+                    if (shipsFrom1 == null)
+                    {
+                        // only shipsFrom2 might be closed
+                        if (shipsFrom2 == null)
+                            return null;  // neither one was closed
+
+                        segment.addAll(shipsFrom2);
+                        return segment;
+                    }
+                    else if (shipsFrom2 == null)
+                    {
+                        // shipsFrom2 is null, shipsFrom1 is not null, so it's closed.
+
+                        segment.addAll(shipsFrom1);
+                        return segment;
+                    }
+
+                    // both were non-null (newly closed)
+                    // -> This shouldn't happen, because together they already
+                    //    form a continuous path between 2 settlements.
+                    segment.addAll(shipsFrom1);
+                    segment.addAll(shipsFrom2);
+                    return segment;
+                }
+            }
+
+        }
+
+        if (! foundClosedEnd)
+            return null;
+
+        return segment;
+    }
+
+    /**
      * Get the location of this player's most recent
      * settlement.  Useful during initial placement.
      * @return the coordinates of the last settlement

@@ -2242,7 +2242,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param coord  Edge coordinate; not checked for validity
      * @return the nodes that touch this edge, as an array of 2 integer coordinates
      * @see #getAdjacentNodesToEdge(int)
-     * @see #getAdjacentNodeOtherToEdge(int, int)
+     * @see #getAdjacentNodeFarEndOfEdge(int, int)
      * @since 1.1.08
      */
     public int[] getAdjacentNodesToEdge_arr(final int coord)
@@ -2278,7 +2278,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @return the edge's other end node, opposite <tt>nodeCoord</tt>
      * @since 1.2.00
      */
-    public int getAdjacentNodeOtherToEdge(final int edgeCoord, final int nodeCoord)
+    public int getAdjacentNodeFarEndOfEdge(final int edgeCoord, final int nodeCoord)
     {
         final int[] nodes = getAdjacentNodesToEdge_arr(edgeCoord);
         if (nodeCoord == nodes[0])
