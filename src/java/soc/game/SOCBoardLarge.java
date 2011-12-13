@@ -1340,6 +1340,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return the nodes that touch this edge, as an array of 2 integer coordinates
      * @see #getAdjacentNodesToEdge(int)
      * @see #getAdjacentNodeToEdge(int, int)
+     * @see #getNodeBetweenAdjacentEdges(int, int)
      */
     public int[] getAdjacentNodesToEdge_arr(final int coord)
     {
@@ -1362,6 +1363,81 @@ public class SOCBoardLarge extends SOCBoard
         return nodes;
 
         // Bounds-check OK: if edge coord is valid, its nodes are both valid
+    }
+
+    /**
+     * Given a pair of adjacent edge coordinates, get the node coordinate
+     * that connects them.
+     *<P>
+     * Does not check actual settlements or other pieces on the board.
+     *
+     * @param edgeA  Edge coordinate adjacent to <tt>edgeB</tt>; not checked for validity
+     * @param edgeB  Edge coordinate adjacent to <tt>edgeA</tt>; not checked for validity
+     * @return  node coordinate between edgeA and edgeB
+     * @see #getAdjacentNodesToEdge(int)
+     * @throws IllegalArgumentException  if edgeA and edgeB aren't adjacent
+     */
+    public int getNodeBetweenAdjacentEdges(final int edgeA, final int edgeB)
+	throws IllegalArgumentException
+    {
+	final int node;
+
+	switch (edgeB - edgeA)
+	{
+	// Any node, when neither edgeA, edgeB are north/south:
+
+	case 0x01:  // edgeB is east of edgeA, at coord (r, c+1) compared to edgeA
+	    node = edgeB;
+	    break;
+
+	case -0x01:  // edgeB west of edgeA (r, c-1)
+	    node = edgeA;
+	    break;
+
+	// 'Y' node, south and NW edges:
+
+	case -0x0101:  // edgeA is south, edgeB is NW (r-1, c-1)
+	    node = edgeB + 1;
+	    break;
+
+	case 0x0101:  // edgeA is NW, edgeB is south (r+1, c+1)
+	    node = edgeA + 1;
+	    break;
+
+	// 'Y' node, south and NE edges;
+	// also 'A' node, north and SE edges:
+
+	case 0x0100:  
+	    if (((edgeB >> 8) % 2) == 1)
+		node = edgeA;  // 'Y', edgeA is NE, edgeB is south (r+1, c)
+	    else
+		node = edgeB;  // 'A', edgeA is north, edgeB is SE (r+1, c)
+	    break;
+
+	case -0x0100:
+	    if (((edgeA >> 8) % 2) == 1)
+		node = edgeB;  // 'Y', edgeA is south, edgeB is NE (r-1, c)
+	    else
+		node = edgeA;  // 'A', edgeA is SE, edgeB is north (r-1, c)
+	    break;
+
+	// 'A' node, north and SW edges:
+
+	case (0x0100 - 0x01):  // edgeA is north, edgeB is SW (r+1, c-1)
+	    node = edgeB + 1;
+	    break;
+
+	case (0x01 - 0x0100):  // edgeA is SW, edgeB is north (r-1, c+1)
+	    node = edgeA + 1;
+	    break;
+
+	default:
+	    throw new IllegalArgumentException
+		("Edges not adjacent: 0x" + Integer.toHexString(edgeA)
+		 + ", 0x" + Integer.toHexString(edgeB));
+	}
+
+        return node;
     }
 
 
