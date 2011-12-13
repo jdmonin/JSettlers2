@@ -907,9 +907,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Follow a trade route (a line of {@link SOCShip}s) away from a "closed end" to
+     * Follow a trade route (a line of {@link SOCShip}s) away from a newly closed end, to
      * determine if the other end is closed or still open, and close this route if
      * necessary.
+     *<P>
+     * We check the route in one direction towards <tt>edgeFarNode</tt>, because we
+     * assume that the other end of <tt>newShipEdge</tt>
+     * has a settlement, or that it branches from an already-closed trade route.
      *<P>
      * The route and its segments may end at a settlement/city, a branch where 3 ships
      * meet at a node (and 2 of the 3 ships are closed), or may end "open" with no further pieces.
@@ -917,19 +921,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Valid only when {@link SOCGame#hasSeaBoard}.
      *
      * @param newShipEdge  A ship in a currently-open trade route, either newly placed
-     *                  or adjacent to a newly placed settlement
-     * @param moveDir  Check in this direction; assume that the other end of <tt>newShipEdge</tt>
-     *                 has a settlement, or that it branches from an already-closed trade route.
-     *           Uses the "facing" direction constants for consistency with other methods,
-     *           such as {@link SOCBoardLarge#getAdjacentNodeToEdge(int, int)}.
-     *           To move southeast from a diagonal edge, use {@link #FACING_SE}.
-     *           To move north from a vertical edge, use either {@link #FACING_NW} or {@link #FACING_NE}.
+     *                  or adjacent to a newly placed settlement.
+     *                  If the ship is newly placed, it should not yet be in {@link #roads}.
+     *                  If the settlement is newly placed, it should not yet be in {@link #settlements}.
+     * @param edgeFarNode  The unvisited node at the far end of <tt>fromEdge</tt>.
+     *                  We'll examine this node and then continue to move along edges past it.
      * @return  null if open, otherwise all the newly-closed {@link SOCShip}s
      * @since 1.2.00
+     * @throws IllegalStateException  if not {@link SOCGame#hasSeaBoard}
      */
     private Vector checkTradeRouteFarEndClosed
-        (final SOCShip newShipEdge, final int moveDir)
-        throws ClassCastException
+        (final SOCShip newShipEdge, final int edgeFarNode)
+        throws IllegalStateException
     {
         if (! game.hasSeaBoard)
             throw new IllegalStateException();
@@ -938,17 +941,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                                       // -- see isTradeRouteFarEndClosed javadoc for details
         HashSet alreadyVisited = new HashSet();  // contains Integer coords as segment is built
 
-        // TODO javadoc note the ship itself isn't on the board yet
-        //    (for ship placement); TODO what about settle placement?
-
         // Check the far end node of fromEdge
         // for a settlement/city, then for ships in each
         // of that node's directions.
         // Note that if it becomes closed, segment will contain newShipEdge.
 
-        int edgeFarNode = ((SOCBoardLarge) game.getBoard()).getAdjacentNodeToEdge
-            (newShipEdge.getCoordinates(), moveDir);
-        
         Vector segment = isTradeRouteFarEndClosed
             (newShipEdge, edgeFarNode, alreadyVisited, encounteredSelf);
 
@@ -984,18 +981,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     recheck = isTradeRouteFarEndClosed
                         (nearestShip, farNode, reAlready, reSelf);
                 } else {
-                    // Need to determine the node between the 2 edges
-                    //  (TODO: board.getNodeBetweenAdjacentEdges)
+                    // 2 or more ships
                     final int nextNearEdge =
-                            ((SOCShip) self.elementAt(2)).getCoordinates();
-                    recheck = null;
-                    /*
+                        ((SOCShip) self.elementAt(2)).getCoordinates();
                     recheck = isTradeRouteFarEndClosed
                         (nearestShip,
                          ((SOCBoardLarge) game.getBoard()).getNodeBetweenAdjacentEdges
                              (nearestShip.getCoordinates(), nextNearEdge),
                          reAlready, reSelf);
-                     */
                 }
 
                 if (recheck == null)
@@ -1526,6 +1519,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.SETTLEMENT:
                 numPieces[SOCPlayingPiece.SETTLEMENT]--;
+                putPiece_settlement_checkTradeRoutes
+                    ((SOCSettlement) piece, board);
                 settlements.addElement(piece);
                 lastSettlementCoord = piece.getCoordinates();
                 buildingVP++;
@@ -1580,12 +1575,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * For {@link #putPiece(SOCPlayingPiece)}, update road/ship-related info,
      * {@link #roadNodes}, {@link #roadNodeGraph} and {@link #lastRoadCoord}.
+     * Call only when the piece is ours.
      * @param piece  The road or ship
      * @param board  The board
      * @since 1.2.00
      */
     private void putPiece_roadOrShip(SOCRoad piece, SOCBoard board)
     {
+        /**
+         * before adding a ship, check to see if its trade route is now closed
+         */
+        if (piece instanceof SOCShip)
+            putPiece_roadOrShip_checkNewShipTradeRoute((SOCShip) piece, board);
+
+        /**
+         * remember it
+         */
         roads.addElement(piece);
         lastRoadCoord = piece.getCoordinates();
 
@@ -1670,6 +1675,71 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[0])+"]["+Integer.toHexString(nodeCoords[1])+"] = true");
         //D.ebugPrintln("^^ roadNodeGraph["+Integer.toHexString(nodeCoords[1])+"]["+Integer.toHexString(nodeCoords[0])+"] = true");
+    }
+
+    /**
+     * Check this new ship for adjacent settlements/cities, to see if its trade route
+     * will be closed.  Close it if so.
+     * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece)};
+     *                 should not yet be added to {@link #roads}
+     * @param board  game board
+     * @since 1.2.00
+     */
+    private void putPiece_roadOrShip_checkNewShipTradeRoute
+        (SOCShip newShip, SOCBoard board)
+    {
+        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr
+            (newShip.getCoordinates());
+
+        for (int i = 0; i < 2; ++i)
+        {
+            SOCPlayingPiece pp = board.settlementAtNode(edgeNodes[i]);
+            if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
+                pp = null;
+            if (pp == null)
+                continue;
+
+            // if pp is at edgeNodes[1], check from edgeNodes[0], or vice versa
+            final int edgeFarNode = 1 - i;
+            final Vector closedRoute = checkTradeRouteFarEndClosed
+                (newShip, edgeFarNode);
+            if (closedRoute != null)
+                break;
+        }
+    }
+
+    /**
+     * Check this new settlement for adjacent open ships, to see their its trade route
+     * will be closed.  Close it if so.
+     * @param newSettlement  Our new settlement being placed in {@link #putPiece(SOCPlayingPiece)};
+     *                 should not yet be added to {@link #settlements}
+     * @param board  game board
+     * @since 1.2.00
+     */
+    private void putPiece_settlement_checkTradeRoutes
+        (SOCSettlement newSettle, SOCBoard board)
+    {
+        final int[] nodeEdges = board.getAdjacentEdgesToNode_arr
+            (newSettle.getCoordinates());
+
+        for (int i = 0; i < 3; ++i)
+        {
+            final int edge = nodeEdges[i];
+            if (edge == -9)
+                continue;
+            SOCRoad pp = getRoadOrShip(edge);
+            if ((pp == null) || ! (pp instanceof SOCShip))
+                continue;
+            SOCShip sh = (SOCShip) pp;
+            if (sh.isClosed())
+                continue;
+
+            final int edgeFarNode =
+                ((SOCBoardLarge) board).getAdjacentNodeFarEndOfEdge
+                  (edge, newSettle.getCoordinates());
+            checkTradeRouteFarEndClosed
+                (sh, edgeFarNode);
+        }
     }
 
     /**
