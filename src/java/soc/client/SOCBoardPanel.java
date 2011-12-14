@@ -969,13 +969,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             panelMinBW = scaledPanelY;
             panelMinBH = scaledPanelX;
         } else {
-            scaledPanelX = PANELX;
-            scaledPanelY = PANELY;
-            if (isLargeBoard || is6player)
+            if (isLargeBoard)
             {
-                // TODO isLargeBoard: check the board dimensions; scrollbar?
-                scaledPanelY += (2 * deltaY);
-                scaledPanelX += deltaX;
+                // TODO isLargeBoard: what if we need a scrollbar?
+                //    Currently based on SOCBoardLarge hardcoded size 16r x 22c
+                //    which has water in the rightmost hex columns (thus -4)
+                scaledPanelX = halfdeltaX * (board.getBoardWidth() - 4) + 3;
+                scaledPanelY = halfdeltaY * (board.getBoardHeight() + 1) + 18;
+            } else {
+                scaledPanelX = PANELX;
+                scaledPanelY = PANELY;
+                if (is6player)
+                {
+                    scaledPanelY += (2 * deltaY);
+                    scaledPanelX += deltaX;
+                }
             }
             panelMinBW = scaledPanelX;
             panelMinBH = scaledPanelY;
@@ -5582,6 +5590,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         // TODO if this edge is coastal,
                         //    do we show a road or a ship?
                         //    Default to road for now.
+                        //    (findEdge +flag; boardlarge.isEdgeCoastline)
                         if (player.isPotentialRoad(id)
                             && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
                             && (debugPP || player.getResources().contains(SOCGame.ROAD_SET)))
