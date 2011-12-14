@@ -2229,7 +2229,6 @@ public class SOCGame implements Serializable, Cloneable
         SOCShip canShip = (SOCShip) pieceAtFrom;
         if (! pl.canMoveShip(canShip))
             return null;
-        // TODO cannot move if ship was bought and placed this turn
 
         return canShip;
     }

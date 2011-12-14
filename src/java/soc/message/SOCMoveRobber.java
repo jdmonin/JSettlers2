@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +24,13 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that a player wants to move the robber
+ * This message means that a client player wants to move the robber,
+ * or (from server to all players) a player has moved the robber.
+ *<P>
+ * From the server, the message will be followed by other messages
+ * about gaining/losing resources.  So for this message, the client
+ * should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
+ * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
  *
  * @author Robert S Thomas
  */
