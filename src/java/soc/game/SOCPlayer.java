@@ -2926,30 +2926,33 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final int pathStartNodeCoord = ((Integer) e.nextElement()).intValue();
             pending.push(new NodeLenVis(pathStartNodeCoord, 0, new Vector()));
 
-            while (!pending.isEmpty())
+            while (! pending.isEmpty())
             {
                 NodeLenVis curNode = (NodeLenVis) pending.pop();
                 final int coord = curNode.node;
                 final int len = curNode.len;
                 Vector visited = curNode.vis;
                 boolean pathEnd = false;
+                final SOCPlayingPiece settlementAtNodeCoord;
 
                 /**
                  * check for road blocks
                  */
                 if (len > 0)
                 {
-                    final SOCPlayingPiece p = board.settlementAtNode(coord);
-                    if ((p != null)
-                        && (p.getPlayerNumber() != playerNumber))
+                    settlementAtNodeCoord = board.settlementAtNode(coord);
+                    if ((settlementAtNodeCoord != null)
+                        && (settlementAtNodeCoord.getPlayerNumber() != playerNumber))
                     {
                         pathEnd = true;
 
                         //D.ebugPrintln("^^^ path end at "+Integer.toHexString(coord));
                     }
+                } else {
+                    settlementAtNodeCoord = null;
                 }
 
-                if (!pathEnd)
+                if (! pathEnd)
                 {
                     /**
                      * Check if this road path continues to adjacent connected nodes.
@@ -2964,8 +2967,33 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         if (j == -9)
                             continue;
 
-                        if (board.isNodeOnLand(j) && isConnectedByRoad(coord, j))
+                        if (isConnectedByRoad(coord, j))
                         {
+                            final SOCRoad roadFromNode;  // sea board: road/ship from node to j
+
+                            if (game.hasSeaBoard)
+                            {
+                                // Check for road<->ship transitions,
+                                // which require a settlement/city at node.
+                                // If len==0, inboundRoad is null because we're just starting.
+
+                                roadFromNode = getRoadOrShip
+                                (board.getEdgeBetweenAdjacentNodes(coord, j));
+                                if (len > 0)
+                                {
+                                    if (roadFromNode == null)  // shouldn't happen
+                                        continue;
+
+                                    if ((roadFromNode.isRoadNotShip() != curNode.inboundRoad.isRoadNotShip())
+                                        && (settlementAtNodeCoord == null))
+                                    {
+                                        continue;  // Requires settlement/city to connect road to ship
+                                    }
+                                }
+                            } else {
+                                roadFromNode = null;
+                            }
+
                             IntPair pair = new IntPair(coord, j);
                             boolean match = false;
 
@@ -2981,11 +3009,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 }
                             }
 
-                            if (!match)
+                            if (! match)
                             {
                                 Vector newVis = (Vector) visited.clone();
                                 newVis.addElement(pair);
-                                pending.push(new NodeLenVis(j, len + 1, newVis));
+                                pending.push(new NodeLenVis(j, len + 1, newVis, roadFromNode));
                                 pathEnd = false;
                             }
                         }
@@ -3061,7 +3089,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         }
                     }
 
-                    if (!trash.isEmpty())
+                    if (! trash.isEmpty())
                     {
                         for (Enumeration trashEnum = trash.elements();
                                 trashEnum.hasMoreElements();)
