@@ -35,9 +35,10 @@ import java.util.StringTokenizer;
  *<UL>
  *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}
  *<LI> NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
- *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}
+ *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}, if &gt; 0 
  *<LI> PL: The ports, from {@link SOCBoard#getPortsLayout()}
- *<LI> LH: The land hexes (v3 board encoding), from {@link SOCBoardLarge#getLandHexLayout()}
+ *<LI> LH: The land hexes (v3 board encoding), from {@link soc.game.SOCBoardLarge#getLandHexLayout()}
+ *<LI> PH: The pirate hex, from {@link soc.game.SOCBoardLarge#getPirateHex()}, if &gt; 0
  *</UL>
  * Board layout parts by board encoding version:
  *<UL>
@@ -125,9 +126,10 @@ public class SOCBoardLayout2 extends SOCMessage
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
      * @param lh   the land hex layout, or null if all water (before makeNewBoard is called)
      * @param pl   the port layout, or null
-     * @param rh   the robber hex
+     * @param rh   the robber hex, or -1
+     * @param ph   the pirate hex, or 0
      */
-    public SOCBoardLayout2(String ga, final int bef, int[] lh, int[] pl, int rh)
+    public SOCBoardLayout2(String ga, final int bef, int[] lh, int[] pl, int rh, int ph)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -137,7 +139,10 @@ public class SOCBoardLayout2 extends SOCMessage
             layoutParts.put("LH", lh);
         if (pl != null)
             layoutParts.put("PL", pl);
-        layoutParts.put("RH", new Integer(rh));        
+        if (rh > 0)
+            layoutParts.put("RH", new Integer(rh));
+        if (ph > 0)
+            layoutParts.put("PH", new Integer(ph));
     }
 
     /**

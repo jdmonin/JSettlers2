@@ -24,15 +24,21 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that a client player wants to move the robber,
- * or (from server to all players) a player has moved the robber.
+ * This message (from client to server) means that a client player wants to
+ * move the robber or pirate ship, or (from server to all players) a player
+ * has moved the robber or pirate ship.
  *<P>
  * From the server, the message will be followed by other messages
  * about gaining/losing resources.  So for this message, the client
  * should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
  * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
  *<P>
- * Once the robber is placed on the board, it cannot be taken off the board.
+ * Once the robber or the pirate is placed on the board, it cannot be taken off the board.
+ *<P>
+ * This message uses positive coordinates when moving the robber, and negative
+ * when moving the pirate.  Moving the pirate to hex 0x0104 is done with a
+ * SOCMoveRobber(-0x0104) message, which would cause the client to call
+ * {@link soc.game.SOCBoardLarge#setPirateHex(int, boolean) board.setPirateHex(0x0104, boolean)}.
  *
  * @author Robert S Thomas
  */
@@ -50,7 +56,7 @@ public class SOCMoveRobber extends SOCMessage
     private int playerNumber;
 
     /**
-     * the hex coordinates of the piece
+     * the hex coordinates of the piece (positive for robber, negative for pirate)
      */
     private int coordinates;
 
@@ -59,7 +65,7 @@ public class SOCMoveRobber extends SOCMessage
      *
      * @param na  name of the game
      * @param pn  player number
-     * @param co  hex coordinates
+     * @param co  hex coordinates: positive for robber, negative for pirate
      */
     public SOCMoveRobber(String na, int pn, int co)
     {
@@ -86,7 +92,8 @@ public class SOCMoveRobber extends SOCMessage
     }
 
     /**
-     * @return the hex coordinates
+     * Get the robber or pirate's new location.
+     * @return the hex coordinates: positive for robber, negative for pirate
      */
     public int getCoordinates()
     {
@@ -124,7 +131,7 @@ public class SOCMoveRobber extends SOCMessage
      * parse the command string into a MoveRobber message
      *
      * @param s   the String to parse
-     * @return    a TextMsg message, or null of the data is garbled
+     * @return    a SOCMoveRobber message, or null of the data is garbled
      */
     public static SOCMoveRobber parseDataStr(String s)
     {

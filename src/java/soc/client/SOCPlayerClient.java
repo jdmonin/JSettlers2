@@ -2012,7 +2012,7 @@ public class SOCPlayerClient extends Applet
                 break;
 
             /**
-             * the robber moved
+             * the robber or pirate moved
              */
             case SOCMessage.MOVEROBBER:
                 handleMOVEROBBER((SOCMoveRobber) mes);
@@ -2880,7 +2880,12 @@ public class SOCPlayerClient extends Applet
             // v3
             ((SOCBoardLarge) bd).setLandHexLayout(mes.getIntArrayPart("LH"));
             ga.setPlayersLandHexCoordinates();
-            bd.setRobberHex(mes.getIntPart("RH"), false);
+            int hex = mes.getIntPart("RH");
+            if (hex != 0)
+                bd.setRobberHex(hex, false);
+            hex = mes.getIntPart("PH");
+            if (hex != 0)
+                ((SOCBoardLarge) bd).setPirateHex(hex, false);
             int[] portLayout = mes.getIntArrayPart("PL");
             if (portLayout != null)
                 bd.setPortsLayout(portLayout);
@@ -3256,7 +3261,7 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * handle the "robber moved" message
+     * handle the "robber moved" or "pirate moved" message.
      * @param mes  the message
      */
     protected void handleMOVEROBBER(SOCMoveRobber mes)
@@ -3272,7 +3277,11 @@ public class SOCPlayerClient extends Applet
              * functions to do the stealing.  We just want to say where
              * the robber moved without seeing if something was stolen.
              */
-            ga.getBoard().setRobberHex(mes.getCoordinates(), true);
+            final int newHex = mes.getCoordinates();
+            if (newHex >= 0)
+                ga.getBoard().setRobberHex(newHex, true);
+            else
+                ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
             pi.getBoardPanel().repaint();
         }
     }

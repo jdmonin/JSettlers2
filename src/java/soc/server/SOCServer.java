@@ -3033,7 +3033,7 @@ public class SOCServer extends Server
                     break;
 
                 /**
-                 * a player is moving the robber
+                 * a player is moving the robber or pirate
                  */
                 case SOCMessage.MOVEROBBER:
 
@@ -8837,7 +8837,8 @@ public class SOCServer extends Server
 
         case SOCBoard.BOARD_ENCODING_LARGE:  // v3
             return new SOCBoardLayout2
-                (ga.getName(), bef, ((SOCBoardLarge) board).getLandHexLayout(), board.getPortsLayout(), robber);
+                (ga.getName(), bef, ((SOCBoardLarge) board).getLandHexLayout(), board.getPortsLayout(),
+                 robber, ((SOCBoardLarge) board).getPirateHex());
 
         default:
             throw new IllegalArgumentException("unknown board encoding v" + bef);
