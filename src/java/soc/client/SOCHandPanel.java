@@ -2070,6 +2070,11 @@ public class SOCHandPanel extends Panel implements ActionListener
             settlementLab.setVisible(hideTradeMsg);
             citySq.setVisible(hideTradeMsg);
             cityLab.setVisible(hideTradeMsg);
+            if (shipSq != null)
+            {
+                shipSq.setVisible(hideTradeMsg);
+                shipLab.setVisible(hideTradeMsg);
+            }
     
             if (inPlay && player.isRobot())
             {
