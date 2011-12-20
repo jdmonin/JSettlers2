@@ -29,7 +29,6 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
-import soc.message.SOCPutPiece;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -597,7 +596,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * initialize the game board display and add it to the interface
          */
         boardPanel = new SOCBoardPanel(this);
-        boardPanel.setBackground(new Color(112, 45, 10));
+        if (! game.hasSeaBoard)
+        	boardPanel.setBackground(new Color(112, 45, 10));  // brown
+        else
+        	boardPanel.setBackground(new Color(63, 86, 139));  // sea blue
         boardPanel.setForeground(Color.black);
         Dimension bpMinSz = boardPanel.getMinimumSize();
         boardPanel.setSize(bpMinSz.width, bpMinSz.height);
