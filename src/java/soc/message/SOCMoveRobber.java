@@ -31,6 +31,8 @@ import java.util.StringTokenizer;
  * about gaining/losing resources.  So for this message, the client
  * should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
  * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
+ *<P>
+ * Once the robber is placed on the board, it cannot be taken off the board.
  *
  * @author Robert S Thomas
  */
@@ -48,7 +50,7 @@ public class SOCMoveRobber extends SOCMessage
     private int playerNumber;
 
     /**
-     * the coordinates of the piece
+     * the hex coordinates of the piece
      */
     private int coordinates;
 
@@ -57,7 +59,7 @@ public class SOCMoveRobber extends SOCMessage
      *
      * @param na  name of the game
      * @param pn  player number
-     * @param co  coordinates
+     * @param co  hex coordinates
      */
     public SOCMoveRobber(String na, int pn, int co)
     {
@@ -84,7 +86,7 @@ public class SOCMoveRobber extends SOCMessage
     }
 
     /**
-     * @return the coordinates
+     * @return the hex coordinates
      */
     public int getCoordinates()
     {

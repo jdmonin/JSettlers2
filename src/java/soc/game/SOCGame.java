@@ -579,7 +579,8 @@ public class SOCGame implements Serializable, Cloneable
     private int numDevCards;
 
     /**
-     * the development card deck
+     * the development card deck.
+     * Each element is a dev card type from {@link SOCDevCardConstants}.
      */
     private int[] devCardDeck;
 
@@ -3352,17 +3353,19 @@ public class SOCGame implements Serializable, Cloneable
      * Assumes {@link #canMoveRobber(int, int)} has been called already to validate the move.
      *
      * @param pn  the number of the player that is moving the robber
-     * @param co  the new coordinates; not validated.
+     * @param rh  the robber's new hex coordinate; must be &gt; 0, not validated beyond that
      *
      * @return returns a result that says if a resource was stolen, or
      *         if the player needs to make a choice.  It also returns
      *         what was stolen and who was the victim.
+     * @throws IllegalArgumentException if <tt>rh</tt> &lt;= 0
      */
-    public SOCMoveRobberResult moveRobber(int pn, int co)
+    public SOCMoveRobberResult moveRobber(final int pn, final int rh)
+        throws IllegalArgumentException
     {
         SOCMoveRobberResult result = new SOCMoveRobberResult();
 
-        board.setRobberHex(co, true);
+        board.setRobberHex(rh, true);  // if co invalid, throws IllegalArgumentException
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
 
@@ -4073,7 +4076,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int buyDevCard()
     {
-        int card =  devCardDeck[numDevCards - 1];
+        int card = SOCDevCardConstants.ROADS; //  devCardDeck[numDevCards - 1];  JM TEMP
         numDevCards--;
 
         SOCResourceSet resources = players[currentPlayerNumber].getResources();

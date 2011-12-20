@@ -636,7 +636,8 @@ public class SOCBoard implements Serializable, Cloneable
     private final static int[] NODE_2_AWAY = { -9, 0x02, 0x22, 0x20, -0x02, -0x22, -0x20 };
 
     /**
-     * the hex coordinate that the robber is in; placed on desert in constructor
+     * the hex coordinate that the robber is in, or -1; placed on desert in {@link #makeNewBoard(Hashtable)}.
+     * Once the robber is placed on the board, it cannot be removed (cannot become -1 again).
      */
     private int robberHex;
 
@@ -1665,7 +1666,7 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return coordinate where the robber is
+     * @return coordinate where the robber is, or -1 if not on the board
      * @see #getPreviousRobberHex()
      */
     public int getRobberHex()
@@ -1815,13 +1816,17 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * set where the robber is
      *
-     * @param rh  the new robber hex coordinate; not validated
+     * @param rh  the new robber hex coordinate; must be &gt; 0, not validated beyond that
      * @param rememberPrevious  Should we remember the old robber hex? (added in 1.1.11)
      * @see #getRobberHex()
      * @see #getPreviousRobberHex()
+     * @throws IllegalArgumentException if <tt>rh</tt> &lt;= 0
      */
     public void setRobberHex(final int rh, final boolean rememberPrevious)
+        throws IllegalArgumentException
     {
+        if (rh <= 0)
+            throw new IllegalArgumentException();
         if (rememberPrevious)
             prevRobberHex = robberHex;
         else
