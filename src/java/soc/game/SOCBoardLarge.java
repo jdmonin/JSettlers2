@@ -36,7 +36,8 @@ import java.util.Vector;
  *<P>
  * Server and client must be 1.2.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
- * followed by the robber hex and (separately) the legal settlement/city nodes.
+ * followed by the robber hex and pirate hex (if they're &gt; 0),
+ * and then (separately) the legal settlement/city nodes.
  *<P>
  * Ship pieces extend the {@link SOCRoad} class; road-related getters/setters will work on them,
  * but check {@link SOCRoad#isRoadNotShip()} to differentiate.
@@ -78,7 +79,7 @@ import java.util.Vector;
  *   (6,1)  (6,3)  (6,5) ..
  *(6,0)  (6,2)  (6,4)  (6,6) .. </pre>
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.2.00
  */
 public class SOCBoardLarge extends SOCBoard
@@ -254,6 +255,18 @@ public class SOCBoardLarge extends SOCBoard
     private int portsCount;
 
     /**
+     * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Hashtable)}.
+     * Once the pirate is placed on the board, it cannot be removed (cannot become 0 again).
+     */
+    private int pirateHex;
+
+    /**
+     * the previous hex coordinate that the pirate is in; 0 unless
+     * {@link #setPirateHex(int, boolean) setPirateHex(rh, true)} was called.
+     */
+    private int prevPirateHex;
+
+    /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
@@ -284,6 +297,8 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         portsCount = 0;
+        pirateHex = 0;
+        prevPirateHex = 0;
     }
 
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
@@ -619,7 +634,51 @@ public class SOCBoardLarge extends SOCBoard
     // Board info getters
     //
 
-    
+
+    /**
+     * Set where the pirate is.
+     *
+     * @param ph  the new pirate hex coordinate; must be &gt; 0, not validated beyond that
+     * @param rememberPrevious  Should we remember the old pirate hex?
+     * @see #getPirateHex()
+     * @see #getPreviousPirateHex()
+     * @see #setRobberHex(int, boolean)
+     * @throws IllegalArgumentException if <tt>ph</tt> &lt;= 0
+     */
+    public void setPirateHex(final int ph, final boolean rememberPrevious)
+        throws IllegalArgumentException
+    {
+        if (ph <= 0)
+            throw new IllegalArgumentException();
+        if (rememberPrevious)
+            prevPirateHex = pirateHex;
+        else
+            prevPirateHex = 0;
+        pirateHex = ph;
+    }
+
+    /**
+     * @return coordinate where the pirate is, or 0 if not on the board
+     * @see #getPreviousPirateHex()
+     * @see #getRobberHex()
+     */
+    public int getPirateHex()
+    {
+        return pirateHex;
+    }
+
+    /**
+     * If the pirate has been moved by calling {@link #setPirateHex(int, boolean)}
+     * where <tt>rememberPrevious == true</tt>, get the previous coordinate
+     * of the pirate.
+     * @return hex coordinate where the pirate was, or 0
+     * @see #getPirateHex()
+     */
+    public int getPreviousPirateHex()
+    {
+        return prevPirateHex;
+    }
+
     /**
      * Given a hex coordinate, return the dice-roll number on that hex
      *

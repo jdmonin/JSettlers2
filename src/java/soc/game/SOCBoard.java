@@ -1668,6 +1668,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return coordinate where the robber is, or -1 if not on the board
      * @see #getPreviousRobberHex()
+     * @see SOCBoardLarge#getPirateHex()
      */
     public int getRobberHex()
     {
@@ -1820,6 +1821,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param rememberPrevious  Should we remember the old robber hex? (added in 1.1.11)
      * @see #getRobberHex()
      * @see #getPreviousRobberHex()
+     * @see SOCBoardLarge#setPirateHex(int, boolean)
      * @throws IllegalArgumentException if <tt>rh</tt> &lt;= 0
      */
     public void setRobberHex(final int rh, final boolean rememberPrevious)
