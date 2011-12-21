@@ -1950,10 +1950,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * the user chose a player to steal from
+     * The user chose a player to steal from,
+     * or (game state {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE})
+     * chose whether to move the robber or the pirate.
      *
      * @param ga  the game
-     * @param pn  the player id
+     * @param pn  the player id,
+     *   or -1 to move the robber
+     *   or -2 to move the pirate ship
      */
     public void choosePlayer(SOCGame ga, int pn)
     {

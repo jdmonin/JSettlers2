@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -24,10 +24,18 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message says which player the current player wants to
- * steal from.
+ * This message from client to server has 2 purposes:
+ *<UL>
+ *<LI> After a server's {@link SOCChoosePlayerRequest}, 
+ *     it says which player the current player wants to
+ *     steal from.
+ *<LI> After a server's {@link SOCGameState}
+ *     ({@link soc.game.SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}),
+ *     it says whether the player wants to move the robber
+ *     or the pirate ship. (v1.2.00+)
+ *</UL>
  *
- * @author Robert S. Thomas
+ * @author Robert S. Thomas &lt;thomas@infolab.northwestern.edu&gt;
  */
 public class SOCChoosePlayer extends SOCMessage
     implements SOCMessageForGame
@@ -38,7 +46,9 @@ public class SOCChoosePlayer extends SOCMessage
     private String game;
 
     /**
-     * The number of the chosen player
+     * The number of the chosen player,
+     * or -1 to move the robber
+     * or -2 to move the pirate ship.
      */
     private int choice;
 
@@ -46,7 +56,9 @@ public class SOCChoosePlayer extends SOCMessage
      * Create a ChoosePlayer message.
      *
      * @param ga  the name of the game
-     * @param ch  the number of the chosen player
+     * @param ch  the number of the chosen player,
+     *   or -1 to move the robber
+     *   or -2 to move the pirate ship.
      */
     public SOCChoosePlayer(String ga, int ch)
     {
@@ -64,7 +76,9 @@ public class SOCChoosePlayer extends SOCMessage
     }
 
     /**
-     * @return the number of the chosen player
+     * @return the number of the chosen player,
+     *   or -1 to move the robber
+     *   or -2 to move the pirate ship.
      */
     public int getChoice()
     {

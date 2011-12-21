@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010-2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -25,9 +25,19 @@ import soc.game.SOCGame;  // for javadoc's use
 
 
 /**
- * This message communicates the current state of the game
+ * This message communicates the current state of the game.
+ *<P>
+ * For some states, such as {@link SOCGame#WAITING_FOR_CHOICE},
+ * another message (such as {@link SOCChoosePlayerRequest}) will
+ * follow to prompt the current player.  For others, such as
+ * {@link SOCGame#WAITING_FOR_DISCOVERY} or
+ * {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}, it's implied
+ * that the player must decide and respond.
+ *<P>
+ * For {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}, the player should
+ * respond with {@link SOCChoosePlayer}; see that message's javadoc.
  *
- * @author Robert S Thomas
+ * @author Robert S Thomas &lt;thomas@infolab.northwestern.edu&gt;
  * @see SOCGame#getGameState()
  */
 public class SOCGameState extends SOCMessage
