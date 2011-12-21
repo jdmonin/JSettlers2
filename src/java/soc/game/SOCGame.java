@@ -172,6 +172,10 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_ROAD = 30;
     public static final int PLACING_SETTLEMENT = 31;
     public static final int PLACING_CITY = 32;
+
+    /**
+     * Player is placing the robber on a new hex.
+     */
     public static final int PLACING_ROBBER = 33;
 
     /**
@@ -190,10 +194,32 @@ public class SOCGame implements Serializable, Cloneable
      */
     public static final int PLACING_FREE_ROAD2 = 41;
 
-    public static final int WAITING_FOR_DISCARDS = 50; // Waiting for players to discard
-    public static final int WAITING_FOR_CHOICE = 51; // Waiting for player to choose a player
-    public static final int WAITING_FOR_DISCOVERY = 52; // Waiting for player to choose 2 resources
-    public static final int WAITING_FOR_MONOPOLY = 53; // Waiting for player to choose a resource
+    /**
+     * Waiting for player(s) to discard, after 7 is rolled.
+     * Next game state is {@link #WAITING_FOR_DISCARDS}
+     * (if other players also need to) or {@link #PLACING_ROBBER}.
+     */
+    public static final int WAITING_FOR_DISCARDS = 50;
+
+    /**
+     * Waiting for player to choose a player to rob,
+     * with the robber or pirate ship, after rolling 7 or
+     * playing a Knight/Soldier card.
+     * Next game state is {@link #PLAY1}.
+     */
+    public static final int WAITING_FOR_CHOICE = 51;
+
+    /**
+     * Waiting for player to choose 2 resources (Discovery card)
+     * Next game state is {@link #PLAY1}.
+     */
+    public static final int WAITING_FOR_DISCOVERY = 52;
+
+    /**
+     * Waiting for player to choose a resource (Monopoly card)
+     * Next game state is {@link #PLAY1}.
+     */
+    public static final int WAITING_FOR_MONOPOLY = 53;
 
     /**
      * The 6-player board's Special Building Phase.
@@ -1810,6 +1836,7 @@ public class SOCGame implements Serializable, Cloneable
      * Can this player place a ship on this edge?
      * The edge must return {@link SOCPlayer#isPotentialShip(int)}
      * and must not be adjacent to {@link SOCBoardLarge#getPirateHex()}.
+     * Does not check game state, resources, or pieces remaining.
      * @param pl  Player
      * @param shipEdge  Edge to place a ship
      * @return true if this player's ship could be placed there 
@@ -3446,9 +3473,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return true if the current player can choose a player to rob
+     * @return true if the current player can choose this player to rob
      *
      * @param pn  the number of the player to rob
+     * @see #getPossibleVictims()
      */
     public boolean canChoosePlayer(int pn)
     {
@@ -3535,6 +3563,7 @@ public class SOCGame implements Serializable, Cloneable
      * Given the robber's current position on the board,
      * get the list of victims with adjacent settlements/cities.
      * @return a list of possible players to rob, or an empty Vector
+     * @see #canChoosePlayer(int)
      */
     public Vector getPossibleVictims()
     {
