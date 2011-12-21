@@ -1062,6 +1062,23 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Is this edge adjacent to this hex?  (Is it one of the 6 sides of
+     * the hex?)
+     * @param edgeCoord  Coordinate of the edge; not checked for validity
+     * @param hexCoord   Hex coordinate; not checked for validity
+     * @return  true if adjacent
+     */
+    public boolean isEdgeAdjacentToHex(final int edgeCoord, final int hexCoord)
+    {
+        for (int dir = 0; dir < 6; ++dir)
+        {
+            if (edgeCoord == (hexCoord + A_EDGE2HEX[dir][0] + A_EDGE2HEX[dir][1]))
+                return true;
+        }
+        return false;
+    }
+
+    /**
      * The node coordinate adjacent to this hex in a given direction.
      * Since all hexes have 6 nodes, all node coordinates are valid
      * if the hex coordinate is valid.
