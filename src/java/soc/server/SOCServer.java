@@ -5042,9 +5042,9 @@ public class SOCServer extends Server
 
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.PLACING_SHIP) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
-                        if (player.isPotentialShip(coord))
+                        if (ga.canPlaceShip(player, coord))  // checks potentials and pirate ship location
                         {
-                            ga.putPiece(sh);  // Changes state and sometimes player (initial placement)
+                            ga.putPiece(sh);  // Changes state and sometimes player (during initial placement)
 
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a ship."));
@@ -7337,7 +7337,7 @@ public class SOCServer extends Server
             break;
 
         case SOCPlayingPiece.SHIP:
-            if (player.isPotentialShip(coord) && ! initialDeny)
+            if (ga.canPlaceShip(player, coord) && ! initialDeny)
             {
                 ga.putPiece(new SOCShip(player, coord, null));
                 didPut = true;

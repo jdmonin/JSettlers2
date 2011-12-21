@@ -656,7 +656,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int[] hexCornersX =
     {
-    	27, 54, 54, 27, 0, 0
+        27, 54, 54, 27, 0, 0
     };
 
     /** hex corners, clockwise from top-center.
@@ -666,7 +666,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int[] hexCornersY =
     {
-    	0, 16, 47, 63, 47, 16
+        0, 16, 47, 63, 47, 16
     };
 
     /** 
@@ -4009,7 +4009,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 // It must be attached to the last stlmt
                 if ((player == null)
                     || (! (player.isPotentialRoad(edgeNum)
-                           || player.isPotentialShip(edgeNum)))
+                           || game.canPlaceShip(player, edgeNum) ))
                     || (! (game.isDebugFreePlacement()
                            || board.isEdgeAdjacentToNode
                               (initstlmt,
@@ -4048,7 +4048,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             edgeNum = 0;
                     }
                     else if ( !(player.isPotentialRoad(edgeNum)
-                                || ((mode == PLACE_FREE_ROAD_OR_SHIP) && player.isPotentialShip(edgeNum))))
+                                || ((mode == PLACE_FREE_ROAD_OR_SHIP) && game.canPlaceShip(player, edgeNum))))
                     {
                         edgeNum = 0;
                     }
@@ -4133,7 +4133,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (edgeNum != 0)
                 {
-                    if ((player == null) || ! player.isPotentialShip(edgeNum))
+                    if ((player == null) || ! game.canPlaceShip(player, edgeNum))
                         edgeNum = 0;
                 }
 
@@ -4355,7 +4355,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (tempChangedMode)
                         hoverTip.hideHoverAndPieces();
                 }
-                else if (player.isPotentialShip(hilight))
+                else if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                 {
                     client.putPiece(game, new SOCShip(player, hilight, board));
 
@@ -4415,7 +4415,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             case PLACE_SHIP:
 
-                if (player.isPotentialShip(hilight))
+                if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                 {
                     client.putPiece(game, new SOCShip(player, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SHIP);
@@ -5598,7 +5598,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         {
                             hoverRoadID = id;
                         }
-                        else if (player.isPotentialShip(id)
+                        else if (game.canPlaceShip(player, id)  // checks isPotentialShip, pirate ship
                             && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
                             && (debugPP || player.getResources().contains(SOCGame.SHIP_SET))) 
                         {
@@ -6058,7 +6058,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     } else {
                         buildShipItem.setLabel("Build Ship");
                         buildShipItem.setEnabled
-                        ( player.isPotentialShip(hSh) &&
+                        ( game.canPlaceShip(player, hSh) &&
                           (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
                                    : game.couldBuildShip(cpn)) );
                     }
@@ -6189,7 +6189,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
           case SOCPlayingPiece.SHIP:
               buildLoc = hoverShipID;
-              canBuild = player.isPotentialShip(buildLoc);
+              canBuild = game.canPlaceShip(player, buildLoc);  // checks isPotentialShip, pirate ship
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildShip(cpn);
               if (canBuild && sendNow)
@@ -6468,7 +6468,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             case SOCPlayingPiece.SHIP:
-                if (player.isPotentialShip(buildLoc))
+                if (game.canPlaceShip(player, buildLoc))  // checks isPotentialShip, pirate ship
                     client.putPiece(game, new SOCShip(player, buildLoc, board));
                 break;
             }

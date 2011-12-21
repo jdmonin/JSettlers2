@@ -2783,6 +2783,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   because the player has no potential ship locations.
      * @param edge  the coordinates of an edge on the board
      * @see #isPotentialShip(int, int)
+     * @see SOCGame#canPlaceShip(SOCPlayer, int)
      * @since 1.2.00
      */
     public boolean isPotentialShip(int edge)
