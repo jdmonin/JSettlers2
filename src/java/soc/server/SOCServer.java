@@ -5554,6 +5554,7 @@ public class SOCServer extends Server
                         {
                             /**
                              * player rolled 7
+                             * If anyone needs to discard, prompt them.
                              */
                             for (int i = 0; i < ga.maxPlayers; i++)
                             {
@@ -8066,6 +8067,10 @@ public class SOCServer extends Server
 
             break;
 
+        case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
+            messageToGame(gname, player.getName() + " must choose to move the robber or the pirate.");
+            break;
+            
         case SOCGame.PLACING_ROBBER:
             messageToGame(gname, player.getName() + " will move the robber.");
 

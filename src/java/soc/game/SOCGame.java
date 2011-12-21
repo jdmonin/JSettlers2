@@ -197,7 +197,10 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Waiting for player(s) to discard, after 7 is rolled.
      * Next game state is {@link #WAITING_FOR_DISCARDS}
-     * (if other players also need to) or {@link #PLACING_ROBBER}.
+     * (if other players still need to discard),
+     * {@link #WAITING_FOR_ROBBER_OR_PIRATE},
+     * or {@link #PLACING_ROBBER}.
+     * @see #discard(int, SOCResourceSet)
      */
     public static final int WAITING_FOR_DISCARDS = 50;
 
@@ -220,6 +223,14 @@ public class SOCGame implements Serializable, Cloneable
      * Next game state is {@link #PLAY1}.
      */
     public static final int WAITING_FOR_MONOPOLY = 53;
+
+    /**
+     * Waiting for player to choose the robber or the pirate ship.
+     * Next game state is {@link #PLACING_ROBBER}.
+     * @see #canChooseMovePirate()
+     * @since 1.2.00
+     */
+    public static final int WAITING_FOR_ROBBER_OR_PIRATE = 54;
 
     /**
      * The 6-player board's Special Building Phase.
@@ -3109,6 +3120,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * roll the dice.  Distribute resources, or (for 7) set gamestate to
      * move robber or to wait for players to discard.
+     * gameState becomes either {@link #WAITING_FOR_DISCARDS},
+     * {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or {@link #PLACING_ROBBER}.
      * Checks game option N7: Roll no 7s during first # rounds
      */
     public IntPair rollDice()
@@ -3158,7 +3171,10 @@ public class SOCGame implements Serializable, Cloneable
             {
                 placingRobberForKnightCard = false;
                 oldGameState = PLAY1;
-                gameState = PLACING_ROBBER;
+                if (canChooseMovePirate())
+                    gameState = WAITING_FOR_ROBBER_OR_PIRATE;
+                else
+                    gameState = PLACING_ROBBER;
             }
         }
         else
@@ -3326,6 +3342,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * A player is discarding resources. Discard, check if other players
      * must still discard, and set gameState to {@link #WAITING_FOR_DISCARDS}
+     * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}
      * or {@link #PLACING_ROBBER} accordingly.
      *<P>
      * Special case:
@@ -3344,8 +3361,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * check if we're still waiting for players to discard
          */
-        gameState = PLACING_ROBBER;  // assumes oldGameState set already
-        placingRobberForKnightCard = false;  // known because robber doesn't trigger discard
+        gameState = -1;  // temp value; oldGameState is set below
 
         for (int i = 0; i < maxPlayers; i++)
         {
@@ -3361,14 +3377,32 @@ public class SOCGame implements Serializable, Cloneable
          * if no one needs to discard, and not forcing end of turn,
          * then wait for the robber to move
          */
-        if (gameState != WAITING_FOR_DISCARDS)
+        if (gameState == -1)
         {
             oldGameState = PLAY1;
+            placingRobberForKnightCard = false;  // known because robber doesn't trigger discard
             if (! forcingEndTurn)
-                gameState = PLACING_ROBBER;
-            else
+            {
+                if (canChooseMovePirate())
+                    gameState = WAITING_FOR_ROBBER_OR_PIRATE;
+                else
+                    gameState = PLACING_ROBBER;
+            } else {
                 gameState = PLAY1;
+            }
         }
+    }
+
+    /**
+     * Based on game options, can the pirate ship be moved instead of the robber?
+     * True only if {@link #hasSeaBoard}.
+     * @return  true if the pirate ship can be moved
+     * @see #WAITING_FOR_ROBBER_OR_PIRATE
+     * @since 1.2.00
+     */
+    public boolean canChooseMovePirate()
+    {
+        return ! hasSeaBoard;
     }
 
     /**
@@ -3426,6 +3460,7 @@ public class SOCGame implements Serializable, Cloneable
      * If multiple possible victims: Player must choose a victim; State becomes WAITING_FOR_CHOICE.
      *<P>
      * Assumes {@link #canMoveRobber(int, int)} has been called already to validate the move.
+     * Assumes gameState {@link #PLACING_ROBBER}.
      *
      * @param pn  the number of the player that is moving the robber
      * @param rh  the robber's new hex coordinate; must be &gt; 0, not validated beyond that
@@ -4169,6 +4204,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can this player currently play a knight card?
+     * gameState must be {@link #PLAY} or {@link #PLAY1}.
+     * Must have a {@link SOCDevCardConstants#KNIGHT} and must
+     * not have already played a dev card this turn.
      * @return true if the player can play a knight card
      *
      * @param pn  the number of the player
@@ -4285,7 +4324,10 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * the current player plays a Knight card
+     * The current player plays a Knight card.
+     * gameState becomes either {@link #PLACING_ROBBER}
+     * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
+     * Assumes {@link #canPlayKnight(int)} already called, and the play is allowed.
      */
     public void playKnight()
     {
@@ -4298,7 +4340,10 @@ public class SOCGame implements Serializable, Cloneable
         checkForWinner();
         placingRobberForKnightCard = true;
         oldGameState = gameState;
-        gameState = PLACING_ROBBER;
+        if (canChooseMovePirate())
+            gameState = WAITING_FOR_ROBBER_OR_PIRATE;
+        else
+            gameState = PLACING_ROBBER;
     }
 
     /**
