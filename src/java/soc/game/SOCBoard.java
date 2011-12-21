@@ -1586,6 +1586,21 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Is this hex coordinate a land hex (not water)? 
+     * @param hexCoord  Hex coordinate, between 0 and {@link #MAXHEX}
+     * @return  True if land, false if water
+     * @since 1.2.00
+     */
+    public boolean isHexOnLand(final int hexCoord)
+    {
+        int hnum = hexIDtoNum[hexCoord];
+        if (hnum < 0)
+            return false;
+        else
+            return (hexLayout[hnum] <= MAX_LAND_HEX);
+    }
+
+    /**
      * The dice-number layout of dice rolls at each hex number.
      * @return the number layout; each element is valued 2-12.
      *     The robber hex is 0.  Water hexes are -1. 

@@ -169,37 +169,7 @@ public class SOCBoardLarge extends SOCBoard
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
        6 : water   {@link #WATER_HEX}
-       7 : misc port ("3:1") facing land in direction 1 ({@link #FACING_NE NorthEast})
-                             (this port type is {@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
-       8 : misc port facing 2 ({@link #FACING_E})
-       9 : misc port facing 3 ({@link #FACING_SE})
-       10 : misc port facing 4 ({@link #FACING_SW})
-       11 : misc port facing 5 ({@link #FACING_W})
-       12 : misc port facing 6 ({@link #FACING_NW NorthWest})
-       16+: non-misc ("2:1") encoded port
        </pre>
-        Non-misc ports are encoded here in binary like this:<pre>
-      (port facing, 1-6)        (kind of port)
-              \--> [0 0 0][0 0 0 0] <--/       </pre>
-        Kind of port:<pre>
-        1 : clay  (port type {@link #CLAY_PORT} in {@link #getPortTypeFromNodeCoord(int)})
-        2 : ore    {@link #ORE_PORT}
-        3 : sheep  {@link #SHEEP_PORT}
-        4 : wheat  {@link #WHEAT_PORT}
-        5 : wood   {@link #WOOD_PORT}
-        </pre>
-        <em>Port facing</em> is the edge of the port's hex
-        touching land, which contains 2 nodes where player can build a
-        port settlement/city; facing is a number 1-6
-        ({@link #FACING_NE}-{@link #FACING_NW}). <pre>
-      6 &lt;--.    .--> 1
-            \/\/
-            /  \
-       5&lt;--|    |--> 2
-           |    |
-            \  /
-            /\/\
-      4 &lt;--.    .--> 3  </pre>
      *<P>
      */
     private int[][] hexLayoutLg;
@@ -211,7 +181,7 @@ public class SOCBoardLarge extends SOCBoard
      * layout changes, this field again becomes <tt>null</tt> until the
      * next call to {@link #getLandHexCoords()}.
      */
-    private int[] cachedGetlandHexCoords;
+    private int[] cachedGetLandHexCoords;
 
     /**
      * The set of land hex coordinates within {@link #hexLayoutLg}.
@@ -291,7 +261,7 @@ public class SOCBoardLarge extends SOCBoard
         // Only odd-numbered rows are valid,
         // but we fill all rows here just in case.
         for (int r = 0; r <= boardHeight; ++r)
-        {            
+        {
             Arrays.fill(hexLayoutLg[r], WATER_HEX);
             Arrays.fill(numberLayoutLg[r], 0);
         }
@@ -430,7 +400,7 @@ public class SOCBoardLarge extends SOCBoard
      * before it starts placement.  You can call it multiple times to set up multiple
      * areas of land hexes.
      *<P>
-     * This method clears {@link #cachedGetlandHexCoords} to <tt>null</tt>.
+     * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
      * @param landHexType  Resource type to place into {@link #hexLayout} for each land hex; will be shuffled.
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
@@ -449,7 +419,7 @@ public class SOCBoardLarge extends SOCBoard
         boolean clumpsNotOK = checkClumps;
 
         if (numPath.length > 0)
-            cachedGetlandHexCoords = null;  // invalidate the previous cached set
+            cachedGetLandHexCoords = null;  // invalidate the previous cached set
 
         do   // will re-do placement until clumpsNotOK is false
         {
@@ -833,16 +803,26 @@ public class SOCBoardLarge extends SOCBoard
         final int LHL = landHexLayout.size();
         if (LHL == 0)
             return null;
-        if ((cachedGetlandHexCoords != null) && (LHL == cachedGetlandHexCoords.length))
-            return cachedGetlandHexCoords;
+        if ((cachedGetLandHexCoords != null) && (LHL == cachedGetLandHexCoords.length))
+            return cachedGetLandHexCoords;
 
         int[] hexCoords = new int[LHL];
         Iterator hexes = landHexLayout.iterator();
         for (int i = 0; hexes.hasNext(); ++i)
             hexCoords[i] = ((Integer) hexes.next()).intValue();
 
-        cachedGetlandHexCoords = hexCoords;
+        cachedGetLandHexCoords = hexCoords;
         return hexCoords;
+    }
+
+    /**
+     * Is this hex coordinate a land hex (not water)? 
+     * @param hexCoord  Hex coordinate, within the board's bounds
+     * @return  True if land, false if water
+     */
+    public boolean isHexOnLand(final int hexCoord)
+    {
+        return (getHexTypeFromCoord(hexCoord) <= MAX_LAND_HEX);
     }
 
     /**
@@ -888,7 +868,7 @@ public class SOCBoardLarge extends SOCBoard
         landHexLayout.clear();
         nodesOnLand.clear();
         legalRoadEdges.clear();
-        cachedGetlandHexCoords = null;
+        cachedGetLandHexCoords = null;
         for (int r = 0; r <= boardHeight; ++r)
         {            
             Arrays.fill(hexLayoutLg[r], WATER_HEX);
@@ -909,7 +889,7 @@ public class SOCBoardLarge extends SOCBoard
             hexLayoutLg[r][c] = lh[i];  ++i;
             numberLayoutLg[r][c] = lh[i];  ++i;
         }
-        cachedGetlandHexCoords = hcoords;
+        cachedGetLandHexCoords = hcoords;
     }
 
     /**
@@ -1587,8 +1567,8 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Given a node, get the valid adjacent edge in a given direction, if any.
      *<P>
-     * Along the edge of the board layout, valid land nodes/edges
-     * have some adjacent nodes/edges which may be
+     * Along the edge of the board layout, valid land nodes
+     * have some adjacent edges which may be
      * "off the board" and thus invalid; check the return value.
      *
      * @param nodeCoord  Node coordinate to go from; not checked for validity.
