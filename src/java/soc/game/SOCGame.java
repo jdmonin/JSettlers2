@@ -1807,6 +1807,32 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can this player place a ship on this edge?
+     * The edge must return {@link SOCPlayer#isPotentialShip(int)}
+     * and must not be adjacent to {@link SOCBoardLarge#getPirateHex()}.
+     * @param pl  Player
+     * @param shipEdge  Edge to place a ship
+     * @return true if this player's ship could be placed there 
+     * @since 1.2.00
+     * @see #canMoveShip(int, int, int)
+     */
+    public boolean canPlaceShip(SOCPlayer pl, final int shipEdge)
+    {
+        if (! pl.isPotentialShip(shipEdge))
+            return false;
+
+        // check shipEdge vs. pirate hex
+        {
+            SOCBoardLarge bL = (SOCBoardLarge) board;
+            final int ph = bL.getPirateHex();
+            if ((ph != 0) && bL.isEdgeAdjacentToHex(shipEdge, ph))
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Put this piece on the board and update all related game state.
      * May change current player and gamestate.
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}.
@@ -1825,6 +1851,8 @@ public class SOCGame implements Serializable, Cloneable
      * methods such as {@link SOCPlayer#isPotentialSettlement(int)}
      * to verify <tt>pp</tt> before calling this method, and also check
      * {@link #getGameState()} to ensure that piece type can be placed now.
+     * For ships, call {@link #canPlaceShip(SOCPlayer, int)} to check
+     * the potentials and pirate ship location.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
@@ -2206,6 +2234,7 @@ public class SOCGame implements Serializable, Cloneable
      * side of the node.
      *<P>
      * You cannot place a ship, and then move the same ship, during the same turn.
+     * You cannot move a ship from an edge of the pirate ship's hex.
      *<P>
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
@@ -2222,6 +2251,14 @@ public class SOCGame implements Serializable, Cloneable
             return null;
         if (placedShipsThisTurn.contains(new Integer(fromEdge)))
             return null;
+
+        // check fromEdge vs. pirate hex
+        {
+            SOCBoardLarge bL = (SOCBoardLarge) board;
+            final int ph = bL.getPirateHex();
+            if ((ph != 0) && bL.isEdgeAdjacentToHex(fromEdge, ph))
+                return null;
+        }
 
         final SOCPlayer pl = players[pn];
         final SOCRoad pieceAtFrom = pl.getRoadOrShip(fromEdge);
@@ -2249,6 +2286,8 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCPlayer#isPotentialShip(int, int) pn.isPotentialShip(toEdge, fromEdge)}
      * to check that.
      *<P>
+     * You cannot move a ship to or from an edge of the pirate ship's hex.
+     *<P>
      * Trade routes can branch, so it may be that more than one ship
      * could be moved.  The game limits players to one move per turn.
      *
@@ -2268,6 +2307,15 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer pl = players[pn];
         if (! pl.isPotentialShip(toEdge, fromEdge))
             return null;
+
+        // check toEdge vs. pirate hex
+        {
+            SOCBoardLarge bL = (SOCBoardLarge) board;
+            final int ph = bL.getPirateHex();
+            if ((ph != 0) && bL.isEdgeAdjacentToHex(toEdge, ph))
+                return null;
+        }
+
         return canMoveShip(pn, fromEdge);  // <-- checks most other conditions
     }
 
