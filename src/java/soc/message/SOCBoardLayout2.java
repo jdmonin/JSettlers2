@@ -35,7 +35,7 @@ import java.util.StringTokenizer;
  *<UL>
  *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}
  *<LI> NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
- *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}, if &gt; 0 
+ *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}, if &gt; 0
  *<LI> PL: The ports, from {@link SOCBoard#getPortsLayout()}
  *<LI> LH: The land hexes (v3 board encoding), from {@link soc.game.SOCBoardLarge#getLandHexLayout()}
  *<LI> PH: The pirate hex, from {@link soc.game.SOCBoardLarge#getPirateHex()}, if &gt; 0
@@ -44,7 +44,7 @@ import java.util.StringTokenizer;
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
- *<LI> v3: LH, RH, maybe PL; LH is null before makeNewBoard is called
+ *<LI> v3: LH, maybe PL, maybe RH, maybe PH; LH is null before makeNewBoard is called
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
  * <tt>SOCBoardLayout</tt> required a mapping/unmapping step. 
@@ -260,23 +260,6 @@ public class SOCBoardLayout2 extends SOCMessage
         }
 
         return cmd.toString();
-    }
-
-    /**
-     * Formatted string to send this BOARDLAYOUT2 over the network.
-     * See {@link #toCmd()} for details.
-     *
-     * @return the command string
-     */
-    public static String toCmd(String ga, int bev, int[] hl, int[] nl, int[] pl, int rh)
-    {
-        Hashtable parts = new Hashtable();
-        parts.put("HL", hl);
-        parts.put("NL", nl);
-        if (pl != null)
-            parts.put("PL", pl);
-        parts.put("RH", new Integer(rh));
-        return toCmd(ga, bev, parts);
     }
 
     /**
