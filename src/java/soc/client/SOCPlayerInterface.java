@@ -597,9 +597,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          */
         boardPanel = new SOCBoardPanel(this);
         if (! game.hasSeaBoard)
-        	boardPanel.setBackground(new Color(112, 45, 10));  // brown
+            boardPanel.setBackground(new Color(112, 45, 10));  // brown
         else
-        	boardPanel.setBackground(new Color(63, 86, 139));  // sea blue
+            boardPanel.setBackground(new Color(63, 86, 139));  // sea blue
         boardPanel.setForeground(Color.black);
         Dimension bpMinSz = boardPanel.getMinimumSize();
         boardPanel.setSize(bpMinSz.width, bpMinSz.height);
@@ -1716,6 +1716,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 {
                     showMonopolyDialog();
                 }
+                else if (gs == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE)
+                {
+                    new ChooseMoveRobberOrPirateDialog().showInNewThread();
+                }
                 else if (gs == SOCGame.PLAY1)
                 {
                     updateAtPlay1();
@@ -2501,6 +2505,97 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
     }  // class ResetBoardVoteDialog
+
+    /**
+     * Modal dialog to ask whether to move the robber or the pirate ship.
+     * Start a new thread to show, so message treating can continue while the dialog is showing.
+     * When the choice is made, calls {@link SOCPlayerClient#choosePlayer(SOCGame, int)}
+     * with -1 or -2.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.2.00
+     */
+    private class ChooseMoveRobberOrPirateDialog extends AskDialog implements Runnable
+    {
+        private static final long serialVersionUID = 1200L;
+
+        /** Runs in own thread, to not tie up client's message-treater thread. */
+        private Thread rdt;
+
+        /**
+         * Creates a new ChooseMoveRobberOrPirateDialog.
+         * To display the dialog, call {@link #showInNewThread()}.
+         */
+        protected ChooseMoveRobberOrPirateDialog()
+        {
+            super(getClient(), SOCPlayerInterface.this,
+                "Move robber or pirate?",
+                "Do you want to move the robber or the pirate ship?",
+                "Move Robber",
+                "Move Pirate",
+                null, 1);
+            rdt = null;
+        }
+
+        /**
+         * React to the Move Robber button.
+         * Call {@link SOCPlayerClient#choosePlayer(SOCGame, int) pcli.choosePlayer(-1)}.
+         */
+        public void button1Chosen()
+        {
+            pcli.choosePlayer(game, -1);
+        }
+
+        /**
+         * React to the Move Pirate button.
+         * Call {@link SOCPlayerClient#choosePlayer(SOCGame, int) pcli.choosePlayer(-2)}.
+         */
+        public void button2Chosen()
+        {
+            pcli.choosePlayer(game, -2);
+        }
+
+        /**
+         * React to the dialog window closed by user. (Default is move the robber)
+         */
+        public void windowCloseChosen() { button1Chosen(); }
+
+        /**
+         * Make a new thread and show() in that thread.
+         * Keep track of the thread, in case we need to dispose of it.
+         */
+        public void showInNewThread()
+        {
+            rdt = new Thread(this);
+            rdt.setDaemon(true);
+            rdt.setName("ChooseMoveRobberOrPirateDialog");
+            rdt.start();  // run method will show the dialog
+        }
+
+        public void dispose()
+        {
+            if (rdt != null)
+            {
+                rdt.stop();
+                rdt = null;
+            }
+            super.dispose();
+        }
+
+        /**
+         * In new thread, show ourselves. Do not call
+         * directly; call {@link #showInNewThread()}.
+         */
+        public void run()
+        {
+            try
+            {
+                show();
+            }
+            catch (ThreadDeath e) {}
+        }
+
+    }  // nested class ChooseMoveRobberOrPirateDialog
 
     /**
      * React to window closing or losing focus (deactivation).
