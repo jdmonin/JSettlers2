@@ -1189,7 +1189,18 @@ public class SOCRobotBrain extends Thread
                         // Sets either expectDICERESULT, or expectPLACING_ROBBER and waitingForGameState.
                     }
 
-                    if ((game.getGameState() == SOCGame.PLACING_ROBBER) && (!waitingForGameState))
+                    if (ourTurn && (game.getGameState() == SOCGame.WAITING_FOR_ROBBER_OR_PIRATE) && ! waitingForGameState)
+                    {
+                        // TODO handle moving the pirate too
+                        // For now, always decide to move the robber.
+                        expectPLACING_ROBBER = true;
+                        waitingForGameState = true;
+                        counter = 0;
+                        client.choosePlayer(game, -1);
+                        pause(200);
+                    }
+
+                    else if ((game.getGameState() == SOCGame.PLACING_ROBBER) && (!waitingForGameState))
                     {
                         expectPLACING_ROBBER = false;
 

@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -264,23 +264,27 @@ public class SOCRobotNegotiator
         {
         case SOCPossiblePiece.CARD:
             targetResources = SOCGame.CARD_SET;
-
             break;
 
         case SOCPossiblePiece.ROAD:
             targetResources = SOCGame.ROAD_SET;
-
             break;
 
         case SOCPossiblePiece.SETTLEMENT:
             targetResources = SOCGame.SETTLEMENT_SET;
-
             break;
 
         case SOCPossiblePiece.CITY:
             targetResources = SOCGame.CITY_SET;
-
             break;
+
+        case SOCPossiblePiece.SHIP:
+            targetResources = SOCGame.SHIP_SET;
+            break;
+
+        default:
+            System.err.println("*** " + brain.getName() + ": makeOffer: Bad target piece type " + targetPiece.getType());
+            return null;
         }
 
         SOCResourceSet ourResources = ourPlayerData.getResources();
@@ -870,7 +874,7 @@ public class SOCRobotNegotiator
                 offer = new SOCTradeOffer(game.getName(), ourPlayerNumber, offeredTo, giveResourceSet, getResourceSet);
 
                 ///
-                /// only make the offer if we think somone will take it
+                /// only make the offer if we think someone will take it
                 ///
                 boolean acceptable = false;
 
@@ -944,6 +948,7 @@ public class SOCRobotNegotiator
      * @param receiverNum  the player number of the receiver
      *
      * @return if we want to accept, reject, or make a counter offer
+     *     ( {@link #ACCEPT_OFFER}, {@link #REJECT_OFFER}, or {@link #COUNTER_OFFER} )
      */
     public int considerOffer2(SOCTradeOffer offer, int receiverNum)
     {
@@ -1114,23 +1119,27 @@ public class SOCRobotNegotiator
                 {
                 case SOCPossiblePiece.CARD:
                     targetResources = SOCGame.CARD_SET;
-
                     break;
 
                 case SOCPossiblePiece.ROAD:
                     targetResources = SOCGame.ROAD_SET;
-
                     break;
 
                 case SOCPossiblePiece.SETTLEMENT:
                     targetResources = SOCGame.SETTLEMENT_SET;
-
                     break;
 
                 case SOCPossiblePiece.CITY:
                     targetResources = SOCGame.CITY_SET;
-
                     break;
+
+                case SOCPossiblePiece.SHIP:
+                    targetResources = SOCGame.SHIP_SET;
+                    break;
+
+                default:
+                    System.err.println("*** " + brain.getName() + ": counterOffer2: Bad target piece type " + receiverTargetPiece.getType());
+                    return REJECT_OFFER;
                 }
 
                 SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(receiverPlayerData.getNumbers());
@@ -1595,23 +1604,27 @@ public class SOCRobotNegotiator
         {
         case SOCPossiblePiece.CARD:
             targetResources = SOCGame.CARD_SET;
-
             break;
 
         case SOCPossiblePiece.ROAD:
             targetResources = SOCGame.ROAD_SET;
-
             break;
 
         case SOCPossiblePiece.SETTLEMENT:
             targetResources = SOCGame.SETTLEMENT_SET;
-
             break;
 
         case SOCPossiblePiece.CITY:
             targetResources = SOCGame.CITY_SET;
-
             break;
+
+        case SOCPossiblePiece.SHIP:
+            targetResources = SOCGame.SHIP_SET;
+            break;
+
+        default:
+            System.err.println("*** " + brain.getName() + ": makeCounterOffer: Bad target piece type " + targetPiece.getType());
+            return null;
         }
 
         SOCResourceSet ourResources = ourPlayerData.getResources();

@@ -1043,22 +1043,22 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     {
                     case SOCPossiblePiece.CARD:
                         key = "DEVCARD";
-
                         break;
 
                     case SOCPossiblePiece.ROAD:
                         key = "ROAD" + lastMove.getCoordinates();
-
                         break;
 
                     case SOCPossiblePiece.SETTLEMENT:
                         key = "SETTLEMENT" + lastMove.getCoordinates();
-
                         break;
 
                     case SOCPossiblePiece.CITY:
                         key = "CITY" + lastMove.getCoordinates();
+                        break;
 
+                    case SOCPossiblePiece.SHIP:
+                        key = "SHIP" + lastMove.getCoordinates();
                         break;
                     }
 
@@ -1125,22 +1125,22 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     {
                     case SOCPossiblePiece.CARD:
                         key = "DEVCARD";
-
                         break;
 
                     case SOCPossiblePiece.ROAD:
                         key = "ROAD" + lastTarget.getCoordinates();
-
                         break;
 
                     case SOCPossiblePiece.SETTLEMENT:
                         key = "SETTLEMENT" + lastTarget.getCoordinates();
-
                         break;
 
                     case SOCPossiblePiece.CITY:
                         key = "CITY" + lastTarget.getCoordinates();
+                        break;
 
+                    case SOCPossiblePiece.SHIP:
+                        key = "SHIP" + lastTarget.getCoordinates();
                         break;
                     }
 
