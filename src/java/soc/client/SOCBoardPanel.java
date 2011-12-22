@@ -188,7 +188,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * In 6-player mode, subtract this instead of {@link #HEXY_OFF_6PL}
-     * in {@link #findEdge(int, int)}, {@link #findHex(int, int)}, {@link #findNode(int, int)}.
+     * in {@link #findEdge(int, int, boolean)}, {@link #findHex(int, int)}, {@link #findNode(int, int)}.
      * @since 1.1.08
      */
     private static final int HEXY_OFF_6PL_FIND = 7;
@@ -763,6 +763,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int hilight;
 
     /**
+     * If hilighting an edge, is the {@link #hilight} a ship and not a road?
+     * @since 1.2.00
+     */
+    private boolean hilightIsShip;
+
+    /**
      * During {@link #MOVE_SHIP} mode, the edge coordinate
      * from which we're moving the ship.  0 otherwise.
      * @since 1.2.00
@@ -809,7 +815,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * Not used when {@link #isLargeBoard}.
      *
-     * @see #findEdge(int, int)
+     * @see #findEdge(int, int, boolean)
      * @see #initEdgeMapAux(int, int, int, int, int)
      */
     private int[] edgeMap;
@@ -1001,6 +1007,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         hilight = 0;
         moveShip_fromEdge = 0;
+        hilightIsShip = false;
 
         if (isLargeBoard)
         {
@@ -1207,7 +1214,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Initialize {@link #edgeMap}'s valid edges across 1 row of hexes,
-     * for use by {@link #findEdge(int, int)}.
+     * for use by {@link #findEdge(int, int, boolean)}.
      *<P>
      * For details of {@link #edgeMap}'s layout and usage, see its javadoc.
      * For more details of the initialization algorithm used in this
@@ -3030,8 +3037,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hilight != 0)
             {
                 drawRoadOrShip
-                    (g, hilight, playerNumber, true,
-                     player.isLegalRoad(hilight) && (mode != MOVE_SHIP));
+                    (g, hilight, playerNumber, true, ! hilightIsShip);
             }
             break;
 
@@ -3834,6 +3840,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             mode = NONE;
             hilight = 0;
+            hilightIsShip = false;
             moveShip_fromEdge = 0;
         }
         updateHoverTipToMode();
@@ -3953,6 +3960,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if ((mode != NONE) && (mode != TURN_STARTING))
         {
             hilight = 0;
+            hilightIsShip = false;
             wantsRepaint = true;
         }
         if (wantsRepaint)
@@ -4003,7 +4011,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 ptrOldX = x;
                 ptrOldY = y;
-                edgeNum = findEdge(xb, yb);
+                boolean isShip = false;
+                edgeNum = findEdge(xb, yb, true);
+                if (edgeNum < 0)
+                {
+                    edgeNum = -edgeNum;
+                    if ((player != null) && game.canPlaceShip(player, edgeNum))
+                        isShip = true;
+                } else {
+                    // check potential roads, not ships, to keep it false if coastal edge
+                    isShip = ((player != null) && ! player.isPotentialRoad(edgeNum));
+                }
 
                 // Figure out if this is a legal road/ship;
                 // It must be attached to the last stlmt
@@ -4018,9 +4036,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     edgeNum = 0;
                 }
 
-                if (hilight != edgeNum)
+                if ((hilight != edgeNum) || (hilightIsShip != isShip))
                 {
                     hilight = edgeNum;
+                    hilightIsShip = isShip;
                     repaint();
                 }
             }
@@ -4038,25 +4057,54 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 ptrOldX = x;
                 ptrOldY = y;
-                edgeNum = findEdge(xb, yb);
+                edgeNum = findEdge(xb, yb, true);
+                final boolean canPlaceShip =
+                    (player != null) ? game.canPlaceShip(player, edgeNum) : false;
+                boolean isShip;
+                if (edgeNum < 0)
+                {
+                    edgeNum = -edgeNum;
+                    isShip = canPlaceShip;
+                } else {
+                    isShip = false;
+                }
 
                 if ((edgeNum != 0) && (player != null))
                 {
                     if (mode == MOVE_SHIP)
                     {
+                        isShip = true;
                         if (! player.isPotentialShip(edgeNum, moveShip_fromEdge))
                             edgeNum = 0;
+
+                        // Check edgeNum vs pirate hex:
+                        final SOCBoardLarge bL = (SOCBoardLarge) board;
+                        final int ph = bL.getPirateHex();
+                        if ((ph != 0) && bL.isEdgeAdjacentToHex(edgeNum, ph))
+                            edgeNum = 0;
                     }
-                    else if ( !(player.isPotentialRoad(edgeNum)
-                                || ((mode == PLACE_FREE_ROAD_OR_SHIP) && game.canPlaceShip(player, edgeNum))))
-                    {
-                        edgeNum = 0;
+                    else {
+                        if ( ! (player.isPotentialRoad(edgeNum)
+                                || ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip)))
+                        {
+                            edgeNum = 0;
+                        } else {
+                            // edgeNum is OK.
+
+                            if (! isShip)
+                            {
+                                // check potential roads, not ships, to keep it false if coastal edge
+                                isShip = (player != null) && canPlaceShip
+                                    && ! player.isPotentialRoad(edgeNum);
+                            } 
+                        }
                     }
                 }
 
-                if (hilight != edgeNum)
+                if ((hilight != edgeNum) || (hilightIsShip != isShip))
                 {
                     hilight = edgeNum;
+                    hilightIsShip = isShip;
                     repaint();
                 }
             }
@@ -4083,6 +4131,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hilight != nodeNum)
                 {
                     hilight = nodeNum;
+                    hilightIsShip = false;
                     if (mode == PLACE_INIT_SETTLEMENT)
                         hoverTip.handleHover(x,y);
                     repaint();
@@ -4114,6 +4163,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hilight != nodeNum)
                 {
                     hilight = nodeNum;
+                    hilightIsShip = false;
                     repaint();
                 }
             }
@@ -4129,7 +4179,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 ptrOldX = x;
                 ptrOldY = y;
-                edgeNum = findEdge(xb, yb);
+                edgeNum = findEdge(xb, yb, false);
 
                 if (edgeNum != 0)
                 {
@@ -4140,6 +4190,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hilight != edgeNum)
                 {
                     hilight = edgeNum;
+                    hilightIsShip = true;
                     repaint();
                 }
             }
@@ -4165,6 +4216,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hilight != hexNum)
                 {
                     hilight = hexNum;
+                    hilightIsShip = false;
                     hoverTip.handleHover(x,y);
                     repaint();
                 }
@@ -4193,6 +4245,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hilight != nodeNum)
                 {
                     hilight = nodeNum;
+                    hilightIsShip = false;
                     repaint();
                 }
             }
@@ -4209,7 +4262,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 ptrOldX = x;
                 ptrOldY = y;
-                edgeNum = findEdge(xb, yb);
+                edgeNum = findEdge(xb, yb, false);
 
                 if (!otherPlayer.isPotentialRoad(edgeNum))
                 {
@@ -4219,6 +4272,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hilight != edgeNum)
                 {
                     hilight = edgeNum;
+                    hilightIsShip = false;
                     repaint();
                 }
             }
@@ -4245,6 +4299,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hilight != nodeNum)
                 {
                     hilight = nodeNum;
+                    hilightIsShip = false;
                     repaint();
                 }
             }
@@ -4308,21 +4363,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hoverTip.hoverSettlementID != 0)
             {
                 hilight = hoverTip.hoverSettlementID;
+                hilightIsShip = false;
                 mode = PLACE_SETTLEMENT;
                 tempChangedMode = true;
             } else if (hoverTip.hoverCityID != 0)
             {
                 hilight = hoverTip.hoverCityID;
+                hilightIsShip = false;
                 mode = PLACE_CITY;
                 tempChangedMode = true;
             } else if (hoverTip.hoverRoadID != 0)
             {
                 hilight = hoverTip.hoverRoadID;
+                hilightIsShip = false;
                 mode = PLACE_ROAD;
                 tempChangedMode = true;
             } else if (hoverTip.hoverShipID != 0)
             {
                 hilight = hoverTip.hoverShipID;
+                hilightIsShip = true;
                 mode = PLACE_SHIP;
                 tempChangedMode = true;
             }
@@ -4346,7 +4405,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (hilight == -1)
                     hilight = 0;  // Road on edge 0x00
-                if (player.isPotentialRoad(hilight))
+                if (player.isPotentialRoad(hilight) && ! hilightIsShip)
                 {
                     client.putPiece(game, new SOCRoad(player, hilight, board));
 
@@ -4731,10 +4790,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param x  x coordinate, in unscaled board, not actual pixels;
      *           use {@link #scaleFromActualX(int)} to convert
      * @param y  y coordinate, in unscaled board, not actual pixels
+     * @param checkCoastal  If true, check for coastal edges for ship placement:
+     *           Return positive edge coordinate for land, negative edge for sea.
+     *           Ignored unless {@link #isLargeBoard}.
+     *           Returns positive edge for non-coastal sea edges.
      * @return the coordinates of the edge, or 0 if none; -1 for the 6-player
      *     board's valid edge 0x00
      */
-    private final int findEdge(int x, int y)
+    private final int findEdge(int x, int y, final boolean checkCoastal)
     {
         // find which grid section the pointer is in 
         int secX, secY;
@@ -4746,13 +4809,76 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 x += 12;  // middle part of hex: adjust sector x-boundary
             secY = ((y - 22) / halfdeltaY);
             secX = ((x) / halfdeltaX);
+
             if ((secX < 0) || (secY < 0)
                 || (secX > board.getBoardWidth())
                 || (secY > board.getBoardHeight()))
                 return 0;
+                // TODO consider local fields for width,height
+
+            int edge = (secY << 8) | secX;
+            if (! (checkCoastal
+                   && ((SOCBoardLarge) board).isEdgeCoastline(edge)))
+                return edge;
+
+            /**
+             * Coastal edge.  Check for land vs sea.
+             * We'll find the edge's line through this sector,
+             * then determine if we're left or right of it,
+             * then check that hex to see if it's land or sea.
+             */
+            final int edgeX, hexLeft, hexRight;
+
+            // Determining (r,c) edge direction: | / \
+            //   "|" if r is odd
+            //   Otherwise: s = r/2
+            //   "/" if (s,c) is even,odd or odd,even
+            //   "\" if (s,c) is odd,odd or even,even
+            if ((secY % 2) == 1)
+            {
+                // edge is "|".
+                // middle is w / 2
+                edgeX = halfdeltaX / 2;
+                hexLeft = board.getAdjacentHexToEdge(edge, SOCBoard.FACING_W);
+                hexRight = board.getAdjacentHexToEdge(edge, SOCBoard.FACING_E);
+            }
             else
-                return (secY << 8) | secX;
-        }
+            {
+                // y, relative to sector's upper-left corner
+                final int yrel = ((y - 22) % halfdeltaY); 
+                if ((secX % 2) == ((secY/2) % 2))
+                {
+                    // edge is "\".
+                    // at y=0 (relative to sector), check x=0
+                    // at y=h, check x=w
+                    // in middle, check x=(y/h)*w
+                    //             which is (y*w) / h
+                    edgeX = (yrel * halfdeltaX) / halfdeltaY;
+                    hexLeft = board.getAdjacentHexToEdge(edge, SOCBoard.FACING_SW);
+                    hexRight = board.getAdjacentHexToEdge(edge, SOCBoard.FACING_NE);
+                } else {
+                    // edge is "/".
+                    // check x=((h-y)/h)*w
+                    //  which is ((h-y)*w) / h
+                    edgeX = ((halfdeltaY - yrel) * halfdeltaX) / halfdeltaY;
+                    hexLeft = board.getAdjacentHexToEdge(edge, SOCBoard.FACING_NW);
+                    hexRight = board.getAdjacentHexToEdge(edge, SOCBoard.FACING_SE);
+                }
+            }
+
+            // check hex based on x, relative to sector's upper-left corner
+            final int hex;
+            if ((x % halfdeltaX) <= edgeX)
+                hex = hexLeft;
+            else
+                hex = hexRight;
+
+            if (board.isHexOnLand(hex))            
+                return edge;
+            else
+                return -edge;
+
+        }  // if (isLargeBoard) ends
 
         // ( 46 is the y-distance between the centers of two hexes )
         // See edgeMap javadocs for secY, secX meanings.
@@ -4769,18 +4895,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if ((secY % 3) != 0)
                 x += 8;  // middle part of hex: adjust sector boundary
             secX = x / 27;
-        }
-
-        if (isLargeBoard)
-        {
-            if ((secX < 0) || (secY < 0)
-                || (secX > board.getBoardWidth())
-                || (secY > board.getBoardHeight()))
-                return 0;
-            else
-                return (secY << 8) | secX;
-
-            // TODO consider local fields for width,height
         }
 
         int sector = secX + (secY * 15);
@@ -5535,7 +5649,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
 
             // If not over a settlement, look for a road or ship
-            id = findEdge(xb,yb);
+            id = findEdge(xb, yb, false);
             if (id != 0)
             {
                 // Are we already looking at it?
@@ -5588,17 +5702,34 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     // No piece there
                     if (modeAllowsHoverPieces)
                     {
-                        // TODO if this edge is coastal,
-                        //    do we show a road or a ship?
-                        //    Default to road for now.
-                        //    (findEdge +flag; boardlarge.isEdgeCoastline)
-                        if (player.isPotentialRoad(id)
+                        // If this edge is coastal, do we show a road or a ship?
+                        // Have findEdge determine if we're on the land or sea side.
+                        final boolean canPlaceShip = game.canPlaceShip(player, id);
+                        boolean isShip = false;
+                        if (isLargeBoard)
+                        {
+                            if (player.isPotentialRoad(id)
+                                && ((SOCBoardLarge) board).isEdgeCoastline(id))
+                            {
+                                id = findEdge(xb, yb, true);
+                                if (id < 0)
+                                {
+                                    id = -id;
+                                    isShip = canPlaceShip;
+                                }
+                            } else {
+                                isShip = canPlaceShip;
+                            }
+                        }
+
+                        if ((! isShip)
+                            && player.isPotentialRoad(id)
                             && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
                             && (debugPP || player.getResources().contains(SOCGame.ROAD_SET)))
                         {
                             hoverRoadID = id;
                         }
-                        else if (game.canPlaceShip(player, id)  // checks isPotentialShip, pirate ship
+                        else if (canPlaceShip  // checks isPotentialShip, pirate ship
                             && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
                             && (debugPP || player.getResources().contains(SOCGame.SHIP_SET))) 
                         {
