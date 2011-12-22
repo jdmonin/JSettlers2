@@ -174,15 +174,28 @@ public class SOCGame implements Serializable, Cloneable
     public static final int PLACING_CITY = 32;
 
     /**
-     * Player is placing the robber on a new hex.
+     * Player is placing the robber on a new land hex.
+     * @see #PLACING_PIRATE
+     * @see #canMoveRobber(int, int)
+     * @see #moveRobber(int, int)
      */
     public static final int PLACING_ROBBER = 33;
+
+    /**
+     * Player is placing the pirate ship on a new water hex,
+     * in a game which {@link #hasSeaBoard}.
+     * @see #PLACING_ROBBER
+     * @see #canMovePirate(int, int)
+     * @see #movePirate(int, int)
+     * @since 1.2.00
+     */
+    public static final int PLACING_PIRATE = 34;
 
     /**
      * This game {@link #hasSeaBoard}, and a player has bought and is placing a ship.
      * @since 1.2.00
      */
-    public static final int PLACING_SHIP = 34;
+    public static final int PLACING_SHIP = 35;
 
     /**
      * Player is placing first free road/ship
@@ -209,6 +222,9 @@ public class SOCGame implements Serializable, Cloneable
      * with the robber or pirate ship, after rolling 7 or
      * playing a Knight/Soldier card.
      * Next game state is {@link #PLAY1}.
+     * To see whether we're moving the robber or the pirate, use {@link #getRobberyPirateFlag()}.
+     * @see #canChoosePlayer(int)
+     * @see #stealFromPlayer(int)
      */
     public static final int WAITING_FOR_CHOICE = 51;
 
@@ -226,8 +242,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Waiting for player to choose the robber or the pirate ship.
-     * Next game state is {@link #PLACING_ROBBER}.
+     * Next game state is {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
      * @see #canChooseMovePirate()
+     * @see #chooseMovePirate(boolean)
      * @since 1.2.00
      */
     public static final int WAITING_FOR_ROBBER_OR_PIRATE = 54;
@@ -669,6 +686,17 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.13
      */
     private boolean lastActionWasBankTrade;
+
+    /**
+     * Is the current robbery using the pirate ship, not the robber?
+     * If true, victims will be based on adjacent ships, not settlements/cities.
+     * Set in {@link #chooseMovePirate(boolean)},
+     * {@link #movePirate(int, int)} and {@link #moveRobber(int, int)}.
+     * @see #getRobberyPirateFlag()
+     * @since 1.2.00
+     */
+    private boolean robberyWithPirateNotRobber;
+        // TODO: Consider refactor to create lastActionType instead, it's more general
 
     /**
      * Has the current player moved a ship already this turn?
@@ -1861,7 +1889,7 @@ public class SOCGame implements Serializable, Cloneable
 
         // check shipEdge vs. pirate hex
         {
-            SOCBoardLarge bL = (SOCBoardLarge) board;
+            final SOCBoardLarge bL = (SOCBoardLarge) board;
             final int ph = bL.getPirateHex();
             if ((ph != 0) && bL.isEdgeAdjacentToHex(shipEdge, ph))
                 return false;
@@ -3398,11 +3426,34 @@ public class SOCGame implements Serializable, Cloneable
      * True only if {@link #hasSeaBoard}.
      * @return  true if the pirate ship can be moved
      * @see #WAITING_FOR_ROBBER_OR_PIRATE
+     * @see #chooseMovePirate(boolean)
      * @since 1.2.00
      */
     public boolean canChooseMovePirate()
     {
-        return ! hasSeaBoard;
+        return hasSeaBoard;
+    }
+
+    /**
+     * Choose to move the pirate or the robber, from game state
+     * {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
+     * Game state becomes {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
+     * {@link #getRobberyPirateFlag()} is set or cleared accordingly.
+     * @param pirateNotRobber  True to move pirate, false to move robber
+     * @throws IllegalStateException if gameState != {@link #WAITING_FOR_ROBBER_OR_PIRATE}
+     * @since 1.2.00
+     */
+    public void chooseMovePirate(final boolean pirateNotRobber)
+        throws IllegalStateException
+    {
+        if (gameState != WAITING_FOR_ROBBER_OR_PIRATE)
+            throw new IllegalStateException();
+
+        robberyWithPirateNotRobber = pirateNotRobber;
+        if (pirateNotRobber)
+            gameState = PLACING_PIRATE;
+        else
+            gameState = PLACING_ROBBER;
     }
 
     /**
@@ -3457,7 +3508,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If no victims (players to possibly steal from): State becomes oldGameState.
      * If just one victim: call stealFromPlayer, State becomes oldGameState.
-     * If multiple possible victims: Player must choose a victim; State becomes WAITING_FOR_CHOICE.
+     * If multiple possible victims: Player must choose a victim; State becomes {@link #WAITING_FOR_CHOICE}.
      *<P>
      * Assumes {@link #canMoveRobber(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_ROBBER}.
@@ -3476,6 +3527,7 @@ public class SOCGame implements Serializable, Cloneable
         SOCMoveRobberResult result = new SOCMoveRobberResult();
 
         board.setRobberHex(rh, true);  // if co invalid, throws IllegalArgumentException
+        robberyWithPirateNotRobber = false;
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
 
@@ -3508,10 +3560,101 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return true if the current player can choose this player to rob
+     * Can this player currently move the pirate ship to these coordinates?
+     * Must be different from current pirate coordinates.
+     * Game must have {@link #hasSeaBoard}.
+     * Must be current player.  Game state must be {@link #PLACING_PIRATE}.
+     * 
+     * @return true if this player can move the pirate ship to this hex coordinate
      *
+     * @param pn  the number of the player that is moving the pirate
+     * @param hco  the new pirate hex coordinates; validated to be a water hex
+     * @see #movePirate(int, int)
+     * @since 1.2.00
+     */
+    public boolean canMovePirate(final int pn, final int hco)
+    {
+        if (! hasSeaBoard)
+            return false;
+        if (gameState != PLACING_PIRATE)
+            return false;
+        if (currentPlayerNumber != pn)
+            return false;
+        if (((SOCBoardLarge) board).getPirateHex() == hco)
+            return false;
+        if (board.isHexOnLand(hco))
+            return false;
+
+        return true;
+    }
+
+    /**
+     * move the pirate ship.
+     *<P>
+     * If no victims (players to possibly steal from): State becomes oldGameState.
+     * If just one victim: call stealFromPlayer, State becomes oldGameState.
+     * If multiple possible victims: Player must choose a victim; State becomes {@link #WAITING_FOR_CHOICE}.
+     *<P>
+     * Assumes {@link #canMovePirate(int, int)} has been called already to validate the move.
+     * Assumes gameState {@link #PLACING_PIRATE}.
+     *
+     * @param pn  the number of the player that is moving the pirate ship
+     * @param rh  the robber's new hex coordinate; should be a water hex
+     *
+     * @return returns a result that says if a resource was stolen, or
+     *         if the player needs to make a choice.  It also returns
+     *         what was stolen and who was the victim.
+     * @throws IllegalArgumentException if <tt>ph</tt> &lt;= 0
+     * @since 1.2.00
+     */
+    public SOCMoveRobberResult movePirate(final int pn, final int ph)
+        throws IllegalArgumentException
+    {
+        SOCMoveRobberResult result = new SOCMoveRobberResult();
+
+        ((SOCBoardLarge) board).setPirateHex(ph, true);  // if ph invalid, throws IllegalArgumentException
+        robberyWithPirateNotRobber = true;
+        lastActionTime = System.currentTimeMillis();
+        lastActionWasBankTrade = false;
+
+        /**
+         * do the robbing thing
+         */
+        Vector victims = getPossibleVictims();
+
+        if (victims.isEmpty())
+        {
+            gameState = oldGameState;
+        }
+        else if (victims.size() == 1)
+        {
+            SOCPlayer victim = (SOCPlayer) victims.firstElement();
+            int loot = stealFromPlayer(victim.getPlayerNumber());
+            result.setLoot(loot);
+        }
+        else
+        {
+            /**
+             * the current player needs to make a choice
+             */
+            gameState = WAITING_FOR_CHOICE;
+        }
+
+        result.setVictims(victims);
+
+        return result;
+    }
+
+    /**
+     * When moving the robber or pirate, can this player be chosen to be robbed?
+     * Game state must be {@link #WAITING_FOR_CHOICE}.
+     *
+     * @return true if the current player can choose this player to rob
      * @param pn  the number of the player to rob
+     *
+     * @see #getRobberyPirateFlag()
      * @see #getPossibleVictims()
+     * @see #stealFromPlayer(int)
      */
     public boolean canChoosePlayer(int pn)
     {
@@ -3536,7 +3679,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * @return a list of {@link SOCPlayer players} touching a hex, or an empty Vector if none
+     * @return a list of {@link SOCPlayer players} touching a hex
+     *   with settlements/cities, or an empty Vector if none
      *
      * @param hex  the coordinates of the hex
      */
@@ -3544,9 +3688,7 @@ public class SOCGame implements Serializable, Cloneable
     {
         Vector playerList = new Vector(3);
 
-        final int[] nodes = new int[6];
-        for (int d = 0; d < 6; ++d)  // north, NE, SE, south, SW, NW
-            nodes[d] = board.getAdjacentNodeToHex(hex, d);
+        final int[] nodes = board.getAdjacentNodesToHex(hex);
 
         for (int i = 0; i < maxPlayers; i++)
         {
@@ -3595,15 +3737,75 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Given the robber's current position on the board,
-     * get the list of victims with adjacent settlements/cities.
+     * @param hex  the coordinates of the hex
+     * @return a list of {@link SOCPlayer players} touching a hex
+     *   with ships, or an empty Vector if none
+     *
+     * @since 1.2.00
+     */
+    public Vector getPlayersShipsOnHex(final int hex)
+    {
+        Vector playerList = new Vector(3);
+
+        final int[] edges = ((SOCBoardLarge) board).getAdjacentEdgesToHex(hex);
+
+        for (int i = 0; i < maxPlayers; i++)
+        {
+            Vector roads_ships = players[i].getRoads();
+            Enumeration rsEnum = roads_ships.elements();
+            boolean touching = false;
+            while (rsEnum.hasMoreElements())
+            {
+                final SOCRoad rs = (SOCRoad) rsEnum.nextElement();
+                if (rs.isRoadNotShip())
+                    continue;
+
+                final int shCoord = rs.getCoordinates();
+                for (int d = 0; d < 6; ++d)
+                {
+                    if (shCoord == edges[d])
+                    {
+                        touching = true;
+                        break;
+                    }
+                }
+            }
+
+            if (touching)
+                playerList.addElement(players[i]);
+        }
+
+        return playerList;
+    }
+
+    /**
+     * Does the current or most recent robbery use the pirate ship, not the robber?
+     * If true, victims will be based on adjacent ships, not settlements/cities.
+     * @return true for pirate ship, false for robber
+     * @since 1.2.00
+     */
+    public boolean getRobberyPirateFlag()
+    {
+        return robberyWithPirateNotRobber;
+    }
+
+    /**
+     * Given the robber or pirate's current position on the board,
+     * and {@link #getRobberyPirateFlag()},
+     * get the list of victims with adjacent settlements/cities or ships.
      * @return a list of possible players to rob, or an empty Vector
      * @see #canChoosePlayer(int)
      */
     public Vector getPossibleVictims()
     {
         Vector victims = new Vector();
-        Enumeration plEnum = getPlayersOnHex(getBoard().getRobberHex()).elements();
+        Enumeration plEnum;
+        if (robberyWithPirateNotRobber)
+        {
+            plEnum = getPlayersShipsOnHex(((SOCBoardLarge) board).getPirateHex()).elements();
+        } else {
+            plEnum = getPlayersOnHex(board.getRobberHex()).elements();
+        }
 
         while (plEnum.hasMoreElements())
         {
@@ -3657,7 +3859,7 @@ public class SOCGame implements Serializable, Cloneable
         players[currentPlayerNumber].getResources().add(1, rsrcs[pick]);
 
         /**
-         * restore the game state to what it was before the robber moved
+         * restore the game state to what it was before the robber or pirate moved
          */
         gameState = oldGameState;
 

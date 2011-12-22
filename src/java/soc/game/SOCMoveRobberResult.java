@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.game;
 
@@ -23,14 +24,16 @@ import java.util.Vector;
 
 
 /**
- * This class holds the results of moving the robber.
- * Specificaly, the victim or possible victims, and
+ * This class holds the results of moving the robber or pirate.
+ * Specifically, the victim or possible victims, and
  * what was stolen.
+ * Call {@link SOCGame#getRobberyPirateFlag()} to see which one was moved.
  */
 public class SOCMoveRobberResult
 {
     /** Victim, or possible victims, or empty or null; content type {@link SOCPlayer} */ 
     Vector victims;
+
     /** Resource type of loot stolen, as in {@link SOCResourceConstants}, or -1 */
     int loot;
 
