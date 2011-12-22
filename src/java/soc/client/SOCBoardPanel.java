@@ -304,7 +304,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public final static int PLACE_ROAD = 1;
     public final static int PLACE_SETTLEMENT = 2;
     public final static int PLACE_CITY = 3;
-    public final static int PLACE_ROBBER = 4;
+
+    /**
+     * Place the robber, or just hover at a hex.
+     * @see #PLACE_PIRATE
+     */
+    private final static int PLACE_ROBBER = 4;
+
     public final static int PLACE_INIT_SETTLEMENT = 5;
     /** Place an initial road or ship. */
     public final static int PLACE_INIT_ROAD = 6;
@@ -331,6 +337,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 1.2.00
      */
     private final static int MOVE_SHIP = 15;
+
+    /**
+     * Move the pirate ship.
+     * @since 1.2.00
+     * @see #PLACE_ROBBER
+     */
+    private final static int PLACE_PIRATE = 16;
 
     public final static int TURN_STARTING = 97;
     public final static int GAME_FORMING = 98;
@@ -2364,7 +2377,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * draw a road or ship along an edge.
      * @param g  graphics
      * @param edgeNum  Edge number of this road or ship; accepts -1 for edgeNum 0x00.
+     *           For the pirate ship in the middle of a hex, <tt>edgeNum</tt>
+     *           can be a hex coordinate, and <tt>pn</tt> must be -2 or -3.
      * @param pn   Player number, or -1 for a white outline or fill color (depending on <tt>isHilight</tt>)
+     *             or -2 for the black pirate ship, -3 for the previous-pirate outline.
      * @param isHilight  Is this the hilight for showing a potential placement?
      * @param isRoadNotShip  True to draw a road; false to draw a ship if {@link #isLargeBoard}
      */
@@ -2434,7 +2450,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             final int r = (edgeNum >> 8),
                       c = (edgeNum & 0xFF);
-            if ((r % 2) == 1)
+            if ((pn <= -2) || ((r % 2) == 1))  // -2 or -3 is pirate ship, at a hex coordinate
             {
                 // "|"
                 hx = halfdeltaX * c;
@@ -2496,19 +2512,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hy = scaleToActualY(hy);
         }
 
-        if (pn == -1)
-            g.setColor(Color.WHITE);
-        else if (isHilight)
-            g.setColor(playerInterface.getPlayerColor(pn, true));
-        else
-            g.setColor(playerInterface.getPlayerColor(pn));
-
         g.translate(hx, hy);
-        g.fillPolygon(roadX, roadY, roadX.length);
+
+        if (pn != -3)
+        {
+            if (pn == -1)
+                g.setColor(Color.WHITE);
+            else if (pn == -2)
+                g.setColor(Color.BLACK);
+            else if (isHilight)
+                g.setColor(playerInterface.getPlayerColor(pn, true));
+            else
+                g.setColor(playerInterface.getPlayerColor(pn));
+    
+            g.fillPolygon(roadX, roadY, roadX.length);
+        }
 
         if (! ((pn == -1) && isHilight))
         {
-            if (isHilight)
+            if (pn <= -2)
+                g.setColor(Color.darkGray);
+            else if (isHilight)
                 g.setColor(playerInterface.getPlayerColor(pn, false));
             else
                 g.setColor(Color.black);
@@ -2977,6 +3001,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             drawRobber(g, board.getPreviousRobberHex(), (gameState != SOCGame.PLACING_ROBBER), false);            
         }
 
+        if (isLargeBoard)
+        {
+            int hex = ((SOCBoardLarge) board).getPirateHex();
+            if (hex > 0)
+            {
+                drawRoadOrShip(g, hilight, -2, (gameState == SOCGame.PLACING_PIRATE), false);
+            }
+
+            hex = ((SOCBoardLarge) board).getPreviousPirateHex();
+            if (hex > 0)
+            {
+                drawRoadOrShip(g, hilight, -3, (gameState == SOCGame.PLACING_PIRATE), false);
+            }            
+        }
+
         if (gameState != SOCGame.NEW)
         {
             drawArrow(g, game.getCurrentPlayerNumber(), game.getCurrentDice());
@@ -3098,6 +3137,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hilight > 0)
             {
                 drawRobber(g, hilight, true, true);
+            }
+            break;
+
+        case PLACE_PIRATE:
+            if (hilight > 0)
+            {
+                drawRoadOrShip(g, hilight, -2, false, false);
             }
             break;
 
@@ -3698,9 +3744,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 case SOCGame.PLACING_ROBBER:
                     mode = PLACE_ROBBER;
-
                     break;
                     
+                case SOCGame.PLACING_PIRATE:
+                    mode = PLACE_PIRATE;
+                    break;
+
                 case SOCGame.NEW:
                 case SOCGame.READY:
                     mode = GAME_FORMING;
@@ -3776,7 +3825,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if ((mode == NONE) || (mode == TURN_STARTING) || (mode == GAME_OVER))            
             hoverTip.setOffsetX(0);
-        else if (mode == PLACE_ROBBER)
+        else if ((mode == PLACE_ROBBER) || (mode == PLACE_PIRATE))
             hoverTip.setOffsetX(HOVER_OFFSET_X_FOR_ROBBER);
         else if ((mode == PLACE_INIT_SETTLEMENT) || (mode == PLACE_INIT_ROAD))
             hoverTip.setOffsetX(HOVER_OFFSET_X_FOR_INIT_PLACE);
@@ -3827,6 +3876,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
 
         case PLACE_ROBBER:
+        case PLACE_PIRATE:
             expectedPtype = -1;
             break;
 
@@ -4198,6 +4248,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
 
         case PLACE_ROBBER:
+        case PLACE_PIRATE:
 
             /**** Code for finding a hex *********/
             hexNum = 0;
@@ -4207,8 +4258,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ptrOldX = x;
                 ptrOldY = y;
                 hexNum = findHex(xb, yb);
+                final boolean canMove =
+                    (mode == PLACE_ROBBER)
+                    ? game.canMoveRobber(playerNumber, hexNum)
+                    : game.canMovePirate(playerNumber, hexNum);
 
-                if (! game.canMoveRobber(playerNumber, hexNum))
+                if (! canMove)
                 {
                     hexNum = 0;
                 }
@@ -4511,6 +4566,40 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         // ask server to move it
                         client.moveRobber(game, player, hilight);
+                        clearModeAndHilight(-1);
+                    }
+                }
+
+                break;
+
+            case PLACE_PIRATE:
+
+                if (hilight != ((SOCBoardLarge) board).getPirateHex())
+                {
+                    // do we have an adjacent ship?
+                    boolean cliAdjacent = false;
+                    {
+                        Enumeration plEnum = game.getPlayersShipsOnHex(hilight).elements();
+                        while (plEnum.hasMoreElements())
+                        {
+                            SOCPlayer pl = (SOCPlayer) plEnum.nextElement();
+                            if (pl.getPlayerNumber() == playerNumber)
+                            {
+                                cliAdjacent = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (cliAdjacent)
+                    {
+                        // ask player to confirm first
+                        new MoveRobberConfirmDialog(player, -hilight).showInNewThread();
+                    }
+                    else
+                    {
+                        // ask server to move it
+                        client.moveRobber(game, player, -hilight);
                         clearModeAndHilight(-1);
                     }
                 }
@@ -5533,7 +5622,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             /** Coordinates on board (a node, edge, or hex) */
             int id;
             boolean modeAllowsHoverPieces = ((mode != PLACE_INIT_SETTLEMENT)
-                && (mode != PLACE_INIT_ROAD) && (mode != PLACE_ROBBER)
+                && (mode != PLACE_INIT_ROAD) && (mode != PLACE_ROBBER) && (mode != PLACE_PIRATE)
                 && (mode != TURN_STARTING) && (mode != GAME_OVER));
 
             final boolean debugPP = game.isDebugFreePlacement();
@@ -5751,13 +5840,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (id > 0)
             {
                 // Are we already looking at it?
-                if ((hoverMode == PLACE_ROBBER) && (hoverID == id))
+                if (((hoverMode == PLACE_ROBBER) || (hoverMode == PLACE_PIRATE)) && (hoverID == id))
                 {
                     positionToMouse(x,y);
                     return;  // <--- Early ret: No work needed ---
                 }
-                
-                hoverMode = PLACE_ROBBER;  // const used for hovering-at-hex
+
+                if (game.getGameState() == SOCGame.PLACING_PIRATE)
+                    hoverMode = PLACE_PIRATE;
+                else
+                    hoverMode = PLACE_ROBBER;  // const used for hovering-at-hex
                 hoverPiece = null;
                 hoverID = id;
                 {
@@ -5814,6 +5906,29 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             sb.append(num);
                         }
                         sb.append(" (robber was here)");
+                    }
+                    else if (isLargeBoard)
+                    {
+                        if (((SOCBoardLarge) board).getPirateHex() == id)
+                        {
+                            int num = board.getNumberOnHexFromCoord(id);
+                            if (num > 0)
+                            {
+                                sb.append(": ");
+                                sb.append(num);
+                            }
+                            sb.append(" (PIRATE SHIP)");
+                        }
+                        else if (((SOCBoardLarge) board).getPreviousPirateHex() == id)
+                        {
+                            int num = board.getNumberOnHexFromCoord(id);
+                            if (num > 0)
+                            {
+                                sb.append(": ");
+                                sb.append(num);
+                            }
+                            sb.append(" (pirate was here)");
+                        }
                     }
                     setHoverText(sb.toString());                     
                 }
@@ -6637,13 +6752,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @param gamePI  Current game's player interface
          * @param player  Current player
          * @param newRobHex  The new robber hex, if confirmed; not validated.
+         *          Use a negative value if moving the pirate.
          */
-        protected MoveRobberConfirmDialog(SOCPlayer player, int newRobHex)
+        protected MoveRobberConfirmDialog(SOCPlayer player, final int newRobHex)
         {
             super(playerInterface.getClient(), playerInterface,
-                "Move robber to your hex?",
-                "Are you sure you want to move the robber to your own hex?",
-                "Move Robber",
+                ((newRobHex > 0) ? "Move robber to your hex?" : "Move pirate to your hex?"),
+                ((newRobHex > 0)
+                    ? "Are you sure you want to move the robber to your own hex?"
+                    : "Are you sure you want to move the pirate to your own hex?"),
+                ((newRobHex > 0) ? "Move Robber" : "Move Pirate"),
                 "Don't move there",
                 null, 2);
             rdt = null;

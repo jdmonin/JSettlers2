@@ -4321,11 +4321,11 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * the player wants to move the robber
+     * the player wants to move the robber or the pirate ship.
      *
      * @param ga  the game
      * @param pl  the player
-     * @param coord  where the player wants the robber
+     * @param coord  edge where the player wants the robber, or negative edge for the pirate ship
      */
     public void moveRobber(SOCGame ga, SOCPlayer pl, int coord)
     {
