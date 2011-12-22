@@ -5117,8 +5117,7 @@ public class SOCServer extends Server
     {
         if (c != null)
         {
-            String gn = mes.getGame();
-            SOCGame ga = gameList.getGameData(gn);
+            SOCGame ga = gameList.getGameData(mes.getGame());
 
             if (ga != null)
             {
@@ -5132,10 +5131,25 @@ public class SOCServer extends Server
                      * make sure the player can do it
                      */
                     final String gaName = ga.getName();
-                    if (ga.canMoveRobber(player.getPlayerNumber(), mes.getCoordinates()))
+                    final boolean isPirate = ga.getRobberyPirateFlag();
+                    int coord = mes.getCoordinates();  // negative for pirate
+                    final boolean canDo =
+                        (isPirate == (coord < 0))
+                        && (isPirate ? ga.canMovePirate(player.getPlayerNumber(), -coord)
+                                     : ga.canMoveRobber(player.getPlayerNumber(), coord));
+                    if (canDo)
                     {
-                        SOCMoveRobberResult result = ga.moveRobber(player.getPlayerNumber(), mes.getCoordinates());
-                        messageToGame(gaName, new SOCMoveRobber(gaName, player.getPlayerNumber(), mes.getCoordinates()));
+                        SOCMoveRobberResult result;
+                        SOCMoveRobber moveMsg;
+                        if (isPirate)
+                        {
+                            result = ga.movePirate(player.getPlayerNumber(), -coord);
+                            moveMsg = new SOCMoveRobber(gaName, player.getPlayerNumber(), coord);
+                        } else {
+                            result = ga.moveRobber(player.getPlayerNumber(), coord);
+                            moveMsg = new SOCMoveRobber(gaName, player.getPlayerNumber(), coord);
+                        }
+                        messageToGame(gaName, moveMsg);
 
                         Vector victims = result.getVictims();
 
@@ -5148,27 +5162,40 @@ public class SOCServer extends Server
                             SOCPlayer victim = (SOCPlayer) victims.firstElement();
                             reportRobbery(ga, player, victim, result.getLoot());
                         }
-                        /** no victim */
-                        else if (victims.size() == 0)
-                        {
-                            /**
-                             * just say it was moved; nothing is stolen
-                             */
-                            messageToGame(gaName, (String) c.getData() + " moved the robber.");
-                        }
+
                         else
                         {
-                            /**
-                             * else, the player needs to choose a victim
-                             */
-                            messageToGame(gaName, (String) c.getData() + " moved the robber, must choose a victim.");                            
+                            StringBuffer msgtext = new StringBuffer(player.getName());
+                            msgtext.append(" moved the ");
+                            if (isPirate)
+                                msgtext.append("pirate");
+                            else
+                                msgtext.append("robber");
+
+                            /** no victim */
+                            if (victims.size() == 0)
+                            {
+                                /**
+                                 * just say it was moved; nothing is stolen
+                                 */
+                                msgtext.append(".");
+                            }
+                            else
+                            {
+                                /**
+                                 * else, the player needs to choose a victim
+                                 */
+                                msgtext.append(", must choose a victim.");                            
+                            }
+
+                            messageToGame(gaName, msgtext.toString());
                         }
 
                         sendGameState(ga);
                     }
                     else
                     {
-                        messageToPlayer(c, gaName, "You can't move the robber.");
+                        messageToPlayer(c, gaName, "You can't move the " + ((coord < 0) ? "pirate." : "robber."));
                     }
                 }
                 catch (Exception e)
@@ -5951,14 +5978,26 @@ public class SOCServer extends Server
                 {
                     if (checkTurn(c, ga))
                     {
-                        if (ga.canChoosePlayer(mes.getChoice()))
+                        final int choice = mes.getChoice();
+                        switch (ga.getGameState())
                         {
-                            int rsrc = ga.stealFromPlayer(mes.getChoice());
-                            reportRobbery(ga, ga.getPlayer((String) c.getData()), ga.getPlayer(mes.getChoice()), rsrc);
+                        case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
+                            ga.chooseMovePirate(choice == -2);
                             sendGameState(ga);
-                        }
-                        else
-                        {
+                            break;
+
+                        case SOCGame.WAITING_FOR_CHOICE:
+                            if (ga.canChoosePlayer(choice))
+                            {
+                                final int rsrc = ga.stealFromPlayer(choice);
+                                reportRobbery
+                                    (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(choice), rsrc);
+                                sendGameState(ga);
+                                break;
+                            }
+                            // else, fall through and send "can't steal" message
+
+                        default:
                             messageToPlayer(c, ga.getName(), "You can't steal from that player.");
                         }
                     }
@@ -5967,7 +6006,7 @@ public class SOCServer extends Server
                         messageToPlayer(c, ga.getName(), "It's not your turn.");
                     }
                 }
-                catch (Exception e)
+                catch (Throwable e)
                 {
                     D.ebugPrintln("Exception caught - " + e);
                     e.printStackTrace();
@@ -7909,7 +7948,7 @@ public class SOCServer extends Server
      * @param ga  the game
      * @param pe  the perpetrator
      * @param vi  the the victim
-     * @param rsrc  type of resource stolen, as in SOCResourceConstants
+     * @param rsrc  type of resource stolen, as in {@link SOCResourceConstants#SHEEP}
      */
     protected void reportRobbery(SOCGame ga, SOCPlayer pe, SOCPlayer vi, int rsrc)
     {
@@ -8089,10 +8128,13 @@ public class SOCServer extends Server
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
             messageToGame(gname, player.getName() + " must choose to move the robber or the pirate.");
             break;
-            
+
         case SOCGame.PLACING_ROBBER:
             messageToGame(gname, player.getName() + " will move the robber.");
+            break;
 
+        case SOCGame.PLACING_PIRATE:
+            messageToGame(gname, player.getName() + " will move the pirate ship.");
             break;
 
         case SOCGame.WAITING_FOR_CHOICE:
