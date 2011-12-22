@@ -6508,6 +6508,25 @@ public class SOCServer extends Server
                             }
 
                             break;
+
+                        case SOCPlayingPiece.SHIP:
+
+                            if (ga.getGameState() == SOCGame.PLACING_SHIP)
+                            {
+                                ga.cancelBuildShip(pn);
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                sendGameState(ga);
+                            }
+                            else
+                            {
+                                messageToPlayer(c, gaName, "You didn't buy a ship.");
+                            }
+
+                            break;
+
+                        default:
+                            throw new IllegalArgumentException("Unknown piece type " + mes.getPieceType());
                         }
                     }
                     else
