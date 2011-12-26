@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,15 +44,30 @@ import java.awt.event.MouseListener;
  */
 class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
 {
+    /**
+     * Clear button.  Reset discard count to 0.
+     * @since 1.2.00
+     */
+    private Button clearBut;
+
+    /** Discard button */
     Button discardBut;
+
     ColorSquare[] keep;
     ColorSquare[] disc;
     Label msg;
     Label youHave;
     Label discThese;
     SOCPlayerInterface playerInterface;
+
+    /** Must discard this many resources from {@link #keep} */
     int numDiscards;
-    int numChosen;  // Button disabled unless proper number of resources are chosen
+
+    /**
+     * Has chosen to discard this many resources so far in {@link #disc}.
+     * {@link #discardBut} is disabled unless proper number of resources ({@link #numDiscards}) are chosen.
+     */
+    private int numChosen;
 
     /** Desired size (visible size inside of insets) **/
     protected int wantW, wantH;
@@ -80,6 +95,7 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
         setForeground(Color.black);
         setFont(new Font("Geneva", Font.PLAIN, 12));
 
+        clearBut = new Button("Clear");
         discardBut = new Button("Discard");
 
         didSetLocation = false;
@@ -97,6 +113,10 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
         wantW = 270;
         wantH = 20 + 5 + (2 * (20 + 5 + 20 + 5)) + 25 + 5;
         setSize(wantW + 10, wantH + 20);  // Can calc & add room for insets at doLayout
+
+        add(clearBut);
+        clearBut.addActionListener(this);
+        clearBut.setEnabled(false);  // since nothing picked yet
 
         add(discardBut);
         discardBut.addActionListener(this);
@@ -204,7 +224,10 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
         try
         {
             msg.setBounds((width - msgW) / 2, getInsets().top, msgW + 4, 20);
-            discardBut.setBounds((getSize().width - 80) / 2, (getInsets().top + height) - 30, 80, 25);
+            final int btnsX = (getSize().width - (2 * 80 + 5)) / 2;
+            int y = (getInsets().top + height) - 30;
+            clearBut.setBounds(btnsX, y, 80, 25);
+            discardBut.setBounds(btnsX + 85, y, 80, 25);
             youHave.setBounds(getInsets().left, getInsets().top + 20 + space, 70, 20);
             discThese.setBounds(getInsets().left, getInsets().top + 20 + space + 20 + space + sqwidth + space, 100, 20);
         }
@@ -227,9 +250,11 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
     }
 
     /**
-     * DOCUMENT ME!
+     * React to clicking Discard button or Clear button.
+     *<P>
+     * ColorSquare clicks are handled in {@link #mousePressed(MouseEvent)}.
      *
-     * @param e DOCUMENT ME!
+     * @param e  ActionEvent for the click, with {@link ActionEvent#getSource()} == our button
      */
     public void actionPerformed(ActionEvent e)
     {
@@ -245,6 +270,17 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
                 playerInterface.getClient().discard(playerInterface.getGame(), rsrcs);
                 dispose();
             }
+        }
+        else if (target == clearBut)
+        {
+            for (int i = disc.length - 1; i >= 0; --i)
+            {
+                keep[i].addValue(disc[i].getIntValue());
+                disc[i].setIntValue(0);
+            }
+            numChosen = 0;
+            clearBut.setEnabled(false);
+            discardBut.setEnabled(numDiscards > 0);
         }
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
@@ -293,7 +329,10 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
 
     /**
      * When a resource's colorsquare is clicked, add/remove 1
-     * from the resource totals as requested; update {@link #discardBut}.
+     * from the resource totals as requested; update {@link #discardBut}
+     * and {@link #clearBut}.
+     *<P>
+     * Clear/Discard button clicks are handled in {@link #actionPerformed(ActionEvent)}.
      */
     public void mousePressed(MouseEvent e)
     {
@@ -317,7 +356,7 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
                 {
                     discardBut.enable();   // Exact count reached
                     wantsRepaint = true;
-                }
+                }                    
                 break;
             }
             else if ((target == disc[i]) && (keep[i].getIntValue() > 0))
@@ -338,6 +377,9 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
                 break;
             }
         }
+
+        clearBut.setEnabled(numChosen > 0);
+
         if (wantsRepaint)
         {
             discardBut.repaint();
