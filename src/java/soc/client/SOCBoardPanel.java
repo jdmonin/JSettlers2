@@ -2318,7 +2318,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         } else {
             // Determine "ghost" color, we're moving the robber
             int hexType = board.getHexTypeFromCoord(hexID);
-            if (hexType >= robberGhostFill.length)
+            if ((hexType >= robberGhostFill.length) || (hexType < 0))
             {
                 // should not happen
                 rFill = Color.lightGray;
@@ -2375,6 +2375,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * draw a road or ship along an edge.
+     * Or, draw the pirate ship in the center of a hex.
      * @param g  graphics
      * @param edgeNum  Edge number of this road or ship; accepts -1 for edgeNum 0x00.
      *           For the pirate ship in the middle of a hex, <tt>edgeNum</tt>
@@ -2518,8 +2519,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             if (pn == -1)
                 g.setColor(Color.WHITE);
-            else if (pn == -2)
-                g.setColor(Color.BLACK);
+            else if (pn == -2)  // pirate ship
+            {
+                if (isHilight)
+                    g.setColor(Color.LIGHT_GRAY);
+                else
+                    g.setColor(Color.BLACK);
+            }
             else if (isHilight)
                 g.setColor(playerInterface.getPlayerColor(pn, true));
             else
@@ -3006,13 +3012,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int hex = ((SOCBoardLarge) board).getPirateHex();
             if (hex > 0)
             {
-                drawRoadOrShip(g, hilight, -2, (gameState == SOCGame.PLACING_PIRATE), false);
+                drawRoadOrShip(g, hex, -2, (gameState == SOCGame.PLACING_PIRATE), false);
             }
 
             hex = ((SOCBoardLarge) board).getPreviousPirateHex();
             if (hex > 0)
             {
-                drawRoadOrShip(g, hilight, -3, (gameState == SOCGame.PLACING_PIRATE), false);
+                drawRoadOrShip(g, hex, -3, (gameState == SOCGame.PLACING_PIRATE), false);
             }            
         }
 
