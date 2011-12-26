@@ -559,7 +559,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private FontMetrics diceNumberCircleFM;
 
     /**
-     * translate hex ID to number to get coords.
+     * Translate hex ID to hex number to get coords.
+     * Invalid (non-hex coordinate) IDs are 0.
      * Null when {@link #isLargeBoard}.
      */
     private int[] hexIDtoNum;
@@ -790,6 +791,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Map grid sectors (from unscaled on-screen coordinates) to hex edges.
+     * Invalid edges are 0.
      * The grid has 15 columns (each being 1/2 of a hex wide) and 23 rows
      * (each 1/3 hex tall).
      * This maps graphical coordinates to the board coordinate system.
@@ -835,6 +837,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Map grid sectors (from unscaled on-screen coordinates) to hex nodes.
+     * Invalid nodes are 0.
      * The grid has 15 columns and 23 rows.
      * This maps graphical coordinates to the board coordinate system.
      * Each row of hexes touches 3 columns and 5 rows here. For instance,
@@ -867,6 +870,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Map grid sectors (from unscaled on-screen coordinates) to hexes.
+     * Invalid hexes are 0.
      * The grid has 15 columns (each being 1/2 of a hex wide) and 23 rows
      * (each 1/3 hex tall).
      * This maps graphical coordinates to the board coordinate system.
@@ -1108,11 +1112,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int i;
         // init edge map
         edgeMap = new int[345];
-
-        for (i = 0; i < 345; i++)
-        {
-            edgeMap[i] = 0;
-        }
+        Arrays.fill(edgeMap, 0);
 
         if (is6player)
         {
@@ -1135,11 +1135,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // init node map
         nodeMap = new int[345];
-
-        for (i = 0; i < 345; i++)
-        {
-            nodeMap[i] = 0;
-        }
+        Arrays.fill(nodeMap, 0);
 
         if (is6player)
         {
@@ -1160,11 +1156,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         // init hex map
         hexMap = new int[345];
-
-        for (i = 0; i < 345; i++)
-        {
-            hexMap[i] = 0;
-        }
+        Arrays.fill(hexMap, 0);
 
         if (is6player)
         {
@@ -1184,11 +1176,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         hexIDtoNum = new int[0xDE];
-
-        for (i = 0; i < 0xDE; i++)
-        {
-            hexIDtoNum[i] = 0;
-        }
+        Arrays.fill(hexIDtoNum, 0);
 
         initHexIDtoNumAux(0x17, 0x7D, 0);
         initHexIDtoNumAux(0x15, 0x9D, 4);
@@ -5064,12 +5052,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             secX = ((x + 13) / halfdeltaX);
             secY = ((y - 20) / halfdeltaY);
-            if ((secX < 0) || (secY < 0)
-                || (secX > board.getBoardWidth())
-                || (secY > board.getBoardHeight()))
-                return 0;
+            final int hex = (secY << 8) | secX;
+            if (-1 != ((SOCBoardLarge) board).getHexTypeFromCoord(hex))                    
+                return hex;
             else
-                return (secY << 8) | secX;
+                return 0;
         }
 
         // ( 46 is the y-distance between the centers of two hexes )
