@@ -4108,7 +4108,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (edgeNum < 0)
                 {
                     edgeNum = -edgeNum;
-                    isShip = canPlaceShip;
+                    isShip = canPlaceShip
+                        || ((mode == PLACE_FREE_ROAD_OR_SHIP) && player.isPotentialShip(edgeNum));
                 } else {
                     isShip = false;
                 }
