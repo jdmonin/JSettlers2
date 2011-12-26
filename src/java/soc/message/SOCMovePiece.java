@@ -26,8 +26,9 @@ import java.util.StringTokenizer;
  * is moving a piece that's already on the board, to a new location.
  * This is a response to all player clients, following a player's {@link SOCMovePieceRequest}.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.2.00
+ * @see SOCMoveRobber
  */
 public class SOCMovePiece extends SOCMessageTemplate4i
 {

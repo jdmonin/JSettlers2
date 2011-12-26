@@ -41,6 +41,7 @@ import java.util.StringTokenizer;
  * {@link soc.game.SOCBoardLarge#setPirateHex(int, boolean) board.setPirateHex(0x0104, boolean)}.
  *
  * @author Robert S Thomas
+ * @see SOCMovePiece
  */
 public class SOCMoveRobber extends SOCMessage
     implements SOCMessageForGame
@@ -160,8 +161,10 @@ public class SOCMoveRobber extends SOCMessage
      */
     public String toString()
     {
-        String s = "SOCMoveRobber:game=" + game + "|playerNumber=" + playerNumber + "|coord=" + Integer.toHexString(coordinates);
-
+        String s = "SOCMoveRobber:game=" + game + "|playerNumber=" + playerNumber + "|coord="
+            + ((coordinates > 0)
+              ? Integer.toHexString(coordinates)
+              : ("-" + Integer.toHexString(- coordinates)));
         return s;
     }
 }
