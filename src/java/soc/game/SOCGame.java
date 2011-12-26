@@ -3561,6 +3561,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Can this player currently move the pirate ship to these coordinates?
+     * Must be a water hex, per {@link SOCBoardLarge#isHexOnWater(int)}.
      * Must be different from current pirate coordinates.
      * Game must have {@link #hasSeaBoard}.
      * Must be current player.  Game state must be {@link #PLACING_PIRATE}.
@@ -3568,7 +3569,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return true if this player can move the pirate ship to this hex coordinate
      *
      * @param pn  the number of the player that is moving the pirate
-     * @param hco  the new pirate hex coordinates; validated to be a water hex
+     * @param hco  the new pirate hex coordinates; will check for a water hex
      * @see #movePirate(int, int)
      * @since 1.2.00
      */
@@ -3582,10 +3583,7 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         if (((SOCBoardLarge) board).getPirateHex() == hco)
             return false;
-        if (board.isHexOnLand(hco))
-            return false;
-
-        return true;
+        return (board.isHexOnWater(hco));
     }
 
     /**

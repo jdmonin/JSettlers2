@@ -58,9 +58,12 @@ import java.util.Vector;
  *<P>
  * See <tt>src/docs/TODO.gif</tt><br>
  * Coordinates start at the upper-left and continue to the right and down.
- * The first two rows of hexes are: <pre>
+ * The first few rows of hexes are: <pre>
  *    (1,2)  (1,4)  (1,6) ..
- * (3,1) (3,3)  (3,5)  (3,7) .. </pre>
+ * (3,1) (3,3)  (3,5)  (3,7) ..
+ *    (5,2)  (5,4)  (5,6) ..
+ * (7,1) (7,3)  (7,5)  (7,7) ..
+ *    (9,2)  (9,4)  (9,6) .. </pre>
  * All water and land hexes are within the coordinates.
  * Rows increase going north to south, Columns increase west to east.
  *<BR>
@@ -84,7 +87,10 @@ import java.util.Vector;
  */
 public class SOCBoardLarge extends SOCBoard
 {
-    /** This board encoding was introduced in version 1.2.00 (1200) */
+    /**
+     * This board encoding {@link SOCBoard#BOARD_ENCODING_LARGE}
+     * was introduced in version 1.2.00 (1200)
+     */
     public static final int VERSION_FOR_ENCODING_LARGE = 1200;
 
     private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
@@ -693,7 +699,8 @@ public class SOCBoardLarge extends SOCBoard
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
      *         or {@link #DESERT_HEX},
      *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc),
-     *         or {@link #WATER_HEX}.
+     *         or {@link #WATER_HEX}
+     *         or -1 for invalid hex coordinate
      *
      * @see #getPortTypeFromHexType(int)
      * @see #getHexNumFromCoord(int)
@@ -721,8 +728,14 @@ public class SOCBoardLarge extends SOCBoard
     {
         final int r = hex >> 8,
                   c = hex & 0xFF;
+
         if ((r <= 0) || (c <= 0) || (r >= boardHeight) || (c >= boardWidth))
-            return -1;
+            return -1;  // out of bounds
+
+        if (((r % 2) == 0)
+            || ((c % 2) != ((r/2) % 2)))
+            return -1;  // not a valid hex coordinate
+
         final int hexType = hexLayoutLg[r][c];
 
         if (hexType < 7)
@@ -816,13 +829,27 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Is this hex coordinate a land hex (not water)? 
+     * Is this the coordinate of a land hex (not water)? 
      * @param hexCoord  Hex coordinate, within the board's bounds
-     * @return  True if land, false if water
+     * @return  True if land, false if water or not a valid hex coordinate
+     * @see #isHexOnWater(int)
      */
     public boolean isHexOnLand(final int hexCoord)
     {
-        return (getHexTypeFromCoord(hexCoord) <= MAX_LAND_HEX);
+        final int htype = getHexTypeFromCoord(hexCoord);
+        return (htype != -1) && (htype <= MAX_LAND_HEX);
+    }
+
+    /**
+     * Is this the coordinate of a water hex (not land)? 
+     * @param hexCoord  Hex coordinate, within the board's bounds
+     * @return  True if water, false if land or not a valid hex coordinate
+     * @see #isHexOnLand(int)
+     * @since 1.2.00
+     */
+    public boolean isHexOnWater(final int hexCoord)
+    {
+        return (getHexTypeFromCoord(hexCoord) == WATER_HEX);
     }
 
     /**

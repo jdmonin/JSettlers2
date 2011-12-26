@@ -1586,9 +1586,10 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Is this hex coordinate a land hex (not water)? 
+     * Is this the coordinate of a land hex (not water)? 
      * @param hexCoord  Hex coordinate, between 0 and {@link #MAXHEX}
-     * @return  True if land, false if water
+     * @return  True if land, false if water or not a valid hex coordinate
+     * @see #isHexOnWater(int)
      * @since 1.2.00
      */
     public boolean isHexOnLand(final int hexCoord)
@@ -1598,6 +1599,22 @@ public class SOCBoard implements Serializable, Cloneable
             return false;
         else
             return (hexLayout[hnum] <= MAX_LAND_HEX);
+    }
+
+    /**
+     * Is this the coordinate of a water hex (not land)? 
+     * @param hexCoord  Hex coordinate, between 0 and {@link #MAXHEX}
+     * @return  True if water, false if land or not a valid hex coordinate
+     * @see #isHexOnLand(int)
+     * @since 1.2.00
+     */
+    public boolean isHexOnWater(final int hexCoord)
+    {
+        int hnum = hexIDtoNum[hexCoord];
+        if (hnum < 0)
+            return false;
+        else
+            return (hexLayout[hnum] > MAX_LAND_HEX);
     }
 
     /**
@@ -1996,7 +2013,8 @@ public class SOCBoard implements Serializable, Cloneable
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
      *         or {@link #DESERT_HEX},
      *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc),
-     *         or {@link #WATER_HEX}.
+     *         or {@link #WATER_HEX}
+     *         or -1 for invalid hex coordinate
      *
      * @see #getPortTypeFromHexType(int)
      * @see #getHexNumFromCoord(int)
