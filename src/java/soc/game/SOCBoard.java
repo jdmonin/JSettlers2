@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -98,13 +98,22 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int ORE_HEX = 2;
     public static final int SHEEP_HEX = 3;
     public static final int WHEAT_HEX = 4;
-    /** Wood; highest-numbered land hex type (also MAX_LAND_HEX, MAX_ROBBER_HEX) */
+    /** Wood; highest-numbered land hex type (also {@link #MAX_LAND_HEX}, {@link #MAX_ROBBER_HEX}) */
     public static final int WOOD_HEX = 5;
-    /** Highest-numbered land hex type (currently wood; also currently MAX_ROBBER_HEX)  @since 1.1.07 */
+
+    /**
+     * Highest-numbered land hex type (currently wood; also currently {@link #MAX_ROBBER_HEX})
+     * @since 1.1.07
+     * @see #WATER_HEX
+     */
     public static final int MAX_LAND_HEX = 5;  // Also MAX_ROBBER_HEX
 
-    /** Water hex; higher-numbered than all land hex types */
+    /**
+     * Water hex; higher-numbered than all land hex types.
+     * @see #MAX_LAND_HEX
+     */
     public static final int WATER_HEX = 6;
+
     /** Misc (3-for-1) port type; lowest-numbered port-hextype integer */
     public static final int MISC_PORT_HEX = 7;  // Must be first port-hextype integer
     public static final int CLAY_PORT_HEX = 8;
