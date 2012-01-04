@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,7 +24,6 @@ import soc.debug.D;  // JM
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
-import soc.game.SOCCity;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -32,9 +31,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
-import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
-import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 
 import soc.message.*;
@@ -4566,8 +4563,9 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * handle local client commands for channels
+     * Handle local client commands for channels.
      *
+     * @param cmd  Local client command string, such as \ignore or \&shy;unignore
      * @return true if a command was handled
      */
     public boolean doLocalCommand(String ch, String cmd)
@@ -4599,8 +4597,9 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * handle local client commands for games
+     * Handle local client commands for games.
      *
+     * @param cmd  Local client command string, which starts with \
      * @return true if a command was handled
      */
     public boolean doLocalCommand(SOCGame ga, String cmd)
