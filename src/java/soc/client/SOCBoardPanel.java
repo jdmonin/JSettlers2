@@ -5106,16 +5106,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * get the interaction mode
-     *
-     * @return the mode
-     */
-    public int getMode()
-    {
-        return mode;
-    }
-
-    /**
      * Set the interaction mode to "move ship";
      * the player must now click where they want the ship to be moved.
      * Repaints the board immediately.
@@ -5862,6 +5852,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     StringBuffer sb = new StringBuffer();
                     final int htype = board.getHexTypeFromCoord(id);
+                    final int dicenum = board.getNumberOnHexFromCoord(id);
                     switch (htype)
                     {
                     case SOCBoard.DESERT_HEX:
@@ -5899,21 +5890,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                     if (board.getRobberHex() == id)
                     {
-                        int num = board.getNumberOnHexFromCoord(id);
-                        if (num > 0)
+                        if (dicenum > 0)
                         {
                             sb.append(": ");
-                            sb.append(num);
+                            sb.append(dicenum);
                         }
                         sb.append(" (ROBBER)");
                     }
                     else if (board.getPreviousRobberHex() == id)
                     {
-                        int num = board.getNumberOnHexFromCoord(id);
-                        if (num > 0)
+                        if (dicenum > 0)
                         {
                             sb.append(": ");
-                            sb.append(num);
+                            sb.append(dicenum);
                         }
                         sb.append(" (robber was here)");
                     }
@@ -5921,21 +5910,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         if (((SOCBoardLarge) board).getPirateHex() == id)
                         {
-                            int num = board.getNumberOnHexFromCoord(id);
-                            if (num > 0)
+                            if (dicenum > 0)
                             {
                                 sb.append(": ");
-                                sb.append(num);
+                                sb.append(dicenum);
                             }
                             sb.append(" (PIRATE SHIP)");
                         }
                         else if (((SOCBoardLarge) board).getPreviousPirateHex() == id)
                         {
-                            int num = board.getNumberOnHexFromCoord(id);
-                            if (num > 0)
+                            if (dicenum > 0)
                             {
                                 sb.append(": ");
-                                sb.append(num);
+                                sb.append(dicenum);
                             }
                             sb.append(" (pirate was here)");
                         }
