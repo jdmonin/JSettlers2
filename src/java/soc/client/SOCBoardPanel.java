@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -311,9 +311,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final static int PLACE_ROBBER = 4;
 
+    /**
+     * Place an initial settlement, or just hover at a port.
+     * @see #hoverIsPort
+     */
     public final static int PLACE_INIT_SETTLEMENT = 5;
+
     /** Place an initial road or ship. */
     public final static int PLACE_INIT_ROAD = 6;
+
     public final static int CONSIDER_LM_SETTLEMENT = 7;
     public final static int CONSIDER_LM_ROAD = 8;
     public final static int CONSIDER_LM_CITY = 9;
@@ -5355,7 +5361,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         int hoverShipID;
 
-        /** is hover a port at coordinate hoverID? */
+        /**
+         * Is hover a port at coordinate hoverID?
+         * @see #PLACE_INIT_SETTLEMENT
+         */
         boolean hoverIsPort;
 
         /**
@@ -5848,7 +5857,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverID = id;
                 {
                     StringBuffer sb = new StringBuffer();
-                    switch (board.getHexTypeFromCoord(id))
+                    final int htype = board.getHexTypeFromCoord(id);
+                    switch (htype)
                     {
                     case SOCBoard.DESERT_HEX:
                         sb.append("Desert");  break;
@@ -5866,7 +5876,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         sb.append("Water");   break;
                     default:
                         {
-                            final int htype = board.getHexTypeFromCoord(id);
+                            // Check for a port at this hex.
+                            // (May already have checked above for the node, using portDescAtNode;
+                            //  only the original board layout encodes ports into the hex types.)
                             String portDesc = null;
                             if ((htype >= SOCBoard.MISC_PORT_HEX) && (htype <= SOCBoard.WOOD_PORT_HEX))
                             {
