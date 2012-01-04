@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -306,6 +306,9 @@ public class SOCBoardLayout2 extends SOCMessage
     }
 
     /**
+     * Render the SOCBoardLayout2 in human-readable form.
+     * In version 1.2.00 and later, the land hexes and port layout (<tt>LH</tt>, <tt>PL</tt>)
+     *   are in hexadecimal instead of base-10.
      * @return a human readable form of the message
      */
     public String toString()
@@ -323,7 +326,8 @@ public class SOCBoardLayout2 extends SOCMessage
             Object kv = layoutParts.get(okey);
             if (kv instanceof int[])
             {
-                arrayIntoStringBuf((int[]) kv, sb);
+                arrayIntoStringBuf
+                    ((int[]) kv, sb, ! (okey.equals("HL") || okey.equals("NL")));
             } else {
                 sb.append(kv.toString());
             }

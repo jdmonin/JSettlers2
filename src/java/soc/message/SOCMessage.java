@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -298,17 +298,32 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * formatted as "{ 1 2 3 4 5 }".
      * @param ia  int array to append. 0 length is allowed, null is not.
      * @param sb  StringBuffer to which <tt>ia</tt> will be appended, as "{ 1 2 3 4 5 }"
+     * @param useHex  If true, append <tt>ia</tt> as hexidecimal strings.
+     *            Uses {@link Integer#toHexString(int)} after checking the sign bit.
+     *            (Added in 1.2.00)
      * @throws NullPointerException if <tt>ia</tt> or <tt>sb</tt> is null
      * @since 1.1.09
      */
-    protected static void arrayIntoStringBuf(final int[] ia, StringBuffer sb)
+    protected static void arrayIntoStringBuf(final int[] ia, StringBuffer sb, final boolean useHex)
         throws NullPointerException
     {
         sb.append("{");
         for (int i = 0; i < ia.length; ++i)
         {
             sb.append(' ');
-            sb.append(ia[i]);
+            if (! useHex)
+            {
+                sb.append(ia[i]);
+            } else {
+                final int iai = ia[i];
+                if (iai >= 0)
+                {
+                    sb.append(Integer.toHexString(iai));
+                } else {
+                    sb.append('-');
+                    sb.append(Integer.toHexString(-iai));
+                }
+            }
         }
         sb.append(" }");
     }
