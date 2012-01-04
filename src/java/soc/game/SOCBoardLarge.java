@@ -177,6 +177,7 @@ public class SOCBoardLarge extends SOCBoard
        6 : water   {@link #WATER_HEX}
        </pre>
      *<P>
+     * @see SOCBoard#portsLayout
      */
     private int[][] hexLayoutLg;
 
@@ -218,7 +219,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Dice number from hex coordinate.
-     * One element per water, land, or port hex; non-land hexes are 0.
+     * One element per water, land, or port hex; non-land hexes are 0, robber hexes are -1.
      * Order: [row][column].
      */
     private int[][] numberLayoutLg;
@@ -373,6 +374,7 @@ public class SOCBoardLarge extends SOCBoard
             ++j;
             final int[] nodes = getAdjacentNodesToEdge_arr(edge);
             placePort(ptype, -1, facing, nodes[0], nodes[1]);
+            // portsLayout[i] is set already, from portTypes_main[i]
             portsLayout[i + portsCount] = edge;
             portsLayout[i + (2 * portsCount)] = facing;
         }
@@ -389,6 +391,7 @@ public class SOCBoardLarge extends SOCBoard
             ++j;
             final int[] nodes = getAdjacentNodesToEdge_arr(edge);
             placePort(ptype, -1, facing, nodes[0], nodes[1]);
+            // portsLayout[L+i] is set already, from portTypes_islands[i]
             portsLayout[L + i + portsCount] = edge;
             portsLayout[L + i + (2 * portsCount)] = facing;
         }
@@ -692,17 +695,18 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Given a hex coordinate, return the type of hex
+     * Given a hex coordinate, return the type of hex.
+     *<P>
+     * Unlike the original {@link SOCBoard} encoding, port types are not
+     * encoded in the hex layout; use {@link #getPortTypeFromNodeCoord(int)} instead.
      *
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
      *         or {@link #DESERT_HEX},
-     *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc),
-     *         or {@link #WATER_HEX}
-     *         or -1 for invalid hex coordinate
+     *         or {@link #WATER_HEX}.
+     *         Invalid hex coordinates return -1.
      *
-     * @see #getPortTypeFromHexType(int)
      * @see #getHexNumFromCoord(int)
      * @see #getLandHexCoords()
      */
@@ -712,21 +716,23 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Given a hex number, return the type of hex
+     * Given a hex number, return the type of hex.
+     * In this encoding, hex numbers == hex coordinates.
+     *<P>
+     * Unlike the original {@link SOCBoard} encoding, port types are not
+     * encoded in the hex layout; use {@link #getPortTypeFromNodeCoord(int)} instead.
      *
      * @param hex  the number of a hex, or -1 for invalid
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, or {@link #WATER_HEX},
-     *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc).
+     *         {@link #DESERT_HEX}, or {@link #WATER_HEX}.
      *         Invalid hex numbers return -1.
      *
-     * @see #getPortTypeFromHexType(int)
      * @see #getHexTypeFromCoord(int)
      */
     public int getHexTypeFromNumber(final int hex)
     {
-        final int r = hex >> 8,
+        final int r = hex >> 8,     // retains sign bit; will handle hex == -1 as r < 0
                   c = hex & 0xFF;
 
         if ((r <= 0) || (c <= 0) || (r >= boardHeight) || (c >= boardWidth))
@@ -736,38 +742,7 @@ public class SOCBoardLarge extends SOCBoard
             || ((c % 2) != ((r/2) % 2)))
             return -1;  // not a valid hex coordinate
 
-        final int hexType = hexLayoutLg[r][c];
-
-        if (hexType < 7)
-        {
-            return hexType;
-        }
-        else if ((hexType >= 7) && (hexType <= 12))
-        {
-            return MISC_PORT_HEX;
-        }
-        else
-        {
-            switch (hexType & 7)
-            {
-            case 1:
-                return CLAY_PORT_HEX;
-
-            case 2:
-                return ORE_PORT_HEX;
-
-            case 3:
-                return SHEEP_PORT_HEX;
-
-            case 4:
-                return WHEAT_PORT_HEX;
-
-            case 5:
-                return WOOD_PORT_HEX;
-            }
-        }
-
-        return -1;
+        return hexLayoutLg[r][c];
     }
 
     /**
@@ -854,7 +829,8 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get the land hex layout, for sending from server to client.
-     * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
+     * Contains 3 int elements per land hex:
+     * Coordinate, Hex type (resource, as in {@link #SHEEP_HEX}), Dice Number (-1 for desert).
      * @return the layout, or null if no land hexes.
      */
     public int[] getLandHexLayout()
@@ -2062,8 +2038,6 @@ public class SOCBoardLarge extends SOCBoard
 
             final int[] nodes = getAdjacentNodesToEdge_arr(edge);
             placePort(ptype, -1, facing, nodes[0], nodes[1]);
-            ports[ptype].addElement(new Integer(nodes[0])); 
-            ports[ptype].addElement(new Integer(nodes[1])); 
         }
     }
 
