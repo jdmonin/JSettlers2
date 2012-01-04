@@ -104,12 +104,16 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Highest-numbered land hex type (currently wood; also currently {@link #MAX_ROBBER_HEX})
      * @since 1.1.07
+     * @see #isHexOnLand(int)
+     * @see #isHexOnWater(int)
      * @see #WATER_HEX
      */
-    public static final int MAX_LAND_HEX = 5;  // Also MAX_ROBBER_HEX
+    protected static final int MAX_LAND_HEX = 5;  // Also MAX_ROBBER_HEX
 
     /**
      * Water hex; higher-numbered than all land hex types.
+     * @see #isHexOnLand(int)
+     * @see #isHexOnWater(int)
      * @see #MAX_LAND_HEX
      */
     public static final int WATER_HEX = 6;
