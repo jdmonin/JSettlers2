@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,9 +42,7 @@ import soc.util.Version;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -5132,22 +5130,23 @@ public class SOCServer extends Server
                      */
                     final String gaName = ga.getName();
                     final boolean isPirate = ga.getRobberyPirateFlag();
+                    final int pn = player.getPlayerNumber();
                     int coord = mes.getCoordinates();  // negative for pirate
                     final boolean canDo =
                         (isPirate == (coord < 0))
-                        && (isPirate ? ga.canMovePirate(player.getPlayerNumber(), -coord)
-                                     : ga.canMoveRobber(player.getPlayerNumber(), coord));
+                        && (isPirate ? ga.canMovePirate(pn, -coord)
+                                     : ga.canMoveRobber(pn, coord));
                     if (canDo)
                     {
                         SOCMoveRobberResult result;
                         SOCMoveRobber moveMsg;
                         if (isPirate)
                         {
-                            result = ga.movePirate(player.getPlayerNumber(), -coord);
-                            moveMsg = new SOCMoveRobber(gaName, player.getPlayerNumber(), coord);
+                            result = ga.movePirate(pn, -coord);
+                            moveMsg = new SOCMoveRobber(gaName, pn, coord);
                         } else {
-                            result = ga.moveRobber(player.getPlayerNumber(), coord);
-                            moveMsg = new SOCMoveRobber(gaName, player.getPlayerNumber(), coord);
+                            result = ga.moveRobber(pn, coord);
+                            moveMsg = new SOCMoveRobber(gaName, pn, coord);
                         }
                         messageToGame(gaName, moveMsg);
 
