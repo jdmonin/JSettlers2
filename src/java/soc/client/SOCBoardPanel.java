@@ -296,14 +296,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * For correlation to game state, see {@link #updateMode()}.
      * If a mode is added, please also update {@link #clearModeAndHilight(int)}.
      */
-    public final static int NONE = 0;
+    private final static int NONE = 0;
+
     /**
      * Place a road, or place a free road when not {@link #isLargeBoard}.
      * @see #PLACE_FREE_ROAD_OR_SHIP
      */
-    public final static int PLACE_ROAD = 1;
-    public final static int PLACE_SETTLEMENT = 2;
-    public final static int PLACE_CITY = 3;
+    private final static int PLACE_ROAD = 1;
+
+    private final static int PLACE_SETTLEMENT = 2;
+
+    private final static int PLACE_CITY = 3;
 
     /**
      * Place the robber, or just hover at a hex.
@@ -315,10 +318,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Place an initial settlement, or just hover at a port.
      * @see #hoverIsPort
      */
-    public final static int PLACE_INIT_SETTLEMENT = 5;
+    private final static int PLACE_INIT_SETTLEMENT = 5;
 
     /** Place an initial road or ship. */
-    public final static int PLACE_INIT_ROAD = 6;
+    private final static int PLACE_INIT_ROAD = 6;
 
     public final static int CONSIDER_LM_SETTLEMENT = 7;
     public final static int CONSIDER_LM_ROAD = 8;
@@ -351,9 +354,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final static int PLACE_PIRATE = 16;
 
-    public final static int TURN_STARTING = 97;
-    public final static int GAME_FORMING = 98;
-    public final static int GAME_OVER = 99;
+    private final static int TURN_STARTING = 97;
+    private final static int GAME_FORMING = 98;
+    private final static int GAME_OVER = 99;
     
     /** During initial-piece placement, the tooltip is moved this far over to make room. */
     public final static int HOVER_OFFSET_X_FOR_INIT_PLACE = 9;
@@ -5088,12 +5091,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * set the interaction mode
+     * Set the interaction mode, for debugging purposes.
      *
-     * @param m  mode
+     * @param m  mode, such as {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_CITY}
      * 
      * @see #updateMode()
      * @see #setModeMoveShip(int)
+     * @see SOCPlayerClient#doLocalCommand(SOCGame, String)
      */
     public void setMode(int m)
     {
