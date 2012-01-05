@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -832,9 +832,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         {
             StringBuffer msgbuf;
             if (isRoadNotArmy)
-                msgbuf = new StringBuffer("Longest road was ");
-            else
+            {
+                if (game.hasSeaBoard)
+                    msgbuf = new StringBuffer("Longest trade route was ");
+                else
+                    msgbuf = new StringBuffer("Longest road was ");
+            } else {
                 msgbuf = new StringBuffer("Largest army was ");
+            }
 
             if (newp != null)
             {
