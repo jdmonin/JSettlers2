@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -573,6 +573,7 @@ public class SOCBoardLarge extends SOCBoard
      * Once the legal settlement/city nodes ({@link #nodesOnLand})
      * are established from land hexes, fill {@link #legalShipEdges}.
      * Contains all 6 edges of each water hex.
+     * Contains all coastal edges of each land hex at the edges of the board.
      *<P>
      * Not iterative; clears all previous legal ship edges.
      * Call this only after the very last call to
@@ -581,6 +582,8 @@ public class SOCBoardLarge extends SOCBoard
     private void makeNewBoard_makeLegalShipEdges()
     {
         // All 6 edges of each water hex.
+        // All coastal edges of each land hex at the edges of the board.
+        // (Needed because there's no water hex next to it)
 
         legalShipEdges.clear();
 
@@ -596,12 +599,25 @@ public class SOCBoardLarge extends SOCBoard
             }
             for (; c < boardWidth; c += 2)
             {
-                if (hexLayoutLg[r][c] != WATER_HEX)
+                if (hexLayoutLg[r][c] == WATER_HEX)
+                {
+                    final int[] sides = getAdjacentEdgesToHex(rshift | c);
+                    for (int i = 0; i < 6; ++i)
+                        legalShipEdges.add(new Integer(sides[i]));
+                } else {
+                    // Land hex; check if it's at the
+                    // edge of the board
+                    if ((r == 1) || (r == (boardHeight-1))
+                        || (c <= 2) || (c >= (boardWidth-2)))
+                    {
+                        final int[] sides = getAdjacentEdgesToHex(rshift | c);
+                        for (int i = 0; i < 6; ++i)
+                            if (isEdgeCoastline(sides[i]))
+                                legalShipEdges.add(new Integer(sides[i]));
+                    }
                     continue;
+                }
 
-                final int[] sides = getAdjacentEdgesToHex(rshift | c);
-                for (int i = 0; i < 6; ++i)
-                    legalShipEdges.add(new Integer(sides[i]));
             }
         }
 
@@ -1006,7 +1022,6 @@ public class SOCBoardLarge extends SOCBoard
      * Check one possible coordinate for getAdjacentHexesToHex.
      * @param addTo the list we're building of hexes that touch this hex, as a Vector of Integer coordinates.
      * @param includeWater Should water hexes be returned (not only land ones)?
-     * @param hexCoord Coordinate ("ID") of this hex
      * @param r  Hex row coordinate
      * @param c  Hex column coordinate
      */
@@ -1032,7 +1047,6 @@ public class SOCBoardLarge extends SOCBoard
      * if the hex coordinate is valid.
      *
      * @param hexCoord Coordinate of this hex; not checked for validity
-     * @param hexCoord  Hex coordinate
      * @return  The 6 edges adjacent to this hex
      * @since 1.2.00
      */
@@ -1223,14 +1237,14 @@ public class SOCBoardLarge extends SOCBoard
                   c = (edgeCoord & 0xFF);
 
         // "|" if r is odd
-        if ((r%2) == 1)
+        if ((r % 2) == 1)
         {
             // FACING_E: (r, c+1)
-            if (c < boardWidth)
+            if (c < (boardWidth-1))
                 hexes[0] = edgeCoord + 1;
 
             // FACING_W: (r, c-1)
-            if (c > 0)
+            if (c > 1)
                 hexes[1] = edgeCoord - 1;
         }
 
@@ -1238,11 +1252,11 @@ public class SOCBoardLarge extends SOCBoard
         else if ((c % 2) != ((r/2) % 2))
         {
             // FACING_NW: (r-1, c)
-            if (r > 0)
+            if (r > 1)
                 hexes[0] = edgeCoord - 0x100;
 
             // FACING_SE: (r+1, c+1)
-            if ((r < boardHeight) && (c < boardWidth))
+            if ((r < (boardHeight-1)) && (c < (boardWidth-1)))
                 hexes[1] = edgeCoord + 0x101;
         }
         else
@@ -1250,11 +1264,11 @@ public class SOCBoardLarge extends SOCBoard
             // "\" if (s,c) is odd,odd or even,even
 
             // FACING_NE: (r-1, c+1)
-            if ((r > 0) && (c < boardWidth))
+            if ((r > 1) && (c < (boardWidth-1)))
                 hexes[0] = edgeCoord - 0x100 + 0x01;
 
             // FACING_SW: (r+1, c)
-            if (r < boardHeight)
+            if (r < (boardHeight-1))
                 hexes[1] = edgeCoord + 0x100;
         }
 
