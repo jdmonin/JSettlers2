@@ -1825,6 +1825,9 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
+     * Given a hex type, return the port type.
+     * Used in {@link #BOARD_ENCODING_ORIGINAL}
+     * to set up port info in {@link #setHexLayout(int[])}.
      * @return the type of port given a hex type;
      *         in range {@link #MISC_PORT} to {@link #WOOD_PORT}.
      *         If called on a non-port hex, returns 0 
@@ -1833,7 +1836,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @see #getHexTypeFromCoord(int)
      * @see #getPortTypeFromNodeCoord(int)
      */
-    public int getPortTypeFromHexType(final int hexType)
+    private final int getPortTypeFromHexType(final int hexType)
     {
         int portType = 0;
 
@@ -1947,7 +1950,6 @@ public class SOCBoard implements Serializable, Cloneable
      * @param nodeCoord  the coordinates for a node
      * @return the type of port (in range {@link #MISC_PORT} to {@link #WOOD_PORT}),
      *         or -1 if no port at this node
-     * @see #getPortTypeFromHexType(int)
      * @since 1.1.08
      */
     public int getPortTypeFromNodeCoord(final int nodeCoord)
@@ -2029,7 +2031,6 @@ public class SOCBoard implements Serializable, Cloneable
      *         or {@link #WATER_HEX}
      *         or -1 for invalid hex coordinate
      *
-     * @see #getPortTypeFromHexType(int)
      * @see #getHexNumFromCoord(int)
      * @see #getLandHexCoords()
      */
@@ -2048,7 +2049,6 @@ public class SOCBoard implements Serializable, Cloneable
      *         or {@link #MISC_PORT_HEX} or another port type ({@link #CLAY_PORT_HEX}, etc).
      *         Invalid hex numbers return -1.
      *
-     * @see #getPortTypeFromHexType(int)
      * @see #getHexTypeFromCoord(int)
      */
     public int getHexTypeFromNumber(final int hex)
