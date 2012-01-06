@@ -1999,14 +1999,17 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Given a hex coordinate, return the hex number (index)
+     * Given a hex coordinate, return the hex number (index).
+     * Valid only for the v1 and v2 board encoding, not v3.
      *
      * @param hexCoord  the coordinates ("ID") for a hex
      * @return the hex number (index in numberLayout), or -1 if hexCoord isn't a hex coordinate on the board
      * @see #getHexTypeFromCoord(int)
      * @since 1.1.08
+     * @throws IllegalStateException if the board encoding doesn't support this method
      */
     public int getHexNumFromCoord(final int hexCoord)
+        throws IllegalStateException
     {
         if ((hexCoord >= 0) && (hexCoord <= hexIDtoNum.length))
             return hexIDtoNum[hexCoord];
@@ -2221,6 +2224,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Get the minimum node coordinate in this board encoding format.
      * Note that the maximum is currently {@link #MAXNODE}, so it has no getter.
+     * This method is not valid for the v3 encoding ({@link #BOARD_ENCODING_LARGE}).
      * @return minimum possible node coordinate
      * @since 1.1.08
      */
@@ -2230,29 +2234,11 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Get the minimum edge coordinate in this board encoding format.
-     * @return minimum possible edge coordinate
-     * @since 1.1.11
-     */
-    public int getMinEdge()
-    {
-        return minEdge;
-    }
-
-    /**
-     * Get the maximum edge coordinate in this board encoding format.
-     * @return maximum possible edge coordinate
-     * @since 1.1.11
-     */
-    public int getMaxEdge()
-    {
-        return minEdge;
-    }
-
-    /**
      * Adjacent node coordinates to an edge, within valid range to be on the board.
      *<P>
      * For v1 and v2 encoding, this range is {@link #getMinNode()} to {@link #MAXNODE}.
+     * For v3 encoding, nodes are around all valid land or water hexes,
+     *   and the board size is {@link #getBoardHeight()} x {@link #getBoardHeight()}.
      * @return the nodes that touch this edge, as a Vector of Integer coordinates
      * @see #getAdjacentNodesToEdge_arr(int)
      */

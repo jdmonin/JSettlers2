@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -934,7 +934,7 @@ public class SOCRobotDM {
   static Object recalcLongestRoadETAAux
       (SOCPlayer pl, final boolean wantsStack, final int startNode, final int pathLength, final int lrLength, final int searchDepth)
   {
-    D.ebugPrintln("=== recalcLongestRoadETAAux("+Integer.toHexString(startNode)+","+pathLength+","+lrLength+","+searchDepth+")");
+    // D.ebugPrintln("=== recalcLongestRoadETAAux("+Integer.toHexString(startNode)+","+pathLength+","+lrLength+","+searchDepth+")");
 
     //
     // We're doing a depth first search of all possible road paths.
@@ -944,9 +944,7 @@ public class SOCRobotDM {
     int numRoads = 500;
     Pair bestPathNode = null;
     final SOCBoard board = pl.getGame().getBoard();
-    final int MINEDGE = board.getMinEdge(),
-              MAXEDGE = board.getMaxEdge();
-    Stack pending = new Stack();
+    Stack pending = new Stack();  // as-yet unvisited
     pending.push(new Pair(new NodeLenVis(startNode, pathLength, new Vector()), null));
 
     while (!pending.empty())
