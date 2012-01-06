@@ -3244,7 +3244,10 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return a string representation of a node coordinate
+     * Get the dice roll numbers for hexes adjacent to this node.
+     * @return a string representation of a node coordinate's adjacent hex dice roll numbers,
+     *     such as "5/3/6", or if no hexes adjacent, "(node 0x___)"
+     * @see #getAdjacentHexesToNode(int)
      */
     public String nodeCoordToString(int node)
     {
@@ -3252,8 +3255,10 @@ public class SOCBoard implements Serializable, Cloneable
         Enumeration hexes = getAdjacentHexesToNode(node).elements();
         if (! hexes.hasMoreElements())
         {
+            // Early Return: No adjacent hexes
             return "(node 0x" + Integer.toHexString(node) + ")";
         }
+
         int hex = ((Integer) hexes.nextElement()).intValue();
         int number = getNumberOnHexFromCoord(hex);
 
@@ -3285,7 +3290,10 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * @return a string representation of an edge coordinate
+     * Get the dice roll numbers for hexes on either side of this edge.
+     * @return a string representation of an edge coordinate's dice numbers, such as "5/3";
+     *      if a hex isn't a land hex, its number will be 0.
+     * @see #getNumberOnHexFromCoord(int)
      */
     public String edgeCoordToString(int edge)
     {
