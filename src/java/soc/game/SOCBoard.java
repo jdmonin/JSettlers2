@@ -673,11 +673,6 @@ public class SOCBoard implements Serializable, Cloneable
     protected Vector[] ports;
 
     /**
-     * pieces on the board; Vector of SOCPlayingPiece
-     */
-    protected Vector pieces;
-
-    /**
      * roads on the board; Vector of SOCPlayingPiece.
      * On the large sea board ({@link SOCBoardLarge}), also
      * contains all ships on the board.
@@ -730,7 +725,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Minimal super constructor for subclasses.
      * Sets {@link #boardEncodingFormat}, {@link #robberHex}, {@link #prevRobberHex}.
-     * Creates empty Vectors for {@link #pieces}, {@link #roads}, {@link #settlements},
+     * Creates empty Vectors for {@link #roads}, {@link #settlements},
      *   {@link #cities} and {@link #ports}, but not {@link #portsLayout}.
      * Creates an empty HashSet for {@link #nodesOnLand}.
      *<P>
@@ -757,7 +752,6 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * initialize the pieces vectors
          */
-        pieces = new Vector(96);
         roads = new Vector(60);
         settlements = new Vector(20);
         cities = new Vector(16);
@@ -2100,8 +2094,6 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public void putPiece(SOCPlayingPiece pp)
     {
-        pieces.addElement(pp);
-
         switch (pp.getType())
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
@@ -2128,43 +2120,30 @@ public class SOCBoard implements Serializable, Cloneable
      *<P>
      * If you're calling {@link SOCPlayer#undoPutPiece(SOCPlayingPiece)},
      * call this method first.
+     * @param piece  Piece to be removed from the board
+     *     (identified by its piece type, coordinate, and player number)
      */
     public void removePiece(SOCPlayingPiece piece)
     {
-        final int ptype = piece.getType(),
-                  pcoord = piece.getCoordinates();
+        // Vector.removeElement works because SOCPlayingPiece.equals compares
+        // the piece type, player number, and coordinate.
+        // Even if piece isn't the same object (reference) as the one in
+        // the vector, it's removed from the vector if those fields are equal.
 
-        Enumeration pEnum = pieces.elements();
-
-        while (pEnum.hasMoreElements())
+        switch (piece.getType())
         {
-            SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
+        case SOCPlayingPiece.SHIP:  // fall through to ROAD
+        case SOCPlayingPiece.ROAD:
+            roads.removeElement(piece);
+            break;
 
-            if ((ptype == p.getType()) && (pcoord == p.getCoordinates()))
-            {
-                pieces.removeElement(p);
+        case SOCPlayingPiece.SETTLEMENT:
+            settlements.removeElement(piece);
+            break;
 
-                switch (ptype)
-                {
-                case SOCPlayingPiece.SHIP:  // fall through to ROAD
-                case SOCPlayingPiece.ROAD:
-                    roads.removeElement(p);
-
-                    break;
-
-                case SOCPlayingPiece.SETTLEMENT:
-                    settlements.removeElement(p);
-
-                    break;
-
-                case SOCPlayingPiece.CITY:
-                    cities.removeElement(p);
-
-                    break;
-                }
-
-                break;
-            }
+        case SOCPlayingPiece.CITY:
+            cities.removeElement(piece);
+            break;
         }
     }
 
