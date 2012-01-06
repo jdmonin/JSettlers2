@@ -289,16 +289,11 @@ public class SOCBoardLarge extends SOCBoard
     //     TODO incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
     //
     // Not valid for this layout: TODO look for callers:
-    //   getHexLandCoords(), getPortTypeFromNodeCoord(), getNumberOnHexFromNumber(),
-    //   getHexNumFromCoord(), getHexTypeFromNumber(), getMinNode(), getMinEdge(), getMaxEdge()
+    //   getNumberOnHexFromNumber(), getHexTypeFromNumber(), getMinNode()
     //
     // Not valid if arrays are 2D:
     //   getHexLayout(), getNumberLayout(), setHexLayout(), setNumberLayout()
-    //   getHexLandCoords()
     //   Consider get/set layouts as a 1D array: r, c, contents. Only include odd-numbered rows.
-    //
-    // Maybe not valid:
-    //   getPortTypeFromHexType()
 
     // TODO unlike roads, is there ever a time when sea edges are _not_ legal?
     //  (assuming water hexes on one or both sides of the edge)
@@ -711,6 +706,19 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Given a hex coordinate, return the hex number (index) -- Not valid for this encoding.
+     * Valid only for the v1 and v2 board encoding, not v3.
+     * Always throws IllegalStateException for SOCBoardLarge.
+     * @see #getHexTypeFromCoord(int)
+     * @throws IllegalStateException if the board encoding doesn't support this method
+     */
+    public int getHexNumFromCoord(final int hexCoord)
+        throws IllegalStateException
+    {
+        throw new IllegalStateException();
+    }
+
+    /**
      * Given a hex coordinate, return the type of hex.
      *<P>
      * Unlike the original {@link SOCBoard} encoding, port types are not
@@ -723,7 +731,6 @@ public class SOCBoardLarge extends SOCBoard
      *         or {@link #WATER_HEX}.
      *         Invalid hex coordinates return -1.
      *
-     * @see #getHexNumFromCoord(int)
      * @see #getLandHexCoords()
      */
     public int getHexTypeFromCoord(final int hex)
