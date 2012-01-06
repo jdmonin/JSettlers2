@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -656,13 +656,14 @@ public class SOCPlayerTracker
         while (adjEdgesEnum.hasMoreElements())
         {
             Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
+            final int edge = adjEdge.intValue();
 
             //D.ebugPrintln("$$$ edge "+Integer.toHexString(adjEdge.intValue())+" is legal:"+player.isPotentialRoad(adjEdge.intValue()));
             //
             // see if edge is a potential road
             //
-            if ( (road.isRoadNotShip() && player.isPotentialRoad(adjEdge.intValue()))
-                 || ((! road.isRoadNotShip()) && player.isPotentialShip(adjEdge.intValue())) )
+            if ( (road.isRoadNotShip() && player.isPotentialRoad(edge))
+                 || ((! road.isRoadNotShip()) && player.isPotentialShip(edge)) )
             {
                 //
                 // see if possible road is already in the list
@@ -694,9 +695,9 @@ public class SOCPlayerTracker
                     //D.ebugPrintln("$$$ adding new pr at "+Integer.toHexString(adjEdge.intValue()));
                     SOCPossibleRoad newPR;
                     if (road.isRoadNotShip())
-                        newPR = new SOCPossibleRoad(player, adjEdge.intValue(), new Vector());
+                        newPR = new SOCPossibleRoad(player, edge, new Vector());
                     else
-                        newPR = new SOCPossibleShip(player, adjEdge.intValue(), new Vector());
+                        newPR = new SOCPossibleShip(player, edge, new Vector());
                     newPR.setNumberOfNecessaryRoads(0);
                     newPossibleRoads.addElement(newPR);
                     roadsToExpand.addElement(newPR);
@@ -745,11 +746,12 @@ public class SOCPlayerTracker
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
         SOCBoard board = player.getGame().getBoard();
+        final int tgtRoadEdge = targetRoad.getCoordinates();
         SOCRoad dummyRoad;
         if (targetRoad.isRoadNotShip())
-            dummyRoad = new SOCRoad(dummy, targetRoad.getCoordinates(), board);
+            dummyRoad = new SOCRoad(dummy, tgtRoadEdge, board);
         else
-            dummyRoad = new SOCShip(dummy, targetRoad.getCoordinates(), board);
+            dummyRoad = new SOCShip(dummy, tgtRoadEdge, board);
         dummy.putPiece(dummyRoad);
 
         //
@@ -759,7 +761,7 @@ public class SOCPlayerTracker
         //
         // check adjacent nodes to road for potential settlements
         //
-        Enumeration adjNodeEnum = board.getAdjacentNodesToEdge(targetRoad.getCoordinates()).elements();
+        Enumeration adjNodeEnum = board.getAdjacentNodesToEdge(tgtRoadEdge).elements();
 
         while (adjNodeEnum.hasMoreElements())
         {
@@ -826,18 +828,19 @@ public class SOCPlayerTracker
             //
             // check adjacent edges to road
             //
-            Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(targetRoad.getCoordinates()).elements();
+            Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(tgtRoadEdge).elements();
 
             while (adjEdgesEnum.hasMoreElements())
             {
                 Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
+                final int edge = adjEdge.intValue();
 
                 //D.ebugPrintln("$$$ edge "+Integer.toHexString(adjEdge.intValue())+" is legal:"+dummy.isPotentialRoad(adjEdge.intValue()));
                 //
                 // see if edge is a potential road
                 //
-                if ( (targetRoad.isRoadNotShip() && dummy.isPotentialRoad(adjEdge.intValue()))
-                     || ((! targetRoad.isRoadNotShip()) && dummy.isPotentialShip(adjEdge.intValue())) )
+                if ( (targetRoad.isRoadNotShip() && dummy.isPotentialRoad(edge))
+                     || ((! targetRoad.isRoadNotShip()) && dummy.isPotentialShip(edge)) )
                 {
                     //
                     // see if possible road is already in the list
@@ -887,9 +890,9 @@ public class SOCPlayerTracker
 
                         SOCPossibleRoad newPR;
                         if (targetRoad.isRoadNotShip())
-                            newPR = new SOCPossibleRoad(player, adjEdge.intValue(), neededRoads);
+                            newPR = new SOCPossibleRoad(player, edge, neededRoads);
                         else
-                            newPR = new SOCPossibleShip(player, adjEdge.intValue(), neededRoads);
+                            newPR = new SOCPossibleShip(player, edge, neededRoads);
                         newPR.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
                         targetRoad.addNewPossibility(newPR);
                         newPossibleRoads.addElement(newPR);
