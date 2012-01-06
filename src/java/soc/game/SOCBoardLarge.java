@@ -282,8 +282,7 @@ public class SOCBoardLarge extends SOCBoard
 
     // TODO override anything related to the unused super fields:
     //  hexLayout, numberLayout, minNode, minEdge, maxEdge,
-    //  numToHexID, hexIDtoNum, nodeIDtoPortType :
-    //  nodeCoordToString(), edgeCoordToString()
+    //  numToHexID, hexIDtoNum, nodeIDtoPortType
     // DONE:
     //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
     //     TODO incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
@@ -1535,8 +1534,9 @@ public class SOCBoardLarge extends SOCBoard
      * Get the coordinates of the hexes adjacent to this node.
      * These hexes may contain land or water.
      * @param nodeCoord  Node coordinate.  Is not checked for validity.
-     * @return the coordinates (Integers) of the 1 to 3 hexes touching this node
-     *         within the boundaries (0, 0, boardHeight, boardWidth).
+     * @return the coordinates (Integers) of the 1 to 3 hexes touching this node,
+     *         within the boundaries (1, 1, boardHeight-1, boardWidth-1)
+     *         because hex coordinates (their centers) are fully within the board.
      */
     public Vector getAdjacentHexesToNode(final int nodeCoord)
     {
@@ -1553,34 +1553,34 @@ public class SOCBoardLarge extends SOCBoard
         if (nodeIsY)
         {
             // North: (r-1, c)
-            if (r > 0)
+            if (r > 1)
                 hexes.addElement(new Integer(nodeCoord - 0x0100));
 
-            if (r < boardHeight)
+            if (r < (boardHeight-1))
             {
                 // SW: (r+1, c-1)
-                if (c > 0)
+                if (c > 1)
                     hexes.addElement(new Integer((nodeCoord + 0x0100) - 1));
 
                 // SE: (r+1, c+1)
-                if (c < boardWidth)
+                if (c < (boardWidth-1))
                     hexes.addElement(new Integer((nodeCoord + 0x0100) + 1));
             }
         }
         else
         {
             // South: (r+1, c)
-            if (r < boardHeight)
+            if (r < (boardHeight-1))
                 hexes.addElement(new Integer(nodeCoord + 0x0100));
 
-            if (r > 0)
+            if (r > 1)
             {
                 // NW: (r-1, c-1)
-                if (c > 0)
+                if (c > 1)
                     hexes.addElement(new Integer((nodeCoord - 0x0100) - 1));
 
                 // NE: (r-1, c+1)
-                if (c < boardWidth)
+                if (c < (boardWidth-1))
                     hexes.addElement(new Integer((nodeCoord - 0x0100) + 1));
             }
         }
@@ -2081,6 +2081,23 @@ public class SOCBoardLarge extends SOCBoard
         int[] facing = new int[portsCount];
         System.arraycopy(portsLayout, 2 * portsCount, facing, 0, portsCount);
         return facing;
+    }
+
+    /**
+     * Get the dice roll numbers for hexes on either side of this edge.
+     * @return a string representation of an edge coordinate's dice numbers, such as "5/3";
+     *      if a hex isn't a land hex, its number will be 0.
+     * @see #getNumberOnHexFromCoord(int)
+     */
+    public String edgeCoordToString(final int edge)
+    {
+        final int[] hexes = getAdjacentHexesToEdge_arr(edge);
+        final int[] dnums = new int[2];
+        for (int i = 0; i <= 1; ++i)
+            if (hexes[i] != 0)
+                dnums[i] = getNumberOnHexFromCoord(hexes[i]);
+
+        return dnums[0] + "/" + dnums[1];
     }
 
 
