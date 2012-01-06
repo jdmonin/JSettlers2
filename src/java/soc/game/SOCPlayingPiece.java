@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -119,7 +119,8 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     }
 
     /**
-     * Which edges touch this piece on the board?
+     * Which edges touch this piece's node on the board?
+     * Should not be called for roads, because they aren't placed at a node.
      * @return edges touching this piece, same format as {@link SOCBoard#getAdjacentEdgesToNode(int)}
      */
     public Vector getAdjacentEdges()
@@ -128,7 +129,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     }
 
     /**
-     * @return  the type of piece
+     * @return  the type of piece, such as {@link SOCPlayingPiece#ROAD}
      */
     public int getType()
     {
@@ -137,6 +138,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
 
     /**
      * @return the owner of the piece
+     * @see #getPlayerNumber()
      */
     public SOCPlayer getPlayer()
     {
@@ -154,7 +156,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     }
 
     /**
-     * @return the coordinates for this piece
+     * @return the node or edge coordinate for this piece
      */
     public int getCoordinates()
     {
