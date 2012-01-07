@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -60,7 +60,10 @@ public class OpeningBuildStrategy {
     protected int secondSettlement;
     
     /**
-     * used to cache resource estimates for the board
+     * Cached resource estimates for the board;
+     * <tt>resourceEstimates</tt>[{@link SOCBoard#CLAY_HEX}] == the clay rarity,
+     * as an integer percentage 0-100 of dice rolls.
+     * Initialized in {@link #estimateResourceRarity(SOCGame)}.
      */
     protected int[] resourceEstimates;
     
@@ -765,10 +768,9 @@ public class OpeningBuildStrategy {
 
         /**
          * check out good 2:1 ports that we don't have
+         * and calculate the resourceEstimates field
          */
-        //TODO: this is extremely dangerous as there already exists a variable called resourceEstimates
-        int[] resourceEstimates = null;
-        resourceEstimates = estimateResourceRarity(game);
+        final int[] resourceEstimates = estimateResourceRarity(game);
 
         for (int portType = SOCBoard.CLAY_PORT; portType <= SOCBoard.WOOD_PORT;
                 portType++)
@@ -886,31 +888,46 @@ public class OpeningBuildStrategy {
     }
     
     /**
-     * estimate the rarity of each resource
+     * Estimate the rarity of each resource, given this board's resource locations vs dice numbers.
+     * Cached after the first call, as {@link #resourceEstimates}.
      *
-     * @return an array of rarity numbers where
-     *         estimates[SOCBoard.CLAY_HEX] == the clay rarity
+     * @return an array of rarity numbers, where
+     *         estimates[SOCBoard.CLAY_HEX] == the clay rarity,
+     *         as an integer percentage 0-100 of dice rolls.
      */
     protected int[] estimateResourceRarity(SOCGame game)
     {
         if (resourceEstimates == null)
         {
-            SOCBoard board = game.getBoard();
+            final SOCBoard board = game.getBoard();
             int[] numberWeights = SOCNumberProbabilities.INT_VALUES;
 
             resourceEstimates = new int[6];
-
             resourceEstimates[0] = 0;
 
             // look at each hex
-            final int L = board.getNumberLayout().length;
-            for (int i = 0; i < L; i++)
+            if (board.getBoardEncodingFormat() <= SOCBoard.BOARD_ENCODING_6PLAYER)
             {
-                int hexNumber = board.getNumberOnHexFromNumber(i);
-
-                if (hexNumber > 0)
+                // v1 or v2 encoding
+                final int L = board.getNumberLayout().length;
+                for (int i = 0; i < L; i++)
                 {
-                    resourceEstimates[board.getHexTypeFromNumber(i)] += numberWeights[hexNumber];
+                    final int hexNumber = board.getNumberOnHexFromNumber(i);
+                    if (hexNumber > 0)
+                        resourceEstimates[board.getHexTypeFromNumber(i)] += numberWeights[hexNumber];
+                }
+            } else {
+                // v3 encoding
+                final int[] hcoord = board.getLandHexCoords();
+                if (hcoord != null)
+                {
+                    final int L = hcoord.length;
+                    for (int i = 0; i < L; i++)
+                    {
+                        final int hexNumber = board.getNumberOnHexFromCoord(hcoord[i]);
+                        if (hexNumber > 0)
+                            resourceEstimates[board.getHexTypeFromCoord(hcoord[i])] += numberWeights[hexNumber];
+                    }
                 }
             }
         }
@@ -922,6 +939,7 @@ public class OpeningBuildStrategy {
         }
 
         //log.debug();
+
         return resourceEstimates;
     }
     

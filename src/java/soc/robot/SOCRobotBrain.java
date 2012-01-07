@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -432,7 +432,10 @@ public class SOCRobotBrain extends Thread
     protected int oldGameState;
 
     /**
-     * used to cache resource estimates for the board
+     * Cached resource estimates for the board;
+     * <tt>resourceEstimates</tt>[{@link SOCBoard#CLAY_HEX}] == the clay rarity,
+     * as an integer percentage 0-100 of dice rolls.
+     * Initialized in {@link #estimateResourceRarity()}.
      */
     protected int[] resourceEstimates;
 
@@ -4238,9 +4241,9 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Estimate the rarity of each resource, given this board's resource locations vs dice numbers.
-     * Cached after the first call.
+     * Cached after the first call, as {@link #resourceEstimates}.
      *
-     * @return an array of rarity numbers where
+     * @return an array of rarity numbers, where
      *         estimates[SOCBoard.CLAY_HEX] == the clay rarity,
      *         as an integer percentage 0-100 of dice rolls.
      */
@@ -4248,19 +4251,36 @@ public class SOCRobotBrain extends Thread
     {
         if (resourceEstimates == null)
         {
-            SOCBoard board = game.getBoard();
+            final SOCBoard board = game.getBoard();
             final int[] numberWeights = SOCNumberProbabilities.INT_VALUES;
 
             resourceEstimates = new int[SOCResourceConstants.UNKNOWN];  // uses 1 to 5 (CLAY to WOOD)
             resourceEstimates[0] = 0;
 
             // look at each hex
-            final int L = board.getNumberLayout().length;
-            for (int i = 0; i < L; i++)
+            if (board.getBoardEncodingFormat() <= SOCBoard.BOARD_ENCODING_6PLAYER)
             {
-                final int hexNumber = board.getNumberOnHexFromNumber(i);
-                if (hexNumber > 0)
-                    resourceEstimates[board.getHexTypeFromNumber(i)] += numberWeights[hexNumber];
+                // v1 or v2 encoding
+                final int L = board.getNumberLayout().length;
+                for (int i = 0; i < L; i++)
+                {
+                    final int hexNumber = board.getNumberOnHexFromNumber(i);
+                    if (hexNumber > 0)
+                        resourceEstimates[board.getHexTypeFromNumber(i)] += numberWeights[hexNumber];
+                }
+            } else {
+                // v3 encoding
+                final int[] hcoord = board.getLandHexCoords();
+                if (hcoord != null)
+                {
+                    final int L = hcoord.length;
+                    for (int i = 0; i < L; i++)
+                    {
+                        final int hexNumber = board.getNumberOnHexFromCoord(hcoord[i]);
+                        if (hexNumber > 0)
+                            resourceEstimates[board.getHexTypeFromCoord(hcoord[i])] += numberWeights[hexNumber];
+                    }
+                }
             }
         }
 
@@ -4271,6 +4291,7 @@ public class SOCRobotBrain extends Thread
         //}
 
         //D.ebugPrintln();
+
         return resourceEstimates;
     }
 
@@ -4924,8 +4945,9 @@ public class SOCRobotBrain extends Thread
 
         /**
          * check out good 2:1 ports that we don't have
+         * and calculate the resourceEstimates field
          */
-        int[] resourceEstimates = estimateResourceRarity();
+        final int[] resourceEstimates = estimateResourceRarity();
 
         for (int portType = SOCBoard.CLAY_PORT; portType <= SOCBoard.WOOD_PORT;
                 portType++)
