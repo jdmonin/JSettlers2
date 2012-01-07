@@ -8880,16 +8880,24 @@ public class SOCServer extends Server
     private SOCMessage getBoardLayoutMessage(SOCGame ga)
         throws IllegalArgumentException
     {
-        SOCBoard board;
+        final SOCBoard board;
         int[] hexes;
         int[] numbers;
         int robber;
 
         board = ga.getBoard();
-        hexes = board.getHexLayout();
-        numbers = board.getNumberLayout();
-        robber = board.getRobberHex();
         final int bef = board.getBoardEncodingFormat();
+        if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
+        {
+            // v1 or v2
+            hexes = board.getHexLayout();
+            numbers = board.getNumberLayout();
+        } else {
+            // v3
+            hexes = null;
+            numbers = null;
+        }
+        robber = board.getRobberHex();
         if ((bef == 1) && (ga.getClientVersionMinRequired() < SOCBoardLayout2.VERSION_FOR_BOARDLAYOUT2))
         {
             // SOCBoard.BOARD_ENCODING_ORIGINAL: v1

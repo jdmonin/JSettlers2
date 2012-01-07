@@ -281,7 +281,7 @@ public class SOCBoardLarge extends SOCBoard
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
 
     // TODO override anything related to the unused super fields:
-    //  hexLayout, numberLayout, minNode, minEdge, maxEdge,
+    //  minNode, minEdge, maxEdge,
     //  numToHexID, hexIDtoNum, nodeIDtoPortType
     // DONE:
     //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
@@ -405,7 +405,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
-     * @param landHexType  Resource type to place into {@link #hexLayout} for each land hex; will be shuffled.
+     * @param landHexType  Resource type to place into {@link #hexLayoutLg} for each land hex; will be shuffled.
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
      * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
      *                    same array length as <tt>landHexType[]</tt>
@@ -625,6 +625,65 @@ public class SOCBoardLarge extends SOCBoard
 
 
     /**
+     * Get the hex layout -- Not valid for this encoding.
+     * Valid only for the v1 and v2 board encoding, not v3.
+     * Always throws IllegalStateException for SOCBoardLarge.
+     * Call {@link #getLandHexCoords()} instead.
+     * @throws IllegalStateException since the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
+     * @see SOCBoard#getHexLayout()
+     */
+    public int[] getHexLayout()
+        throws IllegalStateException
+    {
+        throw new IllegalStateException();
+    }
+
+    /**
+     * Set the hexLayout -- Not valid for this encoding.
+     * Valid only for the v1 and v2 board encoding, not v3.
+     * Always throws IllegalStateException for SOCBoardLarge.
+     * Call {@link #setLandHexLayout(int[])} instead.
+     * @param hl  the hex layout
+     * @throws IllegalStateException since the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
+     * @see SOCBoard#setHexLayout(int[])
+     */
+    public void setHexLayout(final int[] hl)
+        throws IllegalStateException
+    {
+        throw new IllegalStateException();
+    }
+
+    /**
+     * Get the dice-number layout of dice rolls at each hex number -- Not valid for this encoding.
+     * Call {@link #getLandHexCoords()} and {@link #getHexNumFromCoord(int)} instead.
+     * @throws IllegalStateException since the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
+     * @see SOCBoard#getNumberLayout()
+     */
+    public int[] getNumberLayout()
+        throws IllegalStateException
+    {
+        throw new IllegalStateException();
+    }
+
+    /**
+     * Set the number layout -- Not valid for this encoding.
+     * Call {@link SOCBoardLarge#setLandHexLayout(int[])} instead.
+     *
+     * @param nl  the number layout, from {@link #getNumberLayout()}
+     * @throws IllegalStateException since the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
+     * @see SOCBoard#setNumberLayout(int[])
+     */
+    public void setNumberLayout(int[] nl)
+        throws IllegalStateException
+    {
+        throw new IllegalStateException();
+    }
+
+    /**
      * Set where the pirate is.
      *
      * @param ph  the new pirate hex coordinate; must be &gt; 0, not validated beyond that
@@ -708,8 +767,10 @@ public class SOCBoardLarge extends SOCBoard
      * Given a hex coordinate, return the hex number (index) -- Not valid for this encoding.
      * Valid only for the v1 and v2 board encoding, not v3.
      * Always throws IllegalStateException for SOCBoardLarge.
+     * Hex numbers (indexes within an array of land hexes) aren't used in this encoding,
+     * hex coordinates are used instead.
      * @see #getHexTypeFromCoord(int)
-     * @throws IllegalStateException if the board encoding doesn't support this method
+     * @throws IllegalStateException since the board encoding doesn't support this method
      */
     public int getHexNumFromCoord(final int hexCoord)
         throws IllegalStateException
@@ -792,6 +853,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * The hex coordinates of all land hexes.  Please treat as read-only.
+     * If you add land hexes, call {@link #getLandHexCoords()} to recalculate this set.
      * @return land hex coordinates, as a set of {@link Integer}s
      * @since 1.2.00
      */
@@ -854,6 +916,7 @@ public class SOCBoardLarge extends SOCBoard
      * Contains 3 int elements per land hex:
      * Coordinate, Hex type (resource, as in {@link #SHEEP_HEX}), Dice Number (-1 for desert).
      * @return the layout, or null if no land hexes.
+     * @see #setLandHexLayout(int[])
      */
     public int[] getLandHexLayout()
     {
@@ -885,7 +948,7 @@ public class SOCBoardLarge extends SOCBoard
      * {@link SOCGame#setPlayersLandHexCoordinates() game.setPlayersLandHexCoordinates()}.
      * Once the potential/legal settlements are known, call each player's
      * {@link SOCPlayer#setPotentialSettlements(Collection, boolean)}.
-     * @param  lh  the layout, or null if no land hexes
+     * @param  lh  the layout, or null if no land hexes, from {@link #getLandHexLayout()}
      */
     public void setLandHexLayout(final int[] lh)
     {

@@ -2020,6 +2020,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * draw a board tile
      *<P>
+     * Not used if {@link #isLargeBoard}.
      * When {@link #isLargeBoard}, call {@link #drawHex(Graphics, int, int, int, int)} instead.
      *
      * @param g       graphics
@@ -2039,7 +2040,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param g      graphics
      * @param x      board-graphics x-coordinate to draw at; upper-left corner of hex
      * @param y      board-graphics y-coordinate to draw at; upper-left corner of hex
-     * @param hexType hex type, as in {@link SOCBoard#getHexLayout()}
+     * @param hexType hex type, as in {@link SOCBoard#getHexTypeFromCoord(int)}
      * @param hexNum  hex number (0-36), or -1 if this isn't a valid hex number
      *                   or if the dice number shouldn't be drawn.
      *                   When {@link #isLargeBoard}, pass in the hex coordinate as hexNum.
@@ -5232,7 +5233,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Hex color for a hex resource type
      * @param hexType  hexType value, as in {@link SOCBoard#DESERT_HEX}, {@link SOCBoard#WOOD_HEX},
      *                 {@link SOCBoard#WATER_HEX}.
-     *                 Same value and meaning as those in {@link SOCBoard#getHexLayout()}.
+     *                 Same value and meaning as those in {@link SOCBoard#getHexTypeFromCoord(int)}
      * @return The corresponding color from ColorSquare, or {@link ColorSquare#WATER} if hexType not recognized.
      * @since 1.1.07
      */

@@ -1017,7 +1017,8 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
-     * client instead calls methods such as {@link #setHexLayout(int[])}.
+     * client instead calls methods such as {@link #setHexLayout(int[])}
+     * or {@link SOCBoardLarge#setLandHexLayout(int[])}.
      * @param opts {@link SOCGameOption Game options}, which may affect
      *          tile placement on board, or null.  <tt>opts</tt> must be
      *          the same as passed to constructor, and thus give the same size and layout
@@ -1566,8 +1567,11 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * @return the hex layout; meaning of values same as {@link #hexLayout}.
      * @see #getLandHexCoords()
+     * @throws IllegalStateException if the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public int[] getHexLayout()
+        throws IllegalStateException
     {
         return hexLayout;
     }
@@ -1626,10 +1630,15 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * The dice-number layout of dice rolls at each hex number.
+     * Valid for the v1 and v2 encodings, not v3 ({@link #BOARD_ENCODING_LARGE}).
+     * For v3, call {@link #getLandHexCoords()} and {@link #getHexNumFromCoord(int)} instead.
      * @return the number layout; each element is valued 2-12.
-     *     The robber hex is 0.  Water hexes are -1. 
+     *     The robber hex is 0.  Water hexes are -1.
+     * @throws IllegalStateException if the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public int[] getNumberLayout()
+        throws IllegalStateException
     {
         return numberLayout;
     }
@@ -1749,8 +1758,11 @@ public class SOCBoard implements Serializable, Cloneable
      * @param hl  the hex layout.
      *   For {@link #BOARD_ENCODING_ORIGINAL}: if <tt>hl[0]</tt> is {@link #WATER_HEX},
      *    the board is assumed empty and ports arrays won't be filled.
+     * @throws IllegalStateException if the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public void setHexLayout(int[] hl)
+        throws IllegalStateException
     {
         hexLayout = hl;
 
@@ -1784,7 +1796,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * On the 6-player (v2 layout) board, each port's type, such as {@link #SHEEP_PORT}.
-     * (In the standard board (v1), these are part of {@link #hexLayout}.)
+     * (In the standard board (v1), these are part of {@link #hexLayout} instead.)
      * Same order as {@link #PORTS_FACING_V2}: Clockwise from upper-left.
      *<P>
      * <b>Note:</b> The v3 layout ({@link #BOARD_ENCODING_LARGE}) stores more information
@@ -1847,11 +1859,16 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * set the number layout
+     * Set the number layout.
+     * Valid for the v1 and v2 encodings, not v3 ({@link #BOARD_ENCODING_LARGE}).
+     * For v3, call {@link SOCBoardLarge#setLandHexLayout(int[])} instead.
      *
-     * @param nl  the number layout
+     * @param nl  the number layout, from {@link #getNumberLayout()}
+     * @throws IllegalStateException if the board encoding doesn't support this method;
+     *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      */
     public void setNumberLayout(int[] nl)
+        throws IllegalStateException
     {
         numberLayout = nl;
     }
