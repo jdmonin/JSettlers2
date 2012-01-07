@@ -2831,6 +2831,7 @@ public class SOCPlayerClient extends Applet
 
         if (ga != null)
         {
+            // BOARDLAYOUT is always the v1 board encoding (oldest format)
             SOCBoard bd = ga.getBoard();
             bd.setHexLayout(mes.getHexLayout());
             bd.setNumberLayout(mes.getNumberLayout());

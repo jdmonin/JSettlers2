@@ -44,7 +44,7 @@ import java.util.StringTokenizer;
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
- *<LI> v3: LH, maybe PL, maybe RH, maybe PH; LH is null before makeNewBoard is called
+ *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL; LH is null before makeNewBoard is called
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
  * <tt>SOCBoardLayout</tt> required a mapping/unmapping step. 
