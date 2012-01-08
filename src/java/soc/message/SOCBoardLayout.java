@@ -94,7 +94,9 @@ public class SOCBoardLayout extends SOCMessage
      *
      * @param ga   the name of the game
      * @param hl   the hex layout
-     * @param nl   the number layout
+     * @param nl   the dice number layout; not mapped yet, so map it from the
+     *               {@link soc.game.SOCBoard#getNumberLayout()} value range
+     *               to the BOARDLAYOUT message's value range.
      * @param rh   the robber hex
      */
     public SOCBoardLayout(String ga, int[] hl, int[] nl, int rh)
@@ -150,6 +152,8 @@ public class SOCBoardLayout extends SOCMessage
     }
 
     /**
+     * Get the dice number layout, already mapped from the BOARDLAYOUT message value range
+     * to the {@link soc.game.SOCBoard#setNumberLayout(int[])} value range.
      * @return the number layout
      */
     public int[] getNumberLayout()
