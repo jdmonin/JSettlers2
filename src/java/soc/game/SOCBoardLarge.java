@@ -280,15 +280,12 @@ public class SOCBoardLarge extends SOCBoard
 
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
 
-    // TODO override anything related to the unused super fields:
-    //  minNode, minEdge, maxEdge,
-    //  numToHexID, hexIDtoNum, nodeIDtoPortType
     // DONE:
     //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
     //     TODO incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
     //
     // Not valid for this layout: TODO look for callers:
-    //   getNumberOnHexFromNumber(), getHexTypeFromNumber(), getMinNode()
+    //   getNumberOnHexFromNumber(), getHexTypeFromNumber()
     //
     // Not valid if arrays are 2D:
     //   getHexLayout(), getNumberLayout(), setHexLayout(), setNumberLayout()
@@ -657,7 +654,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Get the dice-number layout of dice rolls at each hex number -- Not valid for this encoding.
-     * Call {@link #getLandHexCoords()} and {@link #getHexNumFromCoord(int)} instead.
+     * Call {@link #getLandHexCoords()} and {@link #getNumberOnHexFromCoord(int)} instead.
      * @throws IllegalStateException since the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#getNumberLayout()

@@ -320,7 +320,8 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Minimum and maximum edge and node coordinates in this board's encoding.
-     * ({@link #MAXNODE} is the same in both current encodings.)
+     * ({@link #MAXNODE} is the same in the v1 and v2 current encodings.)
+     * Not used in v3 ({@link #BOARD_ENCODING_LARGE}).
      * @since 1.1.08
      */
     private int minNode, minEdge, maxEdge;
@@ -395,7 +396,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * largest coordinate value for a node on land, in the v1 and v2 encodings
      */
-    public static final int MAXNODE = 0xDC;
+    private static final int MAXNODE = 0xDC;
 
     /**
      * smallest coordinate value for a node on land, in the v1 encoding.
@@ -404,11 +405,6 @@ public class SOCBoard implements Serializable, Cloneable
      * @since 1.1.11
      */
     protected static final int MINNODE_V1 = 0x23;
-
-    /**
-     * largest coordinate value for a node on land plus one, in the v1 and v2 encodings
-     */
-    public static final int MAXNODEPLUSONE = MAXNODE + 1;
 
     /**
      * smallest coordinate value for a node on land, in the v2 encoding
@@ -1886,7 +1882,7 @@ public class SOCBoard implements Serializable, Cloneable
     public void setRobberHex(final int rh, final boolean rememberPrevious)
         throws IllegalArgumentException
     {
-        if (rh <= 0)
+        if ((rh <= 0) && (rh != prevRobberHex))
             throw new IllegalArgumentException();
         if (rememberPrevious)
             prevRobberHex = robberHex;
@@ -2239,21 +2235,10 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * Get the minimum node coordinate in this board encoding format.
-     * Note that the maximum is currently {@link #MAXNODE}, so it has no getter.
-     * This method is not valid for the v3 encoding ({@link #BOARD_ENCODING_LARGE}).
-     * @return minimum possible node coordinate
-     * @since 1.1.08
-     */
-    public int getMinNode()
-    {
-        return minNode;
-    }
-
-    /**
      * Adjacent node coordinates to an edge, within valid range to be on the board.
      *<P>
-     * For v1 and v2 encoding, this range is {@link #getMinNode()} to {@link #MAXNODE}.
+     * For v1 and v2 encoding, this range is {@link #MINNODE_V1} to {@link #MAXNODE},
+     *   or {@link #MINNODE_V2} to {@link #MAXNODE}.
      * For v3 encoding, nodes are around all valid land or water hexes,
      *   and the board size is {@link #getBoardHeight()} x {@link #getBoardHeight()}.
      * @return the nodes that touch this edge, as a Vector of Integer coordinates
