@@ -103,184 +103,183 @@ public class OpeningBuildStrategy {
             final int firstNode = ourPotentialSettlements[i];
             // assert: ourPlayerData.isPotentialSettlement(firstNode)
 
-                final Integer firstNodeInt = new Integer(firstNode);
+            final Integer firstNodeInt = new Integer(firstNode);
 
-                //
-                // this is just for testing purposes
-                //
-                log.debug("FIRST NODE -----------");
+            //
+            // this is just for testing purposes
+            //
+            log.debug("FIRST NODE -----------");
+            log.debug("firstNode = " + board.nodeCoordToString(firstNode));
+            
+            StringBuffer sb = new StringBuffer();
+            sb.append("numbers:[");
+
+            playerNumbers.clear();
+            probTotal = playerNumbers.updateNumbersAndProbability
+                (firstNode, board, prob, sb);
+
+            sb.append("]");
+            log.debug(sb.toString());
+            sb = new StringBuffer();
+            sb.append("ports: ");
+
+            for (int portType = SOCBoard.MISC_PORT;
+                     portType <= SOCBoard.WOOD_PORT; portType++)
+            {
+                ports[portType] = (board.getPortCoordinates(portType).contains(firstNodeInt));
+
+                sb.append(ports[portType] + "  ");
+            }
+
+            log.debug(sb.toString());
+            log.debug("probTotal = " + probTotal);
+            estimate.recalculateEstimates(playerNumbers);
+            speed = 0;
+            allTheWay = false;
+
+            try
+            {
+                speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, 300, ports).getRolls();
+                speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, 300, ports).getRolls();
+                speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, 300, ports).getRolls();
+                speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, 300, ports).getRolls();
+            }
+            catch (CutoffExceededException e) {}
+
+            rolls = estimate.getEstimatesFromNothingFast(ports, 300);
+            sb = new StringBuffer();
+            sb.append(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
+            sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
+            sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
+            sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
+            log.debug(sb.toString());
+            log.debug("speed = " + speed);
+
+            //
+            // end test
+            //
+
+            for (int j = 1 + i; j < ourPotentialSettlements.length; ++j)
+            {
+                final int secondNode = ourPotentialSettlements[j];
+                // assert: ourPlayerData.isPotentialSettlement(secondNode)
+
+                if (board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
+                    continue;  // <-- too close to firstNode to build --
+
                 log.debug("firstNode = " + board.nodeCoordToString(firstNode));
-                
-                StringBuffer sb = new StringBuffer();
+                log.debug("secondNode = " + board.nodeCoordToString(secondNode));
+
+                final Integer secondNodeInt = new Integer(secondNode);
+
+                /**
+                 * get the numbers for these settlements
+                 */
+                sb = new StringBuffer();
                 sb.append("numbers:[");
 
                 playerNumbers.clear();
                 probTotal = playerNumbers.updateNumbersAndProbability
                     (firstNode, board, prob, sb);
 
+                sb.append("] [");
+
+                probTotal += playerNumbers.updateNumbersAndProbability
+                    (secondNode, board, prob, sb);
+
                 sb.append("]");
                 log.debug(sb.toString());
+
+                /**
+                 * see if the settlements are on any ports
+                 */
                 sb = new StringBuffer();
                 sb.append("ports: ");
 
                 for (int portType = SOCBoard.MISC_PORT;
-                        portType <= SOCBoard.WOOD_PORT; portType++)
+                         portType <= SOCBoard.WOOD_PORT; portType++)
                 {
-                    ports[portType] = (board.getPortCoordinates(portType).contains(firstNodeInt));
+                    ports[portType] =
+                        (board.getPortCoordinates(portType).contains(firstNodeInt))
+                        || (board.getPortCoordinates(portType).contains(secondNodeInt));
 
                     sb.append(ports[portType] + "  ");
                 }
 
                 log.debug(sb.toString());
                 log.debug("probTotal = " + probTotal);
+
+                /**
+                 * estimate the building speed for this pair
+                 */
                 estimate.recalculateEstimates(playerNumbers);
                 speed = 0;
                 allTheWay = false;
 
                 try
                 {
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, 300, ports).getRolls();
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, 300, ports).getRolls();
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, 300, ports).getRolls();
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, 300, ports).getRolls();
-                }
-                catch (CutoffExceededException e) {}
+                    speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
 
-                rolls = estimate.getEstimatesFromNothingFast(ports, 300);
+                    if (speed < bestSpeed)
+                    {
+                        speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
+
+                        if (speed < bestSpeed)
+                        {
+                            speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
+
+                            if (speed < bestSpeed)
+                            {
+                                speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
+                                allTheWay = true;
+                            }
+                        }
+                    }
+                }
+                catch (CutoffExceededException e)
+                {
+                    speed = bestSpeed;
+                }
+
+                rolls = estimate.getEstimatesFromNothingFast(ports, bestSpeed);
                 sb = new StringBuffer();
                 sb.append(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
                 sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
                 sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
                 sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
                 log.debug(sb.toString());
+                log.debug("allTheWay = " + allTheWay);
                 log.debug("speed = " + speed);
 
-                //
-                // end test
-                //
-
-                for (int j = 1 + i; j < ourPotentialSettlements.length; ++j)
+                /**
+                 * keep the settlements with the best speed
+                 */
+                if (speed < bestSpeed)
                 {
-                    final int secondNode = ourPotentialSettlements[j];
-                    // assert: ourPlayerData.isPotentialSettlement(secondNode)
-
-                    // Check secondNode, unless it's too close to firstNode to build.
-                    if (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
+                    firstSettlement = firstNode;
+                    secondSettlement = secondNode;
+                    bestSpeed = speed;
+                    bestProbTotal = probTotal;
+                    log.debug("bestSpeed = " + bestSpeed);
+                    log.debug("bestProbTotal = " + bestProbTotal);
+                }
+                else if ((speed == bestSpeed) && allTheWay)
+                {
+                    if (probTotal > bestProbTotal)
                     {
-                        log.debug("firstNode = " + board.nodeCoordToString(firstNode));
-                        log.debug("secondNode = " + board.nodeCoordToString(secondNode));
-
-                        final Integer secondNodeInt = new Integer(secondNode);
-
-                        /**
-                         * get the numbers for these settlements
-                         */
-                        sb = new StringBuffer();
-                        sb.append("numbers:[");
-
-                        playerNumbers.clear();
-                        probTotal = playerNumbers.updateNumbersAndProbability
-                            (firstNode, board, prob, sb);
-
-                        sb.append("] [");
-
-                        probTotal += playerNumbers.updateNumbersAndProbability
-                            (secondNode, board, prob, sb);
-
-                        sb.append("]");
-                        log.debug(sb.toString());
-
-                        /**
-                         * see if the settlements are on any ports
-                         */
-                        sb = new StringBuffer();
-                        sb.append("ports: ");
-
-                        for (int portType = SOCBoard.MISC_PORT;
-                                portType <= SOCBoard.WOOD_PORT; portType++)
-                        {
-                            ports[portType] =
-                                (board.getPortCoordinates(portType).contains(firstNodeInt))
-                                || (board.getPortCoordinates(portType).contains(secondNodeInt));
-
-                            sb.append(ports[portType] + "  ");
-                        }
-
-                        log.debug(sb.toString());
-                        log.debug("probTotal = " + probTotal);
-
-                        /**
-                         * estimate the building speed for this pair
-                         */
-                        estimate.recalculateEstimates(playerNumbers);
-                        speed = 0;
-                        allTheWay = false;
-
-                        try
-                        {
-                            speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
-
-                            if (speed < bestSpeed)
-                            {
-                                speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
-
-                                if (speed < bestSpeed)
-                                {
-                                    speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
-
-                                    if (speed < bestSpeed)
-                                    {
-                                        speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
-                                        allTheWay = true;
-                                    }
-                                }
-                            }
-                        }
-                        catch (CutoffExceededException e)
-                        {
-                            speed = bestSpeed;
-                        }
-
-                        rolls = estimate.getEstimatesFromNothingFast(ports, bestSpeed);
-                        sb = new StringBuffer();
-                        sb.append(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
-                        sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
-                        sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
-                        sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
-                        log.debug(sb.toString());
-                        log.debug("allTheWay = " + allTheWay);
-                        log.debug("speed = " + speed);
-
-                        /**
-                         * keep the settlements with the best speed
-                         */
-                        if (speed < bestSpeed)
-                        {
-                            firstSettlement = firstNode;
-                            secondSettlement = secondNode;
-                            bestSpeed = speed;
-                            bestProbTotal = probTotal;
-                            log.debug("bestSpeed = " + bestSpeed);
-                            log.debug("bestProbTotal = " + bestProbTotal);
-                        }
-                        else if ((speed == bestSpeed) && allTheWay)
-                        {
-                            if (probTotal > bestProbTotal)
-                            {
-                                log.debug("Equal speed, better prob");
-                                firstSettlement = firstNode;
-                                secondSettlement = secondNode;
-                                bestSpeed = speed;
-                                bestProbTotal = probTotal;
-                                log.debug("firstSettlement = " + Integer.toHexString(firstSettlement));
-                                log.debug("secondSettlement = " + Integer.toHexString(secondSettlement));
-                                log.debug("bestSpeed = " + bestSpeed);
-                                log.debug("bestProbTotal = " + bestProbTotal);
-                            }
-                        }
+                        log.debug("Equal speed, better prob");
+                        firstSettlement = firstNode;
+                        secondSettlement = secondNode;
+                        bestSpeed = speed;
+                        bestProbTotal = probTotal;
+                        log.debug("firstSettlement = " + Integer.toHexString(firstSettlement));
+                        log.debug("secondSettlement = " + Integer.toHexString(secondSettlement));
+                        log.debug("bestSpeed = " + bestSpeed);
+                        log.debug("bestProbTotal = " + bestProbTotal);
                     }
+                }
 
-                }  // for (j past i in ourPotentialSettlements[])
+            }  // for (j past i in ourPotentialSettlements[])
 
         }  // for (i in ourPotentialSettlements[])
 
@@ -293,7 +292,7 @@ public class OpeningBuildStrategy {
         final Integer firstSettlementInt = new Integer(firstSettlement);
 
         for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
-                portType++)
+                 portType++)
         {
             ports[portType] = (board.getPortCoordinates(portType).contains(firstSettlementInt));
         }
@@ -345,7 +344,7 @@ public class OpeningBuildStrategy {
         final Integer secondSettlementInt = new Integer(secondSettlement);
 
         for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
-                portType++)
+                 portType++)
         {
             ports[portType] = (board.getPortCoordinates(portType).contains(secondSettlementInt));
         }
@@ -433,76 +432,97 @@ public class OpeningBuildStrategy {
             final int secondNode = ourPotentialSettlements[i];
             // assert: ourPlayerData.isPotentialSettlement(secondNode)
 
-            if (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
+            if (board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
+                continue;  // <-- too close to firstNode to build --
+
+            final Integer secondNodeInt = new Integer(secondNode);
+
+            /**
+             * get the numbers for these settlements
+             */
+            StringBuffer sb = new StringBuffer();
+            sb.append("numbers: ");
+            playerNumbers.clear();
+            probTotal = playerNumbers.updateNumbersAndProbability
+                (firstNode, board, prob, sb);
+            probTotal += playerNumbers.updateNumbersAndProbability
+                (secondNode, board, prob, sb);
+
+            /**
+             * see if the settlements are on any ports
+             */
+            sb.append("ports: ");
+
+            for (int portType = SOCBoard.MISC_PORT;
+                     portType <= SOCBoard.WOOD_PORT; portType++)
             {
-                final Integer secondNodeInt = new Integer(secondNode);
+                ports[portType] =
+                    (board.getPortCoordinates(portType).contains(firstNodeInt))
+                    || (board.getPortCoordinates(portType).contains(secondNodeInt));
 
-                /**
-                 * get the numbers for these settlements
-                 */
-                StringBuffer sb = new StringBuffer();
-                sb.append("numbers: ");
-                playerNumbers.clear();
-                probTotal = playerNumbers.updateNumbersAndProbability
-                    (firstNode, board, prob, sb);
-                probTotal += playerNumbers.updateNumbersAndProbability
-                    (secondNode, board, prob, sb);
+                sb.append(ports[portType] + "  ");
+            }
 
-                /**
-                 * see if the settlements are on any ports
-                 */
-                sb.append("ports: ");
+            log.debug(sb.toString());
+            log.debug("probTotal = " + probTotal);
 
-                for (int portType = SOCBoard.MISC_PORT;
-                        portType <= SOCBoard.WOOD_PORT; portType++)
+            /**
+             * estimate the building speed for this pair
+             */
+            estimate.recalculateEstimates(playerNumbers);
+
+            int speed = 0;
+
+            try
+            {
+                speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
+
+                if (speed < bestSpeed)
                 {
-                    ports[portType] =
-                        (board.getPortCoordinates(portType).contains(firstNodeInt))
-                        || (board.getPortCoordinates(portType).contains(secondNodeInt));
-
-                    sb.append(ports[portType] + "  ");
-                }
-
-                log.debug(sb.toString());
-                log.debug("probTotal = " + probTotal);
-
-                /**
-                 * estimate the building speed for this pair
-                 */
-                estimate.recalculateEstimates(playerNumbers);
-
-                int speed = 0;
-
-                try
-                {
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
+                    speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
 
                     if (speed < bestSpeed)
                     {
-                        speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
+                        speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
 
                         if (speed < bestSpeed)
                         {
-                            speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
-
-                            if (speed < bestSpeed)
-                            {
-                                speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
-                            }
+                            speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
                         }
                     }
                 }
-                catch (CutoffExceededException e)
-                {
-                    speed = bestSpeed;
-                }
+            }
+            catch (CutoffExceededException e)
+            {
+                speed = bestSpeed;
+            }
 
-                log.debug(Integer.toHexString(firstNode) + ", " + Integer.toHexString(secondNode) + ":" + speed);
+            log.debug(Integer.toHexString(firstNode) + ", " + Integer.toHexString(secondNode) + ":" + speed);
 
-                /**
-                 * keep the settlements with the best speed
-                 */
-                if ((speed < bestSpeed) || (secondSettlement < 0))
+            /**
+             * keep the settlements with the best speed
+             */
+            if ((speed < bestSpeed) || (secondSettlement < 0))
+            {
+                firstSettlement = firstNode;
+                secondSettlement = secondNode;
+                bestSpeed = speed;
+                bestProbTotal = probTotal;
+                log.debug("firstSettlement = " + Integer.toHexString(firstSettlement));
+                log.debug("secondSettlement = " + Integer.toHexString(secondSettlement));
+
+                int[] rolls = estimate.getEstimatesFromNothingFast(ports);
+                sb = new StringBuffer();
+                sb.append("road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
+                sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
+                sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
+                sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
+                log.debug(sb.toString());
+                log.debug("bestSpeed = " + bestSpeed);
+            }
+            else if (speed == bestSpeed)
+            {
+                if (probTotal > bestProbTotal)
                 {
                     firstSettlement = firstNode;
                     secondSettlement = secondNode;
@@ -519,27 +539,6 @@ public class OpeningBuildStrategy {
                     sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
                     log.debug(sb.toString());
                     log.debug("bestSpeed = " + bestSpeed);
-                }
-                else if (speed == bestSpeed)
-                {
-                    if (probTotal > bestProbTotal)
-                    {
-                        firstSettlement = firstNode;
-                        secondSettlement = secondNode;
-                        bestSpeed = speed;
-                        bestProbTotal = probTotal;
-                        log.debug("firstSettlement = " + Integer.toHexString(firstSettlement));
-                        log.debug("secondSettlement = " + Integer.toHexString(secondSettlement));
-
-                        int[] rolls = estimate.getEstimatesFromNothingFast(ports);
-                        sb = new StringBuffer();
-                        sb.append("road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
-                        sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
-                        sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
-                        sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
-                        log.debug(sb.toString());
-                        log.debug("bestSpeed = " + bestSpeed);
-                    }
                 }
             }
 
@@ -628,7 +627,7 @@ public class OpeningBuildStrategy {
                  * check out good 2:1 ports
                  */
                 for (int portType = SOCBoard.CLAY_PORT;
-                        portType <= SOCBoard.WOOD_PORT; portType++)
+                         portType <= SOCBoard.WOOD_PORT; portType++)
                 {
                     /**
                      * if the chances of rolling a number on the resource is better than 1/3,
