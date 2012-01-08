@@ -489,11 +489,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         add(vpLab);
         vpSq = new ColorSquare(ColorSquare.GREY, 0);
         vpSq.setTooltipText("Total victory points for this opponent");
-        if (SOCGame.VP_WINNER <= 12)
+        if (game.vp_winner <= 12)
         {
-            vpSq.setTooltipHighWarningLevel("Close to winning", SOCGame.VP_WINNER - 2);  // (win checked in SOCGame.checkForWinner)
+            vpSq.setTooltipHighWarningLevel("Close to winning", game.vp_winner - 2);  // (win checked in SOCGame.checkForWinner)
         } else {
-            vpSq.setTooltipHighWarningLevel("Close to winning", SOCGame.VP_WINNER - 3);
+            vpSq.setTooltipHighWarningLevel("Close to winning", game.vp_winner - 3);
         }
         add(vpSq);
 

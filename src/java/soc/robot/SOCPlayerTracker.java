@@ -2371,7 +2371,8 @@ public class SOCPlayerTracker
 
             Queue necRoadQueue = new Queue();
 
-            while (points < SOCGame.VP_WINNER)  // TODO: Hardcoded 10 to win
+            final int vp_winner = player.getGame().vp_winner;
+            while (points < vp_winner)
             {
                 D.ebugPrintln("WWW points = " + points);
                 D.ebugPrintln("WWW settlementPiecesLeft = " + settlementPiecesLeft);
@@ -2397,7 +2398,7 @@ public class SOCPlayerTracker
                 D.ebugPrintln("WWW roadETA = " + roadETA);
                 D.ebugPrintln("WWW cardETA = " + cardETA);
 
-                if (points == (SOCGame.VP_WINNER - 1))
+                if (points == (vp_winner - 1))
                 {
                     fastestETA = 500;
 

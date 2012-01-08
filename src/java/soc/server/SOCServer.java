@@ -8199,15 +8199,15 @@ public class SOCServer extends Server
          */
         SOCPlayer winPl = ga.getPlayer(ga.getCurrentPlayerNumber());
 
-        if (winPl.getTotalVP() < SOCGame.VP_WINNER)
+        if (winPl.getTotalVP() < ga.vp_winner)
         {
             // Should not happen: By rules FAQ, only current player can be winner.
             // This is fallback code.
             for (int i = 0; i < ga.maxPlayers; i++)
             {
-                winPl = ga.getPlayer(i);        
-                if (winPl.getTotalVP() >= SOCGame.VP_WINNER)
+                if (winPl.getTotalVP() >= ga.vp_winner)
                 {
+                    winPl = ga.getPlayer(i);        
                     break;
                 }
             }
