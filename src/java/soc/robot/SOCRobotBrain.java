@@ -3567,10 +3567,15 @@ public class SOCRobotBrain extends Thread
 
         bestProbTotal = 0;
 
-        for (int firstNode = board.getMinNode(); firstNode <= SOCBoard.MAXNODE; firstNode++)
+        final int[] ourPotentialSettlements = ourPlayerData.getPotentialSettlements_arr();
+        if (ourPotentialSettlements == null)
+            return;  // Should not occur
+
+        for (int i = 0; i < ourPotentialSettlements.length; ++i)
         {
-            if (ourPlayerData.isPotentialSettlement(firstNode))
-            {
+            final int firstNode = ourPotentialSettlements[i];
+            // assert: ourPlayerData.isPotentialSettlement(firstNode)
+
                 Integer firstNodeInt = new Integer(firstNode);
 
                 //
@@ -3625,15 +3630,19 @@ public class SOCRobotBrain extends Thread
                 //
                 // end test
                 //
-                for (int secondNode = firstNode + 1; secondNode <= SOCBoard.MAXNODE;
-                        secondNode++)
+
+                for (int j = 1 + i; j < ourPotentialSettlements.length; ++j)
                 {
-                    if ((ourPlayerData.isPotentialSettlement(secondNode)) && (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
+                    final int secondNode = ourPotentialSettlements[j];
+                    // assert: ourPlayerData.isPotentialSettlement(secondNode)
+
+                    // Check secondNode, unless it's too close to firstNode to build.
+                    if (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
                     {
                         D.ebugPrintln("firstNode = " + board.nodeCoordToString(firstNode));
                         D.ebugPrintln("secondNode = " + board.nodeCoordToString(secondNode));
 
-                        Integer secondNodeInt = new Integer(secondNode);
+                        final Integer secondNodeInt = new Integer(secondNode);
 
                         /**
                          * get the numbers for these settlements
@@ -3735,9 +3744,10 @@ public class SOCRobotBrain extends Thread
                             }
                         }
                     }
-                }
-            }
-        }
+
+                }  // for (j past i in ourPotentialSettlements[])
+
+        }  // for (i in ourPotentialSettlements[])
 
         /**
          * choose which settlement to place first
@@ -3891,11 +3901,18 @@ public class SOCRobotBrain extends Thread
         bestProbTotal = 0;
         secondSettlement = -1;
 
-        for (int secondNode = board.getMinNode(); secondNode <= SOCBoard.MAXNODE; secondNode++)
+        final int[] ourPotentialSettlements = ourPlayerData.getPotentialSettlements_arr();
+        if (ourPotentialSettlements == null)
+            return;  // Should not occur
+
+        for (int i = 0; i < ourPotentialSettlements.length; ++i)
         {
-            if ((ourPlayerData.isPotentialSettlement(secondNode)) && (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
+            final int secondNode = ourPotentialSettlements[i];
+            // assert: ourPlayerData.isPotentialSettlement(secondNode))
+
+            if (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
             {
-                Integer secondNodeInt = new Integer(secondNode);
+                final Integer secondNodeInt = new Integer(secondNode);
 
                 /**
                  * get the numbers for these settlements
@@ -4001,7 +4018,8 @@ public class SOCRobotBrain extends Thread
                     }
                 }
             }
-        }
+
+        }  // for (i in ourPotentialSettlements[])
     }
 
     /**
@@ -4103,15 +4121,12 @@ public class SOCRobotBrain extends Thread
                  * rule out where other players are going to build
                  */
                 Hashtable allNodes = new Hashtable();
-                final int minNode = board.getMinNode();
 
-                for (int i = minNode; i <= SOCBoard.MAXNODE; i++)
                 {
-                    if (ourPlayerData.isPotentialSettlement(i))
-                    {
-                        D.ebugPrintln("-- potential settlement at " + Integer.toHexString(i));
-                        allNodes.put(new Integer(i), new Integer(0));
-                    }
+                    Iterator psi = ourPlayerData.getPotentialSettlements().iterator();
+                    while (psi.hasNext())
+                        allNodes.put(psi.next(), new Integer(0));                    
+                    // D.ebugPrintln("-- potential settlement at " + Integer.toHexString(next));
                 }
 
                 /**
@@ -4152,14 +4167,8 @@ public class SOCRobotBrain extends Thread
                  */
                 Vector psList = new Vector();
 
-                for (int j = minNode; j <= SOCBoard.MAXNODE; j++)
-                {
-                    if (ourPlayerData.isPotentialSettlement(j))
-                    {
-                        D.ebugPrintln("- potential settlement at " + Integer.toHexString(j));
-                        psList.addElement(new Integer(j));
-                    }
-                }
+                psList.addAll(ourPlayerData.getPotentialSettlements());
+                // log.debug("- potential settlement at " + Integer.toHexString(j));
 
                 dummy.setPotentialSettlements(psList);
 

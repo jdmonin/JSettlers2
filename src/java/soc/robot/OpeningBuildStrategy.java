@@ -24,6 +24,7 @@ package soc.robot;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
 
 // import org.apache.log4j.Logger;
@@ -66,9 +67,10 @@ public class OpeningBuildStrategy {
      * Initialized in {@link #estimateResourceRarity(SOCGame)}.
      */
     protected int[] resourceEstimates;
-    
-	/**
+
+    /**
      * figure out where to place the two settlements
+     * @return {@link #firstSettlement}, or 0 if no potential settlements for <tt>ourPlayerData</tt>
      */
     public int planInitialSettlements(SOCGame game, SOCPlayer ourPlayerData)
     {
@@ -92,10 +94,15 @@ public class OpeningBuildStrategy {
 
         bestProbTotal = 0;
 
-        for (int firstNode = board.getMinNode(); firstNode <= SOCBoard.MAXNODE; firstNode++)
+        final int[] ourPotentialSettlements = ourPlayerData.getPotentialSettlements_arr();
+        if (ourPotentialSettlements == null)
+            return 0;  // Should not occur
+
+        for (int i = 0; i < ourPotentialSettlements.length; ++i)
         {
-            if (ourPlayerData.isPotentialSettlement(firstNode))
-            {
+            final int firstNode = ourPotentialSettlements[i];
+            // assert: ourPlayerData.isPotentialSettlement(firstNode)
+
                 Integer firstNodeInt = new Integer(firstNode);
 
                 //
@@ -158,15 +165,19 @@ public class OpeningBuildStrategy {
                 //
                 // end test
                 //
-                for (int secondNode = firstNode + 1; secondNode <= SOCBoard.MAXNODE;
-                        secondNode++)
+
+                for (int j = 1 + i; j < ourPotentialSettlements.length; ++j)
                 {
-                    if ((ourPlayerData.isPotentialSettlement(secondNode)) && (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
+                    final int secondNode = ourPotentialSettlements[j];
+                    // assert: ourPlayerData.isPotentialSettlement(secondNode)
+
+                    // Check secondNode, unless it's too close to firstNode to build.
+                    if (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
                     {
                         log.debug("firstNode = " + board.nodeCoordToString(firstNode));
                         log.debug("secondNode = " + board.nodeCoordToString(secondNode));
 
-                        Integer secondNodeInt = new Integer(secondNode);
+                        final Integer secondNodeInt = new Integer(secondNode);
 
                         /**
                          * get the numbers for these settlements
@@ -280,9 +291,10 @@ public class OpeningBuildStrategy {
                             }
                         }
                     }
-                }
-            }
-        }
+
+                }  // for (j past i in ourPotentialSettlements[])
+
+        }  // for (i in ourPotentialSettlements[])
 
         /**
          * choose which settlement to place first
@@ -417,6 +429,7 @@ public class OpeningBuildStrategy {
 
     /**
      * figure out where to place the second settlement
+     * @return {@link #secondSettlement}, or -1 if none
      */
     public int planSecondSettlement(SOCGame game, SOCPlayer ourPlayerData)
     {
@@ -437,11 +450,18 @@ public class OpeningBuildStrategy {
         bestProbTotal = 0;
         secondSettlement = -1;
 
-        for (int secondNode = board.getMinNode(); secondNode <= SOCBoard.MAXNODE; secondNode++)
+        final int[] ourPotentialSettlements = ourPlayerData.getPotentialSettlements_arr();
+        if (ourPotentialSettlements == null)
+            return -1;  // Should not occur
+
+        for (int i = 0; i < ourPotentialSettlements.length; ++i)
         {
-            if ((ourPlayerData.isPotentialSettlement(secondNode)) && (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt)))
+            final int secondNode = ourPotentialSettlements[i];
+            // assert: ourPlayerData.isPotentialSettlement(secondNode)
+
+            if (! board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
             {
-                Integer secondNodeInt = new Integer(secondNode);
+                final Integer secondNodeInt = new Integer(secondNode);
 
                 /**
                  * get the numbers for these settlements
@@ -553,7 +573,9 @@ public class OpeningBuildStrategy {
                     }
                 }
             }
-        }
+
+        }  // for (i in ourPotentialSettlements[])
+
         return secondSettlement;
     }
     
@@ -606,15 +628,12 @@ public class OpeningBuildStrategy {
                  * rule out where other players are going to build
                  */
                 Hashtable allNodes = new Hashtable();  // <Integer.Integer>
-                final int minNode = board.getMinNode();
 
-                for (int i = minNode; i <= SOCBoard.MAXNODE; i++)
                 {
-                    if (ourPlayerData.isPotentialSettlement(i))
-                    {
-                        log.debug("-- potential settlement at " + Integer.toHexString(i));
-                        allNodes.put(new Integer(i), new Integer(0));
-                    }
+                    Iterator psi = ourPlayerData.getPotentialSettlements().iterator();
+                    while (psi.hasNext())
+                        allNodes.put(psi.next(), new Integer(0));
+                    // log.debug("-- potential settlement at " + Integer.toHexString(next));
                 }
 
                 /**
@@ -655,14 +674,8 @@ public class OpeningBuildStrategy {
                  */
                 Vector psList = new Vector();  // <Integer>
 
-                for (int j = minNode; j <= SOCBoard.MAXNODE; j++)
-                {
-                    if (ourPlayerData.isPotentialSettlement(j))
-                    {
-                        log.debug("- potential settlement at " + Integer.toHexString(j));
-                        psList.addElement(new Integer(j));
-                    }
-                }
+                psList.addAll(ourPlayerData.getPotentialSettlements());
+                // log.debug("- potential settlement at " + Integer.toHexString(j));
 
                 dummy.setPotentialSettlements(psList);
 
