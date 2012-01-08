@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,7 +45,7 @@ import soc.message.SOCMessage;
  * objects.  To search the code for uses of a game option, search for
  * its capitalized key string.
  * You will see calls to {@link SOCGame#isGameOptionDefined(String)},
- * {@link SOCGame#getGameOptionIntValue(Hashtable, String, int)}, etc.
+ * {@link SOCGame#getGameOptionIntValue(Hashtable, String, int, boolean)}, etc.
  *<P>
  * Option name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z') and digits ('0' through '9'), in order to normalize
@@ -107,6 +107,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> N7  Roll no 7s during first # rounds
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
      *<LI> NT  No trading allowed
+     *<LI> VP  Victory points (10-15)
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
      *    existing option.  So in NewGameOptionsFrame, it appears on the line following
@@ -161,6 +162,8 @@ public class SOCGameOption implements Cloneable, Comparable
      *   Some options don't need any code at the robot; for example, the robot doesn't
      *   care about the maximum number of players in a game, because the server tells the
      *   robot when to join a game.
+     *   <P>
+     *   Some options need code only in the {@link SOCGame} constructor.
      *<LI> To find other places which may possibly need an update from your new option,
      *   search the entire source tree for this marker: <code> // NEW_OPTION</code>
      *   <br>
@@ -237,6 +240,8 @@ public class SOCGameOption implements Cloneable, Comparable
                 ("BC", -1, 1107, true, 4, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
+        opt.put("VP", new SOCGameOption
+                ("VP", -1, 1200, false, 10, 10, 15, true, "Victory points to win: #"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -800,7 +805,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * This option's integer value, if this option's type has an integer component.
      * @return current integer value of this option
      * @see SOCGame#getGameOptionIntValue(Hashtable, String)
-     * @see SOCGame#getGameOptionIntValue(Hashtable, String, int)
+     * @see SOCGame#getGameOptionIntValue(Hashtable, String, int, boolean)
      */
     public int getIntValue() { return intValue; }
 

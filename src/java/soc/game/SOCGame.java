@@ -825,8 +825,8 @@ public class SOCGame implements Serializable, Cloneable
         {
             hasSeaBoard = isGameOptionSet(op, "PLL");
             final boolean wants6board = isGameOptionSet(op, "PLB");
-            final int maxpl = getGameOptionIntValue(op, "PL", 4);
-            vp_winner = VP_WINNER_STANDARD;  // TODO game option for vp_winner (10-15)
+            final int maxpl = getGameOptionIntValue(op, "PL", 4, false);
+            vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
             if (hasSeaBoard || wants6board || (maxpl > 4))
                 maxPlayers = MAXPLAYERS;  // == 6
             else
@@ -1227,6 +1227,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * What is this integer game option's current value?
+     *<P>
+     * Does not reference {@link SOCGameOption#getBoolValue()}, only the int value,
+     * so this will return a value even if the bool value is false.
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
      *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
@@ -1247,6 +1250,9 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * What is this integer game option's current value?
+     *<P>
+     * Does not reference {@link SOCGameOption#getBoolValue()}, only the int value,
+     * so this will return a value even if the bool value is false.
      * @param opts A hashtable of {@link SOCGameOption}, or null
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
@@ -1258,21 +1264,26 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.07
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
-     * @see #getGameOptionIntValue(Hashtable, String, int)
+     * @see #getGameOptionIntValue(Hashtable, String, int, boolean)
      */
     public static int getGameOptionIntValue(Hashtable opts, final String optKey)
     {
-        return getGameOptionIntValue(opts, optKey, 0);
+        return getGameOptionIntValue(opts, optKey, 0, false);
     }
 
     /**
      * What is this integer game option's current value?
+     *<P>
+     * Can optionally reference {@link SOCGameOption#getBoolValue()}, not only the int value.
      * @param opts A hashtable of {@link SOCGameOption}, or null
      * @param optKey A {@link SOCGameOption} of type {@link SOCGameOption#OTYPE_INT OTYPE_INT},
      *               {@link SOCGameOption#OTYPE_INTBOOL OTYPE_INTBOOL},
      *               {@link SOCGameOption#OTYPE_ENUM OTYPE_ENUM}
      *               or {@link SOCGameOption#OTYPE_ENUMBOOL OTYPE_ENUMBOOL}
      * @param defValue  Default value to use if <tt>optKey</tt> not defined
+     * @param onlyIfBoolSet  Check the option's {@link SOCGameOption#getBoolValue()} too;
+     *               if false, return <tt>defValue</tt>.
+     *               Do not set this parameter if the type doesn't use a boolean component.
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
      *         or <tt>defValue</tt> if not defined in the set of options;
      *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
@@ -1281,7 +1292,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(Hashtable, String)
      */
-    public static int getGameOptionIntValue(Hashtable opts, final String optKey, final int defValue)
+    public static int getGameOptionIntValue(Hashtable opts, final String optKey, final int defValue, final boolean onlyIfBoolSet)
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
@@ -1289,6 +1300,8 @@ public class SOCGame implements Serializable, Cloneable
             return defValue;
         SOCGameOption op = (SOCGameOption) opts.get(optKey);
         if (op == null)
+            return defValue;
+        if (onlyIfBoolSet && ! op.getBoolValue())
             return defValue;
         return op.getIntValue();
     }
