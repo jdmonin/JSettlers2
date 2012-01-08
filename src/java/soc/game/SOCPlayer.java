@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 import java.util.Vector;
@@ -2575,11 +2576,36 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Please make no changes, treat the returned set as read-only.
      * @return the player's set of {@link Integer} potential-settlement node coordinates
+     * @see #getPotentialSettlements_arr()
      * @since 1.2.00
      */
     public HashSet getPotentialSettlements()
     {
         return potentialSettlements;
+    }
+
+    /**
+     * Get this player's current potential settlement nodes.
+     * At the start of the game (before/during initial placement), this is all legal nodes.
+     * Afterwards it's mostly empty, and follows from the player's road locations.
+     *<P>
+     * This variant returns them as an array, for ease of use when traversing all potential settlements.
+     * @return the player's set of potential-settlement node coordinates,
+     *     or if none, <tt>null</tt>
+     * @see #getPotentialSettlements()
+     * @since 1.2.00
+     */
+    public int[] getPotentialSettlements_arr()
+    {
+        int L = potentialSettlements.size();
+        if (L == 0)
+            return null;
+
+        int[] pset = new int[L];
+        Iterator it = potentialSettlements.iterator();
+        for (int i = 0; it.hasNext(); ++i)
+            pset[i] = ((Integer) it.next()).intValue();
+        return pset;
     }
 
     /**
