@@ -308,7 +308,7 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int MAX_BOARD_ENCODING = 3;
 
     /**
-     * Size of board in coordinates (not in number of hexes across).
+     * Maximum valid coordinate value; size of board in coordinates (not in number of hexes across).
      * Default size per BOARD_ENCODING_ORIGINAL is: <pre>
      *   Hexes: 11 to DD
      *   Nodes: 01 or 10, to FE or EF
@@ -2734,6 +2734,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Get the valid node coordinates adjacent to this node.
      * Calls {@link #getAdjacentNodeToNode(int, int)}.
      * @return the nodes adjacent to this node, as a Vector of Integer coordinates
+     * @see #isNodeAdjacentToNode(int, int)
      */
     public Vector getAdjacentNodesToNode(final int coord)
     {
@@ -2756,6 +2757,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param coord  Node coordinate.  Is not checked for validity.
      * @return the nodes touching this node, as an array of 3 coordinates.
      *    Unused elements of the array are set to -9.
+     * @see #isNodeAdjacentToNode(int, int)
      * @since 1.1.08
      */
     public final int[] getAdjacentNodesToNode_arr(final int coord)
@@ -2765,6 +2767,25 @@ public class SOCBoard implements Serializable, Cloneable
             nodes[i] = getAdjacentNodeToNode(coord, i);
 
         return nodes;
+    }
+
+    /**
+     * Are these nodes adjacent to each other?
+     * @param nodeA  One node coordinate; not validated
+     * @param nodeB  Other node coordinate; not validated
+     * @return  True if {@link #getAdjacentNodesToNode(int) getAdjacentNodesToNode(nodeA)}
+     *            contains <tt>nodeB</tt>
+     * @see #getAdjacentNodesToNode(int)
+     * @since 1.2.00
+     */
+    public final boolean isNodeAdjacentToNode(final int nodeA, final int nodeB)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            if (getAdjacentNodeToNode(nodeA, i) == nodeB)
+                return true;
+        }
+        return false;
     }
 
     /**
@@ -2784,6 +2805,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @see #getAdjacentNodesToNode(int)
      * @see #getAdjacentNodeToNode2Away(int, int)
      * @see #getAdjacentEdgeToNode(int, int)
+     * @see #isNodeAdjacentToNode(int, int)
      */
     public int getAdjacentNodeToNode(final int nodeCoord, final int nodeDir)
         throws IllegalArgumentException
@@ -2979,7 +3001,7 @@ public class SOCBoard implements Serializable, Cloneable
      *
      *    (0,-2)   (+2,0)  </PRE>
      *
-     * @param hexCoord Coordinate ("ID") of this hex
+     * @param hexCoord Coordinate ("ID") of this hex; not checked for validity
      * @param includeWater Should water hexes be returned (not only land ones)?
      *         Port hexes are water hexes.
      * @return the hexes that touch this hex, as a Vector of Integer coordinates,

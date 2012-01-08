@@ -606,7 +606,6 @@ public class SOCBoardLarge extends SOCBoard
                             if (isEdgeCoastline(sides[i]))
                                 legalShipEdges.add(new Integer(sides[i]));
                     }
-                    continue;
                 }
 
             }
@@ -1059,7 +1058,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      *   (+2,-1) (+2,+1)  </PRE>
      *
-     * @param hexCoord  Coordinate ("ID") of this hex
+     * @param hexCoord  Coordinate ("ID") of this hex; not checked for validity
      * @param includeWater  Should water hexes be returned (not only land ones)?
      * @return the hexes that touch this hex, as a Vector of Integer coordinates,
      *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
@@ -1789,6 +1788,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #getAdjacentNodesToNode(int)
      * @see #getAdjacentNodeToNode2Away(int, int)
      * @see #getAdjacentEdgeToNode(int, int)
+     * @see #isNodeAdjacentToNode(int, int)
      */
     public int getAdjacentNodeToNode(final int nodeCoord, final int nodeDir)
         throws IllegalArgumentException
