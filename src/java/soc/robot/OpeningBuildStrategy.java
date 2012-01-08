@@ -164,7 +164,7 @@ public class OpeningBuildStrategy {
                 final int secondNode = ourPotentialSettlements[j];
                 // assert: ourPlayerData.isPotentialSettlement(secondNode)
 
-                if (board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
+                if (board.isNodeAdjacentToNode(secondNode, firstNode))
                     continue;  // <-- too close to firstNode to build --
 
                 log.debug("firstNode = " + board.nodeCoordToString(firstNode));
@@ -432,7 +432,7 @@ public class OpeningBuildStrategy {
             final int secondNode = ourPotentialSettlements[i];
             // assert: ourPlayerData.isPotentialSettlement(secondNode)
 
-            if (board.getAdjacentNodesToNode(secondNode).contains(firstNodeInt))
+            if (board.isNodeAdjacentToNode(secondNode, firstNode))
                 continue;  // <-- too close to firstNode to build --
 
             final Integer secondNodeInt = new Integer(secondNode);
