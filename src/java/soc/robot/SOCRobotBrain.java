@@ -3563,7 +3563,7 @@ public class SOCRobotBrain extends Thread
         int bestProbTotal;
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
-        int[] prob = SOCNumberProbabilities.INT_VALUES;
+        final int[] prob = SOCNumberProbabilities.INT_VALUES;
 
         bestProbTotal = 0;
 
@@ -3576,7 +3576,7 @@ public class SOCRobotBrain extends Thread
             final int firstNode = ourPotentialSettlements[i];
             // assert: ourPlayerData.isPotentialSettlement(firstNode)
 
-                Integer firstNodeInt = new Integer(firstNode);
+                final Integer firstNodeInt = new Integer(firstNode);
 
                 //
                 // this is just for testing purposes
@@ -3593,14 +3593,7 @@ public class SOCRobotBrain extends Thread
                 for (int portType = SOCBoard.MISC_PORT;
                         portType <= SOCBoard.WOOD_PORT; portType++)
                 {
-                    if (board.getPortCoordinates(portType).contains(firstNodeInt))
-                    {
-                        ports[portType] = true;
-                    }
-                    else
-                    {
-                        ports[portType] = false;
-                    }
+                    ports[portType] = (board.getPortCoordinates(portType).contains(firstNodeInt));
 
                     D.ebugPrint(ports[portType] + "  ");
                 }
@@ -3661,14 +3654,9 @@ public class SOCRobotBrain extends Thread
                         for (int portType = SOCBoard.MISC_PORT;
                                 portType <= SOCBoard.WOOD_PORT; portType++)
                         {
-                            if ((board.getPortCoordinates(portType).contains(firstNodeInt)) || (board.getPortCoordinates(portType).contains(secondNodeInt)))
-                            {
-                                ports[portType] = true;
-                            }
-                            else
-                            {
-                                ports[portType] = false;
-                            }
+                            ports[portType] = 
+                                (board.getPortCoordinates(portType).contains(firstNodeInt))
+                                || (board.getPortCoordinates(portType).contains(secondNodeInt));
 
                             D.ebugPrint(ports[portType] + "  ");
                         }
@@ -3755,19 +3743,12 @@ public class SOCRobotBrain extends Thread
         playerNumbers.clear();
         playerNumbers.updateNumbers(firstSettlement, board);
 
-        Integer firstSettlementInt = new Integer(firstSettlement);
+        final Integer firstSettlementInt = new Integer(firstSettlement);
 
         for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
                 portType++)
         {
-            if (board.getPortCoordinates(portType).contains(firstSettlementInt))
-            {
-                ports[portType] = true;
-            }
-            else
-            {
-                ports[portType] = false;
-            }
+            ports[portType] = (board.getPortCoordinates(portType).contains(firstSettlementInt));
         }
 
         estimate.recalculateEstimates(playerNumbers);
@@ -3814,19 +3795,12 @@ public class SOCRobotBrain extends Thread
         playerNumbers.clear();
         playerNumbers.updateNumbers(secondSettlement, board);
 
-        Integer secondSettlementInt = new Integer(secondSettlement);
+        final Integer secondSettlementInt = new Integer(secondSettlement);
 
         for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
                 portType++)
         {
-            if (board.getPortCoordinates(portType).contains(secondSettlementInt))
-            {
-                ports[portType] = true;
-            }
-            else
-            {
-                ports[portType] = false;
-            }
+            ports[portType] = (board.getPortCoordinates(portType).contains(secondSettlementInt));
         }
 
         estimate.recalculateEstimates(playerNumbers);
@@ -3887,7 +3861,7 @@ public class SOCRobotBrain extends Thread
         D.ebugPrintln("--- planSecondSettlement");
 
         int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
-        SOCBoard board = game.getBoard();
+        final SOCBoard board = game.getBoard();
         SOCResourceSet emptySet = new SOCResourceSet();
         SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
@@ -3931,14 +3905,9 @@ public class SOCRobotBrain extends Thread
                 for (int portType = SOCBoard.MISC_PORT;
                         portType <= SOCBoard.WOOD_PORT; portType++)
                 {
-                    if ((board.getPortCoordinates(portType).contains(firstNodeInt)) || (board.getPortCoordinates(portType).contains(secondNodeInt)))
-                    {
-                        ports[portType] = true;
-                    }
-                    else
-                    {
-                        ports[portType] = false;
-                    }
+                    ports[portType] =
+                        (board.getPortCoordinates(portType).contains(firstNodeInt))
+                        || (board.getPortCoordinates(portType).contains(secondNodeInt));
 
                     D.ebugPrint(ports[portType] + "  ");
                 }
@@ -4085,7 +4054,7 @@ public class SOCRobotBrain extends Thread
          * look at all of the nodes that are 2 away from the
          * last settlement, and pick the best one
          */
-        SOCBoard board = game.getBoard();
+        final SOCBoard board = game.getBoard();
 
         for (int facing = 1; facing <= 6; ++facing)
         {
@@ -4112,7 +4081,7 @@ public class SOCRobotBrain extends Thread
              * do a look ahead so we don't build toward a place
              * where someone else will build first.
              */
-            int numberOfBuilds = numberOfEnemyBuilds();
+            final int numberOfBuilds = numberOfEnemyBuilds();
             D.ebugPrintln("Other players will build " + numberOfBuilds + " settlements before I get to build again.");
 
             if (numberOfBuilds > 0)
@@ -4156,7 +4125,7 @@ public class SOCRobotBrain extends Thread
                     if (resourceEstimates[portType] > 33)
                     {
                         Vector portNodes = game.getBoard().getPortCoordinates(portType);
-                        int portWeight = (resourceEstimates[portType] * 10) / 56;
+                        final int portWeight = (resourceEstimates[portType] * 10) / 56;
                         bestSpot2AwayFromANodeSet(allNodes, portNodes, portWeight);
                     }
                 }
@@ -4343,7 +4312,7 @@ public class SOCRobotBrain extends Thread
              * lowest score is 0
              */
             final int nScore = ((score * 100) / 40) * weight;
-            Integer finalScore = new Integer(nScore + oldScore);
+            final Integer finalScore = new Integer(nScore + oldScore);
             nodes.put(node, finalScore);
 
             //D.ebugPrintln("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);
@@ -4403,7 +4372,7 @@ public class SOCRobotBrain extends Thread
              * lowest score is 0
              */
             final int nScore = ((score * 100) / 80) * weight;
-            Integer finalScore = new Integer(nScore + oldScore);
+            final Integer finalScore = new Integer(nScore + oldScore);
             nodes.put(node, finalScore);
 
             //D.ebugPrintln("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);

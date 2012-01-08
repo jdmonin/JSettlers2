@@ -90,7 +90,7 @@ public class OpeningBuildStrategy {
         int bestProbTotal;
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
-        int[] prob = SOCNumberProbabilities.INT_VALUES;
+        final int[] prob = SOCNumberProbabilities.INT_VALUES;
 
         bestProbTotal = 0;
 
@@ -103,7 +103,7 @@ public class OpeningBuildStrategy {
             final int firstNode = ourPotentialSettlements[i];
             // assert: ourPlayerData.isPotentialSettlement(firstNode)
 
-                Integer firstNodeInt = new Integer(firstNode);
+                final Integer firstNodeInt = new Integer(firstNode);
 
                 //
                 // this is just for testing purposes
@@ -126,14 +126,7 @@ public class OpeningBuildStrategy {
                 for (int portType = SOCBoard.MISC_PORT;
                         portType <= SOCBoard.WOOD_PORT; portType++)
                 {
-                    if (board.getPortCoordinates(portType).contains(firstNodeInt))
-                    {
-                        ports[portType] = true;
-                    }
-                    else
-                    {
-                        ports[portType] = false;
-                    }
+                    ports[portType] = (board.getPortCoordinates(portType).contains(firstNodeInt));
 
                     sb.append(ports[portType] + "  ");
                 }
@@ -206,14 +199,9 @@ public class OpeningBuildStrategy {
                         for (int portType = SOCBoard.MISC_PORT;
                                 portType <= SOCBoard.WOOD_PORT; portType++)
                         {
-                            if ((board.getPortCoordinates(portType).contains(firstNodeInt)) || (board.getPortCoordinates(portType).contains(secondNodeInt)))
-                            {
-                                ports[portType] = true;
-                            }
-                            else
-                            {
-                                ports[portType] = false;
-                            }
+                            ports[portType] =
+                                (board.getPortCoordinates(portType).contains(firstNodeInt))
+                                || (board.getPortCoordinates(portType).contains(secondNodeInt));
 
                             sb.append(ports[portType] + "  ");
                         }
@@ -302,19 +290,12 @@ public class OpeningBuildStrategy {
         playerNumbers.clear();
         playerNumbers.updateNumbers(firstSettlement, board);
 
-        Integer firstSettlementInt = new Integer(firstSettlement);
+        final Integer firstSettlementInt = new Integer(firstSettlement);
 
         for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
                 portType++)
         {
-            if (board.getPortCoordinates(portType).contains(firstSettlementInt))
-            {
-                ports[portType] = true;
-            }
-            else
-            {
-                ports[portType] = false;
-            }
+            ports[portType] = (board.getPortCoordinates(portType).contains(firstSettlementInt));
         }
 
         estimate.recalculateEstimates(playerNumbers);
@@ -361,19 +342,12 @@ public class OpeningBuildStrategy {
         playerNumbers.clear();
         playerNumbers.updateNumbers(secondSettlement, board);
 
-        Integer secondSettlementInt = new Integer(secondSettlement);
+        final Integer secondSettlementInt = new Integer(secondSettlement);
 
         for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
                 portType++)
         {
-            if (board.getPortCoordinates(portType).contains(secondSettlementInt))
-            {
-                ports[portType] = true;
-            }
-            else
-            {
-                ports[portType] = false;
-            }
+            ports[portType] = (board.getPortCoordinates(portType).contains(secondSettlementInt));
         }
 
         estimate.recalculateEstimates(playerNumbers);
@@ -436,16 +410,16 @@ public class OpeningBuildStrategy {
         log.debug("--- planSecondSettlement");
 
         int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
-        SOCBoard board = game.getBoard();
+        final SOCBoard board = game.getBoard();
         SOCResourceSet emptySet = new SOCResourceSet();
         SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
         boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
         int probTotal;
         int bestProbTotal;
-        int[] prob = SOCNumberProbabilities.INT_VALUES;
-        int firstNode = firstSettlement;
-        Integer firstNodeInt = new Integer(firstNode);
+        final int[] prob = SOCNumberProbabilities.INT_VALUES;
+        final int firstNode = firstSettlement;
+        final Integer firstNodeInt = new Integer(firstNode);
 
         bestProbTotal = 0;
         secondSettlement = -1;
@@ -482,14 +456,9 @@ public class OpeningBuildStrategy {
                 for (int portType = SOCBoard.MISC_PORT;
                         portType <= SOCBoard.WOOD_PORT; portType++)
                 {
-                    if ((board.getPortCoordinates(portType).contains(firstNodeInt)) || (board.getPortCoordinates(portType).contains(secondNodeInt)))
-                    {
-                        ports[portType] = true;
-                    }
-                    else
-                    {
-                        ports[portType] = false;
-                    }
+                    ports[portType] =
+                        (board.getPortCoordinates(portType).contains(firstNodeInt))
+                        || (board.getPortCoordinates(portType).contains(secondNodeInt));
 
                     sb.append(ports[portType] + "  ");
                 }
@@ -581,10 +550,14 @@ public class OpeningBuildStrategy {
     
     /**
      * place a road attached to the last initial settlement
+     * @return road edge adjacent to initial settlement node
      */
     public int planInitRoad(SOCGame game, SOCPlayer ourPlayerData, SOCRobotClient client)
     {
-        int settlementNode = ourPlayerData.getLastSettlementCoord();
+        // TODO handle ships here
+
+        final int settlementNode = ourPlayerData.getLastSettlementCoord();
+
         Hashtable twoAway = new Hashtable();  // <Integer,Integer>
 
         log.debug("--- placeInitRoad");
@@ -593,7 +566,8 @@ public class OpeningBuildStrategy {
          * look at all of the nodes that are 2 away from the
          * last settlement and pick the best one
          */
-        SOCBoard board = game.getBoard();
+        final SOCBoard board = game.getBoard();
+
         for (int facing = 1; facing <= 6; ++facing)
         {
             // each of 6 directions: NE, E, SE, SW, W, NW
@@ -619,7 +593,7 @@ public class OpeningBuildStrategy {
              * do a look ahead so we don't build toward a place
              * where someone else will build first.
              */
-            int numberOfBuilds = numberOfEnemyBuilds(game);
+            final int numberOfBuilds = numberOfEnemyBuilds(game);
             log.debug("Other players will build " + numberOfBuilds + " settlements before I get to build again.");
 
             if (numberOfBuilds > 0)
@@ -663,7 +637,7 @@ public class OpeningBuildStrategy {
                     if (resourceEstimates[portType] > 33)
                     {
                         Vector portNodes = board.getPortCoordinates(portType);
-                        int portWeight = (resourceEstimates[portType] * 10) / 56;
+                        final int portWeight = (resourceEstimates[portType] * 10) / 56;
                         bestSpot2AwayFromANodeSet(board, allNodes, portNodes, portWeight);
                     }
                 }
@@ -995,7 +969,7 @@ public class OpeningBuildStrategy {
              * lowest score is 0
              */
             int nScore = ((score * 100) / 40) * weight;
-            Integer finalScore = new Integer(nScore + oldScore);
+            final Integer finalScore = new Integer(nScore + oldScore);
             nodes.put(node, finalScore);
 
             //log.debug("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);
@@ -1114,7 +1088,7 @@ public class OpeningBuildStrategy {
              * lowest score is 0
              */
             int nScore = ((score * 100) / 80) * weight;
-            Integer finalScore = new Integer(nScore + oldScore);
+            final Integer finalScore = new Integer(nScore + oldScore);
             nodes.put(node, finalScore);
 
             //log.debug("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);
