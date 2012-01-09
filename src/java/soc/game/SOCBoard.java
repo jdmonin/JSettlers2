@@ -510,10 +510,15 @@ public class SOCBoard implements Serializable, Cloneable
          @see #getAdjacentNodeToHex(int, int)
      *
      **/
-    private int[] hexLayout =   // initially all WATER_HEX (== 6)
+    private int[] hexLayout =   // initially all WATER_HEX
     {
-        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-        6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, WATER_HEX
+        WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX,
+        WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX,
+        WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX,
+        WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX,
+        WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX,
+        WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX,
+        WATER_HEX, WATER_HEX, WATER_HEX, WATER_HEX
     };
 
     /**
@@ -553,8 +558,12 @@ public class SOCBoard implements Serializable, Cloneable
      *<P>
      *  <tt>numberLayout</tt>[i] is the dice number for the land hex stored in {@link #hexLayout}[i].
      *  The robber hex is 0.  Water hexes are -1.
+     *<P>
+     *  Used in the v1 and v2 encodings (ORIGINAL, 6PLAYER).
+     *  The v3 encoding ({@link #BOARD_ENCODING_LARGE}) doesn't use this array,
+     *  instead it uses {@link SOCBoardLarge#numberLayoutLg}.
      */
-    private int[] numberLayout =    // TODO largerboard: assumes hexLayout.length == 37 (is valid for ORIGINAL, 6PLAYER encodings)
+    private int[] numberLayout =
     {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -1026,7 +1035,11 @@ public class SOCBoard implements Serializable, Cloneable
 
         // landHex_v1 == makeNewBoard_landHexTypes_v1
         // number_v1  == makeNewBoard_diceNums_v1
-        final int[] landHex_6pl = { 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 
+        final int[] landHex_6pl = {   // same as v1's hexes: makeNewBoard_landHexTypes_v1[]
+            DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+            SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+            WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+            WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX,   // last line of v1's hexes
             DESERT_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX, SHEEP_HEX,
             WHEAT_HEX, WHEAT_HEX, WOOD_HEX, WOOD_HEX };
         final int[] number_6pl =
@@ -1562,6 +1575,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * @return the hex layout; meaning of values same as {@link #hexLayout}.
+     *     Please treat the returned array as read-only.
      * @see #getLandHexCoords()
      * @throws IllegalStateException if the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
