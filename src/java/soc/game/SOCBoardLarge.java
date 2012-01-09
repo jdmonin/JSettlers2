@@ -168,13 +168,13 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Key to the hexLayoutLg[][] values:
        <pre>
-       0 : desert  {@link #DESERT_HEX}
+       0 : water   {@link #WATER_HEX}
        1 : clay    {@link #CLAY_HEX}
        2 : ore     {@link #ORE_HEX}
        3 : sheep   {@link #SHEEP_HEX}
        4 : wheat   {@link #WHEAT_HEX}
-       5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
-       6 : water   {@link #WATER_HEX}
+       5 : wood    {@link #WOOD_HEX}
+       6 : desert  {@link #DESERT_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX} 
        </pre>
      *<P>
      * @see SOCBoard#portsLayout
@@ -280,13 +280,6 @@ public class SOCBoardLarge extends SOCBoard
 
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
 
-    // DONE:
-    //  getNumberOnHexFromCoord(), getHexTypeFromCoord()
-    //     TODO incl not-valid getNumberOnHexFromNumber, getHexTypeFromNumber [using num==coord]
-    //
-    // Not valid for this layout: TODO look for callers:
-    //   getNumberOnHexFromNumber(), getHexTypeFromNumber()
-    //
     // Not valid if arrays are 2D:
     //   getHexLayout(), getNumberLayout(), setHexLayout(), setNumberLayout()
     //   Consider get/set layouts as a 1D array: r, c, contents. Only include odd-numbered rows.
@@ -538,15 +531,19 @@ public class SOCBoardLarge extends SOCBoard
                     final int edge = getAdjacentEdgeToNode(node, dir);
 
                     // Ensure it doesn't cross water
+                    // by requiring land on at least one side of the edge
                     boolean hasLand = false;
                     final int[] hexes = getAdjacentHexesToEdge_arr(edge);
                     for (int i = 0; i <= 1; ++i)
                     {
-                        if ((hexes[i] != 0)
-                            && (getHexTypeFromCoord(hexes[i]) <= MAX_LAND_HEX))
+                        if (hexes[i] != 0)
                         {
-                            hasLand = true;
-                            break;
+                            final int htype = getHexTypeFromCoord(hexes[i]);
+                            if ((htype != WATER_HEX) && (htype <= MAX_LAND_HEX))
+                            {
+                                hasLand = true;
+                                break;
+                            }
                         }
                     }
 
@@ -837,11 +834,16 @@ public class SOCBoardLarge extends SOCBoard
 
         for (int i = 0; i <= 1; ++i)
         {
-            if ((hexes[i] != 0)
-                && (getHexTypeFromCoord(hexes[i]) <= MAX_LAND_HEX))
-                hasLand = true;
-            else
+            if (hexes[i] != 0)
+            {
+                final int htype = getHexTypeFromCoord(hexes[i]);
+                if ((htype <= MAX_LAND_HEX) && (htype != WATER_HEX))
+                    hasLand = true;
+                else
+                    hasWater = true;
+            } else {
                 hasWater = true;  // treat off-board as water
+            }
         }
 
         return (hasLand && hasWater);
@@ -892,7 +894,7 @@ public class SOCBoardLarge extends SOCBoard
     public boolean isHexOnLand(final int hexCoord)
     {
         final int htype = getHexTypeFromCoord(hexCoord);
-        return (htype != -1) && (htype <= MAX_LAND_HEX);
+        return (htype != -1) && (htype != WATER_HEX) && (htype <= MAX_LAND_HEX);
     }
 
     /**
@@ -1099,7 +1101,8 @@ public class SOCBoardLarge extends SOCBoard
             return;  // not a valid hex row
 
         if (includeWater
-            || (hexLayoutLg[r][c] <= MAX_LAND_HEX))
+            || ((hexLayoutLg[r][c] <= MAX_LAND_HEX)
+                && (hexLayoutLg[r][c] != WATER_HEX)) )
         {
             addTo.addElement(new Integer((r << 8) | c));
         }

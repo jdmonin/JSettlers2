@@ -605,6 +605,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Hex pix - shared unscaled original-resolution from GIF files.
      * Note that miscPort0.gif - miscPort5.gif are stored in {@link #hexes};
      * {@link #ports} stores the resource ports.
+     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class)}.
      * @see #scaledHexes
      * @see #rotatHexes
      */
@@ -2040,7 +2041,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param g      graphics
      * @param x      board-graphics x-coordinate to draw at; upper-left corner of hex
      * @param y      board-graphics y-coordinate to draw at; upper-left corner of hex
-     * @param hexType hex type, as in {@link SOCBoard#getHexTypeFromCoord(int)}
+     * @param hexType hex type, as in {@link SOCBoard#getHexTypeFromCoord(int)};
+     *                   also the index into {@link #hexes}
      * @param hexNum  hex number (0-36), or -1 if this isn't a valid hex number
      *                   or if the dice number shouldn't be drawn.
      *                   When {@link #isLargeBoard}, pass in the hex coordinate as hexNum.
@@ -5200,13 +5202,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         (Image[] newHexes, Image[] newPorts, String imageDir,
          MediaTracker tracker, Toolkit tk, Class clazz)
     {
-        newHexes[0] = tk.getImage(clazz.getResource(imageDir + "/desertHex.gif"));
+        newHexes[0] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
         newHexes[1] = tk.getImage(clazz.getResource(imageDir + "/clayHex.gif"));
         newHexes[2] = tk.getImage(clazz.getResource(imageDir + "/oreHex.gif"));
         newHexes[3] = tk.getImage(clazz.getResource(imageDir + "/sheepHex.gif"));
         newHexes[4] = tk.getImage(clazz.getResource(imageDir + "/wheatHex.gif"));
         newHexes[5] = tk.getImage(clazz.getResource(imageDir + "/woodHex.gif"));
-        newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
+        newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/desertHex.gif"));
         for (int i = 0; i < 7; i++)
         {
             tracker.addImage(newHexes[i], 0);

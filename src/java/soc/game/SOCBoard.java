@@ -92,31 +92,42 @@ public class SOCBoard implements Serializable, Cloneable
     //
     // Hex types
     //
-    /** Desert; lowest-numbered hex type */
-    public static final int DESERT_HEX = 0;
+
+    /**
+     * Water hex; lower-numbered than all land hex types.
+     * Before v1.2.00, value was 6 instead of 0.
+     * @see #isHexOnLand(int)
+     * @see #isHexOnWater(int)
+     * @see #CLAY_HEX
+     * @see #MAX_LAND_HEX
+     */
+    public static final int WATER_HEX = 0;
+
+    /**
+     * Clay; lowest-numbered hex type.
+     * @see #WATER_HEX
+     */
     public static final int CLAY_HEX = 1;
     public static final int ORE_HEX = 2;
     public static final int SHEEP_HEX = 3;
     public static final int WHEAT_HEX = 4;
-    /** Wood; highest-numbered land hex type (also {@link #MAX_LAND_HEX}, {@link #MAX_ROBBER_HEX}) */
+    /** Wood */
     public static final int WOOD_HEX = 5;
 
     /**
-     * Highest-numbered land hex type (currently wood; also currently {@link #MAX_ROBBER_HEX})
+     * Desert; highest-numbered hex type (also {@link #MAX_LAND_HEX}, {@link #MAX_ROBBER_HEX}).
+     * Before v1.2.00, value was 0 instead of 6.
+     */
+    public static final int DESERT_HEX = 6;
+
+    /**
+     * Highest-numbered land hex type (currently {@link #DESERT_HEX}; also currently {@link #MAX_ROBBER_HEX}).
      * @since 1.1.07
      * @see #isHexOnLand(int)
      * @see #isHexOnWater(int)
      * @see #WATER_HEX
      */
-    protected static final int MAX_LAND_HEX = 5;  // Also MAX_ROBBER_HEX
-
-    /**
-     * Water hex; higher-numbered than all land hex types.
-     * @see #isHexOnLand(int)
-     * @see #isHexOnWater(int)
-     * @see #MAX_LAND_HEX
-     */
-    public static final int WATER_HEX = 6;
+    protected static final int MAX_LAND_HEX = 6;  // Also MAX_ROBBER_HEX
 
     /** Misc (3-for-1) port type; lowest-numbered port-hextype integer */
     public static final int MISC_PORT_HEX = 7;  // Must be first port-hextype integer
@@ -446,13 +457,13 @@ public class SOCBoard implements Serializable, Cloneable
      *<P>
      * Key to the hexLayout[] values:
        <pre>
-       0 : desert  {@link #DESERT_HEX}
+       0 : water   {@link #WATER_HEX} (was 6 before v1.2.00)
        1 : clay    {@link #CLAY_HEX}
        2 : ore     {@link #ORE_HEX}
        3 : sheep   {@link #SHEEP_HEX}
        4 : wheat   {@link #WHEAT_HEX}
-       5 : wood    {@link #WOOD_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
-       6 : water   {@link #WATER_HEX}
+       5 : wood    {@link #WOOD_HEX}
+       6 : desert  {@link #DESERT_HEX} (was 0 before v1.2.00) also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
        7 : misc port ("3:1") facing land in direction 1 ({@link #FACING_NE NorthEast})
                              (this port type is {@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
        8 : misc port facing 2 ({@link #FACING_E})
@@ -1619,7 +1630,7 @@ public class SOCBoard implements Serializable, Cloneable
         if (hnum < 0)
             return false;
         else
-            return (hexLayout[hnum] <= MAX_LAND_HEX);
+            return ((hexLayout[hnum] <= MAX_LAND_HEX) && (hexLayout[hnum] != WATER_HEX));
     }
 
     /**
@@ -1635,7 +1646,7 @@ public class SOCBoard implements Serializable, Cloneable
         if (hnum < 0)
             return false;
         else
-            return (hexLayout[hnum] > MAX_LAND_HEX);
+            return ((hexLayout[hnum] > MAX_LAND_HEX) || (hexLayout[hnum] == WATER_HEX));
     }
 
     /**
@@ -1856,7 +1867,7 @@ public class SOCBoard implements Serializable, Cloneable
     {
         int portType = 0;
 
-        if ((hexType >= 7) && (hexType <= 12))
+        if ((hexType >= MISC_PORT_HEX) && (hexType <= 12))
         {
             portType = 0;
         }
@@ -2079,13 +2090,14 @@ public class SOCBoard implements Serializable, Cloneable
     {
         if ((hex < 0) || (hex >= hexLayout.length))
             return -1;
+
         final int hexType = hexLayout[hex];
 
-        if (hexType < 7)
+        if (hexType < MISC_PORT_HEX)
         {
             return hexType;
         }
-        else if ((hexType >= 7) && (hexType <= 12))
+        else if ((hexType >= MISC_PORT_HEX) && (hexType <= 12))
         {
             return MISC_PORT_HEX;
         }
@@ -3062,7 +3074,8 @@ public class SOCBoard implements Serializable, Cloneable
         if ((hexCoord >= MINHEX) && (hexCoord <= MAXHEX)
             && (hexIDtoNum[hexCoord] != -1)
             && (includeWater
-                || hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX))
+                || ((hexLayout[hexIDtoNum[hexCoord]] <= MAX_LAND_HEX)
+                    && (hexLayout[hexIDtoNum[hexCoord]] != WATER_HEX)) ))
             addTo.addElement(new Integer(hexCoord));
     }
 
