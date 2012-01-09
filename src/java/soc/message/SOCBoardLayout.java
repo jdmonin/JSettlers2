@@ -22,6 +22,8 @@ package soc.message;
 
 import java.util.StringTokenizer;
 
+import soc.game.SOCBoard;
+
 
 /**
  * This message contains the board layout information.
@@ -39,6 +41,11 @@ import java.util.StringTokenizer;
  * {@link soc.game.SOCBoard#getNumberLayout()} in 1.1.08, the version which
  * introduced <tt>SOCBoardLayout2</tt>.  Older clients/servers will still need the
  * mapping done, so it's now done here instead of in SOCBoard.
+ *<P>
+ * In 1.2.00 and newer, the hex layout values for WATER_HEX and DESERT_HEX
+ * were changed to allow new types of land hex.  Just like the dice numbers,
+ * this is mapped in the constructor, sent over the network, and unmapped in
+ * {@link #getHexLayout()}, for backwards compatibility with older clients.
  *
  * @author Robert S. Thomas
  */
@@ -70,12 +77,19 @@ public class SOCBoardLayout extends SOCMessage
     private static final int[] sentNum2BoardNum = { 2, 3, 4, 5, 6, 8, 9, 10, 11, 12 };
 
     /**
+     * Hex land type numbers sent over the network.
+     * Compare to {@link SOCBoard#WATER_HEX}, {@link SOCBoard#DESERT_HEX}.
+     * @since 1.2.00
+     */
+    private static final int SENTLAND_WATER = 6, SENTLAND_DESERT = 0;
+
+    /**
      * Name of game
      */
     private String game;
 
     /**
-     * The hex layout
+     * The hex layout; a mapping/unmapping step is done in constructor/{@link #getHexLayout()}.
      */
     private int[] hexLayout;
 
@@ -93,10 +107,11 @@ public class SOCBoardLayout extends SOCMessage
      * Create a SOCBoardLayout message
      *
      * @param ga   the name of the game
-     * @param hl   the hex layout
-     * @param nl   the dice number layout; not mapped yet, so map it from the
-     *               {@link soc.game.SOCBoard#getNumberLayout()} value range
-     *               to the BOARDLAYOUT message's value range.
+     * @param hl   the hex layout; not mapped yet from SOCBoard's value range,
+     *               so the constructor will map it.
+     * @param nl   the dice number layout; not mapped yet, so the constructor
+     *               will map it from the {@link SOCBoard#getNumberLayout()} value
+     *               range to the BOARDLAYOUT message's value range.
      * @param rh   the robber hex
      */
     public SOCBoardLayout(String ga, int[] hl, int[] nl, int rh)
@@ -111,18 +126,35 @@ public class SOCBoardLayout extends SOCMessage
      * @param hl   the hex layout
      * @param nl   the number layout
      * @param rh   the robber hex
-     * @param alreadyMappedNL  has the number layout already been mapped?
+     * @param alreadyMapped  have the hex layout and number layout already been mapped?
      * @since 1.1.08
      */
-    private SOCBoardLayout(String ga, int[] hl, int[] nl, int rh, boolean alreadyMappedNL)
+    private SOCBoardLayout
+        (String ga, final int[] hl, final int[] nl, final int rh, final boolean alreadyMapped)
     {
         messageType = BOARDLAYOUT;
         game = ga;
-        hexLayout = hl;
-        if (alreadyMappedNL)
+        if (alreadyMapped)
         {
+            hexLayout = hl;
             numberLayout = nl;
         } else {
+            hexLayout = new int[hl.length];
+            for (int i = hl.length - 1; i >= 0; --i)
+            {
+                int h = hl[i];
+                switch (h)
+                {
+                case SOCBoard.WATER_HEX:
+                    h = SENTLAND_WATER;   break;
+                case SOCBoard.DESERT_HEX:
+                    h = SENTLAND_DESERT;  break;
+                default:
+                    // leave unchanged
+                }
+                hexLayout[i] = h;
+            }
+
             numberLayout = new int[nl.length];
             for (int i = nl.length - 1; i >= 0; --i)
             {
@@ -144,11 +176,28 @@ public class SOCBoardLayout extends SOCMessage
     }
 
     /**
+     * Get the hex layout, already mapped from the BOARDLAYOUT message value range
+     * to the {@link SOCBoard#setHexLayout(int[])} value range.
      * @return the hex layout
      */
     public int[] getHexLayout()
     {
-        return hexLayout;
+        int[] hl = new int[hexLayout.length];
+        for (int i = hl.length - 1; i >= 0; --i)
+        {
+            int h = hexLayout[i];
+            switch (h)
+            {
+            case SENTLAND_WATER:
+                h = SOCBoard.WATER_HEX;   break;
+            case SENTLAND_DESERT:
+                h = SOCBoard.DESERT_HEX;  break;
+            default:
+                // leave unchanged
+            }
+            hl[i] = h;
+        }
+        return hl;
     }
 
     /**

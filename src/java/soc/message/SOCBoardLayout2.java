@@ -22,6 +22,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
+import soc.game.SOCBoard;
+
 
 /**
  * This message contains the board's layout information and its encoding version.
@@ -33,7 +35,11 @@ import java.util.StringTokenizer;
  *<P>
  * Names of typical parts of the board layout:
  *<UL>
- *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}
+ *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}.
+ *         For backwards compatibility, the values for {@link SOCBoard#WATER_HEX} and
+ *         {@link SOCBoard#DESERT_HEX} are changed to their pre-1.2.00 values in the
+ *         constructor before sending over the network, and changed back in
+ *         {@link #getIntArrayPart(String) getIntArrayPart("HL")}.
  *<LI> NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
  *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}, if &gt; 0
  *<LI> PL: The ports, from {@link SOCBoard#getPortsLayout()}
@@ -61,6 +67,13 @@ public class SOCBoardLayout2 extends SOCMessage
      * and send VERSION_FOR_BOARDLAYOUT2.
      */
     public static final int VERSION_FOR_BOARDLAYOUT2 = 1108;
+
+    /**
+     * Hex land type numbers sent over the network.
+     * Compare to {@link SOCBoard#WATER_HEX}, {@link SOCBoard#DESERT_HEX}.
+     * @since 1.2.00
+     */
+    private static final int SENTLAND_WATER = 6, SENTLAND_DESERT = 0;
 
     /**
      * Name of game
@@ -100,18 +113,39 @@ public class SOCBoardLayout2 extends SOCMessage
      *
      * @param ga   the name of the game
      * @param bef  the board encoding format number, from {@link SOCBoard#getBoardEncodingFormat()}
-     * @param hl   the hex layout
+     * @param hl   the hex layout; not mapped yet, so the constructor will map it from the
+     *               {@link soc.game.SOCBoard#getHexLayout()} value range
+     *               to the BOARDLAYOUT2 message's value range.
      * @param nl   the number layout
      * @param pl   the port layout, or null
      * @param rh   the robber hex
      */
-    public SOCBoardLayout2(String ga, final int bef, int[] hl, int[] nl, int[] pl, int rh)
+    public SOCBoardLayout2
+        (final String ga, final int bef, final int[] hl, final int[] nl, final int[] pl, final int rh)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
         boardEncodingFormat = bef;
         layoutParts = new Hashtable();
-        layoutParts.put("HL", hl);
+
+        // Map the hex layout
+        int[] hexLayout = new int[hl.length];
+        for (int i = hl.length - 1; i >= 0; --i)
+        {
+            int h = hl[i];
+            switch (h)
+            {
+            case SOCBoard.WATER_HEX:
+                h = SENTLAND_WATER;   break;
+            case SOCBoard.DESERT_HEX:
+                h = SENTLAND_DESERT;  break;
+            default:
+                // leave unchanged
+            }
+            hexLayout[i] = h;
+        }
+        layoutParts.put("HL", hexLayout);
+
         layoutParts.put("NL", nl);
         if (pl != null)
             layoutParts.put("PL", pl);
@@ -164,13 +198,37 @@ public class SOCBoardLayout2 extends SOCMessage
     }
 
     /**
-     * Get a layout part of type int[]
+     * Get a layout part of type int[].
+     *<P>
+     * As a special case, when <tt>pkey</tt> is <tt>"HL"</tt>, desert and water hexes
+     * will be mapped from the sent values to the SOCBoard values before returning the array.
+     *
      * @param pkey the part's key name
      * @return the component, or null if no part named <tt>pkey</tt>.
      */
     public int[] getIntArrayPart(String pkey)
     {
-        return (int[]) layoutParts.get(pkey);
+        final int[] iap = (int[]) layoutParts.get(pkey);
+        if (! pkey.equals("HL"))
+            return iap;
+
+        // Map "HL" (hex layout) from sent values to SOCBoard values
+        int[] hl = new int[iap.length];
+        for (int i = hl.length - 1; i >= 0; --i)
+        {
+            int h = iap[i];
+            switch (h)
+            {
+            case SENTLAND_WATER:
+                h = SOCBoard.WATER_HEX;   break;
+            case SENTLAND_DESERT:
+                h = SOCBoard.DESERT_HEX;  break;
+            default:
+                // leave unchanged
+            }
+            hl[i] = h;
+        }
+        return hl;
     }
 
     /**
