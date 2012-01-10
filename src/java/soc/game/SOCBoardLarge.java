@@ -93,6 +93,18 @@ public class SOCBoardLarge extends SOCBoard
      */
     public static final int VERSION_FOR_ENCODING_LARGE = 1200;
 
+    /**
+     * Hex type for the Gold Hex, where the adjacent players
+     * choose their resource(s) every roll.
+     *<P>
+     * There is no 2-for-1 port (unlike {@link SOCBoard#SHEEP_PORT},
+     * {@link SOCBoard#WOOD_PORT}, etc) for this hex type.
+     */
+    public static final int GOLD_HEX = 7;
+
+    /** Maximum land hex type (== {@link #GOLD_HEX}) for this encoding. */
+    private static final int MAX_LAND_HEX_LG = GOLD_HEX;
+
     private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
 
     /**
@@ -174,7 +186,8 @@ public class SOCBoardLarge extends SOCBoard
        3 : sheep   {@link #SHEEP_HEX}
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX}
-       6 : desert  {@link #DESERT_HEX} also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX} 
+       6 : desert  {@link #DESERT_HEX}
+       7 : gold    {@link #GOLD_HEX} (see its javadoc for rule)  also: {@link #MAX_LAND_HEX_LG}
        </pre>
      *<P>
      * @see SOCBoard#portsLayout
@@ -252,7 +265,7 @@ public class SOCBoardLarge extends SOCBoard
     public SOCBoardLarge(Hashtable gameOpts, int maxPlayers)
             throws IllegalArgumentException
     {
-        super(BOARD_ENCODING_LARGE);
+        super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
         // TODO maxPlayers 6 not yet supported in our board layout for "PLL"
@@ -539,7 +552,7 @@ public class SOCBoardLarge extends SOCBoard
                         if (hexes[i] != 0)
                         {
                             final int htype = getHexTypeFromCoord(hexes[i]);
-                            if ((htype != WATER_HEX) && (htype <= MAX_LAND_HEX))
+                            if ((htype != WATER_HEX) && (htype <= MAX_LAND_HEX_LG))
                             {
                                 hasLand = true;
                                 break;
@@ -780,7 +793,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         or {@link #DESERT_HEX},
+     *         {@link #DESERT_HEX}, {@link #GOLD_HEX},
      *         or {@link #WATER_HEX}.
      *         Invalid hex coordinates return -1.
      *
@@ -801,7 +814,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param hex  the number of a hex, or -1 for invalid
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, or {@link #WATER_HEX}.
+     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, or {@link #WATER_HEX}.
      *         Invalid hex numbers return -1.
      *
      * @see #getHexTypeFromCoord(int)
@@ -837,7 +850,7 @@ public class SOCBoardLarge extends SOCBoard
             if (hexes[i] != 0)
             {
                 final int htype = getHexTypeFromCoord(hexes[i]);
-                if ((htype <= MAX_LAND_HEX) && (htype != WATER_HEX))
+                if ((htype <= MAX_LAND_HEX_LG) && (htype != WATER_HEX))
                     hasLand = true;
                 else
                     hasWater = true;
@@ -894,7 +907,7 @@ public class SOCBoardLarge extends SOCBoard
     public boolean isHexOnLand(final int hexCoord)
     {
         final int htype = getHexTypeFromCoord(hexCoord);
-        return (htype != -1) && (htype != WATER_HEX) && (htype <= MAX_LAND_HEX);
+        return (htype != -1) && (htype != WATER_HEX) && (htype <= MAX_LAND_HEX_LG);
     }
 
     /**
@@ -1101,7 +1114,7 @@ public class SOCBoardLarge extends SOCBoard
             return;  // not a valid hex row
 
         if (includeWater
-            || ((hexLayoutLg[r][c] <= MAX_LAND_HEX)
+            || ((hexLayoutLg[r][c] <= MAX_LAND_HEX_LG)
                 && (hexLayoutLg[r][c] != WATER_HEX)) )
         {
             addTo.addElement(new Integer((r << 8) | c));

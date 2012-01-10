@@ -115,19 +115,23 @@ public class SOCBoard implements Serializable, Cloneable
     public static final int WOOD_HEX = 5;
 
     /**
-     * Desert; highest-numbered hex type (also {@link #MAX_LAND_HEX}, {@link #MAX_ROBBER_HEX}).
+     * Desert; highest-numbered hex type.
+     * Also {@link #MAX_LAND_HEX} for the v1 and v2 board encodings.
      * Before v1.2.00, value was 0 instead of 6.
      */
     public static final int DESERT_HEX = 6;
 
     /**
-     * Highest-numbered land hex type (currently {@link #DESERT_HEX}; also currently {@link #MAX_ROBBER_HEX}).
+     * Highest-numbered land hex type ({@link #DESERT_HEX}).
+     *<P>
+     * The v3 encoding has a higher {@link SOCBoardLarge#GOLD_HEX}, but that's not
+     * encodable in this class (v1 or v2 encoding) because of {@link #MISC_PORT_HEX}.
      * @since 1.1.07
      * @see #isHexOnLand(int)
      * @see #isHexOnWater(int)
      * @see #WATER_HEX
      */
-    protected static final int MAX_LAND_HEX = 6;  // Also MAX_ROBBER_HEX
+    private static final int MAX_LAND_HEX = 6;
 
     /** Misc (3-for-1) port type; lowest-numbered port-hextype integer */
     public static final int MISC_PORT_HEX = 7;  // Must be first port-hextype integer
@@ -151,9 +155,6 @@ public class SOCBoard implements Serializable, Cloneable
     /** Wood port type; highest-numbered port-type integer */
     public static final int WOOD_PORT = 5;  // Must be last port-type integer
     
-    /** Highest-numbered hex type which may hold a robber: highest land: {@link #MAX_LAND_HEX}. */
-    public static final int MAX_ROBBER_HEX = MAX_LAND_HEX;
-
     /**
      * Facing is the direction (1-6) to the hex touching a hex or edge,
      * or from a node to another node 2 nodes away.
@@ -463,7 +464,7 @@ public class SOCBoard implements Serializable, Cloneable
        3 : sheep   {@link #SHEEP_HEX}
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX}
-       6 : desert  {@link #DESERT_HEX} (was 0 before v1.2.00) also: {@link #MAX_LAND_HEX} {@link #MAX_ROBBER_HEX}
+       6 : desert  {@link #DESERT_HEX} (was 0 before v1.2.00)  also: {@link #MAX_LAND_HEX}
        7 : misc port ("3:1") facing land in direction 1 ({@link #FACING_NE NorthEast})
                              (this port type is {@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
        8 : misc port facing 2 ({@link #FACING_E})
@@ -678,6 +679,13 @@ public class SOCBoard implements Serializable, Cloneable
     private int prevRobberHex;
 
     /**
+     * Maximum hex type value for the robber; can be used for array sizing.
+     * Same value range as {@link #getHexTypeFromCoord(int)} for the current board encoding.
+     * @since 1.2.00
+     */
+    public final int max_robber_hextype;
+
+    /**
      * where the ports of each type are; coordinates per port type.
      * Indexes are port types, {@link #MISC_PORT} to {@link #WOOD_PORT}.
      * Values are Vectors of Integer node coordinates; each port
@@ -749,10 +757,13 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @param boardEncodingFmt  A format constant in the currently valid range:
      *         Must be >= {@link #BOARD_ENCODING_ORIGINAL} and &lt;= {@link #MAX_BOARD_ENCODING}.
+     * @param maxRobberHextype  Maximum land hextype value, or maximum hex type
+     *         the robber can be placed at.  Same value range as {@link #max_robber_hextype}
+     *         and as your subclass's {@link #getHexTypeFromCoord(int)} method.
      * @since 1.2.00
      * @throws IllegalArgumentException if <tt>boardEncodingFmt</tt> is out of range
      */
-    protected SOCBoard(final int boardEncodingFmt)
+    protected SOCBoard(final int boardEncodingFmt, final int maxRobberHextype)
         throws IllegalArgumentException
     {
         if ((boardEncodingFmt < 1) || (boardEncodingFmt > MAX_BOARD_ENCODING))
@@ -762,6 +773,7 @@ public class SOCBoard implements Serializable, Cloneable
 
         robberHex = -1;  // Soon placed on desert, when makeNewBoard is called
         prevRobberHex = -1;
+        max_robber_hextype = maxRobberHextype;
 
         nodesOnLand = new HashSet();
 
@@ -786,6 +798,9 @@ public class SOCBoard implements Serializable, Cloneable
      * Create a new Settlers of Catan Board, with the v1 or v2 encoding.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
+     * @param maxRobberHextype  Maximum land hextype value, or maximum hex type
+     *         the robber can be placed at.  Same value range as {@link #max_robber_hextype}
+     *         and as your subclass's {@link #getHexTypeFromCoord(int)} method.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      * @see #createBoard(Hashtable, int)
      */
@@ -794,7 +809,7 @@ public class SOCBoard implements Serializable, Cloneable
     {
         // set boardEncodingFormat, robberHex, prevRobberHex,
         //  and create empty vectors for pieces & port node coordinates:
-        this( (maxPlayers == 6) ? BOARD_ENCODING_6PLAYER : BOARD_ENCODING_ORIGINAL );
+        this( (maxPlayers == 6) ? BOARD_ENCODING_6PLAYER : BOARD_ENCODING_ORIGINAL, MAX_LAND_HEX );
 
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
@@ -1046,6 +1061,7 @@ public class SOCBoard implements Serializable, Cloneable
 
         // landHex_v1 == makeNewBoard_landHexTypes_v1
         // number_v1  == makeNewBoard_diceNums_v1
+        // For v2 encoding:
         final int[] landHex_6pl = {   // same as v1's hexes: makeNewBoard_landHexTypes_v1[]
             DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
             SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
