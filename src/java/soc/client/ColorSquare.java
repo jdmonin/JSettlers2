@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,12 +59,22 @@ public class ColorSquare extends Canvas implements MouseListener
     public final static Color WOOD = new Color(204, 153, 102);
     public final static Color GREY = new Color(204, 204, 204);  // Must not equal ORE, for ore's auto-tooltip to show
     public final static Color DESERT = new Color(255, 255, 153);
+
+    /**
+     * {@link soc.game.SOCBoardLarge#GOLD_HEX Gold hex} color.
+     * @since 1.2.00
+     */
+    public final static Color GOLD = new Color(255, 250, 0);
+
     /** Water hex color, for fallback if graphic is missing. @since 1.1.07 */
     public static final Color WATER = new Color(72, 97, 162);  // grey-blue; waterHex.gif average is actually (76, 102, 152)
 
     /**
      * Array of resource colors.
      * 0 is {@link #CLAY}, 1 is {@link #ORE}, SHEEP, WHEAT, 4 is {@link #ORE}.
+     *<P>
+     * Because this array has the resource types a player can hold or trade,
+     * it does not contain {@link #GOLD}.
      * @since 1.1.08
      */
     public static final Color[] RESOURCE_COLORS =

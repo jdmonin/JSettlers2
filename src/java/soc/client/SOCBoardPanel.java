@@ -1064,11 +1064,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // Set up mouse listeners
         this.addMouseListener(this);
         this.addMouseMotionListener(this);
-        
+
         // Cached colors to be determined later
-        robberGhostFill = new Color [1 + SOCBoard.MAX_ROBBER_HEX];
-        robberGhostOutline = new Color [1 + SOCBoard.MAX_ROBBER_HEX];
-        
+        robberGhostFill = new Color [1 + board.max_robber_hextype];
+        robberGhostOutline = new Color [1 + board.max_robber_hextype];
+
         // Set up hover tooltip info
         hoverTip = new BoardToolTip(this);
         
@@ -5262,6 +5262,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         case SOCBoard.WOOD_HEX:
             hexColor = ColorSquare.WOOD;
             break;
+        case SOCBoardLarge.GOLD_HEX:
+            hexColor = ColorSquare.GOLD;
+            break;
         default:  // WATER_HEX
             hexColor = ColorSquare.WATER;
         }
@@ -5868,8 +5871,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         sb.append("Sheep");   break;
                     case SOCBoard.WHEAT_HEX:
                         sb.append("Wheat");   break;
-                    case SOCBoard.WOOD_HEX:                     
+                    case SOCBoard.WOOD_HEX:
                         sb.append("Wood");    break;
+                    case SOCBoardLarge.GOLD_HEX:
+                        sb.append("Gold");    break;
                     case SOCBoard.WATER_HEX:
                         sb.append("Water");   break;
                     default:
