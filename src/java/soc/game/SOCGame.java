@@ -319,9 +319,11 @@ public class SOCGame implements Serializable, Cloneable
     public static final int MINPLAYERS = 2;
 
     /**
-     * Number of victory points (10) needed to win.
-     * Set to constant for searching if in future, decide 
-     * to make a per-game choice.
+     * Default number of victory points (10) needed to win.
+     * Per-game copy is {@link #vp_winner}, can be changed from 10 in
+     * constructor with the <tt>"VP"</tt> {@link SOCGameOption}.
+     *<P>
+     * Before v1.2.00, this was public static final int <tt>VP_WINNER</tt>.
      * @since 1.2.00
      */
     public static final int VP_WINNER_STANDARD = 10;
@@ -2041,6 +2043,8 @@ public class SOCGame implements Serializable, Cloneable
                     resources.add(1, SOCResourceConstants.WOOD);
 
                     break;
+
+                // TODO SOCBoardLarge.GOLD_HEX -- not handled here, but in a new game state.
                 }
             }
 
@@ -3331,6 +3335,8 @@ public class SOCGame implements Serializable, Cloneable
                         resources.add(incr, SOCResourceConstants.WOOD);
 
                         break;
+
+                    // TODO SOCBoardLarge.GOLD_HEX -- not handled here, but in a new game state.
                     }
                 }
             }
@@ -3501,8 +3507,11 @@ public class SOCGame implements Serializable, Cloneable
         case SOCBoard.WOOD_HEX:
             return true;
 
+        case SOCBoardLarge.GOLD_HEX:
+            return (board instanceof SOCBoardLarge);
+
         default:
-            return false;  // Land hexes only (Could check MAX_LAND_HEX, if we didn't special-case desert_hex)
+            return false;  // Land hexes only (Could check max_robber_hex, if we didn't special-case desert,gold)
         }
     }
 
