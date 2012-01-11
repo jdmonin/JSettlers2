@@ -149,8 +149,20 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Players place second settlement.  Proceed in reverse order for each player;
      * next state is {@link #START2B} to place 2nd road.
+     * If the settlement is placed on a Gold Hex, the next state
+     * is {@link #START2A_WAITING_FOR_PICK_GOLD_RESOURCE}.
      */
     public static final int START2A = 10; // Players place 2nd stlmt
+
+    /**
+     * Just placed the second settlement, waiting for current
+     * player to choose which Gold Hex resources to receive.
+     * Next game state is {@link #START2B} to place 2nd road.
+     *<P>
+     * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX}.
+     * @since 2.0.00
+     */
+    public static final int START2A_WAITING_FOR_PICK_GOLD_RESOURCE = 14;
 
     /**
      * Players place second road.  Next state is {@link #START2A} to place previous
@@ -162,6 +174,12 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Start of a normal turn.  Time to roll or play a card.
      * Next state depends on card or roll, but usually is {@link #PLAY1}.
+     *<P>
+     * If 7 is rolled, might be {@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_ROBBER_OR_PIRATE}
+     *   or {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
+     *<P>
+     * If the number rolled is on a gold hex, next state might be
+     *   {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      */
     public static final int PLAY = 15; // Play continues normally; time to roll or play card
 
@@ -251,6 +269,16 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     public static final int WAITING_FOR_ROBBER_OR_PIRATE = 54;
+
+    /**
+     * Waiting for player(s) to choose which Gold Hex resources to receive.
+     * Next game state is {@link #PLAY1}.
+     *<P>
+     * Valid only when {@link #hasSeaBoard}, settlements or cities
+     * adjacent to {@link SOCBoardLarge#GOLD_HEX}.
+     * @since 2.0.00
+     */
+    public static final int WAITING_FOR_PICK_GOLD_RESOURCE = 55;
 
     /**
      * The 6-player board's Special Building Phase.
