@@ -1675,7 +1675,7 @@ public class SOCPlayerClient extends Applet
      * a message to the local TCP server.
      * Use <tt>putPractice</tt> only with {@link #practiceServer}.
      *<P>
-     * Before version 1.2.00, this was <tt>putLocal</tt>.
+     * Before version 2.0.00, this was <tt>putLocal</tt>.
      *
      * @param s  the message
      * @return true if the message was sent, false if not
@@ -2213,7 +2213,7 @@ public class SOCPlayerClient extends Applet
 
             /**
              * move a previous piece (a ship) somewhere else on the board.
-             * Added 2011-12-05 for v1.2.00.
+             * Added 2011-12-05 for v2.0.00.
              */
             case SOCMessage.MOVEPIECE:
                 handleMOVEPIECE((SOCMovePiece) mes);
@@ -3921,7 +3921,7 @@ public class SOCPlayerClient extends Applet
 
     /**
      * Handle moving a piece (a ship) around on the board.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private final void handleMOVEPIECE(SOCMovePiece mes)
     {
@@ -4310,7 +4310,7 @@ public class SOCPlayerClient extends Applet
      * @param ptype    The piece type, such as {@link SOCPlayingPiece#SHIP}
      * @param fromCoord  Move the piece from here  
      * @param toCoord    Move the piece to here
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void movePieceRequest
         (final SOCGame ga, final int pn, final int ptype, final int fromCoord, final int toCoord)

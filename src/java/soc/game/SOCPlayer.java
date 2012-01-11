@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -235,7 +235,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * If the game doesn't use the large sea board (<tt>! {@link SOCGame#hasSeaBoard}</tt>),
      * this set is empty but non-null.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private HashSet legalShips;
 
@@ -284,7 +284,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * If the game doesn't use the large sea board (<tt>! {@link SOCGame#hasSeaBoard}</tt>),
      * this set is empty but non-null.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private HashSet potentialShips;
 
@@ -772,7 +772,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get this player's road or ship on an edge.
      * @param  edge  Edge coordinate of the road or ship
      * @return  The player's road or ship in play at this edge, or null
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public SOCRoad getRoadOrShip(final int edge)
     {
@@ -827,7 +827,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * that edge will be checked with {@link #isPotentialShip(int, int)}.
      *<P>
      * @param sh  One of our ships
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean canMoveShip(SOCShip sh)
     {
@@ -873,7 +873,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *              continuing the trade route
      * @return  True if a ship continues the route past <tt>node</tt>
      *              along one or both of the node's 2 other edges
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private final boolean doesTradeRouteContinuePastNode
         (final SOCBoard board, final int shipEdge, final int ignoreEdge, final int node)
@@ -928,7 +928,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param edgeFarNode  The unvisited node at the far end of <tt>fromEdge</tt>.
      *                  We'll examine this node and then continue to move along edges past it.
      * @return  null if open, otherwise all the newly-closed {@link SOCShip}s
-     * @since 1.2.00
+     * @since 2.0.00
      * @throws IllegalStateException  if not {@link SOCGame#hasSeaBoard}
      */
     private Vector checkTradeRouteFarEndClosed
@@ -1036,7 +1036,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *         may also add to <tt>alreadyVisited</tt> and <tt>encounteredSelf</tt>
      * @throws ClassCastException if not {@link SOCGame#hasSeaBoard}.
      * @throws IllegalArgumentException if {@link SOCShip#isClosed() edgeFirstShip.isClosed()}
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private Vector isTradeRouteFarEndClosed
         (final SOCShip edgeFirstShip, final int edgeFarNode,
@@ -1579,7 +1579,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Call only when the piece is ours.
      * @param piece  The road or ship
      * @param board  The board
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private void putPiece_roadOrShip(SOCRoad piece, SOCBoard board)
     {
@@ -1684,7 +1684,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece)};
      *                 should not yet be added to {@link #roads}
      * @param board  game board
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private void putPiece_roadOrShip_checkNewShipTradeRoute
         (SOCShip newShip, SOCBoard board)
@@ -1715,7 +1715,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param newSettlement  Our new settlement being placed in {@link #putPiece(SOCPlayingPiece)};
      *                 should not yet be added to {@link #settlements}
      * @param board  game board
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private void putPiece_settlement_checkTradeRoutes
         (SOCSettlement newSettle, SOCBoard board)
@@ -2577,7 +2577,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Please make no changes, treat the returned set as read-only.
      * @return the player's set of {@link Integer} potential-settlement node coordinates
      * @see #getPotentialSettlements_arr()
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public HashSet getPotentialSettlements()
     {
@@ -2593,7 +2593,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return the player's set of potential-settlement node coordinates,
      *     or if none, <tt>null</tt>
      * @see #getPotentialSettlements()
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public int[] getPotentialSettlements_arr()
     {
@@ -2644,7 +2644,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param setLegalsToo  If true, also update legal settlements/
      *     roads if we're using the large board layout
      * @see #setPotentialSettlements(Vector)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void setPotentialSettlements(Collection psList, final boolean setLegalsToo)
     {
@@ -2686,7 +2686,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Is this node to a legal settlement?
      * @return true if this edge is a legal settlement
      * @param node        the coordinates of a node on the board
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean isLegalSettlement(final int node)
     {
@@ -2774,7 +2774,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param ignoreShipEdge  the coordinates of another ship edge, to
      *   ignore when determining if <tt>edge</tt> is still potential.
      * @see #isPotentialShip(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean isPotentialShip(final int edge, final int ignoreShipEdge)
     {
@@ -2810,7 +2810,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param edge  the coordinates of an edge on the board
      * @see #isPotentialShip(int, int)
      * @see SOCGame#canPlaceShip(SOCPlayer, int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean isPotentialShip(int edge)
     {
@@ -2823,7 +2823,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param node  coordinates of a an edge on the board
      * @see #isPotentialRoad(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void clearPotentialShip(int edge)
     {
@@ -2834,7 +2834,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Is this edge a legal ship placement?
      * @return true if this edge is a legal ship
      * @param edge        the coordinates of an edge on the board
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean isLegalShip(final int edge)
     {
@@ -2871,7 +2871,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Does this player have a potential edge to place a ship on,
      * in a game using the large sea board?
      * @return true if there is at least one potential ship
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean hasPotentialShip()
     {

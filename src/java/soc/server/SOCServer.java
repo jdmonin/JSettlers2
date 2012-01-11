@@ -3275,7 +3275,7 @@ public class SOCServer extends Server
 
                 /**
                  * Asking to move a previous piece (a ship) somewhere else on the board.
-                 * Added 2011-12-04 for v1.2.00.
+                 * Added 2011-12-04 for v2.0.00.
                  */
                 case SOCMessage.MOVEPIECEREQUEST:
                     handleMOVEPIECEREQUEST(c, (SOCMovePieceRequest) mes);
@@ -7432,7 +7432,7 @@ public class SOCServer extends Server
 
     /**
      * Handle the client's "move piece request" message.
-     * @since 1.2.00 
+     * @since 2.0.00 
      */
     private final void handleMOVEPIECEREQUEST(StringConnection c, SOCMovePieceRequest mes)
     {

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ import java.util.Vector;
 /**
  * This message contains a list of potential settlements.
  *<P>
- * In version 1.2.00 and newer, <tt>playerNumber</tt> can be -1
+ * In version 2.0.00 and newer, <tt>playerNumber</tt> can be -1
  * to indicate this applies to all players, and also to
  * indicate the legal settlements should be set and the
  * legal roads recalculated (SOCBoardLarge encoding only).
@@ -39,11 +39,11 @@ public class SOCPotentialSettlements extends SOCMessage
     implements SOCMessageForGame
 {
     /**
-     * In version 1.2.00 and above, playerNumber can be -1
+     * In version 2.0.00 and above, playerNumber can be -1
      * to indicate all players have these potential settlements.
-     * @since 1.2.00
+     * @since 2.0.00
      */
-    public static final int VERSION_FOR_PLAYERNUM_ALL = 1200;
+    public static final int VERSION_FOR_PLAYERNUM_ALL = 2000;
 
     /**
      * Name of game
@@ -51,7 +51,7 @@ public class SOCPotentialSettlements extends SOCMessage
     private String game;
 
     /**
-     * Player number, or -1 for all players (version 1.2.00 or newer)
+     * Player number, or -1 for all players (version 2.0.00 or newer)
      */
     private int playerNumber;
 

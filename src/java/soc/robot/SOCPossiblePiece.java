@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,11 +40,11 @@ public abstract class SOCPossiblePiece
     public static final int CITY = 2;
     /**
      * Ship, for large sea board.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public static final int SHIP = 3;
 
-    /** CARD is -2, was 4 before v1.2.00 */
+    /** CARD is -2, was 4 before v2.0.00 */
     public static final int CARD = -2;
 
     /** MIN is -2 for {@link #CARD}, but nothing currently uses -1. {@link #ROAD} is 0. */

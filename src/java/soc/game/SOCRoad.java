@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -55,7 +55,7 @@ public class SOCRoad extends SOCPlayingPiece
     /**
      * Is this piece really a road on land, and not a ship on water (our subclass)?
      * @return True for roads (pieceType {@link SOCPlayingPiece#ROAD}), false otherwise
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public final boolean isRoadNotShip()
     {

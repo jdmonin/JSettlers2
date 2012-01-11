@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,11 +28,11 @@ import java.util.StringTokenizer;
  * or reply to the requester with {@link SOCCancelBuildRequest}.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
- * @since 1.2.00
+ * @since 2.0.00
  */
 public class SOCMovePieceRequest extends SOCMessageTemplate4i
 {
-    private static final long serialVersionUID = 1200L;
+    private static final long serialVersionUID = 2000L;
 
     /**
      * Create a SOCMovePieceRequest message.
@@ -130,12 +130,12 @@ public class SOCMovePieceRequest extends SOCMessageTemplate4i
 
     /**
      * Minimum version where this message type is used.
-     * MOVEPIECEREQUEST introduced in 1.2.00.
-     * @return Version number, 1200 for JSettlers 1.2.00.
+     * MOVEPIECEREQUEST introduced in 2.0.00.
+     * @return Version number, 2000 for JSettlers 2.0.00.
      */
     public int getMinimumVersion()
     {
-        return 1200;
+        return 2000;
     }
 
 }

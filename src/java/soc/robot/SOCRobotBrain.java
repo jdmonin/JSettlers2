@@ -149,7 +149,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Our player number; set in {@link #setOurPlayerData()}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private int ourPlayerNumber;
 
@@ -309,7 +309,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * true if we're expecting the PLACING_SHIP game state
-     * @since 1.2.00
+     * @since 2.0.00
      */
     protected boolean expectPLACING_SHIP;
 

@@ -62,7 +62,7 @@ public class ColorSquare extends Canvas implements MouseListener
 
     /**
      * {@link soc.game.SOCBoardLarge#GOLD_HEX Gold hex} color.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public final static Color GOLD = new Color(255, 250, 0);
 

@@ -112,7 +112,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * How many pixels for half a hex's height.
      * Used in layout calculations when {@link #isLargeBoard}.
-     * @since 1.2.00
+     * @since 2.0.00
      * @see #deltaY
      * @see #halfdeltaX
      */
@@ -196,7 +196,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * The vertical offset for A-nodes vs Y-nodes along a road;
      * the height of the sloped top/bottom hex edges.
-     * @since 1.2.00
+     * @since 2.0.00
      * @see #hexCornersY
      */
     private static final int HEXY_OFF_SLOPE_HEIGHT = 16;
@@ -233,7 +233,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Ship, placed horizontally along left vertical ("|") edge of hex.
      * Center is (x=0.5, y=32).
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private static final int[] vertShipX =        // center is (x=0.5, y=32)
         { -4,  3,  7,  7,  5, 13, 11,-12,-12, -3, -1, -1, -3, -4 },
@@ -330,26 +330,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public final static int CONSIDER_LT_ROAD = 11;
     public final static int CONSIDER_LT_CITY = 12;
 
-    /** Place a ship on the large sea board. @since 1.2.00 */
+    /** Place a ship on the large sea board. @since 2.0.00 */
     private final static int PLACE_SHIP = 13;
 
     /**
      * Place a free road or ship on the large sea board.
      * If not {@link #isLargeBoard}, use {@link #PLACE_ROAD} instead.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private final static int PLACE_FREE_ROAD_OR_SHIP = 14;
 
     /**
      * Move a previously-placed ship on the large sea board.
      * Also set {@link #moveShip_fromEdge}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private final static int MOVE_SHIP = 15;
 
     /**
      * Move the pirate ship.
-     * @since 1.2.00
+     * @since 2.0.00
      * @see #PLACE_ROBBER
      */
     private final static int PLACE_PIRATE = 16;
@@ -446,7 +446,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}.
      * The coordinate system is an arbitrary land/water mixture.
      * @see #is6player
-     * @since 1.2.00
+     * @since 2.0.00
      */
     protected final boolean isLargeBoard;
 
@@ -551,7 +551,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *</UL>
      *<P>
      * Has package-level visibility, for use by {@link SOCPlayerInterface#updateAtPutPiece(SOCPlayingPiece)}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     boolean[] debugShowPotentials;
 
@@ -788,14 +788,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * If hilighting an edge, is the {@link #hilight} a ship and not a road?
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private boolean hilightIsShip;
 
     /**
      * During {@link #MOVE_SHIP} mode, the edge coordinate
      * from which we're moving the ship.  0 otherwise.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private int moveShip_fromEdge;
 
@@ -1115,7 +1115,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link #inactiveHexNums}.
      *<P>
      * Not used when {@link #isLargeBoard}.
-     * @since 1.2.00.
+     * @since 2.0.00
      */
     private void initCoordMappings()
     {
@@ -1684,7 +1684,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * empty-board buffer) and trigger a repaint,
      * only if we're showing potential/legal
      * settlements/roads/cities for debug purposes.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void flushBoardLayoutAndRepaintIfDebugShowPotentials()
     {
@@ -1964,7 +1964,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *         Use 8 for land hexes, 9 for nodes on board.  Or, -1 for all.
      * @param setPotential  If true, show/hide the potential set, not the legal set
      * @param setOn  If true, set the flag; if false, clear it
-     * @since 1.2.00
+     * @since 2.0.00
      */
     void setDebugShowPotentialsFlag
         (int pieceType, final boolean setPotential, final boolean setOn)
@@ -2923,7 +2923,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Draw the ports for the {@link #isLargeBoard large board}.
      * These can occur anywhere on the board.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private final void drawPorts_LargeBoard(Graphics g)
     {
@@ -3265,7 +3265,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *  of {@link #drawBoardEmpty(Graphics)}).
      *<P>
      * <b>Note:</b> For {@link #isLargeBoard} only for now (TODO).
-     * @since 1.2.00
+     * @since 2.0.00
      * @throws IllegalStateException if ! isLargeBoard; temporary restriction
      */
     private void drawBoardEmpty_drawDebugShowPotentials(Graphics g)
@@ -5360,7 +5360,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *<P>
          *  If both {@link #hoverRoadID} and <tt>hoverShipID</tt> are non-zero, they must be the same coordinate,
          *  never different non-zero values.
-         * @since 1.2.00
+         * @since 2.0.00
          */
         int hoverShipID;
 
@@ -5373,7 +5373,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Is hover a ship owned by our player, movable from its current position?
          * If true, {@link #hoverShipID} is also set.
-         * @since 1.2.00
+         * @since 2.0.00
          */
         private boolean hoverIsShipMovable;
 
@@ -6041,7 +6041,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
       /**
        * Menu item to build or move a ship if {@link SOCGame#hasSeaBoard}, or null.
-       * @since 1.2.00
+       * @since 2.0.00
        */
       MenuItem buildShipItem;
 
@@ -6073,14 +6073,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
       /**
        * hover ship edge ID, or 0, at menu-show time.
-       * @since 1.2.00
+       * @since 2.0.00
        */
       private int hoverShipID;
 
       /**
        * True if we can move a ship, at menu-show time.
        * {@link #hoverShipID} must be != 0.
-       * @since 1.2.00
+       * @since 2.0.00
        */
       private boolean isShipMovable;
 
@@ -6524,7 +6524,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        * Repaints the board.
        *
        * @param ptype Piece type, like {@link SOCPlayingPiece#ROAD}
-       * @since 1.2.00
+       * @since 2.0.00
        */
       private void tryMoveShip()
       {

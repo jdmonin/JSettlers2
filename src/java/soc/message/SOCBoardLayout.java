@@ -42,7 +42,7 @@ import soc.game.SOCBoard;
  * introduced <tt>SOCBoardLayout2</tt>.  Older clients/servers will still need the
  * mapping done, so it's now done here instead of in SOCBoard.
  *<P>
- * In 1.2.00 and newer, the hex layout values for WATER_HEX and DESERT_HEX
+ * In v2.0.00 and newer, the hex layout values for WATER_HEX and DESERT_HEX
  * were changed to allow new types of land hex.  Just like the dice numbers,
  * this is mapped in the constructor, sent over the network, and unmapped in
  * {@link #getHexLayout()}, for backwards compatibility with older clients.
@@ -79,7 +79,7 @@ public class SOCBoardLayout extends SOCMessage
     /**
      * Hex land type numbers sent over the network.
      * Compare to {@link SOCBoard#WATER_HEX}, {@link SOCBoard#DESERT_HEX}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private static final int SENTLAND_WATER = 6, SENTLAND_DESERT = 0;
 

@@ -1738,7 +1738,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * or moving a ship that was already placed.
      * Place or move the piece within our {@link SOCGame}
      * and visually on our {@link SOCBoardPanel}.
-     * @since 1.2.00
+     * @since 2.0.00
      *
      * @param mesPn  The piece's player number
      * @param coord  The piece's coordinate.  If <tt>isMove</tt>, the coordinate to move <em>from</em>.
@@ -2518,11 +2518,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * with -1 or -2.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private class ChooseMoveRobberOrPirateDialog extends AskDialog implements Runnable
     {
-        private static final long serialVersionUID = 1200L;
+        private static final long serialVersionUID = 2000L;
 
         /** Runs in own thread, to not tie up client's message-treater thread. */
         private Thread rdt;

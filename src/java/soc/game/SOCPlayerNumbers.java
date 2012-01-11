@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -176,7 +176,7 @@ public class SOCPlayerNumbers
     /**
      * Set the land hex coordinates, once the board layout is known.
      * @param landHex  Array of hex coordinates for all land hexes
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void setLandHexCoordinates(final int[] landHex)
     {
@@ -241,7 +241,7 @@ public class SOCPlayerNumbers
      *           <tt>numProb[i]</tt> is the percentage chance of rolling <tt>i</tt>.
      * @param sb  if not null, a StringBuffer to append each adjacent dice number into for debugging
      * @return Total probability, based on <tt>numProb</tt> for each adjacent dice number
-     * @since 1.2.00
+     * @since 2.0.00
      * @see #updateNumbers(int, SOCBoard)
      */
     public int updateNumbersAndProbability
@@ -310,7 +310,7 @@ public class SOCPlayerNumbers
      * @param hexCoord  the hex coordinate
      * @return  True if {@link #getNumberResourcePairsForHex(int)} is empty;
      *        False if we do receive resources from this hex
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean hasNoResourcesForHex(final int hexCoord)
     {

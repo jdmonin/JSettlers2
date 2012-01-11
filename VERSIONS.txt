@@ -4,7 +4,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
-    > 1.2.00 (build JM201112xx)
+    > 2.0.00 (build JM20120xxx)
 - Large board (sea board) support
 - More efficient game-setup messages
 - Minor refactoring

@@ -99,7 +99,7 @@ public class SOCRobotDM {
   protected final SOCPlayer ourPlayerData;
   /**
    * {@link #ourPlayerData}'s player number.
-   * @since 1.2.00
+   * @since 2.0.00
    */
   private final int ourPlayerNumber;
   protected Stack buildingPlan;

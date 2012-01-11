@@ -231,7 +231,7 @@ public class SOCGameOption implements Cloneable, Comparable
         opt.put("PLB", plb);
         // TODO PLL for SOCBoardLarge: Decide final name
         opt.put("PLL", new SOCGameOption
-                ("PLL", 1200, 1200, false, true, "Experimental: Use large board"));
+                ("PLL", 2000, 2000, false, true, "Experimental: Use large board"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
@@ -241,7 +241,7 @@ public class SOCGameOption implements Cloneable, Comparable
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
-                ("VP", -1, 1200, false, 10, 10, 15, true, "Victory points to win: #"));
+                ("VP", -1, 2000, false, 10, 10, 15, true, "Victory points to win: #"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.

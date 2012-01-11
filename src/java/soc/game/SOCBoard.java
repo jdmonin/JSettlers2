@@ -95,7 +95,7 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Water hex; lower-numbered than all land hex types.
-     * Before v1.2.00, value was 6 instead of 0.
+     * Before v2.0.00, value was 6 instead of 0.
      * @see #isHexOnLand(int)
      * @see #isHexOnWater(int)
      * @see #CLAY_HEX
@@ -117,7 +117,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Desert; highest-numbered hex type.
      * Also {@link #MAX_LAND_HEX} for the v1 and v2 board encodings.
-     * Before v1.2.00, value was 0 instead of 6.
+     * Before v2.0.00, value was 0 instead of 6.
      */
     public static final int DESERT_HEX = 6;
 
@@ -309,7 +309,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Use {@link #getPortsCount()} to get the number of ports.
      * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
      * @see SOCBoardLarge
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public static final int BOARD_ENCODING_LARGE = 3;
 
@@ -354,7 +354,7 @@ public class SOCBoard implements Serializable, Cloneable
      *       Coordinate range for rows,columns is each 0 to 255 decimal,
      *       or altogether 0x0000 to 0xFFFF hex.
      *       Arbitrary mix of land and water tiles.
-     *       Added in 1.2.00, implemented in {@link SOCBoardLarge}.
+     *       Added in 2.0.00, implemented in {@link SOCBoardLarge}.
      *       Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
      *</UL>
      * Although this field is protected (not private), please treat it as read-only.
@@ -458,13 +458,13 @@ public class SOCBoard implements Serializable, Cloneable
      *<P>
      * Key to the hexLayout[] values:
        <pre>
-       0 : water   {@link #WATER_HEX} (was 6 before v1.2.00)
+       0 : water   {@link #WATER_HEX} (was 6 before v2.0.00)
        1 : clay    {@link #CLAY_HEX}
        2 : ore     {@link #ORE_HEX}
        3 : sheep   {@link #SHEEP_HEX}
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX}
-       6 : desert  {@link #DESERT_HEX} (was 0 before v1.2.00)  also: {@link #MAX_LAND_HEX}
+       6 : desert  {@link #DESERT_HEX} (was 0 before v2.0.00)  also: {@link #MAX_LAND_HEX}
        7 : misc port ("3:1") facing land in direction 1 ({@link #FACING_NE NorthEast})
                              (this port type is {@link #MISC_PORT} in {@link #getPortTypeFromNodeCoord(int)})
        8 : misc port facing 2 ({@link #FACING_E})
@@ -638,7 +638,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @since 1.1.08
      */
     protected Hashtable nodeIDtoPortType;
-        // was int[] in v1.1.08 - 1.1.13; Hashtable in v1.2.00+
+        // was int[] in v1.1.08 - 1.1.13; Hashtable in v2.0.00+
 
     /**
      * Offset to add to hex coordinate to get all adjacent node coords, starting at
@@ -681,7 +681,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Maximum hex type value for the robber; can be used for array sizing.
      * Same value range as {@link #getHexTypeFromCoord(int)} for the current board encoding.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public final int max_robber_hextype;
 
@@ -760,7 +760,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param maxRobberHextype  Maximum land hextype value, or maximum hex type
      *         the robber can be placed at.  Same value range as {@link #max_robber_hextype}
      *         and as your subclass's {@link #getHexTypeFromCoord(int)} method.
-     * @since 1.2.00
+     * @since 2.0.00
      * @throws IllegalArgumentException if <tt>boardEncodingFmt</tt> is out of range
      */
     protected SOCBoard(final int boardEncodingFmt, final int maxRobberHextype)
@@ -864,7 +864,7 @@ public class SOCBoard implements Serializable, Cloneable
      * As part of the constructor, check the {@link #boardEncodingFormat}
      * and initialize {@link #nodesOnLand} accordingly.
      * @see #initPlayerLegalAndPotentialSettlements()
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private void initNodesOnLand()
     {
@@ -1029,7 +1029,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Land hex types on the original board layout (v1).
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     protected static final int[] makeNewBoard_landHexTypes_v1 =
         { DESERT_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
@@ -1040,7 +1040,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Dice numbers in the original board layout, in order along numPath.
      * For more information see {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     protected static final int[] makeNewBoard_diceNums_v1 = 
         { 5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11 };
@@ -1215,14 +1215,14 @@ public class SOCBoard implements Serializable, Cloneable
      * Once we've visited each hex, check if any clump subset's
      * size is larger than the allowed size.
      *<P>
-     * Before v1.2.00, this was part of makeNewBoard_placeHexes.
+     * Before v2.0.00, this was part of makeNewBoard_placeHexes.
      * 
      * @param unvisited  Contains each land hex's coordinate as an Integer;
      *          <b>Note:</b> This vector will be modified by the method.
      * @param clumpSize  Clumps of this size or more are too large.
      *          Minimum value is 3, smaller values will always return false.
      * @return  true if large clumps found, false if okay
-     * @since 1.2.00
+     * @since 2.0.00
      */
     protected boolean makeNewBoard_checkLandHexResourceClumps
         (Vector unvisited, final int clumpSize)
@@ -1616,7 +1616,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * The hex coordinates of all land hexes.
      *<P>
-     * Before v1.2.00, this was <tt>getHexLandCoords()</tt>.
+     * Before v2.0.00, this was <tt>getHexLandCoords()</tt>.
      *
      * @return land hex coordinates, in no particular order, or null if none (all water).
      * @since 1.1.08
@@ -1638,7 +1638,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param hexCoord  Hex coordinate, between 0 and {@link #MAXHEX}
      * @return  True if land, false if water or not a valid hex coordinate
      * @see #isHexOnWater(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean isHexOnLand(final int hexCoord)
     {
@@ -1654,7 +1654,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param hexCoord  Hex coordinate, between 0 and {@link #MAXHEX}
      * @return  True if water, false if land or not a valid hex coordinate
      * @see #isHexOnLand(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean isHexOnWater(final int hexCoord)
     {
@@ -1940,7 +1940,7 @@ public class SOCBoard implements Serializable, Cloneable
      *
      * @return the number of ports on this board; might be 0 if
      *   {@link #makeNewBoard(Hashtable)} hasn't been called yet.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public int getPortsCount()
     {
@@ -2257,7 +2257,7 @@ public class SOCBoard implements Serializable, Cloneable
      * limits aren't used in all encodings. 
      * @param boardW  New maximum column coordinate, for {@link #getBoardWidth()}
      * @param boardH  New maximum row coordinate, for {@link #getBoardHeight()}
-     * @since 1.2.00
+     * @since 2.0.00
      */
     protected void setBoardBounds(final int boardW, final int boardH)
     {
@@ -2338,7 +2338,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @param nodeCoord  Node at one end of <tt>edgeCoord</tt>; the opposite end node
      *           will be returned.
      * @return the edge's other end node, opposite <tt>nodeCoord</tt>
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public int getAdjacentNodeFarEndOfEdge(final int edgeCoord, final int nodeCoord)
     {
@@ -2818,7 +2818,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @return  True if {@link #getAdjacentNodesToNode(int) getAdjacentNodesToNode(nodeA)}
      *            contains <tt>nodeB</tt>
      * @see #getAdjacentNodesToNode(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public final boolean isNodeAdjacentToNode(final int nodeA, final int nodeB)
     {
@@ -3125,7 +3125,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @return Node coordinate in all 6 directions,
      *           clockwise from top (northern point of hex):
      *           0 is north, 1 is northeast, etc, 5 is northwest.
-     * @since 1.2.00
+     * @since 2.0.00
      * @see #getAdjacentNodeToHex(int, int)
      */
     public int[] getAdjacentNodesToHex(final int hexCoord)

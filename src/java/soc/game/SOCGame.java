@@ -190,13 +190,13 @@ public class SOCGame implements Serializable, Cloneable
      * @see #PLACING_ROBBER
      * @see #canMovePirate(int, int)
      * @see #movePirate(int, int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public static final int PLACING_PIRATE = 34;
 
     /**
      * This game {@link #hasSeaBoard}, and a player has bought and is placing a ship.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public static final int PLACING_SHIP = 35;
 
@@ -248,7 +248,7 @@ public class SOCGame implements Serializable, Cloneable
      * Next game state is {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
      * @see #canChooseMovePirate()
      * @see #chooseMovePirate(boolean)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public static final int WAITING_FOR_ROBBER_OR_PIRATE = 54;
 
@@ -323,8 +323,8 @@ public class SOCGame implements Serializable, Cloneable
      * Per-game copy is {@link #vp_winner}, can be changed from 10 in
      * constructor with the <tt>"VP"</tt> {@link SOCGameOption}.
      *<P>
-     * Before v1.2.00, this was public static final int <tt>VP_WINNER</tt>.
-     * @since 1.2.00
+     * Before v2.0.00, this was public static final int <tt>VP_WINNER</tt>.
+     * @since 2.0.00
      */
     public static final int VP_WINNER_STANDARD = 10;
 
@@ -369,7 +369,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * the set of resources a player needs to build a {@link SOCShip ship}
      * @see SOCPlayingPiece#getResourcesToBuild(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public static final SOCResourceSet SHIP_SET = new SOCResourceSet(0, 0, 1, 0, 1, 0);
 
@@ -407,7 +407,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Number of victory points needed to win this game (default {@link #VP_WINNER_STANDARD} == 10).
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public final int vp_winner;
 
@@ -552,7 +552,7 @@ public class SOCGame implements Serializable, Cloneable
      * If true, our board's {@link SOCBoard#getBoardEncodingFormat()}
      * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
      * When <tt>hasSeaBoard</tt>, {@link #getBoard()} can be cast to {@link SOCBoardLarge}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public final boolean hasSeaBoard;
 
@@ -705,7 +705,7 @@ public class SOCGame implements Serializable, Cloneable
      * Set in {@link #chooseMovePirate(boolean)},
      * {@link #movePirate(int, int)} and {@link #moveRobber(int, int)}.
      * @see #getRobberyPirateFlag()
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private boolean robberyWithPirateNotRobber;
         // TODO: Consider refactor to create lastActionType instead, it's more general
@@ -713,7 +713,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Has the current player moved a ship already this turn?
      * Valid only when {@link #hasSeaBoard}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private boolean movedShipThisTurn;
 
@@ -721,7 +721,7 @@ public class SOCGame implements Serializable, Cloneable
      * List of ship edge coordinates placed this turn.
      * A ship cannot be placed and moved on the same turn.
      * Null when not {@link #hasSeaBoard}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private Vector placedShipsThisTurn;
 
@@ -1289,7 +1289,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
      *         or <tt>defValue</tt> if not defined in the set of options;
      *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
-     * @since 1.2.00
+     * @since 2.0.00
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(Hashtable, String)
@@ -1666,7 +1666,7 @@ public class SOCGame implements Serializable, Cloneable
      * For the v1 and v2 board encodings, the land hex coordinates never change, so
      * {@link SOCPlayerNumbers} knows them already. 
      *
-     * @since 1.2.00
+     * @since 2.0.00
      * @throws IllegalStateException if the board has the v1 or v2 encoding
      */
     public void setPlayersLandHexCoordinates()
@@ -1906,7 +1906,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pl  Player
      * @param shipEdge  Edge to place a ship
      * @return true if this player's ship could be placed there 
-     * @since 1.2.00
+     * @since 2.0.00
      * @see #canMoveShip(int, int, int)
      */
     public boolean canPlaceShip(SOCPlayer pl, final int shipEdge)
@@ -1964,7 +1964,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pp  The piece to put on the board; coordinates are not checked for validity
      * @param isTempPiece  Is this a temporary piece?  If so, do not change current
      *                     player or gamestate.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
     {
@@ -2338,7 +2338,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param fromEdge  Edge coordinate to move the ship from; must contain this player's ship
      * @return  The ship, if the player can move the ship now; null otherwise
      * @see canMoveShip(int, int, int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public SOCShip canMoveShip(final int pn, final int fromEdge)
     {
@@ -2393,7 +2393,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return  The ship, if the player can move the ship now; null otherwise
      * @see #canMoveShip(int, int)
      * @see #moveShip(SOCShip, int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public SOCShip canMoveShip(final int pn, final int fromEdge, final int toEdge)
     {
@@ -2437,7 +2437,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param sh the ship to move on the board; its coordinate must be
      *           the edge to move from
      * @param toEdge    Edge coordinate to move to
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void moveShip(SOCShip sh, final int toEdge)
     {
@@ -3294,7 +3294,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param sEnum  Enumeration of the player's {@link SOCPlayingPiece}s;
      *             should be either {@link SOCSettlement}s or {@link SOCCity}s
      * @param incr   Add this many resources (1 or 2) per playing piece
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private void getResourcesGainedFromRollPieces
         (final int roll, SOCResourceSet resources, final int robberHex, Enumeration sEnum, final int incr)
@@ -3436,7 +3436,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return  true if the pirate ship can be moved
      * @see #WAITING_FOR_ROBBER_OR_PIRATE
      * @see #chooseMovePirate(boolean)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean canChooseMovePirate()
     {
@@ -3450,7 +3450,7 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #getRobberyPirateFlag()} is set or cleared accordingly.
      * @param pirateNotRobber  True to move pirate, false to move robber
      * @throws IllegalStateException if gameState != {@link #WAITING_FOR_ROBBER_OR_PIRATE}
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void chooseMovePirate(final boolean pirateNotRobber)
         throws IllegalStateException
@@ -3583,7 +3583,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player that is moving the pirate
      * @param hco  the new pirate hex coordinates; will check for a water hex
      * @see #movePirate(int, int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean canMovePirate(final int pn, final int hco)
     {
@@ -3615,7 +3615,7 @@ public class SOCGame implements Serializable, Cloneable
      *         if the player needs to make a choice.  It also returns
      *         what was stolen and who was the victim.
      * @throws IllegalArgumentException if <tt>ph</tt> &lt;= 0
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public SOCMoveRobberResult movePirate(final int pn, final int ph)
         throws IllegalArgumentException
@@ -3751,7 +3751,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return a list of {@link SOCPlayer players} touching a hex
      *   with ships, or an empty Vector if none
      *
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public Vector getPlayersShipsOnHex(final int hex)
     {
@@ -3792,7 +3792,7 @@ public class SOCGame implements Serializable, Cloneable
      * Does the current or most recent robbery use the pirate ship, not the robber?
      * If true, victims will be based on adjacent ships, not settlements/cities.
      * @return true for pirate ship, false for robber
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean getRobberyPirateFlag()
     {
@@ -4240,7 +4240,7 @@ public class SOCGame implements Serializable, Cloneable
      *         because players would have 0 ship pieces.
      *
      * @param pn  the number of the player
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean couldBuildShip(int pn)
     {
@@ -4309,7 +4309,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player
      * @see #putPiece(SOCPlayingPiece)
      * @see #cancelBuildShip(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void buyShip(int pn)
     {
@@ -4378,7 +4378,7 @@ public class SOCGame implements Serializable, Cloneable
      * (or SPECIAL_BUILDING)
      *
      * @param pn  the number of the player
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public void cancelBuildShip(int pn)
     {

@@ -51,9 +51,9 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * Types of playing pieces: Ship.
      * Used only when {@link SOCGame#hasSeaBoard}.
-     * Requires client and server verson 1.2.00 or newer.
+     * Requires client and server verson 2.0.00 or newer.
      * @see #getResourcesToBuild(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public static final int SHIP = 3;
 
@@ -65,7 +65,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * One past the maximum type number of playing piece.
      * MAXPLUSONE == 3 up through version 1.1.13.
-     * MAXPLUSONE == 4 in v1.2.00.
+     * MAXPLUSONE == 4 in v2.0.00.
      */
     public static final int MAXPLUSONE = 4;
 
@@ -148,7 +148,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * Get the owner's player number.
      * @return {@link #getPlayer()}.{@link SOCPlayer#getPlayerNumber() getPlayerNumber()}
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public int getPlayerNumber()
     {

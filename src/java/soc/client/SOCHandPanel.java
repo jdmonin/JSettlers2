@@ -82,7 +82,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     public static final int SHEEP = 11;
     public static final int WHEAT = 12;
     public static final int WOOD = 13;
-    public static final int SHIPS = 14;  // added in 1.2.00
+    public static final int SHIPS = 14;  // added in 2.0.00
 
     /**
      * Item flag for asked special build in {@link #updateValue(int)}.
@@ -225,7 +225,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected ColorSquare settlementSq;
     protected ColorSquare citySq;
     protected ColorSquare roadSq;
-    /** shipSq = the number of ships remaining, or null if not {@link SOCGame#hasSeaBoard}. @since 1.2.00 */
+    /** shipSq = the number of ships remaining, or null if not {@link SOCGame#hasSeaBoard}. @since 2.0.00 */
     protected ColorSquare shipSq;
     protected Label settlementLab;
     protected Label cityLab;
@@ -339,7 +339,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Our player number.  Set in {@link #creation(SOCPlayerInterface, SOCPlayer, boolean)}
      * to {@link #player}.{@link SOCPlayer#getPlayerNumber() getPlayerNumber()}
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private int playerNumber = -1;
 

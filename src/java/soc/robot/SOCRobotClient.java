@@ -898,7 +898,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle any per-game message that just needs to go into its game's {@link #brainQs}.
      * This includes all messages that the {@link SOCRobotBrain} needs to react to.
      * @param mes  the message
-     * @since 1.2.00
+     * @since 2.0.00
      */
     protected void handlePutBrainQ(SOCMessageForGame mes)
     {

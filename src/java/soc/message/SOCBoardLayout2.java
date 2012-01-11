@@ -37,7 +37,7 @@ import soc.game.SOCBoard;
  *<UL>
  *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}.
  *         For backwards compatibility, the values for {@link SOCBoard#WATER_HEX} and
- *         {@link SOCBoard#DESERT_HEX} are changed to their pre-1.2.00 values in the
+ *         {@link SOCBoard#DESERT_HEX} are changed to their pre-v2.0.00 values in the
  *         constructor before sending over the network, and changed back in
  *         {@link #getIntArrayPart(String) getIntArrayPart("HL")}.
  *<LI> NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
@@ -71,7 +71,7 @@ public class SOCBoardLayout2 extends SOCMessage
     /**
      * Hex land type numbers sent over the network.
      * Compare to {@link SOCBoard#WATER_HEX}, {@link SOCBoard#DESERT_HEX}.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private static final int SENTLAND_WATER = 6, SENTLAND_DESERT = 0;
 
@@ -365,7 +365,7 @@ public class SOCBoardLayout2 extends SOCMessage
 
     /**
      * Render the SOCBoardLayout2 in human-readable form.
-     * In version 1.2.00 and later, the land hexes and port layout (<tt>LH</tt>, <tt>PL</tt>)
+     * In version 2.0.00 and later, the land hexes and port layout (<tt>LH</tt>, <tt>PL</tt>)
      *   are in hexadecimal instead of base-10.
      * @return a human readable form of the message
      */

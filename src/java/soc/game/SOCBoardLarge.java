@@ -34,7 +34,7 @@ import java.util.Vector;
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
  * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
  *<P>
- * Server and client must be 1.2.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
+ * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
  * followed by the robber hex and pirate hex (if they're &gt; 0),
  * and then (separately) the legal settlement/city nodes.
@@ -83,15 +83,15 @@ import java.util.Vector;
  *(6,0)  (6,2)  (6,4)  (6,6) .. </pre>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
- * @since 1.2.00
+ * @since 2.0.00
  */
 public class SOCBoardLarge extends SOCBoard
 {
     /**
      * This board encoding {@link SOCBoard#BOARD_ENCODING_LARGE}
-     * was introduced in version 1.2.00 (1200)
+     * was introduced in version 2.0.00 (2000)
      */
-    public static final int VERSION_FOR_ENCODING_LARGE = 1200;
+    public static final int VERSION_FOR_ENCODING_LARGE = 2000;
 
     /**
      * Hex type for the Gold Hex, where the adjacent players
@@ -866,7 +866,7 @@ public class SOCBoardLarge extends SOCBoard
      * The hex coordinates of all land hexes.  Please treat as read-only.
      * If you add land hexes, call {@link #getLandHexCoords()} to recalculate this set.
      * @return land hex coordinates, as a set of {@link Integer}s
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public HashSet getLandHexCoordsSet()
     {
@@ -876,7 +876,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * The hex coordinates of all land hexes.
      *<P>
-     * Before v1.2.00, this was <tt>getHexLandCoords()</tt>.
+     * Before v2.0.00, this was <tt>getHexLandCoords()</tt>.
      *
      * @return land hex coordinates, in no particular order, or null if none (all water).
      * @since 1.1.08
@@ -915,7 +915,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if water, false if land or not a valid hex coordinate
      * @see #isHexOnLand(int)
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public boolean isHexOnWater(final int hexCoord)
     {
@@ -1047,7 +1047,7 @@ public class SOCBoardLarge extends SOCBoard
      * At the client, call this after {@link #setLegalAndPotentialSettlements(Collection)}.
      *
      * @return the set of legal edge coordinates for ships, as a new Set of {@link Integer}s
-     * @since 1.2.00
+     * @since 2.0.00
      */
     HashSet initPlayerLegalShips()
     {
@@ -1129,7 +1129,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hexCoord Coordinate of this hex; not checked for validity
      * @return  The 6 edges adjacent to this hex
-     * @since 1.2.00
+     * @since 2.0.00
      */
     public int[] getAdjacentEdgesToHex(final int hexCoord)
     {
@@ -1186,7 +1186,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return Node coordinate in all 6 directions,
      *           clockwise from top (northern point of hex):
      *           0 is north, 1 is northeast, etc, 5 is northwest.
-     * @since 1.2.00
+     * @since 2.0.00
      * @see #getAdjacentNodeToHex(int, int)
      */
     public int[] getAdjacentNodesToHex(final int hexCoord)

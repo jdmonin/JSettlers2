@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,7 +46,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     static final String STLMT = "stlmt";
     static final String CITY = "city";
     static final String CARD = "card";
-    static final String SHIP = "ship";  // Ship for large sea board; @since 1.2.00
+    static final String SHIP = "ship";  // Ship for large sea board; @since 2.0.00
     private static final String SBP = "sbp";  // Special Building Phase button; @since 1.1.08
     Label title;
     Button roadBut;
@@ -76,15 +76,16 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     ColorSquare cardOre;
     ColorSquare cardCount;
 
-    // Large Sea Board Ship button; @since 1.2.00
+    // Large Sea Board Ship button; @since 2.0.00
     private Label shipT;  // text
     private Label shipC;  // cost
     private ColorSquare shipWood;
     private ColorSquare shipSheep;
+
     /**
      * For large sea board ({@link SOCGame#hasSeaBoard}, button to buy a ship.
      * Null if this game doesn't have that board.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     private Button shipBut;
 

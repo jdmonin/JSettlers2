@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -25,11 +25,11 @@ package soc.game;
  * A ship playing piece, on the large sea board ({@link SOCBoardLarge}).
  * To simplify some game code, ships are a subclass of roads.
  * @author Jeremy D Monin <jeremy@nand.net>
- * @since 1.2.00
+ * @since 2.0.00
  */
 public class SOCShip extends SOCRoad
 {
-    private static final long serialVersionUID = 1200L;
+    private static final long serialVersionUID = 2000L;
 
     /**
      * Is this ship part of an closed trade route, not an open one?

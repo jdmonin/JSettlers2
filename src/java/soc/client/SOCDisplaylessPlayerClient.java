@@ -745,7 +745,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             /**
              * move a previous piece (a ship) somewhere else on the board.
-             * Added 2011-12-05 for v1.2.00.
+             * Added 2011-12-05 for v2.0.00.
              */
             case SOCMessage.MOVEPIECE:
                 handleMOVEPIECE((SOCMovePiece) mes);
@@ -1757,7 +1757,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Handle moving a piece (a ship) around on the board.
-     * @since 1.2.00
+     * @since 2.0.00
      */
     protected void handleMOVEPIECE(SOCMovePiece mes)
     {

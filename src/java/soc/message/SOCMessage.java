@@ -205,12 +205,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int TIMINGPING = 1088;  // robot timing ping, 20111011, v1.1.13
 
     /** Ask server to move a piece to another location.
-     *  @since 1.2.00 */
-    public static final int MOVEPIECEREQUEST = 1089;  // move piece request, 20111203, v1.2.00
+     *  @since 2.0.00 */
+    public static final int MOVEPIECEREQUEST = 1089;  // move piece request, 20111203, v2.0.00
 
     /** Move a piece to another location; server reply to {@link #MOVEPIECEREQUEST}.
-     *  @since 1.2.00 */
-    public static final int MOVEPIECE = 1090;  // move piece, 20111203, v1.2.00
+     *  @since 2.0.00 */
+    public static final int MOVEPIECE = 1090;  // move piece, 20111203, v2.0.00
 
 
     /////////////////////////////////////////
@@ -300,7 +300,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @param sb  StringBuffer to which <tt>ia</tt> will be appended, as "{ 1 2 3 4 5 }"
      * @param useHex  If true, append <tt>ia</tt> as hexidecimal strings.
      *            Uses {@link Integer#toHexString(int)} after checking the sign bit.
-     *            (Added in 1.2.00)
+     *            (Added in 2.0.00)
      * @throws NullPointerException if <tt>ia</tt> or <tt>sb</tt> is null
      * @since 1.1.09
      */
@@ -761,10 +761,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case TIMINGPING:        // robot timing ping, 20111011, v1.1.13
                 return SOCTimingPing.parseDataStr(data);
 
-            case MOVEPIECEREQUEST:  // move piece request, 20111203, v1.2.00
+            case MOVEPIECEREQUEST:  // move piece request, 20111203, v2.0.00
                 return SOCMovePieceRequest.parseDataStr(data);
 
-            case MOVEPIECE:         // move piece announcement, 20111203, v1.2.00
+            case MOVEPIECE:         // move piece announcement, 20111203, v2.0.00
                 return SOCMovePiece.parseDataStr(data);
 
             default:
