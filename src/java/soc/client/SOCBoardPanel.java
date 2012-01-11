@@ -5874,7 +5874,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     case SOCBoard.WOOD_HEX:
                         sb.append("Wood");    break;
                     case SOCBoardLarge.GOLD_HEX:
-                        sb.append("Gold");    break;
+                        if (game.hasSeaBoard)
+                            sb.append("Gold");
+                        else
+                            // GOLD_HEX is also MISC_PORT_HEX
+                            sb.append(portDescForType(SOCBoard.MISC_PORT));
+                        break;
                     case SOCBoard.WATER_HEX:
                         sb.append("Water");   break;
                     default:
