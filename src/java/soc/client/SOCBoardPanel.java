@@ -5239,7 +5239,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @return The corresponding color from ColorSquare, or {@link ColorSquare#WATER} if hexType not recognized.
      * @since 1.1.07
      */
-    public static final Color hexColor(int hexType)
+    public final Color hexColor(int hexType)
     {
         Color hexColor;
         switch (hexType)
@@ -5263,7 +5263,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hexColor = ColorSquare.WOOD;
             break;
         case SOCBoardLarge.GOLD_HEX:
-            hexColor = ColorSquare.GOLD;
+            if (isLargeBoard)
+                hexColor = ColorSquare.GOLD;
+            else
+                hexColor = ColorSquare.WATER;  // for MISC_PORT_HEX
             break;
         default:  // WATER_HEX
             hexColor = ColorSquare.WATER;
@@ -5874,7 +5877,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     case SOCBoard.WOOD_HEX:
                         sb.append("Wood");    break;
                     case SOCBoardLarge.GOLD_HEX:
-                        if (game.hasSeaBoard)
+                        if (isLargeBoard)
                             sb.append("Gold");
                         else
                             // GOLD_HEX is also MISC_PORT_HEX
