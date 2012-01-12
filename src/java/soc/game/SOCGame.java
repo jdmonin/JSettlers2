@@ -1961,6 +1961,8 @@ public class SOCGame implements Serializable, Cloneable
      * For example, if game state when called is {@link #START2A},
      * this is their second initial settlement, so give
      * the player some resources, and call their {@link SOCPlayer#clearPotentialSettlements()}.
+     * If {@link #hasSeaBoard}, you should check {@link SOCPlayer#getNeedToPickGoldHexResources()} != 0
+     * after calling, to see if they placed next to a gold hex.
      *<P>
      * Calls {@link SOCBoard#putPiece(SOCPlayingPiece)} and {@link SOCPlayer#putPiece(SOCPlayingPiece)}.
      * Updates longest road if necessary.
@@ -2040,6 +2042,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             SOCResourceSet resources = new SOCResourceSet();
             Enumeration hexes = board.getAdjacentHexesToNode(pp.getCoordinates()).elements();
+            int goldHexAdjacent = 0;
 
             while (hexes.hasMoreElements())
             {
@@ -2072,11 +2075,15 @@ public class SOCGame implements Serializable, Cloneable
 
                     break;
 
-                // TODO SOCBoardLarge.GOLD_HEX -- not handled here, but in a new game state.
+                case SOCBoardLarge.GOLD_HEX:
+                    if (hasSeaBoard)
+                        ++goldHexAdjacent;
                 }
             }
 
             ppPlayer.getResources().add(resources);
+            if (goldHexAdjacent > 0)
+                ppPlayer.setNeedToPickGoldHexResources(goldHexAdjacent);
         }
 
         /**
@@ -2252,7 +2259,10 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case START2A:
-            gameState = START2B;
+            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+                gameState = START2A_WAITING_FOR_PICK_GOLD_RESOURCE;
+            else
+                gameState = START2B;
 
             break;
 
@@ -3264,6 +3274,8 @@ public class SOCGame implements Serializable, Cloneable
         }
         else
         {
+            boolean anyGoldHex = false;
+
             /**
              * distribute resources
              */
@@ -3273,10 +3285,15 @@ public class SOCGame implements Serializable, Cloneable
                 {
                     SOCPlayer pl = players[i]; 
                     pl.addRolledResources(getResourcesGainedFromRoll(pl, currentDice));
+                    if (hasSeaBoard && pl.getNeedToPickGoldHexResources() > 0)
+                        anyGoldHex = true;
                 }
             }
 
-            gameState = PLAY1;
+            if (! anyGoldHex)
+                gameState = PLAY1;
+            else
+                gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
         }
 
         return new IntPair(die1, die2);
@@ -3286,6 +3303,10 @@ public class SOCGame implements Serializable, Cloneable
      * Figure out what resources a player would get on a given roll,
      * based on the hexes adjacent to the player's settlements and cities
      * and based on the robber's position.
+     *<P>
+     * If {@link #hasSeaBoard}, and the player's adjacent to a
+     * {@link SOCBoardLarge#GOLD_HEX}, the gold-hex resources they must pick
+     * are returned as {@link SOCResourceConstants#UNKNOWN}.
      *
      * @param player   the player
      * @param roll     the total number rolled on the dice
@@ -3316,6 +3337,11 @@ public class SOCGame implements Serializable, Cloneable
      * Figure out what resources these piece positions would get on a given roll,
      * based on the hexes adjacent to the pieces' node coordinates.
      * Used in {@link #getResourcesGainedFromRoll(SOCPlayer, int)}.
+     *<P>
+     * If {@link #hasSeaBoard}, and the player's adjacent to a
+     * {@link SOCBoardLarge#GOLD_HEX}, the gold-hex resources they must pick
+     * are returned as {@link SOCResourceConstants#UNKNOWN}.
+     *
      * @param roll     the total number rolled on the dice
      * @param resources  Add new resources to this set
      * @param robberHex  Robber's position, from {@link SOCBoard#getRobberHex()}
@@ -3364,7 +3390,11 @@ public class SOCGame implements Serializable, Cloneable
 
                         break;
 
-                    // TODO SOCBoardLarge.GOLD_HEX -- not handled here, but in a new game state.
+                    case SOCBoardLarge.GOLD_HEX:
+                        if (hasSeaBoard)
+                            resources.add(incr, SOCResourceConstants.UNKNOWN);
+                        break;
+
                     }
                 }
             }
@@ -3373,6 +3403,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return true if the player can discard these resources
+     * @see #discard(int, SOCResourceSet)
      *
      * @param pn  the number of the player that is discarding
      * @param rs  the resources that the player is discarding
@@ -3409,6 +3440,8 @@ public class SOCGame implements Serializable, Cloneable
      * must still discard, and set gameState to {@link #WAITING_FOR_DISCARDS}
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}
      * or {@link #PLACING_ROBBER} accordingly.
+     *<P>
+     * Assumes {@link #canDiscard(int, SOCResourceSet)} already called to validate.
      *<P>
      * Special case:
      * If {@link #isForcingEndTurn()}, and no one else needs to discard,
@@ -3456,6 +3489,71 @@ public class SOCGame implements Serializable, Cloneable
                 gameState = PLAY1;
             }
         }
+    }
+
+    /**
+     * Can the player pick these resources from the gold hex?
+     * <tt>rs.</tt>{@link SOCResourceSet#getTotal() getTotal()}
+     * must == {@link SOCPlayer#getNeedToPickGoldHexResources()}.
+     * Game state must be {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
+     * or {@link #START2A_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     *
+     * @param pn  the number of the player that is picking
+     * @param rs  the resources that the player is picking
+     * @return true if the player can pick these resources
+     * @see #pickGoldHexResources(int, SOCResourceSet)
+     * @since 2.0.00
+     */
+    public boolean canPickGoldHexResources(final int pn, final SOCResourceSet rs)
+    {
+        if ((gameState != WAITING_FOR_PICK_GOLD_RESOURCE)
+            && (gameState != START2A_WAITING_FOR_PICK_GOLD_RESOURCE))
+        {
+            return false;
+        }
+
+        return (rs.getTotal() == players[pn].getNeedToPickGoldHexResources());
+    }
+
+    /**
+     * A player is picking which resources to gain from the gold hex.
+     * Gain them, check if other players must still pick, and set
+     * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
+     * or {@link #PLAY1} accordingly.
+     * (Or, during initial placement, set it to {@link #START2B}}.)
+     *<P>
+     * Assumes {@link #canPickGoldHexResources(int, SOCResourceSet)} already called to validate.
+     *
+     * @param pn   the number of the player
+     * @param rs   the resources that are being picked
+     * @since 2.0.00
+     */
+    public void pickGoldHexResources(final int pn, final SOCResourceSet rs)
+    {
+        players[pn].getResources().add(rs);
+        players[pn].setNeedToPickGoldHexResources(0);
+
+        // initial placement?
+        if (gameState == START2A_WAITING_FOR_PICK_GOLD_RESOURCE)
+        {
+            gameState = START2B;
+            return;
+        }
+
+        /**
+         * check if we're still waiting for players to pick
+         */
+        gameState = PLAY1;
+
+        for (int i = 0; i < maxPlayers; i++)
+        {
+            if (players[i].getNeedToPickGoldHexResources() > 0)
+            {
+                gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+                break;
+            }
+        }
+
     }
 
     /**

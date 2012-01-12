@@ -182,8 +182,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * this flag is true if the player needs to discard
+     * and must pick which resources to lose.
+     * @see #needToPickGoldHexResources
      */
     private boolean needToDiscard;
+
+    /**
+     * If nonzero, waiting for player to pick this many gold-hex resources,
+     * after a dice roll or placing their 2nd initial settlement.
+     *<P>
+     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}
+     * or {@link SOCGame#START2A_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * @see #needToDiscard
+     * @since 2.0.00
+     */
+    private int needToPickGoldHexResources;
 
     /**
      * all of the nodes that this player's roads and ships touch;
@@ -379,6 +392,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         finalTotalVP = 0;
         playedDevCard = player.playedDevCard;
         needToDiscard = player.needToDiscard;
+        needToPickGoldHexResources = player.needToPickGoldHexResources;
         boardResetAskedThisTurn = player.boardResetAskedThisTurn;
         askedSpecialBuild = player.askedSpecialBuild;
         hasSpecialBuiltThisTurn = player.hasSpecialBuiltThisTurn;
@@ -457,6 +471,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         buildingVP = 0;
         playedDevCard = false;
         needToDiscard = false;
+        needToPickGoldHexResources = 0;
         boardResetAskedThisTurn = false;
         askedSpecialBuild = false;
         hasSpecialBuiltThisTurn = false;
@@ -663,6 +678,38 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public boolean getNeedToDiscard()
     {
         return needToDiscard;
+    }
+
+    /**
+     * Set the number of gold-hex resources this player must now pick,
+     * after a dice roll or placing their 2nd initial settlement.
+     * 0 unless {@link SOCGame#hasSeaBoard} and player is adjacent
+     * to a {@link SOCBoardLarge#GOLD_HEX}.
+     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * Once the player has picked their resources, returns to 0.
+     *
+     * @param numRes  Number of resources to pick
+     * @since 2.0.00
+     */
+    public void setNeedToPickGoldHexResources(final int numRes)
+    {
+        needToPickGoldHexResources = numRes;
+    }
+
+    /**
+     * Get the number of gold-hex resources this player must now pick,
+     * after a dice roll or placing their 2nd initial settlement.
+     * 0 unless {@link SOCGame#hasSeaBoard} and player is adjacent
+     * to a {@link SOCBoardLarge#GOLD_HEX}.
+     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * Once the player has picked their resources, returns to 0.
+     *
+     * @return  number of resources to pick
+     * @since 2.0.00
+     */
+    public int getNeedToPickGoldHexResources()
+    {
+        return needToPickGoldHexResources;
     }
 
     /**
@@ -1283,12 +1330,26 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Add to this player's resources and resource-roll totals.
+     *<P>
+     * If {@link #hasSeaBoard}, treat {@link SOCResourceConstants#UNKNOWN}
+     * as the gold-hex resources they must pick, and set
+     * {@link #getNeedToPickGoldHexResources()} to that amount.
+     *
      * @param rolled The resources gained by this roll, as from
      *     {@link SOCGame#getResourcesGainedFromRoll(SOCPlayer, int)}
      * @since 1.1.09
      */
     public void addRolledResources(SOCResourceSet rolled)
     {
+        if (game.hasSeaBoard)
+        {
+            final int gold = rolled.getAmount(SOCResourceConstants.UNKNOWN);
+            if (gold > 0)
+            {
+                needToPickGoldHexResources = gold;
+                rolled.setAmount(0, SOCResourceConstants.UNKNOWN);
+            }
+        }
         resources.add(rolled);
         for (int rtype = SOCResourceConstants.CLAY; rtype < resourceStats.length; ++rtype)
             resourceStats[rtype] += rolled.getAmount(rtype);
