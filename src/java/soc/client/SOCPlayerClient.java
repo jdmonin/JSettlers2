@@ -2219,6 +2219,14 @@ public class SOCPlayerClient extends Applet
                 handleMOVEPIECE((SOCMovePiece) mes);
                 break;
 
+            /**
+             * pick resources to gain from the gold hex.
+             * Added 2012-01-12 for v2.0.00.
+             */
+            case SOCMessage.PICKRESOURCESREQUEST:
+                handlePICKRESOURCESREQUEST((SOCPickResourcesRequest) mes);
+                break;
+
             }  // switch (mes.getType())            
         }
         catch (Exception e)
@@ -3291,7 +3299,18 @@ public class SOCPlayerClient extends Applet
     protected void handleDISCARDREQUEST(SOCDiscardRequest mes)
     {
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-        pi.showDiscardDialog(mes.getNumberOfDiscards());
+        pi.showDiscardOrGainDialog(mes.getNumberOfDiscards(), true);
+    }
+
+    /**
+     * handle the "pick resources request" message
+     * @param mes  the message
+     * @since 2.0.00
+     */
+    protected void handlePICKRESOURCESREQUEST(SOCPickResourcesRequest mes)
+    {
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        pi.showDiscardOrGainDialog(mes.getParam(), false);
     }
 
     /**
@@ -4405,6 +4424,18 @@ public class SOCPlayerClient extends Applet
     public void discard(SOCGame ga, SOCResourceSet rs)
     {
         put(SOCDiscard.toCmd(ga.getName(), rs), ga.isPractice);
+    }
+
+    /**
+     * The user has picked these resources to gain from the gold hex.
+     *
+     * @param ga  the game
+     * @param rs  The resources to pick
+     * @since 2.0.00
+     */
+    public void pickResources(SOCGame ga, SOCResourceSet rs)
+    {
+        put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
     }
 
     /**

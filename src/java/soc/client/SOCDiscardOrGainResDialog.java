@@ -47,6 +47,12 @@ import java.awt.event.MouseListener;
 class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseListener
 {
     /**
+     * Are we discarding, not gaining?
+     * @since 2.0.00
+     */
+    private final boolean isDiscard;
+
+    /**
      * Clear button.  Reset the {@link #disc} discard-choose counts to 0.
      * @since 2.0.00
      */
@@ -55,8 +61,12 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
     /** Discard button */
     Button discardBut;
 
+    /** The 'keep' square resource types/counts only change if {@link #isDiscard}. */
     ColorSquare[] keep;
+
+    /** Resource types/counts to discard or gain */
     ColorSquare[] disc;
+
     Label msg;
     Label youHave;
     Label discThese;
@@ -82,16 +92,18 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
     /**
      * Creates a new SOCDiscardOrGainResDialog popup.
-     * To show it onscreen and make it active,
+     * To show it on screen and make it active,
      * call {@link #setVisible(boolean) setVisible(true)}.
      *
      * @param pi   Client's player interface
-     * @param rnum Player must dicard this many resources
+     * @param rnum Player must discard or gain this many resources
+     * @param isDiscard  True for discard (after 7), false for gain (after gold hex)
      */
-    public SOCDiscardOrGainResDialog(SOCPlayerInterface pi, int rnum)
+    public SOCDiscardOrGainResDialog(SOCPlayerInterface pi, final int rnum, final boolean isDiscard)
     {
-        super(pi, "Discard [" + pi.getClient().getNickname() + "]", true);
+        super(pi, (isDiscard ? "Discard [" : "Gain Resources [" ) + pi.getClient().getNickname() + "]", true);
 
+        this.isDiscard = isDiscard;
         playerInterface = pi;
         numDiscards = rnum;
         numChosen = 0;
@@ -100,16 +112,18 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         setFont(new Font("Geneva", Font.PLAIN, 12));
 
         clearBut = new Button("Clear");
-        discardBut = new Button("Discard");
+        discardBut = new Button(isDiscard ? "Discard" : "Pick");
 
         didSetLocation = false;
         setLayout(null);
 
-        msg = new Label("Please discard " + Integer.toString(numDiscards) + " resources.", Label.CENTER);
+        msg = new Label
+            ((isDiscard ? "Please discard " : "Please pick ")
+             + Integer.toString(numDiscards) + " resources.", Label.CENTER);
         add(msg);
         youHave = new Label("You have:", Label.LEFT);
         add(youHave);
-        discThese = new Label("Discard these:", Label.LEFT);
+        discThese = new Label((isDiscard ? "Discard these:" : "Gain these:"), Label.LEFT);
         add(discThese);
 
         // wantH formula based on doLayout
@@ -271,7 +285,11 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
             if (rsrcs.getTotal() == numDiscards)
             {
-                playerInterface.getClient().discard(playerInterface.getGame(), rsrcs);
+                SOCPlayerClient pcli = playerInterface.getClient();
+                if (isDiscard)
+                    pcli.discard(playerInterface.getGame(), rsrcs);
+                else
+                    pcli.pickResources(playerInterface.getGame(), rsrcs);
                 dispose();
             }
         }
@@ -279,7 +297,8 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         {
             for (int i = disc.length - 1; i >= 0; --i)
             {
-                keep[i].addValue(disc[i].getIntValue());
+                if (isDiscard)
+                    keep[i].addValue(disc[i].getIntValue());
                 disc[i].setIntValue(0);
             }
             numChosen = 0;
@@ -320,6 +339,8 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
      * from the resource totals as requested; update {@link #discardBut}
      * and {@link #clearBut}.
      *<P>
+     * If not isDiscard, will not subtract change the "keep" colorsquare resource counts.
+     *<P>
      * Clear/Discard button clicks are handled in {@link #actionPerformed(ActionEvent)}.
      */
     public void mousePressed(MouseEvent e)
@@ -332,7 +353,8 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         {
             if ((target == keep[i]) && (disc[i].getIntValue() > 0))
             {
-                keep[i].addValue(1);
+                if (isDiscard)
+                    keep[i].addValue(1);
                 disc[i].subtractValue(1);
                 --numChosen;
                 if (numChosen == (numDiscards-1))
@@ -347,9 +369,10 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
                 }                    
                 break;
             }
-            else if ((target == disc[i]) && (keep[i].getIntValue() > 0))
+            else if ((target == disc[i]) && ((keep[i].getIntValue() > 0) || ! isDiscard))
             {
-                keep[i].subtractValue(1);
+                if (isDiscard)
+                    keep[i].subtractValue(1);
                 disc[i].addValue(1);
                 ++numChosen;
                 if (numChosen == numDiscards)

@@ -385,9 +385,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     protected int textDisplayRollExpected;
     
     /**
-     * the dialog for getting what resources the player wants to discard
+     * The dialog for getting what resources the player wants to discard or gain.
      */
-    protected SOCDiscardDialog discardDialog;
+    protected SOCDiscardOrGainResDialog discardOrGainDialog;
 
     /**
      * the dialog for choosing a player from which to steal
@@ -1606,14 +1606,15 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
-     * show the discard dialog
+     * Show the discard dialog or the gain-resources dialog.
      *
-     * @param nd  the number of discards
+     * @param nd  the number of resources to discard or gain
+     * @param isDiscard  True for discard (after 7), false for gain (after gold hex)
      */
-    public void showDiscardDialog(int nd)
+    public void showDiscardOrGainDialog(final int nd, final boolean isDiscard)
     {
-        discardDialog = new SOCDiscardDialog(this, nd);
-        discardDialog.setVisible(true);
+        discardOrGainDialog = new SOCDiscardOrGainResDialog(this, nd, isDiscard);
+        discardOrGainDialog.setVisible(true);
     }
 
     /**
