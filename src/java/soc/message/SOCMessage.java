@@ -77,7 +77,7 @@ import java.util.StringTokenizer;
  *<P>
  * Backwards compatibility: Unknown message types are ignored by client and by server.
  * Technically they are returned as null from {@link #toMsg(String)} if the local copy
- * of SOCMessage doesn't know that message type.
+ * (the old version's code) of SOCMessage doesn't know that message type.
  *<P>
  * Format:
  * For most messages, at most one {@link #sep} token per message, which separates the messagetype number
@@ -205,12 +205,24 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int TIMINGPING = 1088;  // robot timing ping, 20111011, v1.1.13
 
     /** Ask server to move a piece to another location.
+     *  Server replies with {@link #MOVEPIECE}.
      *  @since 2.0.00 */
     public static final int MOVEPIECEREQUEST = 1089;  // move piece request, 20111203, v2.0.00
 
     /** Move a piece to another location; server reply to {@link #MOVEPIECEREQUEST}.
      *  @since 2.0.00 */
     public static final int MOVEPIECE = 1090;  // move piece, 20111203, v2.0.00
+
+    /** Ask client to pick this many resources,
+     *  when they have a settlement or city next to a gold hex.
+     *  Client replies with {@link #PICKRESOURCES}.
+     *  @since 2.0.00 */
+    public static final int PICKRESOURCESREQUEST = 1091;  // gold hex resources, 20120112, v2.0.00
+
+    /** Client reply to {@link #PICKRESOURCESREQUEST}.
+     *  Has picked these resource types/counts.
+     *  @since 2.0.00 */
+    public static final int PICKRESOURCES = 1092;  // gold hex resources, 20120112, v2.0.00
 
 
     /////////////////////////////////////////
@@ -766,6 +778,12 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case MOVEPIECE:         // move piece announcement, 20111203, v2.0.00
                 return SOCMovePiece.parseDataStr(data);
+
+            case PICKRESOURCESREQUEST:  // gold hex resources, 20120112, v2.0.00
+                return SOCPickResourcesRequest.parseDataStr(data);
+                
+            case PICKRESOURCES:     // gold hex resources, 20120112, v2.0.00
+                return SOCPickResources.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
