@@ -38,11 +38,13 @@ import java.awt.event.MouseListener;
 
 /**
  * This is the dialog to ask players what resources they want
- * to discard.
+ * to discard from rolling a 7, or to gain from the gold hex.
+ *<P>
+ * Before v2.0.00, this was called <tt>SOCDiscardDialog</tt>.
  *
  * @author  Robert S. Thomas
  */
-class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
+class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseListener
 {
     /**
      * Clear button.  Reset the {@link #disc} discard-choose counts to 0.
@@ -79,12 +81,14 @@ class SOCDiscardDialog extends Dialog implements ActionListener, MouseListener
     boolean didSetLocation;
 
     /**
-     * Creates a new SOCDiscardDialog object.
+     * Creates a new SOCDiscardOrGainResDialog popup.
+     * To show it onscreen and make it active,
+     * call {@link #setVisible(boolean) setVisible(true)}.
      *
      * @param pi   Client's player interface
      * @param rnum Player must dicard this many resources
      */
-    public SOCDiscardDialog(SOCPlayerInterface pi, int rnum)
+    public SOCDiscardOrGainResDialog(SOCPlayerInterface pi, int rnum)
     {
         super(pi, "Discard [" + pi.getClient().getNickname() + "]", true);
 
