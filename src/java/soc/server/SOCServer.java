@@ -3281,6 +3281,14 @@ public class SOCServer extends Server
                     handleMOVEPIECEREQUEST(c, (SOCMovePieceRequest) mes);
                     break;
 
+                /**
+                 * Picking resources to gain from a Gold Hex.
+                 * Added 2012-01-12 for v2.0.00.
+                 */
+                case SOCMessage.PICKRESOURCES:
+                    handlePICKRESOURCES(c, (SOCPickResources) mes);
+                    break;
+
                 }  // switch (mes.getType)
             }  // if (mes != null)
         }
@@ -4976,6 +4984,13 @@ public class SOCServer extends Server
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
+                            if (ga.hasSeaBoard && (gameState == SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE))
+                            {
+                                final int numGoldRes = player.getNeedToPickGoldHexResources();
+                                if (numGoldRes > 0)
+                                    messageToGame(gaName, new SOCPickResourcesRequest(gaName, numGoldRes));
+                                // sendGameState will send text about the prompting.
+                            }
                             sendGameState(ga);
 
                             if (!checkTurn(c, ga))
@@ -5495,6 +5510,8 @@ public class SOCServer extends Server
                          * expects text message to follow a certain format.
                          * If a 7 is rolled, sendGameState will also say who must discard
                          * (in a GAMETEXTMSG).
+                         * If a gold hex is rolled, sendGameState will also say who
+                         * must pick resources to gain (in a GAMETEXTMSG).
                          */
                         messageToGame(gn, new SOCDiceResult(gn, ga.getCurrentDice()));
                         messageToGame(gn, plName + " rolled a " + dice.getA() + " and a " + dice.getB() + ".");
@@ -5536,6 +5553,7 @@ public class SOCServer extends Server
 
                                     //
                                     //  send all resource info for accuracy
+                                    //  and prompt if they must pick for GOLD_HEX
                                     //
                                     StringConnection playerCon = getConnection(pli.getName());
                                     if (playerCon != null)
@@ -5545,6 +5563,14 @@ public class SOCServer extends Server
                                         for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.WOOD; ++res)
                                             messageToPlayer(playerCon, new SOCPlayerElement(ga.getName(), i, SOCPlayerElement.SET, res, resources.getAmount(res)));
                                         messageToGame(ga.getName(), new SOCResourceCount(ga.getName(), i, resources.getTotal()));
+
+                                        if (ga.hasSeaBoard)
+                                        {
+                                            final int numGoldRes = pli.getNeedToPickGoldHexResources();
+                                            if (numGoldRes > 0)
+                                                messageToGame(gn, new SOCPickResourcesRequest(gn, numGoldRes));
+                                            // sendGameState will send text about the prompting.
+                                        }
                                     }
                                 }  // if (! ga.isSeatVacant(i))
                             }  // for (i)
@@ -5689,6 +5715,81 @@ public class SOCServer extends Server
                 ga.releaseMonitor();
             }
         }
+    }
+
+    /**
+     * Handle "pick resources" message (gold hex).
+     *
+     * @param c  the connection that sent the message
+     * @param mes  the messsage
+     * @since 2.0.00
+     */
+    private void handlePICKRESOURCES(StringConnection c, SOCPickResources mes)
+    {
+        if (c == null)
+            return;
+
+        final String gn = mes.getGame();
+        SOCGame ga = gameList.getGameData(gn);
+        if (ga == null)
+            return;
+
+        final SOCPlayer player = ga.getPlayer((String) c.getData());
+        final int pn;
+        if (player != null)
+            pn = player.getPlayerNumber();
+        else
+            pn = -1;  // c's client no longer in the game
+
+        ga.takeMonitor();
+        try
+        {
+            if (player == null)
+            {
+                // The catch block will print this out semi-nicely
+                throw new IllegalArgumentException("player not found in game");
+            }
+
+            final SOCResourceSet rsrcs = mes.getResources();
+            if (ga.canPickGoldHexResources(pn, rsrcs))
+            {
+                ga.canPickGoldHexResources(pn, rsrcs);
+
+                /**
+                 * tell everyone what the player gained
+                 */
+                StringBuffer gainsText = new StringBuffer();
+                gainsText.append(player.getName());
+                gainsText.append(" gets ");
+                // Send SOCPlayerElement messages,
+                // build resource-text in gainsText.
+                reportRsrcGainLoss(gn, rsrcs, false, pn, -1, gainsText, null);
+                gainsText.append(" from the gold hex.");
+                messageToGame(gn, gainsText.toString());
+
+                /**
+                 * send the new state, or end turn if was marked earlier as forced
+                 */
+                if ((ga.getGameState() != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
+                {
+                    sendGameState(ga);
+                } else {
+                    endGameTurn(ga, player);  // already did ga.takeMonitor()
+                }
+            }
+            else
+            {
+                messageToPlayer(c, gn, "You can't pick that many resources.");
+                messageToGame(gn, new SOCPickResourcesRequest(gn, player.getNeedToPickGoldHexResources()));
+            }
+        }
+        catch (Throwable e)
+        {
+            D.ebugPrintln("Exception caught - " + e);
+            e.printStackTrace();
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
@@ -7410,6 +7511,11 @@ public class SOCServer extends Server
         {
             messageToGame(gaName, new SOCPutPiece
                           (gaName, mes.getPlayerNumber(), pieceType, coord));
+
+            final int numGoldRes = player.getNeedToPickGoldHexResources();
+            if (numGoldRes > 0)
+                messageToGame(gaName, new SOCPickResourcesRequest(gaName, numGoldRes));
+
             if (ga.getGameState() >= SOCGame.OVER)
             {
                 // exit debug mode, announce end of game
@@ -8011,6 +8117,13 @@ public class SOCServer extends Server
      * Assumes current player does not change during this state.
      * If we send a text message to prompt the new player to roll,
      * also sends a RollDicePrompt data message.
+     *<P>
+     * State {@link SOCGame#WAITING_FOR_DISCARDS}:
+     * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
+     * State {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}:
+     * If a gold hex is rolled, will also say who
+     * must pick resources to gain (in a GAMETEXTMSG).
+     *<P>
      * If the client is too old (1.0.6), it will ignore the prompt.
      *
      * @param ga  the game
@@ -8026,6 +8139,12 @@ public class SOCServer extends Server
      * send the current state of the game with a message.
      * Note that the current (or new) player number is not sent here.
      * If game is now OVER, send appropriate messages.
+     *<P>
+     * State {@link SOCGame#WAITING_FOR_DISCARDS}:
+     * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
+     * State {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}:
+     * If a gold hex is rolled, will also say who
+     * must pick resources to gain (in a GAMETEXTMSG).
      *
      * @see #sendTurn(SOCGame, boolean)
      * @see #sendGameState(SOCGame)
@@ -8088,7 +8207,6 @@ public class SOCServer extends Server
         case SOCGame.WAITING_FOR_DISCARDS:
 
             int count = 0;
-            String message = "error at sendGameState()";
             String[] names = new String[ga.maxPlayers];
 
             for (int i = 0; i < ga.maxPlayers; i++)
@@ -8100,28 +8218,27 @@ public class SOCServer extends Server
                 }
             }
 
-            if (count == 1)
-            {
-                message = names[0] + " needs to discard.";
-            }
-            else if (count == 2)
-            {
-                message = names[0] + " and " + names[1] + " need to discard.";
-            }
-            else if (count > 2)
-            {
-                message = names[0];
-
-                for (int i = 1; i < (count - 1); i++)
-                {
-                    message += (", " + names[i]);
-                }
-
-                message += (" and " + names[count - 1] + " need to discard.");
-            }
-
+            String message = sendGameState_buildPlayerNamesText(count, names, "discard.");
             messageToGame(gname, message);
+            break;
 
+        case SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE:
+            // fall through
+        case SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE:
+            count = 0;
+            names = new String[ga.maxPlayers];
+
+            for (int i = 0; i < ga.maxPlayers; i++)
+            {
+                if (ga.getPlayer(i).getNeedToPickGoldHexResources() > 0)
+                {
+                    names[count] = ga.getPlayer(i).getName();
+                    count++;
+                }
+            }
+
+            message = sendGameState_buildPlayerNamesText(count, names, "pick resources.");
+            messageToGame(gname, message);
             break;
 
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
@@ -8177,6 +8294,43 @@ public class SOCServer extends Server
         }  // switch ga.getGameState
         
         return promptedRoll; 
+    }
+
+    /**
+     * For discard or gold hex in {@link #sendGameState(SOCGame, boolean), build
+     * the list of player names affected.
+     * @param count  Number of players to name
+     * @param names  Player names
+     * @param needToVerb  "discard." or "pick resources."
+     * @return message text, such as "x, y and z need to discard."
+     * @since 2.0.00
+     */
+    private final String sendGameState_buildPlayerNamesText
+        (final int count, final String[] names, final String needToVerb)
+    {
+        String message = "error at sendGameState()";  // default contents
+
+        if (count == 1)
+        {
+            message = names[0] + " needs to " + needToVerb;
+        }
+        else if (count == 2)
+        {
+            message = names[0] + " and " + names[1] + " need to " + needToVerb;
+        }
+        else if (count > 2)
+        {
+            message = names[0];
+
+            for (int i = 1; i < (count - 1); i++)
+            {
+                message += (", " + names[i]);
+            }
+
+            message += (" and " + names[count - 1] + " need to " + needToVerb);
+        }
+
+        return message;
     }
     
     /**

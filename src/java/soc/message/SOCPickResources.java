@@ -52,12 +52,12 @@ public class SOCPickResources extends SOCMessage
      * Create a Pick Resources message.
      *
      * @param ga  the name of the game
-     * @param cl  the ammount of clay being picked
-     * @param or  the ammount of ore being picked
-     * @param sh  the ammount of sheep being picked
-     * @param wh  the ammount of wheat being picked
-     * @param wo  the ammount of wood being picked
-     * @param uk  the ammount of unknown resources being picked
+     * @param cl  the amount of clay being picked
+     * @param or  the amount of ore being picked
+     * @param sh  the amount of sheep being picked
+     * @param wh  the amount of wheat being picked
+     * @param wo  the amount of wood being picked
+     * @param uk  the amount of unknown resources being picked
      */
     public SOCPickResources(String ga, int cl, int or, int sh, int wh, int wo, int uk)
     {

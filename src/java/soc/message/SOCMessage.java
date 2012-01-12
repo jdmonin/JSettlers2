@@ -205,7 +205,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int TIMINGPING = 1088;  // robot timing ping, 20111011, v1.1.13
 
     /** Ask server to move a piece to another location.
-     *  Server replies with {@link #MOVEPIECE}.
+     *  Server replies with {@link #MOVEPIECE} if okay.
      *  @since 2.0.00 */
     public static final int MOVEPIECEREQUEST = 1089;  // move piece request, 20111203, v2.0.00
 
