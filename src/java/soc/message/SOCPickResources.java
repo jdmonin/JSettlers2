@@ -30,6 +30,9 @@ import java.util.StringTokenizer;
  * This message from client means that a player has picked these resources
  * to receive from the gold hex.
  * Client response to server's {@link SOCPickResourcesRequest}.
+ * The server will report the picked resources to the other
+ * players via {@link SOCPlayerElement} and text, but will not send
+ * a <tt>SOCPickResources</tt> message to other players.
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */

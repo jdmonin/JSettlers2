@@ -22,9 +22,12 @@ package soc.message;
 import java.util.StringTokenizer;
 
 /**
- * This message from server informs the client that in a game they're playing,
+ * This message from server to a client informs the
+ * client's player that in a game they're playing,
  * they must pick which resources they want from a gold hex.
  * Client should respond with {@link SOCPickResources}.
+ *<P>
+ * Similar send/response pattern as {@link SOCDiscardRequest} / {@link SOCDiscard}.
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */

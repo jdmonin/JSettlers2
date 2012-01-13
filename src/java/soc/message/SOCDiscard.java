@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +27,11 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message means that a player is discarding
+ * This message means that a player is discarding.
+ * Client's response to server's {@link SOCDiscardRequest}.
+ * The server will report the discard's resource total to the other
+ * players via {@link SOCPlayerElement} and text, but will not send
+ * a <tt>SOCDiscard</tt> message to other players.
  *
  * @author Robert S. Thomas
  */
@@ -48,12 +52,12 @@ public class SOCDiscard extends SOCMessage
      * Create a Discard message.
      *
      * @param ga  the name of the game
-     * @param cl  the ammount of clay being discarded
-     * @param or  the ammount of ore being discarded
-     * @param sh  the ammount of sheep being discarded
-     * @param wh  the ammount of wheat being discarded
-     * @param wo  the ammount of wood being discarded
-     * @param uk  the ammount of unknown resources being discarded
+     * @param cl  the amount of clay being discarded
+     * @param or  the amount of ore being discarded
+     * @param sh  the amount of sheep being discarded
+     * @param wh  the amount of wheat being discarded
+     * @param wo  the amount of wood being discarded
+     * @param uk  the amount of unknown resources being discarded
      */
     public SOCDiscard(String ga, int cl, int or, int sh, int wh, int wo, int uk)
     {
@@ -120,12 +124,12 @@ public class SOCDiscard extends SOCMessage
      * wheat sep2 wood sep2 unknown
      *
      * @param ga  the name of the game
-     * @param cl  the ammount of clay being discarded
-     * @param or  the ammount of ore being discarded
-     * @param sh  the ammount of sheep being discarded
-     * @param wh  the ammount of wheat being discarded
-     * @param wo  the ammount of wood being discarded
-     * @param uk  the ammount of unknown resources being discarded
+     * @param cl  the amount of clay being discarded
+     * @param or  the amount of ore being discarded
+     * @param sh  the amount of sheep being discarded
+     * @param wh  the amount of wheat being discarded
+     * @param wo  the amount of wood being discarded
+     * @param uk  the amount of unknown resources being discarded
      * @return the command string
      */
     public static String toCmd(String ga, int cl, int or, int sh, int wh, int wo, int uk)

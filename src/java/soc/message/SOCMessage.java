@@ -73,6 +73,9 @@ import java.util.StringTokenizer;
  *      {@link soc.client.SOCDisplaylessPlayerClient#treat(SOCMessage)},
  *      to {@link soc.robot.SOCRobotClient#treat(SOCMessage)},
  *      and possibly to {@link soc.robot.SOCRobotBrain#run()}. 
+ *      <P>
+ *      If the message is player-state related, you might also want to add
+ *      it in <tt>SOCServer.sitDown_sendPrivateInfo()</tt>.
  *</UL>
  *<P>
  * Backwards compatibility: Unknown message types are ignored by client and by server.
