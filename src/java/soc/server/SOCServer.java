@@ -4988,7 +4988,7 @@ public class SOCServer extends Server
                             {
                                 final int numGoldRes = player.getNeedToPickGoldHexResources();
                                 if (numGoldRes > 0)
-                                    messageToGame(gaName, new SOCPickResourcesRequest(gaName, numGoldRes));
+                                    messageToPlayer(c, new SOCPickResourcesRequest(gaName, numGoldRes));
                                 // sendGameState will send text about the prompting.
                             }
                             sendGameState(ga);
@@ -5568,7 +5568,7 @@ public class SOCServer extends Server
                                         {
                                             final int numGoldRes = pli.getNeedToPickGoldHexResources();
                                             if (numGoldRes > 0)
-                                                messageToGame(gn, new SOCPickResourcesRequest(gn, numGoldRes));
+                                                messageToPlayer(c, new SOCPickResourcesRequest(ga.getName(), numGoldRes));
                                             // sendGameState will send text about the prompting.
                                         }
                                     }
@@ -5780,7 +5780,7 @@ public class SOCServer extends Server
             else
             {
                 messageToPlayer(c, gn, "You can't pick that many resources.");
-                messageToGame(gn, new SOCPickResourcesRequest(gn, player.getNeedToPickGoldHexResources()));
+                messageToPlayer(c, new SOCPickResourcesRequest(gn, player.getNeedToPickGoldHexResources()));
             }
         }
         catch (Throwable e)
@@ -7512,9 +7512,13 @@ public class SOCServer extends Server
             messageToGame(gaName, new SOCPutPiece
                           (gaName, mes.getPlayerNumber(), pieceType, coord));
 
-            final int numGoldRes = player.getNeedToPickGoldHexResources();
-            if (numGoldRes > 0)
-                messageToGame(gaName, new SOCPickResourcesRequest(gaName, numGoldRes));
+            // Check for initial settlement next to gold hex
+            if (pieceType == SOCPlayingPiece.SETTLEMENT)
+            {
+                final int numGoldRes = player.getNeedToPickGoldHexResources();
+                if (numGoldRes > 0)
+                    messageToPlayer(c, new SOCPickResourcesRequest(gaName, numGoldRes));
+            }
 
             if (ga.getGameState() >= SOCGame.OVER)
             {
@@ -8038,6 +8042,12 @@ public class SOCServer extends Server
         if ((ga.getCurrentDice() == 7) && ga.getPlayer(pn).getNeedToDiscard())
         {
             messageToPlayer(c, new SOCDiscardRequest(gaName, ga.getPlayer(pn).getResources().getTotal() / 2));
+        }
+        else if (ga.hasSeaBoard)
+        {
+            final int numGoldRes = ga.getPlayer(pn).getNeedToPickGoldHexResources();
+            if (numGoldRes > 0)
+                messageToPlayer(c, new SOCPickResourcesRequest(gaName, numGoldRes));
         }
 
         /**
