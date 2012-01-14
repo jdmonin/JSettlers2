@@ -78,13 +78,20 @@ import java.util.Timer;
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
+    /**
+     * Hex and port graphics are in this directory.
+     * The rotated versions for the 6-player non-sea board are in <tt><i>IMAGEDIR</i>/rotat</tt>.
+     * The images are loaded into the {@link #hexes}, {@link #ports},
+     * {@link #rotatHexes}, {@link #rotatPorts}, {@link #scaledHexes},
+     * and {@link #scaledPorts} arrays.
+     */
     private static String IMAGEDIR = "/soc/client/images";
 
     /**
      * size of the whole panel, internal-pixels "scale".
      * This constant may not reflect the current game board's minimum size:
      * In board-internal coordinates, use {@link #panelMinBW} and {@link #panelMinBH} instead.
-     * For mimimum acceptable size in on-screen pixels,
+     * For minimum acceptable size in on-screen pixels,
      * call {@link #getMinimumSize()} instead of using PANELX and PANELY directly.
      * For actual current size in screen pixels, see
      * {@link #scaledPanelX} {@link #scaledPanelY};
@@ -602,43 +609,57 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int[] hexX, hexY;
 
     /**
-     * Hex pix - shared unscaled original-resolution from GIF files.
+     * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Note that miscPort0.gif - miscPort5.gif are stored in {@link #hexes};
      * {@link #ports} stores the resource ports.
      * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class)}.
+     * Image references are copied to
+     * {@link #scaledHexes}/{@link #scaledPorts} from here.
      * @see #scaledHexes
      * @see #rotatHexes
      */
     private static Image[] hexes, ports;
 
     /**
-     * Hex pix - rotated board; from ./images/rotat GIF files.
+     * Hex images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
      * Image references are copied to
      * {@link #scaledHexes}/{@link #scaledPorts} from here.
      * @see #hexes
+     * @see #ports
      * @since 1.1.08
      */
     private static Image[] rotatHexes, rotatPorts;
 
     /**
-     * Hex pix - private scaled copy, if isScaled. Otherwise points to static copies,
+     * Hex images - private scaled copy, if {@link #isScaled}. Otherwise points to static copies,
      * either {@link #hexes} or {@link #rotatHexes}
+     * @see #scaledHexFail
      */
-    private Image[] scaledHexes, scaledPorts;
+    private Image[] scaledHexes;
 
     /**
-     * Hex pix - Flag to check if rescaling failed, if isScaled.
+     * Port images - private scaled copy, if {@link #isScaled}. Otherwise points to static copies,
+     * either {@link #ports} or {@link #rotatPorts}
+     * @see #scaledPortFail
+     */
+    private Image[] scaledPorts;
+
+    /**
+     * Hex/port images - Per-image flag to check if rescaling failed, if {@link #isScaled}.
      * @see #scaledHexes
      * @see #drawHex(Graphics, int)
      */
     private boolean[] scaledHexFail, scaledPortFail;
 
     /**
-     * dice number pix (for arrow). @see #DICE_SZ
+     * Dice number pictures (for the arrow; the hex dice numbers use
+     * {@link Graphics#drawString Graphics.drawString}).
+     * @see #DICE_SZ
      */
     private static Image[] dice;
 
-    /** Dice number graphic fits in a 25 x 25 square. @see #dice */
+    /** Dice number graphic size in pixels; fits in a 25 x 25 square.
+     *  @see #dice */
     private static final int DICE_SZ = 25;
 
     /**
@@ -702,7 +723,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int[] scaledHexCornersX, scaledHexCornersY; 
 
     /**
-     * Old pointer coordinates for interface; the mouse was at this location when
+     * Previous pointer coordinates for interface; the mouse was at this location when
      * {@link #hilight} was last determined in {@link #mouseMoved(MouseEvent)}.
      */
     private int ptrOldX, ptrOldY;
