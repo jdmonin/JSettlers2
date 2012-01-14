@@ -141,12 +141,13 @@ Current TODO list
 		probably best done at bottom of SOCServer.parseCmdline_DashedArgs
 	- Possible: Auto-add robots when needed as server runs, with server active-game count
 		only do it if jsettlers.startrobots property is set
-	- Refactor: Many SOCRobotClient handle-methods just put the message into brainQ,
-		these redundant handle-methods could be combined;
-		handleGAMESTATE, handleSETTURN, handleFIRSTPLAYER are examples
+	- Refactor SOCRobotClient: Move simple handle-methods which don't
+		put the message into brainQ, but only update game fields/
+		methods, into SOCDisplayless if possible.
 	- Refactor: SOCGameOption static methods to check and change values within a set
 	- Some way to mark bot seats so they are locked out when the board is reset after a game
 		Possibly right-click the robot icon for a menu/popup to set this
+		So, you could reset to start a new game with fewer/no bots
 	- At board reset, game observers not currently handled properly
 	- cmdline option to create db-schema if empty: jsettlers.xx.tablecreate (sqlite or general)
 	- Optional database tracking of game dates,times,players
