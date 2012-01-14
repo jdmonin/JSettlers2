@@ -4984,7 +4984,9 @@ public class SOCServer extends Server
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
-                            if (ga.hasSeaBoard && (gameState == SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE))
+
+                            // Check and send new game state
+                            if (ga.hasSeaBoard && (ga.getGameState() == SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 final int numGoldRes = player.getNeedToPickGoldHexResources();
                                 if (numGoldRes > 0)
@@ -5568,7 +5570,7 @@ public class SOCServer extends Server
                                         {
                                             final int numGoldRes = pli.getNeedToPickGoldHexResources();
                                             if (numGoldRes > 0)
-                                                messageToPlayer(c, new SOCPickResourcesRequest(ga.getName(), numGoldRes));
+                                                messageToPlayer(playerCon, new SOCPickResourcesRequest(ga.getName(), numGoldRes));
                                             // sendGameState will send text about the prompting.
                                         }
                                     }
@@ -5753,7 +5755,7 @@ public class SOCServer extends Server
             final SOCResourceSet rsrcs = mes.getResources();
             if (ga.canPickGoldHexResources(pn, rsrcs))
             {
-                ga.canPickGoldHexResources(pn, rsrcs);
+                ga.pickGoldHexResources(pn, rsrcs);
 
                 /**
                  * tell everyone what the player gained
@@ -8247,7 +8249,8 @@ public class SOCServer extends Server
                 }
             }
 
-            message = sendGameState_buildPlayerNamesText(count, names, "pick resources.");
+            message = sendGameState_buildPlayerNamesText
+                (count, names, "pick resources from the gold hex.");
             messageToGame(gname, message);
             break;
 
@@ -9287,11 +9290,11 @@ public class SOCServer extends Server
      * check for games that have expired and destroy them.
      * If games are about to expire, send a warning.
      * As of version 1.1.09, practice games ({@link SOCGame#isPractice} flag set) don't expire.
+     * Callback method from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #GAME_EXPIRE_WARN_MINUTES
      * @see #checkForExpiredTurns(long)
-     * @see SOCGameTimeoutChecker#run()
      */
     public void checkForExpiredGames(final long currentTimeMillis)
     {
@@ -9367,10 +9370,10 @@ public class SOCServer extends Server
      * Check for robot turns that have expired, and end them.
      * They may end from inactivity or from an illegal placement.
      * Checks the {@link SOCGame#lastActionTime} field.
+     * Callback method from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #ROBOT_FORCE_ENDTURN_SECONDS
-     * @see SOCGameTimeoutChecker#run()
      * @see #checkForExpiredGames(long)
      * @since 1.1.11
      */
@@ -9407,6 +9410,27 @@ public class SOCServer extends Server
                 SOCPlayer pl = ga.getPlayer(cpn);
                 if (! pl.isRobot())
                     continue;
+
+                final int gameState = ga.getGameState();
+                if ((gameState == SOCGame.WAITING_FOR_DISCARDS) || (gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
+                {
+                    // Check if we're just waiting on humans, not on the robot
+                    boolean waitHumans = false;
+                    for (int i = 0; i < ga.maxPlayers; ++i)
+                    {
+                        final SOCPlayer pli = ga.getPlayer(i);
+                        if (pli.isRobot())
+                            continue;
+                        if (pli.getNeedToDiscard() || (pli.getNeedToPickGoldHexResources() > 0))
+                        {
+                            waitHumans = true;
+                            break;
+                        }
+                    }
+
+                    if (waitHumans)
+                        continue;  // <-- Waiting on humans, don't end bot's turn --
+                }
 
                 if (pl.getCurrentOffer() != null)
                 {
