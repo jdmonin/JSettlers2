@@ -4352,6 +4352,7 @@ public class SOCGame implements Serializable, Cloneable
      *         left to buy
      *
      * @param pn  the number of the player
+     * @see #buyDevCard()
      */
     public boolean couldBuyDevCard(int pn)
     {
@@ -4526,8 +4527,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int buyDevCard()
     {
-        int card = SOCDevCardConstants.ROADS; //  devCardDeck[numDevCards - 1];  JM TEMP
         numDevCards--;
+        final int card = devCardDeck[numDevCards];
 
         SOCResourceSet resources = players[currentPlayerNumber].getResources();
         resources.subtract(1, SOCResourceConstants.ORE);
