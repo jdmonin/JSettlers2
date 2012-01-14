@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
- * Portions of this file copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -93,27 +93,8 @@ public class DiscardStrategy {
              */
 
             //log.debug("our numbers="+ourPlayerData.getNumbers());
-            SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
-            int[] rollsPerResource = estimate.getRollsPerResource();
-            int[] resourceOrder = 
-            {
-                SOCResourceConstants.CLAY, SOCResourceConstants.ORE,
-                SOCResourceConstants.SHEEP, SOCResourceConstants.WHEAT,
-                SOCResourceConstants.WOOD
-            };
-
-            for (int j = 4; j >= 0; j--)
-            {
-                for (int i = 0; i < j; i++)
-                {
-                    if (rollsPerResource[resourceOrder[i]] < rollsPerResource[resourceOrder[i + 1]])
-                    {
-                        int tmp = resourceOrder[i];
-                        resourceOrder[i] = resourceOrder[i + 1];
-                        resourceOrder[i + 1] = tmp;
-                    }
-                }
-            }
+            final int[] resourceOrder
+                = SOCBuildingSpeedEstimate.getRollsForResourcesSorted(ourPlayerData);
 
             /**
              * pick the discards
@@ -132,6 +113,8 @@ public class DiscardStrategy {
                     {
                         discards.add(1, resourceOrder[curRsrc]);
                         leftOvers.subtract(1, resourceOrder[curRsrc]);
+
+                        // keep looping at this resource until finished
                     }
                     else
                     {

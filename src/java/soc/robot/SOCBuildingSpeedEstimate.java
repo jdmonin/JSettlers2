@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -23,6 +24,7 @@ import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
 import soc.game.SOCGame;
+import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
@@ -77,6 +79,47 @@ public class SOCBuildingSpeedEstimate
         estimatesFromNow = new int[MAXPLUSONE];
         rollsPerResource = new int[SOCResourceConstants.WOOD + 1];
         resourcesForRoll = new SOCResourceSet[13];
+    }
+
+    /**
+     * Estimate the rolls for this player to obtain each resource.
+     * Will construct a <tt>SOCBuildingSpeedEstimate</tt>
+     * from {@link SOCPlayer#getNumbers() pl.getNumbers()},
+     * and call {@link #getRollsPerResource()}.
+     * @param pl  Player to check numbers
+     * @return  Resource order, sorted by rolls per resource descending;
+     *        a 5-element array containing
+     *        {@link SOCResourceConstants#CLAY},
+     *        {@link SOCResourceConstants#WHEAT}, etc,
+     *        where the resource in [0] has the highest rolls per resource.
+     * @since 2.0.00
+     */
+    public static final int[] getRollsForResourcesSorted(final SOCPlayer pl)
+    {
+        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(pl.getNumbers());
+        final int[] rollsPerResource = estimate.getRollsPerResource();
+        int[] resourceOrder = 
+        {
+            SOCResourceConstants.CLAY, SOCResourceConstants.ORE,
+            SOCResourceConstants.SHEEP, SOCResourceConstants.WHEAT,
+            SOCResourceConstants.WOOD
+        };
+
+        // Sort descending; resourceOrder[0] will have the highest rollsPerResource.
+        for (int j = 4; j >= 0; j--)
+        {
+            for (int i = 0; i < j; i++)
+            {
+                if (rollsPerResource[resourceOrder[i]] < rollsPerResource[resourceOrder[i + 1]])
+                {
+                    int tmp = resourceOrder[i];
+                    resourceOrder[i] = resourceOrder[i + 1];
+                    resourceOrder[i + 1] = tmp;
+                }
+            }
+        }
+
+        return resourceOrder;
     }
 
     /**

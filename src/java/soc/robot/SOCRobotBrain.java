@@ -648,7 +648,7 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * @return the building plan
+     * @return the building plan, a stack of {@link SOCPossiblePiece}
      */
     public Stack getBuildingPlan()
     {
@@ -4201,6 +4201,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Estimate the rarity of each resource, given this board's resource locations vs dice numbers.
+     * Useful for initial settlement placement.
      * Cached after the first call, as {@link #resourceEstimates}.
      *
      * @return an array of rarity numbers, where
@@ -4245,7 +4246,7 @@ public class SOCRobotBrain extends Thread
                                 resourceEstimates[htype] += numberWeights[hexNumber];
                             } else {
                                 // Count gold as all resource types
-                                for (int ht = SOCResourceConstants.CLAY; ht <= SOCResourceConstants.WOOD; ++ht)
+                                for (int ht = SOCBoard.CLAY_HEX; ht <= SOCBoard.WOOD_HEX; ++ht)
                                     resourceEstimates[ht] += numberWeights[hexNumber];
                             }
                         }
@@ -4664,27 +4665,8 @@ public class SOCRobotBrain extends Thread
              */
 
             //D.ebugPrintln("our numbers="+ourPlayerData.getNumbers());
-            SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
-            int[] rollsPerResource = estimate.getRollsPerResource();
-            int[] resourceOrder = 
-            {
-                SOCResourceConstants.CLAY, SOCResourceConstants.ORE,
-                SOCResourceConstants.SHEEP, SOCResourceConstants.WHEAT,
-                SOCResourceConstants.WOOD
-            };
-
-            for (int j = 4; j >= 0; j--)
-            {
-                for (int i = 0; i < j; i++)
-                {
-                    if (rollsPerResource[resourceOrder[i]] < rollsPerResource[resourceOrder[i + 1]])
-                    {
-                        int tmp = resourceOrder[i];
-                        resourceOrder[i] = resourceOrder[i + 1];
-                        resourceOrder[i + 1] = tmp;
-                    }
-                }
-            }
+            final int[] resourceOrder
+                = SOCBuildingSpeedEstimate.getRollsForResourcesSorted(ourPlayerData);
 
             /**
              * pick the discards
@@ -4703,6 +4685,8 @@ public class SOCRobotBrain extends Thread
                     {
                         discards.add(1, resourceOrder[curRsrc]);
                         leftOvers.subtract(1, resourceOrder[curRsrc]);
+
+                        // keep looping at this resource until finished
                     }
                     else
                     {
@@ -5309,7 +5293,7 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Choose the resources we need most, for we want to play a discovery development card
+     * Choose the resources we need most, for playing a Discovery development card
      * or when a Gold Hex number is rolled. 
      * Find the most needed resource by looking at
      * which of the resources we still need takes the
@@ -5320,7 +5304,11 @@ public class SOCRobotBrain extends Thread
      * @param numChoose  Number of resources to choose
      * @param clearResChoices  If true, clear {@link #resourceChoices} before choosing what to add to it;
      *             set false if calling several times to iteratively build up a big choice.
-     * @return  True if we could choose <tt>numChoose</tt> resources towards <tt>targetResources</tt>
+     * @return  True if we could choose <tt>numChoose</tt> resources towards <tt>targetResources</tt>,
+     *             false if we could fully satisfy <tt>targetResources</tt>
+     *             from our current resources + less than <tt>numChoose</tt> more.
+     *             Examine {@link #resourceChoices}{@link SOCResourceSet#getTotal() .getTotal()}
+     *             to see how many were chosen.
      */
     protected boolean chooseFreeResources
         (final SOCResourceSet targetResources, final int numChoose, final boolean clearResChoices)
@@ -5382,6 +5370,7 @@ public class SOCRobotBrain extends Thread
      *
      * @param targetResources  Resources needed to build our next planned piece,
      *             from {@link SOCPlayingPiece#getResourcesToBuild(int)}
+     *             for {@link #buildingPlan}.peek().
      * @param numChoose  Number of resources to choose
      * @param chooseIfNotNeeded  Even if we find we don't need them, choose anyway;
      *             set true for Gold Hex choice, false for Discovery card pick.
@@ -5391,30 +5380,95 @@ public class SOCRobotBrain extends Thread
     private boolean chooseFreeResourcesIfNeeded
         (SOCResourceSet targetResources, final int numChoose, final boolean chooseIfNotNeeded)
     {
-        // TODO implement chooseIfNotNeeded for Gold Hex rolls;
-        //    find add'l needs from buildingPlan.peek() and getResourcesToBuild.
-        //    If nothing additional, choose based on our least likely dice rolls
-        //    (estimateResourceRarity()).
+        if (chooseIfNotNeeded)
+            resourceChoices.clear();
 
-        SOCResourceSet ourResources = ourPlayerData.getResources();
-        int numNeededResources = 0;
+        final SOCResourceSet ourResources = ourPlayerData.getResources();
+        int numMore = numChoose;
 
-        for (int resource = SOCResourceConstants.CLAY;
-                resource <= SOCResourceConstants.WOOD;
-                resource++)
+        // Used only if chooseIfNotNeeded:
+        int buildingItem = 0;  // for ourBuildingPlan.peek
+        boolean stackTopIs0 = false;
+
+        /**
+         * If ! chooseIfNotNeeded, this loop
+         * body will only execute once.
+         */
+        do
         {
-            final int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);
-            if (diff > 0)
-                numNeededResources += diff;
-        }
+            int numNeededResources = 0;
+    
+            for (int resource = SOCResourceConstants.CLAY;
+                    resource <= SOCResourceConstants.WOOD;
+                    resource++)
+            {
+                final int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);
+                if (diff > 0)
+                    numNeededResources += diff;
+            }
+    
+            if ((numNeededResources == numMore)  // TODO >= numMore ? (could change details of current bot behavior)
+                || (chooseIfNotNeeded && (numNeededResources > numMore)))
+            {
+                chooseFreeResources(targetResources, numMore, ! chooseIfNotNeeded);
+                return true;
+            }
+    
+            if (! chooseIfNotNeeded)
+                return false;
 
-        if (numNeededResources == numChoose)  // TODO >= 2 ? (could change details of current bot behavior)
-        {
-            chooseFreeResources(targetResources, numChoose, true);
-            return true;
-        } else {
-            return false;
-        }
+            // Assert: numNeededResources < numMore.
+            // Pick the first numNeeded, then loop to pick additional ones.
+            chooseFreeResources(targetResources, numMore, false);
+            numMore = numChoose - resourceChoices.getTotal();
+
+            if (numMore > 0)
+            {
+                // Pick a new target from building plan, if we can.
+                // Otherwise, choose our least-frequently-rolled resources.
+
+                ++buildingItem;
+                final int bpSize = buildingPlan.size();
+                if (bpSize > buildingItem)
+                {
+                    if (buildingItem == 1)
+                    {
+                        // validate direction of stack growth for buildingPlan
+                        stackTopIs0 = (0 == buildingPlan.indexOf(buildingPlan.peek()));
+                    }
+
+                    int i = (stackTopIs0) ? buildingItem : (bpSize - buildingItem) - 1;
+                    targetResources = SOCPlayingPiece.getResourcesToBuild
+                        (((SOCPossiblePiece) buildingPlan.elementAt(i)).getType());
+
+                    // Will continue at top of loop to add
+                    // targetResources to resourceChoices.
+
+                } else {
+
+                    // This will be the last iteration.
+                    // Choose based on our least-frequent dice rolls.
+
+                    final int[] resourceOrder =
+                        SOCBuildingSpeedEstimate.getRollsForResourcesSorted(ourPlayerData);
+
+                    int curRsrc = 0;
+                    while (numMore > 0)
+                    {
+                        resourceChoices.add(1, resourceOrder[curRsrc]);
+                        --numMore;
+                        ++curRsrc;
+                        if (curRsrc == resourceOrder.length)
+                            curRsrc = 0;                        
+                    }
+
+                    // now, numMore == 0, so do-while loop will exit at bottom.
+                }
+            }
+
+        } while (numMore > 0);
+
+        return true;
     }
 
 
