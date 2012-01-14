@@ -142,17 +142,27 @@ public class SOCBoard implements Serializable, Cloneable
     /** Wood port type; highest-numbered port-hextype integer */
     public static final int WOOD_PORT_HEX = 12;  // Must be last port-hextype integer
 
-    /** Misc (3-for-1) port; lowest-numbered port-type integer */
+    /**
+     * Misc (3-for-1) port; lowest-numbered port-type integer.
+     *<P>
+     * Other code such as <tt>SOCBoardPanel.drawHex</tt> relies on the
+     * fact that {@link #MISC_PORT} == 0 == {@link #WATER_HEX},
+     * and that the range {@link #CLAY_PORT} - {@link #WOOD_PORT} are 1 - 5,
+     * and {@link #CLAY_HEX} == {@link #CLAY_PORT}.
+     */
     public static final int MISC_PORT = 0;  // Must be first port-type integer; must be 0 (hardcoded in places here)
-    /** Clay port type */
+    /** Clay port type. <tt>CLAY_PORT</tt> == {@link #CLAY_HEX}. */
     public static final int CLAY_PORT = 1;
-    /** Ore port type */
+    /** Ore port type. <tt>ORE_PORT</tt> == {@link #ORE_HEX}. */
     public static final int ORE_PORT = 2;
-    /** Sheep port type */
+    /** Sheep port type. <tt>SHEEP_PORT</tt> == {@link #SHEEP_HEX}.  */
     public static final int SHEEP_PORT = 3;
-    /** Wheat port type */
+    /** Wheat port type. <tt>WHEAT_PORT</tt> == {@link #WHEAT_HEX}.  */
     public static final int WHEAT_PORT = 4;
-    /** Wood port type; highest-numbered port-type integer */
+    /**
+     * Wood port type; highest-numbered port-type integer.
+     * <tt>WOOD_PORT</tt> == {@link #WOOD_HEX}.
+     */
     public static final int WOOD_PORT = 5;  // Must be last port-type integer
     
     /**
@@ -456,7 +466,11 @@ public class SOCBoard implements Serializable, Cloneable
      *<P>
      * For land hexes, the dice number on <tt>hexLayout</tt>[i] is {@link #numberLayout}[i].
      *<P>
-     * Key to the hexLayout[] values:
+     * <b>Key to the hexLayout[] values:</b>
+     *<br>
+     * Note that hexLayout contains ports only for the v1 encoding ({@link #BOARD_ENCODING_ORIGINAL});
+     * v2 and v3 use {@link #portsLayout} instead, and hexLayout contains only water and the land
+     * hex types.
        <pre>
        0 : water   {@link #WATER_HEX} (was 6 before v2.0.00)
        1 : clay    {@link #CLAY_HEX}
