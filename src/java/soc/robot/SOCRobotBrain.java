@@ -2053,25 +2053,8 @@ public class SOCRobotBrain extends Thread
             ///
             if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) > 0))
             {
-                SOCResourceSet ourResources = ourPlayerData.getResources();
-                int numNeededResources = 0;
-
-                for (int resource = SOCResourceConstants.CLAY;
-                        resource <= SOCResourceConstants.WOOD;
-                        resource++)
+                if (chooseFreeResourcesIfNeeded(targetResources, 2, false))
                 {
-                    int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);
-
-                    if (diff > 0)
-                    {
-                        numNeededResources += diff;
-                    }
-                }
-
-                if (numNeededResources == 2)  // TODO >= 2 ? (could change details of current bot behavior)
-                {
-                    chooseFreeResources(targetResources, 2, true);
-
                     ///
                     /// play the card
                     ///
@@ -2079,7 +2062,7 @@ public class SOCRobotBrain extends Thread
                     waitingForGameState = true;
                     counter = 0;
                     client.playDevCard(game, SOCDevCardConstants.DISC);
-                    pause(1500);
+                    pause(1500);                    
                 }
             }
 
@@ -5389,6 +5372,51 @@ public class SOCRobotBrain extends Thread
 
         return true;
     }
+
+    /**
+     * Do we need to acquire at least <tt>numChoose</tt> resources to build our next piece?
+     * Choose the resources we need most, for we want to play a discovery development card
+     * or when a Gold Hex number is rolled.
+     * If returns true, has called {@link #chooseFreeResources(SOCResourceSet, int, boolean)}
+     * and has set {@link #resourceChoices}.
+     *
+     * @param targetResources  Resources needed to build our next planned piece,
+     *             from {@link SOCPlayingPiece#getResourcesToBuild(int)}
+     * @param numChoose  Number of resources to choose
+     * @param chooseIfNotNeeded  Even if we find we don't need them, choose anyway;
+     *             set true for Gold Hex choice, false for Discovery card pick.
+     * @return  true if we need <tt>numChoose</tt> resources
+     * @since 2.0.00
+     */
+    private boolean chooseFreeResourcesIfNeeded
+        (SOCResourceSet targetResources, final int numChoose, final boolean chooseIfNotNeeded)
+    {
+        // TODO implement chooseIfNotNeeded for Gold Hex rolls;
+        //    find add'l needs from buildingPlan.peek() and getResourcesToBuild.
+        //    If nothing additional, choose based on our least likely dice rolls
+        //    (estimateResourceRarity()).
+
+        SOCResourceSet ourResources = ourPlayerData.getResources();
+        int numNeededResources = 0;
+
+        for (int resource = SOCResourceConstants.CLAY;
+                resource <= SOCResourceConstants.WOOD;
+                resource++)
+        {
+            final int diff = targetResources.getAmount(resource) - ourResources.getAmount(resource);
+            if (diff > 0)
+                numNeededResources += diff;
+        }
+
+        if (numNeededResources == numChoose)  // TODO >= 2 ? (could change details of current bot behavior)
+        {
+            chooseFreeResources(targetResources, numChoose, true);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     /**
      * choose a resource to monopolize
