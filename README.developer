@@ -1,5 +1,5 @@
 README.developer - Notes and current status of 2012 JSettlers development
-	(version 1.2.xx, beta server running at nand.net)
+	(version 2.0.xx, beta server running at nand.net)
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
 
@@ -127,6 +127,10 @@ Current TODO list
 	- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
 	- If try to start server in JSettlers.jar, but port already in use, currently ends program immediately
 		should instead show MessagePanel with option to practice, or even just show a message
+	- If start JSettlers.jar and try to connect to a server, but server not
+	  running or wrong port number, currently must quit out and start again
+	  to change the hostname or port number.  Would be nicer if could just
+	  go back to the "connect to server..." dialog
 	- Control the speed of robots in practice
 		Adjust SOCRobotBrain.pause, ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS, etc
 	- Sound effects
