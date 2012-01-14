@@ -109,7 +109,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         numChosen = 0;
         setBackground(new Color(255, 230, 162));
         setForeground(Color.black);
-        setFont(new Font("Geneva", Font.PLAIN, 12));
+        setFont(new Font("SansSerif", Font.PLAIN, 12));
 
         clearBut = new Button("Clear");
         discardBut = new Button(isDiscard ? "Discard" : "Pick");
@@ -119,7 +119,9 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
         msg = new Label
             ((isDiscard ? "Please discard " : "Please pick ")
-             + Integer.toString(numDiscards) + " resources.", Label.CENTER);
+             + Integer.toString(numDiscards)
+             + ((numDiscards != 1) ? " resources." : " resource.")
+             , Label.CENTER);
         add(msg);
         youHave = new Label("You have:", Label.LEFT);
         add(youHave);
@@ -303,7 +305,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
             }
             numChosen = 0;
             clearBut.setEnabled(false);
-            discardBut.setEnabled(numDiscards > 0);
+            discardBut.setEnabled(numDiscards == numChosen);
         }
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
