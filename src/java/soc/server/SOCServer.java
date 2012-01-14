@@ -5534,7 +5534,7 @@ public class SOCServer extends Server
                                     SOCPlayer pli = ga.getPlayer(i);
                                     SOCResourceSet rsrcs = ga.getResourcesGainedFromRoll(pli, ga.getCurrentDice());
 
-                                    if (rsrcs.getTotal() != 0)
+                                    if (rsrcs.getKnownTotal() != 0)
                                     {
                                         if (noPlayersGained)
                                         {
