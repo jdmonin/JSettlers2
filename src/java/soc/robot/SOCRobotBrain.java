@@ -2068,9 +2068,9 @@ public class SOCRobotBrain extends Thread
                     }
                 }
 
-                if (numNeededResources == 2)
+                if (numNeededResources == 2)  // TODO >= 2 ? (could change details of current bot behavior)
                 {
-                    chooseFreeResources(targetResources);
+                    chooseFreeResources(targetResources, 2, true);
 
                     ///
                     /// play the card
@@ -4255,7 +4255,17 @@ public class SOCRobotBrain extends Thread
                     {
                         final int hexNumber = board.getNumberOnHexFromCoord(hcoord[i]);
                         if (hexNumber > 0)
-                            resourceEstimates[board.getHexTypeFromCoord(hcoord[i])] += numberWeights[hexNumber];
+                        {
+                            final int htype = board.getHexTypeFromCoord(hcoord[i]);
+                            if (htype != SOCBoardLarge.GOLD_HEX)
+                            {
+                                resourceEstimates[htype] += numberWeights[hexNumber];
+                            } else {
+                                // Count gold as all resource types
+                                for (int ht = SOCResourceConstants.CLAY; ht <= SOCResourceConstants.WOOD; ++ht)
+                                    resourceEstimates[ht] += numberWeights[hexNumber];
+                            }
+                        }
                     }
                 }
             }
@@ -5316,25 +5326,38 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * this means that we want to play a discovery development card
+     * Choose the resources we need most, for we want to play a discovery development card
+     * or when a Gold Hex number is rolled. 
+     * Find the most needed resource by looking at
+     * which of the resources we still need takes the
+     * longest to acquire, then add to {@link #resourceChoices}.
+     * Looks at our player's current resources.
+     * @param targetResources  Resources needed to build our next planned piece,
+     *             from {@link SOCPlayingPiece#getResourcesToBuild(int)}
+     * @param numChoose  Number of resources to choose
+     * @param clearResChoices  If true, clear {@link #resourceChoices} before choosing what to add to it;
+     *             set false if calling several times to iteratively build up a big choice.
+     * @return  True if we could choose <tt>numChoose</tt> resources towards <tt>targetResources</tt>
      */
-    protected void chooseFreeResources(SOCResourceSet targetResources)
+    protected boolean chooseFreeResources
+        (final SOCResourceSet targetResources, final int numChoose, final boolean clearResChoices)
     {
         /**
          * clear our resource choices
          */
-        resourceChoices.clear();
+        if (clearResChoices)
+            resourceChoices.clear();
 
         /**
          * find the most needed resource by looking at
          * which of the resources we still need takes the
-         * longest to aquire
+         * longest to acquire
          */
         SOCResourceSet rsCopy = ourPlayerData.getResources().copy();
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(ourPlayerData.getNumbers());
         int[] rollsPerResource = estimate.getRollsPerResource();
 
-        for (int resourceCount = 0; resourceCount < 2; resourceCount++)
+        for (int resourceCount = 0; resourceCount < numChoose; resourceCount++)
         {
             int mostNeededResource = -1;
 
@@ -5357,9 +5380,14 @@ public class SOCRobotBrain extends Thread
                 }
             }
 
+            if (mostNeededResource == -1)
+                return false;  // <--- Early return: couldn't choose enough ---
+
             resourceChoices.add(1, mostNeededResource);
             rsCopy.add(1, mostNeededResource);
         }
+
+        return true;
     }
 
     /**
