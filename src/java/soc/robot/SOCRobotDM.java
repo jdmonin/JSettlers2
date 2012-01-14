@@ -102,7 +102,13 @@ public class SOCRobotDM {
    * @since 2.0.00
    */
   private final int ourPlayerNumber;
+
+  /**
+   * {@link #ourPlayerData}'s building plan.
+   * A stack of {@link SOCPossiblePiece}.
+   */
   protected Stack buildingPlan;
+
   protected SOCGame game;
   protected Vector threatenedRoads;
   protected Vector goodRoads;

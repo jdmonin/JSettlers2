@@ -54,7 +54,13 @@ public class SOCRobotNegotiator
     protected SOCRobotBrain brain;
     protected int strategyType;
     protected SOCGame game;
+
+    /**
+     * {@link #ourPlayerData}'s building plan.
+     * A stack of {@link SOCPossiblePiece}.
+     */
     protected Stack buildingPlan;
+
     protected HashMap playerTrackers;
     protected SOCPlayerTracker ourPlayerTracker;
     protected final SOCPlayer ourPlayerData;
