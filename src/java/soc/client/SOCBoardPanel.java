@@ -283,7 +283,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         17,  0,  0,  6,  6, 30, 30, 36, 36, 19
     };
 
-    /** Arrow fits in a 37 x 37 square. @see #arrowXL */
+    /** Arrow fits in a 37 x 37 square.
+     *  @see #arrowXL */
     private static final int ARROW_SZ = 37;
 
     /** Arrow color: cyan: r=106,g=183,b=183 */
@@ -337,7 +338,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public final static int CONSIDER_LT_ROAD = 11;
     public final static int CONSIDER_LT_CITY = 12;
 
-    /** Place a ship on the large sea board. @since 2.0.00 */
+    /** Place a ship on the large sea board.
+     *  @since 2.0.00 */
     private final static int PLACE_SHIP = 13;
 
     /**
@@ -610,18 +612,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
-     * Note that miscPort0.gif - miscPort5.gif are stored in {@link #hexes};
-     * {@link #ports} stores the resource ports.
-     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class)}.
-     * Image references are copied to
-     * {@link #scaledHexes}/{@link #scaledPorts} from here.
+     * Image references are copied to {@link #scaledHexes} from here.
+     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class, boolean)}.
+     * Contains gold hex only if not {@link #isRotated}.
+     * @see #ports
      * @see #scaledHexes
      * @see #rotatHexes
      */
-    private static Image[] hexes, ports;
+    private static Image[] hexes;
 
     /**
-     * Hex images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
+     * Port images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
+     * Image references are copied to {@link #scaledPorts} from here.
+     * Contains <tt>miscPort0.gif - miscPort5.gif</tt> and the per-resource ports.
+     * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class, boolean)}.
+     * @see #hexes
+     * @see #scaledPorts
+     * @see #rotatPorts
+     */
+    private static Image[] ports;
+
+    /**
+     * Hex and port images - rotated board; from <tt><i>{@link #IMAGEDIR}</i>/rotat</tt>'s GIF files.
      * Image references are copied to
      * {@link #scaledHexes}/{@link #scaledPorts} from here.
      * @see #hexes
@@ -1106,8 +1118,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         loadImages(this, isRotated);
 
         // point to static images, unless we're later resized
-        scaledHexes = new Image[hexes.length];
-        scaledPorts = new Image[ports.length];
         Image[] h, p;
         if (isRotated)
         {
@@ -1117,11 +1127,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             h = hexes;
             p = ports;
         }
-        for (i = hexes.length - 1; i>=0; --i)
+        scaledHexes = new Image[h.length];
+        scaledPorts = new Image[ports.length];
+        for (i = h.length - 1; i>=0; --i)
             scaledHexes[i] = h[i];
         for (i = ports.length - 1; i>=0; --i)
             scaledPorts[i] = p[i];
-        scaledHexFail = new boolean[hexes.length];
+        scaledHexFail = new boolean[h.length];
         scaledPortFail = new boolean[ports.length];
 
         // point to static coordinate arrays, unless we're later resized.
@@ -2040,44 +2052,72 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * draw a board tile
+     * Draw a board tile by its hex number (v1 or v2 board encoding).
      *<P>
      * Not used if {@link #isLargeBoard}.
-     * When {@link #isLargeBoard}, call {@link #drawHex(Graphics, int, int, int, int)} instead.
+     * When {@link #isLargeBoard}, call {@link #drawHex(Graphics, int, int, int, int, int)} instead.
      *
      * @param g       graphics
      * @param hexNum  hex number (0-36)
      */
     private final void drawHex(Graphics g, int hexNum)
     {
-        drawHex(g, hexX[hexNum], hexY[hexNum], board.getHexLayout()[hexNum], hexNum);
+        final int portFacing;
+        int hexType = board.getHexLayout()[hexNum];
+
+        if (hexType < SOCBoard.MISC_PORT_HEX)
+        {
+            portFacing = -1;
+        }
+        else if (hexType < 0x10)
+        {
+            portFacing = hexType - 6;  // 7-12 -> 1-6
+            hexType = SOCBoard.MISC_PORT;
+        }
+        else
+        {
+            // Decode port bit mask:
+            // (port facing, 1-6)        (kind of port)
+            //      \--> [0 0 0][0 0 0 0] <--/
+            portFacing = hexType >> 4;
+            hexType = hexType & 0x0F;
+        }
+
+        drawHex(g, hexX[hexNum], hexY[hexNum], hexType, portFacing, hexNum);
     }
 
     /**
-     * draw a given type of board tile at a given location.
-     * Use <tt>hexType</tt> to determine the hex graphic and possibly a port overlay graphic.
-     * When <tt>hexNum</tt> is -1, nothing else is drawn.
+     * Draw a land, water, or port hex tile at a given location.
+     * Use <tt>hexType</tt> to determine the hex graphic,
+     * and <tt>portFacing</tt> to determine a port overlay (if any).
+     * When <tt>hexNum</tt> is -1, no dice number is drawn.
      * Otherwise, also draw the dice number for this hex (if any).
      *
      * @param g      graphics
      * @param x      board-graphics x-coordinate to draw at; upper-left corner of hex
      * @param y      board-graphics y-coordinate to draw at; upper-left corner of hex
      * @param hexType hex type, as in {@link SOCBoard#getHexTypeFromCoord(int)};
-     *                   also the index into {@link #hexes}
+     *                also the index into {@link #hexes}.
+     *                If drawing a port (<tt>portFacing</tt> != -1),
+     *                <tt>hexType</tt> is {@link SOCBoard#getPortTypeFromNodeCoord(int)},
+     *                such as {@link SOCBoard#SHEEP_PORT} or {@link SOCBoard#MISC_PORT}.
+     * @param portFacing  port facing (1-6), or -1 for no port: the edge of the port's hex
+     *                touching land, which contains 2 nodes where player can build a
+     *                port settlement/city.  Valid range is
+     *                {@link SOCBoard#FACING_NE} to {@link SOCBoard#FACING_NW}.
      * @param hexNum  hex number (0-36), or -1 if this isn't a valid hex number
      *                   or if the dice number shouldn't be drawn.
      *                   When {@link #isLargeBoard}, pass in the hex coordinate as hexNum.
      * @since 1.1.08
      */
-    private final void drawHex(Graphics g, int x, int y, int hexType, int hexNum)
+    private final void drawHex
+        (Graphics g, int x, int y, final int hexType, final int portFacing, final int hexNum)
     {
         if (hexType < 0)
         {
             playerInterface.chatPrintDebug("* bad hex type " + hexType + " at x,y(" + x + "," + y + ")");
             return;
         }
-
-        int tmp;
 
         if (isScaledOrRotated)
         {
@@ -2113,15 +2153,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * to the static original-resolution image will be used.
          */
         boolean missedDraw = false;
-        Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original or rotated?
+        final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
-        tmp = hexType & 15; // get only the last 4 bits;
-
-        if (isScaled && (scaledHexes[tmp] == hexis[tmp]))
+        if (isScaled && (scaledHexes[hexType] == hexis[hexType]))
         {
             recenterPrevMiss = true;
-            int w = hexis[tmp].getWidth(null);
-            int h = hexis[tmp].getHeight(null);
+            int w = hexis[hexType].getWidth(null);
+            int h = hexis[hexType].getHeight(null);
             xm = (scaleToActualX(w) - w) / 2;
             ym = (scaleToActualY(h) - h) / 2;
             x += xm;
@@ -2131,7 +2169,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the hex graphic
          */
-        if (! g.drawImage(scaledHexes[tmp], x, y, this))
+        if (! g.drawImage(scaledHexes[hexType], x, y, this))
         {
             // for now, draw the placeholder; try to rescale and redraw soon if we can
 
@@ -2146,16 +2184,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
             {
                 // rescale the image or give up
-                if (scaledHexFail[tmp])
+                if (scaledHexFail[hexType])
                 {
-                    scaledHexes[tmp] = hexis[tmp];  // fallback
+                    scaledHexes[hexType] = hexis[hexType];  // fallback
                 }
                 else
                 {
-                    scaledHexFail[tmp] = true;
+                    scaledHexFail[hexType] = true;
                     int w = scaleToActualX(hexis[0].getWidth(null));
                     int h = scaleToActualY(hexis[0].getHeight(null));
-                    scaledHexes[tmp] = hexis[tmp].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                    scaledHexes[hexType] = hexis[hexType].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                 }
             }
         }
@@ -2170,11 +2208,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Draw the port graphic
          */
-        tmp = hexType >> 4; // get the facing of the port
-
-        if (tmp > 0)
+        if (portFacing != -1)
         {
-            Image[] portis = (isRotated ? rotatPorts : ports);  // Fall back to original or rotated?
+            final Image[] portis = (isRotated ? rotatPorts : ports);  // Fall back to original, or to rotated?
+
+            final int tmp;
+            if (hexType != SOCBoard.MISC_PORT)
+                tmp = portFacing + 5;  // 1-6 -> 6-11 (skip past the misc port images)
+            else
+                tmp = portFacing - 1;
+
             if (isScaled && (scaledPorts[tmp] == portis[tmp]))
             {
                 recenterPrevMiss = true;
@@ -2295,8 +2338,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * draw the robber
-     * 
+     * Draw the robber.
+     *<P>
+     * The pirate ship (if any) is drawn via
+     * {@link #drawRoadOrShip(Graphics, int, int, boolean, boolean)}.
+     *
      * @param g       Graphics context
      * @param hexID   Board hex encoded position
      * @param fullNotGhost  Draw with normal colors, not faded-out "ghost"
@@ -2877,7 +2923,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // Water/port to left of hex row:
             hx = hexX[hnum] - deltaX;
             hy = hexY[hnum];
-            drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
+            drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1, -1);
 
             // Water/port to right of hex row:
             --hnum;  // is now rightmost hexnum of previous row
@@ -2885,7 +2931,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hnum = hexX.length - 1;  // wrap around
             hx = hexX[hnum];  // since the rightmost hexnum isn't within 6pl coord,
             hy = hexY[hnum];  // its (x,y) is right where we want to draw.
-            drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
+            drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1, -1);
         }
 
         hx = hexX[0] - halfdeltaX;
@@ -2898,12 +2944,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             ptype = board.getPortTypeFromNodeCoord(nodeCoord);
             if (ptype == -1)
-                drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1);
+                drawHex(g, hx, hy, SOCBoard.WATER_HEX, -1, -1);
 
             // bottom-row coords swap the hex digits of top-row coords.
             ptype = board.getPortTypeFromNodeCoord((nodeCoord >> 4) | ((nodeCoord & 0x0F) << 4));
             if (ptype == -1)
-                drawHex(g, hx, hy2, SOCBoard.WATER_HEX, -1);
+                drawHex(g, hx, hy2, SOCBoard.WATER_HEX, -1, -1);
         }
 
         /**
@@ -2928,16 +2974,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hx = hexX[hnum] - DELTAX_FACING[landFacing];
             hy = hexY[hnum] - DELTAY_FACING[landFacing];
 
-            // portsLayout type will be like SHEEP_PORT;
-            // must encode facing type and facing for drawHex.
-            ptype = portsLayout[i];
-            if (ptype == SOCBoard.MISC_PORT)
-            {
-                ptype = SOCBoard.MISC_PORT_HEX + (landFacing - 1);
-            } else {
-                ptype += (landFacing << 4) ;
-            }
-            drawHex(g, hx, hy, ptype, -1);
+            drawHex(g, hx, hy, portsLayout[i], landFacing, -1);
         }
     }
 
@@ -2972,16 +3009,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             px -= DELTAX_FACING[landFacing];
             py -= DELTAY_FACING[landFacing];
 
-            // portsLayout type will be like SHEEP_PORT;
-            // must encode facing type and facing for drawHex.
-            ptype = portsLayout[i];
-            if (ptype == SOCBoard.MISC_PORT)
-            {
-                ptype = SOCBoard.MISC_PORT_HEX + (landFacing - 1);
-            } else {
-                ptype += (landFacing << 4) ;
-            }
-            drawHex(g, px, py, ptype, -1);
+            drawHex(g, px, py, portsLayout[i], landFacing, -1);
         }
     }
 
@@ -3248,7 +3276,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     final int hexCoord = rshift | c;
                     drawHex
-                        (g, x, y, board.getHexTypeFromCoord(hexCoord), hexCoord);
+                        (g, x, y, board.getHexTypeFromCoord(hexCoord), -1, hexCoord);
                     if ((landHexShow != null)
                         && landHexShow.contains(new Integer(hexCoord)))
                    {
@@ -5147,11 +5175,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * load the images for the board
-     * we need to know if this board is in an applet
-     * or an application
+     * Load the images for the board.
+     * @param c  
+     * @param wantsRotated  True for the 6-player non-sea board
+     *          (v2 encoding {@link SOCBoard#BOARD_ENCODING_6PLAYER}), false otherwise.
+     *          The large board (v3 encoding)'s gold-hex image has no rotated version,
+     *          because that board layout is never rotated.
      */
-    private static synchronized void loadImages(Component c, boolean wantsRotated)
+    private static synchronized void loadImages(Component c, final boolean wantsRotated)
     {
         if ((hexes != null) && ((rotatHexes != null) || ! wantsRotated))
             return;
@@ -5162,12 +5193,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (hexes == null)
         {
             MediaTracker tracker = new MediaTracker(c);
-        
-            hexes = new Image[13];
-            ports = new Image[7];
+
+            final int numHexTypes = wantsRotated ? 7 : 8;  // water, desert, 5 resources, maybe gold
+            hexes = new Image[numHexTypes];
+            ports = new Image[12];
             dice = new Image[14];
 
-            loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz);
+            loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz, wantsRotated);
 
             for (int i = 2; i < 13; i++)
             {
@@ -5191,9 +5223,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            rotatHexes = new Image[13];
-            rotatPorts = new Image[7];
-            loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz);
+            rotatHexes = new Image[7];
+            rotatPorts = new Image[12];
+            loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz, true);
 
             try
             {
@@ -5217,12 +5249,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param tracker Track image loading progress here
      * @param tk   Toolkit to load image from resource
      * @param clazz  Class for getResource
+     * @param wantsRotated  True for rotated, false otherwise;
+     *             some hex types (goldHex) aren't available in rotated versions,
+     *             because their board layout is never rotated.
      * @since 1.1.08
      */
     private static final void loadHexesPortsImages
         (Image[] newHexes, Image[] newPorts, String imageDir,
-         MediaTracker tracker, Toolkit tk, Class clazz)
+         MediaTracker tracker, Toolkit tk, Class clazz,
+         final boolean wantsRotated)
     {
+        final int numHexImage;
         newHexes[0] = tk.getImage(clazz.getResource(imageDir + "/waterHex.gif"));
         newHexes[1] = tk.getImage(clazz.getResource(imageDir + "/clayHex.gif"));
         newHexes[2] = tk.getImage(clazz.getResource(imageDir + "/oreHex.gif"));
@@ -5230,21 +5267,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         newHexes[4] = tk.getImage(clazz.getResource(imageDir + "/wheatHex.gif"));
         newHexes[5] = tk.getImage(clazz.getResource(imageDir + "/woodHex.gif"));
         newHexes[6] = tk.getImage(clazz.getResource(imageDir + "/desertHex.gif"));
-        for (int i = 0; i < 7; i++)
+        if (wantsRotated)
+        {
+            numHexImage = 7;
+        } else {
+            numHexImage = 8;
+            newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/goldHex.gif"));
+        }
+        for (int i = 0; i < numHexImage; i++)
         {
             tracker.addImage(newHexes[i], 0);
         }
 
         for (int i = 0; i < 6; i++)
         {
-            newHexes[i + 7] = tk.getImage(clazz.getResource(imageDir + "/miscPort" + i + ".gif"));
-            tracker.addImage(newHexes[i + 7], 0);
+            newPorts[i] = tk.getImage(clazz.getResource(imageDir + "/miscPort" + i + ".gif"));
+            tracker.addImage(newPorts[i], 0);
         }
 
         for (int i = 0; i < 6; i++)
         {
-            newPorts[i + 1] = tk.getImage(clazz.getResource(imageDir + "/port" + i + ".gif"));
-            tracker.addImage(newPorts[i + 1], 0);
+            newPorts[i + 6] = tk.getImage(clazz.getResource(imageDir + "/port" + i + ".gif"));
+            tracker.addImage(newPorts[i + 6], 0);
         }
     }
 
