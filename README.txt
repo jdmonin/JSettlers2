@@ -301,3 +301,10 @@ JSettlers is licensed under the GNU General Public License.  Each source file
 lists contributors by year.  A copyright year range (for example, 2007-2011)
 means the file was contributed to by that person in each year of that range.
 See individual source files for the GPL version and other details.
+
+The hex and port images were created by Jeremy Monin, and are licensed
+Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
+Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
+goldHex.gif is based on a 2010-12-21 CC-BY 2.0 image by Xuan Che, available at
+http://www.flickr.com/photos/rosemania/5431942688/ , of ancient Greek coins.
+
