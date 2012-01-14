@@ -31,6 +31,7 @@ import java.util.Vector;
 
 import soc.disableDebug.D;
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
@@ -912,7 +913,17 @@ public class OpeningBuildStrategy {
                     {
                         final int hexNumber = board.getNumberOnHexFromCoord(hcoord[i]);
                         if (hexNumber > 0)
-                            resourceEstimates[board.getHexTypeFromCoord(hcoord[i])] += numberWeights[hexNumber];
+                        {
+                            final int htype = board.getHexTypeFromCoord(hcoord[i]);
+                            if (htype != SOCBoardLarge.GOLD_HEX)
+                            {
+                                resourceEstimates[htype] += numberWeights[hexNumber];
+                            } else {
+                                // Count gold as all resource types
+                                for (int ht = SOCBoard.CLAY_HEX; ht <= SOCBoard.WOOD_HEX; ++ht)
+                                    resourceEstimates[ht] += numberWeights[hexNumber];
+                            }
+                        }
                     }
                 }
             }
