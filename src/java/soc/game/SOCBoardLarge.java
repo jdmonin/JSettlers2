@@ -2282,7 +2282,7 @@ public class SOCBoardLarge extends SOCBoard
     {
         CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
         SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX, DESERT_HEX,
-        WOOD_HEX, WOOD_HEX, DESERT_HEX, DESERT_HEX // TODO: should be GOLD_HEX, GOLD_HEX
+        WOOD_HEX, WOOD_HEX, GOLD_HEX, GOLD_HEX
     };
 
     /**
