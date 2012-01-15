@@ -1300,9 +1300,9 @@ public class SOCRobotBrain extends Thread
                     }
 
                     if (((game.getGameState() == SOCGame.PLAY1) || (game.getGameState() == SOCGame.SPECIAL_BUILDING))
-                        && (!waitingForGameState) && (!waitingForTradeMsg) && (!waitingForTradeResponse) && (!waitingForDevCard)
-                        && (!expectPLACING_ROAD) && (!expectPLACING_SETTLEMENT) && (!expectPLACING_CITY) && (!expectPLACING_SHIP)
-                        && (!expectPLACING_ROBBER) && (!expectPLACING_FREE_ROAD1) && (!expectPLACING_FREE_ROAD2) && (!expectWAITING_FOR_DISCOVERY) && (!expectWAITING_FOR_MONOPOLY))
+                        && ! (waitingForGameState || waitingForTradeMsg || waitingForTradeResponse || waitingForDevCard
+                              || expectPLACING_ROAD || expectPLACING_SETTLEMENT || expectPLACING_CITY || expectPLACING_SHIP
+                              || expectPLACING_ROBBER || expectPLACING_FREE_ROAD1 || expectPLACING_FREE_ROAD2 || expectWAITING_FOR_DISCOVERY || expectWAITING_FOR_MONOPOLY))
                     {
                         // Time to decide to build, or take other normal actions.
 
@@ -1324,7 +1324,7 @@ public class SOCRobotBrain extends Thread
                              * attempts this turn.
                              */
 
-                            if ((buildingPlan.empty()) && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+                            if (buildingPlan.empty() && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
                             {
                                 planBuilding();
 
@@ -1358,7 +1358,7 @@ public class SOCRobotBrain extends Thread
                             }
                         }
 
-                        if ((!waitingForOurTurn) && (ourTurn))
+                        if ((! waitingForOurTurn) && ourTurn)
                         {
                             if (!(expectPLAY && (counter < 4000)))
                             {
@@ -1417,7 +1417,7 @@ public class SOCRobotBrain extends Thread
                                  * and if we haven't given up building
                                  * attempts this turn.
                                  */
-                                if (!expectPLACING_ROBBER && (buildingPlan.empty()) && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
+                                if ( (! expectPLACING_ROBBER) && buildingPlan.empty() && (ourPlayerData.getResources().getTotal() > 1) && (failedBuildingAttempts < MAX_DENIED_BUILDING_PER_TURN))
                                 {
                                     planBuilding();
 
@@ -1435,7 +1435,7 @@ public class SOCRobotBrain extends Thread
                                 }
 
                                 //D.ebugPrintln("DONE PLANNING");
-                                if (!expectPLACING_ROBBER && !buildingPlan.empty())
+                                if ( (! expectPLACING_ROBBER) && (! buildingPlan.empty()))
                                 {
                                     // Time to build something.
 
