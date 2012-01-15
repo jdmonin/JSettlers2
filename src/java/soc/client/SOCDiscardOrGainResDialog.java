@@ -53,31 +53,31 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
     private final boolean isDiscard;
 
     /**
-     * Clear button.  Reset the {@link #disc} discard-choose counts to 0.
+     * Clear button.  Reset the {@link #pick} resource colorsquare counts to 0.
      * @since 2.0.00
      */
     private Button clearBut;
 
-    /** Discard button */
-    Button discardBut;
+    /** Discard or Pick button */
+    private Button okBut;
 
     /** The 'keep' square resource types/counts only change if {@link #isDiscard}. */
     ColorSquare[] keep;
 
     /** Resource types/counts to discard or gain */
-    ColorSquare[] disc;
+    private ColorSquare[] pick;
 
     Label msg;
     Label youHave;
-    Label discThese;
+    Label pickThese;
     SOCPlayerInterface playerInterface;
 
-    /** Must discard this many resources from {@link #keep} */
-    int numDiscards;
+    /** Must discard this many resources from {@link #keep}, or must gain this many resources. */
+    private final int numPickNeeded;
 
     /**
-     * Has chosen to discard this many resources so far in {@link #disc}.
-     * {@link #discardBut} is disabled unless proper number of resources ({@link #numDiscards}) are chosen.
+     * Has chosen to discard or gain this many resources so far in {@link #pick}.
+     * {@link #okBut} is disabled unless proper number of resources ({@link #numPickNeeded}) are chosen.
      */
     private int numChosen;
 
@@ -105,28 +105,28 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
         this.isDiscard = isDiscard;
         playerInterface = pi;
-        numDiscards = rnum;
+        numPickNeeded = rnum;
         numChosen = 0;
         setBackground(new Color(255, 230, 162));
         setForeground(Color.black);
         setFont(new Font("SansSerif", Font.PLAIN, 12));
 
         clearBut = new Button("Clear");
-        discardBut = new Button(isDiscard ? "Discard" : "Pick");
+        okBut = new Button(isDiscard ? "Discard" : "Pick");
 
         didSetLocation = false;
         setLayout(null);
 
         msg = new Label
             ((isDiscard ? "Please discard " : "Please pick ")
-             + Integer.toString(numDiscards)
-             + ((numDiscards != 1) ? " resources." : " resource.")
+             + Integer.toString(numPickNeeded)
+             + ((numPickNeeded != 1) ? " resources." : " resource.")
              , Label.CENTER);
         add(msg);
         youHave = new Label("You have:", Label.LEFT);
         add(youHave);
-        discThese = new Label((isDiscard ? "Discard these:" : "Gain these:"), Label.LEFT);
-        add(discThese);
+        pickThese = new Label((isDiscard ? "Discard these:" : "Gain these:"), Label.LEFT);
+        add(pickThese);
 
         // wantH formula based on doLayout
         //    labels: 20  colorsq: 20  button: 25  spacing: 5
@@ -138,13 +138,13 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         clearBut.addActionListener(this);
         clearBut.setEnabled(false);  // since nothing picked yet
 
-        add(discardBut);
-        discardBut.addActionListener(this);
-        if (numDiscards > 0)
-            discardBut.disable();  // Must choose that many first
+        add(okBut);
+        okBut.addActionListener(this);
+        if (numPickNeeded > 0)
+            okBut.disable();  // Must choose that many first
 
         keep = new ColorSquare[5];
-        disc = new ColorSquare[5];
+        pick = new ColorSquare[5];
 
         for (int i = 0; i < 5; i++)
         {
@@ -157,28 +157,31 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
                 sqColor = ColorSquare.RESOURCE_COLORS[i];
 
             keep[i] = new ColorSquareLarger(ColorSquare.BOUNDED_DEC, false, sqColor);
-            disc[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, sqColor);
+            pick[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, sqColor);
             if (SOCPlayerClient.isJavaOnOSX)
             {
                 sqColor = ColorSquare.RESOURCE_COLORS[i];                
                 keep[i].setBackground(sqColor);
-                disc[i].setBackground(sqColor);
+                pick[i].setBackground(sqColor);
             }
             add(keep[i]);
-            add(disc[i]);
+            add(pick[i]);
             keep[i].addMouseListener(this);
-            disc[i].addMouseListener(this);
+            pick[i].addMouseListener(this);
         }
     }
 
     /**
-     * DOCUMENT ME!
+     * Show or hide this dialog.
+     * If showing (<tt>vis == true</tt>), also sets the initial values
+     * of our current resources, based on {@link SOCPlayer#getResources()},
+     * and requests focus on the Discard/Pick button.
      *
-     * @param b DOCUMENT ME!
+     * @param vis  True to make visible, false to hide
      */
-    public void setVisible(boolean b)
+    public void setVisible(final boolean vis)
     {
-        if (b)
+        if (vis)
         {
             /**
              * set initial values
@@ -191,10 +194,10 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
             keep[3].setIntValue(resources.getAmount(SOCResourceConstants.WHEAT));
             keep[4].setIntValue(resources.getAmount(SOCResourceConstants.WOOD));
 
-            discardBut.requestFocus();
+            okBut.requestFocus();
         }
 
-        super.setVisible(b);
+        super.setVisible(vis);
     }
 
     /**
@@ -247,9 +250,9 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
             final int btnsX = (getSize().width - (2 * 80 + 5)) / 2;
             int y = (getInsets().top + height) - 30;
             clearBut.setBounds(btnsX, y, 80, 25);
-            discardBut.setBounds(btnsX + 85, y, 80, 25);
+            okBut.setBounds(btnsX + 85, y, 80, 25);
             youHave.setBounds(getInsets().left, getInsets().top + 20 + space, 70, 20);
-            discThese.setBounds(getInsets().left, getInsets().top + 20 + space + 20 + space + sqwidth + space, 100, 20);
+            pickThese.setBounds(getInsets().left, getInsets().top + 20 + space + 20 + space + sqwidth + space, 100, 20);
         }
         catch (NullPointerException e) {}
 
@@ -262,15 +265,15 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
             {
                 keep[i].setSize(sqwidth, sqwidth);
                 keep[i].setLocation(x + sqspace + (i * (sqspace + sqwidth)), keepY);
-                disc[i].setSize(sqwidth, sqwidth);
-                disc[i].setLocation(x + sqspace + (i * (sqspace + sqwidth)), discY);
+                pick[i].setSize(sqwidth, sqwidth);
+                pick[i].setLocation(x + sqspace + (i * (sqspace + sqwidth)), discY);
             }
         }
         catch (NullPointerException e) {}
     }
 
     /**
-     * React to clicking Discard button or Clear button.
+     * React to clicking Discard/Pick button or Clear button.
      *<P>
      * ColorSquare clicks are handled in {@link #mousePressed(MouseEvent)}.
      *
@@ -281,11 +284,11 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         try {
         Object target = e.getSource();
 
-        if (target == discardBut)
+        if (target == okBut)
         {
-            SOCResourceSet rsrcs = new SOCResourceSet(disc[0].getIntValue(), disc[1].getIntValue(), disc[2].getIntValue(), disc[3].getIntValue(), disc[4].getIntValue(), 0);
+            SOCResourceSet rsrcs = new SOCResourceSet(pick[0].getIntValue(), pick[1].getIntValue(), pick[2].getIntValue(), pick[3].getIntValue(), pick[4].getIntValue(), 0);
 
-            if (rsrcs.getTotal() == numDiscards)
+            if (rsrcs.getTotal() == numPickNeeded)
             {
                 SOCPlayerClient pcli = playerInterface.getClient();
                 if (isDiscard)
@@ -297,15 +300,15 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         }
         else if (target == clearBut)
         {
-            for (int i = disc.length - 1; i >= 0; --i)
+            for (int i = pick.length - 1; i >= 0; --i)
             {
                 if (isDiscard)
-                    keep[i].addValue(disc[i].getIntValue());
-                disc[i].setIntValue(0);
+                    keep[i].addValue(pick[i].getIntValue());
+                pick[i].setIntValue(0);
             }
             numChosen = 0;
             clearBut.setEnabled(false);
-            discardBut.setEnabled(numDiscards == numChosen);
+            okBut.setEnabled(numPickNeeded == numChosen);
         }
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
@@ -338,7 +341,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
     /**
      * When a resource's colorsquare is clicked, add/remove 1
-     * from the resource totals as requested; update {@link #discardBut}
+     * from the resource totals as requested; update {@link #okBut}
      * and {@link #clearBut}.
      *<P>
      * If not isDiscard, will not subtract change the "keep" colorsquare resource counts.
@@ -353,38 +356,38 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
         for (int i = 0; i < 5; i++)
         {
-            if ((target == keep[i]) && (disc[i].getIntValue() > 0))
+            if ((target == keep[i]) && (pick[i].getIntValue() > 0))
             {
                 if (isDiscard)
                     keep[i].addValue(1);
-                disc[i].subtractValue(1);
+                pick[i].subtractValue(1);
                 --numChosen;
-                if (numChosen == (numDiscards-1))
+                if (numChosen == (numPickNeeded-1))
                 {
-                    discardBut.disable();  // Count un-reached (too few)
+                    okBut.disable();  // Count un-reached (too few)
                     wantsRepaint = true;
                 }
-                else if (numChosen == numDiscards)
+                else if (numChosen == numPickNeeded)
                 {
-                    discardBut.enable();   // Exact count reached
+                    okBut.enable();   // Exact count reached
                     wantsRepaint = true;
                 }                    
                 break;
             }
-            else if ((target == disc[i]) && ((keep[i].getIntValue() > 0) || ! isDiscard))
+            else if ((target == pick[i]) && ((keep[i].getIntValue() > 0) || ! isDiscard))
             {
                 if (isDiscard)
                     keep[i].subtractValue(1);
-                disc[i].addValue(1);
+                pick[i].addValue(1);
                 ++numChosen;
-                if (numChosen == numDiscards)
+                if (numChosen == numPickNeeded)
                 {
-                    discardBut.enable();  // Exact count reached
+                    okBut.enable();  // Exact count reached
                     wantsRepaint = true;
                 }
-                else if (numChosen == (numDiscards+1))
+                else if (numChosen == (numPickNeeded+1))
                 {
-                    discardBut.disable();  // Count un-reached (too many)
+                    okBut.disable();  // Count un-reached (too many)
                     wantsRepaint = true;
                 }
                 break;
@@ -395,7 +398,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
         if (wantsRepaint)
         {
-            discardBut.repaint();
+            okBut.repaint();
         }
 
         } catch (Throwable th) {
