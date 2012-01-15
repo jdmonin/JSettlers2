@@ -712,6 +712,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 handleRESETBOARDAUTH((SOCResetBoardAuth) mes);
 
                 break;
+
+            /**
+             * pick resources to gain from the gold hex.
+             * Added 2012-01-12 for v2.0.00.
+             */
+            case SOCMessage.PICKRESOURCESREQUEST:
+                handlePutBrainQ((SOCPickResourcesRequest) mes);
+                break;
+
             }
         }
         catch (Throwable e)

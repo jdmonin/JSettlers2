@@ -54,6 +54,7 @@ import soc.message.SOCMakeOffer;
 import soc.message.SOCMessage;
 import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
+import soc.message.SOCPickResourcesRequest;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPotentialSettlements;
 import soc.message.SOCPutPiece;
@@ -765,7 +766,10 @@ public class SOCRobotBrain extends Thread
      */
     public void debugPrintBrainStatus()
     {
-        System.err.println("Robot internal state: " + client.getNickname() + " in game " + game.getName() + ": gs=" + game.getGameState());
+        System.err.println("Robot internal state: "
+                + ((client != null) ? client.getNickname() : ourPlayerData.getName())
+                + " in game " + game.getName()
+                + ": gs=" + game.getGameState());
         if (game.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
             System.err.println("  bot card count = " + ourPlayerData.getResources().getTotal());
         final String[] s = {
@@ -1559,6 +1563,16 @@ public class SOCRobotBrain extends Thread
                                 expectPLAY1 = true;
                             }
                         }
+                        break;
+
+                    case SOCMessage.PICKRESOURCESREQUEST:
+                        counter = 0;
+                        pickFreeResources( ((SOCPickResourcesRequest) mes).getParam() );
+                        waitingForGameState = true;
+                        if (game.isInitialPlacement())
+                            expectSTART2B = true;
+                        else
+                            expectPLAY1 = true;
                         break;
 
                     case SOCMessage.DISCARDREQUEST:
@@ -4733,6 +4747,50 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Respond to server's request to pick resources to gain from the Gold Hex.
+     * Use {@link #buildingPlan} or, if that's empty (initial placement),
+     * pick what's rare in {@link #resourceEstimates}.
+     * @param numChoose  Number of resources to pick
+     * @since 2.0.00
+     */
+    protected void pickFreeResources(int numChoose)
+    {
+        SOCResourceSet targetResources;
+
+        if (! buildingPlan.isEmpty())
+        {
+            targetResources = SOCPlayingPiece.getResourcesToBuild
+                (((SOCPossiblePiece) buildingPlan.peek()).getType());
+            chooseFreeResourcesIfNeeded(targetResources, numChoose, true);
+        } else {
+            resourceChoices.clear();
+            estimateResourceRarity();
+            int numEach = 0;  // in case we pick 5, keep going for 6-10
+            while (numChoose > 0)
+            {
+                int res = -1, pct = 100;
+                for (int i = SOCBoard.CLAY_HEX; i <= SOCBoard.WOOD_HEX; ++i)
+                {
+                    if ((resourceEstimates[i] < pct) && (resourceChoices.getAmount(i) < numEach))
+                    {
+                        res = i;
+                        pct = i;
+                    }
+                }
+                if (res != -1)
+                {
+                    resourceChoices.add(1, res);
+                    --numChoose;
+                } else {
+                    ++numEach;  // has chosen all 5 by now
+                }
+            }
+        }
+
+        client.pickFreeResources(game, resourceChoices);
+    }
+
+    /**
      * choose a robber victim
      *
      * @param choices a boolean array representing which players are possible victims
@@ -4867,7 +4925,7 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * this is a function more for convience
+     * This is a function more for convenience.
      * given a set of nodes, run a bunch of metrics across them
      * to find which one is best for building a
      * settlement

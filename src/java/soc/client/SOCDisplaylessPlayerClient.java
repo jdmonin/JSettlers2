@@ -82,6 +82,8 @@ import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCNewChannel;
 import soc.message.SOCNewGame;
+import soc.message.SOCPickResources;
+import soc.message.SOCPickResourcesRequest;
 import soc.message.SOCPlayDevCardRequest;
 import soc.message.SOCPlayerElement;
 import soc.message.SOCPotentialSettlements;
@@ -1944,10 +1946,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * the user wants to discard
      *
      * @param ga  the game
+     * @param rs  Resources to discard
      */
     public void discard(SOCGame ga, SOCResourceSet rs)
     {
         put(SOCDiscard.toCmd(ga.getName(), rs));
+    }
+
+    /**
+     * The user wants to pick these resources to gain from the gold hex.
+     *
+     * @param ga  the game
+     * @param rs  Resources to gain
+     * @since 2.0.00
+     */
+    public void pickFreeResources(SOCGame ga, SOCResourceSet rs)
+    {
+        put(SOCPickResources.toCmd(ga.getName(), rs));
     }
 
     /**
