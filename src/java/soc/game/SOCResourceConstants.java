@@ -44,6 +44,9 @@ public class SOCResourceConstants
      * Warning: Don't mess with these constants, other pieces
      *          of code depend on these numbers staying like this.
      *          {@link #CLAY} is first (1), {@link #WOOD} is last (5), {@link #UNKNOWN} is after wood.
+     *<P>
+     *          Some code also takes advantage that {@link #CLAY} == {@link SOCBoard#CLAY_HEX},
+     *          {@link #SHEEP} == {@link SOCBoard#SHEEP_HEX}, etc.
      * @see #MIN
      */
     public static final int CLAY = 1;
@@ -57,6 +60,11 @@ public class SOCResourceConstants
      * Sometimes also used as a "MAX+1" for array sizing
      * for per-resource-type arrays that contain {@link #CLAY} through {@link #WOOD}
      * but don't contain <tt>UNKNOWN</tt>.
+     *<P>
+     * Some code internal to the <tt>soc.game</tt> or <tt>soc.robot</tt> packages
+     * uses <tt>UNKNOWN</tt> to represent {@link SOCBoardLarge#GOLD_HEX} tiles;
+     * gold is not a resource, and <tt>UNKNOWN</tt> should not be sent over the
+     * network or used externally to mean gold.
      * @see #MAXPLUSONE
      */
     public static final int UNKNOWN = 6;
