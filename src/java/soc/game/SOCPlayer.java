@@ -1331,9 +1331,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Add to this player's resources and resource-roll totals.
      *<P>
-     * If {@link #hasSeaBoard}, treat {@link SOCResourceConstants#UNKNOWN}
+     * If {@link #hasSeaBoard}, treat {@link SOCResourceConstants#GOLD_LOCAL}
      * as the gold-hex resources they must pick, and set
      * {@link #getNeedToPickGoldHexResources()} to that amount.
+     * Otherwise ignore rolled {@link SOCResourceConstants#UNKNOWN} resources.
      *
      * @param rolled The resources gained by this roll, as from
      *     {@link SOCGame#getResourcesGainedFromRoll(SOCPlayer, int)}
@@ -1343,11 +1344,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (game.hasSeaBoard)
         {
-            final int gold = rolled.getAmount(SOCResourceConstants.UNKNOWN);
+            final int gold = rolled.getAmount(SOCResourceConstants.GOLD_LOCAL);
             if (gold > 0)
             {
                 needToPickGoldHexResources = gold;
-                rolled.setAmount(0, SOCResourceConstants.UNKNOWN);
+                rolled.setAmount(0, SOCResourceConstants.GOLD_LOCAL);
             }
         }
         resources.add(rolled);

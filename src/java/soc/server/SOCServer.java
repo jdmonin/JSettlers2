@@ -8672,7 +8672,8 @@ public class SOCServer extends Server
      *
      * @param gaName  Game name
      * @param rset    Resource set (from a roll, or the "give" or "get" side of a trade).
-     *                Resource type {@link SOCResourceConstants#UNKNOWN} is ignored.
+     *                Resource type {@link SOCResourceConstants#UNKNOWN UNKNOWN} or
+     *                {@link SOCResourceConstants#GOLD_LOCAL GOLD_LOCAL} is ignored.
      *                Only positive resource amounts are sent (negative is ignored).
      * @param isLoss  If true, "give" ({@link SOCPlayerElement#LOSE}), otherwise "get" ({@link SOCPlayerElement#GAIN})
      * @param mainPlayer     Player number "giving" if isLose==true, otherwise "getting".

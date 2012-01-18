@@ -61,18 +61,26 @@ public class SOCResourceConstants
      * for per-resource-type arrays that contain {@link #CLAY} through {@link #WOOD}
      * but don't contain <tt>UNKNOWN</tt>.
      *<P>
-     * Some code internal to the <tt>soc.game</tt> or <tt>soc.robot</tt> packages
-     * uses <tt>UNKNOWN</tt> to represent {@link SOCBoardLarge#GOLD_HEX} tiles;
-     * gold is not a resource, and <tt>UNKNOWN</tt> should not be sent over the
-     * network or used externally to mean gold.
+     * Same numeric value as {@link #GOLD_LOCAL}.
      * @see #MAXPLUSONE
      */
     public static final int UNKNOWN = 6;
 
+    /**
+     * Some code, internal to the <tt>soc.game</tt> or <tt>soc.robot</tt> packages,
+     * uses this value (6) to represent {@link SOCBoardLarge#GOLD_HEX} tiles;
+     * same numeric value as {@link #UNKNOWN}.  Occurs after {@link #WOOD} (5).
+     *<P>
+     * Gold is not a resource, and <tt>GOLD_LOCAL</tt> should not be sent over the
+     * network or used externally.
+     * @since 2.0.00
+     */
+    public static final int GOLD_LOCAL = 6;
+
     /** Minimum value (1 == {@link #CLAY}) */
     public static final int MIN = 1;
 
-    /** One past maximum value (6 == {@link #UNKNOWN}) */
+    /** One past maximum value (7; max value is 6 == {@link #UNKNOWN}) */
     public static final int MAXPLUSONE = 7;
 
     /**
@@ -80,6 +88,7 @@ public class SOCResourceConstants
      * such as "clay" or "ore".
      *
      * @param rtype Resource type, such as {@link #CLAY} or {@link #WOOD}.
+     *     {@link #UNKNOWN} / {@link #GOLD_LOCAL} is out of range.
      * @return Lowercase resource name, or null if rtype is out of range.
      * @since 1.1.08
      */

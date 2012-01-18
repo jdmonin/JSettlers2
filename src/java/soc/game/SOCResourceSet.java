@@ -126,7 +126,7 @@ public class SOCResourceSet implements Serializable, Cloneable
     /**
      * Get the total amount of resources of known types:
      * {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD},
-     * excluding {@link SOCResourceConstants#UNKNOWN}.
+     * excluding {@link SOCResourceConstants#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * @return the total number of known-type resources
      * @since 2.0.00
      */

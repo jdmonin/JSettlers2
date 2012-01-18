@@ -244,6 +244,7 @@ public class SOCGame implements Serializable, Cloneable
      * playing a Knight/Soldier card.
      * Next game state is {@link #PLAY1}.
      * To see whether we're moving the robber or the pirate, use {@link #getRobberyPirateFlag()}.
+     * @see #playKnight()
      * @see #canChoosePlayer(int)
      * @see #stealFromPlayer(int)
      */
@@ -3306,7 +3307,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If {@link #hasSeaBoard}, and the player's adjacent to a
      * {@link SOCBoardLarge#GOLD_HEX}, the gold-hex resources they must pick
-     * are returned as {@link SOCResourceConstants#UNKNOWN}.
+     * are returned as {@link SOCResourceConstants#GOLD_LOCAL}.
      *
      * @param player   the player
      * @param roll     the total number rolled on the dice
@@ -3340,7 +3341,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If {@link #hasSeaBoard}, and the player's adjacent to a
      * {@link SOCBoardLarge#GOLD_HEX}, the gold-hex resources they must pick
-     * are returned as {@link SOCResourceConstants#UNKNOWN}.
+     * are returned as {@link SOCResourceConstants#GOLD_LOCAL}.
      *
      * @param roll     the total number rolled on the dice
      * @param resources  Add new resources to this set
@@ -3350,7 +3351,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param incr   Add this many resources (1 or 2) per playing piece
      * @since 2.0.00
      */
-    private void getResourcesGainedFromRollPieces
+    private final void getResourcesGainedFromRollPieces
         (final int roll, SOCResourceSet resources, final int robberHex, Enumeration sEnum, final int incr)
     {
         while (sEnum.hasMoreElements())
@@ -3367,32 +3368,27 @@ public class SOCGame implements Serializable, Cloneable
                     {
                     case SOCBoard.CLAY_HEX:
                         resources.add(incr, SOCResourceConstants.CLAY);
-
                         break;
 
                     case SOCBoard.ORE_HEX:
                         resources.add(incr, SOCResourceConstants.ORE);
-
                         break;
 
                     case SOCBoard.SHEEP_HEX:
                         resources.add(incr, SOCResourceConstants.SHEEP);
-
                         break;
 
                     case SOCBoard.WHEAT_HEX:
                         resources.add(incr, SOCResourceConstants.WHEAT);
-
                         break;
 
                     case SOCBoard.WOOD_HEX:
                         resources.add(incr, SOCResourceConstants.WOOD);
-
                         break;
 
-                    case SOCBoardLarge.GOLD_HEX:
+                    case SOCBoardLarge.GOLD_HEX:  // if not hasSeaBoard, == SOCBoard.MISC_PORT_HEX
                         if (hasSeaBoard)
-                            resources.add(incr, SOCResourceConstants.UNKNOWN);
+                            resources.add(incr, SOCResourceConstants.GOLD_LOCAL);
                         break;
 
                     }
