@@ -613,7 +613,7 @@ public class OpeningBuildStrategy {
                 /**
                  * favor spots with the most high numbers
                  */
-                bestSpotForNumbers(allNodes, 100, game);
+                bestSpotForNumbers(allNodes, null, 100, game);
 
                 /**
                  * favor spots near good ports
@@ -939,53 +939,7 @@ public class OpeningBuildStrategy {
 
         return resourceEstimates;
     }
-    
-    /**
-     * Takes a table of nodes and adds a weighted score to
-     * each node score in the table.  Nodes touching hexes
-     * with better numbers get better scores.
-     *
-     * @param nodes    the table of nodes with scores: Hashtable<Integer,Integer>
-     * @param weight   a number that is multiplied by the score
-     */
-    protected void bestSpotForNumbers(Hashtable nodes, int weight, SOCGame game)
-    {
-        int[] numRating = SOCNumberProbabilities.INT_VALUES;
-        SOCBoard board = game.getBoard();
-        int oldScore;
-        Enumeration nodesEnum = nodes.keys();  // <Integer>
 
-        while (nodesEnum.hasMoreElements())
-        {
-            Integer node = (Integer) nodesEnum.nextElement();
-
-            //log.debug("BSN - looking at node "+Integer.toHexString(node.intValue()));
-            oldScore = ((Integer) nodes.get(node)).intValue();
-
-            int score = 0;
-            Enumeration hexesEnum = board.getAdjacentHexesToNode(node.intValue()).elements();  // <Integer>
-
-            while (hexesEnum.hasMoreElements())
-            {
-                final int hex = ((Integer) hexesEnum.nextElement()).intValue();
-                score += numRating[board.getNumberOnHexFromCoord(hex)];
-
-                //log.debug(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex)]);
-            }
-
-            /*
-             * normalize score and multiply by weight
-             * 40 is highest practical score
-             * lowest score is 0
-             */
-            int nScore = ((score * 100) / 40) * weight;
-            final Integer finalScore = new Integer(nScore + oldScore);
-            nodes.put(node, finalScore);
-
-            //log.debug("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);
-        }
-    }
-    
     /**
      * calculate the number of builds before the next turn during init placement
      *
@@ -1053,13 +1007,19 @@ public class OpeningBuildStrategy {
      * that the player is already touching.
      *
      * @param nodes    the table of nodes with scores: Hashtable<Integer,Integer>
-     * @param player   the player that we are doing the rating for
+     * @param player   the player that we are doing the rating for, or <tt>null</tt>;
+     *                   will give a bonus to numbers the player isn't already touching
      * @param weight   a number that is multiplied by the score
      */
     protected void bestSpotForNumbers(Hashtable nodes, SOCPlayer player, int weight, SOCGame game)
     {
-        int[] numRating = SOCNumberProbabilities.INT_VALUES;
-        SOCBoard board = game.getBoard();
+        final int[] numRating = SOCNumberProbabilities.INT_VALUES;
+        final SOCPlayerNumbers playerNumbers = (player != null) ? player.getNumbers() : null;
+        final SOCBoard board = game.getBoard();
+
+        // 80 is highest practical score (40 if player == null)
+        final int maxScore = (player != null) ? 80 : 40;
+
         int oldScore;
         Enumeration nodesEnum = nodes.keys();  // <Integer>
 
@@ -1079,7 +1039,7 @@ public class OpeningBuildStrategy {
                 final int number = board.getNumberOnHexFromCoord(hex);
                 score += numRating[number];
 
-                if ((number != 0) && (!player.getNumbers().hasNumber(number)))
+                if ((number != 0) && (playerNumbers != null) && ! playerNumbers.hasNumber(number))
                 {
                     /**
                      * add a bonus for numbers that the player doesn't already have
@@ -1094,10 +1054,10 @@ public class OpeningBuildStrategy {
 
             /*
              * normalize score and multiply by weight
-             * 80 is highest practical score
+             * 80 is highest practical score (40 if player == null)
              * lowest score is 0
              */
-            int nScore = ((score * 100) / 80) * weight;
+            int nScore = ((score * 100) / maxScore) * weight;
             final Integer finalScore = new Integer(nScore + oldScore);
             nodes.put(node, finalScore);
 
