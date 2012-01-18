@@ -56,7 +56,9 @@ public class SOCBuildingSpeedEstimate
     SOCResourceSet[] resourcesForRoll;
 
     /**
-     * this is a constructor
+     * Create a new SOCBuildingSpeedEstimate, calculating
+     * the rollsPerResource and resourcesPerRoll based on
+     * the player's dice numbers (settlement/city hexes).
      *
      * @param numbers  the numbers that the player's pieces are touching
      */
@@ -65,13 +67,15 @@ public class SOCBuildingSpeedEstimate
         estimatesFromNothing = new int[MAXPLUSONE];
         estimatesFromNow = new int[MAXPLUSONE];
         rollsPerResource = new int[SOCResourceConstants.WOOD + 1];
-        recalculateRollsPerResource(numbers);
+        recalculateRollsPerResource(numbers, -1);
         resourcesForRoll = new SOCResourceSet[13];
-        recalculateResourcesForRoll(numbers);
+        recalculateResourcesForRoll(numbers, -1);
     }
 
     /**
-     * this is a constructor
+     * Create a new SOCBuildingSpeedEstimate, not yet calculating
+     * estimates.  To consider the player's dice numbers (settlement/city hexes),
+     * you'll need to call {@link #recalculateEstimates(SOCPlayerNumbers, int)}.
      */
     public SOCBuildingSpeedEstimate()
     {
@@ -276,16 +280,22 @@ public class SOCBuildingSpeedEstimate
 
     /**
      * recalculate both rollsPerResource and resourcesPerRoll
+     * @param numbers    the numbers that the player is touching
+     * @see #recalculateEstimates(SOCPlayerNumbers, int)
      */
     public void recalculateEstimates(SOCPlayerNumbers numbers)
     {
-        recalculateRollsPerResource(numbers);
-        recalculateResourcesForRoll(numbers);
+        recalculateRollsPerResource(numbers, -1);
+        recalculateResourcesForRoll(numbers, -1);
     }
 
     /**
-     * recalculate both rollsPerResource and resourcesPerRoll
-     * using the robber information
+     * Recalculate both rollsPerResource and resourcesPerRoll,
+     * optionally considering the robber's location.
+     * @param numbers    the numbers that the player is touching
+     * @param robberHex  Robber location from {@link SOCBoard#getRobberHex()},
+     *                     or -1 to ignore the robber
+     * @see #recalculateEstimates(SOCPlayerNumbers)
      */
     public void recalculateEstimates(SOCPlayerNumbers numbers, int robberHex)
     {
@@ -294,58 +304,18 @@ public class SOCBuildingSpeedEstimate
     }
 
     /**
-     * calculate the estimates
-     *
-     * @param numbers  the numbers that the player is touching
-     */
-    public void recalculateRollsPerResource(SOCPlayerNumbers numbers)
-    {
-        //D.ebugPrintln("@@@@@@@@ recalculateRollsPerResource");
-        //D.ebugPrintln("@@@@@@@@ numbers = "+numbers);
-        recalc = true;
-
-        /**
-         * figure out how many resources we get per roll
-         */
-        for (int resource = SOCResourceConstants.CLAY;
-                resource <= SOCResourceConstants.WOOD; resource++)
-        {
-            //D.ebugPrintln("resource: "+resource);
-            float totalProbability = 0.0f;
-
-            Enumeration numbersEnum = numbers.getNumbersForResource(resource).elements();
-
-            while (numbersEnum.hasMoreElements())
-            {
-                Integer number = (Integer) numbersEnum.nextElement();
-                totalProbability += SOCNumberProbabilities.FLOAT_VALUES[number.intValue()];
-            }
-
-            //D.ebugPrintln("totalProbability: "+totalProbability);
-            if (totalProbability != 0.0f)
-            {
-                rollsPerResource[resource] = Math.round(1.0f / totalProbability);
-            }
-            else
-            {
-                rollsPerResource[resource] = 55555;
-            }
-
-            //D.ebugPrintln("rollsPerResource: "+rollsPerResource[resource]);
-        }
-    }
-
-    /**
-     * calculate the estimates assuming that the robber is working
+     * Calculate the rollsPerResource estimates,
+     * optionally considering the robber's location.
      *
      * @param numbers    the numbers that the player is touching
-     * @param robberHex  where the robber is
+     * @param robberHex  Robber location from {@link SOCBoard#getRobberHex()},
+     *                     or -1 to ignore the robber
      */
-    public void recalculateRollsPerResource(SOCPlayerNumbers numbers, int robberHex)
+    public void recalculateRollsPerResource(SOCPlayerNumbers numbers, final int robberHex)
     {
-        D.ebugPrintln("@@@@@@@@ recalculateRollsPerResource");
-        D.ebugPrintln("@@@@@@@@ numbers = " + numbers);
-        D.ebugPrintln("@@@@@@@@ robberHex = " + Integer.toHexString(robberHex));
+        //D.ebugPrintln("@@@@@@@@ recalculateRollsPerResource");
+        //D.ebugPrintln("@@@@@@@@ numbers = " + numbers);
+        //D.ebugPrintln("@@@@@@@@ robberHex = " + Integer.toHexString(robberHex));
         recalc = true;
 
         /**
@@ -354,11 +324,15 @@ public class SOCBuildingSpeedEstimate
         for (int resource = SOCResourceConstants.CLAY;
                 resource <= SOCResourceConstants.WOOD; resource++)
         {
-            D.ebugPrintln("resource: " + resource);
+            //D.ebugPrintln("resource: " + resource);
 
             float totalProbability = 0.0f;
 
-            Enumeration numbersEnum = numbers.getNumbersForResource(resource, robberHex).elements();
+            Enumeration numbersEnum =
+                ((robberHex != -1)
+                   ? numbers.getNumbersForResource(resource, robberHex)
+                   : numbers.getNumbersForResource(resource)
+                 ).elements();
 
             while (numbersEnum.hasMoreElements())
             {
@@ -366,7 +340,7 @@ public class SOCBuildingSpeedEstimate
                 totalProbability += SOCNumberProbabilities.FLOAT_VALUES[number.intValue()];
             }
 
-            D.ebugPrintln("totalProbability: " + totalProbability);
+            //D.ebugPrintln("totalProbability: " + totalProbability);
 
             if (totalProbability != 0.0f)
             {
@@ -377,61 +351,19 @@ public class SOCBuildingSpeedEstimate
                 rollsPerResource[resource] = 55555;
             }
 
-            D.ebugPrintln("rollsPerResource: " + rollsPerResource[resource]);
+            //D.ebugPrintln("rollsPerResource: " + rollsPerResource[resource]);
         }
     }
 
     /**
-     * calculate what resources this player will get on each
-     * die roll
+     * Calculate what resources this player will get on each
+     * die roll, optionally taking the robber into account.
      *
      * @param numbers  the numbers that the player is touching
+     * @param robberHex  Robber location from {@link SOCBoard#getRobberHex()},
+     *                     or -1 to ignore the robber
      */
-    public void recalculateResourcesForRoll(SOCPlayerNumbers numbers)
-    {
-        //D.ebugPrintln("@@@@@@@@ recalculateResourcesForRoll");
-        //D.ebugPrintln("@@@@@@@@ numbers = "+numbers);
-        recalc = true;
-
-        for (int diceResult = 2; diceResult <= 12; diceResult++)
-        {
-            Vector resources = numbers.getResourcesForNumber(diceResult);
-
-            if (resources != null)
-            {
-                SOCResourceSet resourceSet;
-
-                if (resourcesForRoll[diceResult] == null)
-                {
-                    resourceSet = new SOCResourceSet();
-                    resourcesForRoll[diceResult] = resourceSet;
-                }
-                else
-                {
-                    resourceSet = resourcesForRoll[diceResult];
-                    resourceSet.clear();
-                }
-
-                Enumeration resourcesEnum = resources.elements();
-
-                while (resourcesEnum.hasMoreElements())
-                {
-                    Integer resourceInt = (Integer) resourcesEnum.nextElement();
-                    resourceSet.add(1, resourceInt.intValue());
-                }
-
-                //D.ebugPrintln("### resources for "+diceResult+" = "+resourceSet);
-            }
-        }
-    }
-
-    /**
-     * calculate what resources this player will get on each
-     * die roll taking the robber into account
-     *
-     * @param numbers  the numbers that the player is touching
-     */
-    public void recalculateResourcesForRoll(SOCPlayerNumbers numbers, int robberHex)
+    public void recalculateResourcesForRoll(SOCPlayerNumbers numbers, final int robberHex)
     {
         //D.ebugPrintln("@@@@@@@@ recalculateResourcesForRoll");
         //D.ebugPrintln("@@@@@@@@ numbers = "+numbers);
@@ -440,20 +372,21 @@ public class SOCBuildingSpeedEstimate
 
         for (int diceResult = 2; diceResult <= 12; diceResult++)
         {
-            Vector resources = numbers.getResourcesForNumber(diceResult, robberHex);
+            Vector resources = (robberHex != -1)
+                ? numbers.getResourcesForNumber(diceResult, robberHex)
+                : numbers.getResourcesForNumber(diceResult);
 
             if (resources != null)
             {
-                SOCResourceSet resourceSet;
+                SOCResourceSet resourceSet = resourcesForRoll[diceResult];
 
-                if (resourcesForRoll[diceResult] == null)
+                if (resourceSet == null)
                 {
                     resourceSet = new SOCResourceSet();
                     resourcesForRoll[diceResult] = resourceSet;
                 }
                 else
                 {
-                    resourceSet = resourcesForRoll[diceResult];
                     resourceSet.clear();
                 }
 

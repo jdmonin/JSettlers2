@@ -276,6 +276,7 @@ public class SOCPlayerNumbers
      * @param diceNum  the dice number, 2-12
      * @return the resources for a number; contains {@link Integer}s for the resource(s),
      * in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     * @see #getResourcesForNumber(int, int)
      */
     public Vector getResourcesForNumber(final int diceNum)
     {
@@ -286,6 +287,7 @@ public class SOCPlayerNumbers
      * @return the numbers for a resource, as {@link Integer}s
      *
      * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @see #getNumbersForResource(int, int)
      */
     public Vector getNumbersForResource(int resource)
     {
@@ -322,10 +324,13 @@ public class SOCPlayerNumbers
     }
 
     /**
-     * @return the dice numbers for a resource (as {@link Integer}s), taking the robber into account
+     * @return the dice numbers for a resource (as {@link Integer}s), taking the robber into account;
+     *     if this resource is on two 8s (for example), there will be two {@link Integer}(8) in the
+     *     returned vector.
      *
      * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @param robberHex the robber hex
+     * @see #getNumbersForResource(int)
      */
     public Vector getNumbersForResource(int resource, int robberHex)
     {
@@ -363,6 +368,7 @@ public class SOCPlayerNumbers
      *
      * @param diceNum  the dice roll, 2 - 12 
      * @param robberHex the robber hex coordinate
+     * @see #getResourcesForNumber(int)
      */
     public Vector getResourcesForNumber(final int diceNum, final int robberHex)
     {
