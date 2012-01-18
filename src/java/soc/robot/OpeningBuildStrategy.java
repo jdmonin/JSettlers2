@@ -22,6 +22,7 @@
  **/
 package soc.robot;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -171,8 +172,6 @@ public class OpeningBuildStrategy {
                 log.debug("firstNode = " + board.nodeCoordToString(firstNode));
                 log.debug("secondNode = " + board.nodeCoordToString(secondNode));
 
-                final Integer secondNodeInt = new Integer(secondNode);
-
                 /**
                  * get the numbers for these settlements
                  */
@@ -194,20 +193,18 @@ public class OpeningBuildStrategy {
                 /**
                  * see if the settlements are on any ports
                  */
-                sb = new StringBuffer();
-                sb.append("ports: ");
+                //sb = new StringBuffer();
+                //sb.append("ports: ");
 
-                for (int portType = SOCBoard.MISC_PORT;
-                         portType <= SOCBoard.WOOD_PORT; portType++)
-                {
-                    ports[portType] =
-                        (board.getPortCoordinates(portType).contains(firstNodeInt))
-                        || (board.getPortCoordinates(portType).contains(secondNodeInt));
+                Arrays.fill(ports, false);
+                int portType = board.getPortTypeFromNodeCoord(firstNode);
+                if (portType != -1)
+                    ports[portType] = true;
+                portType = board.getPortTypeFromNodeCoord(secondNode);
+                if (portType != -1)
+                    ports[portType] = true;
 
-                    sb.append(ports[portType] + "  ");
-                }
-
-                log.debug(sb.toString());
+                //log.debug(sb.toString());
                 log.debug("probTotal = " + probTotal);
 
                 /**
@@ -419,7 +416,6 @@ public class OpeningBuildStrategy {
         int bestProbTotal;
         final int[] prob = SOCNumberProbabilities.INT_VALUES;
         final int firstNode = firstSettlement;
-        final Integer firstNodeInt = new Integer(firstNode);
 
         bestProbTotal = 0;
         secondSettlement = -1;
@@ -436,8 +432,6 @@ public class OpeningBuildStrategy {
             if (board.isNodeAdjacentToNode(secondNode, firstNode))
                 continue;  // <-- too close to firstNode to build --
 
-            final Integer secondNodeInt = new Integer(secondNode);
-
             /**
              * get the numbers for these settlements
              */
@@ -452,19 +446,17 @@ public class OpeningBuildStrategy {
             /**
              * see if the settlements are on any ports
              */
-            sb.append("ports: ");
+            //sb.append("ports: ");
 
-            for (int portType = SOCBoard.MISC_PORT;
-                     portType <= SOCBoard.WOOD_PORT; portType++)
-            {
-                ports[portType] =
-                    (board.getPortCoordinates(portType).contains(firstNodeInt))
-                    || (board.getPortCoordinates(portType).contains(secondNodeInt));
+            Arrays.fill(ports, false);
+            int portType = board.getPortTypeFromNodeCoord(firstNode);
+            if (portType != -1)
+                ports[portType] = true;
+            portType = board.getPortTypeFromNodeCoord(secondNode);
+            if (portType != -1)
+                ports[portType] = true;
 
-                sb.append(ports[portType] + "  ");
-            }
-
-            log.debug(sb.toString());
+            //log.debug(sb.toString());
             log.debug("probTotal = " + probTotal);
 
             /**

@@ -72,6 +72,7 @@ import soc.util.DebugRecorder;
 import soc.util.Queue;
 import soc.util.SOCRobotParameters;
 
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -3646,17 +3647,15 @@ public class SOCRobotBrain extends Thread
                 /**
                  * see if the settlements are on any ports
                  */
-                D.ebugPrint("ports: ");
+                //D.ebugPrint("ports: ");
 
-                for (int portType = SOCBoard.MISC_PORT;
-                         portType <= SOCBoard.WOOD_PORT; portType++)
-                {
-                    ports[portType] = 
-                        (board.getPortCoordinates(portType).contains(firstNodeInt))
-                        || (board.getPortCoordinates(portType).contains(secondNodeInt));
-
-                    D.ebugPrint(ports[portType] + "  ");
-                }
+                Arrays.fill(ports, false);
+                int portType = board.getPortTypeFromNodeCoord(firstNode);
+                if (portType != -1)
+                    ports[portType] = true;
+                portType = board.getPortTypeFromNodeCoord(secondNode);
+                if (portType != -1)
+                    ports[portType] = true;
 
                 D.ebugPrintln();
                 D.ebugPrintln("probTotal = " + probTotal);
@@ -3866,7 +3865,6 @@ public class SOCRobotBrain extends Thread
         int bestProbTotal;
         final int[] prob = SOCNumberProbabilities.INT_VALUES;
         final int firstNode = firstSettlement;
-        final Integer firstNodeInt = new Integer(firstNode);
 
         bestProbTotal = 0;
         secondSettlement = -1;
@@ -3883,8 +3881,6 @@ public class SOCRobotBrain extends Thread
             if (board.isNodeAdjacentToNode(secondNode, firstNode))
                 continue;  // <-- too close to firstNode to build --
 
-            final Integer secondNodeInt = new Integer(secondNode);
-
             /**
              * get the numbers for these settlements
              */
@@ -3897,17 +3893,15 @@ public class SOCRobotBrain extends Thread
             /**
              * see if the settlements are on any ports
              */
-            D.ebugPrint("ports: ");
+            //D.ebugPrint("ports: ");
 
-            for (int portType = SOCBoard.MISC_PORT;
-                     portType <= SOCBoard.WOOD_PORT; portType++)
-            {
-                ports[portType] =
-                    (board.getPortCoordinates(portType).contains(firstNodeInt))
-                    || (board.getPortCoordinates(portType).contains(secondNodeInt));
-
-                D.ebugPrint(ports[portType] + "  ");
-            }
+            Arrays.fill(ports, false);
+            int portType = board.getPortTypeFromNodeCoord(firstNode);
+            if (portType != -1)
+                ports[portType] = true;
+            portType = board.getPortTypeFromNodeCoord(secondNode);
+            if (portType != -1)
+                ports[portType] = true;
 
             D.ebugPrintln();
             D.ebugPrintln("probTotal = " + probTotal);
