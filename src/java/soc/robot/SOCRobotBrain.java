@@ -4290,7 +4290,7 @@ public class SOCRobotBrain extends Thread
      */
     protected void bestSpotForNumbers(Hashtable nodes, int weight)
     {
-        int[] numRating = SOCNumberProbabilities.INT_VALUES;
+        final int[] numRating = SOCNumberProbabilities.INT_VALUES;
         SOCBoard board = game.getBoard();
         int oldScore;
         Enumeration nodesEnum = nodes.keys();
@@ -4339,7 +4339,7 @@ public class SOCRobotBrain extends Thread
      */
     protected void bestSpotForNumbers(Hashtable nodes, SOCPlayer player, int weight)
     {
-        int[] numRating = SOCNumberProbabilities.INT_VALUES;
+        final int[] numRating = SOCNumberProbabilities.INT_VALUES;
         SOCBoard board = game.getBoard();
         int oldScore;
         Enumeration nodesEnum = nodes.keys();
@@ -4763,18 +4763,22 @@ public class SOCRobotBrain extends Thread
                 (((SOCPossiblePiece) buildingPlan.peek()).getType());
             chooseFreeResourcesIfNeeded(targetResources, numChoose, true);
         } else {
+            // Pick based on board dice-roll rarities.
+            // TODO: After initial placement, consider based on our
+            // number probabilities based on settlements/cities placed.
+
             resourceChoices.clear();
             estimateResourceRarity();
             int numEach = 0;  // in case we pick 5, keep going for 6-10
             while (numChoose > 0)
             {
-                int res = -1, pct = 100;
+                int res = -1, pct = Integer.MAX_VALUE;
                 for (int i = SOCBoard.CLAY_HEX; i <= SOCBoard.WOOD_HEX; ++i)
                 {
                     if ((resourceEstimates[i] < pct) && (resourceChoices.getAmount(i) < numEach))
                     {
                         res = i;
-                        pct = i;
+                        pct = resourceEstimates[i];
                     }
                 }
                 if (res != -1)
