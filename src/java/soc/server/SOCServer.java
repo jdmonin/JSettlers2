@@ -5563,14 +5563,14 @@ public class SOCServer extends Server
                                         // CLAY, ORE, SHEEP, WHEAT, WOOD
                                         SOCResourceSet resources = pli.getResources();
                                         for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.WOOD; ++res)
-                                            messageToPlayer(playerCon, new SOCPlayerElement(ga.getName(), i, SOCPlayerElement.SET, res, resources.getAmount(res)));
-                                        messageToGame(ga.getName(), new SOCResourceCount(ga.getName(), i, resources.getTotal()));
+                                            messageToPlayer(playerCon, new SOCPlayerElement(gn, i, SOCPlayerElement.SET, res, resources.getAmount(res)));
+                                        messageToGame(gn, new SOCResourceCount(gn, i, resources.getTotal()));
 
                                         if (ga.hasSeaBoard)
                                         {
                                             final int numGoldRes = pli.getNeedToPickGoldHexResources();
                                             if (numGoldRes > 0)
-                                                messageToPlayer(playerCon, new SOCPickResourcesRequest(ga.getName(), numGoldRes));
+                                                messageToPlayer(playerCon, new SOCPickResourcesRequest(gn, numGoldRes));
                                             // sendGameState will send text about the prompting.
                                         }
                                     }
@@ -5587,6 +5587,9 @@ public class SOCServer extends Server
                                 message = gainsText.toString();
                             }
                             messageToGame(gn, message);
+
+                            if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                                sendGameState_sendGoldPickAnnounceText(ga, gn);
 
                             /*
                                if (D.ebugOn) {
@@ -8154,9 +8157,16 @@ public class SOCServer extends Server
      *<P>
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
+     *<P>
+     * State {@link SOCGame#START2A_WAITING_FOR_PICK_GOLD_RESOURCE}:
+     * Announces the player must pick resources to gain from the gold hex
+     * initial placement (in a GAMETEXTMSG).
+     *<P>
      * State {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}:
-     * If a gold hex is rolled, will also say who
-     * must pick resources to gain (in a GAMETEXTMSG).
+     * If a gold hex is rolled, does not say who
+     * must pick resources to gain (because of timing).  Please call
+     * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String)}
+     * after sending the resource gain text ("x gets 1 sheep").
      *
      * @see #sendTurn(SOCGame, boolean)
      * @see #sendGameState(SOCGame)
@@ -8235,24 +8245,12 @@ public class SOCServer extends Server
             break;
 
         case SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE:
-            // fall through
-        case SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE:
-            count = 0;
-            names = new String[ga.maxPlayers];
-
-            for (int i = 0; i < ga.maxPlayers; i++)
-            {
-                if (ga.getPlayer(i).getNeedToPickGoldHexResources() > 0)
-                {
-                    names[count] = ga.getPlayer(i).getName();
-                    count++;
-                }
-            }
-
-            message = sendGameState_buildPlayerNamesText
-                (count, names, "pick resources from the gold hex.");
-            messageToGame(gname, message);
+            sendGameState_sendGoldPickAnnounceText(ga, gname);
             break;
+
+        // case SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE is now
+            // handled in handleROLLDICE, so it's sent after
+            // the resource texts ("x gets 1 sheep") and not before.
 
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
             messageToGame(gname, player.getName() + " must choose to move the robber or the pirate.");
@@ -8345,7 +8343,33 @@ public class SOCServer extends Server
 
         return message;
     }
-    
+
+    /**
+     * Send a game text message "x, y, and z need to pick resources from the gold hex."
+     * Used in game state {@link SOCGame#START2A_WAITING_FOR_PICK_GOLD_RESOURCE}
+     * and {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * @param ga  Game object
+     * @param gname  Game name
+     * @since 2.0.00
+     */
+    private final void sendGameState_sendGoldPickAnnounceText(SOCGame ga, final String gname)
+    {
+        int count = 0;
+        String[] names = new String[ga.maxPlayers];
+
+        for (int i = 0; i < ga.maxPlayers; i++)
+        {
+            if (ga.getPlayer(i).getNeedToPickGoldHexResources() > 0)
+            {
+                names[count] = ga.getPlayer(i).getName();
+                count++;
+            }
+        }
+
+        messageToGame(gname, sendGameState_buildPlayerNamesText
+            (count, names, "pick resources from the gold hex."));
+    }
+
     /**
      *  If game is OVER, send messages reporting winner, final score,
      *  and each player's victory-point cards.
