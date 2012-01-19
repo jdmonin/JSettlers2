@@ -24,6 +24,7 @@ import soc.util.IntPair;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
 
 
@@ -38,6 +39,9 @@ public class SOCPlayerNumbers
      * Dice roll numbers which yield this resource.
      * Uses indexes in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
      * Each element contains {@link Integer}s for the dice numbers.
+     *<P>
+     * {@link SOCBoardLarge#GOLD_HEX} is handled by adding the dice number to
+     * all resource types in {@link #addNumberForResource(int, int, int)}.
      */
     private Vector[] numbersForResource;
 
@@ -45,6 +49,12 @@ public class SOCPlayerNumbers
      * Resources on dice roll numbers; uses indexes 2-12.
      * Each element contains {@link Integer}s for the resource(s),
      * in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     * If the number yields more than one of that resource type
+     * (a city, or multiple pieces on the hex), there will be
+     * more than one Integer here with that resource type.
+     *<P>
+     * {@link SOCBoardLarge#GOLD_HEX} is handled by adding all resource types to
+     * the dice number in {@link #addNumberForResource(int, int, int)}.
      */
     private Vector[] resourcesForNumber;
 
@@ -52,6 +62,8 @@ public class SOCPlayerNumbers
      * Hex dice-roll resource information, by land-hex coordinate ID.
      * Key = Integer hexCoord; value = Vector.
      * Each hex coordinate's vector contains 0 or more {@link IntPair}(diceNum, resource).
+     * If {@link #hasSeaBoard}, the resource type may be {@link SOCBoardLarge#GOLD_HEX}.
+     *<P>
      * Until {@link #addNumberForResource(int, int, int)} or
      * {@link #updateNumbers(int, SOCBoard)} is called,
      * any land hex's entry in this hashtable may be null.
@@ -68,12 +80,25 @@ public class SOCPlayerNumbers
     private int[] landHexCoords;
 
     /**
+     * Is this game played on the {@link SOCBoardLarge} large board / sea board?
+     * If true, the board's {@link SOCBoard#getBoardEncodingFormat()}
+     * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
+     *<P>
+     * When <tt>hasSeaBoard</tt>, {@link SOCBoardLarge#GOLD_HEX} is tracked.
+     * When false, it's ignored because the same numeric value in the previous
+     * encoding formats is water ({@link SOCBoard#MISC_PORT_HEX}).
+     * @since 2.0.00
+     */
+    public final boolean hasSeaBoard;
+
+    /**
      * make a copy of the player numbers
      *
      * @param numbers   the player numbers to copy
      */
     public SOCPlayerNumbers(SOCPlayerNumbers numbers)
     {
+        hasSeaBoard = numbers.hasSeaBoard;
         landHexCoords = numbers.landHexCoords;
 
         numbersForResource = new Vector[SOCResourceConstants.MAXPLUSONE - 1];
@@ -125,6 +150,7 @@ public class SOCPlayerNumbers
             throw new IllegalArgumentException("boardEncodingFormat: " + boardEncodingFormat);
         }
 
+        hasSeaBoard = (boardEncodingFormat == SOCBoard.BOARD_ENCODING_LARGE);
         landHexCoords = board.getLandHexCoords();
         //   landHexCoords might be null for BOARD_ENCODING_LARGE
         //   if the layout isn't yet created in SOCBoardLarge.makeNewBoard.
@@ -273,9 +299,18 @@ public class SOCPlayerNumbers
 
     /**
      * Get this player's resources gained when a dice number is rolled.
+     *<P>
+     * {@link SOCBoardLarge#GOLD_HEX} is handled by adding all resource types
+     * to the dice number, if {@link #hasSeaBoard}.
+     * So, gold hex numbers will have 5 resources in the Vector
+     * (10 for cities on gold).
+     *
      * @param diceNum  the dice number, 2-12
      * @return the resources for a number; contains {@link Integer}s for the resource(s),
      * in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     *   If the number yields more than one of that resource type
+     *   (a city, or multiple pieces on the hex), there will be
+     *   more than one Integer here with that resource type.
      * @see #getResourcesForNumber(int, int)
      */
     public Vector getResourcesForNumber(final int diceNum)
@@ -284,6 +319,11 @@ public class SOCPlayerNumbers
     }
 
     /**
+     * Get the numbers for a resource type.
+     *<P>
+     * {@link SOCBoardLarge#GOLD_HEX} is handled by adding the dice number to
+     * all resource types, if {@link #hasSeaBoard}.
+     *
      * @return the numbers for a resource, as {@link Integer}s
      *
      * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
@@ -298,6 +338,10 @@ public class SOCPlayerNumbers
      * @return the number-resource pairs for a hex;
      *  a Vector of 0 or more {@link IntPair}(diceNum, resource).
      *  May be null if hexCoord has no resources for us, or is not a valid land hex.
+     *  If the number yields more than one of that resource type
+     *  (a city, or multiple pieces on the hex), there will be
+     *  more than one Integer here with that resource type.
+     *  If {@link #hasSeaBoard}, a resource type may be {@link SOCBoardLarge#GOLD_HEX}.
      *
      * @param hexCoord  the hex coord
      * @see #hasNoResourcesForHex(int)
@@ -324,6 +368,11 @@ public class SOCPlayerNumbers
     }
 
     /**
+     * Get the numbers for a resource type.
+     *<P>
+     * {@link SOCBoardLarge#GOLD_HEX} is handled by adding the dice number to
+     * all resource types, if {@link #hasSeaBoard}.
+     *
      * @return the dice numbers for a resource (as {@link Integer}s), taking the robber into account;
      *     if this resource is on two 8s (for example), there will be two {@link Integer}(8) in the
      *     returned vector.
@@ -341,20 +390,21 @@ public class SOCPlayerNumbers
 
         for (int i = 0; i < landHexCoords.length; i++)
         {
-            if (landHexCoords[i] != robberHex)
-            {
-                Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(landHexCoords[i]));
-                if (pairs == null)
-                    continue;
+            if (landHexCoords[i] == robberHex)
+                continue;
 
-                Enumeration pairsEnum = pairs.elements();
-                while (pairsEnum.hasMoreElements())
+            Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(landHexCoords[i]));
+            if (pairs == null)
+                continue;
+
+            Enumeration pairsEnum = pairs.elements();
+            while (pairsEnum.hasMoreElements())
+            {
+                IntPair pair = (IntPair) pairsEnum.nextElement();
+                final int res = pair.getB();
+                if ((res == resource) || (hasSeaBoard && (res == SOCBoardLarge.GOLD_HEX)))
                 {
-                    IntPair pair = (IntPair) pairsEnum.nextElement();
-                    if (pair.getB() == resource)
-                    {
-                        numbers.addElement(new Integer(pair.getA()));
-                    }
+                    numbers.addElement(new Integer(pair.getA()));
                 }
             }
         }
@@ -363,8 +413,18 @@ public class SOCPlayerNumbers
     }
 
     /**
+     * Get this player's resources gained when a dice number is rolled.
+     *<P>
+     * {@link SOCBoardLarge#GOLD_HEX} is handled by adding all resource types
+     * to the dice number, if {@link #hasSeaBoard}.
+     * So, gold hex numbers will have 5 resources in the Vector
+     * (10 for cities on gold).
+     *
      * @return the resources for a dice number, taking the robber into account;
-     *   Integers in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     *   Integers in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}.
+     *   If the number yields more than one of that resource type
+     *   (a city, or multiple pieces on the hex), there will be
+     *   more than one Integer here with that resource type.
      *
      * @param diceNum  the dice roll, 2 - 12 
      * @param robberHex the robber hex coordinate
@@ -379,19 +439,26 @@ public class SOCPlayerNumbers
 
         for (int i = 0; i < landHexCoords.length; i++)
         {
-            if (landHexCoords[i] != robberHex)
-            {
-                Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(landHexCoords[i]));
-                if (pairs == null)
-                    continue;
+            if (landHexCoords[i] == robberHex)
+                continue;
 
-                Enumeration pairsEnum = pairs.elements();
-                while (pairsEnum.hasMoreElements())
+            Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(landHexCoords[i]));
+            if (pairs == null)
+                continue;
+
+            Enumeration pairsEnum = pairs.elements();
+            while (pairsEnum.hasMoreElements())
+            {
+                IntPair pair = (IntPair) pairsEnum.nextElement();
+                if (pair.getA() == diceNum)
                 {
-                    IntPair pair = (IntPair) pairsEnum.nextElement();
-                    if (pair.getA() == diceNum)
+                    final int res = pair.getB();
+                    if (hasSeaBoard && (res == SOCBoardLarge.GOLD_HEX))
                     {
-                        resources.addElement(new Integer(pair.getB()));
+                        for (int r = SOCResourceConstants.CLAY; r <= SOCResourceConstants.WOOD; ++r)
+                            resources.addElement(new Integer(r));
+                    } else {
+                        resources.addElement(new Integer(res));
                     }
                 }
             }
@@ -406,6 +473,8 @@ public class SOCPlayerNumbers
      * @param diceNum    the dice-roll number
      * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD};
      *                   resources outside this range are ignored.
+     *                   If {@link #hasSeaBoard}, can be {@link SOCBoardLarge#GOLD_HEX}
+     *                   as returned from {@link SOCBoardLarge#getHexTypeFromCoord(int)}.
      * @param hex       the hex coordinate ID
      */
     public void addNumberForResource(final int diceNum, final int resource, final int hex)
@@ -420,17 +489,33 @@ public class SOCPlayerNumbers
             resourcesForNumber[diceNum].addElement(resourceInt);
 
             //}
-
-            final IntPair newPair = new IntPair(diceNum, resource);
-            final Integer hexInt = new Integer(hex);
-            Vector pairs = (Vector) numberAndResourceForHex.get(hexInt);
-            if (pairs == null)
-            {
-                pairs = new Vector();
-                numberAndResourceForHex.put(hexInt, pairs);
-            }
-            pairs.addElement(newPair);
         }
+        else
+        {
+            if (! (hasSeaBoard && (resource == SOCBoardLarge.GOLD_HEX)))
+            {
+                return;  // <--- Ignore all other resource/hex types ---
+            }
+
+            // GOLD_HEX: Add all 5 resource types
+            final Integer diceNumInt = new Integer(diceNum);
+            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+            {
+                numbersForResource[res].addElement(diceNumInt);
+                resourcesForNumber[diceNum].addElement(new Integer(res));
+            }
+
+            // GOLD_HEX is okay in numberAndResourceForHex.
+        }
+
+        final Integer hexInt = new Integer(hex);
+        Vector pairs = (Vector) numberAndResourceForHex.get(hexInt);
+        if (pairs == null)
+        {
+            pairs = new Vector();
+            numberAndResourceForHex.put(hexInt, pairs);
+        }
+        pairs.addElement(new IntPair(diceNum, resource));
     }
 
     /**
@@ -472,7 +557,9 @@ public class SOCPlayerNumbers
      * do this when you take back a piece
      *
      * @param number    the dice-roll number
-     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
+     * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD},
+     *                    from {@link SOCBoard#getHexTypeFromCoord(int)}.
+     *                    If {@link #hasSeaBoard}, can be {@link SOCBoardLarge#GOLD_HEX}.
      * @param hex       the hex coordinate ID
      */
     public void undoAddNumberForResource(int number, int resource, int hex)
@@ -507,20 +594,59 @@ public class SOCPlayerNumbers
                 }
             }
 
-            Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(hex));
-            if (pairs != null)
+        }
+        else
+        {
+            if (! (hasSeaBoard && (resource == SOCBoardLarge.GOLD_HEX)))
             {
-                Enumeration numAndResourceEnum = pairs.elements();
-    
-                while (numAndResourceEnum.hasMoreElements())
+                return;  // <--- Ignore all other resource/hex types ---
+            }
+
+            // GOLD_HEX: Remove all 5 resource types.
+            // To simplify multiple removal, use Iterator not Enumeration.
+
+            for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
+            {
+                Iterator numIter = numbersForResource[res].iterator();    
+                while (numIter.hasNext())
                 {
-                    IntPair numAndResource = (IntPair) numAndResourceEnum.nextElement();
-    
-                    if ((numAndResource.getA() == number) && (numAndResource.getB() == resource))
+                    final int num = ((Integer) numIter.next()).intValue();  
+                    if (num == number)
                     {
-                        pairs.removeElement(numAndResource);
+                        numIter.remove();
                         break;
                     }
+                }
+            }
+
+            boolean[] removed = new boolean[SOCResourceConstants.UNKNOWN];  // range CLAY to WOOD
+            Iterator resIter = resourcesForNumber[number].iterator();
+            while (resIter.hasNext())
+            {
+                final int res = ((Integer) resIter.next()).intValue();
+                if (! removed[res])
+                {
+                    resIter.remove();
+                    removed[res] = true;
+                }
+            }
+
+            // GOLD_HEX will be in numberAndResourceForHex.
+        }
+
+        Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(hex));
+        if (pairs != null)
+        {
+            Enumeration numAndResourceEnum = pairs.elements();
+
+            while (numAndResourceEnum.hasMoreElements())
+            {
+                IntPair numAndResource = (IntPair) numAndResourceEnum.nextElement();
+
+                if ((numAndResource.getA() == number) && (numAndResource.getB() == resource))
+                {
+                    pairs.removeElement(numAndResource);
+                    break;
                 }
             }
         }

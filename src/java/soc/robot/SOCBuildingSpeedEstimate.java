@@ -52,8 +52,29 @@ public class SOCBuildingSpeedEstimate
     protected static boolean recalc;
     int[] estimatesFromNothing;
     int[] estimatesFromNow;
-    int[] rollsPerResource;
-    SOCResourceSet[] resourcesForRoll;
+
+    /**
+     * Number of rolls to gain each resource type ({@link SOCResourceConstants#CLAY}
+     * to {@link SOCResourceConstants#WOOD}).
+     * Index 0 is unused.
+     *<P>
+     * Does not contain {@link soc.game.SOCBoardLarge#GOLD_HEX GOLD_HEX}
+     * or {@link SOCResourceConstants#GOLD_LOCAL},
+     * because {@link SOCPlayerNumbers} methods translate the gold hexes into
+     * each of the normal 5 resource types.
+     */
+    private int[] rollsPerResource;
+
+    /**
+     * Resource sets gained for each dice roll number (2 to 12).
+     * Indexes 0 and 1 are unused.
+     *<P>
+     * Does not contain {@link soc.game.SOCBoardLarge#GOLD_HEX GOLD_HEX}
+     * or {@link SOCResourceConstants#GOLD_LOCAL},
+     * because {@link SOCPlayerNumbers} methods translate each gold hex number
+     * into 1 resource of each of the normal 5 types.
+     */
+    private SOCResourceSet[] resourcesForRoll;
 
     /**
      * Create a new SOCBuildingSpeedEstimate, calculating
@@ -404,7 +425,15 @@ public class SOCBuildingSpeedEstimate
     }
 
     /**
-     * @return the rolls per resource results
+     * Get the number of rolls to gain each resource type ({@link SOCResourceConstants#CLAY}
+     * to {@link SOCResourceConstants#WOOD}).
+     *<P>
+     * Does not contain {@link soc.game.SOCBoardLarge#GOLD_HEX GOLD_HEX}
+     * or {@link SOCResourceConstants#GOLD_LOCAL},
+     * because {@link SOCPlayerNumbers} methods translate the gold hexes into
+     * each of the normal 5 resource types.
+     *
+     * @return the rolls per resource results; index 0 is unused.
      */
     public int[] getRollsPerResource()
     {

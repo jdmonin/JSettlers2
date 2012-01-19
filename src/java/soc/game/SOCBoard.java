@@ -105,13 +105,18 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Clay; lowest-numbered hex type.
+     * Same numeric value as {@link SOCResourceConstants#CLAY}.
      * @see #WATER_HEX
      */
     public static final int CLAY_HEX = 1;
     public static final int ORE_HEX = 2;
     public static final int SHEEP_HEX = 3;
     public static final int WHEAT_HEX = 4;
-    /** Wood */
+    /**
+     * Wood.  As with all land resource hex types,
+     * same numeric value as its resource constant
+     * {@link SOCResourceConstants#WOOD}.
+     */
     public static final int WOOD_HEX = 5;
 
     /**

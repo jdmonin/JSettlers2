@@ -99,6 +99,12 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * There is no 2-for-1 port (unlike {@link SOCBoard#SHEEP_PORT},
      * {@link SOCBoard#WOOD_PORT}, etc) for this hex type.
+     *<P>
+     * The numeric value (7) for <tt>GOLD_HEX</tt> is the same as
+     * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, but the
+     * ports aren't encoded as hexes for this encoding, so there is no ambiguity
+     * as long as callers of {@link #getHexTypeFromCoord(int)}
+     * check the board encoding format.
      */
     public static final int GOLD_HEX = 7;
 
@@ -789,6 +795,11 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Unlike the original {@link SOCBoard} encoding, port types are not
      * encoded in the hex layout; use {@link #getPortTypeFromNodeCoord(int)} instead.
+     *<P>
+     * The numeric value (7) for {@link #GOLD_HEX} is the same as
+     * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, but the
+     * ports aren't encoded that way here, so there is no ambiguity
+     * as long as callers check the board encoding format.
      *
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
