@@ -1603,7 +1603,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             if (pnameActiveBG == null)
                 pnameCalcColors();
-            updateRollButton();
+            updateRollDoneBankButtons();
         }
 
         // show current player, or for debugging, current Free Placement player
@@ -1680,12 +1680,11 @@ public class SOCHandPanel extends Panel implements ActionListener
     /** Enable,disable the proper buttons
      * when the client (player) is added to a game.
      */
-    public void updateButtonsAtAdd()
+    private void updateButtonsAtAdd()
     {
         if (playerIsCurrent)
         {
-            updateRollButton();
-            bankBut.setEnabled(game.getGameState() == SOCGame.PLAY1);
+            updateRollDoneBankButtons();
         }
         else
         {
@@ -2301,12 +2300,16 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
     }
 
-    /** Client is current player, turn has just begun.
-     * Enable any previously disabled buttons.
+    /**
+     * Client is current player; enable or disable buttons according to game state:
+     * {@link #rollBut}, {@link #doneBut}, {@link #bankBut}.
      */
-    public void updateRollButton()
+    private void updateRollDoneBankButtons()
     {
-        rollBut.setEnabled(game.getGameState() == SOCGame.PLAY);
+        final int gs = game.getGameState();
+        rollBut.setEnabled(gs == SOCGame.PLAY);
+        doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING));
+        bankBut.setEnabled(gs == SOCGame.PLAY1);
     }
 
     /**
