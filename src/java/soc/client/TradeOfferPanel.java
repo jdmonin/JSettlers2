@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2009,2011,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,6 +47,10 @@ import java.awt.event.ActionListener;
  *  <LI> Showing vote on a board reset request
  *  <LI> Showing the player is deciding what to discard
  *</UL>
+ *<P>
+ * To use message mode, call {@link #setMessage(String)}.
+ * To use trade offer mode, show {@link #setOffer(SOCTradeOffer)}.
+ * To show or hide the panel in either mode, call {@link #setVisible(boolean)}.
  *<P>
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update a "compact mode" flag for counter-offer layout.
@@ -158,12 +162,20 @@ public class TradeOfferPanel extends Panel
     
     private class MessagePanel extends Panel
     {
-        SpeechBalloon balloon;
-        Label msg;
-        int msgHeight;
+        private SpeechBalloon balloon;
+        private Label msg;
+        private int oneLineHeight, msgHeight;
+
+        /**
+         * Number of lines of text; 1, or 2 if {@link #msg} contains <tt>\n</tt>.
+         * After changing this, set {@link #msgHeight} = 0 and call {@link #validate()}.
+         * @since 2.0.00
+         */
+        private int msgLines;
 
         /**
          * Creates a new MessagePanel object.
+         * Give room for 1 or 2 centered lines of text.
          */
         public MessagePanel()
         {
@@ -172,7 +184,9 @@ public class TradeOfferPanel extends Panel
         
             msg = new Label(" ", Label.CENTER);
             msg.setBackground(insideBGColor);
+            oneLineHeight = 0;  // set once in doLayout
             msgHeight = 0;  // set in doLayout
+            msgLines = 1;
             add(msg);
         
             balloon = new SpeechBalloon(pi.getPlayerColor(from));
@@ -186,30 +200,51 @@ public class TradeOfferPanel extends Panel
          */
         public void update(String message)
         {
+            String newText;
+            int newMsgLines;
             if (message != null)
-                msg.setText(message);
-            else
-                msg.setText(" ");
+            {
+                newText = message;
+                newMsgLines = (message.indexOf('\n') >= 0) ? 2 : 1;
+            } else {
+                newText = " ";
+                newMsgLines = 1;
+            }
+            if (msgLines != newMsgLines)
+            {
+                msgLines = newMsgLines;
+                msgHeight = 0;
+                validate();
+            }
+            msg.setText(newText);
         }
         
         /**
-         * Just for the message panel
+         * Custom layout for just the message panel.
+         * To center {@link #msg} vertically after changing {@link #msgLines},
+         * set {@link #msgHeight} to 0 before calling.
          */
         public void doLayout()
         {
-            Dimension dim = getSize();
-            int buttonW = 48;
-            int inset = 10;
+            final Dimension dim = getSize();
+            final int buttonW = 48;
+            final int inset = 2 * SpeechBalloon.SHADOW_SIZE;
+
+            if (oneLineHeight == 0)
+                oneLineHeight = getFontMetrics(msg.getFont()).getHeight();
             if (msgHeight == 0)
-                msgHeight = getFontMetrics(msg.getFont()).getHeight() + 4;
+                msgHeight = msgLines * oneLineHeight + 4;
             int w = Math.min((2*(inset+5) + 3*buttonW), dim.width);
             int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L, dim.height);
-            int msgY = (h - msgHeight) / 2;
-            if (msgY < 0)
-                msgY = 0;
             if (msgHeight > h)
                 msgHeight = h;
-            msg.setBounds(inset, msgY, w - (2 * inset), msgHeight);
+            int msgY = ((h - msgHeight - SpeechBalloon.SHADOW_SIZE - (h / 8)) / 2)
+                        + (h / 8);
+            if (msgY < 0)
+                msgY = 0;
+
+            msg.setBounds
+                (inset, msgY, w - (2 * inset) - (SpeechBalloon.SHADOW_SIZE / 2), msgHeight);
             balloon.setBounds(0, 0, w, h);
         }
     }
@@ -716,6 +751,8 @@ public class TradeOfferPanel extends Panel
      *
      * @param  message  the message message to show, or null.
      *      Null does not show or hide the panel, only clears the label text.
+     *      Message can be 1 line, or 2 lines with <tt>'\n'</tt>;
+     *      will not automatically wrap based on message length.
      */
     public void setMessage(String message)
     {

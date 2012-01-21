@@ -146,7 +146,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * {@link #offerIsDiscardOrPickMessage}, {@link #setDiscardOrPickMsg(boolean)}, etc.
      * @since 2.0.00
      */
-    private static final String TRADEMSG_PICKING = "Picking\nresources...";
+    private static final String TRADEMSG_PICKING = "Picking\nResources...";
 
     /** If player has won the game, update pname label */
     protected static final String WINNER_SUFFIX = " - Winner";
