@@ -1603,7 +1603,9 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             if (pnameActiveBG == null)
                 pnameCalcColors();
-            updateRollDoneBankButtons();
+
+            if (playerIsClient)
+                updateRollDoneBankButtons();
         }
 
         // show current player, or for debugging, current Free Placement player
@@ -1632,20 +1634,24 @@ public class SOCHandPanel extends Panel implements ActionListener
             boolean normalTurnStarting = (gs == SOCGame.PLAY || gs == SOCGame.PLAY1);
             clearOffer(normalTurnStarting);  // Zero the square panel numbers, etc. (TODO) better descr.
                 // at any player's turn, not just when playerIsCurrent.
-            if (doneButIsRestart && normalTurnStarting)
+            if (! playerIsCurrent)
             {
-                doneBut.setLabel(DONE);
-                doneButIsRestart = false;
+                rollBut.setEnabled(false);
+                doneBut.setEnabled(false);
+            }
+
+            if (doneButIsRestart)
+            {
+                if (normalTurnStarting)
+                {
+                    doneBut.setLabel(DONE);
+                    doneButIsRestart = false;
+                } else {
+                    doneBut.setEnabled(true);  // "Restart" during game-start (label DONE_RESTART)
+                }
             }
             normalTurnStarting = normalTurnStarting && playerIsCurrent;
-            doneBut.setEnabled(normalTurnStarting || (gs <= SOCGame.START2B)
-                    || (playerIsCurrent && (gs == SOCGame.SPECIAL_BUILDING))
-                    || doneButIsRestart );
-                // "Done" at Normal turn,
-                // or "Restart" during game-start (label DONE_RESTART),
-                // or "Done" during 6-player Special Building Phase.
             playCardBut.setEnabled(normalTurnStarting && (cardList.getItemCount() > 0));
-            bankBut.disable();  // enabled by updateAtPlay1()
         }
 
         bankGive = null;
@@ -1664,21 +1670,23 @@ public class SOCHandPanel extends Panel implements ActionListener
     }
 
     /**
-     * Client is current player; state changed from PLAY to PLAY1.
-     * (Dice has been rolled, or card played.)
-     * Update interface accordingly.
+     * Client is current player; state changed.
+     * Enable or disable the Roll, Done and Bank buttons.
+     *<P>
      * Should not be called except by client's playerinterface.
+     * Call only when if player is client and is current player.
      */
-    public void updateAtPlay1()
+    void updateAtOurGameState()
     {
-       if (! playerIsClient)
-           return;
+        if (! playerIsClient)
+            return;
 
-       bankBut.enable();
+        updateRollDoneBankButtons();
     }
 
     /** Enable,disable the proper buttons
      * when the client (player) is added to a game.
+     * Call only if {@link #playerIsClient}.
      */
     private void updateButtonsAtAdd()
     {
@@ -2303,12 +2311,14 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Client is current player; enable or disable buttons according to game state:
      * {@link #rollBut}, {@link #doneBut}, {@link #bankBut}.
+     * Call only if {@link #playerIsCurrent} and {@link #playerIsClient}.
      */
     private void updateRollDoneBankButtons()
     {
         final int gs = game.getGameState();
         rollBut.setEnabled(gs == SOCGame.PLAY);
-        doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING));
+        doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING)
+            || (gs <= SOCGame.START2B) || doneButIsRestart);
         bankBut.setEnabled(gs == SOCGame.PLAY1);
     }
 

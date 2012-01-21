@@ -1730,9 +1730,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             new ChooseMoveRobberOrPirateDialog().showInNewThread();
             break;
 
-        case SOCGame.PLAY1:
-            clientHand.updateAtPlay1();
-            break;
+        default:
+            clientHand.updateAtOurGameState();
         }
     }
 
