@@ -90,6 +90,12 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public static final int ASK_SPECIAL_BUILD = 16;  // same as SOCPlayerElement.ASK_SPECIAL_BUILD
 
+    /**
+     * Item flag for pick gold-hex resources in {@link #updateValue(int)}.
+     * @since 2.0.00
+     */
+    public static final int NUM_PICK_GOLD_HEX_RESOURCES = 17;  // same as ele.NUM_PICK_GOLD_HEX_RESOURCES
+
     /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
     public static int AUTOROLL_TIME = 5;
 
@@ -125,7 +131,22 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected static final String OFFERBUTTIP_DIS = "To offer a trade, first click resources";
     protected static final String ROBOTLOCKBUTTIP_L = "Lock to prevent a human from taking over this robot.";
     protected static final String ROBOTLOCKBUTTIP_U = "Unlock to allow a human to take over this robot.";
-    protected static final String TRADEMSG_DISCARD = "Discarding..."; 
+
+    /**
+     * Show that a non-client player is discarding resources after 7 is rolled.
+     * Call {@link #setDiscardOrPickMsg(boolean)} to show.
+     * Same methods are used by discard and by {@link #TRADEMSG_PICKING}.
+     * @since 1.1.00
+     */
+    private static final String TRADEMSG_DISCARD = "Discarding...";
+
+    /**
+     * Show that a non-client player is picking resources for the gold hex.
+     * Uses same variables and methods as {@link #TRADEMSG_DISCARD}:
+     * {@link #offerIsDiscardOrPickMessage}, {@link #setDiscardOrPickMsg(boolean)}, etc.
+     * @since 2.0.00
+     */
+    private static final String TRADEMSG_PICKING = "Picking\nresources...";
 
     /** If player has won the game, update pname label */
     protected static final String WINNER_SUFFIX = " - Winner";
@@ -373,7 +394,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * This low height is indicated by {@link #offerHidesControls} and possibly {@link #offerCounterHidesFace}.
      *
      * @see #offerIsResetMessage
-     * @see #offerIsDiscardMessage
+     * @see #offerIsDiscardOrPickMessage
      */
     protected TradeOfferPanel offer;
 
@@ -400,13 +421,17 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected boolean offerIsResetMessage;
 
     /**
-     * Board-reset voting: If true, {@link #offer} is holding a discard message.
+     * Board-reset voting: If true, {@link #offer} is holding a discard message
+     * ({@link #TRADEMSG_DISCARD}) or a gold hex pick-resources message
+     * ({@link #TRADEMSG_PICKING}).
+     * Set by {@link #setDiscardOrPickMsg(boolean)},
+     * cleared by {@link #clearDiscardOrPickMsg()}.
      */
-    protected boolean offerIsDiscardMessage;
+    private boolean offerIsDiscardOrPickMessage;
 
     /**
      * Board-reset voting: If true, {@link #offer} was holding an active trade offer
-     * before {@link #offerIsResetMessage} or {@link #offerIsDiscardMessage} was set.
+     * before {@link #offerIsResetMessage} or {@link #offerIsDiscardOrPickMessage} was set.
      */
     protected boolean offerIsMessageWasTrade;
 
@@ -1959,7 +1984,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             if (currentOffer != null)
             {
-                if (! (offerIsResetMessage || offerIsDiscardMessage))
+                if (! (offerIsResetMessage || offerIsDiscardOrPickMessage))
                 {
                     if (! playerIsClient)
                     {
@@ -2024,7 +2049,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     public void clearTradeMsg()
     {
         if ((offer.getMode() == TradeOfferPanel.MESSAGE_MODE)
-            && ! (offerIsResetMessage || offerIsDiscardMessage))
+            && ! (offerIsResetMessage || offerIsDiscardOrPickMessage))
         {
             offer.setMessage(null);
             offer.setVisible(false);
@@ -2195,7 +2220,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         else
         {
             // restore previous state of offer panel
-            offerIsDiscardMessage = false;
+            offerIsDiscardOrPickMessage = false;
             offerIsResetMessage = false;
             if ((! offerIsMessageWasTrade) || (! inPlay))
                 clearTradeMsg();
@@ -2215,44 +2240,48 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         if (! inPlay)
             return;
-        if (offerIsDiscardMessage)
+        if (offerIsDiscardOrPickMessage)
             throw new IllegalStateException("Cannot call resetmessage when discard msg");
         tradeSetMessage(message);
         offerIsResetMessage = (message != null);
     }
 
     /**
-     * Show the "discarding..." message in the trade panel.
+     * Show the "discarding..." or "picking resources..." message in the trade panel.
+     * Indicates discard on a 7, or picking resources on a gold hex.
      * Assumes player can't be discarding and asking for board-reset at same time.
+     *<P>
      * Normally, this will be cleared by {@link #updateValue(int)} for NUMRESOURCES,
-     * because that's what the server sends all other players on discard.
-     * @see #clearDiscardMsg()
-     * @see #TRADEMSG_DISCARD
+     * because that's what the server sends all other players on the player's discard or pick.
+     *
+     * @see #clearDiscardOrPickMsg()
+     * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
+     * @param isDiscard  True to show {@link #TRADEMSG_DISCARD}, false for {@link #TRADEMSG_PICKING}.  
      * @return true if set, false if not set because was in reset-mode already.
      */
-    public boolean setDiscardMsg()
+    public boolean setDiscardOrPickMsg(final boolean isDiscard)
     {
         if (! inPlay)
             return false;
         if (offerIsResetMessage)
             return false;
-        tradeSetMessage(TRADEMSG_DISCARD);
-        offerIsDiscardMessage = true;
+        tradeSetMessage(isDiscard ? TRADEMSG_DISCARD : TRADEMSG_PICKING);
+        offerIsDiscardOrPickMessage = true;
         return true;
     }
 
     /**
-     * Clear the "discarding..." message in the trade panel.
+     * Clear the "discarding..." or "picking resources..." message in the trade panel.
      * Assumes player can't be discarding and asking for board-reset at same time.
      * If wasn't in discardMessage mode, do nothing.
-     * @see #setDiscardMsg()
+     * @see #setDiscardOrPickMsg(boolean)
      */
-    public void clearDiscardMsg()
+    public void clearDiscardOrPickMsg()
     {
-        if (! offerIsDiscardMessage)
+        if (! offerIsDiscardOrPickMessage)
             return;
         tradeSetMessage(null);
-        offerIsDiscardMessage = false;
+        offerIsDiscardOrPickMessage = false;
     }
 
     /**
@@ -2373,7 +2402,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * If VICTORYPOINTS is updated, and game state is over, check for winner
      * and update (player name label, victory-points tooltip, disable bank/trade btn)
      *
-     * @param vt  the type of value
+     * @param vt  the type of value, such as {@link soc.message.SOCPlayerElement#SHEEP}
      */
     public void updateValue(int vt)
     {
@@ -2457,8 +2486,6 @@ public class SOCHandPanel extends Panel implements ActionListener
         case NUMRESOURCES:
 
             updateTotalResCount = true;
-            if (offerIsDiscardMessage)
-                clearDiscardMsg();
             break;
 
         case ROADS:
@@ -2505,10 +2532,33 @@ public class SOCHandPanel extends Panel implements ActionListener
                 playerInterface.getBuildingPanel().updateButtonStatus();
             break;
 
+        case NUM_PICK_GOLD_HEX_RESOURCES:
+            if (offerIsDiscardOrPickMessage && (0 == player.getNeedToPickGoldHexResources()))
+            {
+                clearDiscardOrPickMsg();
+                // Clear is handled here.
+                // Set is handled in SOCPlayerInterface.updateAtGameState
+                // by setting a timer: SOCPlayerInterface.setDiscardOrPickMsg(false)
+            }
+
         }
 
         if (updateTotalResCount)
+        {
             resourceSq.setIntValue(player.getResources().getTotal());
+            if (offerIsDiscardOrPickMessage)
+            {
+                final int gs = game.getGameState();
+                if (gs != SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                {
+                    clearDiscardOrPickMsg();
+                } else {
+                    // Clear pick-resources message is handled above
+                    // by updateValue(NUM_PICK_GOLD_HEX_RESOURCES)
+                }
+            }
+        }
+
     }
 
     /**

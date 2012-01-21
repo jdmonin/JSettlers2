@@ -688,7 +688,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      * Once the player has picked their resources, returns to 0.
      *
-     * @param numRes  Number of resources to pick
+     * @param numRes  Number of resources to pick, or 0 for no pick
      * @since 2.0.00
      */
     public void setNeedToPickGoldHexResources(final int numRes)

@@ -2862,6 +2862,10 @@ public class SOCRobotBrain extends Thread
             }
             break;
 
+        case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
+            pl.setNeedToPickGoldHexResources(mes.getValue());
+            break;
+
         }
 
         ///
@@ -4720,6 +4724,7 @@ public class SOCRobotBrain extends Thread
             // Pick based on board dice-roll rarities.
             // TODO: After initial placement, consider based on our
             // number probabilities based on settlements/cities placed.
+            //  (BSE.getRollsForResourcesSorted)
 
             resourceChoices.clear();
             estimateResourceRarity();

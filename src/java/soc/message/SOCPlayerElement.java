@@ -55,11 +55,23 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * For the 6-player board, player element type for asking to build
-     * during the {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
+     * during the {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
      * This element is {@link #SET} to 1 or 0.
      * @since 1.1.08
      */
     public static final int ASK_SPECIAL_BUILD = 16;
+
+    /**
+     * For the {@link soc.game.SOCBoardLarge large sea board},
+     * player element type for asking to choose
+     * resources from the gold hex after a dice roll,
+     * during the {@link soc.game.SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE WAITING_FOR_PICK_GOLD_RESOURCE}
+     * game state.
+     * This element is {@link #SET} to 0, or to the number of resources to choose.
+     * Call {@link soc.game.SOCPlayer#setNeedToPickGoldHexResources(int)}.
+     * @since 2.0.00
+     */
+    public static final int NUM_PICK_GOLD_HEX_RESOURCES = 17;
 
     /**
      * player element actions

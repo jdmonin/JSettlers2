@@ -27,12 +27,19 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message from client means that a player has picked these resources
+ * This message from client means that the client player has picked these resources
  * to receive from the gold hex.
  * Client response to server's {@link SOCPickResourcesRequest}.
+ * (Similar send/response pattern as {@link SOCDiscardRequest} / {@link SOCDiscard}.)
+ *<P>
+ * If the resource count is wrong, the server will resend <tt>SOCPickResourcesRequest</tt>.
+ * Otherwise:
  * The server will report the picked resources to the other
  * players via {@link SOCPlayerElement} and text, but will not send
  * a <tt>SOCPickResources</tt> message to other players.
+ * The server will also send all players a
+ * {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}, 0)
+ * message.
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
@@ -75,7 +82,7 @@ public class SOCPickResources extends SOCMessage
      * @param ga  the name of the game
      * @param rs  the resources being picked
      */
-    public SOCPickResources(String ga, int pn, SOCResourceSet rs)
+    public SOCPickResources(String ga, SOCResourceSet rs)
     {
         messageType = PICKRESOURCES;
         game = ga;

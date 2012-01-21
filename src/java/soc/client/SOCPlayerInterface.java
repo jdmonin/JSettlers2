@@ -334,7 +334,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     protected ResetBoardVoteDialog boardResetVoteDia;
 
-    /** Is one or more handpanel (of other players) showing a "Discarding..." message? */
+    /** Is one or more {@link SOCHandPanel} (of other players) showing a
+     *  "Discarding..." or "Picking resource..." message?
+     */
     private boolean showingPlayerDiscards;
 
     /**
@@ -344,7 +346,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     private Object showingPlayerDiscards_lock;
 
     /** May be null if not active. @see #showingPlayerDiscards */
-    private SOCPIDiscardMsgTask showingPlayerDiscardsTask;
+    private SOCPIDiscardOrPickMsgTask showingPlayerDiscardsTask;
 
     /**
      * number of columns in the text output area
@@ -1700,13 +1702,20 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         if (gs == SOCGame.WAITING_FOR_DISCARDS)
         {
             // Set timer.  If still waiting for discards after 2 seconds,
-            // show balloons on-screen. (hands[i].setDiscardMsg)
-            discardTimerSet();
-        } else if ((gs == SOCGame.PLAY1) && showingPlayerDiscards)
+            // show balloons on-screen. (hands[i].setDiscardOrPickMsg)
+            discardOrPickTimerSet(true);
+        } else if ((gs == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                   || (gs == SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE))
+        {
+            // Set timer.  If still waiting for resource picks after 2 seconds,
+            // show balloons on-screen. (hands[i].setDiscardOrPickMsg)
+            discardOrPickTimerSet(false);
+        } else if (showingPlayerDiscards &&
+                   ((gs == SOCGame.PLAY1) || (gs == SOCGame.START2B)))
         {
             // If not all players' discard status balloons were cleared by
             // PLAYERELEMENT messages, clean up now.
-            discardTimerClear();
+            discardOrPickTimerClear();
         }
 
         // React if we are current player
@@ -1848,8 +1857,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * Gamestate just became {@link SOCGame#WAITING_FOR_DISCARDS}.
      * Set up a timer to wait 1 second before showing "Discarding..."
      * balloons in players' handpanels.
+     * Uses {@link SOCPIDiscardOrPickMsgTask}.
+     * @param isDiscard  True for discard, false for picking gold-hex resources
      */
-    private void discardTimerSet()
+    private void discardOrPickTimerSet(final boolean isDiscard)
     {
         synchronized (showingPlayerDiscards_lock)
         {
@@ -1857,7 +1868,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             {
                 showingPlayerDiscardsTask.cancel();  // cancel any previous
             }
-            showingPlayerDiscardsTask = new SOCPIDiscardMsgTask(this);
+            showingPlayerDiscardsTask = new SOCPIDiscardOrPickMsgTask(this, isDiscard);
 
             // Run once, after a brief delay in case only robots must discard.
             client.getEventTimer().schedule(showingPlayerDiscardsTask, 1000 /* ms */ );
@@ -1865,9 +1876,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
-     * Cancel any "discarding..." timer, and clear the message if showing.
+     * Cancel any "discarding..." or "picking resources..." timer, and clear the message if showing.
      */
-    private void discardTimerClear()
+    private void discardOrPickTimerClear()
     {
         synchronized (showingPlayerDiscards_lock)
         {
@@ -1879,7 +1890,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             if (showingPlayerDiscards)
             {
                 for (int i = hands.length - 1; i >= 0; --i)
-                    hands[i].clearDiscardMsg();
+                    hands[i].clearDiscardOrPickMsg();
                 showingPlayerDiscards = false;
             }
         }
@@ -2724,50 +2735,75 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
 
     /**
-     * When timer fires, show discard message in any other player
-     * (not client player) who must discard.
-     * @see SOCPlayerInterface#discardTimerSet()
+     * When timer fires, show discard message or picking-resource message
+     * for any other player (not client player) who must discard or pick.
+     * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
      */
-    private static class SOCPIDiscardMsgTask extends TimerTask
+    private static class SOCPIDiscardOrPickMsgTask extends TimerTask
     {
         private SOCPlayerInterface pi;
+        private final boolean isDiscard;
 
-        public SOCPIDiscardMsgTask (SOCPlayerInterface spi)
+        /**
+         * Create a new SOCPIDiscardOrPickMsgTask.
+         * After creating, you must schedule it
+         * with {@link SOCPlayerClient#getEventTimer()}.{@link Timer#schedule(TimerTask, long) schedule(msgTask,delay)} .
+         * @param spi  Our player interface
+         * @param forDiscard  True for discard, false for picking gold-hex resources
+         */
+        public SOCPIDiscardOrPickMsgTask (SOCPlayerInterface spi, final boolean forDiscard)
         {
             pi = spi;
+            isDiscard = forDiscard;
         }
 
         /**
          * Called when timer fires. Examine game state and players.
-         * Sets "discarding..." to handpanels of discarding players.
+         * Sets "discarding..." or "picking..." at handpanels of discarding players.
          */
         public void run()
         {
-            int clientPN = pi.clientHandPlayerNum;
+            final int needState;
+            if (isDiscard)
+                needState = SOCGame.WAITING_FOR_DISCARDS;
+            else if (pi.game.isInitialPlacement())
+                needState = SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE;
+            else
+                needState = SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE;
+
+            final int clientPN = pi.clientHandPlayerNum;
             boolean anyShowing = false;
             SOCHandPanel hp;
             synchronized (pi.showingPlayerDiscards_lock)
             {
-                if (pi.game.getGameState() != SOCGame.WAITING_FOR_DISCARDS)
+                if (pi.game.getGameState() != needState)
                 {
                     return;  // <--- Early return: No longer relevant ---
                 }
                 for (int i = pi.hands.length - 1; i >=0; --i)
                 {
+                    if (i == clientPN)
+                        continue;
+
                     hp = pi.hands[i];
-                    if ((i != clientPN) &&
-                        (7 < hp.getPlayer().getResources().getTotal()))
+                    if (isDiscard)
                     {
-                        if (hp.setDiscardMsg())
-                            anyShowing = true;
+                        if (7 < hp.getPlayer().getResources().getTotal())
+                            if (hp.setDiscardOrPickMsg(true))
+                                anyShowing = true;
+                    } else {
+                        if (hp.getPlayer().getNeedToPickGoldHexResources() > 0)
+                            if (hp.setDiscardOrPickMsg(false))
+                                anyShowing = true;
                     }
                 }
+
                 pi.showingPlayerDiscards = anyShowing;
                 pi.showingPlayerDiscardsTask = null;  // No longer needed (fires once)
             }
         }
 
-    }  // SOCPIDiscardMsgTask
+    }  // SOCPIDiscardOrPickMsgTask
 
     /**
      * For 6-player board, make the text displays larger/smaller when mouse

@@ -3121,6 +3121,11 @@ public class SOCPlayerClient extends Applet
                 // for client player, hpan also refreshes BuildingPanel with this value.
                 break;
 
+            case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
+                pl.setNeedToPickGoldHexResources(mes.getValue());
+                hpan.updateValue(SOCHandPanel.NUM_PICK_GOLD_HEX_RESOURCES);
+                break;
+
             }
 
             if (hpanUpdateRsrcType != -1)

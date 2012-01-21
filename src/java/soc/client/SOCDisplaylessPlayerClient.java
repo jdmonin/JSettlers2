@@ -36,72 +36,7 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
 
-import soc.message.SOCAcceptOffer;
-import soc.message.SOCBCastTextMsg;
-import soc.message.SOCBankTrade;
-import soc.message.SOCBoardLayout;
-import soc.message.SOCBoardLayout2;
-import soc.message.SOCBuildRequest;
-import soc.message.SOCBuyCardRequest;
-import soc.message.SOCCancelBuildRequest;
-import soc.message.SOCChangeFace;
-import soc.message.SOCChannels;
-import soc.message.SOCChoosePlayer;
-import soc.message.SOCChoosePlayerRequest;
-import soc.message.SOCClearOffer;
-import soc.message.SOCClearTradeMsg;
-import soc.message.SOCDeleteChannel;
-import soc.message.SOCDeleteGame;
-import soc.message.SOCDevCard;
-import soc.message.SOCDevCardCount;
-import soc.message.SOCDiceResult;
-import soc.message.SOCDiscard;
-import soc.message.SOCDiscardRequest;
-import soc.message.SOCDiscoveryPick;
-import soc.message.SOCEndTurn;
-import soc.message.SOCFirstPlayer;
-import soc.message.SOCGameMembers;
-import soc.message.SOCGameState;
-import soc.message.SOCGameStats;
-import soc.message.SOCGameTextMsg;
-import soc.message.SOCGames;
-import soc.message.SOCJoin;
-import soc.message.SOCJoinAuth;
-import soc.message.SOCJoinGame;
-import soc.message.SOCJoinGameAuth;
-import soc.message.SOCLargestArmy;
-import soc.message.SOCLeave;
-import soc.message.SOCLeaveAll;
-import soc.message.SOCLeaveGame;
-import soc.message.SOCLongestRoad;
-import soc.message.SOCMakeOffer;
-import soc.message.SOCMembers;
-import soc.message.SOCMessage;
-import soc.message.SOCMonopolyPick;
-import soc.message.SOCMovePiece;
-import soc.message.SOCMoveRobber;
-import soc.message.SOCNewChannel;
-import soc.message.SOCNewGame;
-import soc.message.SOCPickResources;
-import soc.message.SOCPickResourcesRequest;
-import soc.message.SOCPlayDevCardRequest;
-import soc.message.SOCPlayerElement;
-import soc.message.SOCPotentialSettlements;
-import soc.message.SOCPutPiece;
-import soc.message.SOCRejectConnection;
-import soc.message.SOCRejectOffer;
-import soc.message.SOCResetBoardAuth;
-import soc.message.SOCResourceCount;
-import soc.message.SOCRollDice;
-import soc.message.SOCSetPlayedDevCard;
-import soc.message.SOCSetSeatLock;
-import soc.message.SOCSetTurn;
-import soc.message.SOCSitDown;
-import soc.message.SOCStartGame;
-import soc.message.SOCStatusMessage;
-import soc.message.SOCTextMsg;
-import soc.message.SOCTurn;
-import soc.message.SOCVersion;
+import soc.message.*;
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.LocalStringConnection;
 import soc.util.Version;
@@ -1181,6 +1116,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 } else {
                     pl.setAskedSpecialBuild(false);
                 }
+                break;
+
+            case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
+                pl.setNeedToPickGoldHexResources(mes.getValue());
                 break;
 
             }

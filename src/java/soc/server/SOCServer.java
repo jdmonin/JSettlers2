@@ -5570,8 +5570,10 @@ public class SOCServer extends Server
                                         {
                                             final int numGoldRes = pli.getNeedToPickGoldHexResources();
                                             if (numGoldRes > 0)
+                                            {
                                                 messageToPlayer(playerCon, new SOCPickResourcesRequest(gn, numGoldRes));
-                                            // sendGameState will send text about the prompting.
+                                                // We'll send text and PLAYERELEMENT about the gold picks after the loop.
+                                            }
                                         }
                                     }
                                 }  // if (! ga.isSeatVacant(i))
@@ -5771,6 +5773,8 @@ public class SOCServer extends Server
                 reportRsrcGainLoss(gn, rsrcs, false, pn, -1, gainsText, null);
                 gainsText.append(" from the gold hex.");
                 messageToGame(gn, gainsText.toString());
+                messageToGame(gn, new SOCPlayerElement
+                    (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
@@ -8214,7 +8218,8 @@ public class SOCServer extends Server
 
         case SOCGame.START1B:
         case SOCGame.START2B:
-            messageToGame(gname, "It's " + player.getName() + "'s turn to build a road.");
+            messageToGame(gname, "It's " + player.getName()
+                + ((ga.hasSeaBoard) ? "'s turn to build a road or ship.": "'s turn to build a road."));
 
             break;
 
@@ -8346,6 +8351,7 @@ public class SOCServer extends Server
 
     /**
      * Send a game text message "x, y, and z need to pick resources from the gold hex."
+     * and, for each picking player, a {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
      * Used in game state {@link SOCGame#START2A_WAITING_FOR_PICK_GOLD_RESOURCE}
      * and {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      * @param ga  Game object
@@ -8356,18 +8362,25 @@ public class SOCServer extends Server
     {
         int count = 0;
         String[] names = new String[ga.maxPlayers];
+        int[] num = new int[ga.maxPlayers];
 
-        for (int i = 0; i < ga.maxPlayers; i++)
+        for (int pl = 0; pl < ga.maxPlayers; ++pl)
         {
-            if (ga.getPlayer(i).getNeedToPickGoldHexResources() > 0)
+            final int numGoldRes = ga.getPlayer(pl).getNeedToPickGoldHexResources();
+            if (numGoldRes > 0)
             {
-                names[count] = ga.getPlayer(i).getName();
+                num[pl] = numGoldRes;
+                names[count] = ga.getPlayer(pl).getName();
                 count++;
             }
         }
 
         messageToGame(gname, sendGameState_buildPlayerNamesText
             (count, names, "pick resources from the gold hex."));
+        for (int pl = 0; pl < ga.maxPlayers; ++pl)
+            if (num[pl] > 0)
+                messageToGame(gname, new SOCPlayerElement
+                    (gname, pl, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, num[pl]));
     }
 
     /**

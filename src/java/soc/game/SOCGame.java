@@ -1559,14 +1559,15 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Are we in the Initial Placement part of the game?
-     * Includes game states {@link #START1A} - {@link #START2B}.
+     * Includes game states {@link #START1A} - {@link #START2B}
+     * and {@link #START2A_WAITING_FOR_PICK_GOLD_RESOURCE}.
      *
      * @return true if in Initial Placement
      * @since 1.1.12
      */
     public final boolean isInitialPlacement()
     {
-        return (gameState >= START1A) && (gameState <= START2B);
+        return (gameState >= START1A) && (gameState <= START2A_WAITING_FOR_PICK_GOLD_RESOURCE);
     }
 
     /**
@@ -2824,6 +2825,8 @@ public class SOCGame implements Serializable, Cloneable
         {
             movedShipThisTurn = false;
             placedShipsThisTurn.clear();
+            if (currPlayer.getNeedToPickGoldHexResources() > 0)
+                currPlayer.setNeedToPickGoldHexResources(0);
         }
 
         if (gameState == PLAY)
@@ -3219,6 +3222,8 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes either {@link #WAITING_FOR_DISCARDS},
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or {@link #PLACING_ROBBER}.
      * Checks game option N7: Roll no 7s during first # rounds
+     *<P>
+     * Called at server only.
      */
     public IntPair rollDice()
     {
@@ -3519,6 +3524,10 @@ public class SOCGame implements Serializable, Cloneable
      * (Or, during initial placement, set it to {@link #START2B}}.)
      *<P>
      * Assumes {@link #canPickGoldHexResources(int, SOCResourceSet)} already called to validate.
+     *<P>
+     * Called at server only; clients will instead get <tt>SOCPlayerElement</tt> messages
+     * for the resources picked and the "need to pick" flag, and will call
+     * {@link SOCPlayer#getResources()}<tt>.add</tt> and {@link SOCPlayer#setNeedToPickGoldHexResources(int)}. 
      *
      * @param pn   the number of the player
      * @param rs   the resources that are being picked
