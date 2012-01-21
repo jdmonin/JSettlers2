@@ -43,6 +43,8 @@ import java.util.Vector;
  * A class for holding and manipulating player data.
  * The player exists within one SOCGame, not persistent between games like SOCPlayerClient or SOCClientData.
  *<P>
+ * At the start of this player's turn, {@link SOCGame#updateAtTurn()} will call {@link #updateAtOurTurn()}.
+ *<P>
  * For more information about the "legal" and "potential" road/settlement/city terms,
  * see page 61 of Robert S Thomas' dissertation.  Briefly:
  * "Legal" locations are where pieces can be placed, according to the game rules.
@@ -524,6 +526,31 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public void clearPotentialSettlements()
     {
         potentialSettlements.clear();
+    }
+
+    /**
+     * Update game state as needed when this player begins their turn (before dice are rolled).
+     * Called by server and client, as part of {@link SOCGame#updateAtTurn()}.
+     *<P>
+     * May be called during initial placement.
+     * Is called at the end of initial placement, before the first player's first roll.
+     * On the 6-player board, is called at the start of
+     * the player's {@link #SPECIAL_BUILDING Special Building Phase}.
+     *<UL>
+     *<LI> Mark our new dev cards as old
+     *<LI> Set {@link #getNeedToPickGoldHexResources()} to 0
+     *<LI> Clear the "last-action bank trade" flag/list
+     *     used by {@link SOCGame#canUndoBankTrade(SOCResourceSet, SOCResourceSet) game.canUndoBankTrade}
+     *</UL>
+     * @since 2.0.00
+     */
+    void updateAtOurTurn()
+    {
+        getDevCards().newToOld();
+        lastActionBankTrade_give = null;
+        lastActionBankTrade_get = null;
+        if (needToPickGoldHexResources > 0)
+            needToPickGoldHexResources = 0;
     }
 
     /**

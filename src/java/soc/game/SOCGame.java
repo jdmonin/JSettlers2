@@ -2797,7 +2797,8 @@ public class SOCGame implements Serializable, Cloneable
      *<UL>
      *<LI> Set first player and last player, if they're currently -1
      *<LI> Set current dice to 0
-     *<LI> Mark current player's new dev cards as old
+     *<LI> Call the new current player's {@link SOCPlayer#updateAtOurTurn()},
+     *     to mark their new dev cards as old and clear other flags
      *<LI> Clear any "x happened this turn" flags/lists
      *<LI> Clear any votes to reset the board
      *<LI> If game state is {@link #PLAY}, increment turnCount (and roundCount if necessary).
@@ -2815,18 +2816,14 @@ public class SOCGame implements Serializable, Cloneable
 
         currentDice = 0;
         SOCPlayer currPlayer = players[currentPlayerNumber];
-        currPlayer.getDevCards().newToOld();
+        currPlayer.updateAtOurTurn();
         resetVoteClear();
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        currPlayer.lastActionBankTrade_give = null;
-        currPlayer.lastActionBankTrade_get = null;
         if (hasSeaBoard)
         {
             movedShipThisTurn = false;
             placedShipsThisTurn.clear();
-            if (currPlayer.getNeedToPickGoldHexResources() > 0)
-                currPlayer.setNeedToPickGoldHexResources(0);
         }
 
         if (gameState == PLAY)
