@@ -337,16 +337,16 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     /** Is one or more {@link SOCHandPanel} (of other players) showing a
      *  "Discarding..." or "Picking resource..." message?
      */
-    private boolean showingPlayerDiscards;
+    private boolean showingPlayerDiscardOrPick;
 
     /**
-     * Synchronize access to {@link #showingPlayerDiscards}
-     * and {@link #showingPlayerDiscardsTask}
+     * Synchronize access to {@link #showingPlayerDiscardOrPick}
+     * and {@link #showingPlayerDiscardOrPick_task}
      */
-    private Object showingPlayerDiscards_lock;
+    private Object showingPlayerDiscardOrPick_lock;
 
-    /** May be null if not active. @see #showingPlayerDiscards */
-    private SOCPIDiscardOrPickMsgTask showingPlayerDiscardsTask;
+    /** May be null if not {@link #showingPlayerDiscardOrPick}. */
+    private SOCPIDiscardOrPickMsgTask showingPlayerDiscardOrPick_task;
 
     /**
      * number of columns in the text output area
@@ -427,8 +427,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         clientHandPlayerNum = -1;
         is6player = (game.maxPlayers > 4);
 
-        showingPlayerDiscards = false;
-        showingPlayerDiscards_lock = new Object();
+        showingPlayerDiscardOrPick = false;
+        showingPlayerDiscardOrPick_lock = new Object();
 
         /**
          * initialize the player colors
@@ -1710,7 +1710,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             // Set timer.  If still waiting for resource picks after 2 seconds,
             // show balloons on-screen. (hands[i].setDiscardOrPickMsg)
             discardOrPickTimerSet(false);
-        } else if (showingPlayerDiscards &&
+        } else if (showingPlayerDiscardOrPick &&
                    ((gs == SOCGame.PLAY1) || (gs == SOCGame.START2B)))
         {
             // If not all players' discard status balloons were cleared by
@@ -1862,16 +1862,16 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     private void discardOrPickTimerSet(final boolean isDiscard)
     {
-        synchronized (showingPlayerDiscards_lock)
+        synchronized (showingPlayerDiscardOrPick_lock)
         {
-            if (showingPlayerDiscardsTask != null)
+            if (showingPlayerDiscardOrPick_task != null)
             {
-                showingPlayerDiscardsTask.cancel();  // cancel any previous
+                showingPlayerDiscardOrPick_task.cancel();  // cancel any previous
             }
-            showingPlayerDiscardsTask = new SOCPIDiscardOrPickMsgTask(this, isDiscard);
+            showingPlayerDiscardOrPick_task = new SOCPIDiscardOrPickMsgTask(this, isDiscard);
 
             // Run once, after a brief delay in case only robots must discard.
-            client.getEventTimer().schedule(showingPlayerDiscardsTask, 1000 /* ms */ );
+            client.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
         }
     }
 
@@ -1880,18 +1880,18 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     private void discardOrPickTimerClear()
     {
-        synchronized (showingPlayerDiscards_lock)
+        synchronized (showingPlayerDiscardOrPick_lock)
         {
-            if (showingPlayerDiscardsTask != null)
+            if (showingPlayerDiscardOrPick_task != null)
             {
-                showingPlayerDiscardsTask.cancel();  // cancel any previous
-                showingPlayerDiscardsTask = null;
+                showingPlayerDiscardOrPick_task.cancel();  // cancel any previous
+                showingPlayerDiscardOrPick_task = null;
             }
-            if (showingPlayerDiscards)
+            if (showingPlayerDiscardOrPick)
             {
                 for (int i = hands.length - 1; i >= 0; --i)
                     hands[i].clearDiscardOrPickMsg();
-                showingPlayerDiscards = false;
+                showingPlayerDiscardOrPick = false;
             }
         }
     }
@@ -2774,7 +2774,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             final int clientPN = pi.clientHandPlayerNum;
             boolean anyShowing = false;
             SOCHandPanel hp;
-            synchronized (pi.showingPlayerDiscards_lock)
+            synchronized (pi.showingPlayerDiscardOrPick_lock)
             {
                 if (pi.game.getGameState() != needState)
                 {
@@ -2798,8 +2798,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                     }
                 }
 
-                pi.showingPlayerDiscards = anyShowing;
-                pi.showingPlayerDiscardsTask = null;  // No longer needed (fires once)
+                pi.showingPlayerDiscardOrPick = anyShowing;
+                pi.showingPlayerDiscardOrPick_task = null;  // No longer needed (fires once)
             }
         }
 
