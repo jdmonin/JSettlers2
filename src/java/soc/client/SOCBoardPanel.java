@@ -614,7 +614,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Hex images - shared unscaled original-resolution from {@link #IMAGEDIR}'s GIF files.
      * Image references are copied to {@link #scaledHexes} from here.
      * For indexes, see {@link #loadHexesPortsImages(Image[], Image[], String, MediaTracker, Toolkit, Class, boolean)}.
-     * Contains gold hex only if not {@link #isRotated}.
+     *
      * @see #ports
      * @see #scaledHexes
      * @see #rotatHexes
@@ -1814,13 +1814,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int h = scaleToActualY(hex[0].getHeight(null));
             for (int i = scaledHexes.length - 1; i>=0; --i)
             {
-                scaledHexes[i] = hex[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
-                scaledHexFail[i] = false;
+                if (hex[i] != null)
+                {
+                    scaledHexes[i] = hex[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                    scaledHexFail[i] = false;
+                } else {
+                    scaledHexes[i] = null;
+                    scaledHexFail[i] = true;
+                }
             }
 
             w = scaleToActualX(por[1].getWidth(null));
             h = scaleToActualY(por[1].getHeight(null));
-            for (int i = scaledPorts.length - 1; i>=1; --i)
+            for (int i = scaledPorts.length - 1; i>=0; --i)
             {
                 scaledPorts[i] = por[i].getScaledInstance(w, h, Image.SCALE_SMOOTH);
                 scaledPortFail[i] = false;
@@ -2023,6 +2029,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * {@link Component#repaint()} instead.
      *<P>
      * See {@link #drawBoard(Graphics)} for related painting methods.
+     *<P>
+     * To protect against bugs, paint contains a try-catch that will
+     * print stack traces to the player chat print area.
      */
     public void paint(Graphics g)
     {
@@ -2153,56 +2162,63 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * to the static original-resolution image will be used.
          */
         boolean missedDraw = false;
-        final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
 
-        if (isScaled && (scaledHexes[hexType] == hexis[hexType]))
+        // Don't draw a hex image for 3:1 ports,
+        // because it'll be entirely covered over.
+
+        if ((portFacing == -1) || (hexType != SOCBoard.MISC_PORT))
         {
-            recenterPrevMiss = true;
-            int w = hexis[hexType].getWidth(null);
-            int h = hexis[hexType].getHeight(null);
-            xm = (scaleToActualX(w) - w) / 2;
-            ym = (scaleToActualY(h) - h) / 2;
-            x += xm;
-            y += ym;
-        }
-
-        /**
-         * Draw the hex graphic
-         */
-        if (! g.drawImage(scaledHexes[hexType], x, y, this))
-        {
-            // for now, draw the placeholder; try to rescale and redraw soon if we can
-
-            g.translate(x, y);
-            g.setColor(hexColor(hexType));
-            g.fillPolygon(scaledHexCornersX, scaledHexCornersY, 6);
-            g.setColor(Color.BLACK);
-            g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
-            g.translate(-x, -y);
-
-            missedDraw = true;
-            if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
+            final Image[] hexis = (isRotated ? rotatHexes : hexes);  // Fall back to original, or to rotated?
+    
+            if (isScaled && (scaledHexes[hexType] == hexis[hexType]))
             {
-                // rescale the image or give up
-                if (scaledHexFail[hexType])
+                recenterPrevMiss = true;
+                int w = hexis[hexType].getWidth(null);
+                int h = hexis[hexType].getHeight(null);
+                xm = (scaleToActualX(w) - w) / 2;
+                ym = (scaleToActualY(h) - h) / 2;
+                x += xm;
+                y += ym;
+            }
+    
+            /**
+             * Draw the hex graphic
+             */
+            if (! g.drawImage(scaledHexes[hexType], x, y, this))
+            {
+                // for now, draw the placeholder; try to rescale and redraw soon if we can
+    
+                g.translate(x, y);
+                g.setColor(hexColor(hexType));
+                g.fillPolygon(scaledHexCornersX, scaledHexCornersY, 6);
+                g.setColor(Color.BLACK);
+                g.drawPolyline(scaledHexCornersX, scaledHexCornersY, 6);
+                g.translate(-x, -y);
+    
+                missedDraw = true;
+                if (isScaled && (7000 < (drawnEmptyAt - scaledAt)))
                 {
-                    scaledHexes[hexType] = hexis[hexType];  // fallback
-                }
-                else
-                {
-                    scaledHexFail[hexType] = true;
-                    int w = scaleToActualX(hexis[0].getWidth(null));
-                    int h = scaleToActualY(hexis[0].getHeight(null));
-                    scaledHexes[hexType] = hexis[hexType].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                    // rescale the image or give up
+                    if (scaledHexFail[hexType])
+                    {
+                        scaledHexes[hexType] = hexis[hexType];  // fallback
+                    }
+                    else
+                    {
+                        scaledHexFail[hexType] = true;
+                        int w = scaleToActualX(hexis[0].getWidth(null));
+                        int h = scaleToActualY(hexis[0].getHeight(null));
+                        scaledHexes[hexType] = hexis[hexType].getScaledInstance(w, h, Image.SCALE_SMOOTH);
+                    }
                 }
             }
-        }
-        if (recenterPrevMiss)
-        {
-            // Don't "center" further drawing
-            x -= xm;
-            y -= ym;
-            recenterPrevMiss = false;
+            if (recenterPrevMiss)
+            {
+                // Don't "center" further drawing
+                x -= xm;
+                y -= ym;
+                recenterPrevMiss = false;
+            }
         }
 
         /**
@@ -5194,12 +5210,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            final int numHexTypes = wantsRotated ? 7 : 8;  // water, desert, 5 resources, maybe gold
-            hexes = new Image[numHexTypes];
+            hexes = new Image[8];  // water, desert, 5 resources, gold
             ports = new Image[12];
             dice = new Image[14];
 
-            loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz, wantsRotated);
+            loadHexesPortsImages(hexes, ports, IMAGEDIR, tracker, tk, clazz, false);
 
             for (int i = 2; i < 13; i++)
             {
@@ -5252,6 +5267,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param wantsRotated  True for rotated, false otherwise;
      *             some hex types (goldHex) aren't available in rotated versions,
      *             because their board layout is never rotated.
+     *             This parameter isn't about whether the current board is rotated,
+     *             but about whether this image directory's contents are rotated.
      * @since 1.1.08
      */
     private static final void loadHexesPortsImages
