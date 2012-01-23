@@ -29,6 +29,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.message.SOCPlayerElement;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -1765,7 +1766,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         case SOCPlayingPiece.ROAD:
             pp = new SOCRoad(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCHandPanel.ROADS);
+            mesHp.updateValue(SOCPlayerElement.ROADS);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
                 boardPanel.flushBoardLayoutAndRepaint();
 
@@ -1774,18 +1775,18 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         case SOCPlayingPiece.SETTLEMENT:
             pp = new SOCSettlement(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
+            mesHp.updateValue(SOCPlayerElement.SETTLEMENTS);
 
             /**
              * if this is the second initial settlement, then update the resource display
              */
             if (mesHp.isClientPlayer())
             {
-                mesHp.updateValue(SOCHandPanel.CLAY);
-                mesHp.updateValue(SOCHandPanel.ORE);
-                mesHp.updateValue(SOCHandPanel.SHEEP);
-                mesHp.updateValue(SOCHandPanel.WHEAT);
-                mesHp.updateValue(SOCHandPanel.WOOD);
+                mesHp.updateValue(SOCPlayerElement.CLAY);
+                mesHp.updateValue(SOCPlayerElement.ORE);
+                mesHp.updateValue(SOCPlayerElement.SHEEP);
+                mesHp.updateValue(SOCPlayerElement.WHEAT);
+                mesHp.updateValue(SOCPlayerElement.WOOD);
             } else {
                 mesHp.updateValue(SOCHandPanel.NUMRESOURCES);
             }
@@ -1799,8 +1800,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         case SOCPlayingPiece.CITY:
             pp = new SOCCity(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCHandPanel.SETTLEMENTS);
-            mesHp.updateValue(SOCHandPanel.CITIES);
+            mesHp.updateValue(SOCPlayerElement.SETTLEMENTS);
+            mesHp.updateValue(SOCPlayerElement.CITIES);
 
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
                 || debugShowPotentials[6])
@@ -1813,7 +1814,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             if (! isMove)
             {
                 game.putPiece(pp);
-                mesHp.updateValue(SOCHandPanel.SHIPS);
+                mesHp.updateValue(SOCPlayerElement.SHIPS);
             } else {
                 game.moveShip((SOCShip) pp, moveToCoord);
             }

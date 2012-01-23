@@ -26,6 +26,9 @@ import java.util.StringTokenizer;
 /**
  * This message conveys one part of the player's status, such as their number of
  * settlements remaining.
+ *<P>
+ * Unless otherwise mentioned, any {@link #getElementType()} can be sent with
+ * any action ({@link #SET}, {@link #GAIN}, {@link #LOSE}).
  *
  * @author Robert S Thomas
  */
@@ -51,6 +54,10 @@ public class SOCPlayerElement extends SOCMessage
      * @since 2.0.00 
      */
     public static final int SHIPS = 13;
+
+    /**
+     * Number of knights in player's army; sent after a Soldier card is played.
+     */
     public static final int NUMKNIGHTS = 15;
 
     /**
@@ -141,7 +148,8 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
-     * @return the action type
+     * Get the type of action.
+     * @return the action type: {@link #GAIN}, {@link #LOSE} or {@link #SET}
      */
     public int getAction()
     {
@@ -149,7 +157,8 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
-     * @return the element type
+     * Get the element type, the part of the player's info that is changing.
+     * @return the element type, such as {@link #SETTLEMENTS} or {@link #NUMKNIGHTS}
      */
     public int getElementType()
     {
@@ -157,7 +166,8 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
-     * @return the element value
+     * Get the new value to set, or the delta to gain/lose.
+     * @return the element for player to {@link #GAIN}, {@link #LOSE} or {@link #SET}
      */
     public int getValue()
     {

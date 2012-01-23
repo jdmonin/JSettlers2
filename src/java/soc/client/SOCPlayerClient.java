@@ -2802,23 +2802,23 @@ public class SOCPlayerClient extends Applet
              * update the hand panel's displayed values
              */
             final SOCHandPanel hp = pi.getPlayerHandPanel(mesPN);
-            hp.updateValue(SOCHandPanel.ROADS);
-            hp.updateValue(SOCHandPanel.SETTLEMENTS);
-            hp.updateValue(SOCHandPanel.CITIES);
+            hp.updateValue(SOCPlayerElement.ROADS);
+            hp.updateValue(SOCPlayerElement.SETTLEMENTS);
+            hp.updateValue(SOCPlayerElement.CITIES);
             if (ga.hasSeaBoard)
-                hp.updateValue(SOCHandPanel.SHIPS);
-            hp.updateValue(SOCHandPanel.NUMKNIGHTS);
+                hp.updateValue(SOCPlayerElement.SHIPS);
+            hp.updateValue(SOCPlayerElement.NUMKNIGHTS);
             hp.updateValue(SOCHandPanel.VICTORYPOINTS);
             hp.updateValue(SOCHandPanel.LONGESTROAD);
             hp.updateValue(SOCHandPanel.LARGESTARMY);
 
             if (nickname.equals(mes.getNickname()))
             {
-                hp.updateValue(SOCHandPanel.CLAY);
-                hp.updateValue(SOCHandPanel.ORE);
-                hp.updateValue(SOCHandPanel.SHEEP);
-                hp.updateValue(SOCHandPanel.WHEAT);
-                hp.updateValue(SOCHandPanel.WOOD);
+                hp.updateValue(SOCPlayerElement.CLAY);
+                hp.updateValue(SOCPlayerElement.ORE);
+                hp.updateValue(SOCPlayerElement.SHEEP);
+                hp.updateValue(SOCPlayerElement.WHEAT);
+                hp.updateValue(SOCPlayerElement.WOOD);
                 hp.updateDevCards();
             }
             else
@@ -3012,45 +3012,42 @@ public class SOCPlayerClient extends Applet
             final SOCPlayer pl = ga.getPlayer(pn);
             final SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
             final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);
-            int hpanUpdateRsrcType = -1;  // If not -1, update this type's amount display
+            final int etype = mes.getElementType();
+            int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
 
-            switch (mes.getElementType())
+            switch (etype)
             {
             case SOCPlayerElement.ROADS:
-
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.ROAD);
-                hpan.updateValue(SOCHandPanel.ROADS);
+                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.SETTLEMENTS:
-
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.SETTLEMENT);
-                hpan.updateValue(SOCHandPanel.SETTLEMENTS);
+                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.CITIES:
-
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.CITY);
-                hpan.updateValue(SOCHandPanel.CITIES);
+                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.SHIPS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.SHIP);
-                hpan.updateValue(SOCHandPanel.SHIPS);
+                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.NUMKNIGHTS:
-
                 // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
                 {
                     final SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
                     SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
                         (mes, pl, ga);
-                    hpan.updateValue(SOCHandPanel.NUMKNIGHTS);
+                    hpan.updateValue(etype);
 
                     // Check for change in largest-army player; update handpanels'
                     // LARGESTARMY and VICTORYPOINTS counters if so, and
@@ -3061,42 +3058,36 @@ public class SOCPlayerClient extends Applet
                 break;
 
             case SOCPlayerElement.CLAY:
-
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.CLAY);
-                hpanUpdateRsrcType = SOCHandPanel.CLAY;
+                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.ORE:
-
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.ORE);
-                hpanUpdateRsrcType = SOCHandPanel.ORE;
+                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.SHEEP:
-
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.SHEEP);
-                hpanUpdateRsrcType = SOCHandPanel.SHEEP;
+                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.WHEAT:
-
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.WHEAT);
-                hpanUpdateRsrcType = SOCHandPanel.WHEAT;
+                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.WOOD:
-
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.WOOD);
-                hpanUpdateRsrcType = SOCHandPanel.WOOD;
+                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.UNKNOWN:
-
                 /**
                  * Note: if losing unknown resources, we first
                  * convert player's known resources to unknown resources,
@@ -3117,18 +3108,18 @@ public class SOCPlayerClient extends Applet
                 } else {
                     pl.setAskedSpecialBuild(false);
                 }
-                hpan.updateValue(SOCHandPanel.ASK_SPECIAL_BUILD);
+                hpan.updateValue(etype);
                 // for client player, hpan also refreshes BuildingPanel with this value.
                 break;
 
             case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
                 pl.setNeedToPickGoldHexResources(mes.getValue());
-                hpan.updateValue(SOCHandPanel.NUM_PICK_GOLD_HEX_RESOURCES);
+                hpan.updateValue(etype);
                 break;
 
             }
 
-            if (hpanUpdateRsrcType != -1)
+            if (hpanUpdateRsrcType != 0)
             {
                 if (hpan.isClientPlayer())
                 {
@@ -3459,20 +3450,11 @@ public class SOCPlayerClient extends Applet
             }
 
             SOCPlayer ourPlayerData = ga.getPlayer(nickname);
-
-            if (ourPlayerData != null)
+            if ((ourPlayerData != null) && (mesPN == ourPlayerData.getPlayerNumber()))
             {
-                //if (true) {
-                if (mesPN == ourPlayerData.getPlayerNumber())
-                {
-                    SOCHandPanel hp = pi.getClientHand();
-                    hp.updateDevCards();
-                    hp.updateValue(SOCHandPanel.VICTORYPOINTS);
-                }
-                else
-                {
-                    pi.getPlayerHandPanel(mesPN).updateValue(SOCHandPanel.NUMDEVCARDS);
-                }
+                SOCHandPanel hp = pi.getClientHand();
+                hp.updateDevCards();
+                hp.updateValue(SOCHandPanel.VICTORYPOINTS);
             }
             else
             {

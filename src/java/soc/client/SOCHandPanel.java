@@ -31,6 +31,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
+import soc.message.SOCPlayerElement;
 
 import java.awt.Button;
 import java.awt.Color;
@@ -55,6 +56,11 @@ import java.util.TimerTask;
  * If the player is us, then more information is
  * displayed than in another player's hand panel.
  *<P>
+ * To update most of the values shown in the handpanel,
+ * call {@link #updateValue(int)} after receiving
+ * a {@link SOCPlayerElement} message or after something
+ * else changes the game state.
+ *<P>
  * Custom layout: see {@link #doLayout()}.
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update {@link #getBlankStandIn()}.
@@ -65,36 +71,16 @@ public class SOCHandPanel extends Panel implements ActionListener
     public static final int WIDTH_MIN = 218;
 
     /** Items to update via {@link #updateValue(int)};
-     * similar values to {@link soc.message.SOCPlayerElement}
+     * for items not appearing in {@link SOCPlayerElement}.
+     * All these item numbers are negative, so they won't
+     * conflict with any SOCPlayerElement element type.
      */
-    public static final int ROADS = 0;
-    public static final int SETTLEMENTS = 1;
-    public static final int CITIES = 2;
-    // see below for SHIPS
-    public static final int NUMRESOURCES = 3;
-    public static final int NUMDEVCARDS = 4;
-    public static final int NUMKNIGHTS = 5;
-    public static final int VICTORYPOINTS = 6;
-    public static final int LONGESTROAD = 7;
-    public static final int LARGESTARMY = 8;
-    public static final int CLAY = 9;
-    public static final int ORE = 10;
-    public static final int SHEEP = 11;
-    public static final int WHEAT = 12;
-    public static final int WOOD = 13;
-    public static final int SHIPS = 14;  // added in 2.0.00
-
-    /**
-     * Item flag for asked special build in {@link #updateValue(int)}.
-     * @since 1.1.08
-     */
-    public static final int ASK_SPECIAL_BUILD = 16;  // same as SOCPlayerElement.ASK_SPECIAL_BUILD
-
-    /**
-     * Item flag for pick gold-hex resources in {@link #updateValue(int)}.
-     * @since 2.0.00
-     */
-    public static final int NUM_PICK_GOLD_HEX_RESOURCES = 17;  // same as ele.NUM_PICK_GOLD_HEX_RESOURCES
+    public static final int
+        NUMRESOURCES = -3,
+        NUMDEVCARDS = -4,
+        VICTORYPOINTS = -6,
+        LONGESTROAD = -7,
+        LARGESTARMY = -8;
 
     /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
     public static int AUTOROLL_TIME = 5;
@@ -2412,10 +2398,11 @@ public class SOCHandPanel extends Panel implements ActionListener
      * update the value of a player element.
      * Call this after updating game data.
      *<P>
-     * If VICTORYPOINTS is updated, and game state is over, check for winner
+     * If {@link #VICTORYPOINTS} is updated, and game state is {@link SOCGame#OVER}, check for winner
      * and update (player name label, victory-points tooltip, disable bank/trade btn)
      *
-     * @param vt  the type of value, such as {@link soc.message.SOCPlayerElement#SHEEP}
+     * @param vt  the type of value, such as {@link #VICTORYPOINTS}
+     *            or {@link SOCPlayerElement#SHEEP}.
      */
     public void updateValue(int vt)
     {
@@ -2466,62 +2453,50 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             break;
 
-        case CLAY:
-
+        case SOCPlayerElement.CLAY:
             claySq.setIntValue(player.getResources().getAmount(SOCResourceConstants.CLAY));
             updateTotalResCount = true;
             break;
 
-        case ORE:
-
+        case SOCPlayerElement.ORE:
             oreSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.ORE));
             updateTotalResCount = true;
             break;
 
-        case SHEEP:
-
+        case SOCPlayerElement.SHEEP:
             sheepSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.SHEEP));
             updateTotalResCount = true;
             break;
 
-        case WHEAT:
-
+        case SOCPlayerElement.WHEAT:
             wheatSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.WHEAT));
             updateTotalResCount = true;
             break;
 
-        case WOOD:
-
+        case SOCPlayerElement.WOOD:
             woodSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.WOOD));
             updateTotalResCount = true;
             break;
 
         case NUMRESOURCES:
-
             updateTotalResCount = true;
             break;
 
-        case ROADS:
-
+        case SOCPlayerElement.ROADS:
             roadSq.setIntValue(player.getNumPieces(SOCPlayingPiece.ROAD));
-
             break;
 
-        case SETTLEMENTS:
-
+        case SOCPlayerElement.SETTLEMENTS:
             settlementSq.setIntValue(player.getNumPieces(SOCPlayingPiece.SETTLEMENT));
             if (playerIsClient)
                 updateResourceTradeCosts(false);
-
             break;
 
-        case CITIES:
-
+        case SOCPlayerElement.CITIES:
             citySq.setIntValue(player.getNumPieces(SOCPlayingPiece.CITY));
-
             break;
 
-        case SHIPS:
+        case SOCPlayerElement.SHIPS:
             if (shipSq != null)
                 shipSq.setIntValue(player.getNumPieces(SOCPlayingPiece.SHIP));
             break;
@@ -2532,20 +2507,18 @@ public class SOCHandPanel extends Panel implements ActionListener
 
             break;
 
-        case NUMKNIGHTS:
-
+        case SOCPlayerElement.NUMKNIGHTS:
             knightsSq.setIntValue(player.getNumKnights());
-
             break;
 
-        case ASK_SPECIAL_BUILD:
+        case SOCPlayerElement.ASK_SPECIAL_BUILD:
             if (player.hasAskedSpecialBuild())
                 playerInterface.print("* " + player.getName() + " wants to Special Build.");
             if (playerIsClient)
                 playerInterface.getBuildingPanel().updateButtonStatus();
             break;
 
-        case NUM_PICK_GOLD_HEX_RESOURCES:
+        case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
             if (offerIsDiscardOrPickMessage && (0 == player.getNeedToPickGoldHexResources()))
             {
                 clearDiscardOrPickMsg();
@@ -2582,11 +2555,11 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         if (playerIsClient)
         {
-            updateValue(CLAY);
-            updateValue(ORE);
-            updateValue(SHEEP);
-            updateValue(WHEAT);
-            updateValue(WOOD);
+            updateValue(SOCPlayerElement.CLAY);
+            updateValue(SOCPlayerElement.ORE);
+            updateValue(SOCPlayerElement.SHEEP);
+            updateValue(SOCPlayerElement.WHEAT);
+            updateValue(SOCPlayerElement.WOOD);
             updateResourceTradeCosts(false);
         }
         else
