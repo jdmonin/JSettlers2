@@ -454,6 +454,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * The board is configured Large-Board Format (up to 127x127, oriented like 4-player not 6-player);
      * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}.
      * The coordinate system is an arbitrary land/water mixture.
+     *<P>
+     * When <tt>isLargeBoard</tt>, {@link #isRotated()} is false even if the game has 5 or 6 players.
+     *
      * @see #is6player
      * @since 2.0.00
      */
@@ -475,6 +478,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * remember that rotation changes which corner is considered (0,0),
      * and the image is offset from that corner.  (For example, {@link #drawHex(Graphics, int)}
      * subtracts HEXHEIGHT from x, after rotation but before scaling.)
+     *<P>
+     * When {@link #isLargeBoard}, <tt>isRotated</tt> is false even if the game has 5 or 6 players.
      *
      * @see #isScaledOrRotated
      * @since 1.1.08
@@ -498,7 +503,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Minimum width and height, in board-internal coordinates.
-     * Differs from static {@link #PANELX}, {@link #PANELY} for {@link #is6player 6-player board}.
+     * Differs from static {@link #PANELX}, {@link #PANELY} for {@link #is6player 6-player board}
+     * and the {@link #isLargeBoard large board}.
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account,
      * so minSize isn't suitable for use in rescaling formulas.
      * @since 1.1.08
@@ -1015,12 +1021,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             is6player = false;
             isLargeBoard = true;
+            isRotated = isScaledOrRotated = false;
         } else {
             is6player = (board.getBoardEncodingFormat() == SOCBoard.BOARD_ENCODING_6PLAYER)
                 || (game.maxPlayers > 4);
             isLargeBoard = false;
+            isRotated = isScaledOrRotated = is6player;
         }
-        isRotated = isScaledOrRotated = is6player;
         if (isRotated)
         {
             // scaledPanelX, scaledPanelY are on-screen minimum size.

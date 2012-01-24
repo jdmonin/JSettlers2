@@ -335,6 +335,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * maximum number of players in a standard game
+     * @see #MAXPLAYERS
      * @see #maxPlayers
      * @since 1.1.08
      */
@@ -572,6 +573,9 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * maxPlayers is 4 for the standard game,
      * or 6 if this game is on the 6-player board, with corresponding rules.
+     *<P>
+     * The 6-player extensions are orthogonal to other board type/expansion flags such as {@link #hasSeaBoard};
+     * one doesn't imply or exclude the other.
      * @since 1.1.08
      */
     public final int maxPlayers;
@@ -581,6 +585,9 @@ public class SOCGame implements Serializable, Cloneable
      * If true, our board's {@link SOCBoard#getBoardEncodingFormat()}
      * must be {@link SOCBoard#BOARD_ENCODING_LARGE}.
      * When <tt>hasSeaBoard</tt>, {@link #getBoard()} can be cast to {@link SOCBoardLarge}.
+     *<P>
+     * The 6-player extensions ({@link #maxPlayers} == 6) are orthogonal to <tt>hasSeaBoard</tt>
+     * or other board types/expansions; one doesn't imply or exclude the other.
      * @since 2.0.00
      */
     public final boolean hasSeaBoard;
@@ -858,7 +865,7 @@ public class SOCGame implements Serializable, Cloneable
             final boolean wants6board = isGameOptionSet(op, "PLB");
             final int maxpl = getGameOptionIntValue(op, "PL", 4, false);
             vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
-            if (hasSeaBoard || wants6board || (maxpl > 4))
+            if (wants6board || (maxpl > 4))
                 maxPlayers = MAXPLAYERS;  // == 6
             else
                 maxPlayers = 4;

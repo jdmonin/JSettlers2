@@ -478,14 +478,14 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * more initialization stuff
          */
         int piHeight = 650;
-        if (is6player && SOCPI_isPlatformWindows)
+        if ((is6player || game.hasSeaBoard) && SOCPI_isPlatformWindows)
         {
             setLocation(50, 40);
             piHeight += 25;
         } else {
             setLocation(50, 50);
         }
-        if (is6player)
+        if (is6player || game.hasSeaBoard)
             setSize((2*SOCHandPanel.WIDTH_MIN) + 16 + boardPanel.getMinimumSize().width, piHeight);
         else
             setSize(830, piHeight);
@@ -1847,9 +1847,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     }
 
     /**
-     * Gamestate just became {@link SOCGame#WAITING_FOR_DISCARDS}.
+     * Gamestate just became {@link SOCGame#WAITING_FOR_DISCARDS}
+     * or {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      * Set up a timer to wait 1 second before showing "Discarding..."
-     * balloons in players' handpanels.
+     * or "Picking Resources..." balloons in players' handpanels.
      * Uses {@link SOCPIDiscardOrPickMsgTask}.
      * @param isDiscard  True for discard, false for picking gold-hex resources
      */
