@@ -178,7 +178,8 @@ public class RobberStrategy {
    /**
     * choose a robber victim
     *
-    * @param choices  a boolean array representing which players are possible victims
+    * @param choices  a boolean array representing which players are possible victims;
+    *                 1 element per player number (0 to <tt>game.maxPlayers</tt> - 1).
     * @return  Player number to rob
     */
    public static int chooseRobberVictim(boolean[] choices, SOCGame game, HashMap playerTrackers)

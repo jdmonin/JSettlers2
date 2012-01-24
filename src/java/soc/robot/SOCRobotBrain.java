@@ -1591,7 +1591,11 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.CHOOSEPLAYERREQUEST:
-                        chooseRobberVictim(((SOCChoosePlayerRequest) mes).getChoices());
+                        {
+                            final int choicePl = RobberStrategy.chooseRobberVictim
+                                (((SOCChoosePlayerRequest) mes).getChoices(), game, playerTrackers);
+                            client.choosePlayer(game, choicePl);
+                        }
                         break;
 
                     case SOCMessage.ROBOTDISMISS:
@@ -3602,72 +3606,6 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Takes a table of nodes and adds a weighted score to
-     * each node score in the table.  Nodes touching hexes
-     * with better numbers get better scores.  Also numbers
-     * that the player isn't touching yet are better than ones
-     * that the player is already touching.
-     *
-     * @param nodes    the table of nodes with scores. key = Int node, value = Int score, to be modified in this method
-     * @param player   the player that we are doing the rating for, or <tt>null</tt>;
-     *                   will give a bonus to numbers the player isn't already touching
-     * @param weight   a number that is multiplied by the score
-     */
-    protected void bestSpotForNumbers(Hashtable nodes, SOCPlayer player, int weight)
-    {
-        final int[] numRating = SOCNumberProbabilities.INT_VALUES;
-        final SOCPlayerNumbers playerNumbers = (player != null) ? player.getNumbers() : null;
-        final SOCBoard board = game.getBoard();
-
-        // 80 is highest practical score (40 if player == null)
-        final int maxScore = (player != null) ? 80 : 40;
-
-        int oldScore;
-        Enumeration nodesEnum = nodes.keys();
-
-        while (nodesEnum.hasMoreElements())
-        {
-            final Integer node = (Integer) nodesEnum.nextElement();
-
-            //D.ebugPrintln("BSN - looking at node "+Integer.toHexString(node.intValue()));
-            oldScore = ((Integer) nodes.get(node)).intValue();
-
-            int score = 0;
-            Enumeration hexesEnum = board.getAdjacentHexesToNode(node.intValue()).elements();
-
-            while (hexesEnum.hasMoreElements())
-            {
-                final int hex = ((Integer) hexesEnum.nextElement()).intValue();
-                final int number = board.getNumberOnHexFromCoord(hex);
-                score += numRating[number];
-
-                if ((number != 0) && (playerNumbers != null) && ! playerNumbers.hasNumber(number))
-                {
-                    /**
-                     * add a bonus for numbers that the player doesn't already have
-                     */
-
-                    //D.ebugPrintln("ADDING BONUS FOR NOT HAVING "+number);
-                    score += numRating[number];
-                }
-
-                //D.ebugPrintln(" -- -- Adding "+numRating[board.getNumberOnHexFromCoord(hex)]);
-            }
-
-            /*
-             * normalize score and multiply by weight
-             * 80 is highest practical score (40 if player == null)
-             * lowest score is 0
-             */
-            final int nScore = ((score * 100) / maxScore) * weight;
-            final Integer finalScore = new Integer(nScore + oldScore);
-            nodes.put(node, finalScore);
-
-            //D.ebugPrintln("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);
-        }
-    }
-
-    /**
      * move the robber
      */
     protected void moveRobber()
@@ -3851,104 +3789,6 @@ public class SOCRobotBrain extends Thread
         }
 
         client.pickFreeResources(game, resourceChoices);
-    }
-
-    /**
-     * Choose a robber victim, and tell the server our choice.
-     *
-     * @param choices a boolean array representing which players are possible victims
-     */
-    protected void chooseRobberVictim(boolean[] choices)
-    {
-        final int choicePl = RobberStrategy.chooseRobberVictim(choices, game, playerTrackers);
-        client.choosePlayer(game, choicePl);
-    }
-
-    /**
-     * calculate the number of builds before the next turn during init placement
-     *
-     */
-    protected int numberOfEnemyBuilds()
-    {
-        int numberOfBuilds = 0;
-        int pNum = game.getCurrentPlayerNumber();
-
-        /**
-         * This is the clockwise direction
-         */
-        if ((game.getGameState() == SOCGame.START1A) || (game.getGameState() == SOCGame.START1B))
-        {
-            do
-            {
-                /**
-                 * look at the next player
-                 */
-                pNum++;
-
-                if (pNum >= game.maxPlayers)
-                {
-                    pNum = 0;
-                }
-
-                if ((pNum != game.getFirstPlayer()) && ! game.isSeatVacant (pNum))
-                {
-                    numberOfBuilds++;
-                }
-            }
-            while (pNum != game.getFirstPlayer());
-        }
-
-        /**
-         * This is the counter-clockwise direction
-         */
-        do
-        {
-            /**
-             * look at the next player
-             */
-            pNum--;
-
-            if (pNum < 0)
-            {
-                pNum = game.maxPlayers - 1;
-            }
-
-            if ((pNum != game.getCurrentPlayerNumber()) && ! game.isSeatVacant (pNum))
-            {
-                numberOfBuilds++;
-            }
-        }
-        while (pNum != game.getCurrentPlayerNumber());
-
-        return numberOfBuilds;
-    }
-
-    /**
-     * given a table of nodes/edges with scores, return the
-     * best scoring pair
-     *
-     * @param nodes  the table of nodes/edges
-     * @return the best scoring pair
-     */
-    protected BoardNodeScorePair findBestScoringNode(Hashtable nodes)
-    {
-        BoardNodeScorePair bestNodePair = new BoardNodeScorePair(0, -1);
-        Enumeration nodesEnum = nodes.keys();
-
-        while (nodesEnum.hasMoreElements())
-        {
-            final Integer nodeCoord = (Integer) nodesEnum.nextElement();
-            final int score = ((Integer) nodes.get(nodeCoord)).intValue();
-
-            //D.ebugPrintln("Checking:"+Integer.toHexString(nodeCoord.intValue())+" score:"+score);
-            if (bestNodePair.getScore() < score)
-            {
-                bestNodePair.setScore(score);
-                bestNodePair.setNode(nodeCoord.intValue());
-            }
-        }
-
-        return bestNodePair;
     }
 
     /**

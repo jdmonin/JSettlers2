@@ -989,7 +989,7 @@ public class OpeningBuildStrategy {
     }
 
     /**
-     * calculate the number of builds before the next turn during init placement
+     * Calculate the number of builds before our next turn during init placement.
      *
      */
     protected int numberOfEnemyBuilds()
@@ -1074,7 +1074,7 @@ public class OpeningBuildStrategy {
 
         while (nodesEnum.hasMoreElements())
         {
-            Integer node = (Integer) nodesEnum.nextElement();
+            final Integer node = (Integer) nodesEnum.nextElement();
 
             //log.debug("BSN - looking at node "+Integer.toHexString(node.intValue()));
             oldScore = ((Integer) nodes.get(node)).intValue();
@@ -1106,7 +1106,7 @@ public class OpeningBuildStrategy {
              * 80 is highest practical score (40 if player == null)
              * lowest score is 0
              */
-            int nScore = ((score * 100) / maxScore) * weight;
+            final int nScore = ((score * 100) / maxScore) * weight;
             final Integer finalScore = new Integer(nScore + oldScore);
             nodes.put(node, finalScore);
 
