@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009,2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009,2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -38,7 +38,8 @@ public class SOCChoosePlayerRequest extends SOCMessage
     private String game;
 
     /**
-     * The possible choices
+     * The possible choices; an array with 1 element per player number
+     * (0 to <tt>game.maxPlayers - 1</tt>).
      * True means that the player with a matching index is a
      * possible choice.
      */
@@ -48,7 +49,8 @@ public class SOCChoosePlayerRequest extends SOCMessage
      * Create a ChoosePlayerRequest message.
      *
      * @param ga  the name of the game
-     * @param ch  the possible choices
+     * @param ch  the possible choices; an array with 1 element per player number
+     * (0 to <tt>game.maxPlayers - 1</tt>).
      */
     public SOCChoosePlayerRequest(String ga, boolean[] ch)
     {
@@ -66,7 +68,8 @@ public class SOCChoosePlayerRequest extends SOCMessage
     }
 
     /**
-     * @return the choices
+     * @return the choices; an array with 1 element per player number
+     * (0 to <tt>game.maxPlayers - 1</tt>).
      */
     public boolean[] getChoices()
     {
@@ -87,7 +90,8 @@ public class SOCChoosePlayerRequest extends SOCMessage
      * CHOOSEPLAYERREQUEST sep game sep2 choices[0] sep2 choices[1] ...
      *
      * @param ga  the name of the game
-     * @param ch  the choices
+     * @param ch  the choices; an array with 1 element per player number
+     * (0 to <tt>game.maxPlayers - 1</tt>).
      * @return the command string
      */
     public static String toCmd(String ga, boolean[] ch)
