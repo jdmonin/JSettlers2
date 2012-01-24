@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,19 +26,59 @@ import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCResourceConstants;
 
-public class MonopolyStrategy {
+public class MonopolyStrategy
+{
 
-	/**
-     * this is the resource we want to monopolize
+    /** Our game */
+    private SOCGame game;
+
+    /** Our {@link SOCRobotBrain}'s player */
+    private SOCPlayer ourPlayerData;
+
+    /**
+     * The resource we want to monopolize,
+     * chosen by {@link #decidePlayMonopoly()},
+     * such as {@link SOCResourceConstants#CLAY}
+     * or {@link SOCResourceConstants#SHEEP}
      */
     protected int monopolyChoice;
-    
-	public boolean decidePlayMonopoly(SOCGame game, SOCPlayer ourPlayerData){
-		int bestResourceCount = 0;
+
+    /**
+     * Create a MonopolyStrategy for a {@link SOCRobotBrain}'s player.
+     * @param ga  Our game
+     * @param pl  Our player data in <tt>ga</tt>
+     */
+    MonopolyStrategy(SOCGame ga, SOCPlayer pl)
+    {
+        game = ga;
+        ourPlayerData = pl;
+        monopolyChoice = SOCResourceConstants.SHEEP;
+    }
+
+    /**
+     * Get our monopoly choice; valid only after
+     * {@link #decidePlayMonopoly()} returns true.
+     * @return  Resource type to monopolize,
+     *    such as {@link SOCResourceConstants#CLAY}
+     *    or {@link SOCResourceConstants#SHEEP}
+     */
+    public int getMonopolyChoice()
+    {
+        return monopolyChoice;
+    }
+
+    /**
+     * Decide whether we should play a monopoly card,
+     * and set {@link #getMonopolyChoice()} if so.
+     * @return True if we should play the card
+     */
+    public boolean decidePlayMonopoly()
+    {
+        int bestResourceCount = 0;
         int bestResource = 0;
 
         for (int resource = SOCResourceConstants.CLAY;
-                resource <= SOCResourceConstants.WOOD; resource++)
+                 resource <= SOCResourceConstants.WOOD; resource++)
         {
             //log.debug("$$ resource="+resource);
             int freeResourceCount = 0;
@@ -58,12 +98,12 @@ public class MonopolyStrategy {
 
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
-                if (ourPlayerData.getPlayerNumber() != pn)
-                {
-                    resourceTotal += game.getPlayer(pn).getResources().getAmount(resource);
+                if (ourPlayerData.getPlayerNumber() == pn)
+                    continue;  // skip our resources
 
-                    //log.debug("$$ resourceTotal="+resourceTotal);
-                }
+                resourceTotal += game.getPlayer(pn).getResources().getAmount(resource);
+
+                //log.debug("$$ resourceTotal="+resourceTotal);
             }
 
             if (twoForOne)
@@ -97,15 +137,7 @@ public class MonopolyStrategy {
         {
             return false;
         }
-	}
 
-	public int getMonopolyChoice() {
-		return monopolyChoice;
-	}
-
-	public void setMonopolyChoice(int monopolyChoice) {
-		this.monopolyChoice = monopolyChoice;
-	}
-	
+    }
 	
 }

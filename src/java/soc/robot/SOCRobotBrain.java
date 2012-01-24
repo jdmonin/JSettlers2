@@ -84,7 +84,8 @@ import java.util.Vector;
  * AI for playing Settlers of Catan.
  * Represents a robot player within 1 game.
  *<P>
- * Some decision-making code is in {@link OpeningBuildStrategy}
+ * Some decision-making code is in the {@link OpeningBuildStrategy},
+ * {@link RobberStrategy}, {@link MonopolyStrategy}, etc classes.
  *
  * @author Robert S Thomas
  */
@@ -235,11 +236,6 @@ public class SOCRobotBrain extends Thread
      * when we play a discovery dev card
      */
     protected SOCResourceSet resourceChoices;
-
-    /**
-     * this is the resource we want to monopolize
-     */
-    protected int monopolyChoice;
 
     /**
      * our player tracker
@@ -455,6 +451,14 @@ public class SOCRobotBrain extends Thread
     private OpeningBuildStrategy openingBuildStrategy;
 
     /**
+     * Strategy to choose whether to monopolize, and which resource.
+     * @since 2.0.00
+     */
+    private MonopolyStrategy monopolyStrategy;
+
+    // RobberStrategy is used but has no state, its methods are static.
+
+    /**
      * a thread that sends ping messages to this one
      */
     protected SOCRobotPinger pinger;
@@ -548,7 +552,6 @@ public class SOCRobotBrain extends Thread
         buildingPlan = new Stack();
         resourceChoices = new SOCResourceSet();
         resourceChoices.add(2, SOCResourceConstants.CLAY);
-        monopolyChoice = SOCResourceConstants.SHEEP;
         pinger = new SOCRobotPinger(gameEventQ, game.getName(), client.getNickname() + "-" + game.getName());
         dRecorder = new DebugRecorder[2];
         dRecorder[0] = new DebugRecorder();
@@ -556,6 +559,7 @@ public class SOCRobotBrain extends Thread
         currentDRecorder = 0;
 
         openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData);
+        monopolyStrategy = new MonopolyStrategy(game, ourPlayerData);
     }
 
     /**
@@ -1262,7 +1266,7 @@ public class SOCRobotBrain extends Thread
                                 waitingForGameState = true;
                                 expectPLAY1 = true;
                                 counter = 0;
-                                client.monopolyPick(game, monopolyChoice);
+                                client.monopolyPick(game, monopolyStrategy.getMonopolyChoice());
                                 pause(1500);
                             }
                         }
@@ -2081,7 +2085,10 @@ public class SOCRobotBrain extends Thread
                 /// if we have a monopoly card, play it
                 /// and take what there is most of
                 ///
-                if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) > 0) && chooseMonopoly())
+                if (gameStatePLAY1
+                    && (! ourPlayerData.hasPlayedDevCard())
+                    && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) > 0)
+                    && monopolyStrategy.decidePlayMonopoly())
                 {
                     ///
                     /// play the card
@@ -4341,78 +4348,6 @@ public class SOCRobotBrain extends Thread
         } while (numMore > 0);
 
         return true;
-    }
-
-
-    /**
-     * choose a resource to monopolize
-     * @return true if playing the card is worth it
-     */
-    protected boolean chooseMonopoly()
-    {
-        int bestResourceCount = 0;
-        int bestResource = 0;
-
-        for (int resource = SOCResourceConstants.CLAY;
-                resource <= SOCResourceConstants.WOOD; resource++)
-        {
-            //D.ebugPrintln("$$ resource="+resource);
-            int freeResourceCount = 0;
-            boolean twoForOne = false;
-            boolean threeForOne = false;
-
-            if (ourPlayerData.getPortFlag(resource))
-            {
-                twoForOne = true;
-            }
-            else if (ourPlayerData.getPortFlag(SOCBoard.MISC_PORT))
-            {
-                threeForOne = true;
-            }
-
-            int resourceTotal = 0;
-
-            for (int pn = 0; pn < game.maxPlayers; pn++)
-            {
-                if (ourPlayerNumber != pn)
-                {
-                    resourceTotal += game.getPlayer(pn).getResources().getAmount(resource);
-
-                    //D.ebugPrintln("$$ resourceTotal="+resourceTotal);
-                }
-            }
-
-            if (twoForOne)
-            {
-                freeResourceCount = resourceTotal / 2;
-            }
-            else if (threeForOne)
-            {
-                freeResourceCount = resourceTotal / 3;
-            }
-            else
-            {
-                freeResourceCount = resourceTotal / 4;
-            }
-
-            //D.ebugPrintln("freeResourceCount="+freeResourceCount);
-            if (freeResourceCount > bestResourceCount)
-            {
-                bestResourceCount = freeResourceCount;
-                bestResource = resource;
-            }
-        }
-
-        if (bestResourceCount > 2)
-        {
-            monopolyChoice = bestResource;
-
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
 
     /**
