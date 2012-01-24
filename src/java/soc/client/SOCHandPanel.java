@@ -403,6 +403,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * Board-reset voting: If true, {@link #offer} is holding a message related to a board-reset vote.
+     * @see #offerIsDiscardOrPickMessage
      */
     protected boolean offerIsResetMessage;
 
@@ -412,6 +413,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * ({@link #TRADEMSG_PICKING}).
      * Set by {@link #setDiscardOrPickMsg(boolean)},
      * cleared by {@link #clearDiscardOrPickMsg()}.
+     * @see #offerIsResetMessage
      */
     private boolean offerIsDiscardOrPickMessage;
 
@@ -2524,7 +2526,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 clearDiscardOrPickMsg();
                 // Clear is handled here.
                 // Set is handled in SOCPlayerInterface.updateAtGameState
-                // by setting a timer: SOCPlayerInterface.setDiscardOrPickMsg(false)
+                // by setting a timer: SOCPlayerInterface.discardOrPickTimerSet(false)
             }
 
         }
