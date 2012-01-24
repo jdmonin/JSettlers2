@@ -3672,132 +3672,8 @@ public class SOCRobotBrain extends Thread
      */
     protected void moveRobber()
     {
-        D.ebugPrintln("%%% MOVEROBBER");
-
-        final int[] hexes = game.getBoard().getLandHexCoords();
-
-        int robberHex = game.getBoard().getRobberHex();
-
-        /**
-         * decide which player we want to thwart
-         */
-        int[] winGameETAs = new int[game.maxPlayers];
-        for (int i = game.maxPlayers - 1; i >= 0; --i)
-            winGameETAs[i] = 100;
-        Iterator trackersIter = playerTrackers.values().iterator();
-
-        while (trackersIter.hasNext())
-        {
-            SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
-            D.ebugPrintln("%%%%%%%%% TRACKER FOR PLAYER " + tracker.getPlayer().getPlayerNumber());
-
-            try
-            {
-                tracker.recalcWinGameETA();
-                winGameETAs[tracker.getPlayer().getPlayerNumber()] = tracker.getWinGameETA();
-                D.ebugPrintln("winGameETA = " + tracker.getWinGameETA());
-            }
-            catch (NullPointerException e)
-            {
-                D.ebugPrintln("Null Pointer Exception calculating winGameETA");
-                winGameETAs[tracker.getPlayer().getPlayerNumber()] = 500;
-            }
-        }
-
-        int victimNum = -1;
-
-        for (int pnum = 0; pnum < game.maxPlayers; pnum++)
-        {
-            if (! game.isSeatVacant(pnum))
-            {
-                if ((victimNum < 0) && (pnum != ourPlayerNumber))
-                {
-                    // The first pick
-                    D.ebugPrintln("Picking a robber victim: pnum=" + pnum);
-                    victimNum = pnum;
-                }
-                else if ((pnum != ourPlayerNumber) && (winGameETAs[pnum] < winGameETAs[victimNum]))
-                {
-                    // A better pick
-                    D.ebugPrintln("Picking a better robber victim: pnum=" + pnum);
-                    victimNum = pnum;
-                }
-            }
-        }
-        // Postcondition: victimNum != -1 due to "First pick" in loop.
-
-        /**
-         * figure out the best way to thwart that player
-         */
-        SOCPlayer victim = game.getPlayer(victimNum);
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
-        int bestHex = robberHex;
-        int worstSpeed = 0;
-        final boolean skipDeserts = game.isGameOptionSet("RD");  // can't move robber to desert
-        SOCBoard gboard = (skipDeserts ? game.getBoard() : null);
-
-        for (int i = 0; i < hexes.length; i++)
-        {
-            /**
-             * only check hexes that we're not touching,
-             * and not the robber hex, and possibly not desert hexes
-             */
-            if ((hexes[i] != robberHex)
-                    && ourPlayerData.getNumbers().hasNoResourcesForHex(hexes[i])
-                    && ! (skipDeserts && (gboard.getHexTypeFromCoord(hexes[i]) == SOCBoard.DESERT_HEX )))
-            {
-                estimate.recalculateEstimates(victim.getNumbers(), hexes[i]);
-
-                int[] speeds = estimate.getEstimatesFromNothingFast(victim.getPortFlags());
-                int totalSpeed = 0;
-
-                for (int j = SOCBuildingSpeedEstimate.MIN;
-                        j < SOCBuildingSpeedEstimate.MAXPLUSONE; j++)
-                {
-                    totalSpeed += speeds[j];
-                }
-
-                D.ebugPrintln("total Speed = " + totalSpeed);
-
-                if (totalSpeed > worstSpeed)
-                {
-                    bestHex = hexes[i];
-                    worstSpeed = totalSpeed;
-                    D.ebugPrintln("bestHex = " + Integer.toHexString(bestHex));
-                    D.ebugPrintln("worstSpeed = " + worstSpeed);
-                }
-            }
-        }
-
-        D.ebugPrintln("%%% bestHex = " + Integer.toHexString(bestHex));
-
-        /**
-         * pick a spot at random if we can't decide.
-         * Don't pick deserts if the game option is set.
-         * Don't pick one of our hexes if at all possible.
-         * It's not likely we'll need to pick one of our hexes
-         * (we try 30 times to avoid it), so there isn't code here
-         * to pick the 'least bad' one.
-         * (TODO) consider that: it would be late in the game.
-         *       Use similar algorithm as picking for opponent,
-         *       but apply it worst vs best.
-         */
-        if (bestHex == robberHex)
-        {
-            int numRand = 0;
-            while ((bestHex == robberHex)
-                    || (skipDeserts
-                            && (gboard.getHexTypeFromCoord(bestHex) == SOCBoard.DESERT_HEX ))
-                    || ((numRand < 30)
-                            && ourPlayerData.getNumbers().hasNoResourcesForHex(bestHex)))
-            {
-                bestHex = hexes[Math.abs(rand.nextInt()) % hexes.length];
-                // D.ebugPrintln("%%% random pick = " + Integer.toHexString(bestHex));
-                System.err.println("%%% random pick = " + Integer.toHexString(bestHex));
-                ++numRand;
-            }
-        }
-
+        final int bestHex = RobberStrategy.getBestRobberHex
+            (game, ourPlayerData, playerTrackers, rand);
         D.ebugPrintln("!!! MOVING ROBBER !!!");
         client.moveRobber(game, ourPlayerData, bestHex);
         pause(2000);
@@ -3978,50 +3854,14 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * choose a robber victim
+     * Choose a robber victim, and tell the server our choice.
      *
      * @param choices a boolean array representing which players are possible victims
      */
     protected void chooseRobberVictim(boolean[] choices)
     {
-        int choice = -1;
-
-        /**
-         * choose the player with the smallest WGETA
-         */
-        for (int i = 0; i < game.maxPlayers; i++)
-        {
-            if (! game.isSeatVacant (i))
-            {
-                if (choices[i])
-                {
-                    if (choice == -1)
-                    {
-                        choice = i;
-                    }
-                    else
-                    {
-                        SOCPlayerTracker tracker1 = (SOCPlayerTracker) playerTrackers.get(new Integer(i));
-                        SOCPlayerTracker tracker2 = (SOCPlayerTracker) playerTrackers.get(new Integer(choice));
-    
-                        if ((tracker1 != null) && (tracker2 != null) && (tracker1.getWinGameETA() < tracker2.getWinGameETA()))
-                        {
-                            //D.ebugPrintln("Picking a robber victim: pnum="+i+" VP="+game.getPlayer(i).getPublicVP());
-                            choice = i;
-                        }
-                    }
-                }
-            }
-        }
-
-        /**
-         * choose victim at random
-         *
-           do {
-           choice = Math.abs(rand.nextInt() % SOCGame.MAXPLAYERS);
-           } while (!choices[choice]);
-         */
-        client.choosePlayer(game, choice);
+        final int choicePl = RobberStrategy.chooseRobberVictim(choices, game, playerTrackers);
+        client.choosePlayer(game, choicePl);
     }
 
     /**

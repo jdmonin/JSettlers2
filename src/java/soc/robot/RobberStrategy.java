@@ -28,6 +28,7 @@ import java.util.Random;
 // import org.apache.log4j.Logger;
 
 import soc.disableDebug.D;
+import soc.game.SOCBoard;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
@@ -35,14 +36,14 @@ public class RobberStrategy {
 
 	/** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
-    private transient D log = new D();
+    private static transient D log = new D();
 
    /**
-    * move the robber
+    * Determine the best hex to move the robber.
     */
-   public int getBestRobberHex(SOCGame game, SOCPlayer ourPlayerData, HashMap playerTrackers)
+   public static int getBestRobberHex
+       (SOCGame game, SOCPlayer ourPlayerData, HashMap playerTrackers, Random rand)
    {
-       Random rand = new Random();
        log.debug("%%% MOVEROBBER");
 
        final int[] hexes = game.getBoard().getLandHexCoords();
@@ -76,22 +77,23 @@ public class RobberStrategy {
            }
        }
 
+       final int ourPlayerNumber = ourPlayerData.getPlayerNumber();
        int victimNum = -1;
 
        for (int pnum = 0; pnum < game.maxPlayers; pnum++)
        {
            if (! game.isSeatVacant(pnum))
            {
-               if ((victimNum < 0) && (pnum != ourPlayerData.getPlayerNumber()))
+               if ((victimNum < 0) && (pnum != ourPlayerNumber))
                {
                    // The first pick
                    log.debug("Picking a robber victim: pnum=" + pnum);
                    victimNum = pnum;
                }
-               else if ((pnum != ourPlayerData.getPlayerNumber()) && (winGameETAs[pnum] < winGameETAs[victimNum]))
+               else if ((pnum != ourPlayerNumber) && (winGameETAs[pnum] < winGameETAs[victimNum]))
                {
                    // A better pick
-                   log.debug("Picking a robber victim: pnum=" + pnum);
+                   log.debug("Picking a better robber victim: pnum=" + pnum);
                    victimNum = pnum;
                }
            }
@@ -105,14 +107,18 @@ public class RobberStrategy {
        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
        int bestHex = robberHex;
        int worstSpeed = 0;
+       final boolean skipDeserts = game.isGameOptionSet("RD");  // can't move robber to desert
+       SOCBoard gboard = (skipDeserts ? game.getBoard() : null);
 
-       for (int i = 0; i < 19; i++)
+       for (int i = 0; i < hexes.length; i++)
        {
            /**
             * only check hexes that we're not touching,
-            * and not the robber hex
+            * and not the robber hex, and possibly not desert hexes
             */
-           if ((hexes[i] != robberHex) && ourPlayerData.getNumbers().hasNoResourcesForHex(hexes[i]))
+           if ((hexes[i] != robberHex)
+                   && ourPlayerData.getNumbers().hasNoResourcesForHex(hexes[i])
+                   && ! (skipDeserts && (gboard.getHexTypeFromCoord(hexes[i]) == SOCBoard.DESERT_HEX )))
            {
                estimate.recalculateEstimates(victim.getNumbers(), hexes[i]);
 
@@ -120,7 +126,7 @@ public class RobberStrategy {
                int totalSpeed = 0;
 
                for (int j = SOCBuildingSpeedEstimate.MIN;
-                       j < SOCBuildingSpeedEstimate.MAXPLUSONE; j++)
+                        j < SOCBuildingSpeedEstimate.MAXPLUSONE; j++)
                {
                    totalSpeed += speeds[j];
                }
@@ -139,24 +145,43 @@ public class RobberStrategy {
 
        log.debug("%%% bestHex = " + Integer.toHexString(bestHex));
 
-       /**
-        * pick a spot at random if we can't decide
-        */
-       while ((bestHex == robberHex) && ourPlayerData.getNumbers().hasNoResourcesForHex(hexes[bestHex]))
-       {
-           bestHex = hexes[Math.abs(rand.nextInt() % hexes.length)];
-           log.debug("%%% random pick = " + Integer.toHexString(bestHex));
-       }
-       
+        /**
+         * Pick a spot at random if we can't decide.
+         * Don't pick deserts if the game option is set.
+         * Don't pick one of our hexes if at all possible.
+         * It's not likely we'll need to pick one of our hexes
+         * (we try 30 times to avoid it), so there isn't code here
+         * to pick the 'least bad' one.
+         * (TODO) consider that: It would be late in the game
+         *       if the board's that crowded with pieces.
+         *       Use similar algorithm as picking for opponent,
+         *       but apply it worst vs best.
+         */
+        if (bestHex == robberHex)
+        {
+            int numRand = 0;
+            while ((bestHex == robberHex)
+                   || (skipDeserts
+                       && (gboard.getHexTypeFromCoord(bestHex) == SOCBoard.DESERT_HEX ))
+                   || ((numRand < 30)
+                       && ourPlayerData.getNumbers().hasNoResourcesForHex(bestHex)))
+            {
+                bestHex = hexes[Math.abs(rand.nextInt()) % hexes.length];
+                log.debug("%%% random pick = " + Integer.toHexString(bestHex));
+                ++numRand;
+            }
+        }
+
        return bestHex;
    }
    
    /**
     * choose a robber victim
     *
-    * @param choices a boolean array representing which players are possible victims
+    * @param choices  a boolean array representing which players are possible victims
+    * @return  Player number to rob
     */
-   public int chooseRobberVictim(boolean[] choices, SOCGame game, HashMap playerTrackers)
+   public static int chooseRobberVictim(boolean[] choices, SOCGame game, HashMap playerTrackers)
    {
        int choice = -1;
 
