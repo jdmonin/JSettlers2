@@ -67,12 +67,10 @@ import soc.message.SOCTurn;
 import soc.server.SOCServer;
 
 import soc.util.CappedQueue;
-import soc.util.CutoffExceededException;
 import soc.util.DebugRecorder;
 import soc.util.Queue;
 import soc.util.SOCRobotParameters;
 
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -85,6 +83,8 @@ import java.util.Vector;
 /**
  * AI for playing Settlers of Catan.
  * Represents a robot player within 1 game.
+ *<P>
+ * Some decision-making code is in {@link OpeningBuildStrategy}
  *
  * @author Robert S Thomas
  */
@@ -434,24 +434,6 @@ public class SOCRobotBrain extends Thread
     protected int oldGameState;
 
     /**
-     * Cached resource estimates for the board;
-     * <tt>resourceEstimates</tt>[{@link SOCBoard#CLAY_HEX}] == the clay rarity,
-     * as an integer percentage 0-100 of dice rolls.
-     * Initialized in {@link #estimateResourceRarity()}.
-     */
-    protected int[] resourceEstimates;
-
-    /**
-     * used in planning where to put our first and second settlements
-     */
-    protected int firstSettlement;
-
-    /**
-     * used in planning where to put our first and second settlements
-     */
-    protected int secondSettlement;
-
-    /**
      * During START states, coordinate of our most recently placed road or settlement.
      * Used to avoid repeats in {@link #cancelWrongPiecePlacement(SOCCancelBuildRequest)}.
      * @since 1.1.09
@@ -465,6 +447,12 @@ public class SOCRobotBrain extends Thread
      * @since 1.1.09
      */
     private int lastStartingRoadTowardsNode;
+
+    /**
+     * Strategy to plan and build initial settlements and roads.
+     * @since 2.0.00
+     */
+    private OpeningBuildStrategy openingBuildStrategy;
 
     /**
      * a thread that sends ping messages to this one
@@ -566,6 +554,8 @@ public class SOCRobotBrain extends Thread
         dRecorder[0] = new DebugRecorder();
         dRecorder[1] = new DebugRecorder();
         currentDRecorder = 0;
+
+        openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData);
     }
 
     /**
@@ -1863,8 +1853,8 @@ public class SOCRobotBrain extends Thread
                     expectPUTPIECE_FROM_START1A = true;
                     counter = 0;
                     waitingForGameState = true;
-                    planInitialSettlements();
-                    placeFirstSettlement();
+                    final int firstSettleNode = openingBuildStrategy.planInitialSettlements();
+                    placeFirstSettlement(firstSettleNode);
                 }
             }
             break;
@@ -1879,7 +1869,7 @@ public class SOCRobotBrain extends Thread
                     counter = 0;
                     waitingForGameState = true;
                     pause(1500);
-                    placeInitRoad();
+                    planAndPlaceInitRoad();
                 }
             }
             break;
@@ -1893,8 +1883,8 @@ public class SOCRobotBrain extends Thread
                     expectPUTPIECE_FROM_START2A = true;
                     counter = 0;
                     waitingForGameState = true;
-                    planSecondSettlement();
-                    placeSecondSettlement();
+                    final int secondSettleNode = openingBuildStrategy.planSecondSettlement();
+                    placeSecondSettlement(secondSettleNode);
                 }
             }
             break;
@@ -1909,7 +1899,7 @@ public class SOCRobotBrain extends Thread
                     counter = 0;
                     waitingForGameState = true;
                     pause(1500);
-                    placeInitRoad();
+                    planAndPlaceInitRoad();
                 }
             }
             break;
@@ -3545,450 +3535,10 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * figure out where to place the two settlements
-     */
-    protected void planInitialSettlements()
-    {
-        D.ebugPrintln("--- planInitialSettlements");
-
-        int[] rolls;
-        int speed;
-        boolean allTheWay;
-        firstSettlement = 0;
-        secondSettlement = 0;
-
-        int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
-        SOCBoard board = game.getBoard();
-        SOCResourceSet emptySet = new SOCResourceSet();
-        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
-        int probTotal;
-        int bestProbTotal;
-        boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
-        final int[] prob = SOCNumberProbabilities.INT_VALUES;
-
-        bestProbTotal = 0;
-
-        final int[] ourPotentialSettlements = ourPlayerData.getPotentialSettlements_arr();
-        if (ourPotentialSettlements == null)
-            return;  // Should not occur
-
-        for (int i = 0; i < ourPotentialSettlements.length; ++i)
-        {
-            final int firstNode = ourPotentialSettlements[i];
-            // assert: ourPlayerData.isPotentialSettlement(firstNode)
-
-            final Integer firstNodeInt = new Integer(firstNode);
-
-            //
-            // this is just for testing purposes
-            //
-            D.ebugPrintln("FIRST NODE -----------");
-            D.ebugPrintln("firstNode = " + board.nodeCoordToString(firstNode));
-
-            playerNumbers.clear();
-            probTotal = playerNumbers.updateNumbersAndProbability
-                (firstNode, board, prob, null);
-
-            D.ebugPrint("ports: ");
-
-            for (int portType = SOCBoard.MISC_PORT;
-                     portType <= SOCBoard.WOOD_PORT; portType++)
-            {
-                ports[portType] = (board.getPortCoordinates(portType).contains(firstNodeInt));
-
-                D.ebugPrint(ports[portType] + "  ");
-            }
-
-            D.ebugPrintln();
-            D.ebugPrintln("probTotal = " + probTotal);
-            estimate.recalculateEstimates(playerNumbers);
-            speed = 0;
-            allTheWay = false;
-
-            try
-            {
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, 300, ports).getRolls();
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, 300, ports).getRolls();
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, 300, ports).getRolls();
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, 300, ports).getRolls();
-            }
-            catch (CutoffExceededException e) {}
-
-            rolls = estimate.getEstimatesFromNothingFast(ports, 300);
-            D.ebugPrint(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
-            D.ebugPrint(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
-            D.ebugPrint(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
-            D.ebugPrintln(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
-            D.ebugPrintln("speed = " + speed);
-
-            //
-            // end test
-            //
-
-            for (int j = 1 + i; j < ourPotentialSettlements.length; ++j)
-            {
-                final int secondNode = ourPotentialSettlements[j];
-                // assert: ourPlayerData.isPotentialSettlement(secondNode)
-
-                if (board.isNodeAdjacentToNode(secondNode, firstNode))
-                    continue;  // <-- too close to firstNode to build --
-
-                D.ebugPrintln("firstNode = " + board.nodeCoordToString(firstNode));
-                D.ebugPrintln("secondNode = " + board.nodeCoordToString(secondNode));
-
-                final Integer secondNodeInt = new Integer(secondNode);
-
-                /**
-                 * get the numbers for these settlements
-                 */
-                playerNumbers.clear();
-                probTotal = playerNumbers.updateNumbersAndProbability
-                    (firstNode, board, prob, null);
-                probTotal += playerNumbers.updateNumbersAndProbability
-                    (secondNode, board, prob, null);
-
-                /**
-                 * see if the settlements are on any ports
-                 */
-                //D.ebugPrint("ports: ");
-
-                Arrays.fill(ports, false);
-                int portType = board.getPortTypeFromNodeCoord(firstNode);
-                if (portType != -1)
-                    ports[portType] = true;
-                portType = board.getPortTypeFromNodeCoord(secondNode);
-                if (portType != -1)
-                    ports[portType] = true;
-
-                D.ebugPrintln();
-                D.ebugPrintln("probTotal = " + probTotal);
-
-                /**
-                 * estimate the building speed for this pair
-                 */
-                estimate.recalculateEstimates(playerNumbers);
-                speed = 0;
-                allTheWay = false;
-
-                try
-                {
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
-
-                    if (speed < bestSpeed)
-                    {
-                        speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
-
-                        if (speed < bestSpeed)
-                        {
-                            speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
-
-                            if (speed < bestSpeed)
-                            {
-                                speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
-                                allTheWay = true;
-                            }
-                        }
-                    }
-                }
-                catch (CutoffExceededException e)
-                {
-                    speed = bestSpeed;
-                }
-
-                rolls = estimate.getEstimatesFromNothingFast(ports, bestSpeed);
-                D.ebugPrint(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
-                D.ebugPrint(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
-                D.ebugPrint(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
-                D.ebugPrintln(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
-                D.ebugPrintln("allTheWay = " + allTheWay);
-                D.ebugPrintln("speed = " + speed);
-
-                /**
-                 * keep the settlements with the best speed
-                 */
-                if (speed < bestSpeed)
-                {
-                    firstSettlement = firstNode;
-                    secondSettlement = secondNode;
-                    bestSpeed = speed;
-                    bestProbTotal = probTotal;
-                    D.ebugPrintln("bestSpeed = " + bestSpeed);
-                    D.ebugPrintln("bestProbTotal = " + bestProbTotal);
-                }
-                else if ((speed == bestSpeed) && allTheWay)
-                {
-                    if (probTotal > bestProbTotal)
-                    {
-                        D.ebugPrintln("Equal speed, better prob");
-                        firstSettlement = firstNode;
-                        secondSettlement = secondNode;
-                        bestSpeed = speed;
-                        bestProbTotal = probTotal;
-                        D.ebugPrintln("firstSettlement = " + Integer.toHexString(firstSettlement));
-                        D.ebugPrintln("secondSettlement = " + Integer.toHexString(secondSettlement));
-                        D.ebugPrintln("bestSpeed = " + bestSpeed);
-                        D.ebugPrintln("bestProbTotal = " + bestProbTotal);
-                    }
-                }
-
-            }  // for (j past i in ourPotentialSettlements[])
-
-        }  // for (i in ourPotentialSettlements[])
-
-        /**
-         * choose which settlement to place first
-         */
-        playerNumbers.clear();
-        playerNumbers.updateNumbers(firstSettlement, board);
-
-        final Integer firstSettlementInt = new Integer(firstSettlement);
-
-        for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
-                 portType++)
-        {
-            ports[portType] = (board.getPortCoordinates(portType).contains(firstSettlementInt));
-        }
-
-        estimate.recalculateEstimates(playerNumbers);
-
-        int firstSpeed = 0;
-        int cutoff = 100;
-
-        try
-        {
-            firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, cutoff, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            firstSpeed += cutoff;
-        }
-
-        try
-        {
-            firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, cutoff, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            firstSpeed += cutoff;
-        }
-
-        try
-        {
-            firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, cutoff, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            firstSpeed += cutoff;
-        }
-
-        try
-        {
-            firstSpeed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, cutoff, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            firstSpeed += cutoff;
-        }
-
-        playerNumbers.clear();
-        playerNumbers.updateNumbers(secondSettlement, board);
-
-        final Integer secondSettlementInt = new Integer(secondSettlement);
-
-        for (int portType = SOCBoard.MISC_PORT; portType <= SOCBoard.WOOD_PORT;
-                 portType++)
-        {
-            ports[portType] = (board.getPortCoordinates(portType).contains(secondSettlementInt));
-        }
-
-        estimate.recalculateEstimates(playerNumbers);
-
-        int secondSpeed = 0;
-
-        try
-        {
-            secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            secondSpeed += cutoff;
-        }
-
-        try
-        {
-            secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            secondSpeed += cutoff;
-        }
-
-        try
-        {
-            secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            secondSpeed += cutoff;
-        }
-
-        try
-        {
-            secondSpeed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
-        }
-        catch (CutoffExceededException e)
-        {
-            secondSpeed += cutoff;
-        }
-
-        if (firstSpeed > secondSpeed)
-        {
-            int tmp = firstSettlement;
-            firstSettlement = secondSettlement;
-            secondSettlement = tmp;
-        }
-
-        D.ebugPrintln(board.nodeCoordToString(firstSettlement) + ":" + firstSpeed + ", " + board.nodeCoordToString(secondSettlement) + ":" + secondSpeed);
-    }
-
-    /**
-     * figure out where to place the second settlement
-     */
-    protected void planSecondSettlement()
-    {
-        D.ebugPrintln("--- planSecondSettlement");
-
-        int bestSpeed = 4 * SOCBuildingSpeedEstimate.DEFAULT_ROLL_LIMIT;
-        final SOCBoard board = game.getBoard();
-        SOCResourceSet emptySet = new SOCResourceSet();
-        SOCPlayerNumbers playerNumbers = new SOCPlayerNumbers(board);
-        boolean[] ports = new boolean[SOCBoard.WOOD_PORT + 1];
-        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
-        int probTotal;
-        int bestProbTotal;
-        final int[] prob = SOCNumberProbabilities.INT_VALUES;
-        final int firstNode = firstSettlement;
-
-        bestProbTotal = 0;
-        secondSettlement = -1;
-
-        final int[] ourPotentialSettlements = ourPlayerData.getPotentialSettlements_arr();
-        if (ourPotentialSettlements == null)
-            return;  // Should not occur
-
-        for (int i = 0; i < ourPotentialSettlements.length; ++i)
-        {
-            final int secondNode = ourPotentialSettlements[i];
-            // assert: ourPlayerData.isPotentialSettlement(secondNode))
-
-            if (board.isNodeAdjacentToNode(secondNode, firstNode))
-                continue;  // <-- too close to firstNode to build --
-
-            /**
-             * get the numbers for these settlements
-             */
-            playerNumbers.clear();
-            probTotal = playerNumbers.updateNumbersAndProbability
-                (firstNode, board, prob, null);
-            probTotal += playerNumbers.updateNumbersAndProbability
-                (secondNode, board, prob, null);
-
-            /**
-             * see if the settlements are on any ports
-             */
-            //D.ebugPrint("ports: ");
-
-            Arrays.fill(ports, false);
-            int portType = board.getPortTypeFromNodeCoord(firstNode);
-            if (portType != -1)
-                ports[portType] = true;
-            portType = board.getPortTypeFromNodeCoord(secondNode);
-            if (portType != -1)
-                ports[portType] = true;
-
-            D.ebugPrintln();
-            D.ebugPrintln("probTotal = " + probTotal);
-
-            /**
-             * estimate the building speed for this pair
-             */
-            estimate.recalculateEstimates(playerNumbers);
-
-            int speed = 0;
-
-            try
-            {
-                speed += estimate.calculateRollsFast(emptySet, SOCGame.SETTLEMENT_SET, bestSpeed, ports).getRolls();
-
-                if (speed < bestSpeed)
-                {
-                    speed += estimate.calculateRollsFast(emptySet, SOCGame.CITY_SET, bestSpeed, ports).getRolls();
-
-                    if (speed < bestSpeed)
-                    {
-                        speed += estimate.calculateRollsFast(emptySet, SOCGame.CARD_SET, bestSpeed, ports).getRolls();
-
-                        if (speed < bestSpeed)
-                        {
-                            speed += estimate.calculateRollsFast(emptySet, SOCGame.ROAD_SET, bestSpeed, ports).getRolls();
-                        }
-                    }
-                }
-            }
-            catch (CutoffExceededException e)
-            {
-                speed = bestSpeed;
-            }
-
-            D.ebugPrintln(Integer.toHexString(firstNode) + ", " + Integer.toHexString(secondNode) + ":" + speed);
-
-            /**
-             * keep the settlements with the best speed
-             */
-            if ((speed < bestSpeed) || (secondSettlement < 0))
-            {
-                firstSettlement = firstNode;
-                secondSettlement = secondNode;
-                bestSpeed = speed;
-                bestProbTotal = probTotal;
-                D.ebugPrintln("firstSettlement = " + Integer.toHexString(firstSettlement));
-                D.ebugPrintln("secondSettlement = " + Integer.toHexString(secondSettlement));
-
-                int[] rolls = estimate.getEstimatesFromNothingFast(ports);
-                D.ebugPrint("road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
-                D.ebugPrint(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
-                D.ebugPrint(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
-                D.ebugPrintln(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
-                D.ebugPrintln("bestSpeed = " + bestSpeed);
-            }
-            else if (speed == bestSpeed)
-            {
-                if (probTotal > bestProbTotal)
-                {
-                    firstSettlement = firstNode;
-                    secondSettlement = secondNode;
-                    bestSpeed = speed;
-                    bestProbTotal = probTotal;
-                    D.ebugPrintln("firstSettlement = " + Integer.toHexString(firstSettlement));
-                    D.ebugPrintln("secondSettlement = " + Integer.toHexString(secondSettlement));
-
-                    int[] rolls = estimate.getEstimatesFromNothingFast(ports);
-                    D.ebugPrint("road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
-                    D.ebugPrint(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
-                    D.ebugPrint(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
-                    D.ebugPrintln(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
-                    D.ebugPrintln("bestSpeed = " + bestSpeed);
-                }
-            }
-
-        }  // for (i in ourPotentialSettlements[])
-    }
-
-    /**
      * place planned first settlement
+     * @param firstSettlement  First settlement's node coordinate
      */
-    protected void placeFirstSettlement()
+    protected void placeFirstSettlement(final int firstSettlement)
     {
         //D.ebugPrintln("BUILD REQUEST FOR SETTLEMENT AT "+Integer.toHexString(firstSettlement));
         pause(500);
@@ -3999,8 +3549,11 @@ public class SOCRobotBrain extends Thread
 
     /**
      * place planned second settlement
+     * @param secondSettlement  Second settlement's node coordinate,
+     *   from {@link OpeningBuildStrategy#planSecondSettlement()};
+     *   should not be -1
      */
-    protected void placeSecondSettlement()
+    protected void placeSecondSettlement(final int secondSettlement)
     {
         if (secondSettlement == -1)
         {
@@ -4023,6 +3576,7 @@ public class SOCRobotBrain extends Thread
     /**
      * Plan and place a road attached to our most recently placed initial settlement,
      * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}.
+     * Calls {@link OpeningBuildStrategy#planInitRoad()}.
      *<P>
      * Road choice is based on the best nearby potential settlements, and doesn't
      * directly check {@link SOCPlayer#isPotentialRoad(int) ourPlayerData.isPotentialRoad(edgeCoord)}.
@@ -4031,251 +3585,20 @@ public class SOCRobotBrain extends Thread
      * and call {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}.
      * The {@link #lastStartingRoadTowardsNode} field holds this coordinate.
      */
-    public void placeInitRoad()
+    protected void planAndPlaceInitRoad()
     {
         // TODO handle ships here
 
-        final int settlementNode = ourPlayerData.getLastSettlementCoord();
-
-        /**
-         * Score the nearby nodes to build road towards: Key = coord Integer; value = Integer score towards "best" node.
-         */
-        Hashtable twoAway = new Hashtable();
-
-        D.ebugPrintln("--- placeInitRoad");
-
-        /**
-         * look at all of the nodes that are 2 away from the
-         * last settlement, and pick the best one
-         */
-        final SOCBoard board = game.getBoard();
-
-        for (int facing = 1; facing <= 6; ++facing)
-        {
-            // each of 6 directions: NE, E, SE, SW, W, NW
-            int tmp = board.getAdjacentNodeToNode2Away(settlementNode, facing);
-            if ((tmp != -9) && ourPlayerData.isPotentialSettlement(tmp))
-                twoAway.put(new Integer(tmp), new Integer(0));
-        }
-
-        scoreNodesForSettlements(twoAway, 3, 5, 10);
-
-        D.ebugPrintln("Init Road for " + client.getNickname());
-
-        /**
-         * create a dummy player to calculate possible places to build
-         * taking into account where other players will build before
-         * we can.
-         */
-        SOCPlayer dummy = new SOCPlayer(ourPlayerNumber, game);
-
-        if (game.getGameState() == SOCGame.START1B)
-        {
-            /**
-             * do a look ahead so we don't build toward a place
-             * where someone else will build first.
-             */
-            final int numberOfBuilds = numberOfEnemyBuilds();
-            D.ebugPrintln("Other players will build " + numberOfBuilds + " settlements before I get to build again.");
-
-            if (numberOfBuilds > 0)
-            {
-                /**
-                 * rule out where other players are going to build
-                 */
-                Hashtable allNodes = new Hashtable();
-
-                {
-                    Iterator psi = ourPlayerData.getPotentialSettlements().iterator();
-                    while (psi.hasNext())
-                        allNodes.put(psi.next(), new Integer(0));                    
-                    // D.ebugPrintln("-- potential settlement at " + Integer.toHexString(next));
-                }
-
-                /**
-                 * favor spots with the most high numbers
-                 */
-                bestSpotForNumbers(allNodes, null, 100);
-
-                /**
-                 * favor spots near good ports
-                 */
-                /**
-                 * check 3:1 ports
-                 */
-                Vector miscPortNodes = game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT);
-                bestSpot2AwayFromANodeSet(allNodes, miscPortNodes, 5);
-
-                /**
-                 * check out good 2:1 ports
-                 */
-                for (int portType = SOCBoard.CLAY_PORT;
-                         portType <= SOCBoard.WOOD_PORT; portType++)
-                {
-                    /**
-                     * if the chances of rolling a number on the resource is better than 1/3,
-                     * then it's worth looking at the port
-                     */
-                    if (resourceEstimates[portType] > 33)
-                    {
-                        Vector portNodes = game.getBoard().getPortCoordinates(portType);
-                        final int portWeight = (resourceEstimates[portType] * 10) / 56;
-                        bestSpot2AwayFromANodeSet(allNodes, portNodes, portWeight);
-                    }
-                }
-
-                /*
-                 * create a list of potential settlements that takes into account
-                 * where other players will build
-                 */
-                Vector psList = new Vector();
-
-                psList.addAll(ourPlayerData.getPotentialSettlements());
-                // log.debug("- potential settlement at " + Integer.toHexString(j));
-
-                dummy.setPotentialSettlements(psList);
-
-                for (int builds = 0; builds < numberOfBuilds; builds++)
-                {
-                    BoardNodeScorePair bestNodePair = new BoardNodeScorePair(0, 0);
-                    Enumeration nodesEnum = allNodes.keys();
-
-                    while (nodesEnum.hasMoreElements())
-                    {
-                        final Integer nodeCoord = (Integer) nodesEnum.nextElement();
-                        final int score = ((Integer) allNodes.get(nodeCoord)).intValue();
-                        D.ebugPrintln("NODE = " + Integer.toHexString(nodeCoord.intValue()) + " SCORE = " + score);
-
-                        if (bestNodePair.getScore() < score)
-                        {
-                            bestNodePair.setScore(score);
-                            bestNodePair.setNode(nodeCoord.intValue());
-                        }
-                    }
-
-                    /**
-                     * pretend that someone has built a settlement on the best spot
-                     */
-                    dummy.updatePotentials(new SOCSettlement(ourPlayerData, bestNodePair.getNode(), null));
-
-                    /**
-                     * remove this spot from the list of best spots
-                     */
-                    allNodes.remove(new Integer(bestNodePair.getNode()));
-                }
-            }
-        }
-
-        /**
-         * Find the best scoring node
-         */
-        BoardNodeScorePair bestNodePair = new BoardNodeScorePair(0, 0);
-        Enumeration cenum = twoAway.keys();
-
-        while (cenum.hasMoreElements())
-        {
-            final Integer coord = (Integer) cenum.nextElement();
-            final int score = ((Integer) twoAway.get(coord)).intValue();
-
-            D.ebugPrintln("Considering " + Integer.toHexString(coord.intValue()) + " with a score of " + score);
-
-            if (dummy.isPotentialSettlement(coord.intValue()))
-            {
-                if (bestNodePair.getScore() < score)
-                {
-                    bestNodePair.setScore(score);
-                    bestNodePair.setNode(coord.intValue());
-                }
-            }
-            else
-            {
-                D.ebugPrintln("Someone is bound to ruin that spot.");
-            }
-        }
-
-        // Reminder: settlementNode == ourPlayerData.getLastSettlementCoord()
-        final int destination = bestNodePair.getNode();  // coordinate of future settlement
-                                                         // 2 nodes away from settlementNode
-        final int roadEdge   // will be adjacent to settlementNode
-            = board.getAdjacentEdgeToNode2Away(settlementNode, destination);
+        final int roadEdge = openingBuildStrategy.planInitRoad();
 
         //D.ebugPrintln("!!! PUTTING INIT ROAD !!!");
         pause(500);
 
         //D.ebugPrintln("Trying to build a road at "+Integer.toHexString(roadEdge));
         lastStartingPieceCoord = roadEdge;
-        lastStartingRoadTowardsNode = destination;
+        lastStartingRoadTowardsNode = openingBuildStrategy.getPlannedInitRoadDestinationNode();
         client.putPiece(game, new SOCRoad(ourPlayerData, roadEdge, null));
         pause(1000);
-
-        dummy.destroyPlayer();
-    }
-
-    /**
-     * Estimate the rarity of each resource, given this board's resource locations vs dice numbers.
-     * Useful for initial settlement placement.
-     * Cached after the first call, as {@link #resourceEstimates}.
-     *
-     * @return an array of rarity numbers, where
-     *         estimates[SOCBoard.CLAY_HEX] == the clay rarity,
-     *         as an integer percentage 0-100 of dice rolls.
-     */
-    protected int[] estimateResourceRarity()
-    {
-        if (resourceEstimates == null)
-        {
-            final SOCBoard board = game.getBoard();
-            final int[] numberWeights = SOCNumberProbabilities.INT_VALUES;
-
-            resourceEstimates = new int[SOCResourceConstants.UNKNOWN];  // uses 1 to 5 (CLAY to WOOD)
-            resourceEstimates[0] = 0;
-
-            // look at each hex
-            if (board.getBoardEncodingFormat() <= SOCBoard.BOARD_ENCODING_6PLAYER)
-            {
-                // v1 or v2 encoding
-                final int L = board.getNumberLayout().length;
-                for (int i = 0; i < L; i++)
-                {
-                    final int hexNumber = board.getNumberOnHexFromNumber(i);
-                    if (hexNumber > 0)
-                        resourceEstimates[board.getHexTypeFromNumber(i)] += numberWeights[hexNumber];
-                }
-            } else {
-                // v3 encoding
-                final int[] hcoord = board.getLandHexCoords();
-                if (hcoord != null)
-                {
-                    final int L = hcoord.length;
-                    for (int i = 0; i < L; i++)
-                    {
-                        final int hexNumber = board.getNumberOnHexFromCoord(hcoord[i]);
-                        if (hexNumber > 0)
-                        {
-                            final int htype = board.getHexTypeFromCoord(hcoord[i]);
-                            if (htype != SOCBoardLarge.GOLD_HEX)
-                            {
-                                resourceEstimates[htype] += numberWeights[hexNumber];
-                            } else {
-                                // Count gold as all resource types
-                                for (int ht = SOCBoard.CLAY_HEX; ht <= SOCBoard.WOOD_HEX; ++ht)
-                                    resourceEstimates[ht] += numberWeights[hexNumber];
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        //D.ebugPrint("Resource Estimates = ");
-        //for (int i = 1; i < 6; i++)
-        //{
-            //D.ebugPrint(i+":"+resourceEstimates[i]+" ");
-        //}
-
-        //D.ebugPrintln();
-
-        return resourceEstimates;
     }
 
     /**
@@ -4341,105 +3664,6 @@ public class SOCRobotBrain extends Thread
             nodes.put(node, finalScore);
 
             //D.ebugPrintln("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);
-        }
-    }
-
-    /**
-     * Takes a table of nodes and adds a weighted score to
-     * each node score in the table.  A vector of nodes that
-     * we want to be near is also taken as an argument.
-     * Here are the rules for scoring:
-     * If a node is two away from a node in the desired set of nodes it gets 100.
-     * Otherwise it gets 0.
-     *
-     * @param nodesIn   the table of nodes to evaluate
-     * @param nodeSet   the set of desired nodes
-     * @param weight    the score multiplier
-     */
-    protected void bestSpot2AwayFromANodeSet(Hashtable nodesIn, Vector nodeSet, int weight)
-    {
-        final SOCBoard board = game.getBoard();
-        Enumeration nodesInEnum = nodesIn.keys();
-
-        while (nodesInEnum.hasMoreElements())
-        {
-            final Integer nodeCoord = (Integer) nodesInEnum.nextElement();
-            final int node = nodeCoord.intValue();
-            int score = 0;
-            final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
-
-            Enumeration nodeSetEnum = nodeSet.elements();
-
-            while (nodeSetEnum.hasMoreElements())
-            {
-                final int target = ((Integer) nodeSetEnum.nextElement()).intValue();
-
-                if (node == target)
-                {
-                    break;
-                }
-                else if (board.isNode2AwayFromNode(node, target))
-                {
-                    score = 100;
-                }
-            }
-
-            /**
-             * multiply by weight
-             */
-            score *= weight;
-
-            nodesIn.put(nodeCoord, new Integer(oldScore + score));
-
-            //D.ebugPrintln("BS2AFANS -- put node "+Integer.toHexString(node)+" with old score "+oldScore+" + new score "+score);
-        }
-    }
-
-    /**
-     * Takes a table of nodes and adds a weighted score to
-     * each node score in the table.  A vector of nodes that
-     * we want to be on is also taken as an argument.
-     * Here are the rules for scoring:
-     * If a node is in the desired set of nodes it gets 100.
-     * Otherwise it gets 0.
-     *
-     * @param nodesIn   the table of nodes to evaluate
-     * @param nodeSet   the set of desired nodes
-     * @param weight    the score multiplier
-     */
-    protected void bestSpotInANodeSet(Hashtable nodesIn, Vector nodeSet, int weight)
-    {
-        Enumeration nodesInEnum = nodesIn.keys();
-
-        while (nodesInEnum.hasMoreElements())
-        {
-            final Integer nodeCoord = (Integer) nodesInEnum.nextElement();
-            final int node = nodeCoord.intValue();
-            int score = 0;
-            final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
-
-            Enumeration nodeSetEnum = nodeSet.elements();
-
-            while (nodeSetEnum.hasMoreElements())
-            {
-                final int target = ((Integer) nodeSetEnum.nextElement()).intValue();
-
-                if (node == target)
-                {
-                    score = 100;
-
-                    break;
-                }
-            }
-
-            /**
-             * multiply by weight
-             */
-            score *= weight;
-
-            nodesIn.put(nodeCoord, new Integer(oldScore + score));
-
-            //D.ebugPrintln("BSIANS -- put node "+Integer.toHexString(node)+" with old score "+oldScore+" + new score "+score);
         }
     }
 
@@ -4727,7 +3951,7 @@ public class SOCRobotBrain extends Thread
             //  (BSE.getRollsForResourcesSorted)
 
             resourceChoices.clear();
-            estimateResourceRarity();
+            final int[] resourceEstimates = openingBuildStrategy.estimateResourceRarity();
             int numEach = 0;  // in case we pick 5, keep going for 6-10
             while (numChoose > 0)
             {
@@ -4885,59 +4109,6 @@ public class SOCRobotBrain extends Thread
         }
 
         return bestNodePair;
-    }
-
-    /**
-     * This is a function more for convenience.
-     * given a set of nodes, run a bunch of metrics across them
-     * to find which one is best for building a
-     * settlement
-     *
-     * @param nodes          a hashtable of nodes, the scores in the table will be modified.
-     *                            Key = coord Integer; value = score Integer.
-     * @param numberWeight   the weight given to nodes on good numbers
-     * @param miscPortWeight the weight given to nodes on 3:1 ports
-     * @param portWeight     the weight given to nodes on good 2:1 ports
-     */
-    protected void scoreNodesForSettlements(Hashtable nodes, final int numberWeight, final int miscPortWeight, final int portWeight)
-    {
-        /**
-         * favor spots with the most high numbers
-         */
-        bestSpotForNumbers(nodes, ourPlayerData, numberWeight);
-
-        /**
-         * favor spots on good ports:
-         */
-        /**
-         * check if this is on a 3:1 ports, only if we don't have one
-         */
-        if (!ourPlayerData.getPortFlag(SOCBoard.MISC_PORT))
-        {
-            Vector miscPortNodes = game.getBoard().getPortCoordinates(SOCBoard.MISC_PORT);
-            bestSpotInANodeSet(nodes, miscPortNodes, miscPortWeight);
-        }
-
-        /**
-         * check out good 2:1 ports that we don't have
-         * and calculate the resourceEstimates field
-         */
-        final int[] resourceEstimates = estimateResourceRarity();
-
-        for (int portType = SOCBoard.CLAY_PORT; portType <= SOCBoard.WOOD_PORT;
-                portType++)
-        {
-            /**
-             * if the chances of rolling a number on the resource is better than 1/3,
-             * then it's worth looking at the port
-             */
-            if ((resourceEstimates[portType] > 33) && (!ourPlayerData.getPortFlag(portType)))
-            {
-                Vector portNodes = game.getBoard().getPortCoordinates(portType);
-                int estimatedPortWeight = (resourceEstimates[portType] * portWeight) / 56;
-                bestSpotInANodeSet(nodes, portNodes, estimatedPortWeight);
-            }
-        }
     }
 
     /**

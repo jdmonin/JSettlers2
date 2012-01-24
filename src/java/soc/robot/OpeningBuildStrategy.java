@@ -36,6 +36,7 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
+import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCSettlement;
 import soc.util.CutoffExceededException;
@@ -43,12 +44,18 @@ import soc.util.CutoffExceededException;
 /**
  * This class is a temporary class put in place to slowly pull tasks out of SOCRobotBrain
  * and start replacing them with classes that implement strategy interfaces. (Strategy Pattern)
- * @author Eli
+ * @author Eli McGowan
  *
  */
 public class OpeningBuildStrategy {
 
-	/** debug logging */
+    /** Our game */
+    private SOCGame game;
+
+    /** Our {@link SOCRobotBrain}'s player */
+    private SOCPlayer ourPlayerData;
+
+    /** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
     private transient D log = new D();
     
@@ -61,20 +68,50 @@ public class OpeningBuildStrategy {
      * used in planning where to put our first and second settlements
      */
     protected int secondSettlement;
-    
+
+    /**
+     * Coordinate of a future settlement 2 nodes away from settlementNode
+     * (from {@link #firstSettlement} or {@link #secondSettlement}).
+     * Valid after calling {@link #planInitRoad()}.
+     * @since 2.0.00
+     */
+    private int plannedRoadDestinationNode;
+
     /**
      * Cached resource estimates for the board;
      * <tt>resourceEstimates</tt>[{@link SOCBoard#CLAY_HEX}] == the clay rarity,
      * as an integer percentage 0-100 of dice rolls.
-     * Initialized in {@link #estimateResourceRarity(SOCGame)}.
+     * Initialized in {@link #estimateResourceRarity()}.
      */
     protected int[] resourceEstimates;
 
     /**
-     * figure out where to place the two settlements
-     * @return {@link #firstSettlement}, or 0 if no potential settlements for <tt>ourPlayerData</tt>
+     * Create an OpeningBuildStrategy for a {@link SOCRobotBrain}'s player.
+     * @param ga  Our game
+     * @param pl  Our player data in <tt>ga</tt>
      */
-    public int planInitialSettlements(SOCGame game, SOCPlayer ourPlayerData)
+    OpeningBuildStrategy(SOCGame ga, SOCPlayer pl)
+    {
+        game = ga;
+        ourPlayerData = pl;
+    }
+
+    /**
+     * Get the node coordinate of a future settlement
+     * 2 nodes away from our most recent settlement node.
+     * Valid after calling {@link #planInitRoad()}.
+     * @since 2.0.00
+     */
+    public int getPlannedInitRoadDestinationNode()
+    {
+        return plannedRoadDestinationNode;
+    }
+
+    /**
+     * figure out where to place the two settlements
+     * @return {@link #firstSettlement}, or 0 if no potential settlements for our player
+     */
+    public int planInitialSettlements()
     {
         log.debug("--- planInitialSettlements");
 
@@ -402,7 +439,7 @@ public class OpeningBuildStrategy {
      * figure out where to place the second settlement
      * @return {@link #secondSettlement}, or -1 if none
      */
-    public int planSecondSettlement(SOCGame game, SOCPlayer ourPlayerData)
+    public int planSecondSettlement()
     {
         log.debug("--- planSecondSettlement");
 
@@ -541,22 +578,35 @@ public class OpeningBuildStrategy {
     }
     
     /**
-     * place a road attached to the last initial settlement
+     * Plan and place a road attached to our most recently placed initial settlement,
+     * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}.
+     * Also sets {@link #getPlannedInitRoadDestinationNode()}.
+     *<P>
+     * Road choice is based on the best nearby potential settlements, and doesn't
+     * directly check {@link SOCPlayer#isPotentialRoad(int) ourPlayerData.isPotentialRoad(edgeCoord)}.
+     * If the server rejects our road choice, then {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
+     * will need to know which settlement node we were aiming for,
+     * and call {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}.
+     * The {@link #lastStartingRoadTowardsNode} field holds this coordinate.
+     *
      * @return road edge adjacent to initial settlement node
      */
-    public int planInitRoad(SOCGame game, SOCPlayer ourPlayerData, SOCRobotClient client)
+    public int planInitRoad()
     {
         // TODO handle ships here
 
         final int settlementNode = ourPlayerData.getLastSettlementCoord();
 
+        /**
+         * Score the nearby nodes to build road towards: Key = coord Integer; value = Integer score towards "best" node.
+         */
         Hashtable twoAway = new Hashtable();  // <Integer,Integer>
 
         log.debug("--- placeInitRoad");
 
         /**
          * look at all of the nodes that are 2 away from the
-         * last settlement and pick the best one
+         * last settlement, and pick the best one
          */
         final SOCBoard board = game.getBoard();
 
@@ -568,9 +618,9 @@ public class OpeningBuildStrategy {
                 twoAway.put(new Integer(tmp), new Integer(0));
         }
 
-        scoreNodesForSettlements(twoAway, 3, 5, 10, game, ourPlayerData);
+        scoreNodesForSettlements(twoAway, 3, 5, 10);
 
-        log.debug("Init Road for " + client.getNickname());
+        log.debug("Init Road for " + ourPlayerData.getName());
 
         /**
          * create a dummy player to calculate possible places to build
@@ -585,7 +635,7 @@ public class OpeningBuildStrategy {
              * do a look ahead so we don't build toward a place
              * where someone else will build first.
              */
-            final int numberOfBuilds = numberOfEnemyBuilds(game);
+            final int numberOfBuilds = numberOfEnemyBuilds();
             log.debug("Other players will build " + numberOfBuilds + " settlements before I get to build again.");
 
             if (numberOfBuilds > 0)
@@ -605,7 +655,7 @@ public class OpeningBuildStrategy {
                 /**
                  * favor spots with the most high numbers
                  */
-                bestSpotForNumbers(allNodes, null, 100, game);
+                bestSpotForNumbers(allNodes, null, 100);
 
                 /**
                  * favor spots near good ports
@@ -652,7 +702,7 @@ public class OpeningBuildStrategy {
 
                     while (nodesEnum.hasMoreElements())
                     {
-                        Integer nodeCoord = (Integer) nodesEnum.nextElement();
+                        final Integer nodeCoord = (Integer) nodesEnum.nextElement();
                         final int score = ((Integer) allNodes.get(nodeCoord)).intValue();
                         log.debug("NODE = " + Integer.toHexString(nodeCoord.intValue()) + " SCORE = " + score);
 
@@ -684,7 +734,7 @@ public class OpeningBuildStrategy {
 
         while (cenum.hasMoreElements())
         {
-            Integer coordInt = (Integer) cenum.nextElement();
+            final Integer coordInt = (Integer) cenum.nextElement();
             final int coord = coordInt.intValue();
             final int score = ((Integer) twoAway.get(coordInt)).intValue();
 
@@ -705,10 +755,11 @@ public class OpeningBuildStrategy {
         }
 
         // Reminder: settlementNode == ourPlayerData.getLastSettlementCoord()
-        final int destination = bestNodePair.getNode();  // coordinate of future settlement
+        plannedRoadDestinationNode = bestNodePair.getNode();  // coordinate of future settlement
                                                          // 2 nodes away from settlementNode
         final int roadEdge   // will be adjacent to settlementNode
-            = board.getAdjacentEdgeToNode2Away(settlementNode, destination);
+            = board.getAdjacentEdgeToNode2Away
+              (settlementNode, plannedRoadDestinationNode);
 
         dummy.destroyPlayer();
         
@@ -716,25 +767,26 @@ public class OpeningBuildStrategy {
     }
     
     /**
-     * this is a function more for convience
-     * given a set of nodes, run a bunch of metrics across them
+     * Given a set of nodes, run a bunch of metrics across them
      * to find which one is best for building a
-     * settlement
+     * settlement.
      *
-     * @param nodes          a hashtable of nodes, the scores in the table will be modified. Hashtable<Integer,Integer>.
+     * @param nodes          a hashtable of nodes; the scores in the table will be modified.
+     *                            Key = coord Integer; value = score Integer.
      * @param numberWeight   the weight given to nodes on good numbers
      * @param miscPortWeight the weight given to nodes on 3:1 ports
      * @param portWeight     the weight given to nodes on good 2:1 ports
      */
-    protected void scoreNodesForSettlements(Hashtable nodes, int numberWeight, int miscPortWeight, int portWeight, SOCGame game, SOCPlayer ourPlayerData)
+    protected void scoreNodesForSettlements
+        (Hashtable nodes, final int numberWeight, final int miscPortWeight, final int portWeight)
     {
         /**
          * favor spots with the most high numbers
          */
-        bestSpotForNumbers(nodes, ourPlayerData, numberWeight, game);
+        bestSpotForNumbers(nodes, ourPlayerData, numberWeight);
 
         /**
-         * favor spots on good ports
+         * Favor spots on good ports:
          */
         /**
          * check if this is on a 3:1 ports, only if we don't have one
@@ -749,7 +801,7 @@ public class OpeningBuildStrategy {
          * check out good 2:1 ports that we don't have
          * and calculate the resourceEstimates field
          */
-        final int[] resourceEstimates = estimateResourceRarity(game);
+        final int[] resourceEstimates = estimateResourceRarity();
 
         for (int portType = SOCBoard.CLAY_PORT; portType <= SOCBoard.WOOD_PORT;
                 portType++)
@@ -775,17 +827,18 @@ public class OpeningBuildStrategy {
      * If a node is in the desired set of nodes it gets 100.
      * Otherwise it gets 0.
      *
-     * @param nodesIn   the table of nodes to evaluate: Hashtable<Integer,Integer>
+     * @param nodesIn   the table of nodes to evaluate: Hashtable&lt;Integer,Integer&gt .
+     *                    Contents will be modified by the scoring.
      * @param nodeSet   the set of desired nodes
      * @param weight    the score multiplier
      */
-    protected void bestSpotInANodeSet(Hashtable nodesIn, Vector nodeSet, int weight)
+    protected void bestSpotInANodeSet(Hashtable nodesIn, Vector nodeSet, final int weight)
     {
         Enumeration nodesInEnum = nodesIn.keys();  // <Integer>
 
         while (nodesInEnum.hasMoreElements())
         {
-            Integer nodeCoord = (Integer) nodesInEnum.nextElement();
+            final Integer nodeCoord = (Integer) nodesInEnum.nextElement();
             final int node = nodeCoord.intValue();
             int score = 0;
             final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
@@ -824,17 +877,18 @@ public class OpeningBuildStrategy {
      * Otherwise it gets 0.
      *
      * @param board     the game board
-     * @param nodesIn   the table of nodes to evaluate: Hashtable<Integer,Integer>
+     * @param nodesIn   the table of nodes to evaluate: Hashtable&lt;Integer,Integer&gt; .
+     *                     Contents will be modified by the scoring.
      * @param nodeSet   the set of desired nodes
      * @param weight    the score multiplier
      */
-    protected void bestSpot2AwayFromANodeSet(SOCBoard board, Hashtable nodesIn, Vector nodeSet, int weight)
+    protected void bestSpot2AwayFromANodeSet(SOCBoard board, Hashtable nodesIn, Vector nodeSet, final int weight)
     {
         Enumeration nodesInEnum = nodesIn.keys();  // <Integer>
 
         while (nodesInEnum.hasMoreElements())
         {
-            Integer nodeCoord = (Integer) nodesInEnum.nextElement();
+            final Integer nodeCoord = (Integer) nodesInEnum.nextElement();
             final int node = nodeCoord.intValue();
             int score = 0;
             final int oldScore = ((Integer) nodesIn.get(nodeCoord)).intValue();
@@ -868,20 +922,22 @@ public class OpeningBuildStrategy {
     
     /**
      * Estimate the rarity of each resource, given this board's resource locations vs dice numbers.
+     * Useful for initial settlement placement and free-resource choice (when no other info available).
+     * This is based on the board and doesn't change when pieces are placed.
      * Cached after the first call, as {@link #resourceEstimates}.
      *
      * @return an array of rarity numbers, where
      *         estimates[SOCBoard.CLAY_HEX] == the clay rarity,
      *         as an integer percentage 0-100 of dice rolls.
      */
-    protected int[] estimateResourceRarity(SOCGame game)
+    public int[] estimateResourceRarity()
     {
         if (resourceEstimates == null)
         {
             final SOCBoard board = game.getBoard();
-            int[] numberWeights = SOCNumberProbabilities.INT_VALUES;
+            final int[] numberWeights = SOCNumberProbabilities.INT_VALUES;
 
-            resourceEstimates = new int[6];
+            resourceEstimates = new int[SOCResourceConstants.UNKNOWN];  // uses 1 to 5 (CLAY to WOOD)
             resourceEstimates[0] = 0;
 
             // look at each hex
@@ -922,10 +978,10 @@ public class OpeningBuildStrategy {
         }
 
         //D.ebugPrint("Resource Estimates = ");
-        for (int i = 1; i < 6; i++)
-        {
+        //for (int i = 1; i < 6; i++)
+        //{
             //D.ebugPrint(i+":"+resourceEstimates[i]+" ");
-        }
+        //}
 
         //log.debug();
 
@@ -936,7 +992,7 @@ public class OpeningBuildStrategy {
      * calculate the number of builds before the next turn during init placement
      *
      */
-    protected int numberOfEnemyBuilds(SOCGame game)
+    protected int numberOfEnemyBuilds()
     {
         int numberOfBuilds = 0;
         int pNum = game.getCurrentPlayerNumber();
@@ -998,12 +1054,13 @@ public class OpeningBuildStrategy {
      * that the player isn't touching yet are better than ones
      * that the player is already touching.
      *
-     * @param nodes    the table of nodes with scores: Hashtable<Integer,Integer>
+     * @param nodes    the table of nodes with scores: Hashtable&lt;Integer,Integer&gt; .
+     *                   Contents will be modified by the scoring.
      * @param player   the player that we are doing the rating for, or <tt>null</tt>;
      *                   will give a bonus to numbers the player isn't already touching
      * @param weight   a number that is multiplied by the score
      */
-    protected void bestSpotForNumbers(Hashtable nodes, SOCPlayer player, int weight, SOCGame game)
+    protected void bestSpotForNumbers(Hashtable nodes, SOCPlayer player, int weight)
     {
         final int[] numRating = SOCNumberProbabilities.INT_VALUES;
         final SOCPlayerNumbers playerNumbers = (player != null) ? player.getNumbers() : null;
@@ -1056,4 +1113,5 @@ public class OpeningBuildStrategy {
             //log.debug("BSN -- put node "+Integer.toHexString(node.intValue())+" with old score "+oldScore+" + new score "+nScore);
         }
     }
+
 }
