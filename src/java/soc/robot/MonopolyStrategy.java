@@ -30,10 +30,10 @@ public class MonopolyStrategy
 {
 
     /** Our game */
-    private SOCGame game;
+    private final SOCGame game;
 
     /** Our {@link SOCRobotBrain}'s player */
-    private SOCPlayer ourPlayerData;
+    private final SOCPlayer ourPlayerData;
 
     /**
      * The resource we want to monopolize,
@@ -50,6 +50,8 @@ public class MonopolyStrategy
      */
     MonopolyStrategy(SOCGame ga, SOCPlayer pl)
     {
+        if (pl == null)
+            throw new IllegalArgumentException();
         game = ga;
         ourPlayerData = pl;
         monopolyChoice = SOCResourceConstants.SHEEP;

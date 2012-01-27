@@ -446,12 +446,14 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Strategy to plan and build initial settlements and roads.
+     * Set in {@link #setOurPlayerData()}.
      * @since 2.0.00
      */
     private OpeningBuildStrategy openingBuildStrategy;
 
     /**
      * Strategy to choose whether to monopolize, and which resource.
+     * Set in {@link #setOurPlayerData()}.
      * @since 2.0.00
      */
     private MonopolyStrategy monopolyStrategy;
@@ -558,8 +560,8 @@ public class SOCRobotBrain extends Thread
         dRecorder[1] = new DebugRecorder();
         currentDRecorder = 0;
 
-        openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData);
-        monopolyStrategy = new MonopolyStrategy(game, ourPlayerData);
+        // Strategy fields will be set in setOurPlayerData();
+        // we don't have the data yet.
     }
 
     /**
@@ -603,7 +605,7 @@ public class SOCRobotBrain extends Thread
      * first or last SITDOWN.
      *<p>
      * Since our playerTrackers are initialized when our robot's
-     * SITDOWN is received (robotclient calls setOurPlayerData()),
+     * SITDOWN is received (robotclient calls {@link #setOurPlayerData()}),
      * and seats may be vacant at that time (because SITDOWN not yet
      * received for those seats), we must add a PlayerTracker for
      * each SITDOWN received after our player's.
@@ -731,6 +733,9 @@ public class SOCRobotBrain extends Thread
 
         decisionMaker = new SOCRobotDM(this);
         negotiator = new SOCRobotNegotiator(this);
+        openingBuildStrategy = new OpeningBuildStrategy(game, ourPlayerData);
+        monopolyStrategy = new MonopolyStrategy(game, ourPlayerData);
+
         dummyCancelPlayerData = new SOCPlayer(-2, game);
 
         // Verify expected face (fast or smart robot)

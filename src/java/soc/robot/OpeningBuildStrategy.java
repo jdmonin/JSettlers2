@@ -50,10 +50,10 @@ import soc.util.CutoffExceededException;
 public class OpeningBuildStrategy {
 
     /** Our game */
-    private SOCGame game;
+    private final SOCGame game;
 
     /** Our {@link SOCRobotBrain}'s player */
-    private SOCPlayer ourPlayerData;
+    private final SOCPlayer ourPlayerData;
 
     /** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
@@ -92,6 +92,8 @@ public class OpeningBuildStrategy {
      */
     OpeningBuildStrategy(SOCGame ga, SOCPlayer pl)
     {
+        if (pl == null)
+            throw new IllegalArgumentException();
         game = ga;
         ourPlayerData = pl;
     }
