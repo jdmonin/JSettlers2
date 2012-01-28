@@ -5804,7 +5804,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         else
                             hoverSettlementID = 0;
                     }
-                    
+
+                    // Initial Placement on large board: Check for
+                    // a restricted starting land area.
+                    if (playerIsCurrent && game.hasSeaBoard && (! hoverTextSet)
+                        && game.isInitialPlacement()
+                        && player.isLegalSettlement(id)
+                        && ! player.isPotentialSettlement(id))
+                    {
+                        setHoverText("Initial placement not allowed here");
+                        hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
+                        hoverID = id;
+                        hoverIsPort = false;
+                        hoverTextSet = true;
+                    }
+
                     // Port check.  At most one adjacent will be a port.
                     if ((hoverMode == PLACE_INIT_SETTLEMENT) && (hoverID == id))
                     {
@@ -5812,7 +5826,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         positionToMouse(x,y);
                         hoverTextSet = true;
                     }
-                    else
+                    else if (! hoverTextSet)
                     {
                         String portDesc = portDescAtNode(id);
                         if (portDesc != null)
@@ -5824,6 +5838,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hoverIsPort = true;
                         }
                     }
+
                 }  // end if-node-has-settlement
             }
             else
