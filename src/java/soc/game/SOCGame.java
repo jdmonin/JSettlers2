@@ -56,6 +56,7 @@ import java.util.Vector;
  * For the board <b>coordinate system and terms</b> (hex, node, edge), see the
  * {@link SOCBoard} class javadoc.
  *<P>
+ * The game begins with the server calling {@link #startGame()}.  During game play,
  * {@link #putPiece(SOCPlayingPiece)} and other game-action methods update <tt>gameState</tt>.
  * {@link #updateAtTurn()}, <tt>putPiece</tt> and some other game-action methods update {@link #lastActionTime}.
  *<P>
@@ -2596,8 +2597,9 @@ public class SOCGame implements Serializable, Cloneable
              */
             setPlayersLandHexCoordinates();
             HashSet psList = ((SOCBoardLarge) board).getLegalAndPotentialSettlements();
+            final HashSet[] las = ((SOCBoardLarge) board).getLandAreasLegalNodes();
             for (int i = 0; i < maxPlayers; ++i)
-                players[i].setPotentialSettlements(psList, true);
+                players[i].setPotentialAndLegalSettlements(psList, true, las);
         }
 
         /**

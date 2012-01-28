@@ -50,7 +50,10 @@ import soc.game.SOCBoard;
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
- *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL; LH is null before makeNewBoard is called
+ *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL; LH is null before makeNewBoard is called.
+ *         The v3 board's land hexes may be logically grouped into several
+ *         "land areas" (groups of islands, or subsets of islands).  Those
+ *         areas are sent to the client via {@link SOCPotentialSettlements}.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
  * <tt>SOCBoardLayout</tt> required a mapping/unmapping step. 

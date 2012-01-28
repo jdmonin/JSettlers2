@@ -34,6 +34,9 @@ import java.util.Vector;
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
  * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
  *<P>
+ * On this large sea board, there can optionally be multiple "land areas"
+ * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
+ *<P>
  * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
  * followed by the robber hex and pirate hex (if they're &gt; 0),
@@ -217,11 +220,39 @@ public class SOCBoardLarge extends SOCBoard
     private HashSet landHexLayout;
 
     /**
+     * When the board has multiple "land areas" (groups of islands),
+     * this array holds each land area's nodes for settlements/cities.
+     * <tt>null</tt> otherwise.
+     * Each index holds the nodes for that land area number.
+     * Index 0 is unused.
+     *<P>
+     * The multiple land areas are used to restrict initial placement,
+     * or for other purposes during the game.
+     * If the players must start in a certain land area,
+     * {@link #potentialsStartingLandArea} != 0, and
+     * <tt>landAreasLegalNodes[{@link #potentialsStartingLandArea}]</tt>
+     * is also the players' potential settlement nodes.
+     *<P>
+     * The set {@link SOCBoard#nodesOnLand} contains all nodes of all land areas.
+     */
+    private HashSet[] landAreasLegalNodes;
+
+    /**
+     * When players must start the game in a certain land area,
+     * starting land area number; also its index in
+     * {@link #landAreasLegalNodes}, because that set of
+     * legal nodes is also the players' potential settlement nodes.
+     * 0 if players can start anywhere and/or
+     * {@link #landAreasLegalNodes} == <tt>null</tt>.
+     */
+    private int potentialsStartingLandArea;
+
+    /**
      * The legal set of land edge coordinates to build roads,
      * based on {@link #nodesOnLand}.
      * Calculated in {@link #makeNewBoard_makeLegalRoadsFromLandNodes()},
      * after {@link #nodesOnLand} is filled by
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
      * Used by {@link #initPlayerLegalRoads()}.
      */
     private HashSet legalRoadEdges;
@@ -231,7 +262,7 @@ public class SOCBoardLarge extends SOCBoard
      * based on {@link #hexLayoutLg}.
      * Calculated in {@link #makeNewBoard_makeLegalShipEdges()},
      * after {@link #hexLayoutLg} is filled by
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
      * Used by {@link #initPlayerLegalShips()}.
      */
     private HashSet legalShipEdges;
@@ -284,6 +315,10 @@ public class SOCBoardLarge extends SOCBoard
         legalRoadEdges = new HashSet();
         legalShipEdges = new HashSet();
 
+        // Assume 1 Land Area, unless or until makeNewBoard says otherwise
+        landAreasLegalNodes = null;
+        potentialsStartingLandArea = 0;
+
         // Only odd-numbered rows are valid,
         // but we fill all rows here just in case.
         for (int r = 0; r <= boardHeight; ++r)
@@ -331,15 +366,29 @@ public class SOCBoardLarge extends SOCBoard
         // Adds to landHexLayout and nodesOnLand.
         // Clears cachedGetlandHexCoords.
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
+
+        landAreasLegalNodes = new HashSet[3];
+
         // - Mainland:
         makeNewBoard_placeHexes
-            (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, opt_breakClumps);
-        // - Islands:
+            (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, 1, opt_breakClumps);
+        // - Outlying islands:
         makeNewBoard_placeHexes
-            (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, (SOCGameOption) null);
+            (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, 2, (SOCGameOption) null);
+        // - Require players to start on mainland
+        potentialsStartingLandArea = 1;
+
         // Set up legalRoadEdges:
         makeNewBoard_makeLegalRoadsFromLandNodes();
         makeNewBoard_makeLegalShipEdges();
+
+        // consistency-check land areas
+        if (landAreasLegalNodes != null)
+        {
+            for (int i = 1; i < landAreasLegalNodes.length; ++i)
+                if (landAreasLegalNodes[i] == null)
+                    throw new IllegalStateException("inconsistent landAreasLegalNodes: idx " + i);
+        }
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
@@ -404,9 +453,10 @@ public class SOCBoardLarge extends SOCBoard
      * For {@link #makeNewBoard(Hashtable)}, place the land hexes, number, and robber,
      * after shuffling landHexType[].
      * Sets robberHex, contents of hexLayoutLg[] and numberLayoutLg[].
-     * Adds to {@link #landHexLayout} and {@link #nodesOnLand}.
+     * Adds to {@link #landHexLayout} and {@link SOCBoard#nodesOnLand}.
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
+     * If <tt>landAreaNumber</tt> != 0, also adds to {@link #landAreasLegalNodes}.
      *<P>
      * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
      * before it starts placement.  You can call it multiple times to set up multiple
@@ -421,10 +471,17 @@ public class SOCBoardLarge extends SOCBoard
      *                    <BR> Also must contain the coordinate of each land hex.
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
      *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
+     * @param landAreaNumber  0 unless there will be more than 1 Land Area (group of islands).
+     *                    If != 0, updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
+     *                    with the same nodes added to {@link SOCBoard#nodesOnLand}.
      * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
+     * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
+     *             {@link #landAreasLegalNodes} == null, or
+     *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
      */
     private final void makeNewBoard_placeHexes
-        (int[] landHexType, final int[] numPath, final int[] number, SOCGameOption optBC)
+        (int[] landHexType, final int[] numPath, final int[] number, final int landAreaNumber, SOCGameOption optBC)
+        throws IllegalStateException
     {
         final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
         final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
@@ -493,7 +550,7 @@ public class SOCBoardLarge extends SOCBoard
 
         for (int i = 0; i < landHexType.length; i++)
             landHexLayout.add(new Integer(numPath[i]));
-        makeNewBoard_fillNodesOnLandFromHexes(numPath);
+        makeNewBoard_fillNodesOnLandFromHexes(numPath, landAreaNumber);
 
     }  // makeNewBoard_placeHexes
 
@@ -503,19 +560,42 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Iterative: Can call multiple times, giving different hexes each time.
      * Each call will add those hexes to {@link #nodesOnLand}.
+     * If <tt>landAreaNumber</tt> != 0, also adds them to {@link #landAreasLegalNodes}.
+     *<P>
      * Before the first call, clear <tt>nodesOnLand</tt>.
+     *
      * @param landHexCoords  Coordinates of a contiguous group of land hexes
+     * @param landAreaNumber  0 unless there will be more than 1 Land Area (groups of islands).
+     *                    If != 0, updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
+     *                    with the same nodes added to {@link SOCBoard#nodesOnLand}.
      * @see #makeNewBoard_makeLegalRoadsFromLandNodes()
      * @see #makeNewBoard_makeLegalShipEdges()
+     * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
+     *             {@link #landAreasLegalNodes} == null, or
+     *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
      */
     private void makeNewBoard_fillNodesOnLandFromHexes
-        (final int landHexCoords[])
+        (final int landHexCoords[], final int landAreaNumber)
+        throws IllegalStateException
     {
+        if (landAreaNumber != 0)
+        {
+            if ((landAreasLegalNodes == null)
+                || (landAreasLegalNodes[landAreaNumber] != null))
+                throw new IllegalStateException();
+            landAreasLegalNodes[landAreaNumber] = new HashSet();
+        }
+
         for (int i = 0; i < landHexCoords.length; ++i)
         {
             final int[] nodes = getAdjacentNodesToHex(landHexCoords[i]);
             for (int j = 0; j < 6; ++j)
-                nodesOnLand.add(new Integer(nodes[j]));
+            {
+                final Integer ni = new Integer(nodes[j]);
+                nodesOnLand.add(ni);
+                if (landAreaNumber != 0)
+                    landAreasLegalNodes[landAreaNumber].add(ni);
+            }
             // it's ok to add if this set already contains an Integer equal to nodes[j].
         }
 
@@ -526,7 +606,7 @@ public class SOCBoardLarge extends SOCBoard
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.
      * Call this only after the very last call to
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
      */
     private void makeNewBoard_makeLegalRoadsFromLandNodes()
     {
@@ -584,7 +664,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Not iterative; clears all previous legal ship edges.
      * Call this only after the very last call to
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[])}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
      */
     private void makeNewBoard_makeLegalShipEdges()
     {
@@ -966,10 +1046,11 @@ public class SOCBoardLarge extends SOCBoard
      * Contains 3 int elements per land hex: Coordinate, Hex type (resource), Dice Number.
      * Clears landHexLayout, diceLayoutLg, numberLayoutLg,
      * nodesOnLand and legalRoadEdges before beginning.
+     *<P>
      * After calling this, please call
      * {@link SOCGame#setPlayersLandHexCoordinates() game.setPlayersLandHexCoordinates()}.
-     * Once the potential/legal settlements are known, call each player's
-     * {@link SOCPlayer#setPotentialSettlements(Collection, boolean)}.
+     * After {@link #makeNewBoard(Hashtable)} calculates the potential/legal settlements,
+     * call each player's {@link SOCPlayer#setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}.
      * @param  lh  the layout, or null if no land hexes, from {@link #getLandHexLayout()}
      */
     public void setLandHexLayout(final int[] lh)
@@ -1003,12 +1084,68 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Get the legal and potential settlements, after {@link #makeNewBoard(Hashtable)}.
-     * For use only by SOCGame at server.
+     * Get the starting land area, if multiple "land areas" are used
+     * and the players must start the game in a certain land area.
+     * @return the starting land area number; also its index in
+     *   {@link #getLandAreasLegalNodes()}.
+     *   0 if players can start anywhere and/or
+     *   <tt>landAreasLegalNodes == null</tt>.
      */
-    HashSet getLegalAndPotentialSettlements()
+    public int getPotentialsStartingLandArea()
     {
-        return nodesOnLand;
+        return potentialsStartingLandArea;
+    }
+
+    /**
+     * Get the land areas' nodes, if multiple "land areas" are used.
+     * For use only by SOCGame at server.
+     * Please treat the returned object as read-only.
+     *<P>
+     * When the board has multiple "land areas" (groups of islands,
+     * or subsets of islands), this array holds each land area's
+     * nodes for settlements/cities.
+     *<P>
+     * The multiple land areas are used to restrict initial placement,
+     * or for other purposes during the game.
+     * If the players must start in a certain land area,
+     * {@link #potentialsStartingLandArea} != 0.
+     *<P>
+     * See also {@link #getLegalAndPotentialSettlements()}
+     * which returns the starting land area's nodes, or if no starting
+     * land area, all nodes of all land areas.
+     *<P>
+     * See also {@link #getPotentialsStartingLandArea()} to
+     * see if the players must start the game in a certain land area.
+     *
+     * @return the land areas' nodes, or <tt>null</tt> if only one land area (one group of islands).
+     *     Each index holds the nodes for that land area number.
+     *     Index 0 is unused.
+     */
+    public HashSet[] getLandAreasLegalNodes()
+    {
+        return landAreasLegalNodes;
+    }
+
+    /**
+     * Get the legal and potential settlements, after {@link #makeNewBoard(Hashtable)}.
+     * For use mainly by SOCGame at server.
+     *<P>
+     * Returns the starting land area's nodes, or if no starting
+     * land area, all nodes of all land areas.
+     *<P>
+     * At the client, this returns an empty set if
+     * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}
+     * hasn't yet been called while the game is starting.
+     *<P>
+     * See also {@link #getLandAreasLegalNodes()} which returns
+     * all the legal nodes when multiple "land areas" are used.
+     */
+    public HashSet getLegalAndPotentialSettlements()
+    {
+        if ((landAreasLegalNodes == null) || (potentialsStartingLandArea == 0))
+            return nodesOnLand;
+        else
+            return landAreasLegalNodes[potentialsStartingLandArea];
     }
 
     /**
@@ -1018,18 +1155,42 @@ public class SOCBoardLarge extends SOCBoard
      * Call this only after {@link #setLandHexLayout(int[])}.
      * After calling this method, you can get the new legal road set
      * with {@link #initPlayerLegalRoads()}.
+     *<P>
+     * If this method hasn't yet been called, {@link #getLegalAndPotentialSettlements()}
+     * returns an empty set.
+     *
      * @param landNodes  The set of settlement node coordinates as {@link Integer}s;
      *    typically a {@link HashSet} or {@link Vector}
+     * @param sla  The required starting Land Area number, or 0
+     * @param lan If non-null, all Land Areas' legal node coordinates.
+     *     Index 0 is ignored; land area numbers start at 1.
      */
-    public void setLegalAndPotentialSettlements(Collection landNodes)
+    public void setLegalAndPotentialSettlements
+        (final Collection landNodes, final int sla, final HashSet[] lan)
     {
-        if (landNodes instanceof HashSet)
+        if (lan == null)
         {
-            nodesOnLand = (HashSet) (((HashSet) landNodes).clone());
-        } else {
-            nodesOnLand.clear();
-            nodesOnLand.addAll(landNodes);
+            landAreasLegalNodes = null;
+            potentialsStartingLandArea = 0;
+
+            if (landNodes instanceof HashSet)
+            {
+                nodesOnLand = (HashSet) (((HashSet) landNodes).clone());
+            } else {
+                nodesOnLand.clear();
+                nodesOnLand.addAll(landNodes);
+            }
         }
+        else
+        {
+            landAreasLegalNodes = lan; 
+            potentialsStartingLandArea = sla;
+
+            nodesOnLand.clear();
+            for (int i = 1; i < lan.length; ++i)
+                nodesOnLand.addAll(lan[i]);
+        }
+
         makeNewBoard_makeLegalRoadsFromLandNodes();
         makeNewBoard_makeLegalShipEdges();
     }
@@ -1039,7 +1200,8 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Because the v3 board layout varies:
      * At the server, call this after {@link #makeNewBoard(Hashtable)}.
-     * At the client, call this after {@link #setLegalAndPotentialSettlements(Collection)}.
+     * At the client, call this after
+     * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      *
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
@@ -1055,7 +1217,8 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Because the v3 board layout varies:
      * At the server, call this after {@link #makeNewBoard(Hashtable)}.
-     * At the client, call this after {@link #setLegalAndPotentialSettlements(Collection)}.
+     * At the client, call this after
+     * {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      *
      * @return the set of legal edge coordinates for ships, as a new Set of {@link Integer}s
      * @since 2.0.00

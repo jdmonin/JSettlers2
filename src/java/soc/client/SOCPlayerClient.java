@@ -79,6 +79,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Timer;
@@ -3490,16 +3491,22 @@ public class SOCPlayerClient extends Applet
             return;
 
         final Vector vset = mes.getPotentialSettlements();
+        final HashSet[] las = mes.landAreasLegalNodes;
         int pn = mes.getPlayerNumber();
+        if (ga.hasSeaBoard)
+        {
+            SOCBoardLarge bl = ((SOCBoardLarge) ga.getBoard());
+            if ((pn == -1) || bl.getLegalAndPotentialSettlements().isEmpty())
+                bl.setLegalAndPotentialSettlements
+                  (vset, mes.startingLandArea, las);
+        }
         if (pn != -1)
         {
             SOCPlayer player = ga.getPlayer(pn);
-            player.setPotentialSettlements(vset, true);
+            player.setPotentialAndLegalSettlements(vset, true, las);
         } else {
-            if (ga.hasSeaBoard)
-                ((SOCBoardLarge) ga.getBoard()).setLegalAndPotentialSettlements(vset);
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
-                ga.getPlayer(pn).setPotentialSettlements(vset, true);
+                ga.getPlayer(pn).setPotentialAndLegalSettlements(vset, true, las);
         }
 
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);

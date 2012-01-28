@@ -60,7 +60,7 @@ import java.util.Vector;
  * after {@link SOCBoard#makeNewBoard(Hashtable)}, in this order:
  *<UL>
  * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
- * <LI> {@link #setPotentialSettlements(Collection, boolean)}
+ * <LI> {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}
  *</UL>
  *<P>
  * On the {@link SOCLargeBoard large sea board}, our list of the player's roads also
@@ -227,6 +227,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a list of edges where it is legal to place a road.
      * an edge is legal if a road could eventually be
      * placed there.
+     *<P>
+     * If not {@link SOCGame#hasSeaBoard}, initialized in constructor
+     * from {@link SOCBoard#initPlayerLegalRoads()}.
+     *<P>
+     * If {@link SOCGame#hasSeaBoard}, empty until {@link SOCBoard#makeNewBoard(Hashtable)
+     * and {@link SOCGame#startGame()}, because the board layout and legal settlements
+     * vary from game to game.
      */
     private HashSet legalRoads;
 
@@ -237,7 +244,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Key = node coordinate, as {@link Integer}.
      * If {@link HashSet#contains(Object) legalSettlements.contains(new Integer(nodeCoord))},
-     * then this is a legal settlement.
+     * then <tt>nodeCoord</tt> is a legal settlement.
+     *<P>
+     * If not {@link SOCGame#hasSeaBoard}, initialized in constructor
+     * from {@link SOCBoard#initPlayerLegalAndPotentialSettlements()}.
+     *<P>
+     * If {@link SOCGame#hasSeaBoard}, empty until {@link SOCBoard#makeNewBoard(Hashtable)
+     * and {@link SOCGame#startGame()}, because the board layout and legal settlements vary
+     * from game to game.
      * @see #potentialSettlements
      * @see SOCBoard#nodesOnLand
      */
@@ -443,11 +457,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Create a new player for a new empty board.
      *<P> 
-     * The player's possible placement locations will be
+     * Unless {@link SOCGame#hasSeaBoard},
+     * the player's possible placement locations will be
      * set from {@link SOCBoard#initPlayerLegalRoads()} and
      * {@link SOCBoard#initPlayerLegalAndPotentialSettlements()}.
+     *<P>
      * Once the game board is set up, be sure to call
-     * {@link #setPotentialSettlements(Collection, boolean)}
+     * {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet)}
      * to update our data.
      *
      * @param pn the player number
@@ -504,19 +520,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         /**
          * init legal and potential arrays.
          * no settlements yet, so no potential roads or cities.
+         * If game.hasSeaBoard, these are initialized later, after board.makeNewBoard
+         * and game.startGame, because the layout varies from game to game.
          */
         potentialRoads = new HashSet();
         potentialCities = new HashSet();
         potentialShips = new HashSet();
 
-        legalRoads = board.initPlayerLegalRoads();
-        legalSettlements = board.initPlayerLegalAndPotentialSettlements();
-        if (game.hasSeaBoard)
-            legalShips = ((SOCBoardLarge) board).initPlayerLegalShips();
-        else
+        if (! game.hasSeaBoard)
+        {
+            legalRoads = board.initPlayerLegalRoads();
+            legalSettlements = board.initPlayerLegalAndPotentialSettlements();
             legalShips = new HashSet();  // will remain empty
-
-        potentialSettlements = (HashSet) (legalSettlements.clone());
+            potentialSettlements = (HashSet) (legalSettlements.clone());
+        } else {
+            legalRoads = new HashSet();
+            legalSettlements = new HashSet();
+            legalShips = new HashSet();
+            potentialSettlements = new HashSet();
+        }
 
         currentOffer = null;
     }
@@ -2715,26 +2737,41 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * and <tt>setLegalsToo</tt>, and <tt>psList</tt> is not empty,
      * then also update the player's legal settlements
      * and legal road sets, since they aren't constant
-     * on that type of board.
+     * on that type of board; don't call this method before calling
+     * {@link SOCBoardLarge#setLegalAndPotentialSettlements(Collection, int, HashSet[])},
+     * or the road sets won't be complete.
      *<P>
      * This method is called at the server only when <tt>game.hasSeaBoard</tt>,
      * just after makeNewBoard in {@link SOCGame#startGame()}.
+     *<P>
+     * Before v2.0.00, this method was called <tt>setPotentialSettlements</tt>.
      *
      * @param psList  the list of potential settlements,
      *     a {@link Vector} or {@link HashSet} of
      *     {@link Integer} node coordinates
-     * @param setLegalsToo  If true, also update legal settlements/
-     *     roads if we're using the large board layout.  [Parameter added in v2.0.00]
+     * @param setLegalsToo  If true, also update legal settlements/roads/ships
+     *     if we're using the large board layout.  [Parameter added in v2.0.00]
+     * @param legalLandAreaNodes If non-null and <tt>setLegalsToo</tt>,
+     *     all Land Areas' legal (but not currently potential) node coordinates.
+     *     Index 0 is ignored; land area numbers start at 1.
      */
-    public void setPotentialSettlements(Collection psList, final boolean setLegalsToo)
+    public void setPotentialAndLegalSettlements
+        (Collection psList, final boolean setLegalsToo, final HashSet[] legalLandAreaNodes)
     {
         clearPotentialSettlements();
         potentialSettlements.addAll(psList);
 
-        if (setLegalsToo && game.hasSeaBoard && ! psList.isEmpty())
+        if (setLegalsToo && game.hasSeaBoard
+            && ((! psList.isEmpty()) || (legalLandAreaNodes != null)) )
         {
             legalSettlements.clear();
             legalSettlements.addAll(psList);
+            if (legalLandAreaNodes != null)
+            {
+                for (int i = 1; i < legalLandAreaNodes.length; ++i)
+                    legalSettlements.addAll(legalLandAreaNodes[i]);
+            }
+
             legalRoads = game.getBoard().initPlayerLegalRoads();
             legalShips = ((SOCBoardLarge) game.getBoard()).initPlayerLegalShips();
         }
@@ -3303,12 +3340,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             legalRoads = null;
             legalSettlements.clear();
             legalSettlements = null;
+            legalShips.clear();
+            legalShips = null;
             potentialRoads.clear();
             potentialRoads = null;
             potentialSettlements.clear();
             potentialSettlements = null;
             potentialCities.clear();
             potentialCities = null;
+            potentialShips.clear();
+            potentialShips = null;
         }
         currentOffer = null;
     }

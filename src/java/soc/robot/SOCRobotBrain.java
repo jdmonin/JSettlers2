@@ -73,6 +73,7 @@ import soc.util.SOCRobotParameters;
 
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Random;
@@ -1169,15 +1170,21 @@ public class SOCRobotBrain extends Thread
                         {
                             int pn = ((SOCPotentialSettlements) mes).getPlayerNumber();
                             final Vector vset = ((SOCPotentialSettlements) mes).getPotentialSettlements();
+                            final HashSet[] las = ((SOCPotentialSettlements) mes).landAreasLegalNodes;
+                            if (game.hasSeaBoard)
+                            {
+                                SOCBoardLarge bl = ((SOCBoardLarge) game.getBoard());
+                                if ((pn == -1) || bl.getLegalAndPotentialSettlements().isEmpty())
+                                    bl.setLegalAndPotentialSettlements
+                                        (vset, ((SOCPotentialSettlements) mes).startingLandArea, las);
+                            }
                             if (pn != -1)
                             {
                                 SOCPlayer player = game.getPlayer(pn);
-                                player.setPotentialSettlements(vset, true);
+                                player.setPotentialAndLegalSettlements(vset, true, las);
                             } else {
-                                if (game.hasSeaBoard)
-                                    ((SOCBoardLarge) game.getBoard()).setLegalAndPotentialSettlements(vset);
                                 for (pn = game.maxPlayers - 1; pn >= 0; --pn)
-                                    game.getPlayer(pn).setPotentialSettlements(vset, true);
+                                    game.getPlayer(pn).setPotentialAndLegalSettlements(vset, true, las);
                             }
                         }
                         break;

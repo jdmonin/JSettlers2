@@ -42,6 +42,7 @@ import soc.util.Version;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Random;
@@ -1630,7 +1631,7 @@ public class SOCServer extends Server
 
     /**
      * Force this player (not current player) to discard, and report resources to all players.
-     * Does not send gameState, which may have changed; see {@link SOCGame#discardPickRandom(SOCResourceSet, int, SOCResourceSet, Random)}.
+     * Does not send gameState, which may have changed; see {@link SOCGame#discardPickRandom(SOCResourceSet, int, SOCResourceSet, Random)}
      *<P>
      * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
      * <UL>
@@ -7733,10 +7734,26 @@ public class SOCServer extends Server
         if ((gameData.getGameState() == SOCGame.NEW)
             && (c.getVersion() >= SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
         {
-            Vector psList = new Vector();  // all potential settlement nodes, as Integers
-            psList.addAll(gameData.getPlayer(0).getPotentialSettlements());
+            final HashSet psList = gameData.getPlayer(0).getPotentialSettlements();
 
-            c.put(SOCPotentialSettlements.toCmd(gameName, -1, psList));
+            // Some boards may have multiple land areas.
+            final HashSet[] lan;
+            final int pan;
+            if (gameData.hasSeaBoard)
+            {
+                final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+                lan = bl.getLandAreasLegalNodes();
+                pan = bl.getPotentialsStartingLandArea();
+                if (lan != null)
+                    lan[pan] = psList;
+            } else {
+                lan = null;
+                pan = 0;
+            }
+            if (lan == null)
+                c.put(SOCPotentialSettlements.toCmd(gameName, -1, new Vector(psList)));
+            else
+                c.put(SOCPotentialSettlements.toCmd(gameName, -1, pan, lan));
         }
 
         /**
@@ -7770,10 +7787,28 @@ public class SOCServer extends Server
             if ((gameData.getGameState() != SOCGame.NEW)
                 || (c.getVersion() < SOCPotentialSettlements.VERSION_FOR_PLAYERNUM_ALL))
             {
-                Vector psList = new Vector();  // all potential settlement nodes, as Integers
-                psList.addAll(pl.getPotentialSettlements());
+                final HashSet psList = pl.getPotentialSettlements();
 
-                c.put(SOCPotentialSettlements.toCmd(gameName, i, psList));
+                // Some boards may have multiple land areas.
+                // Note: Assumes all players have same legal nodes.
+                final HashSet[] lan;
+                final int pan;
+                if (gameData.hasSeaBoard && (i == 0))
+                {
+                    // send this info once, not per-player
+                    final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+                    lan = bl.getLandAreasLegalNodes();
+                    pan = bl.getPotentialsStartingLandArea();
+                    if (lan != null)
+                        lan[0] = psList;
+                } else {
+                    lan = null;
+                    pan = 0;
+                }
+                if (lan == null)
+                    c.put(SOCPotentialSettlements.toCmd(gameName, i, new Vector(psList)));
+                else
+                    c.put(SOCPotentialSettlements.toCmd(gameName, i, pan, lan));
             }
 
             /**
@@ -8831,10 +8866,28 @@ public class SOCServer extends Server
             if (ga.hasSeaBoard)
             {
                 // Send the updated Potential/Legal Settlement node list
-                // TODO assumes all players have same potential settlements
-                Vector psList = new Vector();
-                psList.addAll(ga.getPlayer(0).getPotentialSettlements());
-                messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, psList));
+                // Note: Assumes all players have same potential settlements
+                //    (sends with playerNumber -1 == all)
+                final HashSet psList = ga.getPlayer(0).getPotentialSettlements();
+
+                // Some boards may have multiple land areas.
+                final HashSet[] lan;
+                final int pan;
+                if (ga.hasSeaBoard)
+                {
+                    final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
+                    lan = bl.getLandAreasLegalNodes();
+                    pan = bl.getPotentialsStartingLandArea();
+                    if (lan != null)
+                        lan[pan] = psList;
+                } else {
+                    lan = null;
+                    pan = 0;
+                }
+                if (lan == null)
+                    messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, new Vector(psList)));
+                else
+                    messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, pan, lan));
             }
 
             /**

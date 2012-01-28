@@ -83,7 +83,9 @@ import java.util.Vector;
  *<LI> {@link #roadAtEdge(int)}
  *<LI> {@link #getRoads()}
  *</UL>
- *<P>
+ * On the large sea board, there can optionally be multiple "land areas"
+ * (groups of islands), if {@link SOCBoardLarge#getLandAreasLegalNodes()} != null.
+ *
  * @author Robert S Thomas
  * @see SOCBoardLarge
  */
@@ -740,9 +742,14 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * a list of nodes on the land of the board; key is node's Integer coordinate, value is Boolean.
      * nodes on outer edges of surrounding water/ports are not on the board.
+     *<P>
      * See dissertation figure A.2.
      * See also {@link #initPlayerLegalAndPotentialSettlements()}
      * and {@link #getLandHexCoords()}.
+     *<P>
+     * On the large sea board, there can optionally be multiple "land areas"
+     * (groups of islands), if {@link SOCBoardLarge#getLandAreasLegalNodes()} != null.
+     * In that case, <tt>nodesOnLand</tt> contains all nodes of all land areas.
      */
     protected HashSet nodesOnLand;
 
@@ -1530,7 +1537,8 @@ public class SOCBoard implements Serializable, Cloneable
      * <b>Note:</b> If your board is board layout v3 ({@link SOCBoardLarge}):
      * Because the v3 board layout varies:
      * At the server, call this after {@link #makeNewBoard(Hashtable)}.
-     * At the client, call this after {@link SOCBoardLarge#setLegalAndPotentialSettlements(java.util.Collection)}.
+     * At the client, call this after
+     * {@link SOCBoardLarge#setLegalAndPotentialSettlements(java.util.Collection, int, HashSet[])}.
      *
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
@@ -1604,8 +1612,13 @@ public class SOCBoard implements Serializable, Cloneable
 
     /**
      * Create and initialize a {@link SOCPlayer}'s set of legal settlements.
-     * You can clone the returned <tt>legalSettlements</tt>
+     *<P>
+     * For v1 and v2, you can clone the returned <tt>legalSettlements</tt>
      * to <tt>potentialSettlements</tt>.
+     *<P>
+     * For v3 ({@link SOCBoardLarge}), the potentials may be only a subset of
+     * <tt>legalSettlements</tt>; after {@link #makeNewBoard(Hashtable)}, call
+     * {@link SOCBoardLarge#getLegalAndPotentialSettlements()} instead of this method.
      *<P>
      * Previously part of {@link SOCPlayer}, but moved here in version 1.1.12
      * to better encapsulate the board coordinate encoding.
