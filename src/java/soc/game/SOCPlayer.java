@@ -441,7 +441,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * create a new player
+     * Create a new player for a new empty board.
+     *<P> 
+     * The player's possible placement locations will be
+     * set from {@link SOCBoard#initPlayerLegalRoads()} and
+     * {@link SOCBoard#initPlayerLegalAndPotentialSettlements()}.
+     * Once the game board is set up, be sure to call
+     * {@link #setPotentialSettlements(Collection, boolean)}
+     * to update our data.
      *
      * @param pn the player number
      * @param ga the game that the player is in
@@ -2700,22 +2707,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Set which nodes are potential settlements.
      * Called at client when joining/creating a game.
-     * At server, the list is instead copied at start
-     * of game from legalSettlements.
-     *
-     * @param psList  the list of potential settlements,
-     *     as {@link Integer} node coordinates
-     * @see #setPotentialSettlements(Collection, boolean)
-     */
-    public void setPotentialSettlements(Vector psList)
-    {
-        setPotentialSettlements(psList, false);
-    }
-
-    /**
-     * Set which nodes are potential settlements.
-     * Called at client when joining/creating a game.
-     * At server, the list is instead copied at start
+     * At server, unless {@link SOCGame#hasSeaBoard},
+     * the potentials list is instead copied at start
      * of game from legalSettlements.
      *<P>
      * If our game uses the large sea board ({@link SOCGame#hasSeaBoard}),
@@ -2731,9 +2724,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     a {@link Vector} or {@link HashSet} of
      *     {@link Integer} node coordinates
      * @param setLegalsToo  If true, also update legal settlements/
-     *     roads if we're using the large board layout
-     * @see #setPotentialSettlements(Vector)
-     * @since 2.0.00
+     *     roads if we're using the large board layout.  [Parameter added in v2.0.00]
      */
     public void setPotentialSettlements(Collection psList, final boolean setLegalsToo)
     {

@@ -695,7 +695,7 @@ public class OpeningBuildStrategy {
                 psList.addAll(ourPlayerData.getPotentialSettlements());
                 // log.debug("- potential settlement at " + Integer.toHexString(j));
 
-                dummy.setPotentialSettlements(psList);
+                dummy.setPotentialSettlements(psList, false);
 
                 for (int builds = 0; builds < numberOfBuilds; builds++)
                 {
