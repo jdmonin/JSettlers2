@@ -5584,21 +5584,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 bpanel.repaint();
                 return;
             }
-
-            final Font bpf = bpanel.getFont();
-            if (bpf == null)
-            {
-                boxW = 0;  // Paint method will look it up
-            } else {
-                final FontMetrics fm = getFontMetrics(bpf);
-                if (fm == null)
-                {
-                    boxW = 0;
-                } else {
-                    boxW = fm.stringWidth(hoverText) + PADDING_HORIZ;
-                    boxH = fm.getHeight();
-                }
-            }
+            boxW = 0;  // Paint method will calculate it
             positionToMouse(mouseX, mouseY);  // Also calls repaint
         }
         
@@ -5650,20 +5636,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (boxW == 0)
             {
-                // Deferred fontmetrics lookup from earlier setHoverText
+                // FontMetrics lookup, now that we have graphics info.
+                // Use '-' not ' ' to get around stringWidth spacing bug.
                 final Font bpf = bpanel.getFont();
                 if (bpf == null)
                     return;
-                final FontMetrics fm = getFontMetrics(bpf);
+                final FontMetrics fm = g.getFontMetrics(bpf);
                 if (fm == null)
                     return;
-                boxW = fm.stringWidth(hoverText) + PADDING_HORIZ;
+                boxW = fm.stringWidth(ht.replace(' ', '-')) + PADDING_HORIZ;
                 boxH = fm.getHeight();
             }
             g.setColor(Color.WHITE);
-            g.fillRect(boxX, boxY, boxW - 1, boxH - 1);
+            g.fillRect(boxX, boxY, boxW, boxH - 1);
             g.setColor(Color.BLACK);
-            g.drawRect(boxX, boxY, boxW - 1, boxH - 1);
+            g.drawRect(boxX, boxY, boxW, boxH - 1);
+            g.setFont(bpanel.getFont());
             g.drawString(ht, boxX + TEXT_INSET, boxY + boxH - TEXT_INSET);
         }
 
