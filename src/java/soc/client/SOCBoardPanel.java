@@ -2805,7 +2805,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // just change pnum for 6-player.  Seats 0 and 1 need no change.
         // We'll use 4 for middle-right, and 5 for middle-left.
 
-        if (is6player || isLargeBoard)
+        if (is6player)
         {
             switch (pnum)
             {
