@@ -418,14 +418,28 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (vpToWin != null)
         {
-            // #VP total to Win; to left of Game Options
-            curX -= (1.5f * ColorSquare.WIDTH + 2);
-            vpToWin.setLocation(curX, curY);
-
-            final int vpLabW = fm.stringWidth(vpToWinLab.getText());
-            curX -= (vpLabW + 4);
-            vpToWinLab.setLocation(curX, curY);
-            vpToWinLab.setSize(vpLabW + 2, lineH);
+            // #VP total to Win
+            if (pi.getGame().hasSeaBoard)
+            {
+                // bottom-right corner of panel, left of Game Options
+                curX -= (1.5f * ColorSquare.WIDTH + margin);
+                vpToWin.setLocation(curX, curY);
+    
+                final int vpLabW = fm.stringWidth(vpToWinLab.getText());
+                curX -= (vpLabW + (2*margin));
+                vpToWinLab.setLocation(curX, curY);
+                vpToWinLab.setSize(vpLabW + margin, lineH);
+            } else {
+                // upper-right corner of panel
+                curY = 1;
+                curX = dim.width - ColorSquare.WIDTH - margin;
+                vpToWin.setLocation(curX, curY);
+    
+                final int vpLabW = fm.stringWidth(vpToWinLab.getText());
+                curX -= (vpLabW + (2*margin));
+                vpToWinLab.setLocation(curX, curY);
+                vpToWinLab.setSize(vpLabW + margin, lineH);
+            }
         }
 
     }
