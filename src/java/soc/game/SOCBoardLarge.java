@@ -1159,26 +1159,28 @@ public class SOCBoardLarge extends SOCBoard
      * If this method hasn't yet been called, {@link #getLegalAndPotentialSettlements()}
      * returns an empty set.
      *
-     * @param landNodes  The set of settlement node coordinates as {@link Integer}s;
-     *    typically a {@link HashSet} or {@link Vector}
+     * @param psNodes  The set of potential settlement node coordinates as {@link Integer}s;
+     *    either a {@link HashSet} or {@link Vector}.
+     *    If <tt>lan == null</tt>, this will also be used as the
+     *    legal set of settlement nodes on land.
      * @param sla  The required starting Land Area number, or 0
      * @param lan If non-null, all Land Areas' legal node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
      */
     public void setLegalAndPotentialSettlements
-        (final Collection landNodes, final int sla, final HashSet[] lan)
+        (final Collection psNodes, final int sla, final HashSet[] lan)
     {
         if (lan == null)
         {
             landAreasLegalNodes = null;
             potentialsStartingLandArea = 0;
 
-            if (landNodes instanceof HashSet)
+            if (psNodes instanceof HashSet)
             {
-                nodesOnLand = (HashSet) (((HashSet) landNodes).clone());
+                nodesOnLand = (HashSet) (((HashSet) psNodes).clone());
             } else {
                 nodesOnLand.clear();
-                nodesOnLand.addAll(landNodes);
+                nodesOnLand.addAll(psNodes);
             }
         }
         else
