@@ -71,10 +71,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     Label cardT;
     Label cardC;
     Label cardCountLab;
+    private Label vpToWinLab;  // null unless hasSeaBoard or vp != 10; @since 2.0.00
     ColorSquare cardWheat;
     ColorSquare cardSheep;
     ColorSquare cardOre;
     ColorSquare cardCount;
+    private ColorSquare vpToWin;  // null unless hasSeaBoard or vp != 10; @since 2.0.00
 
     // Large Sea Board Ship button; @since 2.0.00
     private Label shipT;  // text
@@ -231,6 +233,23 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             shipBut.addActionListener(this);
         } else {
             shipBut = null;
+        }
+
+        if (ga.hasSeaBoard || (ga.vp_winner != 10))
+        {
+            final String TTIP_VP_TEXT = "Victory Points total needed to win the game";
+
+            vpToWinLab = new Label("VP to win:");
+            vpToWinLab.setAlignment(Label.RIGHT);
+            add(vpToWinLab);
+            new AWTToolTip(TTIP_VP_TEXT, vpToWinLab);
+
+            vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner);        
+            vpToWin.setTooltipText(TTIP_VP_TEXT);
+            add(vpToWin);
+        } else {
+            vpToWinLab = null;    
+            vpToWin = null;
         }
 
         if (ga.maxPlayers > 4)
@@ -396,6 +415,19 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX = dim.width - (2 * butW) - margin;
         optsBut.setSize(butW * 2, lineH);
         optsBut.setLocation(curX, curY);
+
+        if (vpToWin != null)
+        {
+            // #VP total to Win; to left of Game Options
+            curX -= (1.5f * ColorSquare.WIDTH + 2);
+            vpToWin.setLocation(curX, curY);
+
+            final int vpLabW = fm.stringWidth(vpToWinLab.getText());
+            curX -= (vpLabW + 4);
+            vpToWinLab.setLocation(curX, curY);
+            vpToWinLab.setSize(vpLabW + 2, lineH);
+        }
+
     }
 
     /**
