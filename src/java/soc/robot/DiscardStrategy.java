@@ -153,7 +153,8 @@ public class DiscardStrategy {
             /**
              *  choose discards at random
              */
-            SOCGame.discardPickRandom(ourPlayerData.getResources(), numDiscards, discards, rand);
+            SOCGame.discardOrGainPickRandom
+                (ourPlayerData.getResources(), numDiscards, true, discards, rand);
         }
         
         return discards;

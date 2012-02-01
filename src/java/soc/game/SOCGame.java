@@ -2951,7 +2951,7 @@ public class SOCGame implements Serializable, Cloneable
                 (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);
 
         case PLAY1:
-            // already can end it; fall through
+            // already can end it; fall through to SPECIAL_BUILDING
 
         case SPECIAL_BUILDING:
             // already can end it
@@ -2994,7 +2994,7 @@ public class SOCGame implements Serializable, Cloneable
                 (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE);
 
         case WAITING_FOR_DISCARDS:
-            return forceEndTurnChkDiscards(currentPlayerNumber);  // sets gameState, discards randomly
+            return forceEndTurnChkDiscardOrGain(currentPlayerNumber, true);  // sets gameState, discards randomly
 
         case WAITING_FOR_CHOICE:
             gameState = PLAY1;
@@ -3103,67 +3103,143 @@ public class SOCGame implements Serializable, Cloneable
      * set game state to {@link #WAITING_FOR_DISCARDS}.
      * When called, assumes {@link #isForcingEndTurn()} flag is already set.
      *
-     * @param pn Player number to force to randomly discard
+     * @param pn Player number to force to randomly discard or gain
+     * @param isDiscard  True to discard resources, false to gain
      * @return The force result, including any discarded resources.
      *         Type will be {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD}
      *         or {@link SOCForceEndTurnResult#FORCE_ENDTURN_RSRC_DISCARD_WAIT}.
      */
-    private SOCForceEndTurnResult forceEndTurnChkDiscards(int pn)
+    private SOCForceEndTurnResult forceEndTurnChkDiscardOrGain(final int pn, final boolean isDiscard)
     {
-        // select random cards, and discard
-        SOCResourceSet discards = new SOCResourceSet();
+        // select random cards, and discard or gain
+        SOCResourceSet picks = new SOCResourceSet();
+        SOCResourceSet hand = players[pn].getResources(); 
+        if (isDiscard)
         {
-            SOCResourceSet hand = players[pn].getResources(); 
-            discardPickRandom(hand, hand.getTotal() / 2, discards, rand);
-            discard(pn, discards);  // Checks for other discarders, sets gameState
+            discardOrGainPickRandom(hand, hand.getTotal() / 2, true, picks, rand);
+            discard(pn, picks);  // Checks for other discarders, sets gameState
+        } else {
+            // TODO for init place (START2A_WAITING_FOR_PICK_GOLD_RESOURCE):
+            //    even more randomly pick one, then set state START2A or START2B;
+            //    then call forceEnd again; maybe not here but after here
+            discardOrGainPickRandom(hand, players[pn].getNeedToPickGoldHexResources(), false, picks, rand);
+            pickGoldHexResources(pn, picks);  // Checks for other players, sets gameState
+            // TODO - what if not waiting for current pl to pick gains, but other pl?
+            //   (discard could be same scenario)
+            // TODO return type; ones below are for discards
         }
 
         if (gameState == WAITING_FOR_DISCARDS)
         {
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD_WAIT, discards, true);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD_WAIT, picks, true);
         } else {
             // gameState == PLAY1 - was set in discard()
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD, discards, true);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD, picks, true);
         }
     }
 
     /**
      * Choose discards at random; does not actually discard anything.
+     * For discards, randomly choose from contents of <tt>fromHand</tt>.
+     * For gains, randomly choose resource types least plentiful in <tt>fromHand</tt>.
      *
-     * @param fromHand     Discard from this set
-     * @param numDiscards  This many must be discarded
-     * @param discards     Add discards to this set (typically new,empty, when called)
+     * @param fromHand     Discard from this set; this set's contents will be changed by calling this method
+     * @param numToPick    This many must be discarded or added
+     * @param picks        Add the picked resources to this set (typically new and empty when called)
      * @param rand         Source of random
+     * @param isDiscard    True to discard resources, false to gain
+     * @throws IllegalArgumentException if <tt>isDiscard</tt> and
+     *     <tt>numDiscards</tt> &gt; {@link SOCResourceSet#getKnownTotal() fromHand.getKnownTotal()}
      */
-    public static void discardPickRandom(SOCResourceSet fromHand, int numDiscards, SOCResourceSet discards, Random rand)
+    public static void discardOrGainPickRandom
+        (SOCResourceSet fromHand, int numToPick, final boolean isDiscard, SOCResourceSet picks, Random rand)
+        throws IllegalArgumentException
     {
+        // resources, to be shuffled and chosen from;
+        // discards from fromHand, or possible new picks.
         Vector tempHand = new Vector(16);
 
-        // System.err.println("resources="+ourPlayerData.getResources());
-        for (int rsrcType = SOCResourceConstants.CLAY;
-                rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+        if (isDiscard)
         {
-            for (int i = fromHand.getAmount(rsrcType);
-                    i != 0; i--)
-            {
-                tempHand.addElement(new Integer(rsrcType));
+            // First, check the total
+            final int totalHand = fromHand.getKnownTotal();
+            if (numToPick > totalHand)
+                throw new IllegalArgumentException("Has " + totalHand + ", discard " + numToPick);
 
-                // System.err.println("rsrcType="+rsrcType);
+            // Add everything in fromHand.
+            // System.err.println("resources="+ourPlayerData.getResources());
+            for (int rsrcType = SOCResourceConstants.CLAY;
+                    rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
+            {
+                for (int i = fromHand.getAmount(rsrcType);
+                        i != 0; i--)
+                {
+                    tempHand.addElement(new Integer(rsrcType));    
+                    // System.err.println("rsrcType="+rsrcType);
+                }
             }
+        } else {
+
+            // First, determine the res type(s) with lowest amount in hand
+            int lowestNum = fromHand.getAmount(SOCResourceConstants.CLAY);
+            for (int rsrcType = SOCResourceConstants.ORE;
+                     rsrcType <= SOCResourceConstants.WOOD; ++rsrcType)
+            {
+                final int num = fromHand.getAmount(rsrcType);
+                if (num < lowestNum)
+                    lowestNum = num;
+            }
+
+            // Next, add resources with that amount, and then increase
+            // lowestNum until we've found at least numDiscards resources.
+            int toAdd = numToPick;
+            Vector alreadyPicked = new Vector();
+            do
+            {
+                for (int rsrcType = SOCResourceConstants.CLAY;
+                         rsrcType <= SOCResourceConstants.WOOD; ++rsrcType)
+                {
+                    final int num = fromHand.getAmount(rsrcType);
+                    if (num == lowestNum)
+                    {
+                        tempHand.addElement(new Integer(rsrcType));
+                        --toAdd;  // might go below 0, that's okay: we'll shuffle.
+                    }
+                    else if (num < lowestNum)
+                    {
+                        // Already added in previous iterations.
+                        // Add more of this type only if we need more.
+                        alreadyPicked.addElement(new Integer(rsrcType));
+                    }
+                }
+
+                if (toAdd > 0)
+                {
+                    ++lowestNum;
+                    if (! alreadyPicked.isEmpty())
+                    {
+                        toAdd -= alreadyPicked.size();
+                        tempHand.addAll(alreadyPicked);
+                        alreadyPicked.clear();
+                    }
+                }
+            } while (toAdd > 0);
         }
 
         /**
-         * pick cards
+         * randomly pick the resources
+         * (same as 'pick cards' when shuffling development cards)
+         * and move from tempHand to picks.
          */
-        for (; numDiscards > 0; numDiscards--)
+        for (; numToPick > 0; numToPick--)
         {
             // System.err.println("numDiscards="+numDiscards+"|hand.size="+hand.size());
             int idx = Math.abs(rand.nextInt() % tempHand.size());
 
             // System.err.println("idx="+idx);
-            discards.add(1, ((Integer) tempHand.elementAt(idx)).intValue());
+            picks.add(1, ((Integer) tempHand.elementAt(idx)).intValue());
             tempHand.removeElementAt(idx);
         }
     }
@@ -3181,12 +3257,13 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn Player number to discard; player must must need to discard,
      *           must not be current player (use {@link #forceEndTurn()} for that)
-     * @return   Set of resource cards which were discarded
+     * @param isDiscard  True to discard resources, false to gain
+     * @return   Set of resource cards which were discarded or gained
      * @throws IllegalStateException If the gameState isn't {@link #WAITING_FOR_DISCARDS},
      *                               or if pn's {@link SOCPlayer#getNeedToDiscard()} is false,
      *                               or if pn == currentPlayer.
      */
-    public SOCResourceSet playerDiscardRandom(int pn)
+    public SOCResourceSet playerDiscardRandom(final int pn, final boolean isDiscard)
         throws IllegalStateException
     {
         if (pn == currentPlayerNumber)
@@ -3197,7 +3274,7 @@ public class SOCGame implements Serializable, Cloneable
             throw new IllegalStateException("Player " + pn + " does not need to discard");
 
         // Since doesn't change current player number, this is safe to call
-        SOCForceEndTurnResult rs = forceEndTurnChkDiscards(pn);
+        SOCForceEndTurnResult rs = forceEndTurnChkDiscardOrGain(pn, isDiscard);
         return rs.getResourcesGainedLost();
     }
 

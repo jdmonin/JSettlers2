@@ -3753,7 +3753,8 @@ public class SOCRobotBrain extends Thread
             /**
              *  choose discards at random
              */
-            SOCGame.discardPickRandom(ourPlayerData.getResources(), numDiscards, discards, rand);
+            SOCGame.discardOrGainPickRandom
+                (ourPlayerData.getResources(), numDiscards, true, discards, rand);
         }
 
         //D.ebugPrintln("!!! DISCARDING !!!");
