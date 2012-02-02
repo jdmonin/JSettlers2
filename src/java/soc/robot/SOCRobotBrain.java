@@ -3649,6 +3649,12 @@ public class SOCRobotBrain extends Thread
     {
         SOCResourceSet targetResources;
 
+        // try to make a plan if we don't have one
+        if (buildingPlan.isEmpty())
+        {
+            decisionMaker.planStuff(robotParameters.getStrategyType());
+        }
+
         if (! buildingPlan.isEmpty())
         {
             targetResources = SOCPlayingPiece.getResourcesToBuild
