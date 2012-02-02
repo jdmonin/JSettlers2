@@ -1601,7 +1601,9 @@ public class SOCRobotBrain extends Thread
                         }
 
                         counter = 0;
-                        discard(((SOCDiscardRequest) mes).getNumberOfDiscards());
+                        client.discard(game, DiscardStrategy.discard
+                            (((SOCDiscardRequest) mes).getNumberOfDiscards(), buildingPlan, rand,
+                              ourPlayerData, robotParameters, decisionMaker, negotiator));
 
                         //	}
                         break;
@@ -3634,132 +3636,6 @@ public class SOCRobotBrain extends Thread
         D.ebugPrintln("!!! MOVING ROBBER !!!");
         client.moveRobber(game, ourPlayerData, bestHex);
         pause(2000);
-    }
-
-    /**
-     * discard some resources
-     *
-     * @param numDiscards  the number of resources to discard
-     */
-    protected void discard(int numDiscards)
-    {
-        //D.ebugPrintln("DISCARDING...");
-
-        /**
-         * if we have a plan, then try to keep the resources
-         * needed for that plan, otherwise discard at random
-         */
-        SOCResourceSet discards = new SOCResourceSet();
-
-        /**
-         * make a plan if we don't have one
-         */
-        if (buildingPlan.empty())
-        {
-            decisionMaker.planStuff(robotParameters.getStrategyType());
-        }
-
-        if (!buildingPlan.empty())
-        {
-            SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.peek();
-            negotiator.setTargetPiece(ourPlayerNumber, targetPiece);
-
-            //D.ebugPrintln("targetPiece="+targetPiece);
-            SOCResourceSet targetResources = SOCPlayingPiece.getResourcesToBuild(targetPiece.getType());
-
-            /**
-             * figure out what resources are NOT the ones we need
-             */
-            SOCResourceSet leftOvers = ourPlayerData.getResources().copy();
-
-            for (int rsrc = SOCResourceConstants.CLAY;
-                    rsrc <= SOCResourceConstants.WOOD; rsrc++)
-            {
-                if (leftOvers.getAmount(rsrc) > targetResources.getAmount(rsrc))
-                {
-                    leftOvers.subtract(targetResources.getAmount(rsrc), rsrc);
-                }
-                else
-                {
-                    leftOvers.setAmount(0, rsrc);
-                }
-            }
-
-            SOCResourceSet neededRsrcs = ourPlayerData.getResources().copy();
-            neededRsrcs.subtract(leftOvers);
-
-            /**
-             * figure out the order of resources from
-             * easiest to get to hardest
-             */
-
-            //D.ebugPrintln("our numbers="+ourPlayerData.getNumbers());
-            final int[] resourceOrder
-                = SOCBuildingSpeedEstimate.getRollsForResourcesSorted(ourPlayerData);
-
-            /**
-             * pick the discards
-             */
-            int curRsrc = 0;
-
-            while (discards.getTotal() < numDiscards)
-            {
-                /**
-                 * choose from the left overs
-                 */
-                while ((discards.getTotal() < numDiscards) && (curRsrc < 5))
-                {
-                    //D.ebugPrintln("(1) dis.tot="+discards.getTotal()+" curRsrc="+curRsrc);
-                    if (leftOvers.getAmount(resourceOrder[curRsrc]) > 0)
-                    {
-                        discards.add(1, resourceOrder[curRsrc]);
-                        leftOvers.subtract(1, resourceOrder[curRsrc]);
-
-                        // keep looping at this resource until finished
-                    }
-                    else
-                    {
-                        curRsrc++;
-                    }
-                }
-
-                curRsrc = 0;
-
-                /**
-                 * choose from what we need
-                 */
-                while ((discards.getTotal() < numDiscards) && (curRsrc < 5))
-                {
-                    //D.ebugPrintln("(2) dis.tot="+discards.getTotal()+" curRsrc="+curRsrc);
-                    if (neededRsrcs.getAmount(resourceOrder[curRsrc]) > 0)
-                    {
-                        discards.add(1, resourceOrder[curRsrc]);
-                        neededRsrcs.subtract(1, resourceOrder[curRsrc]);
-                    }
-                    else
-                    {
-                        curRsrc++;
-                    }
-                }
-            }
-
-            if (curRsrc == 5)
-            {
-                System.err.println("PROBLEM IN DISCARD - curRsrc == 5");
-            }
-        }
-        else
-        {
-            /**
-             *  choose discards at random
-             */
-            SOCGame.discardOrGainPickRandom
-                (ourPlayerData.getResources(), numDiscards, true, discards, rand);
-        }
-
-        //D.ebugPrintln("!!! DISCARDING !!!");
-        //D.ebugPrintln("discards="+discards);
-        client.discard(game, discards);
     }
 
     /**

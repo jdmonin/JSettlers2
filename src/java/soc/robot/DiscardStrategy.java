@@ -40,9 +40,11 @@ public class DiscardStrategy {
 	/** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
 
-	public SOCResourceSet discard(int numDiscards, Stack buildingPlan, SOCPlayer ourPlayerData, SOCRobotParameters robotParameters, SOCRobotDM decisionMaker, SOCRobotNegotiator negotiator){
-		Random rand = new Random();
-		//log.debug("DISCARDING...");
+    public static SOCResourceSet discard
+        (final int numDiscards, Stack buildingPlan, Random rand,
+         SOCPlayer ourPlayerData, SOCRobotParameters robotParameters, SOCRobotDM decisionMaker, SOCRobotNegotiator negotiator)
+    {
+        //log.debug("DISCARDING...");
 
         /**
          * if we have a plan, then try to keep the resources
@@ -145,7 +147,7 @@ public class DiscardStrategy {
             if (curRsrc == 5)
             {
                 // log.error("PROBLEM IN DISCARD - curRsrc == 5");
-                D.ebugPrintln("discardStrategy: PROBLEM IN DISCARD - curRsrc == 5");
+                System.err.println("discardStrategy: PROBLEM IN DISCARD - curRsrc == 5");
             }
         }
         else
@@ -158,5 +160,5 @@ public class DiscardStrategy {
         }
         
         return discards;
-	}
+    }
 }
