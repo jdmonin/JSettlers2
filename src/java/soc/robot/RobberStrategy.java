@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
- * Portions of this file copyright (C) 2009,2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2011,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,7 +48,7 @@ public class RobberStrategy {
 
        final int[] hexes = game.getBoard().getLandHexCoords();
 
-       int robberHex = game.getBoard().getRobberHex();
+       final int prevRobberHex = game.getBoard().getRobberHex();
 
        /**
         * decide which player we want to thwart
@@ -56,8 +56,8 @@ public class RobberStrategy {
        int[] winGameETAs = new int[game.maxPlayers];
        for (int i = game.maxPlayers - 1; i >= 0; --i)
            winGameETAs[i] = 100;
-       Iterator trackersIter = playerTrackers.values().iterator();
 
+       Iterator trackersIter = playerTrackers.values().iterator();
        while (trackersIter.hasNext())
        {
            SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
@@ -82,20 +82,20 @@ public class RobberStrategy {
 
        for (int pnum = 0; pnum < game.maxPlayers; pnum++)
        {
-           if (! game.isSeatVacant(pnum))
+           if (game.isSeatVacant(pnum))
+               continue;
+
+           if ((victimNum < 0) && (pnum != ourPlayerNumber))
            {
-               if ((victimNum < 0) && (pnum != ourPlayerNumber))
-               {
-                   // The first pick
-                   log.debug("Picking a robber victim: pnum=" + pnum);
-                   victimNum = pnum;
-               }
-               else if ((pnum != ourPlayerNumber) && (winGameETAs[pnum] < winGameETAs[victimNum]))
-               {
-                   // A better pick
-                   log.debug("Picking a better robber victim: pnum=" + pnum);
-                   victimNum = pnum;
-               }
+               // The first pick
+               log.debug("Picking a robber victim: pnum=" + pnum);
+               victimNum = pnum;
+           }
+           else if ((pnum != ourPlayerNumber) && (winGameETAs[pnum] < winGameETAs[victimNum]))
+           {
+               // A better pick
+               log.debug("Picking a better robber victim: pnum=" + pnum);
+               victimNum = pnum;
            }
        }
        // Postcondition: victimNum != -1 due to "First pick" in loop.
@@ -105,7 +105,7 @@ public class RobberStrategy {
         */
        SOCPlayer victim = game.getPlayer(victimNum);
        SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate();
-       int bestHex = robberHex;
+       int bestHex = prevRobberHex;
        int worstSpeed = 0;
        final boolean skipDeserts = game.isGameOptionSet("RD");  // can't move robber to desert
        SOCBoard gboard = (skipDeserts ? game.getBoard() : null);
@@ -116,7 +116,7 @@ public class RobberStrategy {
             * only check hexes that we're not touching,
             * and not the robber hex, and possibly not desert hexes
             */
-           if ((hexes[i] != robberHex)
+           if ((hexes[i] != prevRobberHex)
                    && ourPlayerData.getNumbers().hasNoResourcesForHex(hexes[i])
                    && ! (skipDeserts && (gboard.getHexTypeFromCoord(hexes[i]) == SOCBoard.DESERT_HEX )))
            {
@@ -157,10 +157,10 @@ public class RobberStrategy {
          *       Use similar algorithm as picking for opponent,
          *       but apply it worst vs best.
          */
-        if (bestHex == robberHex)
+        if (bestHex == prevRobberHex)
         {
             int numRand = 0;
-            while ((bestHex == robberHex)
+            while ((bestHex == prevRobberHex)
                    || (skipDeserts
                        && (gboard.getHexTypeFromCoord(bestHex) == SOCBoard.DESERT_HEX ))
                    || ((numRand < 30)
@@ -191,25 +191,22 @@ public class RobberStrategy {
         */
        for (int i = 0; i < game.maxPlayers; i++)
        {
-           if (! game.isSeatVacant (i))
+           if (game.isSeatVacant(i) || ! choices[i])
+               continue;
+
+           if (choice == -1)
            {
-               if (choices[i])
-               {
-                   if (choice == -1)
-                   {
-                       choice = i;
-                   }
-                   else
-                   {
-                       SOCPlayerTracker tracker1 = (SOCPlayerTracker) playerTrackers.get(new Integer(i));
-                       SOCPlayerTracker tracker2 = (SOCPlayerTracker) playerTrackers.get(new Integer(choice));
+               choice = i;
+           }
+           else
+           {
+               SOCPlayerTracker tracker1 = (SOCPlayerTracker) playerTrackers.get(new Integer(i));
+               SOCPlayerTracker tracker2 = (SOCPlayerTracker) playerTrackers.get(new Integer(choice));
    
-                       if ((tracker1 != null) && (tracker2 != null) && (tracker1.getWinGameETA() < tracker2.getWinGameETA()))
-                       {
-                           //log.debug("Picking a robber victim: pnum="+i+" VP="+game.getPlayer(i).getPublicVP());
-                           choice = i;
-                       }
-                   }
+               if ((tracker1 != null) && (tracker2 != null) && (tracker1.getWinGameETA() < tracker2.getWinGameETA()))
+               {
+                   //log.debug("Picking a robber victim: pnum="+i+" VP="+game.getPlayer(i).getPublicVP());
+                   choice = i;
                }
            }
        }
@@ -221,6 +218,8 @@ public class RobberStrategy {
           choice = Math.abs(rand.nextInt() % SOCGame.MAXPLAYERS);
           } while (!choices[choice]);
         */
+
        return choice;
    }
+
 }
