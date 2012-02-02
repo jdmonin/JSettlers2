@@ -629,7 +629,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * get a list of all the potential settlements for a player
              */
             case SOCMessage.POTENTIALSETTLEMENTS:
-                handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes);
+                handlePOTENTIALSETTLEMENTS((SOCPotentialSettlements) mes, games);
 
                 break;
 
@@ -1561,8 +1561,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * handle the "list of potential settlements" message
      * @param mes  the message
+     * @param games  The hashtable of client's {@link SOCGame}s; key = game name
      */
-    protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
+    public static void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes, Hashtable games)
     {
         SOCGame ga = (SOCGame) games.get(mes.getGame());
         if (ga == null)

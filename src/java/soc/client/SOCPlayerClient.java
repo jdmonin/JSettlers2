@@ -79,7 +79,6 @@ import java.net.ConnectException;
 import java.net.Socket;
 
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 import java.util.Timer;
@@ -3485,31 +3484,9 @@ public class SOCPlayerClient extends Applet
      */
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
     {
-        final String gaName = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gaName);
-        if (ga == null)
-            return;
+        SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, games);
 
-        final Vector vset = mes.getPotentialSettlements();
-        final HashSet[] las = mes.landAreasLegalNodes;
-        int pn = mes.getPlayerNumber();
-        if (ga.hasSeaBoard)
-        {
-            SOCBoardLarge bl = ((SOCBoardLarge) ga.getBoard());
-            if ((pn == -1) || bl.getLegalAndPotentialSettlements().isEmpty())
-                bl.setLegalAndPotentialSettlements
-                  (vset, mes.startingLandArea, las);
-        }
-        if (pn != -1)
-        {
-            SOCPlayer player = ga.getPlayer(pn);
-            player.setPotentialAndLegalSettlements(vset, true, las);
-        } else {
-            for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
-                ga.getPlayer(pn).setPotentialAndLegalSettlements(vset, true, las);
-        }
-
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
         if (pi == null)
             return;
         pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
