@@ -675,10 +675,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             /**
              * get a list of all the potential settlements for a player
+             * or legal/potential settlements for all players
              */
             case SOCMessage.POTENTIALSETTLEMENTS:
-                handlePutBrainQ((SOCPotentialSettlements) mes);
-
+                handlePOTENTIALSETTLEMENTS
+                    ((SOCPotentialSettlements) mes, games);
                 break;
 
             /**
