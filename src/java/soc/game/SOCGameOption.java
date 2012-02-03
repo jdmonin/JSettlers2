@@ -271,22 +271,39 @@ public class SOCGameOption implements Cloneable, Comparable
             }
         });
 
-        // If PLB is unchecked, set PL to 4 if it's 5 or 6
+        // If PLB becomes unchecked, set PL to 4 if it's 5 or 6;
+        // if it becomes checked, set PL to 6 if <= 4, unless PL.userChanged already
         plb.addChangeListener(new ChangeListener()
         {
             public void valueChanged
                 (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable currentOpts)
             {
-                if (Boolean.TRUE.equals(newValue))
-                    return;  // ignore unless it became false
                 SOCGameOption pl = (SOCGameOption) currentOpts.get("PL");
                 if (pl == null)
                     return;
-                if (pl.getIntValue() > 4)
+                final int numPl = pl.getIntValue();
+                boolean refreshPl = false;
+
+                if (Boolean.TRUE.equals(newValue))
                 {
-                    pl.setIntValue(4);
-                    pl.refreshDisplay();
+                    // PLB became checked; check PL 4 vs 6
+                    if ((numPl <= 4) && ! pl.userChanged)
+                    {
+                        pl.setIntValue(6);
+                        refreshPl = true;
+                    }
+                } else {
+                    // PLB became unchecked
+                    if (numPl > 4)
+                    {
+                        pl.setIntValue(4);
+                        pl.userChanged = false;  // so re-check will set to 6
+                        refreshPl = true;
+                    }
                 }
+
+                if (refreshPl)
+                    pl.refreshDisplay();
             }
         });
 
@@ -484,7 +501,13 @@ public class SOCGameOption implements Cloneable, Comparable
      * Has the user selected a value?
      * False if unchanged, or if changed only by
      * a {@link ChangeListener} or other automatic means.
+     *<P>
+     * If a {@link ChangeListener} later changes the
+     * option's value, consider clearing <tt>userChanged</tt>
+     * because the user hasn't set that.
+     *<P>
      * Client use only; not sent over the network.
+     * Set in <tt>NewGameOptionsFrame</tt>.
      * @since 2.0.00 
      */
     public transient boolean userChanged;
@@ -1933,6 +1956,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * ChangeListener code, so be careful and write them defensively.
      *<P> 
      * Callback method is {@link #valueChanged(SOCGameOption, Object, Object, Hashtable)}.
+     * Called from <tt>NewGameOptionsFrame</tt>.
      *<P>
      * For <em>server-side</em> consistency adjustment of values before creating games,
      * add code to {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
