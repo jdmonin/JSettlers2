@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -60,7 +60,7 @@ import soc.util.Version;
  *<P>
  * Also used for showing a game's options (read-only) during game play.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 public class NewGameOptionsFrame extends Frame
@@ -329,7 +329,10 @@ public class NewGameOptionsFrame extends Frame
         gbc.anchor = GridBagConstraints.WEST;
 
         // Look for options that should be on the same
-        // line as other options (based on key length).
+        // line as other options (based on key length)
+        // instead of at the start of a line.
+        // TODO: for now these are on subsequent lines
+        //   instead of sharing the same line.
         Hashtable sameLineOpts = new Hashtable();  // key=on-same-line opt, value=opt to start line
         {
             Enumeration okeys = opts.keys();
@@ -400,8 +403,7 @@ public class NewGameOptionsFrame extends Frame
             {
                 Checkbox cb = new Checkbox();
                 initInterface_Opt1(op, cb, true, false, bp, gbl, gbc);
-                if (op.hasChangeListener())
-                    cb.addItemListener(this);
+                cb.addItemListener(this);
             }
             break;
 
@@ -441,14 +443,13 @@ public class NewGameOptionsFrame extends Frame
                 if (! readOnly)
                 {
                     txtc.addKeyListener(this);  // for ESC/ENTER
-                    if (op.hasChangeListener())
-                        txtc.addTextListener(this);  // for gameopt ChangeListener
+                    txtc.addTextListener(this); // for gameopt.ChangeListener and userChanged
                 }
                 initInterface_Opt1(op, txtc, false, false, bp, gbl, gbc);
             }
             break;
 
-            // default: unknown, see above
+            // default: unknown, ignore; see above
         }
     }
 
@@ -489,8 +490,7 @@ public class NewGameOptionsFrame extends Frame
             if (! readOnly)
             {
                 boolOptCheckboxes.put(op.optKey, cb);
-                if (op.hasChangeListener())
-                    cb.addItemListener(this);  // for op's ChangeListener
+                cb.addItemListener(this);  // for op's ChangeListener and userChanged
             }
         } else {
             L = new Label();  // to fill checkbox's column
@@ -536,7 +536,7 @@ public class NewGameOptionsFrame extends Frame
                     ((TextField) oc).addKeyListener(this);   // for ESC/ENTER
                 } else if (oc instanceof Choice)
                 {
-                    ((Choice) oc).addItemListener(this);  // for related cb, and op.ChangeListener
+                    ((Choice) oc).addItemListener(this);  // for related cb, and op.ChangeListener and userChanged
                 }
             }
         }
@@ -565,6 +565,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Natural log of 10. For use in {@link #initOption_int(SOCGameOption)}, to determine
      * number of digits needed for the option in a textfield
+     * (not available in java 1.4)
      */
     private static final double LOG_10 = Math.log(10.0);
 
@@ -598,8 +599,7 @@ public class NewGameOptionsFrame extends Frame
             if (twidth < 3)
                 twidth = 3;
             c = new IntTextField(op.getIntValue(), twidth);
-            if (op.hasChangeListener())
-                ((TextField) c).addTextListener(this);
+            ((TextField) c).addTextListener(this);  // for op.ChangeListener and userChanged
         } else {
             Choice ch = new Choice();
             for (int i = op.minIntValue; i <= op.maxIntValue; ++i)
@@ -608,8 +608,7 @@ public class NewGameOptionsFrame extends Frame
             int defaultIdx = op.getIntValue() - op.minIntValue;
             if (defaultIdx > 0)
                 ch.select(defaultIdx);
-            if (op.hasChangeListener())
-                ch.addItemListener(this);
+            ch.addItemListener(this);  // for op.ChangeListener and userChanged
             c = ch;
         }
         return c;
@@ -630,8 +629,7 @@ public class NewGameOptionsFrame extends Frame
         int defaultIdx = op.getIntValue() - 1;  // enum numbering is 1-based
         if (defaultIdx > 0)
             ch.select(defaultIdx);
-        if (op.hasChangeListener())
-            ch.addItemListener(this);
+        ch.addItemListener(this);  // for op.ChangeListener and userChanged 
         return ch;
     }
 
@@ -885,6 +883,7 @@ public class NewGameOptionsFrame extends Frame
     /**
      * When gamename contents change, enable/disable buttons as appropriate. (TextListener)
      * Also handles {@link SOCGameOption#OTYPE_INTBOOL} textfield/checkbox combos.
+     * Also sets {@link SOCGameOption#userChanged}.
      * @param e textevent from {@link #gameName}, or from a TextField in {@link #controlsOpts}
      */
     public void textValueChanged(TextEvent e)
@@ -937,6 +936,11 @@ public class NewGameOptionsFrame extends Frame
                 { }
             }
 
+            if (validChange && ! opt.userChanged)
+                opt.userChanged = true;
+
+            // If this string or int option also has a bool checkbox,
+            // set or clear that based on string/int not empty.
             boolean cbSet = false;
             Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
             if ((cb != null) && (notEmpty != cb.getState()))
@@ -945,6 +949,7 @@ public class NewGameOptionsFrame extends Frame
                 opt.setBoolValue(notEmpty);
                 cbSet = true;
             }
+ 
             SOCGameOption.ChangeListener cl = opt.getChangeListener();
             if (cl == null)
                 return;
@@ -970,10 +975,17 @@ public class NewGameOptionsFrame extends Frame
     }
 
     /**
-     * Called when a Choice or Checkbox value changes.  Two purposes:
+     * Called when a Choice or Checkbox value changes (ItemListener).
+     * Used for these things:
+     *<UL>
+     * <LI>
+     * Set {@link SOCGameOption#userChanged}
+     * <LI>
      * Check Choices or Checkboxes to see if their game option has a {@link ChangeListener}.
+     * <LI>
      * Set the checkbox when the popup-menu Choice value is changed for a
-     * {@link SOCGameOption#OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL}. (ItemListener)
+     * {@link SOCGameOption#OTYPE_INTBOOL} or {@link SOCGameOption#OTYPE_ENUMBOOL}.
+     *</UL>
      * @param e itemevent from a Choice or Checkbox in {@link #controlsOpts}
      */
     public void itemStateChanged(ItemEvent e)
@@ -983,12 +995,18 @@ public class NewGameOptionsFrame extends Frame
         SOCGameOption opt = (SOCGameOption) controlsOpts.get(ctrl);
         if (opt == null)
             return;
+
         Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
         if ((cb != null) && (cb != ctrl) && ! cb.getState())
         {
+            // If the user picked a choice, also set the checkbox
             cb.setState(true);
             choiceSetCB = true;
         }
+
+        if (! opt.userChanged)
+            opt.userChanged = true;
+
         SOCGameOption.ChangeListener cl = opt.getChangeListener();
         if (cl == null)
             return;

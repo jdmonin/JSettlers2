@@ -75,7 +75,7 @@ import soc.message.SOCMessage;
  * JSettlers version number to the server's, and asks for any changes to options if
  * their versions differ.
  *<P>
- * @author Jeremy D. Monin <jeremy@nand.net>
+ * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 public class SOCGameOption implements Cloneable, Comparable
@@ -479,6 +479,15 @@ public class SOCGameOption implements Cloneable, Comparable
      * @since 1.1.13
      */
     private transient ChangeListener optCL;
+
+    /**
+     * Has the user selected a value?
+     * False if unchanged, or if changed only by
+     * a {@link ChangeListener} or other automatic means.
+     * Client use only; not sent over the network.
+     * @since 2.0.00 
+     */
+    public transient boolean userChanged;
 
     /**
      * Create a new game option of unknown type ({@link #OTYPE_UNKNOWN}).
