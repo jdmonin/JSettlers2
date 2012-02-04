@@ -30,7 +30,6 @@ import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
-import soc.game.SOCPlayerNumbers;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
@@ -56,7 +55,6 @@ import soc.message.SOCMovePiece;
 import soc.message.SOCMoveRobber;
 import soc.message.SOCPickResourcesRequest;
 import soc.message.SOCPlayerElement;
-import soc.message.SOCPotentialSettlements;
 import soc.message.SOCPutPiece;
 import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
@@ -73,7 +71,6 @@ import soc.util.SOCRobotParameters;
 
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Random;
@@ -200,6 +197,10 @@ public class SOCRobotBrain extends Thread
 
     /**
      * This is our current building plan, a stack of {@link SOCPossiblePiece}.
+     *<P>
+     * Set in {@link #planBuilding()}.
+     * When making a {@link #buildingPlan}, be sure to also set
+     * {@link #negotiator}'s target piece.
      */
     protected Stack buildingPlan;
 
@@ -254,7 +255,9 @@ public class SOCRobotBrain extends Thread
     protected SOCRobotDM decisionMaker;
 
     /**
-     * the thing that determines how we negotiate
+     * The data and code that determines how we negotiate.
+     * {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
+     * is set when {@link #buildingPlan} is updated.
      */
     protected SOCRobotNegotiator negotiator;
 
@@ -1958,18 +1961,19 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Either ask to build a piece, or use trading or development cards to get resources to build it.
+     * Either ask to build a planned piece, or use trading or development cards to get resources to build it.
      * Examines {@link #buildingPlan} for the next piece wanted.
      *<P>
      * Call when these conditions are all true:
      * <UL>
+     *<LI> {@link #ourTurn}
+     *<LI> {@link #planBuilding()} already called
+     *<LI> ! {@link #buildingPlan}.empty()
      *<LI> gameState {@link SOCGame#PLAY1} or {@link SOCGame#SPECIAL_BUILDING}
      *<LI> <tt>waitingFor...</tt> flags all false ({@link #waitingForGameState}, etc) except possibly {@link #waitingForSpecialBuild}
      *<LI> <tt>expect...</tt> flags all false ({@link #expectPLACING_ROAD}, etc)
      *<LI> ! {@link #waitingForOurTurn}
-     *<LI> {@link #ourTurn}
      *<LI> ! ({@link #expectPLAY} && (counter < 4000))
-     *<LI> ! {@link #buildingPlan}.empty()
      *</UL>
      *<P>
      * May set any of these flags:
@@ -1980,9 +1984,14 @@ public class SOCRobotBrain extends Thread
      *</UL>
      *
      * @since 1.1.08
+     * @throw IllegalStateException  if {@link #buildingPlan}{@link Stack#empty() .empty()}
      */
     private void buildOrGetResourceByTradeOrCard()
+        throws IllegalStateException
     {
+        if (buildingPlan.empty())
+            throw new IllegalStateException("buildingPlan empty when called");
+
         /**
          * If we're in SPECIAL_BUILDING (not PLAY1),
          * can't trade or play development cards.
@@ -1995,13 +2004,15 @@ public class SOCRobotBrain extends Thread
         boolean roadBuildingPlan = false;
         // TODO handle ships here
 
-        if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
+        if (gameStatePLAY1
+            && (! ourPlayerData.hasPlayedDevCard())
+            && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
         {
             //D.ebugPrintln("** Checking for Road Building Plan **");
             SOCPossiblePiece topPiece = (SOCPossiblePiece) buildingPlan.pop();
 
             //D.ebugPrintln("$ POPPED "+topPiece);
-            if ((topPiece != null) && (topPiece.getType() == SOCPossiblePiece.ROAD) && (!buildingPlan.empty()))
+            if ((topPiece != null) && (topPiece.getType() == SOCPossiblePiece.ROAD))
             {
                 SOCPossiblePiece secondPiece = (SOCPossiblePiece) buildingPlan.peek();
 
@@ -2122,12 +2133,13 @@ public class SOCRobotBrain extends Thread
                     ///
                     if (!waitingForTradeMsg && !waitingForTradeResponse && ourPlayerData.getResources().contains(targetResources))
                     {
+                        // Remember that targetPiece == buildingPlan.peek().
                         // Calls buildingPlan.pop().
                         // Checks against whatWeFailedToBuild to see if server has rejected this already.
                         // Calls client.buyDevCard or client.buildRequest.
                         // Sets waitingForDevCard, or waitingForGameState and expectPLACING_SETTLEMENT (etc).
 
-                        buildRequestPlannedPiece(targetPiece);
+                        buildRequestPlannedPiece();
                     }
                 }
             }
@@ -2628,20 +2640,20 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Have the client ask to build this piece, unless we've already
-     * been told by the server to not build it.
-     * Calls {@link #buildingPlan}.pop().
+     * Have the client ask to build our top planned piece
+     * {@link #buildingPlan}{@link Stack#pop() .pop()},
+     * unless we've already been told by the server to not build it.
+     *<P>
      * Checks against {@link #whatWeFailedToBuild} to see if server has rejected this already.
      * Calls <tt>client.buyDevCard()</tt> or <tt>client.buildRequest()</tt>.
      * Sets {@link #waitingForDevCard}, or {@link #waitingForGameState} and
      * {@link #expectPLACING_SETTLEMENT} (etc).
      *
-     * @param targetPiece  This should be the top piece of {@link #buildingPlan}.
      * @since 1.1.08
      */
-    private void buildRequestPlannedPiece(SOCPossiblePiece targetPiece)
+    private void buildRequestPlannedPiece()
     {
-        buildingPlan.pop();
+        final SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.pop();
         D.ebugPrintln("$ POPPED " + targetPiece);
         lastMove = targetPiece;
         currentDRecorder = (currentDRecorder + 1) % 2;
@@ -3629,7 +3641,7 @@ public class SOCRobotBrain extends Thread
         // try to make a plan if we don't have one
         if (buildingPlan.isEmpty())
         {
-            decisionMaker.planStuff(robotParameters.getStrategyType());
+            planBuilding();
         }
 
         if (! buildingPlan.isEmpty())
