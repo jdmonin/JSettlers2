@@ -51,6 +51,9 @@ import soc.util.SOCRobotParameters;
  * to call this SOCRobotPlanner because it
  * doesn't really plan, but you could think
  * of it that way.  DM = Decision Maker
+ *<P>
+ * Uses the info in the {@link SOCPlayerTrackers}s.
+ * One important method here is {@link #planStuff(int)}.
  *
  * @author Robert S. Thomas
  */
@@ -115,8 +118,13 @@ public class SOCRobotDM
   protected Vector threatenedRoads;
   protected Vector goodRoads;
   protected SOCPossibleRoad favoriteRoad;
+
+  /** Threatened settlements, as calculated by {@link #scorePossibleSettlements(int, int)} */
   protected Vector threatenedSettlements;
+
+  /** Good settlements, as calculated by {@link #scorePossibleSettlements(int, int)} */
   protected Vector goodSettlements;
+
   protected SOCPossibleSettlement favoriteSettlement;    
   protected SOCPossibleCity favoriteCity;
   protected SOCPossibleCard possibleCard;
@@ -476,8 +484,12 @@ public class SOCRobotDM
   }
   
   /**
-   * dumbFastGameStrategy
+   * Plan building for the dumbFastGameStrategy ({@link #FAST_STRATEGY}).
    * uses rules to determine what to build next
+   * and update {@link #buildingPlan}.
+   *<P>
+   * For example, if {@link #favoriteSettlement} is chosen,
+   * it's chosen from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}.
    *
    * @param buildingETAs  the etas for building something
    */
@@ -547,7 +559,8 @@ public class SOCRobotDM
 	  brain.getDRecorder().record("Speedup = "+posSet.getSpeedupTotal());
 	  brain.getDRecorder().record("ETA = "+posSet.getETA());
 	  Stack roadPath = posSet.getRoadPath();
-	  if (roadPath!= null) {
+	  if (roadPath != null)
+	  {
 	    brain.getDRecorder().record("Path:");
 	    Iterator rpIter = roadPath.iterator();
 	    while (rpIter.hasNext()) {
@@ -581,7 +594,8 @@ public class SOCRobotDM
 	//
 	D.ebugPrintln("Picked favorite settlement at "+game.getBoard().nodeCoordToString(favoriteSettlement.getCoordinates()));
 	buildingPlan.push(favoriteSettlement);
-	if (!favoriteSettlement.getNecessaryRoads().isEmpty()) {
+	if (! favoriteSettlement.getNecessaryRoads().isEmpty())
+	{
 	  //
 	  // we need to build roads first
 	  //	  
@@ -1178,8 +1192,12 @@ public class SOCRobotDM
   }
 
   /**
-   * smart game strategy
+   * Plan building for the smart game strategy ({@link #SMART_STRATEGY}).
    * use WGETA to determine best move
+   * and update {@link #buildingPlan}.
+   *<P>
+   * For example, if {@link #favoriteSettlement} is chosen,
+   * it's chosen from {@link #goodSettlements} or {{@link #threatenedSettlements}.
    *
    * @param buildingETAs  the etas for building something
    */
@@ -1623,7 +1641,10 @@ public class SOCRobotDM
 
 
   /**
-   * score possible settlements for smartStrategy
+   * Score possible settlements for smartStrategy,
+   * from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}
+   * into {@link #threatenedSettlements} and {@link #goodSettlements};
+   * calculate those settlements' {@link SOCPossiblePiece#getScore()}s
    */
   protected void scorePossibleSettlements(final int settlementETA, final int leadersCurrentWGETA)
   {

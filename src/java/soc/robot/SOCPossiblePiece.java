@@ -26,7 +26,9 @@ import java.util.Vector;
 
 
 /**
- * Pieces that a player might build
+ * Pieces that a player might build.
+ * Although it's not a board piece type, {@link SOCPossibleCard} is a type here
+ * because the player could buy them as part of a building plan.
  *
  * @author Robert S. Thomas
  */

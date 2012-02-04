@@ -51,7 +51,12 @@ import java.util.Vector;
 
 /**
  * This class is used by the SOCRobotBrain to track
+ * strategic planning information such as
  * possible building spots for itself and other players.
+ *<P>
+ * Some users: {@link SOCRobotDM#planStuff(int)},
+ * and many callers of {@link #getWinGameETA()}
+ *<P>
  *
  * (Dissertation excerpt)
  *
@@ -73,13 +78,31 @@ import java.util.Vector;
 public class SOCPlayerTracker
 {
     protected static final DecimalFormat df1 = new DecimalFormat("###0.00");
+
+    /**
+     * Road expansion level for {@link #addOurNewRoad(SOCRoad, HashMap, int)};
+     * how far away to look for possible future settlements
+     * (level of recursion).
+     */
     static protected int EXPAND_LEVEL = 1;
+
+    /**
+     * Road expansion level for {@link #updateLRPotential(SOCPossibleRoad, SOCPlayer, SOCRoad, int, int)};
+     * how far away to look for possible future roads
+     * (level of recursion).
+     */
     static protected int LR_CALC_LEVEL = 2;
+
     protected SOCRobotBrain brain;
     private final SOCPlayer player;
     private final int playerNumber;
 
-    /** Key = {@link Integer} node coordinate, value = {@link SOCPossibleSettlement} */
+    /**
+     * Possible neat-future settlements for this player.
+     * Key = {@link Integer} node coordinate, value = {@link SOCPossibleSettlement}.
+     * Expanded in {@link #addOurNewRoad(SOCRoad, HashMap, int)}
+     * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
+     */
     protected TreeMap possibleSettlements;
 
     /**
