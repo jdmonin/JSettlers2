@@ -108,6 +108,8 @@ public class SOCPlayerTracker
     /**
      * Includes both roads and ships.
      * Key = {@link Integer} edge coordinate, value = {@link SOCPossibleRoad} or {@link SOCPossibleShip}
+     * Expanded in {@link #addOurNewRoad(SOCRoad, HashMap, int)}
+     * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
      */
     protected TreeMap possibleRoads;
 
@@ -582,12 +584,13 @@ public class SOCPlayerTracker
     /**
      * Add one of our roads or ships that has just been built.
      * Look for new adjacent possible settlements.
-     * Call {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
+     * Calls {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
      * on newly possible adjacent roads.
      *
      * @param road         the road or ship
      * @param trackers     player trackers for the players
-     * @param expandLevel  how far out we should expand roads/ships
+     * @param expandLevel  how far out we should expand roads/ships;
+     *                     passed to {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
      */
     public void addOurNewRoad(SOCRoad road, HashMap trackers, int expandLevel)
     {
@@ -757,12 +760,17 @@ public class SOCPlayerTracker
 
     /**
      * Expand a possible road or ship, to see what placements it makes possible.
+     * Adds to or updates {@link #possibleSettlements} at <tt>targetRoad</tt>'s nodes, if potential.
+     * If <tt>level</tt> &gt; 0, calls itself recursively to go more levels out from the current pieces,
+     * adding/updating {@link #possibleRoads} and {@link #possibleSettlements}.
      *
      * @param targetRoad   the possible road
      * @param player    the player who owns the original road
      * @param dummy     the dummy player used to see what's legal
      * @param trackers  player trackers
-     * @param level     how many levels (additional pieces) to expand
+     * @param level     how many levels (additional pieces) to expand;
+     *                  0 to only check <tt>targetRoad</tt> for potential settlements
+     *                  and not expand past it for new roads, ships, or further settlements
      */
     public void expandRoadOrShip
         (SOCPossibleRoad targetRoad, SOCPlayer player, SOCPlayer dummy, HashMap trackers, final int level)
@@ -779,13 +787,11 @@ public class SOCPlayerTracker
 
         //
         // see if this road/ship adds any new possible settlements
+        // (check road's adjacent nodes)
         //
         //D.ebugPrintln("$$$ checking for possible settlements");
         //
-        // check adjacent nodes to road for potential settlements
-        //
         Enumeration adjNodeEnum = board.getAdjacentNodesToEdge(tgtRoadEdge).elements();
-
         while (adjNodeEnum.hasMoreElements())
         {
             Integer adjNode = (Integer) adjNodeEnum.nextElement();
@@ -813,7 +819,7 @@ public class SOCPlayerTracker
                         targetRoad.addNewPossibility(posSet);
 
                         //
-                        // update it's numberOfNecessaryRoads if this road reduces it
+                        // update settlement's numberOfNecessaryRoads if this road reduces it
                         //
                         if ((targetRoad.getNumberOfNecessaryRoads() + 1) < posSet.getNumberOfNecessaryRoads())
                         {
@@ -852,7 +858,6 @@ public class SOCPlayerTracker
             // check adjacent edges to road
             //
             Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(tgtRoadEdge).elements();
-
             while (adjEdgesEnum.hasMoreElements())
             {
                 Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
@@ -937,10 +942,9 @@ public class SOCPlayerTracker
             }
 
             //
-            // if the level is not zero, expand roads that we've touched or added
+            // expand roads that we've touched or added
             //
             Enumeration expandPREnum = roadsToExpand.elements();
-
             while (expandPREnum.hasMoreElements())
             {
                 SOCPossibleRoad expandPR = (SOCPossibleRoad) expandPREnum.nextElement();
@@ -2190,11 +2194,13 @@ public class SOCPlayerTracker
     /**
      * update the potential LR value of a possible road or ship
      * by placing dummy roads/ships and calculating LR (longest road).
+     * If <tt>level</tt> &gt; 0, add the new roads or ships adjacent
+     * to <tt>dummy</tt> and recurse.
      *
      * @param posRoad   the possible road or ship
      * @param dummy     the dummy player
      * @param lrLength  the current LR length
-     * @param level     how many levels of recursion
+     * @param level     how many levels of recursion, or 0 to not recurse
      */
     public void updateLRPotential
         (SOCPossibleRoad posRoad, SOCPlayer dummy, SOCRoad dummyRoad, final int lrLength, final int level)
@@ -2249,10 +2255,9 @@ public class SOCPlayerTracker
         else
         {
             //
-            // we need to add a new road and recurse
+            // we need to add new roads/ships adjacent to dummyRoad, and recurse
             //
             Enumeration adjEdgeEnum = board.getAdjacentEdgesToEdge(dummyRoad.getCoordinates()).elements();
-
             while (adjEdgeEnum.hasMoreElements())
             {
                 final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
