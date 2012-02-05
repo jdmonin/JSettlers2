@@ -241,6 +241,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a set of nodes where it is legal to place a
      * settlement. A node is legal if a settlement
      * can ever be placed there.
+     * Placing a settlement will clear its node and adjacent nodes.
      *<P>
      * Key = node coordinate, as {@link Integer}.
      * If {@link HashSet#contains(Object) legalSettlements.contains(new Integer(nodeCoord))},
@@ -274,6 +275,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * At start of the game, this is clear/empty.
      * Elements are set true when the player places adjacent settlements or roads, via
      * {@link #updatePotentials(SOCPlayingPiece)}.
+     * Elements are set false when a road or ship is placed on their edge.
      */
     private HashSet potentialRoads;
 
@@ -283,6 +285,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * At start of the game, all {@link #legalSettlements} are also potential.
      * When the second settlement is placed, <tt>potentialSettlements</tt> is cleared,
      * and then re-set via {@link #updatePotentials(SOCPlayingPiece) updatePotentials(SOCRoad)}.
+     * Placing a settlement will clear its node and adjacent nodes.
      *<P>
      * Key = node coordinate, as {@link Integer}.
      * If {@link HashSet#contains(Object) potentialSettlements.contains(new Integer(nodeCoord))},
@@ -298,6 +301,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * At start of the game, this is clear/empty because the player has no settlements yet.
      * Elements are set true when the player places settlements, via
      * {@link #updatePotentials(SOCPlayingPiece)}.
+     * Elements are set false when cities are placed.
      * Unlike other piece types, there is no "<tt>legalCities</tt>" set,
      * because we use {@link #legalSettlements} before placing a settlement,
      * and settlements can always become cities.
@@ -310,6 +314,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * At start of the game, this is clear/empty.
      * Elements are set true when the player places adjacent settlements or ships, via
      * {@link #updatePotentials(SOCPlayingPiece)}.
+     * Elements are set false when a road or ship is placed on their edge.
      *<P>
      * If the game doesn't use the large sea board (<tt>! {@link SOCGame#hasSeaBoard}</tt>),
      * this set is empty but non-null.
@@ -2149,7 +2154,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     legalSettlements.add(settleNodeInt);
 
                     //
-                    // if it's the beginning of the game, make it potental
+                    // if it's the beginning of the game, make it potential
                     //
                     //D.ebugPrintln(")))) legalSettlements["+Integer.toHexString(settlementNode)+"] = true");
                     //
@@ -2778,6 +2783,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this node a potential settlement?
+     * True if the location is legal, currently not occupied,
+     * no settlement is currently on an adjacent node,
+     * and we have an adjacent road or ship.
      * @return true if this node is a potential settlement
      * @param node        the coordinates of a node on the board
      */
@@ -2811,6 +2820,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this node a potential city?
+     * True if we currently have a settlement there.
      * @return true if this node is a potential city
      * @param node        the coordinates of a node on the board
      */
@@ -2833,6 +2844,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this edge a potential road?
+     * True if the location is legal, currently not occupied,
+     * and we have an adjacent road, settlement, or city.
      * @return true if this edge is a potential road
      * @param edge        the coordinates of an edge on the board. Accepts -1 for edge 0x00.
      */
@@ -2921,6 +2935,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this edge a potential ship?
+     * True if the location is legal, currently not occupied,
+     * we have an adjacent ship, settlement, or city,
+     * and {@link SOCGame#hasSeaBoard},
      * @return true if this edge is a potential ship;
      *   if not {@link SOCGame#hasSeaBoard}, always returns false
      *   because the player has no potential ship locations.
