@@ -3215,9 +3215,9 @@ public class SOCRobotBrain extends Thread
             try
             {
                 if (! isCancel)
-                    tracker.addNewRoad(newRoad, playerTrackers);
+                    tracker.addNewRoadOrShip(newRoad, playerTrackers);
                 else
-                    tracker.cancelWrongRoad(newRoad);
+                    tracker.cancelWrongRoadOrShip(newRoad);
             }
             catch (Exception e)
             {

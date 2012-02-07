@@ -80,7 +80,7 @@ public class SOCPlayerTracker
     protected static final DecimalFormat df1 = new DecimalFormat("###0.00");
 
     /**
-     * Road expansion level for {@link #addOurNewRoad(SOCRoad, HashMap, int)};
+     * Road expansion level for {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)};
      * how far away to look for possible future settlements
      * (level of recursion).
      */
@@ -100,7 +100,7 @@ public class SOCPlayerTracker
     /**
      * Possible neat-future settlements for this player.
      * Key = {@link Integer} node coordinate, value = {@link SOCPossibleSettlement}.
-     * Expanded in {@link #addOurNewRoad(SOCRoad, HashMap, int)}
+     * Expanded in {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)}
      * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
      */
     protected TreeMap possibleSettlements;
@@ -108,7 +108,7 @@ public class SOCPlayerTracker
     /**
      * Includes both roads and ships.
      * Key = {@link Integer} edge coordinate, value = {@link SOCPossibleRoad} or {@link SOCPossibleShip}
-     * Expanded in {@link #addOurNewRoad(SOCRoad, HashMap, int)}
+     * Expanded in {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)}
      * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
      */
     protected TreeMap possibleRoads;
@@ -517,7 +517,7 @@ public class SOCPlayerTracker
      * set this player's pending initial settlement, to be
      * placed/calculated by this tracker after their road.
      *
-     * You must call addNewSettlement and then addNewRoad:
+     * You must call addNewSettlement and then addNewRoadOrShip:
      * This is just a place to store the settlement data.
      *
      * @param s Settlement, or null
@@ -533,15 +533,15 @@ public class SOCPlayerTracker
      * @param road       the road or ship
      * @param trackers   player trackers for the players
      */
-    public void addNewRoad(SOCRoad road, HashMap trackers)
+    public void addNewRoadOrShip(SOCRoad road, HashMap trackers)
     {
         if (road.getPlayerNumber() == playerNumber)
         {
-            addOurNewRoad(road, trackers, EXPAND_LEVEL);
+            addOurNewRoadOrShip(road, trackers, EXPAND_LEVEL);
         }
         else
         {
-            addTheirNewRoad(road, false);
+            addTheirNewRoadOrShip(road, false);
         }
     }
     
@@ -552,9 +552,9 @@ public class SOCPlayerTracker
      * 
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
      */
-    public void cancelWrongRoad(SOCRoad road)
+    public void cancelWrongRoadOrShip(SOCRoad road)
     {
-        addTheirNewRoad(road, true);
+        addTheirNewRoadOrShip(road, true);
         
         //
         // Cancel-actions to remove from potential settlements list,
@@ -592,7 +592,7 @@ public class SOCPlayerTracker
      * @param expandLevel  how far out we should expand roads/ships;
      *                     passed to {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}
      */
-    public void addOurNewRoad(SOCRoad road, HashMap trackers, int expandLevel)
+    private void addOurNewRoadOrShip(SOCRoad road, HashMap trackers, int expandLevel)
     {
         //D.ebugPrintln("$$$ addOurNewRoad : "+road);
         //
@@ -967,7 +967,7 @@ public class SOCPlayerTracker
      * @param isCancel Is this our own robot's road placement, rejected by the server?
      *     If so, this method call will cancel its placement within the tracker data.
      */
-    public void addTheirNewRoad(SOCRoad road, boolean isCancel)
+    private void addTheirNewRoadOrShip(SOCRoad road, boolean isCancel)
     {
         /**
          * see if another player's road interferes with our possible roads
@@ -977,7 +977,7 @@ public class SOCPlayerTracker
          * if another player's road is on one of our possible
          * roads, then remove it
          */
-        D.ebugPrintln("$$$ addTheirNewRoad : " + road);
+        D.ebugPrintln("$$$ addTheirNewRoadOrShip : " + road);
 
         Integer roadCoordinates = new Integer(road.getCoordinates());
         SOCPossibleRoad pr = (SOCPossibleRoad) possibleRoads.get(roadCoordinates);
@@ -3493,7 +3493,7 @@ public class SOCPlayerTracker
                 {
                 case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
-                    trackerCopy.addNewRoad((SOCRoad) piece, trackersCopy);
+                    trackerCopy.addNewRoadOrShip((SOCRoad) piece, trackersCopy);
 
                     break;
 
@@ -3537,7 +3537,7 @@ public class SOCPlayerTracker
                 {
                 case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
-                    tracker.addNewRoad((SOCRoad) piece, trackers);
+                    tracker.addNewRoadOrShip((SOCRoad) piece, trackers);
 
                     break;
 
