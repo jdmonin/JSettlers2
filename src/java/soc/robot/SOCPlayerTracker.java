@@ -687,9 +687,14 @@ public class SOCPlayerTracker
             //D.ebugPrintln("$$$ edge "+Integer.toHexString(adjEdge.intValue())+" is legal:"+player.isPotentialRoad(adjEdge.intValue()));
             //
             // see if edge is a potential road
+            // or ship to continue this route
             //
-            if ( (road.isRoadNotShip() && player.isPotentialRoad(edge))
-                 || ((! road.isRoadNotShip()) && player.isPotentialShip(edge)) )
+            boolean edgeIsPotentialRoute =
+                (road.isRoadNotShip())
+                ? player.isPotentialRoad(edge)
+                : player.isPotentialShip(edge);
+
+            if (edgeIsPotentialRoute)
             {
                 //
                 // see if possible road is already in the list
@@ -866,9 +871,14 @@ public class SOCPlayerTracker
                 //D.ebugPrintln("$$$ edge "+Integer.toHexString(adjEdge.intValue())+" is legal:"+dummy.isPotentialRoad(adjEdge.intValue()));
                 //
                 // see if edge is a potential road
+                // or ship to continue this route
                 //
-                if ( (targetRoad.isRoadNotShip() && dummy.isPotentialRoad(edge))
-                     || ((! targetRoad.isRoadNotShip()) && dummy.isPotentialShip(edge)) )
+                boolean edgeIsPotentialRoute =
+                    (targetRoad.isRoadNotShip())
+                    ? dummy.isPotentialRoad(edge)
+                    : dummy.isPotentialShip(edge);
+
+                if (edgeIsPotentialRoute)
                 {
                     //
                     // see if possible road is already in the list
