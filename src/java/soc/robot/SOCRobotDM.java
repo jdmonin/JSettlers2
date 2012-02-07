@@ -39,6 +39,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceSet;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
+import soc.game.SOCShip;
 import soc.util.CutoffExceededException;
 import soc.util.NodeLenVis;
 import soc.util.Pair;
@@ -1729,9 +1730,8 @@ public class SOCRobotDM
     HashMap trackersCopy = null;
     SOCSettlement tmpSet = null;
     SOCCity tmpCity = null;
-    SOCRoad tmpRoad = null;
+    SOCRoad tmpRoad = null;  // road or ship
     float bonus = 0;
-		
 
     D.ebugPrintln("--- before [start] ---");
     //SOCPlayerTracker.playerTrackersDebug(playerTrackers);
@@ -1760,6 +1760,12 @@ public class SOCRobotDM
     case SOCPossiblePiece.ROAD:
       tmpRoad = new SOCRoad(ourPlayerData, 
 			    posPiece.getCoordinates(), null);
+      trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
+      break;
+
+    case SOCPossiblePiece.SHIP:
+      tmpRoad = new SOCShip(ourPlayerData, 
+                            posPiece.getCoordinates(), null);
       trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
       break;
     }
@@ -1791,6 +1797,7 @@ public class SOCRobotDM
       game.undoPutTempPiece(tmpCity);
       break;
 
+    case SOCPossiblePiece.SHIP:  // fall through to ROAD
     case SOCPossiblePiece.ROAD:
       SOCPlayerTracker.undoTryPutPiece(tmpRoad, game);
       break;

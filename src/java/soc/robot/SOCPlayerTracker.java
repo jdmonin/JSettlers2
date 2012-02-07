@@ -3491,6 +3491,7 @@ public class SOCPlayerTracker
 
                 switch (piece.getType())
                 {
+                case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
                     trackerCopy.addNewRoad((SOCRoad) piece, trackersCopy);
 
@@ -3534,6 +3535,7 @@ public class SOCPlayerTracker
 
                 switch (piece.getType())
                 {
+                case SOCPlayingPiece.SHIP:  // fall through to ROAD
                 case SOCPlayingPiece.ROAD:
                     tracker.addNewRoad((SOCRoad) piece, trackers);
 
