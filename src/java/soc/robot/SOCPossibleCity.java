@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Some documentation javadocs here are Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -39,7 +39,7 @@ public class SOCPossibleCity extends SOCPossiblePiece
      * Speedup per building type.  Indexed from {@link SOCBuildingSpeedEstimate#MIN}
      * to {@link SOCBuildingSpeedEstimate#MAXPLUSONE}.
      */
-    protected int[] speedup = { 0, 0, 0, 0 };
+    protected int[] speedup = { 0, 0, 0, 0, 0 };
 
     /**
      * constructor
