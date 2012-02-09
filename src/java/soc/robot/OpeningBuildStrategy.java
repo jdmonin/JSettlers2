@@ -117,7 +117,6 @@ public class OpeningBuildStrategy {
     {
         log.debug("--- planInitialSettlements");
 
-        int[] rolls;
         int speed;
         boolean allTheWay;
         firstSettlement = 0;
@@ -187,14 +186,17 @@ public class OpeningBuildStrategy {
             }
             catch (CutoffExceededException e) {}
 
-            rolls = estimate.getEstimatesFromNothingFast(ports, 300);
-            sb = new StringBuffer();
-            sb.append(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
-            sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
-            sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
-            sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
-            log.debug(sb.toString());
-            log.debug("speed = " + speed);
+            if (D.ebugOn)
+            {
+                final int[] rolls = estimate.getEstimatesFromNothingFast(ports, 300);
+                sb = new StringBuffer();
+                sb.append(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
+                sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
+                sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
+                sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
+                log.debug(sb.toString());
+                log.debug("speed = " + speed);
+            }
 
             //
             // end test
@@ -278,15 +280,18 @@ public class OpeningBuildStrategy {
                     speed = bestSpeed;
                 }
 
-                rolls = estimate.getEstimatesFromNothingFast(ports, bestSpeed);
-                sb = new StringBuffer();
-                sb.append(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
-                sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
-                sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
-                sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
-                log.debug(sb.toString());
-                log.debug("allTheWay = " + allTheWay);
-                log.debug("speed = " + speed);
+                if (D.ebugOn)
+                {
+                    final int[] rolls = estimate.getEstimatesFromNothingFast(ports, bestSpeed);
+                    sb = new StringBuffer();
+                    sb.append(" road: " + rolls[SOCBuildingSpeedEstimate.ROAD]);
+                    sb.append(" stlmt: " + rolls[SOCBuildingSpeedEstimate.SETTLEMENT]);
+                    sb.append(" city: " + rolls[SOCBuildingSpeedEstimate.CITY]);
+                    sb.append(" card: " + rolls[SOCBuildingSpeedEstimate.CARD]);
+                    log.debug(sb.toString());
+                    log.debug("allTheWay = " + allTheWay);
+                    log.debug("speed = " + speed);
+                }
 
                 /**
                  * keep the settlements with the best speed
