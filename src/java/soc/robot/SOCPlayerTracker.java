@@ -23,6 +23,7 @@ package soc.robot;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
@@ -628,7 +629,8 @@ public class SOCPlayerTracker
         //
         // check adjacent nodes to road for potential settlements
         //
-        final SOCBoard board = player.getGame().getBoard();
+        final SOCGame game = player.getGame();
+        final SOCBoard board = game.getBoard();
         Enumeration adjNodeEnum = board.getAdjacentNodesToEdge(road.getCoordinates()).elements();
 
         while (adjNodeEnum.hasMoreElements())
@@ -678,7 +680,6 @@ public class SOCPlayerTracker
         // check adjacent edges to road
         //
         Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(road.getCoordinates()).elements();
-
         while (adjEdgesEnum.hasMoreElements())
         {
             Integer adjEdge = (Integer) adjEdgesEnum.nextElement();
@@ -694,6 +695,31 @@ public class SOCPlayerTracker
                 ? player.isPotentialRoad(edge)
                 : player.isPotentialShip(edge);
 
+            // If true, this edge transitions
+            // between ships <-> roads, at a
+            // coastal settlement
+            //
+            boolean edgeRequiresCoastalSettlement = false;
+
+            if ((! edgeIsPotentialRoute)
+                && game.hasSeaBoard)
+            {
+                // Determine if can transition ship <-> road
+                // at a coastal settlement
+                final int nodeBetween =
+                    ((SOCBoardLarge) board).getNodeBetweenAdjacentEdges(road.getCoordinates(), edge);
+                if (player.isPotentialSettlement(nodeBetween))
+                {
+                    // check opposite type at transition
+                    edgeIsPotentialRoute = (road.isRoadNotShip())
+                        ? player.isPotentialShip(edge)
+                        : player.isPotentialRoad(edge);
+
+                    if (edgeIsPotentialRoute)
+                        edgeRequiresCoastalSettlement = true;
+                }
+            }
+
             if (edgeIsPotentialRoute)
             {
                 //
@@ -703,6 +729,14 @@ public class SOCPlayerTracker
 
                 if (pr != null)
                 {
+                    // if so, it must be the same type for now (TODO).
+                    //   For now, can't differ along a coastal route.
+                    if (edgeRequiresCoastalSettlement
+                        && (pr.isRoadNotShip() != road.isRoadNotShip()))
+                    {
+                        continue;  // <--- road vs ship mismatch ---
+                    }
+
                     //
                     // if so, clear necessary road list and remove from np lists
                     //
@@ -725,11 +759,20 @@ public class SOCPlayerTracker
                     //
                     //D.ebugPrintln("$$$ adding new pr at "+Integer.toHexString(adjEdge.intValue()));
                     SOCPossibleRoad newPR;
-                    if (road.isRoadNotShip())
+                    final int roadsBetween;  // for effort if requires settlement
+                    boolean isRoad = road.isRoadNotShip();
+                    if (edgeRequiresCoastalSettlement)
+                    {
+                        isRoad = ! isRoad;
+                        roadsBetween = 2;
+                    } else {
+                        roadsBetween = 0;
+                    }
+                    if (isRoad)
                         newPR = new SOCPossibleRoad(player, edge, new Vector());
                     else
                         newPR = new SOCPossibleShip(player, edge, new Vector());
-                    newPR.setNumberOfNecessaryRoads(0);
+                    newPR.setNumberOfNecessaryRoads(roadsBetween);  // 0 unless requires settlement
                     newPossibleRoads.addElement(newPR);
                     roadsToExpand.addElement(newPR);
                     newPR.setExpandedFlag();
@@ -781,7 +824,8 @@ public class SOCPlayerTracker
         (SOCPossibleRoad targetRoad, SOCPlayer player, SOCPlayer dummy, HashMap trackers, final int level)
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
-        SOCBoard board = player.getGame().getBoard();
+        SOCGame game = player.getGame();
+        SOCBoard board = game.getBoard();
         final int tgtRoadEdge = targetRoad.getCoordinates();
         SOCRoad dummyRoad;
         if (targetRoad.isRoadNotShip())
@@ -878,8 +922,39 @@ public class SOCPlayerTracker
                     ? dummy.isPotentialRoad(edge)
                     : dummy.isPotentialShip(edge);
 
+                // If true, this edge transitions
+                // between ships <-> roads, at a
+                // coastal settlement
+                //
+                boolean edgeRequiresCoastalSettlement = false;
+
+                if ((! edgeIsPotentialRoute)
+                    && game.hasSeaBoard)
+                {
+                    // Determine if can transition ship <-> road
+                    // at a coastal settlement
+                    final int nodeBetween =
+                        ((SOCBoardLarge) board).getNodeBetweenAdjacentEdges(tgtRoadEdge, edge);
+                    if (dummy.isPotentialSettlement(nodeBetween))
+                    {
+                        // check opposite type at transition
+                        edgeIsPotentialRoute = (targetRoad.isRoadNotShip())
+                            ? dummy.isPotentialShip(edge)
+                            : dummy.isPotentialRoad(edge);
+
+                        if (edgeIsPotentialRoute)
+                            edgeRequiresCoastalSettlement = true;
+                    }
+                }
+
                 if (edgeIsPotentialRoute)
                 {
+                    // Add 1 to road distance, unless
+                    // it requires a coastal settlement
+                    // (extra effort to build that)
+                    final int incrDistance
+                        = edgeRequiresCoastalSettlement ? 3 : 1;
+
                     //
                     // see if possible road is already in the list
                     //
@@ -887,6 +962,14 @@ public class SOCPlayerTracker
 
                     if (pr != null)
                     {
+                        // if so, it must be the same type for now (TODO).
+                        //   For now, can't differ along a coastal route.
+                        if (edgeRequiresCoastalSettlement
+                            && (targetRoad.isRoadNotShip() != pr.isRoadNotShip()))
+                        {
+                            continue;  // <--- road vs ship mismatch ---
+                        }
+
                         //
                         // if so, and it needs 1 or more roads other than this one, 
                         //
@@ -905,9 +988,9 @@ public class SOCPlayerTracker
                             //
                             // update this road's numberOfNecessaryRoads if the target road reduces it
                             //
-                            if ((targetRoad.getNumberOfNecessaryRoads() + 1) < pr.getNumberOfNecessaryRoads())
+                            if ((targetRoad.getNumberOfNecessaryRoads() + incrDistance) < pr.getNumberOfNecessaryRoads())
                             {
-                                pr.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
+                                pr.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + incrDistance);
                             }
                         }
 
@@ -927,11 +1010,14 @@ public class SOCPlayerTracker
                         neededRoads.addElement(targetRoad);
 
                         SOCPossibleRoad newPR;
-                        if (targetRoad.isRoadNotShip())
+                        boolean isRoad = targetRoad.isRoadNotShip();
+                        if (edgeRequiresCoastalSettlement)
+                            isRoad = ! isRoad;
+                        if (isRoad)
                             newPR = new SOCPossibleRoad(player, edge, neededRoads);
                         else
                             newPR = new SOCPossibleShip(player, edge, neededRoads);
-                        newPR.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + 1);
+                        newPR.setNumberOfNecessaryRoads(targetRoad.getNumberOfNecessaryRoads() + incrDistance);
                         targetRoad.addNewPossibility(newPR);
                         newPossibleRoads.addElement(newPR);
                         roadsToExpand.addElement(newPR);
@@ -2343,8 +2429,8 @@ public class SOCPlayerTracker
             tempSetBSE[0] = new SOCBuildingSpeedEstimate();
             tempSetBSE[1] = new SOCBuildingSpeedEstimate();
 
-            int[][] chosenSetBuildingSpeed = new int[2][4];
-            int[][] chosenCityBuildingSpeed = new int[2][4];
+            int[][] chosenSetBuildingSpeed = new int[2][SOCBuildingSpeedEstimate.MAXPLUSONE];
+            int[][] chosenCityBuildingSpeed = new int[2][SOCBuildingSpeedEstimate.MAXPLUSONE];
 
             SOCBuildingSpeedEstimate tempBSE = new SOCBuildingSpeedEstimate();
 
@@ -2354,6 +2440,7 @@ public class SOCPlayerTracker
             int settlementETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.SETTLEMENT];
             int roadETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.ROAD];
             int cardETA = ourBuildingSpeed[SOCBuildingSpeedEstimate.CARD];
+            // TODO shipETA, when ready
 
             int settlementPiecesLeft = player.getNumPieces(SOCPlayingPiece.SETTLEMENT);
             int cityPiecesLeft = player.getNumPieces(SOCPlayingPiece.CITY);

@@ -117,6 +117,8 @@ public class SOCRobotDM
 
   protected SOCGame game;
   protected Vector threatenedRoads;
+
+  /** {@link SOCPossibleRoad}s and/or subclass {@link SOCPossibleShip}s */
   protected Vector goodRoads;
   protected SOCPossibleRoad favoriteRoad;
 
@@ -216,7 +218,7 @@ public class SOCRobotDM
   }
 
   /**
-   * @return favorite road
+   * @return favorite road or ship
    */
   public SOCPossibleRoad getFavoriteRoad() {
     return favoriteRoad;
@@ -350,7 +352,11 @@ public class SOCRobotDM
 	//  pretend to put the favorite road down, 
 	//  and then score the new pos roads
 	//
-	SOCRoad tmpRoad = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
+	SOCRoad tmpRoad;
+	if (favoriteRoad instanceof SOCPossibleShip)
+	    tmpRoad = new SOCShip(ourPlayerData, favoriteRoad.getCoordinates(), null);
+	else
+	    tmpRoad = new SOCRoad(ourPlayerData, favoriteRoad.getCoordinates(), null);
 	
 	HashMap trackersCopy = SOCPlayerTracker.tryPutPiece(tmpRoad, game, playerTrackers);
 	SOCPlayerTracker.updateWinGameETAs(trackersCopy);
@@ -375,7 +381,7 @@ public class SOCRobotDM
 	while (newPosEnum.hasMoreElements())
 	{
 	  SOCPossiblePiece newPos = (SOCPossiblePiece)newPosEnum.nextElement();
-	  if (newPos.getType() == SOCPossiblePiece.ROAD)
+	  if (newPos instanceof SOCPossibleRoad)
 	  {
 	    newPos.resetScore();
 	    // float wgetaScore = getWinGameETABonusForRoad((SOCPossibleRoad)newPos, currentBuildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETACopy, trackersCopy);
@@ -453,7 +459,7 @@ public class SOCRobotDM
 	{
 	  SOCPossiblePiece planPeek = (SOCPossiblePiece) buildingPlan.peek();
 	  if ((planPeek == null) ||
-	      (planPeek.getType() != SOCPlayingPiece.ROAD))
+	      (! (planPeek instanceof SOCPossibleRoad)))
 	  {
 	    if (secondFavoriteRoad != null)
 	    {
@@ -1407,7 +1413,11 @@ public class SOCRobotDM
 	// see how building this piece impacts our winETA
 	//
 	goodRoad.resetScore();
-	float wgetaScore = getWinGameETABonusForRoad(goodRoad, buildingETAs[SOCBuildingSpeedEstimate.ROAD], leadersCurrentWGETA, playerTrackers);
+	final int etype = 
+	    (goodRoad instanceof SOCPossibleShip)
+	    ? SOCBuildingSpeedEstimate.ROAD
+	    : SOCBuildingSpeedEstimate.SHIP;
+	float wgetaScore = getWinGameETABonusForRoad(goodRoad, buildingETAs[etype], leadersCurrentWGETA, playerTrackers);
 	if ((brain != null) && (brain.getDRecorder().isOn())) {
 	  brain.getDRecorder().stopRecording();
 	} 
@@ -1542,9 +1552,13 @@ public class SOCRobotDM
       D.ebugPrintln("###   WITH A TOTAL SPEEDUP OF "+favoriteCity.getSpeedupTotal());
     }
 
+    final int roadetatype = ((favoriteRoad != null) && (favoriteRoad instanceof SOCPossibleShip))
+        ? SOCBuildingSpeedEstimate.SHIP
+        : SOCBuildingSpeedEstimate.ROAD;
+
     if (favoriteRoad != null) {
       D.ebugPrintln("### FAVORITE ROAD IS AT "+Integer.toHexString(favoriteRoad.getCoordinates()));
-      D.ebugPrintln("###   WITH AN ETA OF "+buildingETAs[SOCBuildingSpeedEstimate.ROAD]);
+      D.ebugPrintln("###   WITH AN ETA OF "+buildingETAs[roadetatype]);
       D.ebugPrintln("###   WITH A SCORE OF "+favoriteRoad.getScore());
     }
 
@@ -1563,10 +1577,10 @@ public class SOCRobotDM
 	 ((favoriteCity.getScore() == favoriteSettlement.getScore()) &&
 	  (buildingETAs[SOCBuildingSpeedEstimate.CITY] < buildingETAs[SOCBuildingSpeedEstimate.SETTLEMENT]))) &&
 	((favoriteRoad == null) ||
-	 (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) == 0) ||
+	 (ourPlayerData.getNumPieces(favoriteRoad.getType()) == 0) ||
 	 (favoriteCity.getScore() > favoriteRoad.getScore()) ||
 	 ((favoriteCity.getScore() == favoriteRoad.getScore()) &&
-	  (buildingETAs[SOCBuildingSpeedEstimate.CITY] < buildingETAs[SOCBuildingSpeedEstimate.ROAD]))))
+	  (buildingETAs[SOCBuildingSpeedEstimate.CITY] < buildingETAs[roadetatype]))))
     {
       D.ebugPrintln("### PICKED FAVORITE CITY");
       pick = SOCPlayingPiece.CITY;
@@ -1580,7 +1594,7 @@ public class SOCRobotDM
     /// else build the settlement
     ///
     else if ((favoriteRoad != null) &&
-	     (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) > 0) &&
+	     (ourPlayerData.getNumPieces(favoriteRoad.getType()) > 0) &&
 	     (favoriteRoad.getScore() > 0) &&
 	     ((favoriteSettlement == null) ||
 	      (ourPlayerData.getNumPieces(SOCPlayingPiece.SETTLEMENT) == 0) ||
@@ -1623,7 +1637,7 @@ public class SOCRobotDM
       if ((pick == -1) ||
 	  ((pick == SOCPlayingPiece.CITY) &&
 	   (devCardScore > favoriteCity.getScore())) ||
-	  ((pick == SOCPlayingPiece.ROAD) &&
+	  (((pick == SOCPlayingPiece.ROAD) || (pick == SOCPlayingPiece.SHIP)) &&  // TODO may not be accurate to combine ships,roads here
 	   (devCardScore > favoriteRoad.getScore())) ||
 	  ((pick == SOCPlayingPiece.SETTLEMENT) &&
 	   (devCardScore > favoriteSettlement.getScore()))) {

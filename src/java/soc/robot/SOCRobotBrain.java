@@ -2012,15 +2012,20 @@ public class SOCRobotBrain extends Thread
             SOCPossiblePiece topPiece = (SOCPossiblePiece) buildingPlan.pop();
 
             //D.ebugPrintln("$ POPPED "+topPiece);
-            if ((topPiece != null) && (topPiece.getType() == SOCPossiblePiece.ROAD))
+            if ((topPiece != null) && (topPiece instanceof SOCPossibleRoad))
             {
                 SOCPossiblePiece secondPiece = (SOCPossiblePiece) buildingPlan.peek();
 
                 //D.ebugPrintln("secondPiece="+secondPiece);
-                if ((secondPiece != null) && (secondPiece.getType() == SOCPossiblePiece.ROAD))
+                if ((secondPiece != null) && (secondPiece instanceof SOCPossibleRoad))
                 {
                     roadBuildingPlan = true;
-                    whatWeWantToBuild = new SOCRoad(ourPlayerData, topPiece.getCoordinates(), null);
+
+                    if (topPiece instanceof SOCPossibleShip)
+                        whatWeWantToBuild = new SOCShip(ourPlayerData, topPiece.getCoordinates(), null);
+                    else
+                        whatWeWantToBuild = new SOCRoad(ourPlayerData, topPiece.getCoordinates(), null);
+
                     if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
                     {
                         waitingForGameState = true;
@@ -2718,13 +2723,14 @@ public class SOCRobotBrain extends Thread
 
             break;
 
-        case SOCPossiblePiece.SHIP:
+        case SOCPlayingPiece.SHIP:
             waitingForGameState = true;
             counter = 0;
             expectPLACING_SHIP = true;
             whatWeWantToBuild = new SOCShip(ourPlayerData, targetPiece.getCoordinates(), null);
             if (! whatWeWantToBuild.equals(whatWeFailedToBuild))
             {
+                System.err.println("L2733: " + ourPlayerData.getName() + ": !!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 D.ebugPrintln("!!! BUILD REQUEST FOR A SHIP AT " + Integer.toHexString(targetPiece.getCoordinates()) + " !!!");
                 client.buildRequest(game, SOCPlayingPiece.SHIP);
             } else {
