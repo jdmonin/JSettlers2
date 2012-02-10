@@ -98,6 +98,12 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     }
 
     /**
+     * Get the minimum number of necessary roads and/or ships.
+     * Note that for routes with both roads and ships,
+     * this will be +2 for every coastal-settlement
+     * transition between roads and ships, for the
+     * effort of building the settlement.
+     *
      * @return the minimum number of necessary roads or ships
      */
     public int getNumberOfNecessaryRoads()
@@ -106,7 +112,11 @@ public class SOCPossibleRoad extends SOCPossiblePiece
     }
 
     /**
-     * set the minimum number of necessary roads or ships
+     * Set the minimum number of necessary roads and/or ships.
+     * Note that for routes with both roads and ships,
+     * this will be +2 for every coastal-settlement
+     * transition between roads and ships, for the
+     * effort of building the settlement.
      *
      * @param num  the minimum number of necessary roads
      */
