@@ -476,7 +476,7 @@ public class SOCBoardLarge extends SOCBoard
      *                    with the same nodes added to {@link SOCBoard#nodesOnLand}.
      * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
      * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
-     *             {@link #landAreasLegalNodes} == null, or
+     *             {@link #landAreasLegalNodes} == null, or not long enough, or
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
      */
     private final void makeNewBoard_placeHexes
@@ -547,6 +547,8 @@ public class SOCBoardLarge extends SOCBoard
         // Now that we know this layout is okay,
         // add the hex coordinates to landHexLayout,
         // and the hexes' nodes to nodesOnLand.
+        // Throws IllegalStateException if landAreaNumber incorrect
+        // vs size/contents of landAreasLegalNodes.
 
         for (int i = 0; i < landHexType.length; i++)
             landHexLayout.add(new Integer(numPath[i]));
@@ -571,7 +573,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #makeNewBoard_makeLegalRoadsFromLandNodes()
      * @see #makeNewBoard_makeLegalShipEdges()
      * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
-     *             {@link #landAreasLegalNodes} == null, or
+     *             {@link #landAreasLegalNodes} == null, or not long enough, or
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
      */
     private void makeNewBoard_fillNodesOnLandFromHexes
@@ -581,6 +583,7 @@ public class SOCBoardLarge extends SOCBoard
         if (landAreaNumber != 0)
         {
             if ((landAreasLegalNodes == null)
+                || (landAreaNumber >= landAreasLegalNodes.length)
                 || (landAreasLegalNodes[landAreaNumber] != null))
                 throw new IllegalStateException();
             landAreasLegalNodes[landAreaNumber] = new HashSet();
