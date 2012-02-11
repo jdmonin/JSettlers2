@@ -74,10 +74,10 @@ Setting up and testing
 
 From the command line, make sure you are in the JSettlers distribution
 directory which contains both JSettlers.jar, JsettlersServer.jar and the
-"lib" directory.  (If you have downloaded jsettlers-1.1.xx-full.tar.gz,
+"lib" directory.  (If you have downloaded jsettlers-2.x.xx-full.tar.gz,
 look in the src/target directory for these files.)
 
-If you have downloaded jsettlers-1.1.xx-full.jar or jsettlers-1.1.x-server.jar
+If you have downloaded jsettlers-2.x.xx-full.jar or jsettlers-2.x.xx-server.jar
 instead of the full tar.gz, use that filename on the command lines shown below.
 
 SERVER STARTUP:
@@ -85,7 +85,7 @@ SERVER STARTUP:
 Start the server with the following command
 (server requires Java 1.4 or higher):
 
-  java -jar JSettlersServer.jar 8880 10 dbUser dbPass
+  java -jar JSettlersServer.jar 8880 10 socuser socpass
 
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
@@ -102,7 +102,7 @@ If you would like robots to automatically start when your server starts,
 add the "startrobots" property to your jsettlers java command line, BEFORE the
 port number:
 
-  java -jar JSettlersServer.jar -Djsettlers.startrobots=6 8880 15 dbUser dbPass
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=6 8880 15 socuser socpass
 
 This will start 6 robots on the server.
 
@@ -235,23 +235,17 @@ Your database system's JDBC drivers can be downloaded at these locations:
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
 	SQLite:  http://www.zentus.com/sqlitejdbc/
 
-Run the following commands to create the database and configure its
-tables.
+To create the jsettlers database and tables, execute the SQL db scripts
+jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql:
 
-CREATE DATABASE socdata;
+$ mysql -u root -p -e "SOURCE jsettlers-create.sql"
+This will connect as root, prompt for the root password, create a 'socuser' user with the password
+'socpass', and create the 'socdata' database.
 
-USE socdata;
+$ mysql -u root -p -e "SOURCE jsettlers-tables.sql"
+This will build the empty tables.  This script will fail if the tables already exist.
 
-CREATE TABLE users (nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE);
-
-CREATE TABLE logins (nickname VARCHAR(20), host VARCHAR(50), lastlogin DATE);
-
-CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 SMALLINT, score2 SMALLINT, score3 SMALLINT, score4 SMALLINT, starttime TIMESTAMP);
-
-CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
-
-
-To create accounts, run the simple account creation client with the
+To create player accounts, run the simple account creation client with the
 following command:
 
   java -jar JSettlers.jar soc.client.SOCAccountClient localhost 8880
