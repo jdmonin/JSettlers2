@@ -132,6 +132,9 @@ If you want to configure a sqlite database for testing
 	Copy-paste the contents of src/bin/sql/jsettlers-tables.sql
 	Select all, right-click, choose Execute Selected Text
 	View the results in the SQL Results view that appears
+	If everything looks OK, close SQL Scrapbook
+  - Right-click jsettlers.sqlite in Data Source Explorer
+	Disconnect
   - Run the "socserver-sqlite" configuration; this line should appear:
 	User database initialized.
   - The database is now ready for use, development, and debugging.
