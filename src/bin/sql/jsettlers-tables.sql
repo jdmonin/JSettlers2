@@ -1,4 +1,5 @@
 -- DB tables/indexes create script for jsettlers.  Run jsettlers-create.sql before this script.
+-- Always use lowercase for table names and field names.
 -- See bottom of file for copyright and license information (GPLv3).
 
 USE socdata;
@@ -15,7 +16,7 @@ CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, 
 
 -- This file is part of the JSettlers project.
 -- 
---  This file Copyright (C) 2010 Jeremy D Monin (jdmonin@nand.net)
+--  This file Copyright (C) 2012 Jeremy D Monin (jdmonin@nand.net)
 --  Portions of this file Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
 -- 
 --  This program is free software: you can redistribute it and/or modify
