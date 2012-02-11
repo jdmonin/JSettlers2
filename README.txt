@@ -211,7 +211,7 @@ version of JSettlers.
 Database Setup
 --------------
 
-If you want to maintain user accounts, you will need to set up a MySQL
+If you want to maintain user accounts, you will need to set up a MySQL, SQLite,
 or PostgreSQL database. This will eliminate the "Problem connecting to database"
 errors from the server. We assume you have installed it correctly. 
 
@@ -227,13 +227,16 @@ The default JDBC driver is com.mysql.jdbc.Driver.  PostgreSQL is also
 recognized.  To use PostgreSQL, use a postgresql url like the one shown above,
 or specify the driver on the SOCServer command line:
 	-Djsettlers.db.driver=org.postgresql.Driver
+To use SQLite, use a sqlite url like the one shown above, or specify a
+sqlite driver such as:
+	-Djsettlers.db.driver=org.sqlite.JDBC
 
 Depending on your computer's setup, you may need to point JSettlers at the
 appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 	MySQL:   http://www.mysql.com/products/connector/
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
-	SQLite:  http://www.zentus.com/sqlitejdbc/
+	SQLite:  http://www.zentus.com/sqlitejdbc/ or http://freecode.com/projects/sqlitejdbc
 
 To create the jsettlers database and tables, execute the SQL db scripts
 jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql:
