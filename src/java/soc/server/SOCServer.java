@@ -164,7 +164,8 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
-        SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name"
+        SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name",
+        SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES,  "Flag to save all games in DB (if 1 or Y)"
     };
 
     /**
@@ -616,6 +617,43 @@ public class SOCServer extends Server
         catch (NumberFormatException e) { }
 
         return pDefault;
+    }
+
+    /**
+     * Get and parse a boolean property, or use its default instead.
+     * True values are 1 and Y.
+     * False values are 0 and N.
+     * Any other value will be ignored and get <tt>pDefault</tt>.
+     * @param props  Properties to look in, such as {@link SOCServer#props}, or null for <tt>pDefault</tt>
+     * @param pName  Property name
+     * @param pDefault  Default value to use if not found or not parsable
+     * @return The property's parsed value, or <tt>pDefault</tt>
+     * @since 2.0.00
+     */
+    private static boolean init_getBoolProperty(Properties props, final String pName, final boolean pDefault)
+    {
+        if (props == null)
+            return pDefault;
+
+        try
+        {
+            String mcs = props.getProperty(pName);
+            if (mcs == null)
+                return pDefault;
+            if (mcs.equalsIgnoreCase("Y"))
+                return true;
+            else if (mcs.equalsIgnoreCase("N"))
+                return false;
+
+            final int iv = Integer.parseInt(mcs);
+            if (iv == 0)
+                return false;
+            else if (iv == 1)
+                return true;
+        }
+        catch (NumberFormatException e) { }
+
+        return pDefault;        
     }
 
     /**
@@ -1690,7 +1728,6 @@ public class SOCServer extends Server
                writeGameRecord(gm, gr);
              */
 
-            //storeGameScores(cg);
             ///
             /// tell all robots to leave
             ///
@@ -1708,7 +1745,7 @@ public class SOCServer extends Server
                 }
             }
 
-            gameList.deleteGame(gm);
+            gameList.deleteGame(gm);  // also calls SOCGame.destroyGame
 
             // Reduce the owner's games-active count
             final String gaOwner = cg.getOwner();
@@ -8424,6 +8461,9 @@ public class SOCServer extends Server
      *  and each player's victory-point cards.
      *  Also give stats on game length, and on each player's connect time.
      *  If player has finished more than 1 game since connecting, send win-loss count.
+     *<P>
+     *  If db is active, calls {@link #storeGameScores(SOCGame)}
+     *  if {@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES} setting is active.
      *
      * @param ga This game is over; state should be OVER
      */
@@ -8662,6 +8702,17 @@ public class SOCServer extends Server
             }  // for each player
 
         }  // send game timing stats, win-loss stats
+
+        //
+        // Save game stats in the database,
+        // if that setting is active
+        //
+        if (init_getBoolProperty
+            (props, SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES, false))
+        {
+            storeGameScores(ga);
+        }
+
     }
 
     /**
@@ -9235,30 +9286,31 @@ public class SOCServer extends Server
 
     /**
      * if all the players stayed for the whole game,
-     * record the scores in the database
+     * record the scores in the database.
+     * Called only if property <tt>jsettlers.db.save.games</tt>
+     * is true. ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES})
      *
-     * @param ga  the game
+     * @param ga  the game; state should be {@link SOCGame#OVER}
      */
     protected void storeGameScores(SOCGame ga)
     {
-        if (ga != null)
+        if ((ga == null) || ! SOCDBHelper.isInitialized())
+            return;
+
+        //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
+        if (! ((ga.getGameState() == SOCGame.OVER) && ga.allOriginalPlayers()))
+            return;
+        
+        try
         {
-            //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
-            if ((ga.getGameState() == SOCGame.OVER) && (ga.allOriginalPlayers()))
-            {
-                //if (ga.allOriginalPlayers()) {
-                try
-                {
-                    // TODO 6-player: save their scores too, if
-                    // those fields are in the database.
-                    final long gameSeconds = ((System.currentTimeMillis() - ga.getStartTime().getTime())+500L) / 1000L;
-                    SOCDBHelper.saveGameScores(ga, gameSeconds);
-                }
-                catch (SQLException sqle)
-                {
-                    System.err.println("Error saving game scores in db.");
-                }
-            }
+            // TODO 6-player: save their scores too, if
+            // those fields are in the database.
+            final long gameSeconds = ((System.currentTimeMillis() - ga.getStartTime().getTime())+500L) / 1000L;
+            SOCDBHelper.saveGameScores(ga, gameSeconds);
+        }
+        catch (SQLException sqle)
+        {
+            System.err.println("Error saving game scores in db.");
         }
     }
 

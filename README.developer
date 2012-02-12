@@ -187,7 +187,6 @@ Current TODO list
 		So, you could reset to start a new game with fewer/no bots
 	- At board reset, game observers not currently handled properly
 	- cmdline option to create db-schema if empty: jsettlers.xx.tablecreate (sqlite or general)
-	- Property to disable database tracking of game dates,times,players
 	- Property for read-only database use without errors
 	- Game "owner" with extra powers (kick out player, etc)
 		What happens if owner loses connection?

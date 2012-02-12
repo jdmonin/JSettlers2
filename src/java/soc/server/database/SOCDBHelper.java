@@ -93,6 +93,13 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_URL = "jsettlers.db.url";
 
+    /** Property <tt>jsettlers.db.save.games</tt> to ask to save
+     * all game results in the database.
+     * Set this to 1 or Y to activate this feature.
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_DB_SAVE_GAMES = "jsettlers.db.save.games";
+
     /**
      * The db driver used, or null if none.
      * Set in {@link #initialize(String, String, Properties)}.

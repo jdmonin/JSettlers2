@@ -7,6 +7,8 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
     > 2.0.00 (build JM20120xxx)
 - Large board (sea board) support
 - More efficient game-setup messages
+- Can save all completed game results in database, with new option:
+	-Djsettlers.db.save.games=Y
 - Minor refactoring
 
     > 1.1.13 (build JM20111101)
