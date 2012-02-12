@@ -20,6 +20,8 @@
  **/
 package soc.server.database;
 
+import soc.game.SOCGame;
+import soc.game.SOCPlayer;
 import soc.util.SOCRobotParameters;
 
 import java.sql.Connection;
@@ -481,44 +483,48 @@ public class SOCDBHelper
     }
 
     /**
-     * DOCUMENT ME!
+     * Record this game's time, players, and scores in the database.
      *
-     * @param gameName DOCUMENT ME!
-     * @param player1 DOCUMENT ME!
-     * @param player2 DOCUMENT ME!
-     * @param player3 DOCUMENT ME!
-     * @param player4 DOCUMENT ME!
-     * @param score1 DOCUMENT ME!
-     * @param score2 DOCUMENT ME!
-     * @param score3 DOCUMENT ME!
-     * @param score4 DOCUMENT ME!
-     * @param startTime DOCUMENT ME!
+     * @param game  Game that's just completed
+     * @param gameLengthSeconds  Duration of game
      *
      * @return true if the save succeeded
      *
      * @throws SQLException DOCUMENT ME!
      */
-    public static boolean saveGameScores(String gameName, String player1, String player2, String player3, String player4, short score1, short score2, short score3, short score4, java.util.Date startTime) throws SQLException
+    public static boolean saveGameScores
+        (SOCGame ga, final long gameLengthSeconds)
+        throws SQLException
     {
         // TODO 6-player: save their scores too, if
         // those fields are in the database.
+        // Check ga.maxPlayers.
 
         // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
+            String[] names = new String[ga.maxPlayers];
+            short[] scores = new short[ga.maxPlayers];
+            for (int pn = 0; pn < ga.maxPlayers; ++pn)
+            {
+                SOCPlayer pl = ga.getPlayer(pn);
+                names[pn] = pl.getName();
+                scores[pn] = (short) pl.getTotalVP();
+            }
+
             try
             {
                 // fill in the data values to the Prepared statement
-                saveGameCommand.setString(1, gameName);
-                saveGameCommand.setString(2, player1);
-                saveGameCommand.setString(3, player2);
-                saveGameCommand.setString(4, player3);
-                saveGameCommand.setString(5, player4);
-                saveGameCommand.setShort(6, score1);
-                saveGameCommand.setShort(7, score2);
-                saveGameCommand.setShort(8, score3);
-                saveGameCommand.setShort(9, score4);
-                saveGameCommand.setTimestamp(10, new Timestamp(startTime.getTime()));
+                saveGameCommand.setString(1, ga.getName());
+                saveGameCommand.setString(2, names[0]);
+                saveGameCommand.setString(3, names[1]);
+                saveGameCommand.setString(4, names[2]);
+                saveGameCommand.setString(5, names[3]);
+                saveGameCommand.setShort(6, scores[0]);
+                saveGameCommand.setShort(7, scores[1]);
+                saveGameCommand.setShort(8, scores[2]);
+                saveGameCommand.setShort(9, scores[3]);
+                saveGameCommand.setTimestamp(10, new Timestamp(ga.getStartTime().getTime()));
 
                 // execute the Command
                 saveGameCommand.executeUpdate();
