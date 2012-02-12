@@ -115,6 +115,13 @@ public class SOCDBHelper
      */
     private static boolean errorCondition = false;
 
+    /**
+     * True if we successfully completed {@link #initialize(String, String, Properties)}
+     * without throwing an exception.
+     * Set false in {@link #cleanup()}.
+     */
+    private static boolean initialized = false;
+
     /** Cached username used when reconnecting on error */
     private static String userName;
 
@@ -140,6 +147,7 @@ public class SOCDBHelper
     /**
      * This makes a connection to the database
      * and initializes the prepared statements.
+     * Sets {@link #isInitialized()}.
      *<P>
      * The default URL is "jdbc:mysql://localhost/socdata".
      * The default driver is "com.mysql.jdbc.Driver".
@@ -156,6 +164,8 @@ public class SOCDBHelper
      */
     public static void initialize(String user, String pswd, Properties props) throws SQLException
     {
+        initialized = false;
+
         // Driver types and URLs recognized here should
         // be the same as those listed in README.txt.
 
@@ -225,6 +235,22 @@ public class SOCDBHelper
             sx.initCause(x);
             throw sx;
         }
+
+        initialized = true;
+    }
+
+    /**
+     * Were we able to {@link #initialize(String, String, Properties)}
+     * and connect to the database?
+     * True if db is connected and available; false if never initialized,
+     * or if {@link #cleanup()} was called.
+     *
+     * @return  True if available
+     * @since 2.0.00
+     */
+    public static boolean isInitialized()
+    {
+        return initialized && (connection != null);
     }
 
     /**
@@ -686,10 +712,12 @@ public class SOCDBHelper
                 saveGameCommand.close();
                 robotParamsQuery.close();
                 connection.close();
+                initialized = false;
             }
             catch (SQLException sqlE)
             {
                 errorCondition = true;
+                initialized = false;
                 sqlE.printStackTrace();
                 throw sqlE;
             }
