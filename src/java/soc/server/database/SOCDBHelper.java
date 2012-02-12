@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -91,6 +91,13 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_URL = "jsettlers.db.url";
 
+    /**
+     * The db driver used, or null if none.
+     * Set in {@link #initialize(String, String, Properties)}.
+     * @since 2.0.00
+     */
+    private static String driverclass = null;
+
     private static Connection connection = null;
 
     /**
@@ -147,7 +154,10 @@ public class SOCDBHelper
      */
     public static void initialize(String user, String pswd, Properties props) throws SQLException
     {
-    	String driverclass = "com.mysql.jdbc.Driver";
+        // Driver types and URLs recognized here should
+        // be the same as those listed in README.txt.
+
+        driverclass = "com.mysql.jdbc.Driver";
     	dbURL = "jdbc:mysql://localhost/socdata";
     	if (props != null)
     	{
@@ -577,6 +587,81 @@ public class SOCDBHelper
         }
 
         return robotParams;
+    }
+
+    /**
+     * Query to see if a column exists in a table.
+     * Any exception is caught here and returns false.
+     * @param tabname  Table name to check <tt>colname</tt> within; case-sensitive in some db types
+     * @param colname  Column name to check; case-sensitive in some db types.
+     *    The jsettlers standard is to always use lowercase names when creating tables and columns.
+     * @return  true if column exists in the current connection's database
+     * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails
+     * @since 2.0.00
+     */
+    public static boolean doesTableColumnExist
+        (final String tabname, final String colname)
+        throws IllegalStateException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException();
+        }
+
+        ResultSet rs = null;
+        try
+        {
+            final boolean checkResultNum;  // Do we need to check query result contents?
+
+            PreparedStatement ps;
+            if (! driverclass.toLowerCase().contains("oracle"))
+            {
+                ps = connection.prepareStatement
+                    ("select " + colname + " from " + tabname + " LIMIT 1;");
+                checkResultNum = false;
+            } else {
+                ps = connection.prepareStatement
+                    ("select count(*) FROM user_tab_columns WHERE table_name='"
+                     + tabname + "' AND column_name='"
+                     + colname + "';");
+                checkResultNum = true;
+            }
+
+            rs = ps.executeQuery();
+            if (checkResultNum)
+            {
+                if (! rs.next())
+                {
+                    rs.close();
+                    return false;
+                }
+                int count = rs.getInt(1);
+                if (count == 0)
+                {
+                    rs.close();
+                    return false;
+                }
+            }
+            rs.close();
+
+        } catch (Throwable th) {
+
+            if (rs != null)
+            {
+                try
+                {
+                    rs.close();
+                }
+                catch (SQLException e) {}
+            }
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
