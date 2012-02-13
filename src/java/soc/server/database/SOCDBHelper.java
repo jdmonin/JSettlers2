@@ -789,7 +789,7 @@ public class SOCDBHelper
     }
 
     /**
-     * DOCUMENT ME!
+     * Close out and shut down the database connection.
      */
     public static void cleanup() throws SQLException
     {
@@ -803,6 +803,14 @@ public class SOCDBHelper
                 lastloginUpdate.close();
                 saveGameCommand.close();
                 robotParamsQuery.close();
+            }
+            catch (SQLException sqlE)
+            {
+                ; /* ignore failures in query closes */
+            }
+
+            try
+            {
                 connection.close();
                 initialized = false;
             }
