@@ -3535,6 +3535,8 @@ public class SOCServer extends Server
     {
         if (stopMsg != null)
         {
+            System.out.println("stopServer: " + stopMsg);
+            System.out.println();
             broadcast(SOCBCastTextMsg.toCmd(stopMsg));
         }
 
@@ -3557,6 +3559,8 @@ public class SOCServer extends Server
         catch (SQLException x) { }
         
         super.stopServer();
+
+        System.out.println("Server shutdown completed.");
     }
 
     /**
