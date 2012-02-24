@@ -596,6 +596,12 @@ public class SOCServer extends Server
 
             printGameOptions();
         }
+
+        System.err.print("The server is ready.");
+        if (port > 0)
+            System.err.print(" Listening on port " + port);
+        System.err.println();
+        System.err.println();
     }
 
     /**
