@@ -35,18 +35,31 @@ import java.util.Vector;
 public abstract class SOCPossiblePiece
 {
     /**
-     * Types of playing pieces
+     * Type constant for a possible road. Same value as {@link soc.game.SOCPlayingPiece#ROAD}.
      */
     public static final int ROAD = 0;
+
+    /**
+     * Type constant for a possible settlement. Same value as {@link soc.game.SOCPlayingPiece#SETTLEMENT}.
+     */
     public static final int SETTLEMENT = 1;
+
+    /**
+     * Type constant for a possible city. Same value as {@link soc.game.SOCPlayingPiece#CITY}.
+     */
     public static final int CITY = 2;
+
     /**
      * Ship, for large sea board.
+     * Same value as {@link soc.game.SOCPlayingPiece#SHIP}.
      * @since 2.0.00
      */
     public static final int SHIP = 3;
 
-    /** CARD is -2, was 4 before v2.0.00 */
+    /**
+     * Type constant for a possible card.
+     * CARD is -2, was 4 before v2.0.00.
+     */
     public static final int CARD = -2;
 
     /** MIN is -2 for {@link #CARD}, but nothing currently uses -1. {@link #ROAD} is 0. */

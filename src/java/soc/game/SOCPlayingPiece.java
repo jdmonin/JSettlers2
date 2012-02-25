@@ -200,6 +200,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * the set of resources a player needs to build a playing piece.
      * @param pieceType The type of this playing piece, in range {@link #MIN} to ({@link #MAXPLUSONE} - 1).
+     *           {@link #ROAD}, {@link #CITY}, etc.
      *           Can also pass -2 or {@link #MAXPLUSONE} for {@link SOCGame#CARD_SET}.
      * @return the set, such as {@link SOCGame#SETTLEMENT_SET}
      * @throws IllegalArgumentException if <tt>pieceType</tt> is out of range
