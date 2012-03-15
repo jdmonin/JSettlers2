@@ -52,6 +52,8 @@ import java.util.Vector;
  *<P>
  * <b>Coordinate system</b> is a square grid of rows and columns, different from previous encodings:
  *<P>
+ * See <tt>src/docs/hexcoord-sea.png</tt>
+ *<P>
  * <b>Hexes</b> (represented as coordinate of their centers),
  * <b>nodes</b> (corners of hexes; where settlements/cities are placed),
  * and <b>edges</b> (between nodes; where roads are placed),
@@ -59,7 +61,6 @@ import java.util.Vector;
  * Each hex is 2 units wide and 2 tall, with vertical sides (west,edge edges)
  * and sloped tops and bottoms (NW, NE, SW, SE edges).
  *<P>
- * See <tt>src/docs/TODO.gif</tt><br>
  * Coordinates start at the upper-left and continue to the right and down.
  * The first few rows of hexes are: <pre>
  *    (1,2)  (1,4)  (1,6) ..
@@ -69,8 +70,10 @@ import java.util.Vector;
  *    (9,2)  (9,4)  (9,6) .. </pre>
  * All water and land hexes are within the coordinates.
  * Rows increase going north to south, Columns increase west to east.
- *<BR>
- * TODO ports/edges
+ *<P>
+ * Vertical edge coordinates are at the edge's center
+ * (between two hex coordinates, to the west and east of the edge).
+ * Otherwise, edges get the coordinate of the node at their western end.
  *<P>
  * The first few rows of nodes are: <pre>
  *       (0,2)  (0,4)  (0,6) ..
