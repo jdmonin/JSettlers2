@@ -44,6 +44,58 @@ import java.util.Vector;
  * Other methods to examine the board: {@link SOCGame#getPlayersOnHex(int)},
  * {@link SOCGame#putPiece(SOCPlayingPiece)}, etc.
  *<P>
+ * <h4> Geometry/Navigation methods: </h4>
+ *<br><table border=1>
+ *<TR><td>&nbsp;</td><td colspan=3>Adjacent to a:</td></TR>
+ *<TR><td>Get the:</td> <td> Hex </td><td> Edge </td><td> Node </td></TR>
+ *<TR><td> Hex </td>
+ *    <td><!-- Hex adjac to hex -->
+ *      {@link #getAdjacentHexesToHex(int, boolean)}
+ *    </td>
+ *    <td><!-- Hex adjac to edge -->
+ *      {@link #getAdjacentHexToEdge(int, int)}
+ *    </td>
+ *    <td><!-- Hex adjac to node -->
+ *      {@link #getAdjacentHexesToNode(int)}
+ *    </td>
+ *</TR>
+ *<TR><td> Edge </td>
+ *    <td><!-- Edge adjac to hex -->
+ *      -
+ *    </td>
+ *    <td><!-- Edge adjac to edge -->
+ *      {@link #getAdjacentEdgesToEdge(int)}
+ *    </td>
+ *    <td><!-- Edge adjac to node -->
+ *      {@link #getAdjacentEdgeToNode(int, int)} <br>
+ *      {@link #getAdjacentEdgeToNode2Away(int, int)} <br>
+ *      {@link #getAdjacentEdgesToNode(int)} <br>
+ *      {@link #getAdjacentEdgesToNode_arr(int)} <br>
+ *      {@link #getEdgeBetweenAdjacentNodes(int, int)} <br>
+ *      {@link #isEdgeAdjacentToNode(int, int)}
+ *    </td>
+ *</TR>
+ *<TR><td> Node </td>
+ *    <td><!-- Node adjac to hex -->
+ *      {@link #getAdjacentNodeToHex(int)} <br>
+ *      {@link #getAdjacentNodesToHex(int)}
+ *    </td>
+ *    <td><!-- Node adjac to edge -->
+ *      {@link #getAdjacentNodesToEdge(int)} <br>
+ *      {@link #getAdjacentNodesToEdge_arr(int)} <br>
+ *      {@link #getAdjacentNodeFarEndOfEdge(int, int)}
+ *    </td>
+ *    <td><!-- Node adjac to node -->
+ *      {@link #getAdjacentNodeToNode(int, int)} <br>
+ *      {@link #getAdjacentNodeToNode2Away(int, int)} <br>
+ *      {@link #getAdjacentNodesToNode(int)} <br>
+ *      {@link #getAdjacentNodesToNode_arr(int)} <br>
+ *      {@link #isNodeAdjacentToNode(int, int)}
+ *    </td>
+ *</TR>
+ *</table>
+ *  See also {@link SOCBoardLarge} which has more geometry methods.
+ *<P>
  * <b>Coordinate system,</b> as seen in appendix A of Robert S Thomas' dissertation:
  *<P>
  * <b>Hexes</b> (represented as coordinate of their centers),

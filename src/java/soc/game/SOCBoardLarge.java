@@ -46,13 +46,72 @@ import java.util.Vector;
  * but check {@link SOCRoad#isRoadNotShip()} to differentiate.
  * You cannot place both a road and a ship on the same coastal edge coordinate.
  *<P>
+ * <h4> Geometry/Navigation methods: </h4>
+ *<br><table border=1>
+ *<TR><td>&nbsp;</td><td colspan=3>Adjacent to a:</td></TR>
+ *<TR><td>Get the:</td> <td> Hex </td><td> Edge </td><td> Node </td></TR>
+ *<TR><td> Hex </td>
+ *    <td><!-- Hex adjac to hex -->
+ *      {@link #getAdjacentHexesToHex(int, boolean)}
+ *    </td>
+ *    <td><!-- Hex adjac to edge -->
+ *      {@link #getAdjacentHexToEdge(int, int)} <br>
+ *      {@link #getAdjacentHexesToEdge_arr(int)}
+ *    </td>
+ *    <td><!-- Hex adjac to node -->
+ *      {@link #getAdjacentHexesToNode(int)}
+ *    </td>
+ *</TR>
+ *<TR><td> Edge </td>
+ *    <td><!-- Edge adjac to hex -->
+ *      {@link #getAdjacentEdgesToHex(int)} <br>
+ *      {@link #isEdgeAdjacentToHex(int, int)}
+ *    </td>
+ *    <td><!-- Edge adjac to edge -->
+ *      {@link #getAdjacentEdgesToEdge(int)}
+ *    </td>
+ *    <td><!-- Edge adjac to node -->
+ *      {@link #getAdjacentEdgeToNode(int, int)} <br>
+ *      {@link #getAdjacentEdgeToNode2Away(int, int)} <br>
+ *      {@link #getAdjacentEdgesToNode(int)} <br>
+ *      {@link #getAdjacentEdgesToNode_arr(int)} <br>
+ *      {@link #getEdgeBetweenAdjacentNodes(int, int)} <br>
+ *      {@link #isEdgeAdjacentToNode(int, int)}
+ *    </td>
+ *</TR>
+ *<TR><td> Node </td>
+ *    <td><!-- Node adjac to hex -->
+ *      {@link #getAdjacentNodeToHex(int)} <br>
+ *      {@link #getAdjacentNodesToHex(int)}
+ *    </td>
+ *    <td><!-- Node adjac to edge -->
+ *      {@link #getAdjacentNodeToEdge(int, int)} <br>
+ *      {@link #getAdjacentNodesToEdge(int)} <br>
+ *      {@link #getAdjacentNodesToEdge_arr(int)} <br>
+ *      {@link #getAdjacentNodeFarEndOfEdge(int, int)} <br>
+ *      {@link #getNodeBetweenAdjacentEdges(int, int)}
+ *    </td>
+ *    <td><!-- Node adjac to node -->
+ *      {@link #getAdjacentNodeToNode(int, int)} <br>
+ *      {@link #getAdjacentNodeToNode2Away(int, int)} <br>
+ *      {@link #getAdjacentNodesToNode(int)} <br>
+ *      {@link #getAdjacentNodesToNode_arr(int)} <br>
+ *      {@link #isNodeAdjacentToNode(int, int)}
+ *    </td>
+ *</TR>
+ *</table>
+ *  Some of these geometry methods are specific to {@link SOCBoardLarge}
+ *  and don't appear in the parent {@link SOCBoard}.
+ *<P>
+ * <h4> Coordinate System: </h4>
+ *
+ * See <tt>src/docs/hexcoord-sea.png</tt>
+ *<P>
  * Unlike earlier encodings, here the "hex number" ("ID") is not an index into a dense array
  * of land hexes.  Thus it's not efficient to iterate through all hex numbers. <br>
  * Instead: Hex ID = (r &lt;&lt; 8) | c   // 2 bytes: 0xRRCC
  *<P>
- * <b>Coordinate system</b> is a square grid of rows and columns, different from previous encodings:
- *<P>
- * See <tt>src/docs/hexcoord-sea.png</tt>
+ * The coordinate system is a square grid of rows and columns, different from previous encodings:
  *<P>
  * <b>Hexes</b> (represented as coordinate of their centers),
  * <b>nodes</b> (corners of hexes; where settlements/cities are placed),
