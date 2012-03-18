@@ -90,7 +90,33 @@ import java.util.Vector;
  *      {@link #getAdjacentNodeToNode2Away(int, int)} <br>
  *      {@link #getAdjacentNodesToNode(int)} <br>
  *      {@link #getAdjacentNodesToNode_arr(int)} <br>
- *      {@link #isNodeAdjacentToNode(int, int)}
+ *      {@link #isNodeAdjacentToNode(int, int)} <br>
+ *      {@link #isNode2AwayFromNode(int, int)}
+ *    </td>
+ *</TR>
+ *<TR><td>Other methods:</td> <td> Hex </td><td> Edge </td><td> Node </td></TR>
+ *<TR valign=top><td>&nbsp;</td>
+ *    <td><!-- hex -->
+ *      {@link #isHexOnLand(int)} <br>
+ *      {@link #isHexOnWater(int)} <br>
+ *      {@link #getNumberOnHexFromCoord(int)} <br>
+ *      {@link #getNumberOnHexFromNumber(int)} <br>
+ *      {@link #getHexTypeFromCoord(int)} <br>
+ *      {@link #getHexTypeFromNumber(int)} <br>
+ *      {@link #getHexNumFromCoord(int)} <br>
+ *      {@link #getRobberHex()} <br>
+ *      {@link #getPreviousRobberHex()} <br>
+ *      {@link #getHexLayout()} <br>
+ *      {@link #getLandHexCoords()}
+ *    </td>
+ *    <td><!-- edge -->
+ *      {@link #roadAtEdge(int)} <br>
+ *      {@link #getPortsEdges()}
+ *    </td>
+ *    <td><!-- node -->
+ *      {@link #isNodeOnLand(int)} <br>
+ *      {@link #settlementAtNode(int)} <br>
+ *      {@link #getPortTypeFromNodeCoord(int)}
  *    </td>
  *</TR>
  *</table>

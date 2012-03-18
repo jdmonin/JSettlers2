@@ -96,7 +96,41 @@ import java.util.Vector;
  *      {@link #getAdjacentNodeToNode2Away(int, int)} <br>
  *      {@link #getAdjacentNodesToNode(int)} <br>
  *      {@link #getAdjacentNodesToNode_arr(int)} <br>
- *      {@link #isNodeAdjacentToNode(int, int)}
+ *      {@link #isNodeAdjacentToNode(int, int)} <br>
+ *      {@link #isNode2AwayFromNode(int, int)}
+ *    </td>
+ *</TR>
+ *<TR><td>Other methods:</td> <td> Hex </td><td> Edge </td><td> Node </td></TR>
+ *<TR valign=top><td>&nbsp;</td>
+ *    <td><!-- hex -->
+ *      {@link #isHexOnLand(int)} <br>
+ *      {@link #isHexOnWater(int)} <br>
+ *      {@link #getNumberOnHexFromCoord(int)} <br>
+ *      {@link #getNumberOnHexFromNumber(int)} <br>
+ *      {@link #getHexTypeFromCoord(int)} <br>
+ *      {@link #getHexTypeFromNumber(int)} <br>
+ *      {@link #getHexNumFromCoord(int)} <br>
+ *      {@link #getRobberHex()} <br>
+ *      {@link #getPirateHex()} <br>
+ *      {@link #getPreviousRobberHex()} <br>
+ *      {@link #getPreviousPirateHex()} <br>
+ *      {@link #getHexLayout()} <br>
+ *      {@link #getLandHexLayout()} <br>
+ *      {@link #getLandHexCoords()} <br>
+ *      {@link #getLandHexCoordsSet()}
+ *    </td>
+ *    <td><!-- edge -->
+ *      {@link #isEdgeInBounds(int)} <br>
+ *      {@link #isEdgeCoastline(int)} <br>
+ *      {@link #roadAtEdge(int)} <br>
+ *      {@link #getPortsEdges()}
+ *    </td>
+ *    <td><!-- node -->
+ *      {@link #isNodeInBounds(int)} <br>
+ *      {@link #isNodeOnLand(int)} <br>
+ *      {@link #settlementAtNode(int)} <br>
+ *      {@link #getPortTypeFromNodeCoord(int)} <br>
+ *      {@link #getLandAreasLegalNodes()}
  *    </td>
  *</TR>
  *</table>
@@ -237,7 +271,7 @@ public class SOCBoardLarge extends SOCBoard
     // TODO hexLayoutLg, numberLayoutLg: Will only need half the rows, half the columns
 
     /**
-     * Hex layout: water/land resource types, and port types and facings.
+     * Hex layout: water/land resource types.
      * One element per hex.
      * Order: [row][column].
      * <P>
