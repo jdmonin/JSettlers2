@@ -38,7 +38,13 @@ public class SOCResourceSet implements Serializable, Cloneable
     public static final SOCResourceSet EMPTY_SET = new SOCResourceSet();
 
     /**
-     * the number of resources
+     * the number of each resource type.
+     * Indexes 1 to n are used:
+     * 1 == {@link SOCResourceConstants#CLAY},
+     * 2 == {@link SOCResourceConstants#ORE},
+     * ...
+     * 5 = {@link SOCResourceConstants#WHEAT},
+     * 6 = {@link SOCResourceConstants#UNKNOWN}.
      */
     private int[] resources;
 
@@ -82,6 +88,8 @@ public class SOCResourceSet implements Serializable, Cloneable
      */
     public SOCResourceSet(int[] rset)
     {
+        // Note that rset[]'s indexes are different from resources[]'s indexes.
+
         this(rset[0], rset[1], rset[2], rset[3], rset[4], (rset.length >= 6) ? rset[5] : 0);
     }
 
@@ -353,7 +361,8 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
-     * Human-readable form of the set, with format "5 clay,1 ore,3 wood"
+     * Human-readable form of the set, with format "5 clay,1 ore,3 wood".
+     * Unknown resources aren't mentioned.
      * @return a human readable longer form of the set;
      *         if the set is empty, return the string "nothing".
      * @see #toShortString()
