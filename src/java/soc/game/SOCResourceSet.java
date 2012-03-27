@@ -21,6 +21,7 @@
 package soc.game;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 
 /**
@@ -98,11 +99,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      */
     public void clear()
     {
-        for (int i = SOCResourceConstants.MIN;
-                i < SOCResourceConstants.MAXPLUSONE; i++)
-        {
-            resources[i] = 0;
-        }
+        Arrays.fill(resources, 0);
     }
 
     /**
@@ -152,7 +149,9 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
-     * set the amount of a resource
+     * Set the amount of a resource.
+     * To set all resources from another set, use {@link #add(SOCResourceSet)},
+     * {@link #subtract(SOCResourceSet)} or {@link #setAmounts(SOCResourceSet)}.
      *
      * @param rtype the type of resource, like {@link SOCResourceConstants#CLAY}
      * @param amt   the amount
@@ -447,6 +446,8 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
+     * Make a copy of this resource set.
+     * To instead copy another set into this one, use {@link #setAmounts(SOCResourceSet)}. 
      * @return a copy of this resource set
      */
     public SOCResourceSet copy()
@@ -464,12 +465,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      */
     public void setAmounts(SOCResourceSet set)
     {
-        resources[SOCResourceConstants.CLAY]    = set.getAmount(SOCResourceConstants.CLAY);
-        resources[SOCResourceConstants.ORE]     = set.getAmount(SOCResourceConstants.ORE);
-        resources[SOCResourceConstants.SHEEP]   = set.getAmount(SOCResourceConstants.SHEEP);
-        resources[SOCResourceConstants.WHEAT]   = set.getAmount(SOCResourceConstants.WHEAT);
-        resources[SOCResourceConstants.WOOD]    = set.getAmount(SOCResourceConstants.WOOD);
-        resources[SOCResourceConstants.UNKNOWN] = set.getAmount(SOCResourceConstants.UNKNOWN);
+        System.arraycopy(set.resources, 0, resources, 0, resources.length);
     }
 
 }

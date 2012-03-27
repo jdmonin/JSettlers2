@@ -142,6 +142,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private SOCResourceSet resources;
 
     /**
+     * Resources gained from dice roll of the current turn.
+     * Set in {@link #addRolledResources(SOCResourceSet)},
+     * cleared in {@link #updateAtTurn()}.
+     * @since 2.0.00
+     */
+    private SOCResourceSet rolledResources;
+
+    /**
      * For use at server by SOCGame, if the player's previous action this turn was a
      * bank trade, the resources involved.  Used to decide if they can undo the trade.
      *<P>
@@ -407,6 +415,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         resources = player.resources.copy();
         resourceStats = new int[player.resourceStats.length];
         System.arraycopy(player.resourceStats, 0, resourceStats, 0, player.resourceStats.length);
+        rolledResources = player.rolledResources.copy();
         devCards = new SOCDevCardSet(player.devCards);
         numKnights = player.numKnights;
         buildingVP = player.buildingVP;
@@ -496,6 +505,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         lrPaths = new Vector();
         resources = new SOCResourceSet();
         resourceStats = new int[SOCResourceConstants.UNKNOWN];
+        rolledResources = new SOCResourceSet();
         devCards = new SOCDevCardSet();
         numKnights = 0;
         buildingVP = 0;
@@ -563,15 +573,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Update game state as needed when any player begins their turn (before dice are rolled).
+     * Update player's state as needed when any player begins their turn (before dice are rolled).
      * Called by server and client, as part of {@link SOCGame#updateAtTurn()}.
      *<P>
      * Called for each player, just before calling the current player's {@link #updateAtOurTurn()}.
+     *<UL>
+     *<LI> Clear {@link #getRolledResources()}
+     *</UL>
      * @since 2.0.00
      */
     void updateAtTurn()
     {
-        
+        rolledResources.clear();
     }
 
     /**
@@ -1425,9 +1438,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 rolled.setAmount(0, SOCResourceConstants.GOLD_LOCAL);
             }
         }
+        rolledResources.setAmounts(rolled);
         resources.add(rolled);
         for (int rtype = SOCResourceConstants.CLAY; rtype < resourceStats.length; ++rtype)
             resourceStats[rtype] += rolled.getAmount(rtype);
+    }
+
+    /**
+     * Resources gained from dice roll of the current turn.
+     * Valid at server only, not at client.
+     * Please treat the returned set as read-only.
+     * @return the resources, if any, gained by this player from the
+     *     current turn's {@link SOCGame#rollDice()}.
+     * @since 2.0.00
+     */
+    public SOCResourceSet getRolledResources()
+    {
+        return rolledResources;
     }
 
     /**
