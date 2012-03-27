@@ -140,7 +140,7 @@ public class SOCResourceSet implements Serializable, Cloneable
         int sum = 0;
 
         for (int i = SOCResourceConstants.MIN;
-                i < SOCResourceConstants.WOOD; i++)
+                 i <= SOCResourceConstants.WOOD; i++)
         {
             sum += resources[i];
         }
