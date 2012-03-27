@@ -2806,6 +2806,7 @@ public class SOCGame implements Serializable, Cloneable
      *<UL>
      *<LI> Set first player and last player, if they're currently -1
      *<LI> Set current dice to 0
+     *<LI> Call each player's {@link SOCPlayer#updateAtTurn()}
      *<LI> Call the new current player's {@link SOCPlayer#updateAtOurTurn()},
      *     to mark their new dev cards as old and clear other flags
      *<LI> Clear any "x happened this turn" flags/lists
@@ -2824,6 +2825,8 @@ public class SOCGame implements Serializable, Cloneable
             setFirstPlayer(currentPlayerNumber);  // also sets lastPlayerNumber
 
         currentDice = 0;
+        for (int pl = 0; pl < maxPlayers; ++pl)
+            players[pl].updateAtTurn();
         SOCPlayer currPlayer = players[currentPlayerNumber];
         currPlayer.updateAtOurTurn();
         resetVoteClear();
