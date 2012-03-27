@@ -5581,7 +5581,7 @@ public class SOCServer extends Server
                                 if (! ga.isSeatVacant(i))
                                 {
                                     SOCPlayer pli = ga.getPlayer(i);
-                                    SOCResourceSet rsrcs = ga.getResourcesGainedFromRoll(pli, ga.getCurrentDice());
+                                    SOCResourceSet rsrcs = pli.getRolledResources();
 
                                     if (rsrcs.getKnownTotal() != 0)
                                     {
@@ -5596,14 +5596,14 @@ public class SOCServer extends Server
 
                                         gainsText.append(pli.getName());
                                         gainsText.append(" gets ");
-                                        // Send SOCPlayerElement messages,
+                                        // Announce SOCPlayerElement.GAIN messages,
                                         // build resource-text in gainsText.
                                         reportRsrcGainLoss(gn, rsrcs, false, i, -1, gainsText, null);
                                         gainsText.append(".");
                                     }
 
                                     //
-                                    //  send all resource info for accuracy
+                                    //  Send player all their resource info for accuracy
                                     //  and prompt if they must pick for GOLD_HEX
                                     //
                                     StringConnection playerCon = getConnection(pli.getName());

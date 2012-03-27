@@ -3392,7 +3392,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Figure out what resources a player would get on a given roll,
+     * For {@link #rollDice()}, figure out what resources a player gets on a given roll,
      * based on the hexes adjacent to the player's settlements and cities
      * and based on the robber's position.
      *<P>
@@ -3405,7 +3405,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @return the resource set
      */
-    public SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, int roll)
+    private SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, final int roll)
     {
         SOCResourceSet resources = new SOCResourceSet();
         final int robberHex = board.getRobberHex();

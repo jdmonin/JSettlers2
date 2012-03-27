@@ -1423,8 +1423,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * {@link #getNeedToPickGoldHexResources()} to that amount.
      * Otherwise ignore rolled {@link SOCResourceConstants#UNKNOWN} resources.
      *
-     * @param rolled The resources gained by this roll, as from
-     *     {@link SOCGame#getResourcesGainedFromRoll(SOCPlayer, int)}
+     * @param rolled The resources gained by this roll, as determined
+     *     by {@link SOCGame#rollDice()}
      * @since 1.1.09
      */
     public void addRolledResources(SOCResourceSet rolled)
