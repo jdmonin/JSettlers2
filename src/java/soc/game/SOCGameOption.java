@@ -108,6 +108,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
+     *<LI> DH  Dev Cards for house rules (swap/destroy)
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
      *    existing option.  So in NewGameOptionsFrame, it appears on the line following
@@ -242,6 +243,9 @@ public class SOCGameOption implements Cloneable, Comparable
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
                 ("VP", -1, 2000, false, 10, 10, 15, true, "Victory points to win: #"));
+        opt.put("DH", new SOCGameOption
+                ("DH", 2000, 2000, false, true, "Dev Cards for house rules (swap/destroy)"));
+                // TODO no robot players for DH
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
