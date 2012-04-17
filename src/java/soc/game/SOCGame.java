@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -281,6 +282,22 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      */
     public static final int WAITING_FOR_PICK_GOLD_RESOURCE = 55;
+
+    /**
+     * Waiting for player to choose a settlement to destroy, or
+     * a city to downgrade (Dev card {@link SOCDevCardConstants#DESTROY}).
+     * Used with game option <tt>"DH"</tt>.
+     * @since 2.0.00
+     */
+    public static final int WAITING_FOR_DESTROY = 56;
+
+    /**
+     * Waiting for player to choose a settlement or city to swap
+     * with another player (Dev card {@link SOCDevCardConstants#SWAP}).
+     * Used with game option <tt>"DH"</tt>.
+     * @since 2.0.00
+     */
+    public static final int WAITING_FOR_SWAP = 57;
 
     /**
      * The 6-player board's Special Building Phase.
@@ -2613,9 +2630,23 @@ public class SOCGame implements Serializable, Cloneable
         int i;
         int j;
 
-        for (i = 0; i < 14; i++)
+        if (isGameOptionSet("DH"))  // House Rules dev cards
         {
-            devCardDeck[i] = SOCDevCardConstants.KNIGHT;
+            // Some knights become other card types
+            for (i = 0; i < 4; i++)
+                devCardDeck[i] = SOCDevCardConstants.SWAP; 
+            for (i = 4; i < 8; i++)
+                devCardDeck[i] = SOCDevCardConstants.DESTROY;
+            for (i = 8; i < 14; i++)
+                devCardDeck[i] = SOCDevCardConstants.KNIGHT;
+
+        } else {
+
+            // Standard set of of knights
+            for (i = 0; i < 14; i++)
+            {
+                devCardDeck[i] = SOCDevCardConstants.KNIGHT;
+            }
         }
 
         for (i = 14; i < 16; i++)
@@ -3017,6 +3048,20 @@ public class SOCGame implements Serializable, Cloneable
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
                  SOCDevCardConstants.MONO);
+
+        case WAITING_FOR_DESTROY:
+            gameState = PLAY1;
+            players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.OLD, SOCDevCardConstants.DESTROY);
+            return new SOCForceEndTurnResult
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
+                 SOCDevCardConstants.DESTROY);
+
+        case WAITING_FOR_SWAP:
+            gameState = PLAY1;
+            players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.OLD, SOCDevCardConstants.SWAP);
+            return new SOCForceEndTurnResult
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
+                 SOCDevCardConstants.SWAP);
 
         default:
             throw new IllegalStateException("Internal error in force, un-handled gamestate: "
