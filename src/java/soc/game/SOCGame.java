@@ -5157,7 +5157,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param reqPN Player number requesting the vote
      * @throws IllegalArgumentException If this player number has already
      *     requested a reset this turn
-     * @throws IllegalStateException If there is alread a vote in progress 
+     * @throws IllegalStateException If there is already a vote in progress 
      *
      * @see #getResetVoteRequester()
      * @see #resetVoteRegister(int, boolean)
