@@ -1,7 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007,2009 Jeremy D. Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007,2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -98,13 +99,15 @@ public class SOCDevCardSet implements Serializable, Cloneable
 
     /**
      * @return the total number of development cards
+     * @see #getNumUnplayed()
+     * @see #getNumVPCards()
      */
     public int getTotal()
     {
         int sum = 0;
 
         for (int i = SOCDevCardConstants.MIN;
-                i < SOCDevCardConstants.MAXPLUSONE; i++)
+                 i < SOCDevCardConstants.MAXPLUSONE; i++)
         {
             sum += (devCards[OLD][i] + devCards[NEW][i]);
         }
@@ -162,6 +165,8 @@ public class SOCDevCardSet implements Serializable, Cloneable
     /**
      * @return the number of victory point cards in
      *         this set
+     * @see #getNumUnplayed()
+     * @see #getTotal()
      */
     public int getNumVPCards()
     {
@@ -172,6 +177,7 @@ public class SOCDevCardSet implements Serializable, Cloneable
         sum += devCards[OLD][SOCDevCardConstants.UNIV];
         sum += devCards[OLD][SOCDevCardConstants.TEMP];
         sum += devCards[OLD][SOCDevCardConstants.TOW];
+
         sum += devCards[NEW][SOCDevCardConstants.CAP];
         sum += devCards[NEW][SOCDevCardConstants.LIB];
         sum += devCards[NEW][SOCDevCardConstants.UNIV];
@@ -183,9 +189,12 @@ public class SOCDevCardSet implements Serializable, Cloneable
     
     /**
      * Some card types stay in your hand after being played.
-     * Count only the unplayed ones (old or new). 
+     * Count only the unplayed ones (old or new);
+     * victory point cards are skipped.
      * 
      * @return the number of unplayed cards in this set
+     * @see #getNumVPCards()
+     * @see #getTotal()
      */
     public int getNumUnplayed()
     {
@@ -195,11 +204,16 @@ public class SOCDevCardSet implements Serializable, Cloneable
         sum += devCards[OLD][SOCDevCardConstants.ROADS];
         sum += devCards[OLD][SOCDevCardConstants.DISC];
         sum += devCards[OLD][SOCDevCardConstants.MONO];
+        sum += devCards[OLD][SOCDevCardConstants.SWAP];
+        sum += devCards[OLD][SOCDevCardConstants.DESTROY];
         sum += devCards[OLD][SOCDevCardConstants.UNKNOWN];
+
         sum += devCards[NEW][SOCDevCardConstants.KNIGHT];
         sum += devCards[NEW][SOCDevCardConstants.ROADS];
         sum += devCards[NEW][SOCDevCardConstants.DISC];
         sum += devCards[NEW][SOCDevCardConstants.MONO];
+        sum += devCards[NEW][SOCDevCardConstants.SWAP];
+        sum += devCards[NEW][SOCDevCardConstants.DESTROY];
         sum += devCards[NEW][SOCDevCardConstants.UNKNOWN];
         
         return sum;

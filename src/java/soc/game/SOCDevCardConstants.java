@@ -1,7 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -63,11 +64,27 @@ public interface SOCDevCardConstants
     /** tower, chapel VP card */
     public static final int TOW = 8;
 
-    /** Maximum valid card type ({@link #TOW}) */
-    public static final int MAX_KNOWN = 8;
+    /**
+     * Destroy settlement or downgrade city.
+     * For House Rule dev cards; game option <tt>"DH"</tt>.
+     * @since 2.0.00
+     */
+    public static final int DESTROY = 9;
+
+    /**
+     * Swap settlement/city with another player.
+     * For House Rule dev cards; game option <tt>"DH"</tt>.
+     * @since 2.0.00
+     */
+    public static final int SWAP = 10;
+
+    /** Maximum valid card type ({@link #SWAP}) */
+    public static final int MAX_KNOWN = 10; 
 
     /** Dev-card of unknown type, for reporting to other players */ 
-    public static final int UNKNOWN = 9; // unknown card
+    public static final int UNKNOWN = 11; // unknown card
+    // TODO should be 0
+    // TODO keep backward-compat: is 9 before 2.0.00 added house rule cards
 
-    public static final int MAXPLUSONE = 10;
+    public static final int MAXPLUSONE = 12;
 }
