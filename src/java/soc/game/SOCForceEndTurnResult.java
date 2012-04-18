@@ -147,12 +147,12 @@ public class SOCForceEndTurnResult
      * @throws IllegalArgumentException If res is not in the range
      *            {@link #FORCE_ENDTURN_MIN} to {@link #FORCE_ENDTURN_MAX},
      *            or if dtype is not -1 and not in the range
-     *            {@link SOCDevCardConstants#MIN} to {@link SOCDevCardConstants#MAX_KNOWN}.
+     *            {@link SOCDevCardConstants#MIN_KNOWN} to {@link SOCDevCardConstants#MAXPLUSONE}.
      */
     public SOCForceEndTurnResult(int res, int dtype)
     {
         this(res);
-        if ( ((dtype < SOCDevCardConstants.MIN) || (dtype > SOCDevCardConstants.MAX_KNOWN))
+        if ( ((dtype < SOCDevCardConstants.MIN_KNOWN) || (dtype >= SOCDevCardConstants.MAXPLUSONE))
             && (dtype != -1) )
             throw new IllegalArgumentException("dtype out of range: " + dtype);
         devCardType = dtype;

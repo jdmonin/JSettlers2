@@ -142,7 +142,8 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * subtract an amount from a type of card
+     * Subtract an amount from a type of card.
+     * If that many aren't available, subtract from {@link SOCDevCardConstants#UNKNOWN} instead.
      *
      * @param age   either {@link #OLD} or {@link #NEW}
      * @param ctype the type of development card, at least
@@ -200,21 +201,21 @@ public class SOCDevCardSet implements Serializable, Cloneable
     {
         int sum = 0;
 
-        sum += devCards[OLD][SOCDevCardConstants.KNIGHT];
+        sum += devCards[OLD][SOCDevCardConstants.UNKNOWN];
         sum += devCards[OLD][SOCDevCardConstants.ROADS];
         sum += devCards[OLD][SOCDevCardConstants.DISC];
         sum += devCards[OLD][SOCDevCardConstants.MONO];
+        sum += devCards[OLD][SOCDevCardConstants.KNIGHT];
         sum += devCards[OLD][SOCDevCardConstants.SWAP];
         sum += devCards[OLD][SOCDevCardConstants.DESTROY];
-        sum += devCards[OLD][SOCDevCardConstants.UNKNOWN];
 
-        sum += devCards[NEW][SOCDevCardConstants.KNIGHT];
+        sum += devCards[NEW][SOCDevCardConstants.UNKNOWN];
         sum += devCards[NEW][SOCDevCardConstants.ROADS];
         sum += devCards[NEW][SOCDevCardConstants.DISC];
         sum += devCards[NEW][SOCDevCardConstants.MONO];
+        sum += devCards[NEW][SOCDevCardConstants.KNIGHT];
         sum += devCards[NEW][SOCDevCardConstants.SWAP];
         sum += devCards[NEW][SOCDevCardConstants.DESTROY];
-        sum += devCards[NEW][SOCDevCardConstants.UNKNOWN];
         
         return sum;
     }

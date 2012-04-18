@@ -25,17 +25,48 @@ package soc.game;
 /**
  * This is a list of constants for representing
  * types of development cards in Settlers of Catan.
- * {@link #MIN} is the lowest value (lowest "known"), {@link #MAX_KNOWN} is highest "known",
- * and {@link #UNKNOWN} is higher than MAX_KNOWN.
+ *<P>
+ * {@link #UNKNOWN} is the lowest card type value, lower than
+ * the lowest "known" {@link #MIN_KNOWN}. {@link #MAXPLUSONE} is
+ * one past the highest card type value.
  *<P>
  * If you add values here, be sure to update javadocs at
  * server.giveDevCard,  .handleGAMETEXTMSG and .sendGameStateOVER ,
  * and handpanel.updateDevCards .
+ *<P>
+ * In version 2.0.00, the values for {@link #KNIGHT} and {@link #UNKNOWN}
+ * were swapped to make room for new card types.  For compatibility with
+ * older versions, constants {@link #KNIGHT_FOR_VERS_1_X} and
+ * {@link #UNKNOWN_FOR_VERS_1_X} were added.  See {@link #VERSION_FOR_NEW_TYPES}.
  */
 public interface SOCDevCardConstants
 {
-    /** Minimum valid card type ({@link #KNIGHT}). */
+    /**
+     * First version number (2.0.00) that has the new card types and
+     * has swapped values for {@link #UNKNOWN} and {@link #KNIGHT}.
+     * At server, check against {@link SOCGame#clientVersionLowest}
+     * before sending these constants to clients.
+     */
+    public static final int VERSION_FOR_NEW_TYPES = 2000;
+
+    /** Previous value for unknown card type, for version 1.x clients or servers */
+    public static final int UNKNOWN_FOR_VERS_1_X = 9;
+
+    /** Previous value for knight/robber card, for version 1.x clients or servers */
+    public static final int KNIGHT_FOR_VERS_1_X = 0;
+
+    /**
+     * Minimum valid card type constant ({@link #UKNOWN}).
+     * Lower than {@link #MIN_KNOWN}.
+     */
     public static final int MIN = 0;
+
+    /**
+     * Minimum known card type ({@link #ROADS}).
+     * Higher than {@link #UNKNOWN}.
+     * @since 2.0.00
+     */
+    public static final int MIN_KNOWN = 1;
 
     /** knight, robber card */
     public static final int KNIGHT = 0;
@@ -78,10 +109,10 @@ public interface SOCDevCardConstants
      */
     public static final int SWAP = 10;
 
-    /** Maximum valid card type ({@link #SWAP}) */
-    public static final int MAX_KNOWN = 10; 
-
-    /** Dev-card of unknown type, for reporting to other players */ 
+    /**
+     * Dev-card of unknown type, for reporting to other players.
+     * Lower than {@link #MIN_KNOWN}.
+     */
     public static final int UNKNOWN = 11; // unknown card
     // TODO should be 0
     // TODO keep backward-compat: is 9 before 2.0.00 added house rule cards

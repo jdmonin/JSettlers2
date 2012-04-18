@@ -8110,9 +8110,9 @@ public class SOCServer extends Server
             final int addCmd = (dcAge == SOCDevCardSet.NEW) ? SOCDevCard.ADDNEW : SOCDevCard.ADDOLD;
 
             /**
-             * loop from KNIGHT to TOW (MIN to MAX_KNOWN)
+             * loop for all known card types
              */
-            for (int dcType = SOCDevCardConstants.MIN; dcType <= SOCDevCardConstants.MAX_KNOWN; ++dcType)
+            for (int dcType = SOCDevCardConstants.MIN_KNOWN; dcType < SOCDevCardConstants.MAXPLUSONE; ++dcType)
             {
                 int cardAmt = devCards.getAmount(dcAge, dcType);
                 if (cardAmt > 0)
