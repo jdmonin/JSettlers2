@@ -33,6 +33,7 @@ package soc.game;
  * If you add values here, be sure to update javadocs at
  * server.giveDevCard,  .handleGAMETEXTMSG and .sendGameStateOVER ,
  * and handpanel.updateDevCards .
+ * If you add VP card types, update {@link SOCDevCardSet#isVPCard(int)}.
  *<P>
  * In version 2.0.00, the values for {@link #KNIGHT} and {@link #UNKNOWN}
  * were swapped to make room for new card types.  For compatibility with
@@ -62,14 +63,17 @@ public interface SOCDevCardConstants
     public static final int MIN = 0;
 
     /**
+     * Dev-card of unknown type, for reporting to other players.
+     * Lower than {@link #MIN_KNOWN}.
+     */
+    public static final int UNKNOWN = 0; // unknown card
+
+    /**
      * Minimum known card type ({@link #ROADS}).
      * Higher than {@link #UNKNOWN}.
      * @since 2.0.00
      */
     public static final int MIN_KNOWN = 1;
-
-    /** knight, robber card */
-    public static final int KNIGHT = 0;
 
     /** road building card */
     public static final int ROADS = 1;
@@ -95,27 +99,22 @@ public interface SOCDevCardConstants
     /** tower, chapel VP card */
     public static final int TOW = 8;
 
+    /** knight, robber card */
+    public static final int KNIGHT = 9;
+
     /**
      * Destroy settlement or downgrade city.
      * For House Rule dev cards; game option <tt>"DH"</tt>.
      * @since 2.0.00
      */
-    public static final int DESTROY = 9;
+    public static final int DESTROY = 10;
 
     /**
      * Swap settlement/city with another player.
      * For House Rule dev cards; game option <tt>"DH"</tt>.
      * @since 2.0.00
      */
-    public static final int SWAP = 10;
-
-    /**
-     * Dev-card of unknown type, for reporting to other players.
-     * Lower than {@link #MIN_KNOWN}.
-     */
-    public static final int UNKNOWN = 11; // unknown card
-    // TODO should be 0
-    // TODO keep backward-compat: is 9 before 2.0.00 added house rule cards
+    public static final int SWAP = 11;
 
     public static final int MAXPLUSONE = 12;
 }

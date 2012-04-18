@@ -8530,10 +8530,13 @@ public class SOCServer extends Server
                 msg = pl.getName() + " has";
                 int vpCardCount = 0;
 
-                for (int devCardType = SOCDevCardConstants.CAP;
-                        devCardType < SOCDevCardConstants.UNKNOWN;
-                        devCardType++)
+                for (int devCardType = SOCDevCardConstants.MIN_KNOWN;
+                         devCardType < SOCDevCardConstants.MAXPLUSONE;
+                         devCardType++)
                 {
+                    if (! SOCDevCardSet.isVPCard(devCardType))
+                        continue;
+
                     if ((devCards.getAmount(SOCDevCardSet.OLD, devCardType) > 0) || (devCards.getAmount(SOCDevCardSet.NEW, devCardType) > 0))
                     {
                         if (vpCardCount > 0)
