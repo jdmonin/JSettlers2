@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,8 @@
  **/
 package soc.message;
 
+import soc.game.SOCDevCardConstants;
+
 
 /**
  * This message means that the player wants to
@@ -27,6 +29,10 @@ package soc.message;
  * During game state {@link soc.game.SOCGame#PLAY1 PLAY1}, this is a normal buy request.
  * When sent during other game states, and other players' turns, this is a request
  * to start the 6-player {@link soc.game.SOCGame#SPECIAL_BUILDING Special Building Phase}.
+ *<P>
+ * If the player can buy a card, the server replies to the client with
+ * {@link SOCDevCard DEVCARD}({@link SOCDevCard#DRAW}, {@link SOCDevCardConstants typeconstant}), and to all
+ * other players with {@link SOCDevCard DEVCARD}({@link SOCDevCard#DRAW}, {@link SOCDevCardConstants#UNKNOWN}).
  *<P>
  * If there are no cards remaining to buy, or the player otherwise can't
  * buy a card right now (not enough resources, for example), the server will
