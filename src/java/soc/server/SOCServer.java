@@ -2051,6 +2051,7 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, String)})
      * @see #messageToGame(String, String)
      * @see #messageToGameWithMon(String, SOCMessage)
+     * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
      */
     public void messageToGame(String ga, SOCMessage mes)
     {
@@ -2142,6 +2143,7 @@ public class SOCServer extends Server
      * @param ga  the name of the game
      * @param mes the message to send
      * @see #messageToGame(String, SOCMessage)
+     * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
      */
     public void messageToGameWithMon(String ga, SOCMessage mes)
     {
@@ -2248,6 +2250,58 @@ public class SOCServer extends Server
         catch (Exception e)
         {
             D.ebugPrintStackTrace(e, "Exception in messageToGameExcept");
+        }
+
+        if (takeMon)
+            gameList.releaseMonitorForGame(gn);
+    }
+
+    /**
+     * Send a message to all the connections in a game in a certain version range.
+     * Used for backwards compatibility.
+     *
+     * @param gn  the name of the game
+     * @param vmin  Minimum version, or -1.  Same format as
+     *                {@link Version#versionNumber()} and {@link StringConnection#getVersion()}.
+     * @param vmax  Maximum version, or {@link Integer#MAX_VALUE}
+     * @param mes  the message
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @since 2.0.00
+     */
+    public void messageToGameForVersions
+        (String gn, final int vmin, final int vmax, SOCMessage mes, final boolean takeMon)
+    {
+        if (takeMon)
+            gameList.takeMonitorForGame(gn);
+
+        try
+        {
+            Vector v = gameList.getMembers(gn);
+            if (v != null)
+            {
+                String mesCmd = null;  // will be mes.toCmd()
+                Enumeration menum = v.elements();
+
+                while (menum.hasMoreElements())
+                {
+                    StringConnection con = (StringConnection) menum.nextElement();
+                    if (con == null)
+                        continue;
+                    final int cv = con.getVersion();
+                    if ((cv >= vmin) && (cv <= vmax))
+                    {
+                        //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
+                        if (mesCmd == null)
+                            mesCmd = mes.toCmd();
+                        con.put(mesCmd);
+                    }
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in messageToGameForVersions");
         }
 
         if (takeMon)
