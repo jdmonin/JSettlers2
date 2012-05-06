@@ -2176,6 +2176,7 @@ public class SOCServer extends Server
      * @param mes the message
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @see #messageToGameExcept(String, StringConnection, SOCMessage, boolean)
      */
     public void messageToGameExcept(String gn, Vector ex, SOCMessage mes, boolean takeMon)
     {
@@ -2221,6 +2222,8 @@ public class SOCServer extends Server
      * @param mes the message
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @see #messageToGameExcept(String, Vector, SOCMessage, boolean)
+     * @see #messageToGameForVersionsExcept(SOCGame, int, int, StringConnection, SOCMessage, boolean)
      */
     public void messageToGameExcept(String gn, StringConnection ex, SOCMessage mes, boolean takeMon)
     {
@@ -2260,18 +2263,48 @@ public class SOCServer extends Server
      * Send a message to all the connections in a game in a certain version range.
      * Used for backwards compatibility.
      *
-     * @param gn  the name of the game
-     * @param vmin  Minimum version, or -1.  Same format as
+     * @param ga  the game
+     * @param vmin  Minimum version to send to, or -1.  Same format as
      *                {@link Version#versionNumber()} and {@link StringConnection#getVersion()}.
-     * @param vmax  Maximum version, or {@link Integer#MAX_VALUE}
+     * @param vmax  Maximum version to send to, or {@link Integer#MAX_VALUE}
      * @param mes  the message
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                If the game's clients are all older than <tt>vmin</tt> or
+     *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
      * @since 2.0.00
      */
     public void messageToGameForVersions
-        (String gn, final int vmin, final int vmax, SOCMessage mes, final boolean takeMon)
+        (SOCGame ga, final int vmin, final int vmax, SOCMessage mes, final boolean takeMon)
     {
+        messageToGameForVersionsExcept(ga, vmin, vmax, null, mes, takeMon);
+    }
+
+    /**
+     * Send a message to all the connections in a game in a certain version range, excluding one.
+     * Used for backwards compatibility.
+     *
+     * @param ga  the game
+     * @param vmin  Minimum version to send to, or -1.  Same format as
+     *                {@link Version#versionNumber()} and {@link StringConnection#getVersion()}.
+     * @param vmax  Maximum version to send to, or {@link Integer#MAX_VALUE}
+     * @param ex  the excluded connection, or null
+     * @param mes  the message
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                If the game's clients are all older than <tt>vmin</tt> or
+     *                newer than <tt>vmax</tt>, nothing happens and the monitor isn't taken.
+     * @since 2.0.00
+     * @see #messageToGameExcept(String, StringConnection, SOCMessage, boolean)
+     */
+    public void messageToGameForVersionsExcept
+        (SOCGame ga, final int vmin, final int vmax, StringConnection ex, SOCMessage mes, final boolean takeMon)
+    {
+        if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
+            return;  // <--- All clients too old or too new ---
+
+        final String gn = ga.getName();
+
         if (takeMon)
             gameList.takeMonitorForGame(gn);
 
@@ -2286,8 +2319,9 @@ public class SOCServer extends Server
                 while (menum.hasMoreElements())
                 {
                     StringConnection con = (StringConnection) menum.nextElement();
-                    if (con == null)
+                    if ((con == null) || (con == ex))
                         continue;
+
                     final int cv = con.getVersion();
                     if ((cv >= vmin) && (cv <= vmax))
                     {
@@ -2314,7 +2348,7 @@ public class SOCServer extends Server
      * begins with ">>>"; the client should draw the user's
      * attention in some way.
      *<P>
-     * Like messageToGame, will take and release the game's monitor.
+     * Like {@link #messageToGame(String, String)}, will take and release the game's monitor.
      *
      * @param ga  the name of the game
      * @param mes the message to send. If mes does not begin with ">>>",
