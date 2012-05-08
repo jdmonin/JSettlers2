@@ -25,6 +25,7 @@ import soc.disableDebug.D;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -76,7 +77,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected DataInputStream in;
     protected DataOutputStream out;
     protected LocalStringConnection sLocal;  // if strSocketName not null
-    /** Server version number, sent soon after connect, or -1 if unknown */
+    /**
+     * Server version number, sent soon after connect, or -1 if unknown.
+     * {@link #sLocalVersion} should always equal our own version.
+     */
     protected int sVersion, sLocalVersion;
     protected Thread reader = null;
     protected Exception ex = null;
@@ -612,7 +616,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * a dev card action, either draw, play, or add to hand
              */
             case SOCMessage.DEVCARD:
-                handleDEVCARD((SOCDevCard) mes);
+                handleDEVCARD((sLocal != null), (SOCDevCard) mes);
 
                 break;
 
@@ -1508,9 +1512,11 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * handle the "development card action" message
+     * @param isPractice  Is the server local, or remote?  Client can be connected
+     *                only to local, or remote.
      * @param mes  the message
      */
-    protected void handleDEVCARD(SOCDevCard mes)
+    protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
     {
         SOCGame ga = (SOCGame) games.get(mes.getGame());
 
@@ -1518,25 +1524,34 @@ public class SOCDisplaylessPlayerClient implements Runnable
         {
             SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
 
+            int ctype = mes.getCardType();
+            if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+            {
+                if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
+                    ctype = SOCDevCardConstants.KNIGHT;
+                else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
+                    ctype = SOCDevCardConstants.UNKNOWN;
+            }
+
             switch (mes.getAction())
             {
             case SOCDevCard.DRAW:
-                player.getDevCards().add(1, SOCDevCardSet.NEW, mes.getCardType());
+                player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
 
             case SOCDevCard.PLAY:
-                player.getDevCards().subtract(1, SOCDevCardSet.OLD, mes.getCardType());
+                player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
             case SOCDevCard.ADDOLD:
-                player.getDevCards().add(1, SOCDevCardSet.OLD, mes.getCardType());
+                player.getDevCards().add(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
             case SOCDevCard.ADDNEW:
-                player.getDevCards().add(1, SOCDevCardSet.NEW, mes.getCardType());
+                player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
             }
@@ -1989,6 +2004,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     public void playDevCard(SOCGame ga, int dc)
     {
+        if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        {
+            if (dc == SOCDevCardConstants.KNIGHT)
+                dc = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
+            else if (dc == SOCDevCardConstants.UNKNOWN)
+                dc = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
+        }
         put(SOCPlayDevCardRequest.toCmd(ga.getName(), dc));
     }
 

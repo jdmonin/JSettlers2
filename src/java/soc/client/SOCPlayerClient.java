@@ -24,6 +24,7 @@ import soc.debug.D;  // JM
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -2076,7 +2077,7 @@ public class SOCPlayerClient extends Applet
              * a dev card action, either draw, play, or add to hand
              */
             case SOCMessage.DEVCARD:
-                handleDEVCARD((SOCDevCard) mes);
+                handleDEVCARD(isPractice, (SOCDevCard) mes);
 
                 break;
 
@@ -3416,7 +3417,7 @@ public class SOCPlayerClient extends Applet
      * handle the "development card action" message
      * @param mes  the message
      */
-    protected void handleDEVCARD(SOCDevCard mes)
+    protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
     {
         SOCGame ga = (SOCGame) games.get(mes.getGame());
 
@@ -3426,25 +3427,34 @@ public class SOCPlayerClient extends Applet
             SOCPlayer player = ga.getPlayer(mesPN);
             SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
 
+            int ctype = mes.getCardType();
+            if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+            {
+                if (ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
+                    ctype = SOCDevCardConstants.KNIGHT;
+                else if (ctype == SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X)
+                    ctype = SOCDevCardConstants.UNKNOWN;
+            }
+
             switch (mes.getAction())
             {
             case SOCDevCard.DRAW:
-                player.getDevCards().add(1, SOCDevCardSet.NEW, mes.getCardType());
+                player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
 
             case SOCDevCard.PLAY:
-                player.getDevCards().subtract(1, SOCDevCardSet.OLD, mes.getCardType());
+                player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
             case SOCDevCard.ADDOLD:
-                player.getDevCards().add(1, SOCDevCardSet.OLD, mes.getCardType());
+                player.getDevCards().add(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
             case SOCDevCard.ADDNEW:
-                player.getDevCards().add(1, SOCDevCardSet.NEW, mes.getCardType());
+                player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
             }
@@ -4486,6 +4496,13 @@ public class SOCPlayerClient extends Applet
      */
     public void playDevCard(SOCGame ga, int dc)
     {
+        if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        {
+            if (dc == SOCDevCardConstants.KNIGHT)
+                dc = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
+            else if (dc == SOCDevCardConstants.UNKNOWN)
+                dc = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
+        }
         put(SOCPlayDevCardRequest.toCmd(ga.getName(), dc), ga.isPractice);
     }
 

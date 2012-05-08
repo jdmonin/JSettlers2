@@ -294,6 +294,19 @@ public class SOCServer extends Server
     private Properties props;
 
     /**
+     * JM temp - generated password to allow clean server shutdown.
+     *   Must be used before {@link #srvShutPasswordExpire}.
+     * @since 2.0.00
+     */
+    private String srvShutPassword;
+
+    /**
+     * JM temp - expiration of  {@link #srvShutPassword}.
+     * @since 2.0.00
+     */
+    private long srvShutPasswordExpire;
+
+    /**
      * A list of robot {@link StringConnection}s connected to this server.
      * @see SOCPlayerLocalRobotRunner#robotClients
      */
@@ -3476,7 +3489,6 @@ public class SOCServer extends Server
         DEBUG_COMMANDS_HELP_DEV,
         "Example  dev: 2 Myname",
         "Development card types are:",  // see SOCDevCardConstants
-        "0 robber",
         "1 road-building",
         "2 year of plenty",
         "3 monopoly",
@@ -3484,7 +3496,8 @@ public class SOCServer extends Server
         "5 market",
         "6 university",
         "7 temple",
-        "8 chapel"
+        "8 chapel",
+        "9 robber"
         };
 
     /**
@@ -6167,8 +6180,22 @@ public class SOCServer extends Server
         {
             StringConnection c = getConnection(plName);
             if ((c != null) && c.isConnected())
+            {
+                if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                    card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                 messageToPlayer(c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, card));
-            messageToGameExcept(gaName, c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);                       
+            }
+            if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+            {
+                messageToGameExcept(gaName, c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+            } else {
+                messageToGameForVersionsExcept
+                    (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
+                     c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                messageToGameForVersionsExcept
+                    (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
+                     c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+            }
             messageToGame(gaName, plName + "'s just-played development card was returned.");            
         }
 
@@ -6865,9 +6892,21 @@ public class SOCServer extends Server
                     messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.LOSE, SOCPlayerElement.WHEAT, 1));
                     messageToGameWithMon(gaName, new SOCDevCardCount(gaName, ga.getNumDevCards()));
                     gameList.releaseMonitorForGame(gaName);
+                    if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                        card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
                     messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, card));
 
-                    messageToGameExcept(gaName, c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                    if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                    {
+                        messageToGameExcept(gaName, c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                    } else {
+                        messageToGameForVersionsExcept
+                            (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
+                             c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                        messageToGameForVersionsExcept
+                            (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
+                             c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                    }
                     messageToGame(gaName, (String) c.getData() + " bought a development card.");
 
                     if (ga.getNumDevCards() > 1)
@@ -6954,7 +6993,12 @@ public class SOCServer extends Server
                         final SOCPlayer player = ga.getPlayer((String) c.getData());
                         final int pn = player.getPlayerNumber();
 
-                        switch (mes.getDevCard())
+                        int ctype = mes.getDevCard();
+                        if ((ctype == SOCDevCardConstants.KNIGHT_FOR_VERS_1_X)
+                            && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+                            ctype = SOCDevCardConstants.KNIGHT;
+
+                        switch (ctype)
                         {
                         case SOCDevCardConstants.KNIGHT:
 
@@ -6963,7 +7007,17 @@ public class SOCServer extends Server
                                 ga.playKnight();
                                 gameList.takeMonitorForGame(gaName);
                                 messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Soldier card."));
-                                messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
+                                if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                                {
+                                    messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
+                                } else {
+                                    messageToGameForVersions
+                                        (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
+                                         new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);
+                                    messageToGameForVersions
+                                        (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
+                                         new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT), false);
+                                }
                                 messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                                 messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.NUMKNIGHTS, 1));
                                 gameList.releaseMonitorForGame(gaName);
@@ -7965,11 +8019,16 @@ public class SOCServer extends Server
 
             c.put(SOCPlayerElement.toCmd(gameName, i, SOCPlayerElement.SET, SOCPlayerElement.NUMKNIGHTS, pl.getNumKnights()));
 
-            int numDevCards = pl.getDevCards().getTotal();
-
+            final int numDevCards = pl.getDevCards().getTotal();
+            final int unknownType;
+            if (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
+                unknownType = SOCDevCardConstants.UNKNOWN;
+            else
+                unknownType = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
+            final String cardUnknownCmd = SOCDevCard.toCmd(gameName, i, SOCDevCard.ADDOLD, unknownType);
             for (int j = 0; j < numDevCards; j++)
             {
-                c.put(SOCDevCard.toCmd(gameName, i, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN));
+                c.put(cardUnknownCmd);
             }
 
             c.put(SOCFirstPlayer.toCmd(gameName, gameData.getFirstPlayer()));
@@ -8180,14 +8239,17 @@ public class SOCServer extends Server
 
         SOCDevCardSet devCards = ga.getPlayer(pn).getDevCards();
 
+        final boolean cliVersionNew = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES);
+
         /**
          * remove the unknown cards
          */
-        int i;
-
-        for (i = 0; i < devCards.getTotal(); i++)
+        final SOCDevCard cardUnknown = (cliVersionNew)
+            ? new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN)
+            : new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
+        for (int i = 0; i < devCards.getTotal(); i++)
         {
-            messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN));
+            messageToPlayer(c, cardUnknown);
         }
 
         /**
@@ -8205,7 +8267,12 @@ public class SOCServer extends Server
                 int cardAmt = devCards.getAmount(dcAge, dcType);
                 if (cardAmt > 0)
                 {
-                    SOCDevCard addMsg = new SOCDevCard(gaName, pn, addCmd, dcType);
+                    SOCDevCard addMsg;
+                    if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
+                        addMsg = new SOCDevCard(gaName, pn, addCmd, dcType);
+                    else
+                        addMsg = new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
+
                     for ( ; cardAmt > 0; --cardAmt)
                         messageToPlayer(c, addMsg);
                 }
@@ -9715,6 +9782,8 @@ public class SOCServer extends Server
                 try
                 {
                     cardType = Integer.parseInt(st.nextToken());
+                    if ((cardType < SOCDevCardConstants.MIN_KNOWN) || (cardType >= SOCDevCardConstants.MAXPLUSONE))
+                        parseError = true;  // Can't give unknown dev cards
                 }
                 catch (NumberFormatException e)
                 {
@@ -9747,7 +9816,17 @@ public class SOCServer extends Server
 
         int pnum = pl.getPlayerNumber();
         String outMes = "### " + name + " gets a " + cardType + " card.";
-        messageToGame(game.getName(), new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, cardType));
+        if ((cardType != SOCDevCardConstants.KNIGHT) || (game.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        {
+            messageToGame(game.getName(), new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, cardType));
+        } else {
+            messageToGameForVersions
+                (game, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
+                 new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), true);
+            messageToGameForVersions
+                (game, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
+                 new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, SOCDevCardConstants.KNIGHT), true);            
+        }
         messageToGame(game.getName(), outMes);
     }
 

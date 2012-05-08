@@ -47,13 +47,15 @@ public interface SOCDevCardConstants
      * has swapped values for {@link #UNKNOWN} and {@link #KNIGHT}.
      * At server, check against {@link SOCGame#clientVersionLowest}
      * before sending these constants to clients.
+     * Send older clients {@link #UNKNOWN_FOR_VERS_1_X} and
+     * {@link #KNIGHT_FOR_VERS_1_X} instead.
      */
     public static final int VERSION_FOR_NEW_TYPES = 2000;
 
-    /** Previous value for unknown card type, for version 1.x clients or servers */
+    /** Previous value for {@link #UNKNOWN} card type, for version 1.x clients or servers */
     public static final int UNKNOWN_FOR_VERS_1_X = 9;
 
-    /** Previous value for knight/robber card, for version 1.x clients or servers */
+    /** Previous value for {@link #KNIGHT} knight/robber card type, for version 1.x clients or servers */
     public static final int KNIGHT_FOR_VERS_1_X = 0;
 
     /**
