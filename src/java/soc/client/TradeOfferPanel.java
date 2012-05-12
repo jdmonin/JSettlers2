@@ -163,11 +163,15 @@ public class TradeOfferPanel extends Panel
     private class MessagePanel extends Panel
     {
         private SpeechBalloon balloon;
-        private Label msg;
+        /**
+         * For 1 line of text, {@link #msg} contains the entire text.
+         * For 2 lines separated by <tt>\n</tt>, {@link #msg} and {@link #msg2} are used.
+         */
+        private Label msg, msg2;
         private int oneLineHeight, msgHeight;
 
         /**
-         * Number of lines of text; 1, or 2 if {@link #msg} contains <tt>\n</tt>.
+         * Number of lines of text; 1, or 2 if text contains <tt>\n</tt>.
          * After changing this, set {@link #msgHeight} = 0 and call {@link #validate()}.
          * @since 2.0.00
          */
@@ -184,10 +188,14 @@ public class TradeOfferPanel extends Panel
         
             msg = new Label(" ", Label.CENTER);
             msg.setBackground(insideBGColor);
+            msg2 = new Label(" ", Label.CENTER);
+            msg2.setBackground(insideBGColor);
+            msg2.setVisible(false);
             oneLineHeight = 0;  // set once in doLayout
             msgHeight = 0;  // set in doLayout
             msgLines = 1;
             add(msg);
+            add(msg2);
         
             balloon = new SpeechBalloon(pi.getPlayerColor(from));
             add(balloon);
@@ -198,30 +206,40 @@ public class TradeOfferPanel extends Panel
          * Does not show or hide the panel, only changes the label text.
          * @param message message to display, or null for no text
          */
-        public void update(String message)
+        public void update(final String message)
         {
             String newText;
-            int newMsgLines;
+            int newMsgLines, newlineIndex;
             if (message != null)
             {
                 newText = message;
-                newMsgLines = (message.indexOf('\n') >= 0) ? 2 : 1;
+                newlineIndex = message.indexOf('\n');
+                newMsgLines = (newlineIndex >= 0) ? 2 : 1;
             } else {
                 newText = " ";
+                newlineIndex = -1;
                 newMsgLines = 1;
+            }
+            if (newMsgLines == 1)
+            {
+                msg.setText(newText);
+                msg2.setText(" ");
+            } else {
+                msg.setText(newText.substring(0, newlineIndex));
+                msg2.setText(newText.substring(newlineIndex + 1));
             }
             if (msgLines != newMsgLines)
             {
                 msgLines = newMsgLines;
                 msgHeight = 0;
+                msg2.setVisible(newMsgLines != 1);
                 validate();
             }
-            msg.setText(newText);
         }
         
         /**
          * Custom layout for just the message panel.
-         * To center {@link #msg} vertically after changing {@link #msgLines},
+         * To center {@link #msg} and {@link #msg2} vertically after changing {@link #msgLines},
          * set {@link #msgHeight} to 0 before calling.
          */
         public void doLayout()
@@ -233,18 +251,26 @@ public class TradeOfferPanel extends Panel
             if (oneLineHeight == 0)
                 oneLineHeight = getFontMetrics(msg.getFont()).getHeight();
             if (msgHeight == 0)
-                msgHeight = msgLines * oneLineHeight + 4;
+                msgHeight = oneLineHeight + 4;
             int w = Math.min((2*(inset+5) + 3*buttonW), dim.width);
             int h = Math.min(92 + 2 * ColorSquareLarger.HEIGHT_L, dim.height);
-            if (msgHeight > h)
-                msgHeight = h;
+            if ((msgHeight * msgLines) > h)
+                msgHeight = h / msgLines;
             int msgY = ((h - msgHeight - SpeechBalloon.SHADOW_SIZE - (h / 8)) / 2)
                         + (h / 8);
+            if (msgLines != 1)
+                msgY -= (oneLineHeight / 2);  // move up to make room for msg2
             if (msgY < 0)
                 msgY = 0;
 
             msg.setBounds
                 (inset, msgY, w - (2 * inset) - (SpeechBalloon.SHADOW_SIZE / 2), msgHeight);
+            if (msgLines != 1)
+            {
+                msgY += oneLineHeight;
+                msg2.setBounds
+                    (inset, msgY, w - (2 * inset) - (SpeechBalloon.SHADOW_SIZE / 2), msgHeight);
+            }
             balloon.setBounds(0, 0, w, h);
         }
     }
