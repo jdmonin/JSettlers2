@@ -2042,16 +2042,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     public void paint(Graphics g)
     {
+        Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
         try {
-        if (buffer == null)
+        if (ibuf == null)
         {
-            buffer = this.createImage(scaledPanelX, scaledPanelY);
+            ibuf = this.createImage(scaledPanelX, scaledPanelY);
+            buffer = ibuf;
         }
-        drawBoard(buffer.getGraphics());  // Do the actual drawing
+        drawBoard(ibuf.getGraphics());  // Do the actual drawing
         if (hoverTip.isVisible())
-            hoverTip.paint(buffer.getGraphics());
-        buffer.flush();
-        g.drawImage(buffer, 0, 0, this);
+            hoverTip.paint(ibuf.getGraphics());
+        ibuf.flush();
+        g.drawImage(ibuf, 0, 0, this);
 
         } catch (Throwable th) {
             playerInterface.chatPrintStackTrace(th);
