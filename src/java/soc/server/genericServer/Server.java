@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -160,14 +160,21 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Client disconnect error messages, to be printed after a short delay
      * by {@link Server.ConnExcepDelayedPrintTask}.
      * If the client reconnects during the delay, the disconnect and reconnect
-     * messages are not printed.
+     * messages are not printed, so long as your app removes them.
      * This is only used if {@link D#ebugIsEnabled()} is true.
      *<P>
      * <em>Keys:</em> The {@link StringConnection} object is used as the key
-     *    within {@link #addConnection(StringConnection)}.
+     *    within {@link #addConnection(StringConnection)} (for the rejoining message).
      *    The {@link StringConnection#getData() connection keyname} is used as the key
-     *    within {@link #removeConnection(StringConnection)}; if this is null,
+     *    within {@link #removeConnection(StringConnection)} (for the leaving message); if this is null,
      *    the message is printed immediately, and not added to this map.
+     *<br>
+     * <em>Values:</em> A {@link Server.ConnExcepDelayedPrintTask} which will
+     *    print the rejoining or leaving message after a delay.
+     *<P>
+     * After your app (which extends Server) determines that a connection is the
+     * same client that just disconnected, it should find both of the tasks in
+     * this HashMap, call {@link TimerTask#cancel()} on them, and remove them.
      *
      * @see #CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
      * @since 1.1.07
