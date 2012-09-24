@@ -157,7 +157,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public Timer utilTimer = new Timer(true);  // use daemon thread
 
     /**
-     * Client disconnect error messages, to be printed after a short delay.
+     * Client disconnect error messages, to be printed after a short delay
+     * by {@link Server.ConnExcepDelayedPrintTask}.
      * If the client reconnects during the delay, the disconnect and reconnect
      * messages are not printed.
      * This is only used if {@link D#ebugIsEnabled()} is true.
@@ -514,7 +515,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public void removeConnection(StringConnection c)
     {
-        Object cKey = c.getData();
+        Object cKey = c.getData();  // client player name
         synchronized (unnamedConns)
         {
             if (cKey != null)
