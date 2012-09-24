@@ -4078,6 +4078,10 @@ public class SOCServer extends Server
      * Handle the "I'm a robot" message.
      * Robots send their {@link SOCVersion} before sending this message.
      * Their version is checked here, must equal server's version.
+     *<P>
+     * Sometimes a bot disconnects and quickly reconnects.  In that case
+     * this method removes the disconnect/reconnect messages from
+     * {@link Server#cliConnDisconPrintsPending} so they won't be printed.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
