@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +21,7 @@
  **/
 package soc.client;
 
+import soc.client.stats.GameStatisticsFrame;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -33,6 +35,8 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.JFrame;   // for GameStatisticsFrame
 
 
 /**
@@ -54,6 +58,8 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     Button cityBut;
     Button cardBut;
     Button optsBut;  // show SOCGameOptions; @since 1.1.07
+    Button statsBut;
+    JFrame statsFrame;
     Label roadT;  // text
     Label roadC;  // cost
     ColorSquare roadWood;
@@ -186,6 +192,11 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         optsBut = new Button("Game Options...");
         add(optsBut);
         optsBut.addActionListener(this);
+
+        //TODO: disable until the game initialization is complete and the first roll is made
+        statsBut = new Button("Game Statistics...");
+        add(statsBut);
+        statsBut.addActionListener(this);
 
         cardT = new Label("Card: ");
         add(cardT);
@@ -415,6 +426,8 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX = dim.width - (2 * butW) - margin;
         optsBut.setSize(butW * 2, lineH);
         optsBut.setLocation(curX, curY);
+        statsBut.setSize(butW * 2, lineH);
+        statsBut.setLocation(curX, curY - lineH - 5);
 
         if (vpToWin != null)
         {
@@ -458,6 +471,18 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         if (e.getSource() == optsBut)
         {
             NewGameOptionsFrame.createAndShow(pi.getClient(), game.getName(), game.getGameOptions(), false, true);
+            return;
+        }
+        if (e.getSource() == statsBut)
+        {
+            if (statsFrame != null)
+                statsFrame.dispose();
+            GameStatisticsFrame f = new GameStatisticsFrame(pi);
+            f.register(pi.getGameStats());
+            f.setVisible(true);
+            f.setLocation(this.getLocationOnScreen());
+            statsFrame = f;
+
             return;
         }
 

@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatistics
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +21,7 @@
  **/
 package soc.client;
 
+import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
 import soc.game.SOCCity;
@@ -407,6 +409,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     protected SOCMonopolyDialog monopolyDialog;
 
+    private SOCGameStatistics gameStats;
+
     /**
      * create a new player interface
      *
@@ -423,6 +427,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         client = cl;
         game = ga;
+        gameStats = new SOCGameStatistics(game);
         gameIsStarting = false;
         clientHand = null;
         clientHandPlayerNum = -1;
@@ -737,6 +742,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     public SOCGame getGame()
     {
         return game;
+    }
+
+    public SOCGameStatistics getGameStats()
+    {
+        return gameStats;
     }
 
     /**
@@ -1913,6 +1923,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         // Clear out old state (similar to constructor)
         int oldGameState = game.getResetOldGameState();
         game = newGame;
+        if (gameStats != null)
+            gameStats.dispose();
+        gameStats = new SOCGameStatistics(game);
         for (int i = 0; i < hands.length; ++i)
         {
             hands[i].removePlayer();  // will cancel roll countdown timer, right-click menus, etc

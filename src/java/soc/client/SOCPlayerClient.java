@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatistics
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +21,7 @@
  **/
 package soc.client;
 
+import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
 import soc.game.SOCBoard;
@@ -3190,6 +3192,10 @@ public class SOCPlayerClient extends Applet
             ga.setCurrentDice(roll);
             pi.setTextDisplayRollExpected(roll);
             pi.getBoardPanel().repaint();
+
+            // only notify about valid rolls
+            if (roll >= 2 && roll <= 12)
+                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, ga.getPlayer(ga.getCurrentPlayerNumber())));
         }
     }
 
