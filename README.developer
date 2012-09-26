@@ -28,7 +28,8 @@ Robots talk with the server like normal human clients.
 Most robot messages are per-game; instead of being handled in SOCRobotClient,
 these are handled in a loop in SOCRobotBrain.run().
 
-Coding is done in Java 1.4 for now, but should compile cleanly in newer JDKs.
+Coding is done in Java 1.5, but should compile cleanly in newer JDKs.
+(Before v2.0, we restricted ourselves to 1.4 for backwards compatibility.)
 The build system is Ant, which is natively understood by Eclipse.  Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the code already there.
 (See "Coding Style" below for more details.)
