@@ -587,6 +587,30 @@ public class SOCServer extends Server
             System.err.println("Users will not be authenticated.");
         }
 
+        if (SOCDBHelper.isInitialized())
+        {
+            // Note: This hook is not triggered under eclipse debugging.
+            //    https://bugs.eclipse.org/bugs/show_bug.cgi?id=38016  "WONTFIX/README"
+            try
+            {
+                Runtime.getRuntime().addShutdownHook(new Thread() {
+                    public void run() {
+                        System.err.println("\n--\n-- shutdown; disconnecting from db --\n--\n");
+                        System.err.flush();
+                        try
+                        {
+                            SOCDBHelper.cleanup(true);
+                        }
+                        catch (SQLException x) { }
+                    }
+                });
+            } catch (Throwable th)
+            {
+                // just a warning
+                System.err.println("Warning: Could not register shutdown hook for database disconnect. Check java security settings.");            
+            }
+        }
+
         startTime = System.currentTimeMillis();
         numberOfGamesStarted = 0;
         numberOfGamesFinished = 0;
