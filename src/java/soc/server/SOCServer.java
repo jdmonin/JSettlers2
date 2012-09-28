@@ -80,7 +80,7 @@ import java.util.Vector;
  *       and related methods.
  *</UL>
  *<P>
- * The server supports several <b>debug commands</b> when enabled, and
+ * The server supports several <b>debug commands</b> when {@link #allowDebugUser enabled}, and
  * when sent as chat messages by a user named "debug".
  * (Or, by the only user in a practice game.)
  * See {@link #processDebugCommand(StringConnection, String, String)}
@@ -130,6 +130,13 @@ public class SOCServer extends Server
     public static final String PROP_JSETTLERS_STARTROBOTS = "jsettlers.startrobots";
 
     /**
+     * Property <tt>jsettlers.allow.debug</tt> to permit debug commands over TCP.
+     * (The default is N; to allow, set to Y)
+     * @since 2.0.00
+     */
+    public static final String PROP_JSETTLERS_ALLOW_DEBUG = "jsettlers.allow.debug";
+
+    /**
      * Property <tt>jsettlers.client.maxcreategames</tt> to limit the amount of
      * games that a client can create at once. (The default is 5.)
      * Once a game is completed and deleted (all players leave), they can create another.
@@ -159,6 +166,7 @@ public class SOCServer extends Server
         PROP_JSETTLERS_PORT,     "TCP port number for server to bind to",
         PROP_JSETTLERS_CONNECTIONS,   "Maximum connection count, including robots",
         PROP_JSETTLERS_STARTROBOTS,   "Number of robots to create at startup",
+        PROP_JSETTLERS_ALLOW_DEBUG,   "Allow remote debug commands? (if Y)",
         PROP_JSETTLERS_CLI_MAXCREATECHANNELS,   "Maximum simultaneous channels that a client can create",
         PROP_JSETTLERS_CLI_MAXCREATEGAMES,      "Maximum simultaneous games that a client can create",
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
@@ -283,6 +291,19 @@ public class SOCServer extends Server
      * Remember that robots count against this limit.
      */
     protected int maxConnections;
+
+    /**
+     * Is a debug user allowed to run commands listed in {@link #DEBUG_COMMANDS_HELP}?
+     * Default is false.  Set with {@link #PROP_JSETTLERS_ALLOW_DEBUG}.
+     *<P>
+     * Note that all practice games are debug mode, for ease of debugging;
+     * to determine this, {@link #handleGAMETEXTMSG(StringConnection, SOCGameTextMsg)} checks if the
+     * client is using {@link LocalStringConnection} to talk to the server.
+     *
+     * @see #processDebugCommand(StringConnection, String, String)
+     * @since 2.0.00
+     */
+    private boolean allowDebugUser;
 
     /**
      * Properties for the server, or empty if that constructor wasn't used.
@@ -510,6 +531,7 @@ public class SOCServer extends Server
     {
         super(p);
         maxConnections = init_getIntProperty(props, PROP_JSETTLERS_CONNECTIONS, 15);
+        allowDebugUser = init_getBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);        
         CLIENT_MAX_CREATE_GAMES = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
         CLIENT_MAX_CREATE_CHANNELS = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
         String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "dbuser");
@@ -567,6 +589,11 @@ public class SOCServer extends Server
             this.props = new Properties();
         } else {
             this.props = props;
+        }
+
+        if (allowDebugUser)
+        {
+            System.err.println("Warning: Remote debug commands are allowed.");
         }
 
         try
@@ -3088,7 +3115,7 @@ public class SOCServer extends Server
 
                     SOCTextMsg textMsgMes = (SOCTextMsg) mes;
 
-                    if (c.getData().equals("debug"))
+                    if (allowDebugUser && c.getData().equals("debug"))
                     {
                         if (textMsgMes.getText().startsWith("*KILLCHANNEL*"))
                         {
@@ -3526,6 +3553,7 @@ public class SOCServer extends Server
 
     /**
      * Process a debug command, sent by the "debug" client/player.
+     * Check {@link #allowDebugUser} before calling this method.
      * See {@link #DEBUG_COMMANDS_HELP} for list of commands.
      */
     public void processDebugCommand(StringConnection debugCli, String ga, String dcmd)
@@ -4348,7 +4376,7 @@ public class SOCServer extends Server
         // 1.1.07: all practice games are debug mode, for ease of debugging;
         //         not much use for a chat window in a practice game anyway.
         //
-        else if (c.getData().equals("debug") || (c instanceof LocalStringConnection))
+        else if ((allowDebugUser && c.getData().equals("debug")) || (c instanceof LocalStringConnection))
         {
             if (cmdTxtUC.startsWith("RSRCS:"))
             {

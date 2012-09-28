@@ -4,7 +4,7 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
-    > 2.0.00 (build JM20120xxx)
+    > 2.0.00 (build JM20121xxx)
 - Large board (sea board) support
 - Game can require more than 10 Victory Points to win
 - "House rules" dev card types (New game option "DH")
@@ -13,6 +13,8 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - Can save all completed game results in database, with new option:
 	-Djsettlers.db.save.games=Y
 - More efficient game-setup messages over network
+- Debug commands are off by default, except practice games; you can enable them with:
+	-Djsettlers.allow.debug=Y
 - Minor refactoring
 
     > 1.1.13 (build JM20111101)
