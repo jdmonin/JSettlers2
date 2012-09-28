@@ -3564,9 +3564,38 @@ public class SOCServer extends Server
         }
         else if (dcmd.startsWith("*STOP*"))  // dcmd to force case-sensitivity
         {
-            String stopMsg = ">>> ********** " + (String) debugCli.getData() + " KILLED THE SERVER!!! ********** <<<";
-            stopServer(stopMsg);
-            System.exit(0);
+            // Extra info needed to shut it down: Server console output
+
+            boolean shutNow = false;
+
+            final long now = System.currentTimeMillis();
+            if ((srvShutPassword != null) && (now <= srvShutPasswordExpire))
+            {
+                // look for trailing \n, look for shutdown pw preceding it
+                int end = dcmd.length();
+                while (Character.isISOControl(dcmd.charAt(end - 1)))
+                    --end;
+
+                final int i = dcmd.lastIndexOf(' ');
+                if ((i < dcmd.length()) && (dcmd.substring(i+1, end).equals(srvShutPassword)))
+                    shutNow = true;
+            } else {
+                srvShutPasswordExpire = now + (45 * 1000L);
+                StringBuffer sb = new StringBuffer();
+                for (int i = 12 + rand.nextInt(5); i > 0; --i)
+                    sb.append((char) (33 + rand.nextInt(126 - 33)));
+                srvShutPassword = sb.toString();
+                System.err.println("** Shutdown password generated: " + srvShutPassword);
+                broadcast(SOCBCastTextMsg.toCmd((String) debugCli.getData() + " WANTS TO STOP THE SERVER"));
+                messageToPlayer(debugCli, ga, "Send stop command again with the password.");
+            }
+
+            if (shutNow)
+            {
+                String stopMsg = ">>> ********** " + (String) debugCli.getData() + " KILLED THE SERVER!!! ********** <<<";
+                stopServer(stopMsg);
+                System.exit(0);
+            }
         }
         else if (dcmdU.startsWith("*BCAST* "))
         {
