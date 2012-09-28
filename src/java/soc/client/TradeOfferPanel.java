@@ -166,6 +166,7 @@ public class TradeOfferPanel extends Panel
         /**
          * For 1 line of text, {@link #msg} contains the entire text.
          * For 2 lines separated by <tt>\n</tt>, {@link #msg} and {@link #msg2} are used.
+         * (AWT Label is described as 1 line of text, although OSX respects \n in the text.)
          */
         private Label msg, msg2;
         private int oneLineHeight, msgHeight;

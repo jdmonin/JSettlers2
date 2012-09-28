@@ -74,6 +74,8 @@ public class SOCHandPanel extends Panel implements ActionListener
      * for items not appearing in {@link SOCPlayerElement}.
      * All these item numbers are negative, so they won't
      * conflict with any SOCPlayerElement element type.
+     *<P>
+     * </tt>NUMDEVCARDS</tt> won't appear in the client's handpanel, only in other players'.
      */
     public static final int
         NUMRESOURCES = -3,
