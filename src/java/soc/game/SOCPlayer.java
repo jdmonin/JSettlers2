@@ -43,7 +43,8 @@ import java.util.Vector;
  * A class for holding and manipulating player data.
  * The player exists within one SOCGame, not persistent between games like SOCPlayerClient or SOCClientData.
  *<P>
- * At the start of this player's turn, {@link SOCGame#updateAtTurn()} will call {@link #updateAtOurTurn()}.
+ * At the start of each player's turn, {@link SOCGame#updateAtTurn()} will call {@link SOCPlayer#updateAtTurn()},
+ * then call the current player's {@link #updateAtOurTurn()}.
  *<P>
  * For more information about the "legal" and "potential" road/settlement/city terms,
  * see page 61 of Robert S Thomas' dissertation.  Briefly:
