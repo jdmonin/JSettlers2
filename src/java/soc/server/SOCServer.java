@@ -691,8 +691,9 @@ public class SOCServer extends Server
 
     /**
      * Get and parse a boolean property, or use its default instead.
-     * True values are 1 and Y.
-     * False values are 0 and N.
+     * True values are: T Y 1.
+     * False values are: F N 0.
+     * Not case-sensitive.
      * Any other value will be ignored and get <tt>pDefault</tt>.
      * @param props  Properties to look in, such as {@link SOCServer#props}, or null for <tt>pDefault</tt>
      * @param pName  Property name
@@ -713,6 +714,10 @@ public class SOCServer extends Server
             if (mcs.equalsIgnoreCase("Y"))
                 return true;
             else if (mcs.equalsIgnoreCase("N"))
+                return false;
+            else if (mcs.equalsIgnoreCase("T"))
+                return true;
+            else if (mcs.equalsIgnoreCase("F"))
                 return false;
 
             final int iv = Integer.parseInt(mcs);
