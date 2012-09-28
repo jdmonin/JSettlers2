@@ -2,6 +2,7 @@ README.developer - Notes and current status of 2012 JSettlers development
 	(version 2.0.xx, beta server running at nand.net)
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
+	https://github.com/jdmonin/jsettlers2
 
 Scroll down a bit for the current TODO list.
 See VERSIONS.txt for recent changes.
@@ -15,7 +16,7 @@ CONTENTS
 - Current partially-done work
 - Current TODO list
 - Coding Style
-- CVS usage
+- github usage
 
 
 Overall Structure
@@ -289,8 +290,11 @@ If desired, in Eclipse preferences, you can bind a key combination to Remove Tra
 This will trim it from the entire file when the key is pressed.
 
 
-CVS
----
+github
+------
+The project code lives at https://github.com/jdmonin/jsettlers2 .
+Patches can be sent by email or by pull request.
+
 HEAD recieves new features and enhancements for next 'minor' release.
 As soon as a bug is fixed or a feature's design is fairly stable, it
 should be committed to HEAD.
@@ -298,11 +302,12 @@ should be committed to HEAD.
 There are no branches, because jsettlers2 is mature at this point.
 Each minor release is a stable release, there is no experimental branch.
 
-Each release's files are tagged for the release:
+Each release's files are tagged for the release ("release-1.1.13").
 
-$ cd JSettlers2
-$ cvs -q tag release-1_1_12
-$ cvs -q update -A
-
-You can also see an overview of CVS commit comments in the CVS version
+You can also see an overview of commit comments in the git log
 histories of src/java/resources/version.info.in and VERSIONS.txt.
+
+github contains the full JSettlers2 CVS history formerly hosted at
+http://sourceforge.net/projects/jsettlers2/develop through 2012-09-28.
+The old old source history from Robert S Thomas (2004-2005) can be found at
+http://sourceforge.net/projects/jsettlers/develop .
