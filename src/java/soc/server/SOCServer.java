@@ -5761,6 +5761,7 @@ public class SOCServer extends Server
                             if (noPlayersGained)
                             {
                                 message = "No player gets anything.";
+                                // debug_printPieceDiceNumbers(ga, message);
                             }
                             else
                             {
@@ -5825,6 +5826,86 @@ public class SOCServer extends Server
                 ga.releaseMonitor();
             }
         }
+    }
+
+    /**
+     * Temporary debugging; call when "no player gets anything" will be printed after a roll.
+     * @param ga  Game data
+     * @param message  "no player gets anything" string
+     * @since 2.0.00
+     */
+    private void debug_printPieceDiceNumbers(SOCGame ga, String message)
+    {
+        final int roll = ga.getCurrentDice();
+        final SOCBoard board = ga.getBoard();
+        boolean hadAny = false;
+
+        System.err.println(" " + roll + "\t" + message);
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            if (ga.isSeatVacant(pn))
+                continue;
+            SOCPlayer pl = ga.getPlayer(pn);
+            hadAny |= debug_printPieceDiceNumbers_pl
+                (pl, roll, board, "settle", pl.getSettlements().elements());
+            hadAny |= debug_printPieceDiceNumbers_pl
+                (pl, roll, board, "city", pl.getCities().elements());
+        }
+        if (hadAny)
+            System.err.println("    ** hadAny true");
+        else
+            System.err.println("    -- hadAny false");
+    }
+
+    /**
+     * Temporary debugging; for 1 player.
+     * Similar code to {@link SOCGame#getResourcesGainedFromRollPieces}.
+     * @return true if this player appears to have a resource on a hex numbered <tt>roll</tt>
+     * @since 2.0.00
+     */
+    private boolean debug_printPieceDiceNumbers_pl
+        (SOCPlayer pl, final int roll, final SOCBoard board, final String pieceType, Enumeration pe)
+    {
+        final int robberHex = board.getRobberHex();
+        boolean hadMatch = false;
+        boolean wroteCall = false;
+
+        while (pe.hasMoreElements())
+        {
+            System.err.print("\t");
+            SOCPlayingPiece sc = (SOCPlayingPiece) pe.nextElement();
+            Enumeration hexes = board.getAdjacentHexesToNode(sc.getCoordinates()).elements();
+    
+            while (hexes.hasMoreElements())
+            {
+                final int hexCoord = ((Integer) hexes.nextElement()).intValue();
+                final int hdice = board.getNumberOnHexFromCoord(hexCoord);
+                if (hdice != 0)
+                    System.err.print(hdice);
+                else
+                    System.err.print(' ');
+                if (hexCoord == robberHex)
+                    System.err.print("(r)");
+                if (hdice == roll)
+                {
+                    System.err.print('*');
+                    if (hexCoord != robberHex)
+                        hadMatch = true;
+                }
+                System.err.print("  ");
+            }
+            System.err.print(pieceType + " " + pl.getName());
+            if (hadMatch && ! wroteCall)
+            {
+                // roll resources: 1 0 0 0 1 0
+                System.err.print
+                    ("  roll " + pl.getRolledResources().toShortString());
+                wroteCall = true;
+            }
+            System.err.println();
+        }
+
+        return hadMatch;
     }
 
     /**
