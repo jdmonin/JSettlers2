@@ -3049,6 +3049,9 @@ public class SOCGame implements Serializable, Cloneable
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
                  SOCDevCardConstants.MONO);
 
+        case WAITING_FOR_PICK_GOLD_RESOURCE:
+            return forceEndTurnChkDiscardOrGain(currentPlayerNumber, false);  // sets gameState, picks randomly
+
         case WAITING_FOR_DESTROY:
             gameState = PLAY1;
             players[currentPlayerNumber].getDevCards().add(1, SOCDevCardSet.OLD, SOCDevCardConstants.DESTROY);
@@ -4659,7 +4662,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      *<b>Note:</b> Not checked for validity; please call {@link #couldBuyDevCard(int)} first.
      *
-     * @return the card that was drawn
+     * @return the card that was drawn; a dev card type from {@link SOCDevCardConstants}.
      */
     public int buyDevCard()
     {
