@@ -125,7 +125,7 @@ public class SOCDBHelper
     /**
      * True if we successfully completed {@link #initialize(String, String, Properties)}
      * without throwing an exception.
-     * Set false in {@link #cleanup()}.
+     * Set false in {@link #cleanup(boolean)}.
      */
     private static boolean initialized = false;
 
@@ -250,7 +250,7 @@ public class SOCDBHelper
      * Were we able to {@link #initialize(String, String, Properties)}
      * and connect to the database?
      * True if db is connected and available; false if never initialized,
-     * or if {@link #cleanup()} was called.
+     * or if {@link #cleanup(boolean)} was called.
      *
      * @return  True if available
      * @since 2.0.00
@@ -790,8 +790,10 @@ public class SOCDBHelper
 
     /**
      * Close out and shut down the database connection.
+     * @param isForShutdown  If true, set <tt>connection = null</tt>
+     *          so we won't try to reconnect later.
      */
-    public static void cleanup() throws SQLException
+    public static void cleanup(final boolean isForShutdown) throws SQLException
     {
         if (checkConnection())
         {
@@ -813,11 +815,15 @@ public class SOCDBHelper
             {
                 connection.close();
                 initialized = false;
+                if (isForShutdown)
+                    connection = null;
             }
             catch (SQLException sqlE)
             {
                 errorCondition = true;
                 initialized = false;
+                if (isForShutdown)
+                    connection = null;
                 sqlE.printStackTrace();
                 throw sqlE;
             }

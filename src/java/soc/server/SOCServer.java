@@ -3661,7 +3661,7 @@ public class SOCServer extends Server
         /// now continue with shutdown
         try
         {
-            SOCDBHelper.cleanup();
+            SOCDBHelper.cleanup(true);
         }
         catch (SQLException x) { }
         
