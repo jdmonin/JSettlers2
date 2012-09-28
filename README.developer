@@ -235,7 +235,7 @@ Here's how to set up the coding style in Eclipse:
 	displayed tab width: 8
 
 	project properties -> java compiler -> configure workspace settings
-	  compiler compliance level: 1.4
+	  compiler compliance level: 1.5
 
 	prefs -> java -> code style -> formatter -> Click "Configure Project Specific Settings"
 		{

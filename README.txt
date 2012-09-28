@@ -52,10 +52,10 @@ Requirements
 ------------
 
 To play JSettlers by connecting to a remote server you will need the
-Java Runtime Version 1.4 or above (1.5 or later recommended). To connect as an
+Java Runtime Version 1.5 or above. To connect as an
 applet, use any browser which is Java enabled (using the browser plug-in).
 
-To Play JSettlers locally you need the Java Runtime 1.4 or above.
+To Play JSettlers locally you need the Java Runtime 1.5 or above.
 JSettlers-full.jar can connect directly to any server over TCP/IP
 
 To host a JSettlers server that provides a web applet for clients, you will
@@ -80,10 +80,11 @@ look in the src/target directory for these files.)
 If you have downloaded jsettlers-2.x.xx-full.jar or jsettlers-2.x.xx-server.jar
 instead of the full tar.gz, use that filename on the command lines shown below.
 
+
 SERVER STARTUP:
 
 Start the server with the following command
-(server requires Java 1.4 or higher):
+(server requires Java 1.5 or higher):
 
   java -jar JSettlersServer.jar 8880 10 socuser socpass
 
@@ -109,6 +110,10 @@ This will start 6 robots on the server.
 The started robots count against your max connections (15 in this example).
 If the robots leave less than 6 player connections available, or if they take
 more than half the max connections, a warning message is printed at startup.
+
+To see a list of all jsettlers options (use them with -D), run:
+  java -jar JSettlersServer.jar --help
+
 
 CLIENT CONNECT:
 
@@ -164,6 +169,7 @@ Shutting down the server
 To shut down the server enter *STOP* in the chat area of a game
 window.  This will stop the server and all connected clients will be
 disconnected.
+(Only debug users can shut down the server.)
 
 
 Hosting a JSettlers server
@@ -266,7 +272,7 @@ See the project website at http://nand.net/jsettlers/devel/
 or http://sourceforge.net/projects/jsettlers2/
 for details. Patches against the latest version may be submitted there.
 
-Before building, make sure you have at least version 1.4 of the Java
+Before building, make sure you have at least version 1.5 of the Java
 development kit installed.  If you simply want to run the client and
 server, you only need the Java Runtime (JRE). If you wish to maintain a user
 database for your server, you need MySQL or PostgreSQL installed, and configured,
