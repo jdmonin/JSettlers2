@@ -104,6 +104,43 @@ Java applications:
      arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7 44203 9 dbuser dbpass
 
 
+If you want to configure a sqlite database for testing
+------------------------------------------------------
+  These instructions are written for Eclipse 3.6.
+
+  - See the "socserver-sqlite" line just above for the server command line;
+	this is an eclipse Run Configuration for a jsettlers server which
+	includes the sqlite database you're about to configure.
+  - Download the driver from http://www.zentus.com/sqlitejdbc/
+  - Eclipse menu -> prefs -> data mgmt -> connectivity -> driver definitions -> add
+	  select SQLite JDBC Driver
+	  jar list -> edit (or add,if empty) -> navigate to zentus_sqlitejdbc-v056.jar -> OK
+  - Project build path: incl zentus_sqlitejdbc-v056.jar here too
+  - Run socserver-sqlite once (startup will fail) to create the empty db
+  - Add the database to eclipse, so you can add tables and query it:
+	Window -> show view -> other... -> data mgmt -> data source explorer
+	Right-click Database Connections, choose New
+	  Type: SQLite ; give a description and click Next
+	  Browse to jsettlers.sqlite
+		(it's most likely in your workspace, or the server's working directory)
+	  Click "Test Connection"
+	  Set the checkmark "Connect when the wizard completes"
+	  Click Finish
+  - Right-click jsettlers.sqlite in the Data Source Explorer view
+	Open SQL Scrapbook
+	In the Name dropdown, make sure jsettlers.sqlite is chosen
+	Copy-paste the contents of src/bin/sql/jsettlers-tables.sql
+	Select all, right-click, choose Execute Selected Text
+	View the results in the SQL Results view that appears
+	If everything looks OK, close SQL Scrapbook
+  - Right-click jsettlers.sqlite in Data Source Explorer
+	Disconnect
+  - Run the "socserver-sqlite" configuration; this line should appear:
+	User database initialized.
+  - The database is now ready for use, development, and debugging.
+	To create player users, see README.txt and use SOCAccountClient.
+
+
 Current partially-done work
 ---------------------------
 	- Refactor SOCMessage classes to use templates
