@@ -594,6 +594,12 @@ public class SOCServer extends Server
 
             printGameOptions();
         }
+
+        System.err.print("The server is ready.");
+        if (port > 0)
+            System.err.print(" Listening on port " + port);
+        System.err.println();
+        System.err.println();
     }
 
     /**
@@ -3479,6 +3485,8 @@ public class SOCServer extends Server
     {
         if (stopMsg != null)
         {
+            System.out.println("stopServer: " + stopMsg);
+            System.out.println();
             broadcast(SOCBCastTextMsg.toCmd(stopMsg));
         }
 
@@ -3501,6 +3509,8 @@ public class SOCServer extends Server
         catch (SQLException x) { }
         
         super.stopServer();
+
+        System.out.println("Server shutdown completed.");
     }
 
     /**
