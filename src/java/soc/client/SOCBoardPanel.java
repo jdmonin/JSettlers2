@@ -4309,7 +4309,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         private int offsetX;
 
         /** Our size.
-         *  If boxw == 0, also indicates need fontmetrics - see setHoverText, paint.
+         *  If boxw == 0, also indicates need fontmetrics - will be set in paint().
          */
         private int boxW, boxH;
         
@@ -4375,9 +4375,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     boxX = panelMinBW - boxW;
                 }
             }
-            
+
+            // if boxW == 0, we don't have the fontmetrics yet,
+            // so paint() might need to change boxX or boxY
+            // if we're near the bottom or right edge.
+
             bpanel.repaint();
-            // JM TODO consider repaint(boundingbox).            
+            // JM TODO consider repaint(boundingbox).
         }
         
         public void setOffsetX(int ofsX)
@@ -4452,6 +4456,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     return;
                 boxW = fm.stringWidth(ht.replace(' ', '-')) + PADDING_HORIZ;
                 boxH = fm.getHeight();
+
+                // Check if we'd be past the bottom or right edge
+                final int bpwidth = bpanel.getWidth();
+                if (boxX + boxW > bpwidth)
+                    boxX = bpwidth - boxW - 2;
+                final int bpheight = bpanel.getHeight();
+                if (boxY + boxH > bpheight)
+                    boxY = bpheight - boxH - 2;
             }
             g.setColor(Color.WHITE);
             g.fillRect(boxX, boxY, boxW, boxH - 1);
