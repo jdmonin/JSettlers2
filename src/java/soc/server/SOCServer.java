@@ -6430,6 +6430,9 @@ public class SOCServer extends Server
                             }
 
                             break;
+
+                        default:
+                            throw new IllegalArgumentException("Unknown piece type " + mes.getPieceType());
                         }
                     }
                     else
