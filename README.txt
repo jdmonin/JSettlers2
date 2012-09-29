@@ -16,9 +16,10 @@ information (details below).  A client applet to create user accounts
 is also provided.
 
 JSettlers is an open-source project licensed under the GPL. The
-software is hosted at http://sourceforge.net/projects/jsettlers2
+project is hosted at http://sourceforge.net/projects/jsettlers2
 and at http://nand.net/jsettlers/devel/ .  Questions, bugs, and
-patches can be posted at the sourceforge page.
+patches can be posted at the sourceforge page; patches can also
+be sent to https://github.com/jdmonin/jsettlers2 .
 
                           -- The JSettlers Development Team
 
@@ -264,10 +265,11 @@ as long as they aren't using a nickname which has a password in the database.
 Development and Compiling
 -------------------------
 
-Source code for JSettlers is available via tarballs and CVS.
+Source code for JSettlers is available via tarballs and github.
 See the project website at http://nand.net/jsettlers/devel/
 or http://sourceforge.net/projects/jsettlers2/
-for details. Patches against the latest version may be submitted there.
+for details. Patches against the latest version may be submitted there
+or at https://github.com/jdmonin/jsettlers2 .
 
 Before building, make sure you have at least version 1.4 of the Java
 development kit installed.  If you simply want to run the client and
