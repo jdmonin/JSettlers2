@@ -98,6 +98,13 @@ public class SOCDBHelper
      */
     private static String driverclass = null;
 
+    /**
+     * db connection, or <tt>null</tt> if never initialized or if cleaned up for shutdown.
+     * If this is non-null but closed, most queries will try to recreate it via {@link #checkConnection()}.
+     * Set in {@link #connect(String, String)}, based on the {@link #dbURL}
+     * from {@link #initialize(String, String, Properties)}.
+     * Cleared in {@link #cleanup(boolean) cleanup(true)}.
+     */
     private static Connection connection = null;
 
     /**
@@ -116,7 +123,7 @@ public class SOCDBHelper
     /**
      * True if we successfully completed {@link #initialize(String, String, Properties)}
      * without throwing an exception.
-     * Set false in {@link #cleanup()}.
+     * Set false in {@link #cleanup(boolean)}.
      */
     private static boolean initialized = false;
 
@@ -241,7 +248,7 @@ public class SOCDBHelper
      * Were we able to {@link #initialize(String, String, Properties)}
      * and connect to the database?
      * True if db is connected and available; false if never initialized,
-     * or if {@link #cleanup()} was called.
+     * or if {@link #cleanup(boolean)} was called.
      *<P>
      * Backported to 1.1.14 from 2.0.00.
      *
@@ -256,7 +263,7 @@ public class SOCDBHelper
     /**
      * Checks if connection is supposed to be present and attempts to reconnect
      * if there was previously an error.  Reconnecting closes the current
-     * conection, opens a new one, and re-initializes the prepared statements.
+     * {@link #connection}, opens a new one, and re-initializes the prepared statements.
      *
      * @return true if the connection is established upon return
      */
@@ -271,7 +278,8 @@ public class SOCDBHelper
     }
 
     /**
-     * initialize and checkConnection use this to get ready.
+     * Opens a new connection and initializes the prepared statements.
+     * {@link #initialize(String, String, Properties)} and {@link #checkConnection()} use this to get ready.
      */
     private static boolean connect(String user, String pswd)
         throws SQLException
@@ -697,8 +705,10 @@ public class SOCDBHelper
 
     /**
      * Close out and shut down the database connection.
+     * @param isForShutdown  If true, set <tt>connection = null</tt>
+     *          so we won't try to reconnect later.
      */
-    public static void cleanup() throws SQLException
+    public static void cleanup(final boolean isForShutdown) throws SQLException
     {
         if (checkConnection())
         {
@@ -720,11 +730,15 @@ public class SOCDBHelper
             {
                 connection.close();
                 initialized = false;
+                if (isForShutdown)
+                    connection = null;
             }
             catch (SQLException sqlE)
             {
                 errorCondition = true;
                 initialized = false;
+                if (isForShutdown)
+                    connection = null;
                 sqlE.printStackTrace();
                 throw sqlE;
             }
