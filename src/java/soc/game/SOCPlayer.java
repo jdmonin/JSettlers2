@@ -581,7 +581,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<UL>
      *<LI> Clear {@link #getRolledResources()}
      *</UL>
-     * @since 2.0.00
+     * @since 1.1.14
      */
     void updateAtTurn()
     {
@@ -603,7 +603,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<LI> Clear the "last-action bank trade" flag/list
      *     used by {@link SOCGame#canUndoBankTrade(SOCResourceSet, SOCResourceSet) game.canUndoBankTrade}
      *</UL>
-     * @since 2.0.00
+     * @since 1.1.14
      */
     void updateAtOurTurn()
     {

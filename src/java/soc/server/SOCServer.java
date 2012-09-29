@@ -132,7 +132,7 @@ public class SOCServer extends Server
     /**
      * Property <tt>jsettlers.allow.debug</tt> to permit debug commands over TCP.
      * (The default is N; to allow, set to Y)
-     * @since 2.0.00
+     * @since 1.1.14
      */
     public static final String PROP_JSETTLERS_ALLOW_DEBUG = "jsettlers.allow.debug";
 
@@ -301,7 +301,7 @@ public class SOCServer extends Server
      * client is using {@link LocalStringConnection} to talk to the server.
      *
      * @see #processDebugCommand(StringConnection, String, String)
-     * @since 2.0.00
+     * @since 1.1.14
      */
     private boolean allowDebugUser;
 
@@ -699,7 +699,7 @@ public class SOCServer extends Server
      * @param pName  Property name
      * @param pDefault  Default value to use if not found or not parsable
      * @return The property's parsed value, or <tt>pDefault</tt>
-     * @since 2.0.00
+     * @since 1.1.14
      */
     private static boolean init_getBoolProperty(Properties props, final String pName, final boolean pDefault)
     {
@@ -711,13 +711,9 @@ public class SOCServer extends Server
             String mcs = props.getProperty(pName);
             if (mcs == null)
                 return pDefault;
-            if (mcs.equalsIgnoreCase("Y"))
+            if (mcs.equalsIgnoreCase("Y") || mcs.equalsIgnoreCase("T"))
                 return true;
-            else if (mcs.equalsIgnoreCase("N"))
-                return false;
-            else if (mcs.equalsIgnoreCase("T"))
-                return true;
-            else if (mcs.equalsIgnoreCase("F"))
+            else if (mcs.equalsIgnoreCase("N") || mcs.equalsIgnoreCase("F"))
                 return false;
 
             final int iv = Integer.parseInt(mcs);

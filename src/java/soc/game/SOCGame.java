@@ -2021,7 +2021,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pp  The piece to put on the board; coordinates are not checked for validity
      * @param isTempPiece  Is this a temporary piece?  If so, do not change current
      *                     player or gamestate.
-     * @since 2.0.00
+     * @since 1.1.14
      */
     private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
     {

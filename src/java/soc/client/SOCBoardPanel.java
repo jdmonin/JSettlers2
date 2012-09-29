@@ -5565,7 +5565,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // if we're near the bottom or right edge.
 
             bpanel.repaint();
-            // JM TODO consider repaint(boundingbox).            
+            // JM TODO consider repaint(boundingbox).
         }
 
         /**

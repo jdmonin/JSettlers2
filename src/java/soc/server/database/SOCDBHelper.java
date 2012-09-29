@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.database;
 
@@ -39,12 +39,9 @@ import java.util.Properties;
 /**
  * This class contains methods for connecting to a database
  * and for manipulating the data stored there.
- *
+ *<P>
  * Based on jdbc code found at www.javaworld.com
- *
- * @author Robert S. Thomas
- */
-/**
+ *<P>
  * This code assumes that you're using mySQL as your database,
  * but allows you to use other database types.
  * The default URL is "jdbc:mysql://localhost/socdata".
@@ -53,6 +50,7 @@ import java.util.Properties;
  * for {@link #PROP_JSETTLERS_DB_URL} and {@link #PROP_JSETTLERS_DB_DRIVER}.
  *<P>
  * It uses a database created with the following commands:
+ *<BR> (See src/bin/sql/jsettlers-tables.sql) <BR>
  *<code>
  * CREATE DATABASE socdata;
  * USE socdata;
@@ -61,13 +59,15 @@ import java.util.Properties;
  * CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 TINYINT, score2 TINYINT, score3 TINYINT, score4 TINYINT, starttime TIMESTAMP);
  * CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
  *</code>
+ *
+ * @author Robert S. Thomas
  */
 public class SOCDBHelper
 {
     // If a new property is added, please add a PROP_JSETTLERS_DB_ constant
     // and also add it to SOCServer.PROPS_LIST.
 
-	/** Property <tt>jsettlers.db.user</tt> to specify the server's SQL database username.
+    /** Property <tt>jsettlers.db.user</tt> to specify the server's SQL database username.
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_DB_USER = "jsettlers.db.user";
@@ -103,10 +103,17 @@ public class SOCDBHelper
     /**
      * The db driver used, or null if none.
      * Set in {@link #initialize(String, String, Properties)}.
-     * @since 2.0.00
+     * @since 1.1.14
      */
     private static String driverclass = null;
 
+    /**
+     * db connection, or <tt>null</tt> if never initialized or if cleaned up for shutdown.
+     * If this is non-null but closed, most queries will try to recreate it via {@link #checkConnection()}.
+     * Set in {@link #connect(String, String)}, based on the {@link #dbURL}
+     * from {@link #initialize(String, String, Properties)}.
+     * Cleared in {@link #cleanup(boolean) cleanup(true)}.
+     */
     private static Connection connection = null;
 
     /**
@@ -253,7 +260,7 @@ public class SOCDBHelper
      * or if {@link #cleanup(boolean)} was called.
      *
      * @return  True if available
-     * @since 2.0.00
+     * @since 1.1.14
      */
     public static boolean isInitialized()
     {
@@ -263,7 +270,7 @@ public class SOCDBHelper
     /**
      * Checks if connection is supposed to be present and attempts to reconnect
      * if there was previously an error.  Reconnecting closes the current
-     * conection, opens a new one, and re-initializes the prepared statements.
+     * {@link #connection}, opens a new one, and re-initializes the prepared statements.
      *
      * @return true if the connection is established upon return
      */
@@ -278,7 +285,8 @@ public class SOCDBHelper
     }
 
     /**
-     * initialize and checkConnection use this to get ready.
+     * Opens a new connection and initializes the prepared statements.
+     * {@link #initialize(String, String, Properties)} and {@link #checkConnection()} use this to get ready.
      */
     private static boolean connect(String user, String pswd)
         throws SQLException
@@ -721,7 +729,7 @@ public class SOCDBHelper
      *    The jsettlers standard is to always use lowercase names when creating tables and columns.
      * @return  true if column exists in the current connection's database
      * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails
-     * @since 2.0.00
+     * @since 1.1.14
      */
     public static boolean doesTableColumnExist
         (final String tabname, final String colname)

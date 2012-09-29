@@ -17,6 +17,17 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 	-Djsettlers.allow.debug=Y
 - Minor refactoring
 
+
+
+    > 1.1.14 (build JM201209xx)
+- Don't force-end bot turn if waiting for human discard
+- Discard dialog has "Clear" button (sourceforge bug# 3443414)
+- Show 'Server is ready' message at end of initialization
+- At server shutdown, try to disconnect from database (helpful for sqlite)
+- Debug commands are off by default, except practice games; you can enable them with:
+	-Djsettlers.allow.debug=Y
+- Split out sql from README, add indexes
+
     > 1.1.13 (build JM20111101)
 - Game name maximum length is 30, was 20 previously
 - Allow player to undo their last bank trade, if the undo is the very next thing they do,

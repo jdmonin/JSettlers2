@@ -133,7 +133,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      * {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD},
      * excluding {@link SOCResourceConstants#UNKNOWN} or {@link SOCResourceConstants#GOLD_LOCAL}.
      * @return the total number of known-type resources
-     * @since 2.0.00
+     * @since 1.1.14
      */
     public int getKnownTotal()
     {

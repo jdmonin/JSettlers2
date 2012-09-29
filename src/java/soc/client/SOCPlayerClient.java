@@ -1678,7 +1678,7 @@ public class SOCPlayerClient extends Applet
      * a message to the local TCP server.
      * Use <tt>putPractice</tt> only with {@link #practiceServer}.
      *<P>
-     * Before version 2.0.00, this was <tt>putLocal</tt>.
+     * Before version 1.1.14, this was <tt>putLocal</tt>.
      *
      * @param s  the message
      * @return true if the message was sent, false if not
@@ -1702,7 +1702,7 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * Write a message to the net or local server.
+     * Write a message to the net or the local practice server.
      * Because the player can be in both network games and local games,
      * we must route to the appropriate client-server connection.
      * 

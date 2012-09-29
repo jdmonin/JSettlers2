@@ -54,7 +54,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
 
     /**
      * Clear button.  Reset the {@link #pick} resource colorsquare counts to 0.
-     * @since 2.0.00
+     * @since 1.1.14
      */
     private Button clearBut;
 
@@ -371,7 +371,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
                 {
                     okBut.enable();   // Exact count reached
                     wantsRepaint = true;
-                }                    
+                }
                 break;
             }
             else if ((target == pick[i]) && ((keep[i].getIntValue() > 0) || ! isDiscard))
