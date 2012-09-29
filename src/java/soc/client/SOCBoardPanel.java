@@ -3927,7 +3927,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         throws IllegalArgumentException
     {
         if ((superText1 == text1) && (superText2 == text2))
-            return;
+        {
+            return;  // <--- Early return: text unchanged ---
+            // This quick check is an optimization.
+            // Any of the 4 variables could be null.
+            // It's not worth the additional complexity
+            // needed to check vs null and then String.equals.
+        }
         if ((superText1 == null) && (superText2 != null))
             throw new IllegalArgumentException("text2 not null, text1 null");
 
