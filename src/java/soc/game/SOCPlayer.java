@@ -479,8 +479,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Update game state as needed when any player begins their turn (before dice are rolled).
+     * Called by server and client, as part of {@link SOCGame#updateAtTurn()}.
+     *<P>
+     * Called for each player, just before calling the current player's {@link #updateAtOurTurn()}.
+     * @since 1.1.14
+     */
+    void updateAtTurn()
+    {
+        ;  // only a stub for now
+    }
+
+    /**
      * Update game state as needed when this player begins their turn (before dice are rolled).
      * Called by server and client, as part of {@link SOCGame#updateAtTurn()}.
+     * Called just after calling each player's {@link #updateAtTurn()}.
      *<P>
      * May be called during initial placement.
      * Is called at the end of initial placement, before the first player's first roll.
