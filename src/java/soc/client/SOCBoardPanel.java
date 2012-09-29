@@ -254,22 +254,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * For correlation to game state, see {@link #updateMode()}.
      * If a mode is added, please also update {@link #clearModeAndHilight(int)}.
      */
-    public final static int NONE = 0;
-    public final static int PLACE_ROAD = 1;
-    public final static int PLACE_SETTLEMENT = 2;
-    public final static int PLACE_CITY = 3;
-    public final static int PLACE_ROBBER = 4;
-    public final static int PLACE_INIT_SETTLEMENT = 5;
-    public final static int PLACE_INIT_ROAD = 6;
+    private final static int NONE = 0;
+
+    private final static int PLACE_ROAD = 1;
+    private final static int PLACE_SETTLEMENT = 2;
+    private final static int PLACE_CITY = 3;
+    private final static int PLACE_ROBBER = 4;
+    private final static int PLACE_INIT_SETTLEMENT = 5;
+    private final static int PLACE_INIT_ROAD = 6;
+
     public final static int CONSIDER_LM_SETTLEMENT = 7;
     public final static int CONSIDER_LM_ROAD = 8;
     public final static int CONSIDER_LM_CITY = 9;
     public final static int CONSIDER_LT_SETTLEMENT = 10;
     public final static int CONSIDER_LT_ROAD = 11;
     public final static int CONSIDER_LT_CITY = 12;
-    public final static int TURN_STARTING = 97;
-    public final static int GAME_FORMING = 98;
-    public final static int GAME_OVER = 99;
+
+    private final static int TURN_STARTING = 97;
+    private final static int GAME_FORMING = 98;
+    private final static int GAME_OVER = 99;
     
     /** During initial-piece placement, the tooltip is moved this far over to make room. */
     public final static int HOVER_OFFSET_X_FOR_INIT_PLACE = 9;
@@ -4059,11 +4062,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * set the interaction mode
+     * set the interaction mode, for debugging purposes.
      *
-     * @param m  mode
+     * @param m  mode, such as {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_CITY}
      * 
      * @see #updateMode()
+     * @see SOCPlayerClient#doLocalCommand(SOCGame, String)
      */
     public void setMode(int m)
     {
@@ -4074,7 +4078,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * get the interaction mode
      *
-     * @return the mode
+     * @return the mode, such as {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_CITY}
      */
     public int getMode()
     {
