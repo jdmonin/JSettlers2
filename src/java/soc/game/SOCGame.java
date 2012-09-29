@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2381,7 +2381,8 @@ public class SOCGame implements Serializable, Cloneable
      *<UL>
      *<LI> Set first player and last player, if they're currently -1
      *<LI> Set current dice to 0
-     *<LI> Mark current player's new dev cards as old
+     *<LI> Call the new current player's {@link SOCPlayer#updateAtOurTurn()},
+     *     to mark their new dev cards as old and clear other flags
      *<LI> Clear any votes to reset the board
      *<LI> If game state is {@link #PLAY}, increment turnCount (and roundCount if necessary).
      *     These include the current turn; they both are 1 during the first player's first turn.
@@ -2398,12 +2399,10 @@ public class SOCGame implements Serializable, Cloneable
 
         currentDice = 0;
         SOCPlayer currPlayer = players[currentPlayerNumber];
-        currPlayer.getDevCards().newToOld();
+        currPlayer.updateAtOurTurn();
         resetVoteClear();
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
-        currPlayer.lastActionBankTrade_give = null;
-        currPlayer.lastActionBankTrade_get = null;
 
         if (gameState == PLAY)
         {

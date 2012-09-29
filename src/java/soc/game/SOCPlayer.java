@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,6 +37,8 @@ import java.util.Vector;
 /**
  * A class for holding and manipulating player data.
  * The player exists within one SOCGame, not persistent between games like SOCPlayerClient or SOCClientData.
+ *<P>
+ * At the start of this player's turn, {@link SOCGame#updateAtTurn()} will call {@link #updateAtOurTurn()}.
  *<P>
  * For more information about the "legal" and "potential" road/settlement/city terms,
  * see page 61 of Robert S Thomas' dissertation.  Briefly:
@@ -474,6 +476,31 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             potentialSettlements[i] = false;
         }
+    }
+
+    /**
+     * Update game state as needed when this player begins their turn (before dice are rolled).
+     * Called by server and client, as part of {@link SOCGame#updateAtTurn()}.
+     *<P>
+     * May be called during initial placement.
+     * Is called at the end of initial placement, before the first player's first roll.
+     * On the 6-player board, is called at the start of
+     * the player's {@link #SPECIAL_BUILDING Special Building Phase}.
+     *<UL>
+     *<LI> Mark our new dev cards as old
+     *<LI> Clear the "last-action bank trade" flag/list
+     *     used by {@link SOCGame#canUndoBankTrade(SOCResourceSet, SOCResourceSet) game.canUndoBankTrade}
+     *</UL>
+     *<P>
+     * Backported from 2.0.00 to 1.1.14.
+     *
+     * @since 1.1.14
+     */
+    void updateAtOurTurn()
+    {
+        getDevCards().newToOld();
+        lastActionBankTrade_give = null;
+        lastActionBankTrade_get = null;
     }
 
     /**
