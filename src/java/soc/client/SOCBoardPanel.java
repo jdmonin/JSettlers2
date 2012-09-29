@@ -4076,16 +4076,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * get the interaction mode
-     *
-     * @return the mode, such as {@link #CONSIDER_LM_SETTLEMENT} or {@link #CONSIDER_LT_CITY}
-     */
-    public int getMode()
-    {
-        return mode;
-    }
-
-    /**
      * load the images for the board
      * we need to know if this board is in an applet
      * or an application
@@ -4704,7 +4694,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverID = id;
                 {
                     StringBuffer sb = new StringBuffer();
-                    switch (board.getHexTypeFromCoord(id))
+                    final int htype = board.getHexTypeFromCoord(id);
+                    final int dicenum = board.getNumberOnHexFromCoord(id);
+                    switch (htype)
                     {
                     case SOCBoard.DESERT_HEX:
                         sb.append("Desert");  break;
@@ -4722,7 +4714,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         sb.append("Water");   break;
                     default:
                         {
-                            final int htype = board.getHexTypeFromCoord(id);
                             String portDesc = null;
                             if ((htype >= SOCBoard.MISC_PORT_HEX) && (htype <= SOCBoard.WOOD_PORT_HEX))
                             {
@@ -4739,21 +4730,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                     if (board.getRobberHex() == id)
                     {
-                        int num = board.getNumberOnHexFromCoord(id);
-                        if (num > 0)
+                        if (dicenum > 0)
                         {
                             sb.append(": ");
-                            sb.append(num);
+                            sb.append(dicenum);
                         }
                         sb.append(" (ROBBER)");
                     }
                     else if (board.getPreviousRobberHex() == id)
                     {
-                        int num = board.getNumberOnHexFromCoord(id);
-                        if (num > 0)
+                        if (dicenum > 0)
                         {
                             sb.append(": ");
-                            sb.append(num);
+                            sb.append(dicenum);
                         }
                         sb.append(" (robber was here)");
                     }
