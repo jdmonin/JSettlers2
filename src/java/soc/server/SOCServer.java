@@ -4565,13 +4565,18 @@ public class SOCServer extends Server
                 + SOCMessage.sep2_char + e.problemOptionsList()));
         } catch (IllegalArgumentException e)
         {
-            // Let them know they can't join; include the game's version.
-
-            c.put(SOCStatusMessage.toCmd
-              (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, cliVers,
-                "Cannot join game; requires version "
-                + Integer.toString(gameList.getGameData(gameName).getClientVersionMinRequired())
-                + ": " + gameName));
+            SOCGame game = gameList.getGameData(gameName);
+            if (game == null)
+            {
+                D.ebugPrintStackTrace(e, "Exception in createOrJoinGameIfUserOK");   
+            } else {
+                // Let them know they can't join; include the game's version.
+                c.put(SOCStatusMessage.toCmd
+                  (SOCStatusMessage.SV_CANT_JOIN_GAME_VERSION, cliVers,
+                    "Cannot join game; requires version "
+                    + Integer.toString(game.getClientVersionMinRequired())
+                    + ": " + gameName));
+            }
         }
 
     }  //  createOrJoinGameIfUserOK
