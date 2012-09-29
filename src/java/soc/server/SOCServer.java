@@ -648,6 +648,47 @@ public class SOCServer extends Server
     }
 
     /**
+     * Get and parse a boolean property, or use its default instead.
+     * True values are: T Y 1.
+     * False values are: F N 0.
+     * Not case-sensitive.
+     * Any other value will be ignored and get <tt>pDefault</tt>.
+     *<P>
+     * Backported to 1.1.14 from 2.0.00.
+     *
+     * @param props  Properties to look in, such as {@link SOCServer#props}, or null for <tt>pDefault</tt>
+     * @param pName  Property name
+     * @param pDefault  Default value to use if not found or not parsable
+     * @return The property's parsed value, or <tt>pDefault</tt>
+     * @since 1.1.14
+     */
+    private static boolean init_getBoolProperty(Properties props, final String pName, final boolean pDefault)
+    {
+        if (props == null)
+            return pDefault;
+
+        try
+        {
+            String mcs = props.getProperty(pName);
+            if (mcs == null)
+                return pDefault;
+            if (mcs.equalsIgnoreCase("Y") || mcs.equalsIgnoreCase("T"))
+                return true;
+            else if (mcs.equalsIgnoreCase("N") || mcs.equalsIgnoreCase("F"))
+                return false;
+
+            final int iv = Integer.parseInt(mcs);
+            if (iv == 0)
+                return false;
+            else if (iv == 1)
+                return true;
+        }
+        catch (NumberFormatException e) { }
+
+        return pDefault;        
+    }
+
+    /**
      * Print the version and attribution text. Formerly inside constructors.
      * @since 1.1.07
      */
