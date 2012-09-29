@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server.database;
 
@@ -37,12 +37,9 @@ import java.util.Properties;
 /**
  * This class contains methods for connecting to a database
  * and for manipulating the data stored there.
- *
+ *<P>
  * Based on jdbc code found at www.javaworld.com
- *
- * @author Robert S. Thomas
- */
-/**
+ *<P>
  * This code assumes that you're using mySQL as your database,
  * but allows you to use other database types.
  * The default URL is "jdbc:mysql://localhost/socdata".
@@ -51,6 +48,7 @@ import java.util.Properties;
  * for {@link #PROP_JSETTLERS_DB_URL} and {@link #PROP_JSETTLERS_DB_DRIVER}.
  *<P>
  * It uses a database created with the following commands:
+ *<BR> (See src/bin/sql/jsettlers-tables.sql) <BR>
  *<code>
  * CREATE DATABASE socdata;
  * USE socdata;
@@ -59,13 +57,15 @@ import java.util.Properties;
  * CREATE TABLE games (gamename VARCHAR(20), player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20), score1 TINYINT, score2 TINYINT, score3 TINYINT, score4 TINYINT, starttime TIMESTAMP);
  * CREATE TABLE robotparams (robotname VARCHAR(20), maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT, strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL);
  *</code>
+ *
+ * @author Robert S. Thomas
  */
 public class SOCDBHelper
 {
     // If a new property is added, please add a PROP_JSETTLERS_DB_ constant
     // and also add it to SOCServer.PROPS_LIST.
 
-	/** Property <tt>jsettlers.db.user</tt> to specify the server's SQL database username.
+    /** Property <tt>jsettlers.db.user</tt> to specify the server's SQL database username.
      * @since 1.1.09
      */
     public static final String PROP_JSETTLERS_DB_USER = "jsettlers.db.user";
@@ -91,6 +91,13 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_URL = "jsettlers.db.url";
 
+    /**
+     * The db driver used, or null if none.
+     * Set in {@link #initialize(String, String, Properties)}.
+     * @since 1.1.14
+     */
+    private static String driverclass = null;
+
     private static Connection connection = null;
 
     /**
@@ -105,6 +112,13 @@ public class SOCDBHelper
      * operation if this is set.
      */
     private static boolean errorCondition = false;
+
+    /**
+     * True if we successfully completed {@link #initialize(String, String, Properties)}
+     * without throwing an exception.
+     * Set false in {@link #cleanup()}.
+     */
+    private static boolean initialized = false;
 
     /** Cached username used when reconnecting on error */
     private static String userName;
@@ -131,6 +145,7 @@ public class SOCDBHelper
     /**
      * This makes a connection to the database
      * and initializes the prepared statements.
+     * Sets {@link #isInitialized()}.
      *<P>
      * The default URL is "jdbc:mysql://localhost/socdata".
      * The default driver is "com.mysql.jdbc.Driver".
@@ -147,7 +162,12 @@ public class SOCDBHelper
      */
     public static void initialize(String user, String pswd, Properties props) throws SQLException
     {
-    	String driverclass = "com.mysql.jdbc.Driver";
+        initialized = false;
+
+        // Driver types and URLs recognized here should
+        // be the same as those listed in README.txt.
+
+        driverclass = "com.mysql.jdbc.Driver";
     	dbURL = "jdbc:mysql://localhost/socdata";
     	if (props != null)
     	{
@@ -213,6 +233,24 @@ public class SOCDBHelper
             sx.initCause(x);
             throw sx;
         }
+
+        initialized = true;
+    }
+
+    /**
+     * Were we able to {@link #initialize(String, String, Properties)}
+     * and connect to the database?
+     * True if db is connected and available; false if never initialized,
+     * or if {@link #cleanup()} was called.
+     *<P>
+     * Backported to 1.1.14 from 2.0.00.
+     *
+     * @return  True if available
+     * @since 1.1.14
+     */
+    public static boolean isInitialized()
+    {
+        return initialized && (connection != null);
     }
 
     /**
@@ -580,7 +618,85 @@ public class SOCDBHelper
     }
 
     /**
-     * DOCUMENT ME!
+     * Query to see if a column exists in a table.
+     * Any exception is caught here and returns false.
+     *<P>
+     * Backported to 1.1.14 from 2.0.00.
+     *
+     * @param tabname  Table name to check <tt>colname</tt> within; case-sensitive in some db types
+     * @param colname  Column name to check; case-sensitive in some db types.
+     *    The jsettlers standard is to always use lowercase names when creating tables and columns.
+     * @return  true if column exists in the current connection's database
+     * @throws IllegalStateException  If not connected and if {@link #checkConnection()} fails
+     * @since 1.1.14
+     */
+    public static boolean doesTableColumnExist
+        (final String tabname, final String colname)
+        throws IllegalStateException
+    {
+        try
+        {
+            if (! checkConnection())
+                throw new IllegalStateException();
+        } catch (SQLException e) {
+            throw new IllegalStateException();
+        }
+
+        ResultSet rs = null;
+        try
+        {
+            final boolean checkResultNum;  // Do we need to check query result contents?
+
+            PreparedStatement ps;
+            if (! driverclass.toLowerCase().contains("oracle"))
+            {
+                ps = connection.prepareStatement
+                    ("select " + colname + " from " + tabname + " LIMIT 1;");
+                checkResultNum = false;
+            } else {
+                ps = connection.prepareStatement
+                    ("select count(*) FROM user_tab_columns WHERE table_name='"
+                     + tabname + "' AND column_name='"
+                     + colname + "';");
+                checkResultNum = true;
+            }
+
+            rs = ps.executeQuery();
+            if (checkResultNum)
+            {
+                if (! rs.next())
+                {
+                    rs.close();
+                    return false;
+                }
+                int count = rs.getInt(1);
+                if (count == 0)
+                {
+                    rs.close();
+                    return false;
+                }
+            }
+            rs.close();
+
+        } catch (Throwable th) {
+
+            if (rs != null)
+            {
+                try
+                {
+                    rs.close();
+                }
+                catch (SQLException e) {}
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Close out and shut down the database connection.
      */
     public static void cleanup() throws SQLException
     {
@@ -594,11 +710,21 @@ public class SOCDBHelper
                 lastloginUpdate.close();
                 saveGameCommand.close();
                 robotParamsQuery.close();
+            }
+            catch (SQLException sqlE)
+            {
+                ; /* ignore failures in query closes */
+            }
+
+            try
+            {
                 connection.close();
+                initialized = false;
             }
             catch (SQLException sqlE)
             {
                 errorCondition = true;
+                initialized = false;
                 sqlE.printStackTrace();
                 throw sqlE;
             }
