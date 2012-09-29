@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -8860,11 +8860,11 @@ public class SOCServer extends Server
      * check for games that have expired and destroy them.
      * If games are about to expire, send a warning.
      * As of version 1.1.09, practice games ({@link SOCGame#isPractice} flag set) don't expire.
+     * Callback method from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #GAME_EXPIRE_WARN_MINUTES
      * @see #checkForExpiredTurns(long)
-     * @see SOCGameTimeoutChecker#run()
      */
     public void checkForExpiredGames(final long currentTimeMillis)
     {
@@ -8940,10 +8940,10 @@ public class SOCServer extends Server
      * Check for robot turns that have expired, and end them.
      * They may end from inactivity or from an illegal placement.
      * Checks the {@link SOCGame#lastActionTime} field.
+     * Callback method from {@link SOCGameTimeoutChecker#run()}.
      *
      * @param currentTimeMillis  The time when called, from {@link System#currentTimeMillis()}
      * @see #ROBOT_FORCE_ENDTURN_SECONDS
-     * @see SOCGameTimeoutChecker#run()
      * @see #checkForExpiredGames(long)
      * @since 1.1.11
      */
@@ -8980,6 +8980,27 @@ public class SOCServer extends Server
                 SOCPlayer pl = ga.getPlayer(cpn);
                 if (! pl.isRobot())
                     continue;
+
+                final int gameState = ga.getGameState();
+                if (gameState == SOCGame.WAITING_FOR_DISCARDS)
+                {
+                    // Check if we're just waiting on humans, not on the robot
+                    boolean waitHumans = false;
+                    for (int i = 0; i < ga.maxPlayers; ++i)
+                    {
+                        final SOCPlayer pli = ga.getPlayer(i);
+                        if (pli.isRobot())
+                            continue;
+                        if (pli.getNeedToDiscard())
+                        {
+                            waitHumans = true;
+                            break;
+                        }
+                    }
+
+                    if (waitHumans)
+                        continue;  // <-- Waiting on humans, don't end bot's turn --
+                }
 
                 if (pl.getCurrentOffer() != null)
                 {
