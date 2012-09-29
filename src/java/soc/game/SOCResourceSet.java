@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2008-2009 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2008-2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.game;
 
@@ -116,6 +116,29 @@ public class SOCResourceSet implements Serializable, Cloneable
 
         for (int i = SOCResourceConstants.MIN;
                 i < SOCResourceConstants.MAXPLUSONE; i++)
+        {
+            sum += resources[i];
+        }
+
+        return sum;
+    }
+
+    /**
+     * Get the total amount of resources of known types:
+     * {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD},
+     * excluding {@link SOCResourceConstants#UNKNOWN}.
+     *<P>
+     * Backported to 1.1.14 from 2.0.00.
+     *
+     * @return the total number of known-type resources
+     * @since 1.1.14
+     */
+    public int getKnownTotal()
+    {
+        int sum = 0;
+
+        for (int i = SOCResourceConstants.MIN;
+                 i <= SOCResourceConstants.WOOD; i++)
         {
             sum += resources[i];
         }
