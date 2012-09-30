@@ -313,7 +313,7 @@ public class SOCGame implements Serializable, Cloneable
     public static final int SPECIAL_BUILDING = 100;  // see advanceTurnToSpecialBuilding()
 
     /**
-     * The game is over.  A player has accumulated 10 ({@link #vp_winner}) victory points,
+     * The game is over.  A player has accumulated enough ({@link #vp_winner}) victory points,
      * or all players have left the game.
      */
     public static final int OVER = 1000; // The game is over
@@ -371,8 +371,8 @@ public class SOCGame implements Serializable, Cloneable
      * Per-game copy is {@link #vp_winner}, can be changed from 10 in
      * constructor with the <tt>"VP"</tt> {@link SOCGameOption}.
      *<P>
-     * Before v2.0.00, this was public static final int <tt>VP_WINNER</tt>.
-     * @since 2.0.00
+     * Before v1.1.14, this was public static final int <tt>VP_WINNER</tt>.
+     * @since 1.1.14
      */
     public static final int VP_WINNER_STANDARD = 10;
 
@@ -455,7 +455,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Number of victory points needed to win this game (default {@link #VP_WINNER_STANDARD} == 10).
-     * @since 2.0.00
+     * @since 1.1.14
      */
     public final int vp_winner;
 
@@ -882,11 +882,11 @@ public class SOCGame implements Serializable, Cloneable
             hasSeaBoard = isGameOptionSet(op, "PLL");
             final boolean wants6board = isGameOptionSet(op, "PLB");
             final int maxpl = getGameOptionIntValue(op, "PL", 4, false);
-            vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
             if (wants6board || (maxpl > 4))
                 maxPlayers = MAXPLAYERS;  // == 6
             else
                 maxPlayers = 4;
+            vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
         } else {
             maxPlayers = 4;
             hasSeaBoard = false;
@@ -1324,6 +1324,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     public static int getGameOptionIntValue(Hashtable opts, final String optKey)
     {
+        // OTYPE_* - if a new type is added, update this method's javadoc.
+
         return getGameOptionIntValue(opts, optKey, 0, false);
     }
 
@@ -5095,7 +5097,7 @@ public class SOCGame implements Serializable, Cloneable
      * the next-longest road is not the current player's road.
      *<P>
      * The win is determined not by who has the highest point total, but
-     * solely by reaching 10 victory points ({@link #vp_winner}) during your own turn.
+     * solely by reaching enough victory points ({@link #vp_winner}) during your own turn.
      *
      * @see #getGameState()
      * @see #getPlayerWithWin()
@@ -5155,6 +5157,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public SOCGame resetAsCopy()
     {
+        // the constructor will set most fields based on game options
         SOCGame cp = new SOCGame(name, active, SOCGameOption.cloneOptions(opts));
 
         cp.isFromBoardReset = true;

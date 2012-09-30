@@ -6,27 +6,24 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
     > 2.0.00 (build JM20121xxx)
 - Large board (sea board) support
-- Game can require more than 10 Victory Points to win
 - "House rules" dev card types (New game option "DH")
 - Game options dialog: Set maxplayers to 6 when Use Large Board is set, unless user changed max pl manually
-- Show 'Server is ready' message at end of initialization
 - Can save all completed game results in database, with new option:
 	-Djsettlers.db.save.games=Y
 - More efficient game-setup messages over network
-- Debug commands are off by default, except practice games; you can enable them with:
-	-Djsettlers.allow.debug=Y
 - Minor refactoring
 
 
 
     > 1.1.14 (build JM201209xx)
+- Game can require more than 10 Victory Points to win (new game option "VP")
 - Don't force-end bot turn if waiting for human discard
 - Discard dialog has "Clear" button (sourceforge bug# 3443414)
 - Show 'Server is ready' message at end of initialization
 - At server shutdown, try to disconnect from database (helpful for sqlite)
 - Debug commands are off by default, except practice games; you can enable them with:
 	-Djsettlers.allow.debug=Y
-- Split out sql from README, add indexes
+- Split out sql from README, add indexes (Chad McHenry mchenryc in 2005 cvs)
 
     > 1.1.13 (build JM20111101)
 - Game name maximum length is 30, was 20 previously

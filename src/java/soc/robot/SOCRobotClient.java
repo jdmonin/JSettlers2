@@ -1324,6 +1324,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     if (ga.getPlayer(nickname).getTotalVP() >= ga.vp_winner)
                     {
                         gamesWon++;
+                        // TODO: should check actual winning player number (getCurrentPlayerNumber?)
                     }
                 }
 

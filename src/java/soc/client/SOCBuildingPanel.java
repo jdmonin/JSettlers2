@@ -77,12 +77,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     Label cardT;
     Label cardC;
     Label cardCountLab;
-    private Label vpToWinLab;  // null unless hasSeaBoard or vp != 10; @since 2.0.00
+    private Label vpToWinLab;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
     ColorSquare cardWheat;
     ColorSquare cardSheep;
     ColorSquare cardOre;
     ColorSquare cardCount;
-    private ColorSquare vpToWin;  // null unless hasSeaBoard or vp != 10; @since 2.0.00
+    private ColorSquare vpToWin;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
 
     // Large Sea Board Ship button; @since 2.0.00
     private Label shipT;  // text

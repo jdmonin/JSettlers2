@@ -242,9 +242,9 @@ public class SOCGameOption implements Cloneable, Comparable
         opt.put("NT", new SOCGameOption
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
-                ("VP", -1, 2000, false, 10, 10, 15, true, "Victory points to win: #"));
+                ("VP", -1, 1114, false, 10, 10, 15, true, "Victory points to win: #"));
         opt.put("DH", new SOCGameOption
-                ("DH", 2000, 2000, false, true, "Dev Cards for house rules (swap/destroy)"));
+                ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
                 // TODO no robot players for DH
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
