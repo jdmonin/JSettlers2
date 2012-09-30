@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,10 +70,12 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     Label cardT;
     Label cardC;
     Label cardCountLab;
+    private Label vpToWinLab;  // null unless vp != 10; @since 1.1.14
     ColorSquare cardWheat;
     ColorSquare cardSheep;
     ColorSquare cardOre;
     ColorSquare cardCount;
+    private ColorSquare vpToWin;  // null unless vp != 10; @since 1.1.14
     // For 6-player board: request Special Building Phase: @since 1.1.08
     private Panel sbPanel;
     private Button sbBut;
@@ -195,8 +197,28 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         cardCount.setTooltipZeroText("No more development cards available to buy");
         add(cardCount);
 
-        if (pi.getGame().maxPlayers > 4)
+        final SOCGame ga = pi.getGame();
+
+        if (ga.vp_winner != 10)
         {
+            final String TTIP_VP_TEXT = "Victory Points total needed to win the game";
+
+            vpToWinLab = new Label("VP to win:");
+            vpToWinLab.setAlignment(Label.RIGHT);
+            add(vpToWinLab);
+            new AWTToolTip(TTIP_VP_TEXT, vpToWinLab);
+
+            vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner);
+            vpToWin.setTooltipText(TTIP_VP_TEXT);
+            add(vpToWin);
+        } else {
+            vpToWinLab = null;
+            vpToWin = null;
+        }
+
+        if (ga.maxPlayers > 4)
+        {
+            // Special Building Phase button for 6-player game
             sbIsHilight = false;
             sbPanel = new Panel();  // with default FlowLayout, alignment FlowLayout.CENTER.
             sbPanel.setBackground(ColorSquare.GREY);
@@ -258,6 +280,18 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         curX = dim.width - (2 * butW) - margin;
         optsBut.setSize(butW * 2, lineH);
         optsBut.setLocation(curX, curY);
+
+        if (vpToWin != null)
+        {
+            // #VP total to Win; to left of Game Options
+            curX -= (1.5f * ColorSquare.WIDTH + 2);
+            vpToWin.setLocation(curX, curY);
+
+            final int vpLabW = fm.stringWidth(vpToWinLab.getText());
+            curX -= (vpLabW + 4);
+            vpToWinLab.setLocation(curX, curY);
+            vpToWinLab.setSize(vpLabW + 2, lineH);
+        }
 
         curY += (rowSpaceH + lineH);
 
