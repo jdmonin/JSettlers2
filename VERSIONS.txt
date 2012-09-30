@@ -12,7 +12,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 - At server shutdown, try to disconnect from database (helpful for sqlite)
 - Debug commands are off by default, except practice games; you can enable them with:
 	-Djsettlers.allow.debug=Y
-- Split out sql from README, add indexes
+- Split out sql from README, add indexes (Chad McHenry mchenryc in 2005 cvs)
 
     > 1.1.13 (build JM20111101)
 - Game name maximum length is 30, was 20 previously
