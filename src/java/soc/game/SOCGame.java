@@ -57,6 +57,9 @@ import java.util.Vector;
  *<P>
  * {@link #putPiece(SOCPlayingPiece)} and other game-action methods update <tt>gameState</tt>.
  * {@link #updateAtTurn()}, <tt>putPiece</tt> and some other game-action methods update {@link #lastActionTime}.
+ *<P>
+ * The winner is the player who has {@link #vp_winner} or more victory points (typically 10)
+ * on their own turn.
  *
  * @author Robert S. Thomas
  */
@@ -193,7 +196,7 @@ public class SOCGame implements Serializable, Cloneable
     public static final int SPECIAL_BUILDING = 100;  // see advanceTurnToSpecialBuilding()
 
     /**
-     * The game is over.  A player has accumulated 10 ({@link #VP_WINNER}) victory points,
+     * The game is over.  A player has accumulated enough ({@link #vp_winner}) victory points,
      * or all players have left the game.
      */
     public static final int OVER = 1000; // The game is over
@@ -247,10 +250,10 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Number of victory points (10) needed to win.
-     * Set to constant for searching if in future, decide 
-     * to make a per-game choice.
+     * The per-game field is {@link #vp_winner}.
+     * @since 1.1.14
      */
-    public static final int VP_WINNER = 10;
+    public static final int VP_WINNER_STANDARD = 10;
 
     /**
      * Number of development cards (25) in the standard rules.
@@ -320,6 +323,14 @@ public class SOCGame implements Serializable, Cloneable
      * true if this game is ACTIVE
      */
     private boolean active;
+
+    /**
+     * Number of victory points needed to win this game (default {@link #VP_WINNER_STANDARD} == 10).
+     *<P>
+     * Backported to 1.1.14 from 2.0.00.
+     * @since 1.1.14
+     */
+    public final int vp_winner;
 
     /**
      * true if the game's network is local for practice.  Used by
@@ -706,8 +717,10 @@ public class SOCGame implements Serializable, Cloneable
                maxPlayers = MAXPLAYERS;  // == 6
            else
                maxPlayers = 4;
+           vp_winner = VP_WINNER_STANDARD;  // TODO game option for vp_winner (10-15)
         } else {
             maxPlayers = 4;
+            vp_winner = VP_WINNER_STANDARD;
         }
         board = SOCBoard.createBoard(op, maxPlayers);
         players = new SOCPlayer[maxPlayers];
@@ -1267,7 +1280,7 @@ public class SOCGame implements Serializable, Cloneable
      * or {@link #advanceTurn()}.
      * Check for gamestate {@link #OVER} after calling setCurrentPlayerNumber.
      * This is needed because a player can win only during their own turn;
-     * if they reach winning points ({@link #VP_WINNER} or more) during another
+     * if they reach winning points ({@link #vp_winner} or more) during another
      * player's turn, they don't win immediately.  When it later becomes their turn,
      * and setCurrentPlayerNumber is called, gamestate may become {@link #OVER}.
      *
@@ -1281,7 +1294,7 @@ public class SOCGame implements Serializable, Cloneable
         if ((pn >= -1) && (pn < players.length))
         {
             currentPlayerNumber = pn;
-            if ((pn >= 0) && (players[pn].getTotalVP() >= VP_WINNER))
+            if ((pn >= 0) && (players[pn].getTotalVP() >= vp_winner))
                 checkForWinner();
         }
     }
@@ -2343,7 +2356,7 @@ public class SOCGame implements Serializable, Cloneable
      * Does not clear any player's {@link SOCPlayer#hasAskedSpecialBuild()} flag.
      *<P>
      * The winner check is needed because a player can win only
-     * during their own turn; if they reach winning points ({@link #VP_WINNER}
+     * during their own turn; if they reach winning points ({@link #vp_winner}
      * or more) during another player's turn, they must wait.
      *<P>
      * In 1.1.09 and later, player is allowed to Special Build at start of their
@@ -2368,7 +2381,7 @@ public class SOCGame implements Serializable, Cloneable
         updateAtTurn();
         players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
 
-        if (players[currentPlayerNumber].getTotalVP() >= VP_WINNER)
+        if (players[currentPlayerNumber].getTotalVP() >= vp_winner)
             checkForWinner();  // Will do nothing during Special Building Phase
     }
 
@@ -4182,13 +4195,13 @@ public class SOCGame implements Serializable, Cloneable
      * set player with win.
      *<P>
      * Per rules FAQ, a player can win only during their own turn.
-     * If a player reaches winning points (VP_WINNER or more) but it's
+     * If a player reaches winning points ({@link #vp_winner} or more) but it's
      * not their turn, there is not yet a winner. This could happen if,
      * for example, the longest road is broken by a new settlement, and
      * the next-longest road is not the current player's road.
      *<P>
      * The win is determined not by who has the highest point total, but
-     * solely by reaching 10 victory points (VP_WINNER) during your own turn.
+     * solely by reaching enough victory points ({@link #vp_winner}) during your own turn.
      *
      * @see #getGameState()
      * @see #getPlayerWithWin()
@@ -4200,7 +4213,7 @@ public class SOCGame implements Serializable, Cloneable
 
         int pn = currentPlayerNumber;
         if ((pn >= 0) && (pn < maxPlayers)
-            && (players[pn].getTotalVP() >= VP_WINNER))
+            && (players[pn].getTotalVP() >= vp_winner))
         {
             gameState = OVER;
             playerWithWin = pn;

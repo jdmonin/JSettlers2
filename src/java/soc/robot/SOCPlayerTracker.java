@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2315,7 +2315,8 @@ public class SOCPlayerTracker
 
             Queue necRoadQueue = new Queue();
 
-            while (points < SOCGame.VP_WINNER)  // TODO: Hardcoded 10 to win
+            final int vp_winner = player.getGame().vp_winner;
+            while (points < vp_winner)
             {
                 D.ebugPrintln("WWW points = " + points);
                 D.ebugPrintln("WWW settlementPiecesLeft = " + settlementPiecesLeft);
@@ -2341,7 +2342,7 @@ public class SOCPlayerTracker
                 D.ebugPrintln("WWW roadETA = " + roadETA);
                 D.ebugPrintln("WWW cardETA = " + cardETA);
 
-                if (points == (SOCGame.VP_WINNER - 1))
+                if (points == (vp_winner - 1))
                 {
                     fastestETA = 500;
 
