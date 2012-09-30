@@ -922,6 +922,7 @@ public class SOCPlayerClient extends Applet
     /**
      * Handle mouse clicks and keyboard
      */
+    @Override
     public void actionPerformed(ActionEvent e)
     {
         try
