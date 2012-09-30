@@ -5,6 +5,7 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 
 
     > 1.1.14 (build JM201209xx)
+- Game can require more than 10 Victory Points to win (new game option "VP")
 - Don't force-end bot turn if waiting for human discard
 - Discard dialog has "Clear" button (sourceforge bug# 3443414)
 - Show 'Server is ready' message at end of initialization
