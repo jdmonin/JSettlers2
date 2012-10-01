@@ -2,9 +2,10 @@
 
 Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/devel/
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
+and source history at https://github.com/jdmonin/JSettlers2
 
 
-    > 1.1.14 (build JM201209xx)
+    > 1.1.14 (build OV20120930)
 - Game can require more than 10 Victory Points to win (new game option "VP")
 - Don't force-end bot turn if waiting for human discard
 - Discard dialog has "Clear" button (sourceforge bug# 3443414)
