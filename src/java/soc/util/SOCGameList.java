@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2008-2011 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2008-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.util;
 
@@ -107,14 +107,15 @@ public class SOCGameList
      * take the monitor for this game
      *
      * @param game  the name of the game
-     * @return false if the game has no mutex, or game not found in the list
+     * @return false if the game has no mutex, or game not found in the list,
+     *   or {@link GameInfo#gameDestroyed} is true
      */
     public boolean takeMonitorForGame(String game)
     {
         // D.ebugPrintln("SOCGameList : TAKE MONITOR FOR " + game);
 
         GameInfo info = (GameInfo) gameInfo.get(game);
-        if (info == null)
+        if ((info == null) || info.gameDestroyed)
         {
             return false;
         }
@@ -131,6 +132,12 @@ public class SOCGameList
         {
             if (mutex == null)
             {
+                return false;
+            }
+            if (info.gameDestroyed)
+            {
+                // Debug print is JM temp add: (TODO)
+                soc.debug.D.ebugPrintStackTrace(null, "Game " + game + " was destroyed while waiting");
                 return false;
             }
 
@@ -160,7 +167,9 @@ public class SOCGameList
     }
 
     /**
-     * release the monitor for this game
+     * Release the monitor for this game.
+     *<P>
+     * Release is allowed even if {@link GameInfo#gameDestroyed} is true.
      *
      * @param game  the name of the game
      * @return false if the game has no mutex
@@ -458,7 +467,8 @@ public class SOCGameList
     }
 
     /**
-     * remove the game from the list
+     * Remove the game from the list.
+     * Set its mutex's {@link GameInfo#gameDestroyed} flag.
      *
      * @param gaName  the name of the game; should not be marked with any prefix.
      */
@@ -475,6 +485,7 @@ public class SOCGameList
         }
 
         GameInfo info = (GameInfo) gameInfo.get(gaName);
+        info.gameDestroyed = true;
         gameInfo.remove(gaName);
         synchronized (info.mutex)
         {
@@ -496,6 +507,8 @@ public class SOCGameList
         public Hashtable opts;  // or null
         public String optsStr;  // or null
         public boolean canJoin;
+        /** Flag for when game has been destroyed, in case anything's waiting on its mutex. @since 1.1.15 */
+        public boolean gameDestroyed;
 
         /**
          * Constructor: gameOpts is null or contains game option objects
