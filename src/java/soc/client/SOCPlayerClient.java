@@ -110,7 +110,7 @@ import soc.util.Version;
  * At most, the client is connected to the practice server and one TCP server.
  * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
  *<P>
- * Once connected, messages from the server are processed in {@link #treat(SOCMessage, boolean)}.
+ * Once connected, messages from the server are processed in {@link MessageTreater#treat(SOCMessage, boolean)}.
  *
  * @author Robert S Thomas
  */
@@ -469,7 +469,7 @@ public class SOCPlayerClient extends Applet
         hasConnectOrPractice = cp;
         lastFaceChange = 1;  // Default human face
 
-        treater = new MessageTreater(this);
+        treater = new MessageTreater();
     }
 
     /**
@@ -1723,13 +1723,14 @@ public class SOCPlayerClient extends Applet
             return putNet(s);
     }
 
-    private static class MessageTreater
+    /**
+     * Nested class for processing incoming messages (treating).
+     * @author paulbilnoski
+     */
+    private class MessageTreater
     {
-        private final SOCPlayerClient client;
-
-        public MessageTreater(SOCPlayerClient client)
+        public MessageTreater()
         {
-            this.client = client;
         }
 
     /**
@@ -2381,7 +2382,7 @@ public class SOCPlayerClient extends Applet
             {
                 errMsg = mes.getStatus();  // fallback, not expected to happen
             }
-            NotifyDialog.createAndShow(this, (Frame) null,
+            NotifyDialog.createAndShow(SOCPlayerClient.this, (Frame) null,
                 errMsg, "Cancel", false);
         }
     }
@@ -2407,7 +2408,7 @@ public class SOCPlayerClient extends Applet
             hasJoinedServer = true;
         }
 
-        ChannelFrame cf = new ChannelFrame(mes.getChannel(), this);
+        ChannelFrame cf = new ChannelFrame(mes.getChannel(), SOCPlayerClient.this);
         cf.setVisible(true);
         channels.put(mes.getChannel(), cf);
     }
@@ -2465,7 +2466,7 @@ public class SOCPlayerClient extends Applet
         //
         if (! isPractice)
         {
-            cardLayout.show(this, MAIN_PANEL);
+            cardLayout.show(SOCPlayerClient.this, MAIN_PANEL);
             validate();
 
             nick.requestFocus();
@@ -2619,7 +2620,7 @@ public class SOCPlayerClient extends Applet
         if (ga != null)
         {
             ga.isPractice = isPractice;
-            SOCPlayerInterface pi = new SOCPlayerInterface(gaName, this, ga);
+            SOCPlayerInterface pi = new SOCPlayerInterface(gaName, SOCPlayerClient.this, ga);
             pi.setVisible(true);
             playerInterfaces.put(gaName, pi);
             games.put(gaName, ga);
@@ -3561,7 +3562,7 @@ public class SOCPlayerClient extends Applet
             messageLabel.setText(mes.getText());
             pgm.setVisible(false);
         }
-        cardLayout.show(this, MESSAGE_PANEL);
+        cardLayout.show(SOCPlayerClient.this, MESSAGE_PANEL);
         validate();
         if (ex_L == null)
             pgm.requestFocus();
@@ -3789,7 +3790,7 @@ public class SOCPlayerClient extends Applet
                 gameOptsDefsTask = null;
             }
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (this, (String) null, opts.optionSet, isPractice, false);
+                (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
         }
     }
 
@@ -3830,11 +3831,11 @@ public class SOCPlayerClient extends Applet
             {
                 Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, gameInfoWaiting, gameOpts, isPractice, true);
+                    (SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
             } else if (newGameWaiting)
             {
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, (String) null, opts.optionSet, isPractice, false);
+                    (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
             }
         }
     }
@@ -3957,7 +3958,7 @@ public class SOCPlayerClient extends Applet
              true, mes.getToCoord());
     }
 
-    }
+    }  // nested class MessageTreater
 
     /**
      * add a new game to the initial window's list of games, and possibly
@@ -5409,7 +5410,7 @@ public class SOCPlayerClient extends Applet
         {
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
-            pcli.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
+            pcli.treater.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
         }
 
     }  // GameOptionsTimeoutTask
