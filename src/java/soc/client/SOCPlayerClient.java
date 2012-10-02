@@ -377,7 +377,7 @@ public class SOCPlayerClient extends Applet
      * Both key and value are the game name, without the UNJOINABLE prefix.
      * @since 1.1.06
      */
-    protected Hashtable gamesUnjoinableOverride = new Hashtable();
+    protected Hashtable<String,String> gamesUnjoinableOverride = new Hashtable<String,String>();
 
     /**
      * the player interfaces for the games
@@ -387,7 +387,7 @@ public class SOCPlayerClient extends Applet
     /**
      * the ignore list
      */
-    protected Vector ignoreList = new Vector();
+    protected Vector<String> ignoreList = new Vector<String>();
 
     /**
      * for local-practice game via {@link #prCli}; not connected to
@@ -1558,11 +1558,9 @@ public class SOCPlayerClient extends Applet
                     // we have a window with it
                     gs = pi.getGame().getGameState();
                     if (gs < SOCGame.OVER)
-                    {
                         break;      // Active
-                    } else {
-                        pi = null;  // Avoid false positive
-                    }
+
+                    pi = null;  // Avoid false positive
                 }
             }
         }
@@ -4723,11 +4721,9 @@ public class SOCPlayerClient extends Applet
     protected boolean onIgnoreList(String name)
     {
         boolean result = false;
-        Enumeration ienum = ignoreList.elements();
 
-        while (ienum.hasMoreElements())
+        for (String s : ignoreList)
         {
-            String s = (String) ienum.nextElement();
             if (s.equals(name))
             {
                 result = true;
@@ -4770,11 +4766,8 @@ public class SOCPlayerClient extends Applet
     {
         fr.print("* Ignore list:");
 
-        Enumeration ienum = ignoreList.elements();
-
-        while (ienum.hasMoreElements())
+        for (String s : ignoreList)
         {
-            String s = (String) ienum.nextElement();
             fr.print("* " + s);
         }
     }
@@ -4784,11 +4777,8 @@ public class SOCPlayerClient extends Applet
     {
         pi.print("* Ignore list:");
 
-        Enumeration ienum = ignoreList.elements();
-
-        while (ienum.hasMoreElements())
+        for (String s : ignoreList)
         {
-            String s = (String) ienum.nextElement();
             pi.print("* " + s);
         }        
     }
@@ -5511,7 +5501,7 @@ public class SOCPlayerClient extends Applet
          * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
          * and update from server as needed.
          */
-        public Hashtable optionSet = null;
+        public Hashtable<String,SOCGameOption> optionSet = null;
 
         /** Have we asked the server for default values? */
         public boolean   askedDefaultsAlready = false;
@@ -5557,7 +5547,7 @@ public class SOCPlayerClient extends Applet
          *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
          * @return null if all are known, or a Vector of key names for unknown options.
          */
-        public Vector receiveDefaults(Hashtable servOpts)
+        public Vector<String> receiveDefaults(Hashtable<String,SOCGameOption> servOpts)
         {
             // Although javadoc says "update the values", replacing the option objects does the
             // same thing; we already have parsed servOpts for all obj fields, including current value.
@@ -5567,17 +5557,16 @@ public class SOCPlayerClient extends Applet
             {
                 optionSet = servOpts;
             } else {
-                for (Enumeration e = servOpts.keys(); e.hasMoreElements(); )
+                for (String oKey : servOpts.keySet())
                 {
-                    final String oKey = (String) e.nextElement();
-                    SOCGameOption op = (SOCGameOption) servOpts.get(oKey);
-                    SOCGameOption oldcopy = (SOCGameOption) optionSet.get(oKey);
+                    SOCGameOption op = servOpts.get(oKey);
+                    SOCGameOption oldcopy = optionSet.get(oKey);
                     if (oldcopy != null)
                         optionSet.remove(oKey);
                     optionSet.put(oKey, op);  // Even OTYPE_UNKNOWN are added
                 }
             }
-            Vector unknowns = SOCGameOption.findUnknowns(servOpts);
+            Vector<String> unknowns = SOCGameOption.findUnknowns(servOpts);
             allOptionsReceived = (unknowns == null);
             defaultsReceived = true;
             return unknowns;
@@ -5594,7 +5583,7 @@ public class SOCPlayerClient extends Applet
         {
             String oKey = gi.getOptionNameKey();
             SOCGameOption oinfo = gi.getOptionInfo();
-            SOCGameOption oldcopy = (SOCGameOption) optionSet.get(oKey);
+            SOCGameOption oldcopy = optionSet.get(oKey);
 
             if ((oinfo.optKey.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
             {
