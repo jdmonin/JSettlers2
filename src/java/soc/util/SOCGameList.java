@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2008-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - getGameNames, parameterize types
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -195,6 +196,7 @@ public class SOCGameList
      * Get the names of every game we know about, even those with no {@link SOCGame} object.
      * @return an enumeration of game names (Strings)
      * @see #getGamesData()
+     * @see #getGameNames()
      */
     public Enumeration getGames()
     {
@@ -205,6 +207,7 @@ public class SOCGameList
      * Get the names of every game we know about, even those with no {@link SOCGame} object.
      * @return an set of game names (Strings)
      * @see #getGamesData()
+     * @since 2.0.00
      */
     public Set<String> getGameNames()
     {
@@ -217,6 +220,7 @@ public class SOCGameList
      * elements than getGames, or even 0 elements.
      * @return an enumeration of game data (SOCGames)
      * @see #getGames()
+     * @see #getGameNames()
      * @since 1.1.06
      */
     public Enumeration getGamesData()
