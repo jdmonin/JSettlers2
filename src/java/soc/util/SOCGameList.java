@@ -27,6 +27,7 @@ import soc.message.SOCGames;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Set;
 
 
 /**
@@ -53,10 +54,10 @@ public class SOCGameList
     /** key = String, value = {@link GameInfo}; includes mutexes to synchronize game state access,
      *  game options, and other per-game info
      */
-    protected Hashtable gameInfo;
+    protected Hashtable<String, GameInfo> gameInfo;
 
     /** map of game names to {@link SOCGame} objects */
-    protected Hashtable gameData;
+    protected Hashtable<String, SOCGame> gameData;
 
     /** used with gamelist's monitor */
     protected boolean inUse;
@@ -66,8 +67,8 @@ public class SOCGameList
      */
     public SOCGameList()
     {
-        gameInfo = new Hashtable();
-        gameData = new Hashtable();
+        gameInfo = new Hashtable<String, GameInfo>();
+        gameData = new Hashtable<String, SOCGame>();
         inUse = false;
     }
 
@@ -198,6 +199,16 @@ public class SOCGameList
     public Enumeration getGames()
     {
         return gameInfo.keys();
+    }
+
+    /**
+     * Get the names of every game we know about, even those with no {@link SOCGame} object.
+     * @return an set of game names (Strings)
+     * @see #getGamesData()
+     */
+    public Set<String> getGameNames()
+    {
+        return gameInfo.keySet();
     }
 
     /**
