@@ -1791,11 +1791,15 @@ public class SOCServer extends Server
              */
 
             //storeGameScores(cg);
+
             ///
+            /// delete the game from gamelist,
             /// tell all robots to leave
             ///
             Vector members = null;
             members = gameList.getMembers(gm);
+
+            gameList.deleteGame(gm);
 
             if (members != null)
             {
@@ -1807,8 +1811,6 @@ public class SOCServer extends Server
                     con.put(SOCRobotDismiss.toCmd(gm));
                 }
             }
-
-            gameList.deleteGame(gm);
 
             // Reduce the owner's games-active count
             final String gaOwner = cg.getOwner();
