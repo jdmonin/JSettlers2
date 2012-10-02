@@ -201,15 +201,15 @@ public class SOCDBHelper
                 // if it's mysql, use the mysql default url above.
                 // if it's postgres or sqlite, use that.
                 // otherwise, not sure what they have.
-                if (driverclass.contains("postgresql"))
+                if (driverclass.indexOf("postgresql") != -1)
                 {
                     dbURL = "jdbc:postgresql://localhost/socdata";
                 }
-                else if (driverclass.contains("sqlite"))
+                else if (driverclass.indexOf("sqlite") != -1)
                 {
                     dbURL = "jdbc:sqlite:socdata.sqlite";
                 }
-                else if (! driverclass.contains("mysql"))
+                else if (driverclass.indexOf("mysql") == -1)
     	        {
     	            throw new SQLException("JDBC: Driver property is set, but URL property is not: ("
     	                + PROP_JSETTLERS_DB_DRIVER + ", " + PROP_JSETTLERS_DB_URL + ")");
@@ -656,7 +656,7 @@ public class SOCDBHelper
             final boolean checkResultNum;  // Do we need to check query result contents?
 
             PreparedStatement ps;
-            if (! driverclass.toLowerCase().contains("oracle"))
+            if (driverclass.toLowerCase().indexOf("oracle") == -1)
             {
                 ps = connection.prepareStatement
                     ("select " + colname + " from " + tabname + " LIMIT 1;");
