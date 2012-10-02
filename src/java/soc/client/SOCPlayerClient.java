@@ -21,32 +21,6 @@
  **/
 package soc.client;
 
-import soc.client.stats.SOCGameStatistics;
-import soc.debug.D;  // JM
-
-import soc.game.SOCBoard;
-import soc.game.SOCBoardLarge;
-import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
-import soc.game.SOCGame;
-import soc.game.SOCGameOption;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
-import soc.game.SOCSettlement;
-import soc.game.SOCTradeOffer;
-
-import soc.message.*;
-
-import soc.server.SOCServer;
-import soc.server.genericServer.LocalStringConnection;
-import soc.server.genericServer.LocalStringServerSocket;
-import soc.server.genericServer.StringConnection;
-
-import soc.util.SOCGameList;
-import soc.util.Version;
-
 import java.applet.Applet;
 import java.applet.AppletContext;
 
@@ -88,6 +62,31 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import soc.client.stats.SOCGameStatistics;
+import soc.debug.D;  // JM
+
+import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
+import soc.game.SOCDevCardConstants;
+import soc.game.SOCDevCardSet;
+import soc.game.SOCGame;
+import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
+import soc.game.SOCSettlement;
+import soc.game.SOCTradeOffer;
+
+import soc.message.*;
+
+import soc.server.SOCServer;
+import soc.server.genericServer.LocalStringConnection;
+import soc.server.genericServer.LocalStringServerSocket;
+import soc.server.genericServer.StringConnection;
+
+import soc.util.SOCGameList;
+import soc.util.Version;
 
 /**
  * Applet/Standalone client for connecting to the SOCServer.
@@ -209,6 +208,8 @@ public class SOCPlayerClient extends Applet
     protected Exception ex = null;    // Network errors (TCP communication)
     protected Exception ex_L = null;  // Local errors (stringport pipes)
     protected boolean connected = false;
+
+    private MessageTreater treater;
 
     /**
      *  Server version number for remote server, sent soon after connect, or -1 if unknown.
@@ -467,6 +468,8 @@ public class SOCPlayerClient extends Applet
         port = p;
         hasConnectOrPractice = cp;
         lastFaceChange = 1;  // Default human face
+
+        treater = new MessageTreater(this);
     }
 
     /**
@@ -1605,7 +1608,7 @@ public class SOCPlayerClient extends Applet
             while (connected)
             {
                 String s = in.readUTF();
-                treat((SOCMessage) SOCMessage.toMsg(s), false);
+                treater.treat((SOCMessage) SOCMessage.toMsg(s), false);
             }
         }
         catch (IOException e)
@@ -1719,6 +1722,15 @@ public class SOCPlayerClient extends Applet
         else
             return putNet(s);
     }
+
+    private static class MessageTreater
+    {
+        private final SOCPlayerClient client;
+
+        public MessageTreater(SOCPlayerClient client)
+        {
+            this.client = client;
+        }
 
     /**
      * Treat the incoming messages.
@@ -3945,6 +3957,8 @@ public class SOCPlayerClient extends Applet
              true, mes.getToCoord());
     }
 
+    }
+
     /**
      * add a new game to the initial window's list of games, and possibly
      * to the {@link #serverGames server games list}.
@@ -5348,7 +5362,7 @@ public class SOCPlayerClient extends Applet
                 while (locl.isConnected())
                 {
                     String s = locl.readNext();
-                    treat((SOCMessage) SOCMessage.toMsg(s), true);
+                    treater.treat((SOCMessage) SOCMessage.toMsg(s), true);
                 }
             }
             catch (IOException e)
