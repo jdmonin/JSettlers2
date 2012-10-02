@@ -347,12 +347,12 @@ public class SOCPlayerClient extends Applet
     /**
      * the channels we've joined
      */
-    protected Hashtable channels = new Hashtable();
+    protected Hashtable<String, ChannelFrame> channels = new Hashtable<String, ChannelFrame>();
 
     /**
      * the games we're currently playing
      */
-    protected Hashtable games = new Hashtable();
+    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
     /**
      * all announced game names on the remote server, including games which we can't
@@ -1045,7 +1045,7 @@ public class SOCPlayerClient extends Applet
             return false;
         }
 
-        ChannelFrame cf = (ChannelFrame) channels.get(ch);
+        ChannelFrame cf = channels.get(ch);
 
         if (cf == null)
         {
@@ -2420,7 +2420,7 @@ public class SOCPlayerClient extends Applet
     protected void handleJOIN(SOCJoin mes)
     {
         ChannelFrame fr;
-        fr = (ChannelFrame) channels.get(mes.getChannel());
+        fr = channels.get(mes.getChannel());
         fr.print("*** " + mes.getNickname() + " has joined this channel.\n");
         fr.addMember(mes.getNickname());
     }
@@ -2432,7 +2432,7 @@ public class SOCPlayerClient extends Applet
     protected void handleMEMBERS(SOCMembers mes)
     {
         ChannelFrame fr;
-        fr = (ChannelFrame) channels.get(mes.getChannel());
+        fr = channels.get(mes.getChannel());
 
         Enumeration membersEnum = (mes.getMembers()).elements();
 
@@ -2488,11 +2488,9 @@ public class SOCPlayerClient extends Applet
     protected void handleBCASTTEXTMSG(SOCBCastTextMsg mes)
     {
         ChannelFrame fr;
-        Enumeration channelKeysEnum = channels.keys();
-
-        while (channelKeysEnum.hasMoreElements())
+        for (String ch : channels.keySet())
         {
-            fr = (ChannelFrame) channels.get(channelKeysEnum.nextElement());
+            fr = channels.get(ch);
             fr.print("::: " + mes.getText() + " :::");
         }
 
@@ -2513,7 +2511,7 @@ public class SOCPlayerClient extends Applet
     protected void handleTEXTMSG(SOCTextMsg mes)
     {
         ChannelFrame fr;
-        fr = (ChannelFrame) channels.get(mes.getChannel());
+        fr = channels.get(mes.getChannel());
 
         if (fr != null)
         {
@@ -2531,7 +2529,7 @@ public class SOCPlayerClient extends Applet
     protected void handleLEAVE(SOCLeave mes)
     {
         ChannelFrame fr;
-        fr = (ChannelFrame) channels.get(mes.getChannel());
+        fr = channels.get(mes.getChannel());
         fr.print("*** " + mes.getNickname() + " left.\n");
         fr.deleteMember(mes.getNickname());
     }
@@ -2637,7 +2635,7 @@ public class SOCPlayerClient extends Applet
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gn);
         final String msg = "*** " + mes.getNickname() + " has joined this game.\n";
         pi.print(msg);
-        SOCGame ga = (SOCGame) games.get(gn);
+        SOCGame ga = games.get(gn);
         if ((ga != null) && (ga.getGameState() >= SOCGame.START1A))
             pi.chatPrint(msg);
     }
@@ -2649,7 +2647,7 @@ public class SOCPlayerClient extends Applet
     protected void handleLEAVEGAME(SOCLeaveGame mes)
     {
         String gn = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gn);
+        SOCGame ga = games.get(gn);
 
         final String name = mes.getNickname();
         if (ga != null)
@@ -2765,7 +2763,7 @@ public class SOCPlayerClient extends Applet
         /**
          * tell the game that a player is sitting
          */
-        final SOCGame ga = (SOCGame) games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3160,7 +3158,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleRESOURCECOUNT(SOCResourceCount mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3196,7 +3194,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleDICERESULT(SOCDiceResult mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3218,7 +3216,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handlePUTPIECE(SOCPutPiece mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -3259,7 +3257,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -3288,7 +3286,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleMOVEROBBER(SOCMoveRobber mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3358,7 +3356,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3375,7 +3373,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleCLEAROFFER(SOCClearOffer mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3421,7 +3419,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleDEVCARDCOUNT(SOCDevCardCount mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3438,7 +3436,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3498,7 +3496,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleSETPLAYEDDEVCARD(SOCSetPlayedDevCard mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3527,7 +3525,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleCHANGEFACE(SOCChangeFace mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3574,7 +3572,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleLONGESTROAD(SOCLongestRoad mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3603,7 +3601,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleLARGESTARMY(SOCLargestArmy mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3632,7 +3630,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleSETSEATLOCK(SOCSetSeatLock mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3686,7 +3684,7 @@ public class SOCPlayerClient extends Applet
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
@@ -3709,7 +3707,7 @@ public class SOCPlayerClient extends Applet
     protected void handleRESETBOARDVOTEREQUEST(SOCResetBoardVoteRequest mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
@@ -3727,7 +3725,7 @@ public class SOCPlayerClient extends Applet
     protected void handleRESETBOARDVOTE(SOCResetBoardVote mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
@@ -3745,7 +3743,7 @@ public class SOCPlayerClient extends Applet
     protected void handleRESETBOARDREJECT(SOCResetBoardReject mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
@@ -3945,7 +3943,7 @@ public class SOCPlayerClient extends Applet
     private final void handleMOVEPIECE(SOCMovePiece mes)
     {
         final String gaName = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gaName);
+        SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
 
@@ -4125,7 +4123,7 @@ public class SOCPlayerClient extends Applet
      */
     public void updateGameEndStats(String game, int[] scores)
     {
-        SOCGame ga = (SOCGame) games.get(game);
+        SOCGame ga = games.get(game);
         if (ga == null)
             return;  // Not playing in that game
         if (ga.getGameState() != SOCGame.OVER)
@@ -4611,7 +4609,7 @@ public class SOCPlayerClient extends Applet
      */
     public boolean doLocalCommand(String ch, String cmd)
     {
-        ChannelFrame fr = (ChannelFrame) channels.get(ch);
+        ChannelFrame fr = channels.get(ch);
 
         if (cmd.startsWith("\\ignore "))
         {
