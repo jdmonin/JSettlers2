@@ -113,12 +113,13 @@ If you want to configure a sqlite database for testing
   - See the "socserver-sqlite" line just above for the server command line;
 	this is an eclipse Run Configuration for a jsettlers server which
 	includes the sqlite database you're about to configure.
-  - Download the driver from http://www.zentus.com/sqlitejdbc/
+  - Download the driver from http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC
   - Eclipse menu -> prefs -> data mgmt -> connectivity -> driver definitions -> add
 	  select SQLite JDBC Driver
-	  jar list -> edit (or add,if empty) -> navigate to zentus_sqlitejdbc-v056.jar -> OK
-  - Project build path: incl zentus_sqlitejdbc-v056.jar here too
-  - Run socserver-sqlite once (startup will fail) to create the empty db
+	  jar list -> edit (or add,if empty) -> navigate to sqlite-jdbc-3.7.2.jar -> OK
+  - Project build path: incl sqlite-jdbc-3.7.2.jar here too
+  - Run socserver-sqlite once (startup will fail) to create the empty db file
+	If sqlite crashes on launch, retry with -Dsqlite.purejava=true
   - Add the database to eclipse, so you can add tables and query it:
 	Window -> show view -> other... -> data mgmt -> data source explorer
 	Right-click Database Connections, choose New
