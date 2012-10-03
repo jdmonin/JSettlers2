@@ -800,7 +800,7 @@ public class SOCBoard implements Serializable, Cloneable
      * On the large sea board ({@link SOCBoardLarge}), also
      * contains all ships on the board.
      */
-    protected Vector roads;
+    protected Vector<SOCRoad> roads;
 
     /**
      * settlements on the board; Vector of SOCPlayingPiece
@@ -884,7 +884,7 @@ public class SOCBoard implements Serializable, Cloneable
         /**
          * initialize the pieces vectors
          */
-        roads = new Vector(60);
+        roads = new Vector<SOCRoad>(60);
         settlements = new Vector(20);
         cities = new Vector(16);
 
@@ -2266,7 +2266,7 @@ public class SOCBoard implements Serializable, Cloneable
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
-            roads.addElement(pp);
+            roads.addElement((SOCRoad)pp);
 
             break;
 
@@ -2318,7 +2318,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * get the list of roads and ships
      */
-    public Vector getRoads()
+    public Vector<SOCRoad> getRoads()
     {
         return roads;
     }
@@ -3395,11 +3395,8 @@ public class SOCBoard implements Serializable, Cloneable
      */
     public SOCPlayingPiece roadAtEdge(int edgeCoord)
     {
-        Enumeration pEnum = roads.elements();
-
-        while (pEnum.hasMoreElements())
+        for (SOCPlayingPiece p : roads)
         {
-            SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
             if (edgeCoord == p.getCoordinates())
             {
                 return p;  // <-- Early return: Found it ---
