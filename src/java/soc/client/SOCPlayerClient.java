@@ -4718,7 +4718,8 @@ public class SOCPlayerClient extends Applet
     {
         if (game.isPractice)
             return Version.versionNumber();
-        return sVersion;
+        else
+            return sVersion;
     }
 
     /**
@@ -4731,8 +4732,10 @@ public class SOCPlayerClient extends Applet
         return "SOCPlayerClient (Java Settlers Client) " + Version.version() +
         ", build " + Version.buildnum() + ", " + Version.copyright();
     }
-    
-    // To be removed when this class is no longer an applet, for now just forward to dispose()
+
+    /**
+     * Shut down; to be removed when this class is no longer an applet, for now just forward to {@link #dispose()}.
+     */
     public void destroy()
     {
         dispose();
@@ -4910,7 +4913,11 @@ public class SOCPlayerClient extends Applet
     {
         return net;
     }
-    
+
+    /**
+     * Helper object to encapsulate and deal with network connectivity.
+     * @author Paul Bilnoski <paul@bilnoski.net>
+     */
     public static class ClientNetwork
     {
         /**
@@ -5094,7 +5101,7 @@ public class SOCPlayerClient extends Applet
                 in = new DataInputStream(s.getInputStream());
                 out = new DataOutputStream(s.getOutputStream());
                 connected = true;
-                (reader = new Thread(new ReadTask(client, this))).start();
+                (reader = new Thread(new NetReadTask(client, this))).start();
                 // send VERSION right away (1.1.06 and later)
                 putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
             }
@@ -5211,7 +5218,7 @@ public class SOCPlayerClient extends Applet
          * a message to the local TCP server.
          * Use <tt>putPractice</tt> only with {@link #practiceServer}.
          *<P>
-         * Before version 2.0.00, this was <tt>putLocal</tt>.
+         * Before version 1.1.14, this was <tt>putLocal</tt>.
          *
          * @param s  the message
          * @return true if the message was sent, false if not
@@ -5276,13 +5283,14 @@ public class SOCPlayerClient extends Applet
         
         /**
          * A task to continuously read from the server socket.
+         * Not used for talking to the practice server.
          */
-        static class ReadTask implements Runnable
+        static class NetReadTask implements Runnable
         {
             final ClientNetwork net;
             final SOCPlayerClient client;
             
-            public ReadTask(SOCPlayerClient client, ClientNetwork net)
+            public NetReadTask(SOCPlayerClient client, ClientNetwork net)
             {
                 this.client = client;
                 this.net = net;
@@ -5292,7 +5300,6 @@ public class SOCPlayerClient extends Applet
              * continuously read from the net in a separate thread;
              * not used for talking to the practice server.
              */
-            @Override
             public void run()
             {
                 Thread.currentThread().setName("cli-netread");  // Thread name for debug
@@ -5315,7 +5322,8 @@ public class SOCPlayerClient extends Applet
                     }
                 }
             }
-        }
+
+        }  // nested class NetReadTask
 
         /**
          * For local practice games, reader thread to get messages from the
@@ -5342,7 +5350,6 @@ public class SOCPlayerClient extends Applet
             /**
              * continuously read from the local string server in a separate thread
              */
-            @Override
             public void run()
             {
                 Thread.currentThread().setName("cli-stringread");  // Thread name for debug
@@ -5367,8 +5374,10 @@ public class SOCPlayerClient extends Applet
                     }
                 }
             }
-        }
-    }
+
+        }  // nested class SOCPlayerLocalStringReader
+
+    }  // nested class ClientNetwork
 
     /** React to windowOpened, windowClosing events for SOCPlayerClient's Frame. */
     private static class ClientWindowAdapter extends WindowAdapter
@@ -5434,7 +5443,8 @@ public class SOCPlayerClient extends Applet
             if (! cli.hasConnectOrPractice)
                 cli.nick.requestFocus();
         }
-    }
+
+    }  // nested class ClientWindowAdapter
 
     /**
      * TimerTask used soon after client connect, to prevent waiting forever for
