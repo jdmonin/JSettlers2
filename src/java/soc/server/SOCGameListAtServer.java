@@ -353,12 +353,12 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public synchronized void deleteGame(String gaName)
     {
+        super.deleteGame(gaName);
         Vector members = (Vector) gameMembers.get(gaName);
         if (members != null)
         {
             members.removeAllElements();
         }        
-        super.deleteGame(gaName);
     }
 
     /**

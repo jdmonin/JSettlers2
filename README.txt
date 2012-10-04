@@ -243,7 +243,9 @@ appropriate JDBC drivers, by placing them in your java classpath.
 Your database system's JDBC drivers can be downloaded at these locations:
 	MySQL:   http://www.mysql.com/products/connector/
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
-	SQLite:  http://www.zentus.com/sqlitejdbc/ or http://freecode.com/projects/sqlitejdbc
+	SQLite:  http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC
+	          or http://www.sqlite.org/cvstrac/wiki?p=SqliteWrappers
+	          If sqlite crashes jsettlers on launch, retry with -Dsqlite.purejava=true
 
 To create the jsettlers database and tables, execute the SQL db scripts
 jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql:

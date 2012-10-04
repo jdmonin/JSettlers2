@@ -44,7 +44,7 @@ import java.util.StringTokenizer;
  * static SOCMessageSubclass parseDataStr(String).
  * parseDataStr is called from {@link #toMsg(String)} in this class.
  *<P>
- * The client receives messages in {@link soc.client.SOCPlayerClient#treat(SOCMessage, boolean)}.
+ * The client receives messages in {@link soc.client.SOCPlayerClient.MessageTreater#treat(SOCMessage, boolean)}.
  * The server receives messages in {@link soc.server.SOCServer#processCommand(String, StringConnection)}.
  *<P>
  * To create and add a new message type:

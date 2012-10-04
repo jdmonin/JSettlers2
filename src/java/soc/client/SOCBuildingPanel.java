@@ -495,6 +495,17 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         }
     }
     
+    /**
+     * React to our parent game window being closed.
+     * If the {@link GameStatisticsFrame} is showing, dispose it.
+     * @since 2.0.00
+     */
+    public void gameWindowClosed()
+    {
+        if ((statsFrame != null) && statsFrame.isVisible())
+            statsFrame.dispose();
+    }
+
     /** Handle a click (Buy or Cancel) on a building-panel button.
      * Assumes client is currently allowed to build, and sends request to server.
      *

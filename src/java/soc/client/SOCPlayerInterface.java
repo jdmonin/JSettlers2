@@ -2665,6 +2665,18 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             pi.validate();  // call pi.doLayout()
         }
 
+        /**
+         * Clean up after the window is closed.
+         * Close the GameStatisticsFrame if showing, etc.
+         * @since 2.0.00
+         */
+        public void windowClosed(WindowEvent e)
+        {
+            // Close stats frame if showing
+            if (pi.buildingPanel != null)
+                pi.buildingPanel.gameWindowClosed();
+        }
+
     }  // MyWindowAdapter
 
     /**

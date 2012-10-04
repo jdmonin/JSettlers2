@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
- * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatistics
+ * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatistics, nested class refactoring
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,32 +20,6 @@
  * The maintainer of this program can be reached at jsettlers@nand.net 
  **/
 package soc.client;
-
-import soc.client.stats.SOCGameStatistics;
-import soc.debug.D;  // JM
-
-import soc.game.SOCBoard;
-import soc.game.SOCBoardLarge;
-import soc.game.SOCDevCardConstants;
-import soc.game.SOCDevCardSet;
-import soc.game.SOCGame;
-import soc.game.SOCGameOption;
-import soc.game.SOCPlayer;
-import soc.game.SOCPlayingPiece;
-import soc.game.SOCResourceConstants;
-import soc.game.SOCResourceSet;
-import soc.game.SOCSettlement;
-import soc.game.SOCTradeOffer;
-
-import soc.message.*;
-
-import soc.server.SOCServer;
-import soc.server.genericServer.LocalStringConnection;
-import soc.server.genericServer.LocalStringServerSocket;
-import soc.server.genericServer.StringConnection;
-
-import soc.util.SOCGameList;
-import soc.util.Version;
 
 import java.applet.Applet;
 import java.applet.AppletContext;
@@ -88,6 +62,31 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
+import soc.client.stats.SOCGameStatistics;
+import soc.debug.D;  // JM
+
+import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
+import soc.game.SOCDevCardConstants;
+import soc.game.SOCDevCardSet;
+import soc.game.SOCGame;
+import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
+import soc.game.SOCResourceSet;
+import soc.game.SOCSettlement;
+import soc.game.SOCTradeOffer;
+
+import soc.message.*;
+
+import soc.server.SOCServer;
+import soc.server.genericServer.LocalStringConnection;
+import soc.server.genericServer.LocalStringServerSocket;
+import soc.server.genericServer.StringConnection;
+
+import soc.util.SOCGameList;
+import soc.util.Version;
 
 /**
  * Applet/Standalone client for connecting to the SOCServer.
@@ -111,7 +110,7 @@ import java.util.Vector;
  * At most, the client is connected to the practice server and one TCP server.
  * Each game's {@link SOCGame#isPractice} flag determines which connection to use.
  *<P>
- * Once connected, messages from the server are processed in {@link #treat(SOCMessage, boolean)}.
+ * Once connected, messages from the server are processed in {@link MessageTreater#treat(SOCMessage, boolean)}.
  *
  * @author Robert S Thomas
  */
@@ -209,6 +208,8 @@ public class SOCPlayerClient extends Applet
     protected Exception ex = null;    // Network errors (TCP communication)
     protected Exception ex_L = null;  // Local errors (stringport pipes)
     protected boolean connected = false;
+
+    private MessageTreater treater;
 
     /**
      *  Server version number for remote server, sent soon after connect, or -1 if unknown.
@@ -346,12 +347,12 @@ public class SOCPlayerClient extends Applet
     /**
      * the channels we've joined
      */
-    protected Hashtable channels = new Hashtable();
+    protected Hashtable<String, ChannelFrame> channels = new Hashtable<String, ChannelFrame>();
 
     /**
      * the games we're currently playing
      */
-    protected Hashtable games = new Hashtable();
+    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
     /**
      * all announced game names on the remote server, including games which we can't
@@ -376,7 +377,7 @@ public class SOCPlayerClient extends Applet
      * Both key and value are the game name, without the UNJOINABLE prefix.
      * @since 1.1.06
      */
-    protected Hashtable gamesUnjoinableOverride = new Hashtable();
+    protected Hashtable<String,String> gamesUnjoinableOverride = new Hashtable<String,String>();
 
     /**
      * the player interfaces for the games
@@ -386,7 +387,7 @@ public class SOCPlayerClient extends Applet
     /**
      * the ignore list
      */
-    protected Vector ignoreList = new Vector();
+    protected Vector<String> ignoreList = new Vector<String>();
 
     /**
      * for local-practice game via {@link #prCli}; not connected to
@@ -467,6 +468,8 @@ public class SOCPlayerClient extends Applet
         port = p;
         hasConnectOrPractice = cp;
         lastFaceChange = 1;  // Default human face
+
+        treater = new MessageTreater();
     }
 
     /**
@@ -1042,7 +1045,7 @@ public class SOCPlayerClient extends Applet
             return false;
         }
 
-        ChannelFrame cf = (ChannelFrame) channels.get(ch);
+        ChannelFrame cf = channels.get(ch);
 
         if (cf == null)
         {
@@ -1555,11 +1558,9 @@ public class SOCPlayerClient extends Applet
                     // we have a window with it
                     gs = pi.getGame().getGameState();
                     if (gs < SOCGame.OVER)
-                    {
                         break;      // Active
-                    } else {
-                        pi = null;  // Avoid false positive
-                    }
+
+                    pi = null;  // Avoid false positive
                 }
             }
         }
@@ -1605,7 +1606,7 @@ public class SOCPlayerClient extends Applet
             while (connected)
             {
                 String s = in.readUTF();
-                treat((SOCMessage) SOCMessage.toMsg(s), false);
+                treater.treat((SOCMessage) SOCMessage.toMsg(s), false);
             }
         }
         catch (IOException e)
@@ -1719,6 +1720,16 @@ public class SOCPlayerClient extends Applet
         else
             return putNet(s);
     }
+
+    /**
+     * Nested class for processing incoming messages (treating).
+     * @author paulbilnoski
+     */
+    private class MessageTreater
+    {
+        public MessageTreater()
+        {
+        }
 
     /**
      * Treat the incoming messages.
@@ -2369,7 +2380,7 @@ public class SOCPlayerClient extends Applet
             {
                 errMsg = mes.getStatus();  // fallback, not expected to happen
             }
-            NotifyDialog.createAndShow(this, (Frame) null,
+            NotifyDialog.createAndShow(SOCPlayerClient.this, (Frame) null,
                 errMsg, "Cancel", false);
         }
     }
@@ -2395,7 +2406,7 @@ public class SOCPlayerClient extends Applet
             hasJoinedServer = true;
         }
 
-        ChannelFrame cf = new ChannelFrame(mes.getChannel(), this);
+        ChannelFrame cf = new ChannelFrame(mes.getChannel(), SOCPlayerClient.this);
         cf.setVisible(true);
         channels.put(mes.getChannel(), cf);
     }
@@ -2407,7 +2418,7 @@ public class SOCPlayerClient extends Applet
     protected void handleJOIN(SOCJoin mes)
     {
         ChannelFrame fr;
-        fr = (ChannelFrame) channels.get(mes.getChannel());
+        fr = channels.get(mes.getChannel());
         fr.print("*** " + mes.getNickname() + " has joined this channel.\n");
         fr.addMember(mes.getNickname());
     }
@@ -2419,7 +2430,7 @@ public class SOCPlayerClient extends Applet
     protected void handleMEMBERS(SOCMembers mes)
     {
         ChannelFrame fr;
-        fr = (ChannelFrame) channels.get(mes.getChannel());
+        fr = channels.get(mes.getChannel());
 
         Enumeration membersEnum = (mes.getMembers()).elements();
 
@@ -2453,7 +2464,7 @@ public class SOCPlayerClient extends Applet
         //
         if (! isPractice)
         {
-            cardLayout.show(this, MAIN_PANEL);
+            cardLayout.show(SOCPlayerClient.this, MAIN_PANEL);
             validate();
 
             nick.requestFocus();
@@ -2475,11 +2486,9 @@ public class SOCPlayerClient extends Applet
     protected void handleBCASTTEXTMSG(SOCBCastTextMsg mes)
     {
         ChannelFrame fr;
-        Enumeration channelKeysEnum = channels.keys();
-
-        while (channelKeysEnum.hasMoreElements())
+        for (String ch : channels.keySet())
         {
-            fr = (ChannelFrame) channels.get(channelKeysEnum.nextElement());
+            fr = channels.get(ch);
             fr.print("::: " + mes.getText() + " :::");
         }
 
@@ -2500,7 +2509,7 @@ public class SOCPlayerClient extends Applet
     protected void handleTEXTMSG(SOCTextMsg mes)
     {
         ChannelFrame fr;
-        fr = (ChannelFrame) channels.get(mes.getChannel());
+        fr = channels.get(mes.getChannel());
 
         if (fr != null)
         {
@@ -2518,7 +2527,7 @@ public class SOCPlayerClient extends Applet
     protected void handleLEAVE(SOCLeave mes)
     {
         ChannelFrame fr;
-        fr = (ChannelFrame) channels.get(mes.getChannel());
+        fr = channels.get(mes.getChannel());
         fr.print("*** " + mes.getNickname() + " left.\n");
         fr.deleteMember(mes.getNickname());
     }
@@ -2607,7 +2616,7 @@ public class SOCPlayerClient extends Applet
         if (ga != null)
         {
             ga.isPractice = isPractice;
-            SOCPlayerInterface pi = new SOCPlayerInterface(gaName, this, ga);
+            SOCPlayerInterface pi = new SOCPlayerInterface(gaName, SOCPlayerClient.this, ga);
             pi.setVisible(true);
             playerInterfaces.put(gaName, pi);
             games.put(gaName, ga);
@@ -2624,7 +2633,7 @@ public class SOCPlayerClient extends Applet
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gn);
         final String msg = "*** " + mes.getNickname() + " has joined this game.\n";
         pi.print(msg);
-        SOCGame ga = (SOCGame) games.get(gn);
+        SOCGame ga = games.get(gn);
         if ((ga != null) && (ga.getGameState() >= SOCGame.START1A))
             pi.chatPrint(msg);
     }
@@ -2636,7 +2645,7 @@ public class SOCPlayerClient extends Applet
     protected void handleLEAVEGAME(SOCLeaveGame mes)
     {
         String gn = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gn);
+        SOCGame ga = games.get(gn);
 
         final String name = mes.getNickname();
         if (ga != null)
@@ -2752,7 +2761,7 @@ public class SOCPlayerClient extends Applet
         /**
          * tell the game that a player is sitting
          */
-        final SOCGame ga = (SOCGame) games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3147,7 +3156,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleRESOURCECOUNT(SOCResourceCount mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3183,7 +3192,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleDICERESULT(SOCDiceResult mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3205,7 +3214,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handlePUTPIECE(SOCPutPiece mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -3246,7 +3255,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -3275,7 +3284,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleMOVEROBBER(SOCMoveRobber mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3345,7 +3354,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3362,7 +3371,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleCLEAROFFER(SOCClearOffer mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3408,7 +3417,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleDEVCARDCOUNT(SOCDevCardCount mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3425,7 +3434,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3485,7 +3494,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleSETPLAYEDDEVCARD(SOCSetPlayedDevCard mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3514,7 +3523,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleCHANGEFACE(SOCChangeFace mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3549,7 +3558,7 @@ public class SOCPlayerClient extends Applet
             messageLabel.setText(mes.getText());
             pgm.setVisible(false);
         }
-        cardLayout.show(this, MESSAGE_PANEL);
+        cardLayout.show(SOCPlayerClient.this, MESSAGE_PANEL);
         validate();
         if (ex_L == null)
             pgm.requestFocus();
@@ -3561,7 +3570,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleLONGESTROAD(SOCLongestRoad mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3590,7 +3599,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleLARGESTARMY(SOCLargestArmy mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3619,7 +3628,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleSETSEATLOCK(SOCSetSeatLock mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3673,7 +3682,7 @@ public class SOCPlayerClient extends Applet
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
@@ -3696,7 +3705,7 @@ public class SOCPlayerClient extends Applet
     protected void handleRESETBOARDVOTEREQUEST(SOCResetBoardVoteRequest mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
@@ -3714,7 +3723,7 @@ public class SOCPlayerClient extends Applet
     protected void handleRESETBOARDVOTE(SOCResetBoardVote mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
@@ -3732,7 +3741,7 @@ public class SOCPlayerClient extends Applet
     protected void handleRESETBOARDREJECT(SOCResetBoardReject mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
         SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
@@ -3777,7 +3786,7 @@ public class SOCPlayerClient extends Applet
                 gameOptsDefsTask = null;
             }
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (this, (String) null, opts.optionSet, isPractice, false);
+                (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
         }
     }
 
@@ -3818,11 +3827,11 @@ public class SOCPlayerClient extends Applet
             {
                 Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, gameInfoWaiting, gameOpts, isPractice, true);
+                    (SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
             } else if (newGameWaiting)
             {
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (this, (String) null, opts.optionSet, isPractice, false);
+                    (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
             }
         }
     }
@@ -3932,7 +3941,7 @@ public class SOCPlayerClient extends Applet
     private final void handleMOVEPIECE(SOCMovePiece mes)
     {
         final String gaName = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gaName);
+        SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
 
@@ -3944,6 +3953,8 @@ public class SOCPlayerClient extends Applet
             (mes.getPlayerNumber(), mes.getFromCoord(), mes.getPieceType(),
              true, mes.getToCoord());
     }
+
+    }  // nested class MessageTreater
 
     /**
      * add a new game to the initial window's list of games, and possibly
@@ -4110,7 +4121,7 @@ public class SOCPlayerClient extends Applet
      */
     public void updateGameEndStats(String game, int[] scores)
     {
-        SOCGame ga = (SOCGame) games.get(game);
+        SOCGame ga = games.get(game);
         if (ga == null)
             return;  // Not playing in that game
         if (ga.getGameState() != SOCGame.OVER)
@@ -4596,7 +4607,7 @@ public class SOCPlayerClient extends Applet
      */
     public boolean doLocalCommand(String ch, String cmd)
     {
-        ChannelFrame fr = (ChannelFrame) channels.get(ch);
+        ChannelFrame fr = channels.get(ch);
 
         if (cmd.startsWith("\\ignore "))
         {
@@ -4710,11 +4721,9 @@ public class SOCPlayerClient extends Applet
     protected boolean onIgnoreList(String name)
     {
         boolean result = false;
-        Enumeration ienum = ignoreList.elements();
 
-        while (ienum.hasMoreElements())
+        for (String s : ignoreList)
         {
-            String s = (String) ienum.nextElement();
             if (s.equals(name))
             {
                 result = true;
@@ -4757,11 +4766,8 @@ public class SOCPlayerClient extends Applet
     {
         fr.print("* Ignore list:");
 
-        Enumeration ienum = ignoreList.elements();
-
-        while (ienum.hasMoreElements())
+        for (String s : ignoreList)
         {
-            String s = (String) ienum.nextElement();
             fr.print("* " + s);
         }
     }
@@ -4771,11 +4777,8 @@ public class SOCPlayerClient extends Applet
     {
         pi.print("* Ignore list:");
 
-        Enumeration ienum = ignoreList.elements();
-
-        while (ienum.hasMoreElements())
+        for (String s : ignoreList)
         {
-            String s = (String) ienum.nextElement();
             pi.print("* " + s);
         }        
     }
@@ -5006,8 +5009,9 @@ public class SOCPlayerClient extends Applet
                 {
                     ((Frame) parent).setTitle("JSettlers server " + Version.version()
                         + " - port " + tport);
-                } catch (Throwable t)
-                {}
+                } catch (Throwable t) {
+                    // no titlebar is fine
+                }
             }
         }
         
@@ -5348,7 +5352,7 @@ public class SOCPlayerClient extends Applet
                 while (locl.isConnected())
                 {
                     String s = locl.readNext();
-                    treat((SOCMessage) SOCMessage.toMsg(s), true);
+                    treater.treat((SOCMessage) SOCMessage.toMsg(s), true);
                 }
             }
             catch (IOException e)
@@ -5395,7 +5399,7 @@ public class SOCPlayerClient extends Applet
         {
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
-            pcli.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
+            pcli.treater.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
         }
 
     }  // GameOptionsTimeoutTask
@@ -5498,7 +5502,7 @@ public class SOCPlayerClient extends Applet
          * Otherwise, set from {@link SOCGameOption#getAllKnownOptions()}
          * and update from server as needed.
          */
-        public Hashtable optionSet = null;
+        public Hashtable<String,SOCGameOption> optionSet = null;
 
         /** Have we asked the server for default values? */
         public boolean   askedDefaultsAlready = false;
@@ -5544,7 +5548,7 @@ public class SOCPlayerClient extends Applet
          *                 so ones that we don't know are {@link SOCGameOption#OTYPE_UNKNOWN}.
          * @return null if all are known, or a Vector of key names for unknown options.
          */
-        public Vector receiveDefaults(Hashtable servOpts)
+        public Vector<String> receiveDefaults(Hashtable<String,SOCGameOption> servOpts)
         {
             // Although javadoc says "update the values", replacing the option objects does the
             // same thing; we already have parsed servOpts for all obj fields, including current value.
@@ -5554,17 +5558,16 @@ public class SOCPlayerClient extends Applet
             {
                 optionSet = servOpts;
             } else {
-                for (Enumeration e = servOpts.keys(); e.hasMoreElements(); )
+                for (String oKey : servOpts.keySet())
                 {
-                    final String oKey = (String) e.nextElement();
-                    SOCGameOption op = (SOCGameOption) servOpts.get(oKey);
-                    SOCGameOption oldcopy = (SOCGameOption) optionSet.get(oKey);
+                    SOCGameOption op = servOpts.get(oKey);
+                    SOCGameOption oldcopy = optionSet.get(oKey);
                     if (oldcopy != null)
                         optionSet.remove(oKey);
                     optionSet.put(oKey, op);  // Even OTYPE_UNKNOWN are added
                 }
             }
-            Vector unknowns = SOCGameOption.findUnknowns(servOpts);
+            Vector<String> unknowns = SOCGameOption.findUnknowns(servOpts);
             allOptionsReceived = (unknowns == null);
             defaultsReceived = true;
             return unknowns;
@@ -5581,7 +5584,7 @@ public class SOCPlayerClient extends Applet
         {
             String oKey = gi.getOptionNameKey();
             SOCGameOption oinfo = gi.getOptionInfo();
-            SOCGameOption oldcopy = (SOCGameOption) optionSet.get(oKey);
+            SOCGameOption oldcopy = optionSet.get(oKey);
 
             if ((oinfo.optKey.equals("-")) && (oinfo.optType == SOCGameOption.OTYPE_UNKNOWN))
             {
