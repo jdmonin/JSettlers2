@@ -1,1 +1,6 @@
-target
+/.gitignore
+/bin
+CVS
+/dist
+/target
+/.settings/

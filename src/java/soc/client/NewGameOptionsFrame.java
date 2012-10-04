@@ -701,7 +701,7 @@ public class NewGameOptionsFrame extends Frame
          */
         boolean gameExists;
         if (forPractice)
-            gameExists = (cl.practiceServer != null) && (-1 != cl.practiceServer.getGameState(gmName));
+            gameExists = (cl.getNet().practiceServer != null) && (-1 != cl.getNet().practiceServer.getGameState(gmName));
         else
             gameExists = false;
         if (cl.serverGames != null)
