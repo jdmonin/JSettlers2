@@ -47,7 +47,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
         if ((cli == null) || (gamePIOrSelf == null))
             throw new IllegalArgumentException("no nulls");
 
-        boolean hasAny = cli.anyHostedActiveGames();
+        boolean hasAny = cli.getNet().anyHostedActiveGames();
         SOCQuitAllConfirmDialog qcd = new SOCQuitAllConfirmDialog(cli, gamePIOrSelf, hasAny);
         qcd.show();      
     }
@@ -79,7 +79,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
      */
     public void button1Chosen()
     {
-        pcli.putLeaveAll();
+        pcli.getNet().putLeaveAll();
         System.exit(0);
     }
 

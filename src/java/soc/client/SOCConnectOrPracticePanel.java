@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 
+import soc.client.SOCPlayerClient.ClientNetwork;
 import soc.util.Version;
 
 
@@ -51,6 +52,7 @@ public class SOCConnectOrPracticePanel extends Panel
     implements ActionListener, KeyListener
 {
     private SOCPlayerClient cl;
+    private ClientNetwork clientNetwork;
 
     /** "Practice" */
     private Button prac;
@@ -88,6 +90,7 @@ public class SOCConnectOrPracticePanel extends Panel
         super(new BorderLayout());
 
         cl = cli;
+        clientNetwork = cli.getNet();
         canLaunchServer = checkCanLaunchServer();
 
         // same Frame setup as in SOCPlayerClient.main
@@ -112,8 +115,8 @@ public class SOCConnectOrPracticePanel extends Panel
                 return true;
             try
             {
-                sm.checkAccept("localhost", SOCPlayerClient.SOC_PORT_DEFAULT);
-                sm.checkListen(SOCPlayerClient.SOC_PORT_DEFAULT);
+                sm.checkAccept("localhost", ClientNetwork.SOC_PORT_DEFAULT);
+                sm.checkListen(ClientNetwork.SOC_PORT_DEFAULT);
             }
             catch (SecurityException se)
             {
@@ -123,7 +126,7 @@ public class SOCConnectOrPracticePanel extends Panel
         catch (SecurityException se)
         {
             // can't read security mgr; check it the hard way
-            int port = SOCPlayerClient.SOC_PORT_DEFAULT;
+            int port = ClientNetwork.SOC_PORT_DEFAULT;
             for (int i = 0; i <= 100; ++i)
             {
                 ServerSocket ss = null;
@@ -276,7 +279,7 @@ public class SOCConnectOrPracticePanel extends Panel
         pconn.add(L);
         conn_servport = new TextField(20);
         {
-            String svp = Integer.toString(cl.port);
+            String svp = Integer.toString(clientNetwork.getPort());
             conn_servport.setText(svp);
             conn_servport.setSelectionStart(0);
             conn_servport.setSelectionEnd(svp.length());
@@ -367,7 +370,7 @@ public class SOCConnectOrPracticePanel extends Panel
         prun.add(L);
         run_servport = new TextField(15);
         {
-            String svp = Integer.toString(cl.port);
+            String svp = Integer.toString(clientNetwork.getPort());
             run_servport.setText(svp);
             run_servport.setSelectionStart(0);
             run_servport.setSelectionEnd(svp.length());
