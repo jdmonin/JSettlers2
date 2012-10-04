@@ -79,7 +79,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
      */
     public void button1Chosen()
     {
-        pcli.putLeaveAll();
+        pcli.getNet().putLeaveAll();
         System.exit(0);
     }
 

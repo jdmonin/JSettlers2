@@ -115,7 +115,7 @@ import soc.util.Version;
  * @author Robert S Thomas
  */
 public class SOCPlayerClient extends Applet
-    implements Runnable, ActionListener, TextListener, ItemListener, MouseListener
+    implements ActionListener, TextListener, ItemListener, MouseListener
 {
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
@@ -173,9 +173,6 @@ public class SOCPlayerClient extends Applet
                                          // shows remote version# when connected to a remote server
     protected Button pgm;  // practice game on messagepanel
     protected AppletContext ac;
-
-    /** For debug, our last messages sent, over the net and locally (pipes) */
-    protected String lastMessage_N, lastMessage_L;
 
     /**
      * SOCPlayerClient displays one of several panels to the user:
@@ -374,23 +371,6 @@ public class SOCPlayerClient extends Applet
      * the ignore list
      */
     protected Vector<String> ignoreList = new Vector<String>();
-
-    /**
-     * for local-practice game via {@link #prCli}; not connected to
-     * the network, not suited for multi-player games. Use {@link #localTCPServer}
-     * for those.
-     * SOCMessages of games where {@link SOCGame#isPractice} is true are sent
-     * to practiceServer.
-     *<P>
-     * Null before it's started in {@link #startPracticeGame()}.
-     */
-    protected SOCServer practiceServer = null;
-
-    /**
-     * for connection to local-practice server {@link #practiceServer}.
-     * Null before it's started in {@link #startPracticeGame()}.
-     */
-    protected StringConnection prCli = null;
 
     /**
      * Number of practice games started; used for naming practice games
@@ -811,7 +791,7 @@ public class SOCPlayerClient extends Applet
         if (wasSel != jg.isEnabled())
         {
             jg.setEnabled(wasSel);
-            so.setEnabled(wasSel && ((practiceServer != null)
+            so.setEnabled(wasSel && ((net.practiceServer != null)
                 || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
         }
     }
@@ -951,7 +931,7 @@ public class SOCPlayerClient extends Applet
             }
 
             status.setText("Talking to server...");
-            putNet(SOCJoin.toCmd(nickname, password, net.getHost(), ch));
+            net.putNet(SOCJoin.toCmd(nickname, password, net.getHost(), ch));
         }
         else
         {
@@ -1050,8 +1030,8 @@ public class SOCPlayerClient extends Applet
             // This game is either from remote server, or local practice server,
             // both servers' games are in the same GUI list.
             Hashtable opts = null;
-            if ((practiceServer != null) && (-1 != practiceServer.getGameState(gm)))
-                opts = practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
+            if ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gm)))
+                opts = net.practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
             else if (serverGames != null)
             {
                 opts = serverGames.getGameOptions(gm);
@@ -1105,7 +1085,7 @@ public class SOCPlayerClient extends Applet
 
         if ((pi == null)
                 && ((target == pg) || (target == pgm))
-                && (practiceServer != null)
+                && (net.practiceServer != null)
                 && (gm.equalsIgnoreCase(DEFAULT_PRACTICE_GAMENAME)))
         {
             // Practice game requested, no game named "Practice" already exists.
@@ -1177,7 +1157,7 @@ public class SOCPlayerClient extends Applet
 
                 status.setText("Talking to server...");
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                putNet(SOCJoinGame.toCmd(nickname, password, net.getHost(), gm));
+                net.putNet(SOCJoinGame.toCmd(nickname, password, net.getHost(), gm));
             }
         }
         else
@@ -1401,7 +1381,7 @@ public class SOCPlayerClient extends Applet
                 (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                 ? SOCNewGameWithOptionsRequest.toCmd(nickname, password, net.getHost(), gmName, opts)
                 : SOCJoinGame.toCmd(nickname, password, net.getHost(), gmName);
-            putNet(askMsg);
+            net.putNet(askMsg);
             status.setText("Talking to server...");
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         }
@@ -1415,7 +1395,7 @@ public class SOCPlayerClient extends Applet
      * @return Any found game of ours which is active (state not OVER), or null if none.
      * @see #anyHostedActiveGames()
      */
-    protected SOCPlayerInterface findAnyActiveGame (boolean fromPracticeServer)
+    protected SOCPlayerInterface findAnyActiveGame(boolean fromPracticeServer)
     {
         SOCPlayerInterface pi = null;
         int gs;  // gamestate
@@ -1423,9 +1403,9 @@ public class SOCPlayerClient extends Applet
         Enumeration gameNames;
         if (fromPracticeServer)
         {
-            if (practiceServer == null)
+            if (net.practiceServer == null)
                 return null;  // <---- Early return: no games if no practice server ----
-            gameNames = practiceServer.getGameNames();
+            gameNames = net.practiceServer.getGameNames();
         } else {
             gameNames = playerInterfaces.keys();
         }
@@ -1436,7 +1416,7 @@ public class SOCPlayerClient extends Applet
 
             if (fromPracticeServer)
             {
-                gs = practiceServer.getGameState(tryGm);
+                gs = net.practiceServer.getGameState(tryGm);
                 if (gs < SOCGame.OVER)
                 {
                     pi = (SOCPlayerInterface) playerInterfaces.get(tryGm);
@@ -1461,114 +1441,6 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * continuously read from the net in a separate thread;
-     * not used for talking to the practice server.
-     */
-    public void run()
-    {
-        Thread.currentThread().setName("cli-netread");  // Thread name for debug
-        try
-        {
-            while (net.isConnected())
-            {
-                String s = net.in.readUTF();
-                treater.treat(SOCMessage.toMsg(s), false);
-            }
-        }
-        catch (IOException e)
-        {
-            // purposefully closing the socket brings us here too
-            if (net.isConnected())
-            {
-                net.ex = e;
-                System.out.println("could not read from the net: " + net.ex);
-                destroy();
-            }
-        }
-    }
-
-    /**
-     * resend the last message (to the network)
-     */
-    public void resendNet()
-    {
-        putNet(lastMessage_N);
-    }
-
-    /**
-     * resend the last message (to the local practice server)
-     */
-    public void resendPractice()
-    {
-        putPractice(lastMessage_L);
-    }
-
-    /**
-     * write a message to the net: either to a remote server,
-     * or to {@link #localTCPServer} for games we're hosting.
-     *
-     * @param s  the message
-     * @return true if the message was sent, false if not
-     * @see #put(String, boolean)
-     */
-    public synchronized boolean putNet(String s)
-    {
-        lastMessage_N = s;
-
-        if ((net.ex != null) || !net.isConnected())
-        {
-            return false;
-        }
-
-        if (D.ebugIsEnabled())
-            D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
-
-        try
-        {
-            net.out.writeUTF(s);
-        }
-        catch (IOException e)
-        {
-            net.ex = e;
-            System.err.println("could not write to the net: " + net.ex);
-            destroy();
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * write a message to the practice server. {@link #localTCPServer} is not
-     * the same as the practice server; use {@link #putNet(String)} to send
-     * a message to the local TCP server.
-     * Use <tt>putPractice</tt> only with {@link #practiceServer}.
-     *<P>
-     * Before version 1.1.14, this was <tt>putLocal</tt>.
-     *
-     * @param s  the message
-     * @return true if the message was sent, false if not
-     * @see #put(String, boolean)
-     */
-    public synchronized boolean putPractice(String s)
-    {
-        lastMessage_L = s;
-
-        if ((net.ex_L != null) || !prCli.isConnected())
-        {
-            return false;
-        }
-
-        if (D.ebugIsEnabled())
-            D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
-
-        prCli.put(s);
-
-        return true;
-    }
-
-    /**
      * Write a message to the net or the local practice server.
      * Because the player can be in both network games and local games,
      * we must route to the appropriate client-server connection.
@@ -1582,9 +1454,8 @@ public class SOCPlayerClient extends Applet
     public synchronized boolean put(String s, final boolean isPractice)
     {
         if (isPractice)
-            return putPractice(s);
-        else
-            return putNet(s);
+            return net.putPractice(s);
+        return net.putNet(s);
     }
 
     /**
@@ -2149,7 +2020,7 @@ public class SOCPlayerClient extends Applet
                                 versionOrlocalTCPPortLabel);
             }
 
-            if ((practiceServer == null) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+            if ((net.practiceServer == null) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                     && (so != null))
                 so.setEnabled(false);  // server too old for options, so don't use that button
         }
@@ -2714,7 +2585,7 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -3414,7 +3285,7 @@ public class SOCPlayerClient extends Applet
         
         if (net.ex_L == null)
         {
-            messageLabel_top.setText(mes.getText());                
+            messageLabel_top.setText(mes.getText());
             messageLabel_top.setVisible(true);
             messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
             pgm.setVisible(true);
@@ -3878,7 +3749,7 @@ public class SOCPlayerClient extends Applet
             gmlist.replaceItem(gameName, 0);
             gmlist.select(0);
             jg.setEnabled(true);
-            so.setEnabled((practiceServer != null)
+            so.setEnabled((net.practiceServer != null)
                 || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS));
         }
         else
@@ -4098,7 +3969,7 @@ public class SOCPlayerClient extends Applet
     {
         if (!doLocalCommand(ch, mes))
         {
-            putNet(SOCTextMsg.toCmd(ch, nickname, mes));
+            net.putNet(SOCTextMsg.toCmd(ch, nickname, mes));
         }
     }
 
@@ -4110,7 +3981,7 @@ public class SOCPlayerClient extends Applet
     public void leaveChannel(String ch)
     {
         channels.remove(ch);
-        putNet(SOCLeave.toCmd(nickname, net.getHost(), ch));
+        net.putNet(SOCLeave.toCmd(nickname, net.getHost(), ch));
     }
 
     /**
@@ -4760,42 +4631,7 @@ public class SOCPlayerClient extends Applet
         // The new-game window will clear this cursor.
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        if (practiceServer == null)
-        {
-            practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, 30, null, null);
-            practiceServer.setPriority(5);  // same as in SOCServer.main
-            practiceServer.start();
-
-            // We need some opponents.
-            // Let the server randomize whether we get smart or fast ones.
-            practiceServer.setupLocalRobots(5, 2);
-        }
-        if (prCli == null)
-        {
-            try
-            {
-                prCli = LocalStringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
-                new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
-                // Reader will start its own thread.
-                // Send VERSION right away (1.1.06 and later)
-                putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
-
-                // local server will support per-game options
-                if (so != null)
-                    so.setEnabled(true);
-            }
-            catch (ConnectException e)
-            {
-                net.ex_L = e;
-                return;
-            }
-        }
-
-        // Ask local "server" to create the game
-        if (gameOpts == null)
-            putPractice(SOCJoinGame.toCmd(nickname, password, net.getHost(), practiceGameName));
-        else
-            putPractice(SOCNewGameWithOptionsRequest.toCmd(nickname, password, net.getHost(), practiceGameName, gameOpts));
+        net.startPracticeGame(practiceGameName, gameOpts);
     }
 
     /**
@@ -4882,8 +4718,7 @@ public class SOCPlayerClient extends Applet
     {
         if (game.isPractice)
             return Version.versionNumber();
-        else
-            return sVersion;
+        return sVersion;
     }
 
     /**
@@ -4896,22 +4731,28 @@ public class SOCPlayerClient extends Applet
         return "SOCPlayerClient (Java Settlers Client) " + Version.version() +
         ", build " + Version.buildnum() + ", " + Version.copyright();
     }
-
-    /**
-     * network trouble; if possible, ask if they want to play locally (robots).
-     * Otherwise, go ahead and destroy the applet.
-     */
+    
+    // To be removed when this class is no longer an applet, for now just forward to dispose()
     public void destroy()
     {
+        dispose();
+    }
+    
+    /**
+     * network trouble; if possible, ask if they want to play locally (robots).
+     * Otherwise, go ahead and shut down.
+     */
+    public void dispose()
+    {
         boolean canLocal;  // Can we still start a local game?
-        canLocal = putLeaveAll();
+        canLocal = net.putLeaveAll();
 
         String err;
         if (canLocal)
         {
             err = "Sorry, network trouble has occurred. ";
         } else {
-            err = "Sorry, the applet has been destroyed. ";
+            err = "Sorry, the client has been shut down. ";
         }
         err = err + ((net.ex == null) ? "Load the page again." : net.ex.toString());
 
@@ -4959,30 +4800,6 @@ public class SOCPlayerClient extends Applet
             else
                 pgm.requestFocusInWindow();  // Practice game is active; don't interrupt to show this
         }
-    }
-
-    /**
-     * For shutdown - Tell the server we're leaving all games.
-     * If we've started a local practice server, also tell that server.
-     * If we've started a TCP server, tell all players on that server, and shut it down.
-     *<P><em>
-     * Since no other state variables are set, call this only right before
-     * discarding this object or calling System.exit.
-     *</em>
-     * @return Can we still start local games? (No local exception yet in {@link #ex_L})
-     */
-    public boolean putLeaveAll()
-    {
-        boolean canLocal = (net.ex_L == null);  // Can we still start a local game? 
-
-        SOCLeaveAll leaveAllMes = new SOCLeaveAll();
-        putNet(leaveAllMes.toCmd());
-        if ((prCli != null) && ! canLocal)
-            putPractice(leaveAllMes.toCmd());
-        
-        net.shutdownLocalServer();
-
-        return canLocal;
     }
 
     /**
@@ -5130,22 +4947,82 @@ public class SOCPlayerClient extends Applet
         Exception ex_L = null;  // Local errors (stringport pipes)
         boolean connected = false;
         
+        /** For debug, our last messages sent, over the net and locally (pipes) */
+        protected String lastMessage_N, lastMessage_L;
+
+        /**
+         * for local-practice game via {@link #prCli}; not connected to
+         * the network, not suited for multi-player games. Use {@link #localTCPServer}
+         * for those.
+         * SOCMessages of games where {@link SOCGame#isPractice} is true are sent
+         * to practiceServer.
+         *<P>
+         * Null before it's started in {@link #startPracticeGame()}.
+         */
+        protected SOCServer practiceServer = null;
+
+        /**
+         * for connection to local-practice server {@link #practiceServer}.
+         * Null before it's started in {@link #startPracticeGame()}.
+         */
+        protected StringConnection prCli = null;
+        
         public ClientNetwork(SOCPlayerClient c)
         {
             client = c;
         }
         
+        public void dispose()
+        {
+            shutdownLocalServer();
+            disconnect();
+        }
+        
+        public void startPracticeGame(String practiceGameName, Hashtable<String, SOCGameOption> gameOpts)
+        {
+            if (practiceServer == null)
+            {
+                practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, 30, null, null);
+                practiceServer.setPriority(5);  // same as in SOCServer.main
+                practiceServer.start();
+
+                // We need some opponents.
+                // Let the server randomize whether we get smart or fast ones.
+                practiceServer.setupLocalRobots(5, 2);
+            }
+            if (prCli == null)
+            {
+                try
+                {
+                    prCli = LocalStringServerSocket.connectTo(SOCServer.PRACTICE_STRINGPORT);
+                    new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
+                    // Reader will start its own thread.
+                    // Send VERSION right away (1.1.06 and later)
+                    putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+
+                    // local server will support per-game options
+                    if (client.so != null)
+                        client.so.setEnabled(true);
+                }
+                catch (ConnectException e)
+                {
+                    ex_L = e;
+                    return;
+                }
+            }
+
+            // Ask local "server" to create the game
+            if (gameOpts == null)
+                putPractice(SOCJoinGame.toCmd(client.nickname, client.password, getHost(), practiceGameName));
+            else
+                putPractice(SOCNewGameWithOptionsRequest.toCmd(client.nickname, client.password, getHost(), practiceGameName, gameOpts));
+        }
+
         public int getLocalServerPort()
         {
             if (localTCPServer == null)
                 return 0;
             return localTCPServer.getPort();
-        }
-
-        public void dispose()
-        {
-            shutdownLocalServer();
-            disconnect();
         }
         
         public void shutdownLocalServer()
@@ -5217,9 +5094,9 @@ public class SOCPlayerClient extends Applet
                 in = new DataInputStream(s.getInputStream());
                 out = new DataOutputStream(s.getOutputStream());
                 connected = true;
-                (reader = new Thread(client)).start();
+                (reader = new Thread(new ReadTask(client, this))).start();
                 // send VERSION right away (1.1.06 and later)
-                client.putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+                putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
             }
             catch (Exception e)
             {
@@ -5291,6 +5168,206 @@ public class SOCPlayerClient extends Applet
 
             return false;  // No active games found
         }
+        
+        /**
+         * write a message to the net: either to a remote server,
+         * or to {@link #localTCPServer} for games we're hosting.
+         *
+         * @param s  the message
+         * @return true if the message was sent, false if not
+         * @see #put(String, boolean)
+         */
+        public synchronized boolean putNet(String s)
+        {
+            lastMessage_N = s;
+
+            if ((ex != null) || !isConnected())
+            {
+                return false;
+            }
+
+            if (D.ebugIsEnabled())
+                D.ebugPrintln("OUT - " + SOCMessage.toMsg(s));
+
+            try
+            {
+                out.writeUTF(s);
+            }
+            catch (IOException e)
+            {
+                ex = e;
+                System.err.println("could not write to the net: " + ex);
+                client.dispose();
+
+                return false;
+            }
+
+            return true;
+        }
+
+        /**
+         * write a message to the practice server. {@link #localTCPServer} is not
+         * the same as the practice server; use {@link #putNet(String)} to send
+         * a message to the local TCP server.
+         * Use <tt>putPractice</tt> only with {@link #practiceServer}.
+         *<P>
+         * Before version 2.0.00, this was <tt>putLocal</tt>.
+         *
+         * @param s  the message
+         * @return true if the message was sent, false if not
+         * @see #put(String, boolean)
+         */
+        public synchronized boolean putPractice(String s)
+        {
+            lastMessage_L = s;
+
+            if ((ex_L != null) || !prCli.isConnected())
+            {
+                return false;
+            }
+
+            if (D.ebugIsEnabled())
+                D.ebugPrintln("OUT L- " + SOCMessage.toMsg(s));
+
+            prCli.put(s);
+
+            return true;
+        }
+        
+        /**
+         * resend the last message (to the network)
+         */
+        public void resendNet()
+        {
+            putNet(lastMessage_N);
+        }
+
+        /**
+         * resend the last message (to the local practice server)
+         */
+        public void resendPractice()
+        {
+            putPractice(lastMessage_L);
+        }
+
+        /**
+         * For shutdown - Tell the server we're leaving all games.
+         * If we've started a local practice server, also tell that server.
+         * If we've started a TCP server, tell all players on that server, and shut it down.
+         *<P><em>
+         * Since no other state variables are set, call this only right before
+         * discarding this object or calling System.exit.
+         *</em>
+         * @return Can we still start local games? (No local exception yet in {@link #ex_L})
+         */
+        public boolean putLeaveAll()
+        {
+            boolean canLocal = (ex_L == null);  // Can we still start a local game? 
+
+            SOCLeaveAll leaveAllMes = new SOCLeaveAll();
+            putNet(leaveAllMes.toCmd());
+            if ((prCli != null) && ! canLocal)
+                putPractice(leaveAllMes.toCmd());
+            
+            shutdownLocalServer();
+
+            return canLocal;
+        }
+        
+        /**
+         * A task to continuously read from the server socket.
+         */
+        static class ReadTask implements Runnable
+        {
+            final ClientNetwork net;
+            final SOCPlayerClient client;
+            
+            public ReadTask(SOCPlayerClient client, ClientNetwork net)
+            {
+                this.client = client;
+                this.net = net;
+            }
+            
+            /**
+             * continuously read from the net in a separate thread;
+             * not used for talking to the practice server.
+             */
+            @Override
+            public void run()
+            {
+                Thread.currentThread().setName("cli-netread");  // Thread name for debug
+                try
+                {
+                    while (net.isConnected())
+                    {
+                        String s = net.in.readUTF();
+                        client.treater.treat(SOCMessage.toMsg(s), false);
+                    }
+                }
+                catch (IOException e)
+                {
+                    // purposefully closing the socket brings us here too
+                    if (net.isConnected())
+                    {
+                        net.ex = e;
+                        System.out.println("could not read from the net: " + net.ex);
+                        client.dispose();
+                    }
+                }
+            }
+        }
+
+        /**
+         * For local practice games, reader thread to get messages from the
+         * local server to be treated and reacted to.
+         */
+        class SOCPlayerLocalStringReader implements Runnable
+        {
+            LocalStringConnection locl;
+
+            /** 
+             * Start a new thread and listen to local server.
+             *
+             * @param localConn Active connection to local server
+             */
+            protected SOCPlayerLocalStringReader (LocalStringConnection localConn)
+            {
+                locl = localConn;
+
+                Thread thr = new Thread(this);
+                thr.setDaemon(true);
+                thr.start();
+            }
+
+            /**
+             * continuously read from the local string server in a separate thread
+             */
+            @Override
+            public void run()
+            {
+                Thread.currentThread().setName("cli-stringread");  // Thread name for debug
+                try
+                {
+                    while (locl.isConnected())
+                    {
+                        String s = locl.readNext();
+                        SOCMessage msg = SOCMessage.toMsg(s);
+                        
+                        client.treater.treat(msg, true);
+                    }
+                }
+                catch (IOException e)
+                {
+                    // purposefully closing the socket brings us here too
+                    if (locl.isConnected())
+                    {
+                        ex_L = e;
+                        System.out.println("could not read from string localnet: " + ex_L);
+                        client.dispose();
+                    }
+                }
+            }
+        }
     }
 
     /** React to windowOpened, windowClosing events for SOCPlayerClient's Frame. */
@@ -5344,7 +5421,7 @@ public class SOCPlayerClient extends Applet
             if (! canAskHostingGames)
             {
                 // Just quit.
-                cli.putLeaveAll();
+                cli.getNet().putLeaveAll();
                 System.exit(0);
             }
         }
@@ -5358,57 +5435,6 @@ public class SOCPlayerClient extends Applet
                 cli.nick.requestFocus();
         }
     }
-
-    /**
-     * For local practice games, reader thread to get messages from the
-     * local server to be treated and reacted to.
-     */
-    protected class SOCPlayerLocalStringReader implements Runnable
-    {
-        LocalStringConnection locl;
-
-        /** 
-         * Start a new thread and listen to local server.
-         *
-         * @param localConn Active connection to local server
-         */
-        protected SOCPlayerLocalStringReader (LocalStringConnection localConn)
-        {
-            locl = localConn;
-
-            Thread thr = new Thread(this);
-            thr.setDaemon(true);
-            thr.start();
-        }
-
-        /**
-         * continuously read from the local string server in a separate thread
-         */
-        public void run()
-        {
-            Thread.currentThread().setName("cli-stringread");  // Thread name for debug
-            try
-            {
-                while (locl.isConnected())
-                {
-                    String s = locl.readNext();
-                    treater.treat((SOCMessage) SOCMessage.toMsg(s), true);
-                }
-            }
-            catch (IOException e)
-            {
-                // purposefully closing the socket brings us here too
-                if (locl.isConnected())
-                {
-                    net.ex_L = e;
-                    System.out.println("could not read from string localnet: " + net.ex_L);
-                    destroy();
-                }
-            }
-        }
-    }
-
-
 
     /**
      * TimerTask used soon after client connect, to prevent waiting forever for
