@@ -196,7 +196,7 @@ public class SOCPlayerClient extends Applet
      * Helper object to receive incoming network traffic from the server.
      */
     private MessageTreater treater;
-    
+
     /**
      *  Server version number for remote server, sent soon after connect, or -1 if unknown.
      *  A local server's version is always {@link Version#versionNumber()}.
