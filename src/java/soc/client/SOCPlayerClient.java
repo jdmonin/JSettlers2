@@ -131,15 +131,6 @@ public class SOCPlayerClient extends Applet
      */
     protected static final String GAMENAME_PREFIX_CANNOT_JOIN = "(cannot join) ";
 
-    /**
-     * Default tcp port number 8880 to listen, and to connect to remote server.
-     * Should match SOCServer.SOC_PORT_DEFAULT.
-     *<P>
-     * 8880 is the default SOCPlayerClient port since jsettlers 1.0.4, per cvs history.
-     * @since 1.1.00
-     */
-    public static final int SOC_PORT_DEFAULT = 8880;
-
     protected static final String STATSPREFEX = "  [";
 
     /**
@@ -197,20 +188,15 @@ public class SOCPlayerClient extends Applet
     protected CardLayout cardLayout;
 
     /**
-     * Hostname we're connected to, or null; set in constructor or {@link #init()}
+     * Helper object to deal with network connectivity.
      */
-    protected String host;
-    protected int port;
-    protected Socket s;
-    protected DataInputStream in;
-    protected DataOutputStream out;
-    protected Thread reader = null;
-    protected Exception ex = null;    // Network errors (TCP communication)
-    protected Exception ex_L = null;  // Local errors (stringport pipes)
-    protected boolean connected = false;
-
+    private ClientNetwork net;
+    
+    /**
+     * Helper object to receive incoming network traffic from the server.
+     */
     private MessageTreater treater;
-
+    
     /**
      *  Server version number for remote server, sent soon after connect, or -1 if unknown.
      *  A local server's version is always {@link Version#versionNumber()}.
@@ -412,44 +398,11 @@ public class SOCPlayerClient extends Applet
     protected int numPracticeGames = 0;
 
     /**
-     * Client-hosted TCP server. If client is running this server, it's also connected
-     * as a client, instead of being client of a remote server.
-     * Started via {@link #startLocalTCPServer(int)}.
-     * {@link #practiceServer} may still be activated at the user's request.
-     * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
-     */
-    protected SOCServer localTCPServer = null;
-
-    /**
-     * Create a SOCPlayerClient connecting to localhost port {@link #SOC_PORT_DEFAULT}
+     * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}
      */
     public SOCPlayerClient()
     {
-        this(null, SOC_PORT_DEFAULT, false);
-    }
-
-    /**
-     * Create a SOCPlayerClient either connecting to localhost port {@link #SOC_PORT_DEFAULT},
-     *   or initially showing 'Connect or Practice' panel.
-     *
-     * @param cp  If true, start by showing 'Connect or Practice' panel,
-     *       instead of connecting to localhost port.
-     */
-    public SOCPlayerClient(boolean cp)
-    {
-        this(null, SOC_PORT_DEFAULT, cp);
-    }
-
-    /**
-     * Constructor for connecting to the specified host, on the specified
-     * port.  Must call 'init' or 'initVisualElements' to start up and do layout.
-     *
-     * @param h  host, or null for localhost
-     * @param p  port
-     */
-    public SOCPlayerClient(String h, int p)
-    {
-        this (h, p, false);
+        this(false);
     }
 
     /**
@@ -461,14 +414,13 @@ public class SOCPlayerClient extends Applet
      * @param cp  If true, start by showing 'Connect or Practice' panel,
      *       instead of connecting to host and port.
      */
-    public SOCPlayerClient(String h, int p, boolean cp)
+    public SOCPlayerClient(boolean cp)
     {
         gotPassword = false;
-        host = h;
-        port = p;
         hasConnectOrPractice = cp;
         lastFaceChange = 1;  // Default human face
-
+        
+        net = new ClientNetwork(this);
         treater = new MessageTreater();
     }
 
@@ -791,10 +743,11 @@ public class SOCPlayerClient extends Applet
             nick.setText(param);
 
         System.out.println("Getting host...");
-        host = getCodeBase().getHost();
+        String host = getCodeBase().getHost();
         if (host.equals(""))
             host = null;  // localhost
 
+        int port = ClientNetwork.SOC_PORT_DEFAULT;
         try {
             param = getParameter("PORT");
             if (param != null)
@@ -804,7 +757,7 @@ public class SOCPlayerClient extends Applet
             System.err.println("Invalid port: " + param);
         }
 
-        connect();
+        net.connect(host, port);
     }
 
     /**
@@ -817,69 +770,10 @@ public class SOCPlayerClient extends Applet
      */
     public void connect(String chost, int cport, String cuser, String cpass)
     {
-        host = chost;
-        port = cport;
         nick.setText(cuser);
         pass.setText(cpass);
         cardLayout.show(this, MESSAGE_PANEL);
-        connect();
-    }
-
-    /**
-     * Attempts to connect to the server. See {@link #connected} for success or
-     * failure. Once connected, starts a {@link #reader} thread.
-     * The first message over the connection is our version,
-     * and the second is the server's response:
-     * Either {@link SOCRejectConnection}, or the lists of
-     * channels and games ({@link SOCChannels}, {@link SOCGames}).
-     *<P>
-     * Before 1.1.06, the server's response was first,
-     * and version was sent in reply to server's version.
-     *
-     * @throws IllegalStateException if already connected
-     * @see soc.server.SOCServer#newConnection1(StringConnection)
-     */
-    public synchronized void connect()
-    {
-        String hostString = (host != null ? host : "localhost") + ":" + port;
-        if (connected)
-        {
-            throw new IllegalStateException("Already connected to " +
-                                            hostString);
-        }
-                
-        System.out.println("Connecting to " + hostString);
-        messageLabel.setText("Connecting to server...");
-        
-        try
-        {
-            s = new Socket(host, port);
-            in = new DataInputStream(s.getInputStream());
-            out = new DataOutputStream(s.getOutputStream());
-            connected = true;
-            (reader = new Thread(this)).start();
-            // send VERSION right away (1.1.06 and later)
-            putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
-        }
-        catch (Exception e)
-        {
-            ex = e;
-            String msg = "Could not connect to the server: " + ex;
-            System.err.println(msg);
-            if (ex_L == null)
-            {
-                pgm.setVisible(true);
-                messageLabel_top.setText(msg);                
-                messageLabel_top.setVisible(true);
-                messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
-                validate();
-                pgm.requestFocus();
-            }
-            else
-            {
-                messageLabel.setText(msg);
-            }
-        }
+        net.connect(chost, cport);
     }
 
     /**
@@ -1057,7 +951,7 @@ public class SOCPlayerClient extends Applet
             }
 
             status.setText("Talking to server...");
-            putNet(SOCJoin.toCmd(nickname, password, host, ch));
+            putNet(SOCJoin.toCmd(nickname, password, net.getHost(), ch));
         }
         else
         {
@@ -1263,7 +1157,7 @@ public class SOCPlayerClient extends Applet
                 gm = gm.substring(0, endOfName);
             }
 
-            if (((target == pg) || (target == pgm)) && (null == ex_L))
+            if (((target == pg) || (target == pgm)) && (null == net.ex_L))
             {
                 if (target == pg)
                 {
@@ -1283,7 +1177,7 @@ public class SOCPlayerClient extends Applet
 
                 status.setText("Talking to server...");
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                putNet(SOCJoinGame.toCmd(nickname, password, host, gm));
+                putNet(SOCJoinGame.toCmd(nickname, password, net.getHost(), gm));
             }
         }
         else
@@ -1497,8 +1391,7 @@ public class SOCPlayerClient extends Applet
      * @since 1.1.07
      * @see #readValidNicknameAndPassword()
      */
-    public void askStartGameWithOptions
-        (final String gmName, final boolean forPracticeServer, Hashtable opts)
+    public void askStartGameWithOptions(final String gmName, final boolean forPracticeServer, Hashtable opts)
     {
         if (forPracticeServer)
         {
@@ -1506,9 +1399,8 @@ public class SOCPlayerClient extends Applet
         } else {
             String askMsg =
                 (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                ? SOCNewGameWithOptionsRequest.toCmd
-                        (nickname, password, host, gmName, opts)
-                : SOCJoinGame.toCmd(nickname, password, host, gmName);
+                ? SOCNewGameWithOptionsRequest.toCmd(nickname, password, net.getHost(), gmName, opts)
+                : SOCJoinGame.toCmd(nickname, password, net.getHost(), gmName);
             putNet(askMsg);
             status.setText("Talking to server...");
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -1569,32 +1461,6 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * Look for active games that we're hosting (state >= START1A, not yet OVER).
-     *
-     * @return If any hosted games of ours are active
-     * @see #findAnyActiveGame(boolean)
-     */
-    protected boolean anyHostedActiveGames ()
-    {
-        if (localTCPServer == null)
-            return false;
-
-        Enumeration gameNames = localTCPServer.getGameNames();
-
-        while (gameNames.hasMoreElements())
-        {
-            String tryGm = (String) gameNames.nextElement();
-            int gs = localTCPServer.getGameState(tryGm);
-            if ((gs < SOCGame.OVER) && (gs >= SOCGame.START1A))
-            {
-                return true;  // Active
-            }
-        }
-
-        return false;  // No active games found
-    }
-
-    /**
      * continuously read from the net in a separate thread;
      * not used for talking to the practice server.
      */
@@ -1603,19 +1469,19 @@ public class SOCPlayerClient extends Applet
         Thread.currentThread().setName("cli-netread");  // Thread name for debug
         try
         {
-            while (connected)
+            while (net.isConnected())
             {
-                String s = in.readUTF();
-                treater.treat((SOCMessage) SOCMessage.toMsg(s), false);
+                String s = net.in.readUTF();
+                treater.treat(SOCMessage.toMsg(s), false);
             }
         }
         catch (IOException e)
         {
             // purposefully closing the socket brings us here too
-            if (connected)
+            if (net.isConnected())
             {
-                ex = e;
-                System.out.println("could not read from the net: " + ex);
+                net.ex = e;
+                System.out.println("could not read from the net: " + net.ex);
                 destroy();
             }
         }
@@ -1649,7 +1515,7 @@ public class SOCPlayerClient extends Applet
     {
         lastMessage_N = s;
 
-        if ((ex != null) || !connected)
+        if ((net.ex != null) || !net.isConnected())
         {
             return false;
         }
@@ -1659,12 +1525,12 @@ public class SOCPlayerClient extends Applet
 
         try
         {
-            out.writeUTF(s);
+            net.out.writeUTF(s);
         }
         catch (IOException e)
         {
-            ex = e;
-            System.err.println("could not write to the net: " + ex);
+            net.ex = e;
+            System.err.println("could not write to the net: " + net.ex);
             destroy();
 
             return false;
@@ -1689,7 +1555,7 @@ public class SOCPlayerClient extends Applet
     {
         lastMessage_L = s;
 
-        if ((ex_L != null) || !prCli.isConnected())
+        if ((net.ex_L != null) || !prCli.isConnected())
         {
             return false;
         }
@@ -2272,7 +2138,7 @@ public class SOCPlayerClient extends Applet
 
             // Display the version on main panel, unless we're running a server.
             // (If so, want to display its listening port# instead)
-            if (null == localTCPServer)
+            if (null == net.localTCPServer)
             {
                 versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
                 versionOrlocalTCPPortLabel.setText("v " + mes.getVersionString());
@@ -2302,7 +2168,8 @@ public class SOCPlayerClient extends Applet
             if (! isPractice)
                 gameOptionsSetTimeoutTask();
             put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
-        } else if (sVersion < cliVersion)
+        }
+        else if (sVersion < cliVersion)
         {
             if (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
             {
@@ -2874,7 +2741,7 @@ public class SOCPlayerClient extends Applet
         {
             put(mes.toCmd(), isPractice);
         } else {
-            ex = new RuntimeException("Kicked by player with same name.");
+            net.ex = new RuntimeException("Kicked by player with same name.");
             destroy();
         }
     }
@@ -3540,12 +3407,12 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleREJECTCONNECTION(SOCRejectConnection mes)
     {
-        disconnect();
+        net.disconnect();
 
         // In case was WAIT_CURSOR while connecting
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         
-        if (ex_L == null)
+        if (net.ex_L == null)
         {
             messageLabel_top.setText(mes.getText());                
             messageLabel_top.setVisible(true);
@@ -3560,7 +3427,7 @@ public class SOCPlayerClient extends Applet
         }
         cardLayout.show(SOCPlayerClient.this, MESSAGE_PANEL);
         validate();
-        if (ex_L == null)
+        if (net.ex_L == null)
             pgm.requestFocus();
     }
 
@@ -4243,26 +4110,7 @@ public class SOCPlayerClient extends Applet
     public void leaveChannel(String ch)
     {
         channels.remove(ch);
-        putNet(SOCLeave.toCmd(nickname, host, ch));
-    }
-
-    /**
-     * disconnect from the net
-     */
-    protected synchronized void disconnect()
-    {
-        connected = false;
-
-        // reader will die once 'connected' is false, and socket is closed
-
-        try
-        {
-            s.close();
-        }
-        catch (Exception e)
-        {
-            ex = e;
-        }
+        putNet(SOCLeave.toCmd(nickname, net.getHost(), ch));
     }
 
     /**
@@ -4370,7 +4218,7 @@ public class SOCPlayerClient extends Applet
     {
         playerInterfaces.remove(ga.getName());
         games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(nickname, host, ga.getName()), ga.isPractice);
+        put(SOCLeaveGame.toCmd(nickname, net.getHost(), ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4938,16 +4786,16 @@ public class SOCPlayerClient extends Applet
             }
             catch (ConnectException e)
             {
-                ex_L = e;
+                net.ex_L = e;
                 return;
             }
         }
 
         // Ask local "server" to create the game
         if (gameOpts == null)
-            putPractice(SOCJoinGame.toCmd(nickname, password, host, practiceGameName));
+            putPractice(SOCJoinGame.toCmd(nickname, password, net.getHost(), practiceGameName));
         else
-            putPractice(SOCNewGameWithOptionsRequest.toCmd(nickname, password, host, practiceGameName, gameOpts));
+            putPractice(SOCNewGameWithOptionsRequest.toCmd(nickname, password, net.getHost(), practiceGameName, gameOpts));
     }
 
     /**
@@ -4964,11 +4812,11 @@ public class SOCPlayerClient extends Applet
     public void startLocalTCPServer(int tport)
         throws IllegalArgumentException
     {
-        if (localTCPServer != null)
+        if (net.localTCPServer != null)
         {
             return;  // Already set up
         }
-        if (connected)
+        if (net.isConnected())
         {
             return;  // Already connected somewhere
         }
@@ -4981,20 +4829,14 @@ public class SOCPlayerClient extends Applet
         // At end of method, we'll clear this cursor.
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        localTCPServer = new SOCServer(tport, 30, null, null);
-        localTCPServer.setPriority(5);  // same as in SOCServer.main
-        localTCPServer.start();
-
-        // We need some opponents.
-        // Let the server randomize whether we get smart or fast ones.
-        localTCPServer.setupLocalRobots(5, 2);
+        net.initLocalServer(tport);
 
         // Set label
         localTCPServerLabel.setText("Server is Running. (Click for info)");
         localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
         localTCPServerLabel.addMouseListener(this);
         versionOrlocalTCPPortLabel.setText("Port: " + tport);
-        new AWTToolTip ("You are running a server on TCP port " + tport
+        new AWTToolTip("You are running a server on TCP port " + tport
             + ". Version " + Version.version()
             + " bld " + Version.buildnum(),
             versionOrlocalTCPPortLabel);
@@ -5015,11 +4857,9 @@ public class SOCPlayerClient extends Applet
             }
         }
         
-        // Connect to it
-        host = "localhost";
-        port = tport;
         cardLayout.show(this, MESSAGE_PANEL);
-        connect();
+        // Connect to it
+        net.connect("localhost", tport);
 
         // Ensure we can't "connect" to another, too
         if (connectOrPracticePane != null)
@@ -5073,7 +4913,7 @@ public class SOCPlayerClient extends Applet
         } else {
             err = "Sorry, the applet has been destroyed. ";
         }
-        err = err + ((ex == null) ? "Load the page again." : ex.toString());
+        err = err + ((net.ex == null) ? "Load the page again." : net.ex.toString());
 
         for (Enumeration e = channels.elements(); e.hasMoreElements();)
         {
@@ -5092,7 +4932,7 @@ public class SOCPlayerClient extends Applet
             }
         }
         
-        disconnect();
+        net.dispose();
 
         // In case was WAIT_CURSOR while connecting
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -5133,17 +4973,14 @@ public class SOCPlayerClient extends Applet
      */
     public boolean putLeaveAll()
     {
-        boolean canLocal = (ex_L == null);  // Can we still start a local game? 
+        boolean canLocal = (net.ex_L == null);  // Can we still start a local game? 
 
         SOCLeaveAll leaveAllMes = new SOCLeaveAll();
         putNet(leaveAllMes.toCmd());
         if ((prCli != null) && ! canLocal)
             putPractice(leaveAllMes.toCmd());
-        if ((localTCPServer != null) && (localTCPServer.isUp()))
-        {
-            localTCPServer.stopServer();
-            localTCPServer = null;
-        }
+        
+        net.shutdownLocalServer();
 
         return canLocal;
     }
@@ -5162,12 +4999,10 @@ public class SOCPlayerClient extends Applet
     public static void main(String[] args)
     {
         SOCPlayerClient client;
-        boolean withConnectOrPractice;
 
         if (args.length == 0)
         {
-            withConnectOrPractice = true;
-            client = new SOCPlayerClient(withConnectOrPractice);
+            client = new SOCPlayerClient(true);
         }
         else
         {
@@ -5177,12 +5012,12 @@ public class SOCPlayerClient extends Applet
                 System.exit(1);
             }
 
-            withConnectOrPractice = false;
-            client = new SOCPlayerClient(withConnectOrPractice);
+            client = new SOCPlayerClient(false);
 
             try {
-                client.host = args[0];
-                client.port = Integer.parseInt(args[1]);
+                String host = args[0];
+                int port = Integer.parseInt(args[1]);
+                client.net.connect(host, port);
             } catch (NumberFormatException x) {
                 usage();
                 System.err.println("Invalid port: " + args[1]);
@@ -5205,9 +5040,6 @@ public class SOCPlayerClient extends Applet
         frame.add(client, BorderLayout.CENTER);
         frame.setSize(620, 400);
         frame.setVisible(true);
-
-        if (! withConnectOrPractice)
-            client.connect();
     }
 
     /**
@@ -5218,8 +5050,11 @@ public class SOCPlayerClient extends Applet
     public void mouseClicked(MouseEvent e)
     {
         NotifyDialog.createAndShow
-            (this, null,
-             "For other players to connect to your server,\nthey need only your IP address and port number.\nNo other server software install is needed.\nMake sure your firewall allows inbound traffic on port " + localTCPServer.getPort() + ".",
+            (this, null, "For other players to connect to your server,\n" +
+                         "they need only your IP address and port number.\n" +
+                         "No other server software install is needed.\n" +
+                         "Make sure your firewall allows inbound traffic on " +
+                         "port " + net.getLocalServerPort() + ".",
              "OK", true);
     }
 
@@ -5251,15 +5086,219 @@ public class SOCPlayerClient extends Applet
 
     private WindowAdapter createWindowAdapter()
     {
-        return new MyWindowAdapter(this);
+        return new ClientWindowAdapter(this);
+    }
+    
+    public ClientNetwork getNet()
+    {
+        return net;
+    }
+    
+    public static class ClientNetwork
+    {
+        /**
+         * Default tcp port number 8880 to listen, and to connect to remote server.
+         * Should match SOCServer.SOC_PORT_DEFAULT.
+         *<P>
+         * 8880 is the default SOCPlayerClient port since jsettlers 1.0.4, per cvs history.
+         * @since 1.1.00
+         */
+        public static final int SOC_PORT_DEFAULT = 8880;
+
+        final SOCPlayerClient client;
+        
+        /**
+         * Hostname we're connected to, or null
+         */
+        private String host;
+        private int port = SOC_PORT_DEFAULT;
+        
+        /**
+         * Client-hosted TCP server. If client is running this server, it's also connected
+         * as a client, instead of being client of a remote server.
+         * Started via {@link #startLocalTCPServer(int)}.
+         * {@link #practiceServer} may still be activated at the user's request.
+         * Note that {@link SOCGame#isPractice} is false for localTCPServer's games.
+         */
+        private SOCServer localTCPServer = null;
+        
+        Socket s;
+        DataInputStream in;
+        DataOutputStream out;
+        Thread reader = null;
+        Exception ex = null;    // Network errors (TCP communication)
+        Exception ex_L = null;  // Local errors (stringport pipes)
+        boolean connected = false;
+        
+        public ClientNetwork(SOCPlayerClient c)
+        {
+            client = c;
+        }
+        
+        public int getLocalServerPort()
+        {
+            if (localTCPServer == null)
+                return 0;
+            return localTCPServer.getPort();
+        }
+
+        public void dispose()
+        {
+            shutdownLocalServer();
+            disconnect();
+        }
+        
+        public void shutdownLocalServer()
+        {
+            if ((localTCPServer != null) && (localTCPServer.isUp()))
+            {
+                localTCPServer.stopServer();
+                localTCPServer = null;
+            }
+        }
+
+        public void initLocalServer(int tport)
+        {
+            localTCPServer = new SOCServer(tport, 30, null, null);
+            localTCPServer.setPriority(5);  // same as in SOCServer.main
+            localTCPServer.start();
+
+            // We need some opponents.
+            // Let the server randomize whether we get smart or fast ones.
+            localTCPServer.setupLocalRobots(5, 2);
+        }
+
+        public int getPort()
+        {
+            return port;
+        }
+        
+        public String getHost()
+        {
+            return host;
+        }
+        
+        public synchronized boolean isConnected()
+        {
+            return connected;
+        }
+        
+        /**
+         * Attempts to connect to the server. See {@link #connected} for success or
+         * failure. Once connected, starts a {@link #reader} thread.
+         * The first message over the connection is our version,
+         * and the second is the server's response:
+         * Either {@link SOCRejectConnection}, or the lists of
+         * channels and games ({@link SOCChannels}, {@link SOCGames}).
+         *<P>
+         * Before 1.1.06, the server's response was first,
+         * and version was sent in reply to server's version.
+         *
+         * @throws IllegalStateException if already connected
+         * @see soc.server.SOCServer#newConnection1(StringConnection)
+         */
+        public synchronized void connect(String chost, int cport)
+        {
+            host = chost;
+            port = cport;
+            
+            String hostString = (host != null ? host : "localhost") + ":" + port;
+            if (connected)
+            {
+                throw new IllegalStateException("Already connected to " + hostString);
+            }
+                    
+            System.out.println("Connecting to " + hostString);
+            client.messageLabel.setText("Connecting to server...");
+            
+            try
+            {
+                s = new Socket(host, port);
+                in = new DataInputStream(s.getInputStream());
+                out = new DataOutputStream(s.getOutputStream());
+                connected = true;
+                (reader = new Thread(client)).start();
+                // send VERSION right away (1.1.06 and later)
+                client.putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+            }
+            catch (Exception e)
+            {
+                ex = e;
+                String msg = "Could not connect to the server: " + ex;
+                System.err.println(msg);
+                if (ex_L == null)
+                {
+                    client.pgm.setVisible(true);
+                    client.messageLabel_top.setText(msg);                
+                    client.messageLabel_top.setVisible(true);
+                    client.messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
+                    client.validate();
+                    client.pgm.requestFocus();
+                }
+                else
+                {
+                    client.messageLabel.setText(msg);
+                }
+            }
+        }
+        
+        /**
+         * disconnect from the net
+         */
+        protected synchronized void disconnect()
+        {
+            connected = false;
+
+            // reader will die once 'connected' is false, and socket is closed
+
+            try
+            {
+                s.close();
+            }
+            catch (Exception e)
+            {
+                ex = e;
+            }
+        }
+
+        public boolean isRunningLocalServer()
+        {
+            return localTCPServer != null;
+        }
+        
+        /**
+         * Look for active games that we're hosting (state >= START1A, not yet OVER).
+         *
+         * @return If any hosted games of ours are active
+         * @see #findAnyActiveGame(boolean)
+         */
+        public boolean anyHostedActiveGames()
+        {
+            if (localTCPServer == null)
+                return false;
+            
+            Enumeration gameNames = localTCPServer.getGameNames();
+
+            while (gameNames.hasMoreElements())
+            {
+                String tryGm = (String) gameNames.nextElement();
+                int gs = localTCPServer.getGameState(tryGm);
+                if ((gs < SOCGame.OVER) && (gs >= SOCGame.START1A))
+                {
+                    return true;  // Active
+                }
+            }
+
+            return false;  // No active games found
+        }
     }
 
     /** React to windowOpened, windowClosing events for SOCPlayerClient's Frame. */
-    private static class MyWindowAdapter extends WindowAdapter
+    private static class ClientWindowAdapter extends WindowAdapter
     {
         private final SOCPlayerClient cli;
 
-        public MyWindowAdapter(SOCPlayerClient c)
+        public ClientWindowAdapter(SOCPlayerClient c)
         {
             cli = c;
         }
@@ -5279,33 +5318,34 @@ public class SOCPlayerClient extends Applet
                 piActive = cli.findAnyActiveGame(false);
 
             if (piActive != null)
-                SOCQuitAllConfirmDialog.createAndShow(piActive.getClient(), piActive);
-            else
             {
-                boolean canAskHostingGames = false;
-                boolean isHostingActiveGames = false;
+                SOCQuitAllConfirmDialog.createAndShow(piActive.getClient(), piActive);
+                return;
+            }
+            boolean canAskHostingGames = false;
+            boolean isHostingActiveGames = false;
 
-                // Are we running a server?
-                if (cli.localTCPServer != null)
-                    isHostingActiveGames = cli.anyHostedActiveGames();
+            // Are we running a server?
+            ClientNetwork cnet = cli.getNet();
+            if (cnet.isRunningLocalServer())
+                isHostingActiveGames = cnet.anyHostedActiveGames();
 
-                if (isHostingActiveGames)
+            if (isHostingActiveGames)
+            {
+                // If we have GUI, ask whether to shut down these games
+                Container c = cli.getParent();
+                if ((c != null) && (c instanceof Frame))
                 {
-                    // If we have GUI, ask whether to shut down these games
-                    Container c = cli.getParent();
-                    if ((c != null) && (c instanceof Frame))
-                    {
-                        canAskHostingGames = true;
-                        SOCQuitAllConfirmDialog.createAndShow(cli, (Frame) c);                        
-                    }
+                    canAskHostingGames = true;
+                    SOCQuitAllConfirmDialog.createAndShow(cli, (Frame) c);
                 }
-                
-                if (! canAskHostingGames)
-                {
-                    // Just quit.
-                    cli.putLeaveAll();
-                    System.exit(0);
-                }
+            }
+            
+            if (! canAskHostingGames)
+            {
+                // Just quit.
+                cli.putLeaveAll();
+                System.exit(0);
             }
         }
 
@@ -5360,8 +5400,8 @@ public class SOCPlayerClient extends Applet
                 // purposefully closing the socket brings us here too
                 if (locl.isConnected())
                 {
-                    ex_L = e;
-                    System.out.println("could not read from string localnet: " + ex_L);
+                    net.ex_L = e;
+                    System.out.println("could not read from string localnet: " + net.ex_L);
                     destroy();
                 }
             }
