@@ -543,7 +543,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             }
             else if (roadBut.getLabel().equals("Cancel"))
             {
-                client.cancelBuildRequest(game, SOCPlayingPiece.ROAD);
+                client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.ROAD);
             }
         }
         else if (target == STLMT)
@@ -557,7 +557,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             }
             else if (settlementBut.getLabel().equals("Cancel"))
             {
-                client.cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
+                client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.SETTLEMENT);
             }
         }
         else if (target == CITY)
@@ -571,7 +571,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             }
             else if (cityBut.getLabel().equals("Cancel"))
             {
-                client.cancelBuildRequest(game, SOCPlayingPiece.CITY);
+                client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.CITY);
             }
         }
         else if (target == CARD)
@@ -580,7 +580,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             {
                 if (stateBuyOK || canAskSBP)
                 {
-                    client.buyDevCard(game);
+                    client.getGameManager().buyDevCard(game);
                     pi.getClientHand().disableBankUndoButton();
                 }
             }
@@ -596,7 +596,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             }
             else if (shipBut.getLabel().equals("Cancel"))
             {
-                client.cancelBuildRequest(game, SOCPlayingPiece.SHIP);
+                client.getGameManager().cancelBuildRequest(game, SOCPlayingPiece.SHIP);
             }
         }
         else if (target == SBP)
@@ -611,7 +611,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             if (isCurrent && (sendBuildRequest == -1))
                 chp.setRollPrompt(null, true);  // clear the auto-roll countdown
 
-            client.buildRequest(game, sendBuildRequest);
+            client.getGameManager().buildRequest(game, sendBuildRequest);
             chp.disableBankUndoButton();
         }
     }

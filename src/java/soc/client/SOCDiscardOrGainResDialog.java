@@ -292,9 +292,9 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
             {
                 SOCPlayerClient pcli = playerInterface.getClient();
                 if (isDiscard)
-                    pcli.discard(playerInterface.getGame(), rsrcs);
+                    pcli.getGameManager().discard(playerInterface.getGame(), rsrcs);
                 else
-                    pcli.pickResources(playerInterface.getGame(), rsrcs);
+                    pcli.getGameManager().pickResources(playerInterface.getGame(), rsrcs);
                 dispose();
             }
         }

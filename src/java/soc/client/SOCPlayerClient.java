@@ -192,7 +192,12 @@ public class SOCPlayerClient extends Applet
      * Helper object to receive incoming network traffic from the server.
      */
     private MessageTreater treater;
-
+    
+    /**
+     * Helper object to send outgoing network traffic to the server.
+     */
+    private GameManager gameManager;
+    
     /**
      *  Server version number for remote server, sent soon after connect, or -1 if unknown.
      *  A local server's version is always {@link Version#versionNumber()}.
@@ -400,7 +405,8 @@ public class SOCPlayerClient extends Applet
         lastFaceChange = 1;  // Default human face
         
         net = new ClientNetwork(this);
-        treater = new MessageTreater();
+        treater = new MessageTreater(this);
+        gameManager = new GameManager(this);
     }
 
     /**
@@ -1345,7 +1351,7 @@ public class SOCPlayerClient extends Applet
         opts.newGameWaitingForOpts = true;
         opts.askedDefaultsAlready = true;
         opts.askedDefaultsTime = System.currentTimeMillis();
-        put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
+        gameManager.put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
 
         if (gameOptsDefsTask != null)
             gameOptsDefsTask.cancel();
@@ -1440,31 +1446,16 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * Write a message to the net or the local practice server.
-     * Because the player can be in both network games and local games,
-     * we must route to the appropriate client-server connection.
-     * 
-     * @param s  the message
-     * @param isPractice Is the server local (practice game), not network?
-     *                {@link #localTCPServer} is considered "network" here.
-     *                Use <tt>isPractice</tt> only with {@link #practiceServer}.
-     * @return true if the message was sent, false if not
-     */
-    public synchronized boolean put(String s, final boolean isPractice)
-    {
-        if (isPractice)
-            return net.putPractice(s);
-        return net.putNet(s);
-    }
-
-    /**
      * Nested class for processing incoming messages (treating).
      * @author paulbilnoski
      */
     private class MessageTreater
     {
-        public MessageTreater()
+        private final GameManager gmgr;
+        
+        public MessageTreater(SOCPlayerClient client)
         {
+            gmgr = client.getGameManager();
         }
 
     /**
@@ -2037,7 +2028,7 @@ public class SOCPlayerClient extends Applet
             // Newer server: Ask it to list any options we don't know about yet.
             if (! isPractice)
                 gameOptionsSetTimeoutTask();
-            put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
+            gmgr.put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
         }
         else if (sVersion < cliVersion)
         {
@@ -2050,7 +2041,7 @@ public class SOCPlayerClient extends Applet
                 {
                     if (! isPractice)
                         gameOptionsSetTimeoutTask();
-                    put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isPractice);
+                    gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isPractice);
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
@@ -2543,7 +2534,7 @@ public class SOCPlayerClient extends Applet
                 if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
                 {
                     ga.getPlayer(mesPN).setFaceId(lastFaceChange);
-                    changeFace(ga, lastFaceChange);
+                    gmgr.changeFace(ga, lastFaceChange);
                 }
             }
 
@@ -2609,7 +2600,7 @@ public class SOCPlayerClient extends Applet
         int timeval = mes.getSleepTime();
         if (timeval != -1)
         {
-            put(mes.toCmd(), isPractice);
+            gmgr.put(mes.toCmd(), isPractice);
         } else {
             net.ex = new RuntimeException("Kicked by player with same name.");
             destroy();
@@ -3524,7 +3515,7 @@ public class SOCPlayerClient extends Applet
         {
             if (! isPractice)
                 gameOptionsSetTimeoutTask();
-            put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isPractice);
+            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             if (gameOptsDefsTask != null)
@@ -3989,6 +3980,44 @@ public class SOCPlayerClient extends Applet
         net.putNet(SOCLeave.toCmd(nickname, net.getHost(), ch));
     }
 
+    public GameManager getGameManager()
+    {
+        return gameManager;
+    }
+    
+    /**
+     * Nested class for processing outgoing messages (putting).
+     * @author paulbilnoski
+     */
+    public static class GameManager
+    {
+        private final SOCPlayerClient client;
+        private final ClientNetwork net;
+
+        GameManager(SOCPlayerClient client)
+        {
+            this.client = client;
+            net = client.getNet();
+        }
+        
+        /**
+         * Write a message to the net or local server.
+         * Because the player can be in both network games and local games,
+         * we must route to the appropriate client-server connection.
+         * 
+         * @param s  the message
+         * @param isPractice Is the server local (practice game), not network?
+         *                {@link #localTCPServer} is considered "network" here.
+         *                Use <tt>isPractice</tt> only with {@link #practiceServer}.
+         * @return true if the message was sent, false if not
+         */
+        private synchronized boolean put(String s, final boolean isPractice)
+        {
+            if (isPractice)
+                return net.putPractice(s);
+            return net.putNet(s);
+        }
+
     /**
      * request to buy a development card
      *
@@ -4079,9 +4108,9 @@ public class SOCPlayerClient extends Applet
      */
     public void sendText(SOCGame ga, String me)
     {
-        if (!doLocalCommand(ga, me))
+        if (!client.doLocalCommand(ga, me))
         {
-            put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me), ga.isPractice);
+            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, me), ga.isPractice);
         }
     }
 
@@ -4092,9 +4121,9 @@ public class SOCPlayerClient extends Applet
      */
     public void leaveGame(SOCGame ga)
     {
-        playerInterfaces.remove(ga.getName());
-        games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(nickname, net.getHost(), ga.getName()), ga.isPractice);
+        client.playerInterfaces.remove(ga.getName());
+        client.games.remove(ga.getName());
+        put(SOCLeaveGame.toCmd(client.nickname, net.getHost(), ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4182,7 +4211,7 @@ public class SOCPlayerClient extends Applet
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()), ga.isPractice);
+        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber()), ga.isPractice);
     }
 
     /**
@@ -4193,7 +4222,7 @@ public class SOCPlayerClient extends Applet
      */
     public void acceptOffer(SOCGame ga, int from)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), from), ga.isPractice);
+        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber(), from), ga.isPractice);
     }
 
     /**
@@ -4203,7 +4232,7 @@ public class SOCPlayerClient extends Applet
      */
     public void clearOffer(SOCGame ga)
     {
-        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()), ga.isPractice);
+        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber()), ga.isPractice);
     }
 
     /**
@@ -4237,7 +4266,7 @@ public class SOCPlayerClient extends Applet
      */
     public void playDevCard(SOCGame ga, int dc)
     {
-        if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        if ((! ga.isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
         {
             if (dc == SOCDevCardConstants.KNIGHT)
                 dc = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
@@ -4277,8 +4306,8 @@ public class SOCPlayerClient extends Applet
      */
     public void changeFace(SOCGame ga, int id)
     {
-        lastFaceChange = id;
-        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), id), ga.isPractice);
+        client.lastFaceChange = id;
+        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber(), id), ga.isPractice);
     }
 
     /**
@@ -4322,6 +4351,77 @@ public class SOCPlayerClient extends Applet
     {
         put(SOCResetBoardVote.toCmd(ga.getName(), pn, voteYes), ga.isPractice);
     }
+    
+        /**
+         * send a command to the server with a message
+         * asking a robot to show the debug info for
+         * a possible move after a move has been made
+         *
+         * @param ga  the game
+         * @param pname  the robot name
+         * @param piece  the piece to consider
+         */
+        public void considerMove(SOCGame ga, String pname, SOCPlayingPiece piece)
+        {
+            String msg = pname + ":consider-move ";
+    
+            switch (piece.getType())
+            {
+            case SOCPlayingPiece.SETTLEMENT:
+                msg += "settlement";
+    
+                break;
+    
+            case SOCPlayingPiece.ROAD:
+                msg += "road";
+    
+                break;
+    
+            case SOCPlayingPiece.CITY:
+                msg += "city";
+    
+                break;
+            }
+    
+            msg += (" " + piece.getCoordinates());
+            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+        }
+    
+        /**
+         * send a command to the server with a message
+         * asking a robot to show the debug info for
+         * a possible move before a move has been made
+         *
+         * @param ga  the game
+         * @param pname  the robot name
+         * @param piece  the piece to consider
+         */
+        public void considerTarget(SOCGame ga, String pname, SOCPlayingPiece piece)
+        {
+            String msg = pname + ":consider-target ";
+    
+            switch (piece.getType())
+            {
+            case SOCPlayingPiece.SETTLEMENT:
+                msg += "settlement";
+    
+                break;
+    
+            case SOCPlayingPiece.ROAD:
+                msg += "road";
+    
+                break;
+    
+            case SOCPlayingPiece.CITY:
+                msg += "city";
+    
+                break;
+            }
+    
+            msg += (" " + piece.getCoordinates());
+            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+        }
+    }  // nested class GameManager
 
     /**
      * Handle local client commands for channels.
@@ -4505,76 +4605,6 @@ public class SOCPlayerClient extends Applet
         {
             pi.print("* " + s);
         }        
-    }
-
-    /**
-     * send a command to the server with a message
-     * asking a robot to show the debug info for
-     * a possible move after a move has been made
-     *
-     * @param ga  the game
-     * @param pname  the robot name
-     * @param piece  the piece to consider
-     */
-    public void considerMove(SOCGame ga, String pname, SOCPlayingPiece piece)
-    {
-        String msg = pname + ":consider-move ";
-
-        switch (piece.getType())
-        {
-        case SOCPlayingPiece.SETTLEMENT:
-            msg += "settlement";
-
-            break;
-
-        case SOCPlayingPiece.ROAD:
-            msg += "road";
-
-            break;
-
-        case SOCPlayingPiece.CITY:
-            msg += "city";
-
-            break;
-        }
-
-        msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, msg), ga.isPractice);
-    }
-
-    /**
-     * send a command to the server with a message
-     * asking a robot to show the debug info for
-     * a possible move before a move has been made
-     *
-     * @param ga  the game
-     * @param pname  the robot name
-     * @param piece  the piece to consider
-     */
-    public void considerTarget(SOCGame ga, String pname, SOCPlayingPiece piece)
-    {
-        String msg = pname + ":consider-target ";
-
-        switch (piece.getType())
-        {
-        case SOCPlayingPiece.SETTLEMENT:
-            msg += "settlement";
-
-            break;
-
-        case SOCPlayingPiece.ROAD:
-            msg += "road";
-
-            break;
-
-        case SOCPlayingPiece.CITY:
-            msg += "city";
-
-            break;
-        }
-
-        msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, msg), ga.isPractice);
     }
 
     /**

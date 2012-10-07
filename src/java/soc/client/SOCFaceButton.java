@@ -578,7 +578,7 @@ public class SOCFaceButton extends Canvas
                 }
 
                 evt.consume();
-                pi.getClient().changeFace(game, currentImageNum);
+                pi.getClient().getGameManager().changeFace(game, currentImageNum);
                 repaint();
             }
             } catch (Throwable th) {

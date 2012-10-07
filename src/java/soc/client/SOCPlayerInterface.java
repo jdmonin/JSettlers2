@@ -1151,7 +1151,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                     return;
                 }
             }
-            client.sendText(game, s + "\n");
+            client.getGameManager().sendText(game, s + "\n");
         }
     }
 
@@ -1160,7 +1160,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     public void leaveGame()
     {
-        client.leaveGame(game);
+        client.getGameManager().leaveGame(game);
         dispose();
     }
 
@@ -1187,7 +1187,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
         SOCPlayer pl = game.getPlayer(clientHandPlayerNum);        
         if (! pl.hasAskedBoardReset())
-            client.resetBoardRequest(game);
+            client.getGameManager().resetBoardRequest(game);
         else
             textDisplay.append("*** You may ask only once per turn to reset the board.\n");
     }
@@ -2474,7 +2474,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          */
         public void button1Chosen()
         {
-            pcli.resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
+            pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
             pi.resetBoardClearDia();
         }
 
@@ -2483,7 +2483,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          */
         public void button2Chosen()
         {
-            pcli.resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
+            pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
             pi.resetBoardClearDia();
         }
 
@@ -2567,7 +2567,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          */
         public void button1Chosen()
         {
-            pcli.choosePlayer(game, -1);
+            pcli.getGameManager().choosePlayer(game, -1);
         }
 
         /**
@@ -2576,7 +2576,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          */
         public void button2Chosen()
         {
-            pcli.choosePlayer(game, -2);
+            pcli.getGameManager().choosePlayer(game, -2);
         }
 
         /**

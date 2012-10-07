@@ -208,7 +208,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
         {
             if (target == buttons[i])
             {
-                pi.getClient().choosePlayer(pi.getGame(), players[i]);
+                pi.getClient().getGameManager().choosePlayer(pi.getGame(), players[i]);
                 dispose();
 
                 break;

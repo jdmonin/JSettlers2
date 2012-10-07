@@ -788,23 +788,23 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         if (target == LOCKSEAT)
         {
-            client.lockSeat(game, playerNumber, true);
+            client.getGameManager().lockSeat(game, playerNumber, true);
         }
         else if (target == UNLOCKSEAT)
         {
-            client.lockSeat(game, playerNumber, false);
+            client.getGameManager().lockSeat(game, playerNumber, false);
         }
         else if (target == TAKEOVER)
         {
-            client.sitDown(game, playerNumber);
+            client.getGameManager().sitDown(game, playerNumber);
         }
         else if (target == SIT)
         {
-            client.sitDown(game, playerNumber);
+            client.getGameManager().sitDown(game, playerNumber);
         }
         else if (target == START)
         {
-            client.startGame(game);
+            client.getGameManager().startGame(game);
         }
         else if (target == ROBOT)
         {
@@ -826,7 +826,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         else if (target == DONE)
         {
             // sqPanel.setValues(zero, zero);
-            client.endTurn(game);
+            client.getGameManager().endTurn(game);
         }
         else if (target == DONE_RESTART)
         {
@@ -837,7 +837,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             clearOffer(true);    // Zero the square panel numbers, unless board-reset vote in progress
             if (game.getGameState() == SOCGame.PLAY1)
             {
-                client.clearOffer(game);
+                client.getGameManager().clearOffer(game);
             }
         }
         else if (target == BANK)
@@ -848,7 +848,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 int[] give = new int[5];
                 int[] get = new int[5];
                 sqPanel.getValues(give, get);
-                client.clearOffer(game);
+                client.getGameManager().clearOffer(game);
                 createSendBankTradeRequest(game, give, get);
             }
             else if (gstate == SOCGame.OVER)
@@ -864,7 +864,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             if ((bankGive != null) && (bankGet != null))
             {
-                client.bankTrade(game, bankGet, bankGive);  // reverse the previous order to undo it
+                client.getGameManager().bankTrade(game, bankGet, bankGive);  // reverse the previous order to undo it
                 bankGive = null;
                 bankGet = null;
                 bankUndoBut.setEnabled(false);
@@ -937,7 +937,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                             new SOCTradeOffer(game.getName(),
                                               playerNumber,
                                               to, giveSet, getSet);
-                        client.offerTrade(game, tradeOffer);
+                        client.getGameManager().offerTrade(game, tradeOffer);
                         disableBankUndoButton();
                     }
                 }
@@ -965,7 +965,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         SOCResourceSet giveSet = new SOCResourceSet(give);
         SOCResourceSet getSet = new SOCResourceSet(get);
-        getClient().bankTrade(game, giveSet, getSet);
+        getClient().getGameManager().bankTrade(game, giveSet, getSet);
 
         bankGive = giveSet;
         bankGet = getSet;
@@ -1106,7 +1106,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         if (cardTypeToPlay != -1)
         {
-            client.playDevCard(game, cardTypeToPlay);
+            client.getGameManager().playDevCard(game, cardTypeToPlay);
             disableBankUndoButton();
         }
     }
@@ -1118,7 +1118,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     {
         if (rollPromptInUse)
             setRollPrompt(null, false);  // Clear it
-        client.rollDice(game);
+        client.getGameManager().rollDice(game);
         rollBut.setEnabled(false);  // Only one roll per turn
     }
 
@@ -2031,7 +2031,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public void rejectOfferAtClient()
     {
-        client.rejectOffer(game);
+        client.getGameManager().rejectOffer(game);
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);
         repaint();        
