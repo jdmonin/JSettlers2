@@ -41,8 +41,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
@@ -115,7 +115,6 @@ import soc.util.Version;
  * @author Robert S Thomas
  */
 public class SOCPlayerClient extends Applet
-    implements ActionListener, TextListener, ItemListener, MouseListener
 {
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
@@ -438,18 +437,74 @@ public class SOCPlayerClient extends Applet
         jg.setEnabled(false);
         so.setEnabled(false);
 
-        nick.addTextListener(this);    // Will enable buttons when field is not empty
-        nick.addActionListener(this);  // hit Enter to go to next field
-        pass.addActionListener(this);
-        channel.addActionListener(this);
-        chlist.addActionListener(this);
-        gmlist.addActionListener(this);
-        gmlist.addItemListener(this);
-        ng.addActionListener(this);
-        jc.addActionListener(this);
-        jg.addActionListener(this);
-        pg.addActionListener(this);        
-        so.addActionListener(this);        
+        nick.addTextListener(new TextListener()
+        {
+            /**
+             * When nickname contents change, enable/disable buttons as appropriate. ({@link TextListener})
+             * @param e textevent from {@link #nick}
+             * @since 1.1.07
+             */
+            public void textValueChanged(TextEvent e)
+            {
+                boolean notEmpty = (nick.getText().trim().length() > 0);
+                if (notEmpty != ng.isEnabled())
+                {
+                    ng.setEnabled(notEmpty);
+                    jc.setEnabled(notEmpty);
+                }
+            }
+        });
+        
+        ActionListener actionListener = new ActionListener()
+        {
+            /**
+             * Handle mouse clicks and keyboard
+             */
+            public void actionPerformed(ActionEvent e)
+            {
+                try
+                {
+                    Object target = e.getSource();
+                    guardedActionPerform(target);
+                }
+                catch (Throwable thr)
+                {
+                    System.err.println("-- Error caught in AWT event thread: " + thr + " --");
+                    thr.printStackTrace(); // will print causal chain, no need to manually iterate
+                    System.err.println("-- Error stack trace end --");
+                    System.err.println();
+                }
+            }
+        };
+        
+        nick.addActionListener(actionListener);  // hit Enter to go to next field
+        pass.addActionListener(actionListener);
+        channel.addActionListener(actionListener);
+        chlist.addActionListener(actionListener);
+        gmlist.addActionListener(actionListener);
+        gmlist.addItemListener(new ItemListener()
+        {
+            /**
+             * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ItemListener})
+             * @param e textevent from {@link #gmlist}
+             * @since 1.1.07
+             */
+            @Override
+            public void itemStateChanged(ItemEvent e)
+            {
+                boolean wasSel = (e.getStateChange() == ItemEvent.SELECTED);
+                if (wasSel != jg.isEnabled())
+                {
+                    jg.setEnabled(wasSel);
+                    so.setEnabled(wasSel && ((net.practiceServer != null) || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
+                }
+            }
+        });
+        ng.addActionListener(actionListener);
+        jc.addActionListener(actionListener);
+        jg.addActionListener(actionListener);
+        pg.addActionListener(actionListener);
+        so.addActionListener(actionListener);
 
         ac = null;
 
@@ -640,7 +695,7 @@ public class SOCPlayerClient extends Applet
         pgm = new Button("Practice Game (against robots)");
         pgm.setVisible(false);
         messagePane.add(pgm, BorderLayout.SOUTH);
-        pgm.addActionListener(this);
+        pgm.addActionListener(actionListener);
 
         // all together now...
         cardLayout = new CardLayout();
@@ -763,62 +818,6 @@ public class SOCPlayerClient extends Applet
     public String getNickname()
     {
         return nickname;
-    }
-
-    /**
-     * When nickname contents change, enable/disable buttons as appropriate. ({@link TextListener})
-     * @param e textevent from {@link #nick}
-     * @since 1.1.07
-     */
-    public void textValueChanged(TextEvent e)
-    {
-        boolean notEmpty = (nick.getText().trim().length() > 0);
-        if (notEmpty != ng.isEnabled())
-        {
-            ng.setEnabled(notEmpty);
-            jc.setEnabled(notEmpty);
-        }
-    }
-
-    /**
-     * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ItemListener})
-     * @param e textevent from {@link #gmlist}
-     * @since 1.1.07
-     */
-    public void itemStateChanged(ItemEvent e)
-    {
-        boolean wasSel = (e.getStateChange() == ItemEvent.SELECTED);
-        if (wasSel != jg.isEnabled())
-        {
-            jg.setEnabled(wasSel);
-            so.setEnabled(wasSel && ((net.practiceServer != null)
-                || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
-        }
-    }
-
-    /**
-     * Handle mouse clicks and keyboard
-     */
-    public void actionPerformed(ActionEvent e)
-    {
-        try
-        {
-            Object target = e.getSource();
-            guardedActionPerform(target);
-        }
-        catch(Throwable thr)
-        {
-            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
-            thr.printStackTrace();
-            while (thr.getCause() != null)
-            {
-                thr = thr.getCause();
-                System.err.println(" --> Cause: " + thr + " --");
-                thr.printStackTrace();
-            }
-            System.err.println("-- Error stack trace end --");
-            System.err.println();
-        }
     }
 
     /**
@@ -3090,16 +3089,21 @@ public class SOCPlayerClient extends Applet
      * handle the "make offer" message
      * @param mes  the message
      */
-    protected void handleMAKEOFFER(SOCMakeOffer mes)
+    protected void handleMAKEOFFER(final SOCMakeOffer mes)
     {
-        SOCGame ga = games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            SOCTradeOffer offer = mes.getOffer();
-            ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
-            pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer();
+            // Since the message is from the network thread, ensure it runs in the display thread
+            javax.swing.SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+                    SOCTradeOffer offer = mes.getOffer();
+                    ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
+                    pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer();
+                }
+            });
         }
     }
 
@@ -3107,25 +3111,30 @@ public class SOCPlayerClient extends Applet
      * handle the "clear offer" message
      * @param mes  the message
      */
-    protected void handleCLEAROFFER(SOCClearOffer mes)
+    protected void handleCLEAROFFER(final SOCClearOffer mes)
     {
-        SOCGame ga = games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            final int pn = mes.getPlayerNumber();
-            if (pn != -1)
-            {
-                ga.getPlayer(pn).setCurrentOffer(null);
-                pi.getPlayerHandPanel(pn).updateCurrentOffer();
-            } else {
-                for (int i = 0; i < ga.maxPlayers; ++i)
-                {
-                    ga.getPlayer(i).setCurrentOffer(null);
-                    pi.getPlayerHandPanel(i).updateCurrentOffer();
+            // Since the message is from the network thread, ensure it runs in the display thread
+            javax.swing.SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+                    final int pn = mes.getPlayerNumber();
+                    if (pn != -1)
+                    {
+                        ga.getPlayer(pn).setCurrentOffer(null);
+                        pi.getPlayerHandPanel(pn).updateCurrentOffer();
+                    } else {
+                        for (int i = 0; i < ga.maxPlayers; ++i)
+                        {
+                            ga.getPlayer(i).setCurrentOffer(null);
+                            pi.getPlayerHandPanel(i).updateCurrentOffer();
+                        }
+                    }
                 }
-            }
+            });
         }
     }
 
@@ -3503,7 +3512,7 @@ public class SOCPlayerClient extends Applet
         else
             opts = tcpServGameOpts;
 
-        Vector unknowns;
+        Vector<String> unknowns;
         synchronized(opts)
         {
             // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
@@ -3618,13 +3627,9 @@ public class SOCPlayerClient extends Applet
             tcpServGameOpts.noMoreOptions(false);
         }
 
-        Enumeration gamesEnum = msgGames.getGames();
-        while (gamesEnum.hasMoreElements())
+        for (String gaName : msgGames.getGameNames())
         {
-            String gaName = (String) gamesEnum.nextElement();
-            addToGameList
-                (msgGames.isUnjoinableGame(gaName), gaName,
-                 msgGames.getGameOptionsString(gaName), false);
+            addToGameList(msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
         }
     }
 
@@ -3744,7 +3749,7 @@ public class SOCPlayerClient extends Applet
 
         // String gameName = thing + STATSPREFEX + "-- -- -- --]";
 
-        if ((gmlist.countItems() > 0) && (gmlist.getItem(0).equals(" ")))
+        if ((gmlist.getItemCount() > 0) && (gmlist.getItem(0).equals(" ")))
         {
             gmlist.replaceItem(gameName, 0);
             gmlist.select(0);
@@ -4667,16 +4672,51 @@ public class SOCPlayerClient extends Applet
 
         net.initLocalServer(tport);
 
+        MouseAdapter mouseListener = new MouseAdapter()
+        {
+            /**
+             * When the local-server info label is clicked,
+             * show a popup with more info.
+             * @since 1.1.12
+             */
+            public void mouseClicked(MouseEvent e)
+            {
+                NotifyDialog.createAndShow(SOCPlayerClient.this, null, "For other players to connect to your server,\nthey need only your IP address and port " +
+                        "number.\nNo other server software install is needed.\nMake sure your firewall allows inbound traffic on port " + net.getLocalServerPort() + ".",
+                        "OK", true);
+            }
+
+            /**
+             * Set the hand cursor when entering the local-server info label.
+             * @since 1.1.12
+             */
+            public void mouseEntered(MouseEvent e)
+            {
+                if (e.getSource() == localTCPServerLabel)
+                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+
+            /**
+             * Clear the cursor when exiting the local-server info label.
+             * @since 1.1.12
+             */
+            public void mouseExited(MouseEvent e)
+            {
+                if (e.getSource() == localTCPServerLabel)
+                    setCursor(Cursor.getDefaultCursor());
+            }
+        };
+        
         // Set label
         localTCPServerLabel.setText("Server is Running. (Click for info)");
         localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
-        localTCPServerLabel.addMouseListener(this);
+        localTCPServerLabel.addMouseListener(mouseListener);
         versionOrlocalTCPPortLabel.setText("Port: " + tport);
         new AWTToolTip("You are running a server on TCP port " + tport
             + ". Version " + Version.version()
             + " bld " + Version.buildnum(),
             versionOrlocalTCPPortLabel);
-        versionOrlocalTCPPortLabel.addMouseListener(this);
+        versionOrlocalTCPPortLabel.addMouseListener(mouseListener);
 
         // Set titlebar, if present
         {
@@ -4861,48 +4901,6 @@ public class SOCPlayerClient extends Applet
         frame.setSize(620, 400);
         frame.setVisible(true);
     }
-
-    /**
-     * When the local-server info label is clicked,
-     * show a popup with more info.
-     * @since 1.1.12
-     */
-    public void mouseClicked(MouseEvent e)
-    {
-        NotifyDialog.createAndShow
-            (this, null, "For other players to connect to your server,\n" +
-                         "they need only your IP address and port number.\n" +
-                         "No other server software install is needed.\n" +
-                         "Make sure your firewall allows inbound traffic on " +
-                         "port " + net.getLocalServerPort() + ".",
-             "OK", true);
-    }
-
-    /**
-     * Set the hand cursor when entering the local-server info label.
-     * @since 1.1.12
-     */
-    public void mouseEntered(MouseEvent e)
-    {
-        if (e.getSource() == localTCPServerLabel)
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    }
-
-    /**
-     * Clear the cursor when exiting the local-server info label.
-     * @since 1.1.12
-     */
-    public void mouseExited(MouseEvent e)
-    {
-        if (e.getSource() == localTCPServerLabel)
-            setCursor(Cursor.getDefaultCursor());
-    }
-
-    /** required stub for {@link MouseListener} */
-    public void mousePressed(MouseEvent e) {}
-
-    /** required stub for {@link MouseListener} */
-    public void mouseReleased(MouseEvent e) {}
 
     private WindowAdapter createWindowAdapter()
     {
