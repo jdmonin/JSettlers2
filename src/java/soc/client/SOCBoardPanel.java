@@ -4544,7 +4544,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     hilight = 0;  // Road on edge 0x00
                 if (player.isPotentialRoad(hilight) && ! hilightIsShip)
                 {
-                    client.putPiece(game, new SOCRoad(player, hilight, board));
+                    client.getGameManager().putPiece(game, new SOCRoad(player, hilight, board));
 
                     // Now that we've placed, clear the mode and the hilight.
                     clearModeAndHilight(SOCPlayingPiece.ROAD);
@@ -4553,7 +4553,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
                 else if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                 {
-                    client.putPiece(game, new SOCShip(player, hilight, board));
+                    client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
 
                     // Now that we've placed, clear the mode and the hilight.
                     clearModeAndHilight(SOCPlayingPiece.SHIP);
@@ -4568,7 +4568,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     if (game.canMoveShip(playerNumber, moveShip_fromEdge, hilight) != null)
                     {
-                        client.movePieceRequest
+                        client.getGameManager().movePieceRequest
                             (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, hilight);
                         clearModeAndHilight(SOCPlayingPiece.SHIP);
                     }
@@ -4589,7 +4589,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (player.isPotentialSettlement(hilight))
                 {
-                    client.putPiece(game, new SOCSettlement(player, hilight, board));
+                    client.getGameManager().putPiece(game, new SOCSettlement(player, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                     if (tempChangedMode)
                         hoverTip.hideHoverAndPieces();
@@ -4601,7 +4601,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (player.isPotentialCity(hilight))
                 {
-                    client.putPiece(game, new SOCCity(player, hilight, board));
+                    client.getGameManager().putPiece(game, new SOCCity(player, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.CITY);
                     if (tempChangedMode)
                         hoverTip.hideHoverAndPieces();
@@ -4613,7 +4613,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (game.canPlaceShip(player, hilight))  // checks isPotentialShip, pirate ship
                 {
-                    client.putPiece(game, new SOCShip(player, hilight, board));
+                    client.getGameManager().putPiece(game, new SOCShip(player, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SHIP);
                     if (tempChangedMode)
                         hoverTip.hideHoverAndPieces();
@@ -4647,7 +4647,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     else
                     {
                         // ask server to move it
-                        client.moveRobber(game, player, hilight);
+                        client.getGameManager().moveRobber(game, player, hilight);
                         clearModeAndHilight(-1);
                     }
                 }
@@ -4681,7 +4681,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     else
                     {
                         // ask server to move it
-                        client.moveRobber(game, player, -hilight);
+                        client.getGameManager().moveRobber(game, player, -hilight);
                         clearModeAndHilight(-1);
                     }
                 }
@@ -4692,7 +4692,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (otherPlayer.isPotentialSettlement(hilight))
                 {
-                    client.considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                    client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                 }
 
@@ -4702,7 +4702,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (otherPlayer.isPotentialRoad(hilight))
                 {
-                    client.considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                    client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.ROAD);
                 }
 
@@ -4712,7 +4712,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (otherPlayer.isPotentialCity(hilight))
                 {
-                    client.considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                    client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.CITY);
                 }
 
@@ -4722,7 +4722,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (otherPlayer.isPotentialSettlement(hilight))
                 {
-                    client.considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
+                    client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
                 }
 
@@ -4732,7 +4732,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (otherPlayer.isPotentialRoad(hilight))
                 {
-                    client.considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
+                    client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCRoad(otherPlayer, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.ROAD);
                 }
 
@@ -4742,7 +4742,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (otherPlayer.isPotentialCity(hilight))
                 {
-                    client.considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
+                    client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCCity(otherPlayer, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.CITY);
                 }
 
@@ -6531,7 +6531,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildRoad(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().putPiece(game, new SOCRoad(player, buildLoc, board));
+                  playerInterface.getClient().getGameManager().putPiece(game, new SOCRoad(player, buildLoc, board));
               btarget = SOCBuildingPanel.ROAD;
               break;
 
@@ -6542,7 +6542,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   canBuild = canBuild && game.couldBuildSettlement(cpn);
               if (canBuild && sendNow)
               {
-                  playerInterface.getClient().putPiece(game, new SOCSettlement(player, buildLoc, board));
+                  playerInterface.getClient().getGameManager().putPiece(game, new SOCSettlement(player, buildLoc, board));
                   if (isInitialPlacement)
                       initstlmt = buildLoc;  // track for initial road mouseover hilight
               }
@@ -6555,7 +6555,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildCity(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().putPiece(game, new SOCCity(player, buildLoc, board));
+                  playerInterface.getClient().getGameManager().putPiece(game, new SOCCity(player, buildLoc, board));
               btarget = SOCBuildingPanel.CITY;
               break;
 
@@ -6565,7 +6565,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildShip(cpn);
               if (canBuild && sendNow)
-                  playerInterface.getClient().putPiece(game, new SOCShip(player, buildLoc, board));
+                  playerInterface.getClient().getGameManager().putPiece(game, new SOCShip(player, buildLoc, board));
               btarget = SOCBuildingPanel.SHIP;
               break;
 
@@ -6826,22 +6826,22 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
             case SOCPlayingPiece.ROAD:
                 if (player.isPotentialRoad(buildLoc))
-                    client.putPiece(game, new SOCRoad(player, buildLoc, board));
+                    client.getGameManager().putPiece(game, new SOCRoad(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
                 if (player.isPotentialSettlement(buildLoc))
-                    client.putPiece(game, new SOCSettlement(player, buildLoc, board));
+                    client.getGameManager().putPiece(game, new SOCSettlement(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.CITY:
                 if (player.isPotentialCity(buildLoc))
-                    client.putPiece(game, new SOCCity(player, buildLoc, board));
+                    client.getGameManager().putPiece(game, new SOCCity(player, buildLoc, board));
                 break;
 
             case SOCPlayingPiece.SHIP:
                 if (game.canPlaceShip(player, buildLoc))  // checks isPotentialShip, pirate ship
-                    client.putPiece(game, new SOCShip(player, buildLoc, board));
+                    client.getGameManager().putPiece(game, new SOCShip(player, buildLoc, board));
                 break;
             }
 
@@ -6901,7 +6901,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         public void button1Chosen()
         {
             // ask server to move it
-            pcli.moveRobber(game, pl, robHex);
+            pcli.getGameManager().moveRobber(game, pl, robHex);
             clearModeAndHilight(-1);
         }
 

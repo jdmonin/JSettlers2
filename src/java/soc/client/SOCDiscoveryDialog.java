@@ -209,7 +209,7 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
             if (sum == 2)
             {
                 SOCResourceSet resources = new SOCResourceSet(rsrcCnt);
-                pi.getClient().discoveryPick(pi.getGame(), resources);
+                pi.getClient().getGameManager().discoveryPick(pi.getGame(), resources);
                 dispose();
             }
         }

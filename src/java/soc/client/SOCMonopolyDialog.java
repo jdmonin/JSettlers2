@@ -134,7 +134,7 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
                 /**
                  * Note: This only works if SOCResourceConstants.CLAY == 1
                  */
-                pi.getClient().monopolyPick(pi.getGame(), i + 1);
+                pi.getClient().getGameManager().monopolyPick(pi.getGame(), i + 1);
                 dispose();
 
                 break;

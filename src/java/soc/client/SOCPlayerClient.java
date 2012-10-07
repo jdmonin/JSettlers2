@@ -22,8 +22,6 @@
 package soc.client;
 
 import java.applet.Applet;
-import java.applet.AppletContext;
-
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.CardLayout;
@@ -41,8 +39,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
@@ -114,8 +112,7 @@ import soc.util.Version;
  *
  * @author Robert S Thomas
  */
-public class SOCPlayerClient extends Applet
-    implements ActionListener, TextListener, ItemListener, MouseListener
+public class SOCPlayerClient extends Panel
 {
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
@@ -172,7 +169,6 @@ public class SOCPlayerClient extends Applet
     private Label versionOrlocalTCPPortLabel;   // shows port number in mainpanel, if running localTCPServer;
                                          // shows remote version# when connected to a remote server
     protected Button pgm;  // practice game on messagepanel
-    protected AppletContext ac;
 
     /**
      * SOCPlayerClient displays one of several panels to the user:
@@ -193,7 +189,12 @@ public class SOCPlayerClient extends Applet
      * Helper object to receive incoming network traffic from the server.
      */
     private MessageTreater treater;
-
+    
+    /**
+     * Helper object to send outgoing network traffic to the server.
+     */
+    private GameManager gameManager;
+    
     /**
      *  Server version number for remote server, sent soon after connect, or -1 if unknown.
      *  A local server's version is always {@link Version#versionNumber()}.
@@ -401,7 +402,8 @@ public class SOCPlayerClient extends Applet
         lastFaceChange = 1;  // Default human face
         
         net = new ClientNetwork(this);
-        treater = new MessageTreater();
+        treater = new MessageTreater(this);
+        gameManager = new GameManager(this);
     }
 
     /**
@@ -438,20 +440,74 @@ public class SOCPlayerClient extends Applet
         jg.setEnabled(false);
         so.setEnabled(false);
 
-        nick.addTextListener(this);    // Will enable buttons when field is not empty
-        nick.addActionListener(this);  // hit Enter to go to next field
-        pass.addActionListener(this);
-        channel.addActionListener(this);
-        chlist.addActionListener(this);
-        gmlist.addActionListener(this);
-        gmlist.addItemListener(this);
-        ng.addActionListener(this);
-        jc.addActionListener(this);
-        jg.addActionListener(this);
-        pg.addActionListener(this);        
-        so.addActionListener(this);        
-
-        ac = null;
+        nick.addTextListener(new TextListener()
+        {
+            /**
+             * When nickname contents change, enable/disable buttons as appropriate. ({@link TextListener})
+             * @param e textevent from {@link #nick}
+             * @since 1.1.07
+             */
+            public void textValueChanged(TextEvent e)
+            {
+                boolean notEmpty = (nick.getText().trim().length() > 0);
+                if (notEmpty != ng.isEnabled())
+                {
+                    ng.setEnabled(notEmpty);
+                    jc.setEnabled(notEmpty);
+                }
+            }
+        });
+        
+        ActionListener actionListener = new ActionListener()
+        {
+            /**
+             * Handle mouse clicks and keyboard
+             */
+            public void actionPerformed(ActionEvent e)
+            {
+                try
+                {
+                    Object target = e.getSource();
+                    guardedActionPerform(target);
+                }
+                catch (Throwable thr)
+                {
+                    System.err.println("-- Error caught in AWT event thread: " + thr + " --");
+                    thr.printStackTrace(); // will print causal chain, no need to manually iterate
+                    System.err.println("-- Error stack trace end --");
+                    System.err.println();
+                }
+            }
+        };
+        
+        nick.addActionListener(actionListener);  // hit Enter to go to next field
+        pass.addActionListener(actionListener);
+        channel.addActionListener(actionListener);
+        chlist.addActionListener(actionListener);
+        gmlist.addActionListener(actionListener);
+        gmlist.addItemListener(new ItemListener()
+        {
+            /**
+             * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ItemListener})
+             * @param e textevent from {@link #gmlist}
+             * @since 1.1.07
+             */
+            @Override
+            public void itemStateChanged(ItemEvent e)
+            {
+                boolean wasSel = (e.getStateChange() == ItemEvent.SELECTED);
+                if (wasSel != jg.isEnabled())
+                {
+                    jg.setEnabled(wasSel);
+                    so.setEnabled(wasSel && ((net.practiceServer != null) || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
+                }
+            }
+        });
+        ng.addActionListener(actionListener);
+        jc.addActionListener(actionListener);
+        jg.addActionListener(actionListener);
+        pg.addActionListener(actionListener);
+        so.addActionListener(actionListener);
 
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
@@ -640,7 +696,7 @@ public class SOCPlayerClient extends Applet
         pgm = new Button("Practice Game (against robots)");
         pgm.setVisible(false);
         messagePane.add(pgm, BorderLayout.SOUTH);
-        pgm.addActionListener(this);
+        pgm.addActionListener(actionListener);
 
         // all together now...
         cardLayout = new CardLayout();
@@ -656,88 +712,6 @@ public class SOCPlayerClient extends Applet
 
         messageLabel.setText("Waiting to connect.");
         validate();
-    }
-
-    /**
-     * Retrieve a parameter and translate to a hex value.
-     *
-     * @param name a parameter name. null is ignored
-     * @return the parameter parsed as a hex value or -1 on error
-     */
-    public int getHexParameter(String name)
-    {
-        String value = null;
-        int iValue = -1;
-        try
-        {
-            value = getParameter(name);
-            if (value != null)
-            {
-                iValue = Integer.parseInt(value, 16);
-            }
-        }
-        catch (Exception e)
-        {
-            System.err.println("Invalid " + name + ": " + value);
-        }
-        return iValue;
-    }
-
-    /**
-     * Called when the applet should start it's work.
-     */
-    public void start()
-    {
-        if (! hasConnectOrPractice)
-            nick.requestFocus();
-    }
-    
-    /**
-     * Initialize the applet
-     */
-    public synchronized void init()
-    {
-        System.out.println("Java Settlers Client " + Version.version() +
-                           ", build " + Version.buildnum() + ", " + Version.copyright());
-        System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
-
-        String param = null;
-        int intValue;
-            
-        intValue = getHexParameter("background"); 
-        if (intValue != -1)
-                setBackground(new Color(intValue));
-
-        intValue = getHexParameter("foreground");
-        if (intValue != -1)
-            setForeground(new Color(intValue));
-
-        initVisualElements(); // after the background is set
-
-        param = getParameter("suggestion");
-        if (param != null)
-            channel.setText(param); // after visuals initialized
-
-        param = getParameter("nickname");  // for use with dynamically-generated html
-        if (param != null)
-            nick.setText(param);
-
-        System.out.println("Getting host...");
-        String host = getCodeBase().getHost();
-        if (host.equals(""))
-            host = null;  // localhost
-
-        int port = ClientNetwork.SOC_PORT_DEFAULT;
-        try {
-            param = getParameter("PORT");
-            if (param != null)
-                port = Integer.parseInt(param);
-        }
-        catch (Exception e) {
-            System.err.println("Invalid port: " + param);
-        }
-
-        net.connect(host, port);
     }
 
     /**
@@ -763,62 +737,6 @@ public class SOCPlayerClient extends Applet
     public String getNickname()
     {
         return nickname;
-    }
-
-    /**
-     * When nickname contents change, enable/disable buttons as appropriate. ({@link TextListener})
-     * @param e textevent from {@link #nick}
-     * @since 1.1.07
-     */
-    public void textValueChanged(TextEvent e)
-    {
-        boolean notEmpty = (nick.getText().trim().length() > 0);
-        if (notEmpty != ng.isEnabled())
-        {
-            ng.setEnabled(notEmpty);
-            jc.setEnabled(notEmpty);
-        }
-    }
-
-    /**
-     * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ItemListener})
-     * @param e textevent from {@link #gmlist}
-     * @since 1.1.07
-     */
-    public void itemStateChanged(ItemEvent e)
-    {
-        boolean wasSel = (e.getStateChange() == ItemEvent.SELECTED);
-        if (wasSel != jg.isEnabled())
-        {
-            jg.setEnabled(wasSel);
-            so.setEnabled(wasSel && ((net.practiceServer != null)
-                || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
-        }
-    }
-
-    /**
-     * Handle mouse clicks and keyboard
-     */
-    public void actionPerformed(ActionEvent e)
-    {
-        try
-        {
-            Object target = e.getSource();
-            guardedActionPerform(target);
-        }
-        catch(Throwable thr)
-        {
-            System.err.println("-- Error caught in AWT event thread: " + thr + " --");
-            thr.printStackTrace();
-            while (thr.getCause() != null)
-            {
-                thr = thr.getCause();
-                System.err.println(" --> Cause: " + thr + " --");
-                thr.printStackTrace();
-            }
-            System.err.println("-- Error stack trace end --");
-            System.err.println();
-        }
     }
 
     /**
@@ -1346,7 +1264,7 @@ public class SOCPlayerClient extends Applet
         opts.newGameWaitingForOpts = true;
         opts.askedDefaultsAlready = true;
         opts.askedDefaultsTime = System.currentTimeMillis();
-        put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
+        gameManager.put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
 
         if (gameOptsDefsTask != null)
             gameOptsDefsTask.cancel();
@@ -1441,31 +1359,18 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * Write a message to the net or the local practice server.
-     * Because the player can be in both network games and local games,
-     * we must route to the appropriate client-server connection.
-     * 
-     * @param s  the message
-     * @param isPractice Is the server local (practice game), not network?
-     *                {@link #localTCPServer} is considered "network" here.
-     *                Use <tt>isPractice</tt> only with {@link #practiceServer}.
-     * @return true if the message was sent, false if not
-     */
-    public synchronized boolean put(String s, final boolean isPractice)
-    {
-        if (isPractice)
-            return net.putPractice(s);
-        return net.putNet(s);
-    }
-
-    /**
      * Nested class for processing incoming messages (treating).
      * @author paulbilnoski
      */
     private class MessageTreater
     {
-        public MessageTreater()
+        private final SOCPlayerClient client;
+        private final GameManager gmgr;
+        
+        public MessageTreater(SOCPlayerClient client)
         {
+            this.client = client;
+            gmgr = client.getGameManager();
         }
 
     /**
@@ -2038,7 +1943,7 @@ public class SOCPlayerClient extends Applet
             // Newer server: Ask it to list any options we don't know about yet.
             if (! isPractice)
                 gameOptionsSetTimeoutTask();
-            put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
+            gmgr.put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
         }
         else if (sVersion < cliVersion)
         {
@@ -2051,7 +1956,7 @@ public class SOCPlayerClient extends Applet
                 {
                     if (! isPractice)
                         gameOptionsSetTimeoutTask();
-                    put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isPractice);
+                    gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isPractice);
                 }
             } else {
                 // server is too old to understand options. Can't happen with local practice srv,
@@ -2544,7 +2449,7 @@ public class SOCPlayerClient extends Applet
                 if (! ga.isBoardReset() && (ga.getGameState() < SOCGame.START1A))
                 {
                     ga.getPlayer(mesPN).setFaceId(lastFaceChange);
-                    changeFace(ga, lastFaceChange);
+                    gmgr.changeFace(ga, lastFaceChange);
                 }
             }
 
@@ -2610,10 +2515,10 @@ public class SOCPlayerClient extends Applet
         int timeval = mes.getSleepTime();
         if (timeval != -1)
         {
-            put(mes.toCmd(), isPractice);
+            gmgr.put(mes.toCmd(), isPractice);
         } else {
             net.ex = new RuntimeException("Kicked by player with same name.");
-            destroy();
+            client.dispose();
         }
     }
 
@@ -3090,16 +2995,21 @@ public class SOCPlayerClient extends Applet
      * handle the "make offer" message
      * @param mes  the message
      */
-    protected void handleMAKEOFFER(SOCMakeOffer mes)
+    protected void handleMAKEOFFER(final SOCMakeOffer mes)
     {
-        SOCGame ga = games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            SOCTradeOffer offer = mes.getOffer();
-            ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
-            pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer();
+            // Since the message is from the network thread, ensure it runs in the display thread
+            javax.swing.SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+                    SOCTradeOffer offer = mes.getOffer();
+                    ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
+                    pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer();
+                }
+            });
         }
     }
 
@@ -3107,25 +3017,30 @@ public class SOCPlayerClient extends Applet
      * handle the "clear offer" message
      * @param mes  the message
      */
-    protected void handleCLEAROFFER(SOCClearOffer mes)
+    protected void handleCLEAROFFER(final SOCClearOffer mes)
     {
-        SOCGame ga = games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
-            final int pn = mes.getPlayerNumber();
-            if (pn != -1)
-            {
-                ga.getPlayer(pn).setCurrentOffer(null);
-                pi.getPlayerHandPanel(pn).updateCurrentOffer();
-            } else {
-                for (int i = 0; i < ga.maxPlayers; ++i)
-                {
-                    ga.getPlayer(i).setCurrentOffer(null);
-                    pi.getPlayerHandPanel(i).updateCurrentOffer();
+            // Since the message is from the network thread, ensure it runs in the display thread
+            javax.swing.SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+                    final int pn = mes.getPlayerNumber();
+                    if (pn != -1)
+                    {
+                        ga.getPlayer(pn).setCurrentOffer(null);
+                        pi.getPlayerHandPanel(pn).updateCurrentOffer();
+                    } else {
+                        for (int i = 0; i < ga.maxPlayers; ++i)
+                        {
+                            ga.getPlayer(i).setCurrentOffer(null);
+                            pi.getPlayerHandPanel(i).updateCurrentOffer();
+                        }
+                    }
                 }
-            }
+            });
         }
     }
 
@@ -3503,7 +3418,7 @@ public class SOCPlayerClient extends Applet
         else
             opts = tcpServGameOpts;
 
-        Vector unknowns;
+        Vector<String> unknowns;
         synchronized(opts)
         {
             // receiveDefaults sets opts.defaultsReceived, may set opts.allOptionsReceived
@@ -3515,7 +3430,7 @@ public class SOCPlayerClient extends Applet
         {
             if (! isPractice)
                 gameOptionsSetTimeoutTask();
-            put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isPractice);
+            gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
             if (gameOptsDefsTask != null)
@@ -3618,13 +3533,9 @@ public class SOCPlayerClient extends Applet
             tcpServGameOpts.noMoreOptions(false);
         }
 
-        Enumeration gamesEnum = msgGames.getGames();
-        while (gamesEnum.hasMoreElements())
+        for (String gaName : msgGames.getGameNames())
         {
-            String gaName = (String) gamesEnum.nextElement();
-            addToGameList
-                (msgGames.isUnjoinableGame(gaName), gaName,
-                 msgGames.getGameOptionsString(gaName), false);
+            addToGameList(msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
         }
     }
 
@@ -3744,7 +3655,7 @@ public class SOCPlayerClient extends Applet
 
         // String gameName = thing + STATSPREFEX + "-- -- -- --]";
 
-        if ((gmlist.countItems() > 0) && (gmlist.getItem(0).equals(" ")))
+        if ((gmlist.getItemCount() > 0) && (gmlist.getItem(0).equals(" ")))
         {
             gmlist.replaceItem(gameName, 0);
             gmlist.select(0);
@@ -3984,6 +3895,44 @@ public class SOCPlayerClient extends Applet
         net.putNet(SOCLeave.toCmd(nickname, net.getHost(), ch));
     }
 
+    public GameManager getGameManager()
+    {
+        return gameManager;
+    }
+    
+    /**
+     * Nested class for processing outgoing messages (putting).
+     * @author paulbilnoski
+     */
+    public static class GameManager
+    {
+        private final SOCPlayerClient client;
+        private final ClientNetwork net;
+
+        GameManager(SOCPlayerClient client)
+        {
+            this.client = client;
+            net = client.getNet();
+        }
+        
+        /**
+         * Write a message to the net or local server.
+         * Because the player can be in both network games and local games,
+         * we must route to the appropriate client-server connection.
+         * 
+         * @param s  the message
+         * @param isPractice Is the server local (practice game), not network?
+         *                {@link #localTCPServer} is considered "network" here.
+         *                Use <tt>isPractice</tt> only with {@link #practiceServer}.
+         * @return true if the message was sent, false if not
+         */
+        private synchronized boolean put(String s, final boolean isPractice)
+        {
+            if (isPractice)
+                return net.putPractice(s);
+            return net.putNet(s);
+        }
+
     /**
      * request to buy a development card
      *
@@ -4074,9 +4023,9 @@ public class SOCPlayerClient extends Applet
      */
     public void sendText(SOCGame ga, String me)
     {
-        if (!doLocalCommand(ga, me))
+        if (!client.doLocalCommand(ga, me))
         {
-            put(SOCGameTextMsg.toCmd(ga.getName(), nickname, me), ga.isPractice);
+            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, me), ga.isPractice);
         }
     }
 
@@ -4087,9 +4036,9 @@ public class SOCPlayerClient extends Applet
      */
     public void leaveGame(SOCGame ga)
     {
-        playerInterfaces.remove(ga.getName());
-        games.remove(ga.getName());
-        put(SOCLeaveGame.toCmd(nickname, net.getHost(), ga.getName()), ga.isPractice);
+        client.playerInterfaces.remove(ga.getName());
+        client.games.remove(ga.getName());
+        put(SOCLeaveGame.toCmd(client.nickname, net.getHost(), ga.getName()), ga.isPractice);
     }
 
     /**
@@ -4177,7 +4126,7 @@ public class SOCPlayerClient extends Applet
      */
     public void rejectOffer(SOCGame ga)
     {
-        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()), ga.isPractice);
+        put(SOCRejectOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber()), ga.isPractice);
     }
 
     /**
@@ -4188,7 +4137,7 @@ public class SOCPlayerClient extends Applet
      */
     public void acceptOffer(SOCGame ga, int from)
     {
-        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), from), ga.isPractice);
+        put(SOCAcceptOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber(), from), ga.isPractice);
     }
 
     /**
@@ -4198,7 +4147,7 @@ public class SOCPlayerClient extends Applet
      */
     public void clearOffer(SOCGame ga)
     {
-        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber()), ga.isPractice);
+        put(SOCClearOffer.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber()), ga.isPractice);
     }
 
     /**
@@ -4232,7 +4181,7 @@ public class SOCPlayerClient extends Applet
      */
     public void playDevCard(SOCGame ga, int dc)
     {
-        if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
+        if ((! ga.isPractice) && (client.sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
         {
             if (dc == SOCDevCardConstants.KNIGHT)
                 dc = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
@@ -4272,8 +4221,8 @@ public class SOCPlayerClient extends Applet
      */
     public void changeFace(SOCGame ga, int id)
     {
-        lastFaceChange = id;
-        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(nickname).getPlayerNumber(), id), ga.isPractice);
+        client.lastFaceChange = id;
+        put(SOCChangeFace.toCmd(ga.getName(), ga.getPlayer(client.nickname).getPlayerNumber(), id), ga.isPractice);
     }
 
     /**
@@ -4317,6 +4266,77 @@ public class SOCPlayerClient extends Applet
     {
         put(SOCResetBoardVote.toCmd(ga.getName(), pn, voteYes), ga.isPractice);
     }
+    
+        /**
+         * send a command to the server with a message
+         * asking a robot to show the debug info for
+         * a possible move after a move has been made
+         *
+         * @param ga  the game
+         * @param pname  the robot name
+         * @param piece  the piece to consider
+         */
+        public void considerMove(SOCGame ga, String pname, SOCPlayingPiece piece)
+        {
+            String msg = pname + ":consider-move ";
+    
+            switch (piece.getType())
+            {
+            case SOCPlayingPiece.SETTLEMENT:
+                msg += "settlement";
+    
+                break;
+    
+            case SOCPlayingPiece.ROAD:
+                msg += "road";
+    
+                break;
+    
+            case SOCPlayingPiece.CITY:
+                msg += "city";
+    
+                break;
+            }
+    
+            msg += (" " + piece.getCoordinates());
+            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+        }
+    
+        /**
+         * send a command to the server with a message
+         * asking a robot to show the debug info for
+         * a possible move before a move has been made
+         *
+         * @param ga  the game
+         * @param pname  the robot name
+         * @param piece  the piece to consider
+         */
+        public void considerTarget(SOCGame ga, String pname, SOCPlayingPiece piece)
+        {
+            String msg = pname + ":consider-target ";
+    
+            switch (piece.getType())
+            {
+            case SOCPlayingPiece.SETTLEMENT:
+                msg += "settlement";
+    
+                break;
+    
+            case SOCPlayingPiece.ROAD:
+                msg += "road";
+    
+                break;
+    
+            case SOCPlayingPiece.CITY:
+                msg += "city";
+    
+                break;
+            }
+    
+            msg += (" " + piece.getCoordinates());
+            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, msg), ga.isPractice);
+        }
+    }  // nested class GameManager
 
     /**
      * Handle local client commands for channels.
@@ -4503,76 +4523,6 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * send a command to the server with a message
-     * asking a robot to show the debug info for
-     * a possible move after a move has been made
-     *
-     * @param ga  the game
-     * @param pname  the robot name
-     * @param piece  the piece to consider
-     */
-    public void considerMove(SOCGame ga, String pname, SOCPlayingPiece piece)
-    {
-        String msg = pname + ":consider-move ";
-
-        switch (piece.getType())
-        {
-        case SOCPlayingPiece.SETTLEMENT:
-            msg += "settlement";
-
-            break;
-
-        case SOCPlayingPiece.ROAD:
-            msg += "road";
-
-            break;
-
-        case SOCPlayingPiece.CITY:
-            msg += "city";
-
-            break;
-        }
-
-        msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, msg), ga.isPractice);
-    }
-
-    /**
-     * send a command to the server with a message
-     * asking a robot to show the debug info for
-     * a possible move before a move has been made
-     *
-     * @param ga  the game
-     * @param pname  the robot name
-     * @param piece  the piece to consider
-     */
-    public void considerTarget(SOCGame ga, String pname, SOCPlayingPiece piece)
-    {
-        String msg = pname + ":consider-target ";
-
-        switch (piece.getType())
-        {
-        case SOCPlayingPiece.SETTLEMENT:
-            msg += "settlement";
-
-            break;
-
-        case SOCPlayingPiece.ROAD:
-            msg += "road";
-
-            break;
-
-        case SOCPlayingPiece.CITY:
-            msg += "city";
-
-            break;
-        }
-
-        msg += (" " + piece.getCoordinates());
-        put(SOCGameTextMsg.toCmd(ga.getName(), nickname, msg), ga.isPractice);
-    }
-
-    /**
      * Start the game-options info timeout
      * ({@link GameOptionsTimeoutTask}) at 5 seconds.
      * @see #gameOptionsCancelTimeoutTask()
@@ -4667,16 +4617,58 @@ public class SOCPlayerClient extends Applet
 
         net.initLocalServer(tport);
 
+        MouseAdapter mouseListener = new MouseAdapter()
+        {
+            /**
+             * When the local-server info label is clicked,
+             * show a popup with more info.
+             * @since 1.1.12
+             */
+            public void mouseClicked(MouseEvent e)
+            {
+                NotifyDialog.createAndShow
+                    (SOCPlayerClient.this,
+                     null,
+                     "For other players to connect to your server,\n" +
+                             "they need only your IP address and port number.\n" +
+                             "No other server software install is needed.\n" +
+                             "Make sure your firewall allows inbound traffic on " +
+                             "port " + net.getLocalServerPort() + ".",
+                     "OK",
+                     true);
+            }
+
+            /**
+             * Set the hand cursor when entering the local-server info label.
+             * @since 1.1.12
+             */
+            public void mouseEntered(MouseEvent e)
+            {
+                if (e.getSource() == localTCPServerLabel)
+                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
+
+            /**
+             * Clear the cursor when exiting the local-server info label.
+             * @since 1.1.12
+             */
+            public void mouseExited(MouseEvent e)
+            {
+                if (e.getSource() == localTCPServerLabel)
+                    setCursor(Cursor.getDefaultCursor());
+            }
+        };
+        
         // Set label
         localTCPServerLabel.setText("Server is Running. (Click for info)");
         localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
-        localTCPServerLabel.addMouseListener(this);
+        localTCPServerLabel.addMouseListener(mouseListener);
         versionOrlocalTCPPortLabel.setText("Port: " + tport);
         new AWTToolTip("You are running a server on TCP port " + tport
             + ". Version " + Version.version()
             + " bld " + Version.buildnum(),
             versionOrlocalTCPPortLabel);
-        versionOrlocalTCPPortLabel.addMouseListener(this);
+        versionOrlocalTCPPortLabel.addMouseListener(mouseListener);
 
         // Set titlebar, if present
         {
@@ -4722,25 +4714,6 @@ public class SOCPlayerClient extends Applet
             return sVersion;
     }
 
-    /**
-     * applet info, of the form similar to that seen at server startup:
-     * SOCPlayerClient (Java Settlers Client) 1.1.07, build JM20091027, 2001-2004 Robb Thomas, portions 2007-2009 Jeremy D Monin.
-     * Version and copyright info is from the {@link Version} utility class.
-     */
-    public String getAppletInfo()
-    {
-        return "SOCPlayerClient (Java Settlers Client) " + Version.version() +
-        ", build " + Version.buildnum() + ", " + Version.copyright();
-    }
-
-    /**
-     * Shut down; to be removed when this class is no longer an applet, for now just forward to {@link #dispose()}.
-     */
-    public void destroy()
-    {
-        dispose();
-    }
-    
     /**
      * network trouble; if possible, ask if they want to play locally (robots).
      * Otherwise, go ahead and shut down.
@@ -4861,48 +4834,6 @@ public class SOCPlayerClient extends Applet
         frame.setSize(620, 400);
         frame.setVisible(true);
     }
-
-    /**
-     * When the local-server info label is clicked,
-     * show a popup with more info.
-     * @since 1.1.12
-     */
-    public void mouseClicked(MouseEvent e)
-    {
-        NotifyDialog.createAndShow
-            (this, null, "For other players to connect to your server,\n" +
-                         "they need only your IP address and port number.\n" +
-                         "No other server software install is needed.\n" +
-                         "Make sure your firewall allows inbound traffic on " +
-                         "port " + net.getLocalServerPort() + ".",
-             "OK", true);
-    }
-
-    /**
-     * Set the hand cursor when entering the local-server info label.
-     * @since 1.1.12
-     */
-    public void mouseEntered(MouseEvent e)
-    {
-        if (e.getSource() == localTCPServerLabel)
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    }
-
-    /**
-     * Clear the cursor when exiting the local-server info label.
-     * @since 1.1.12
-     */
-    public void mouseExited(MouseEvent e)
-    {
-        if (e.getSource() == localTCPServerLabel)
-            setCursor(Cursor.getDefaultCursor());
-    }
-
-    /** required stub for {@link MouseListener} */
-    public void mousePressed(MouseEvent e) {}
-
-    /** required stub for {@link MouseListener} */
-    public void mouseReleased(MouseEvent e) {}
 
     private WindowAdapter createWindowAdapter()
     {
@@ -5680,5 +5611,117 @@ public class SOCPlayerClient extends Applet
         }
 
     }  // class GameOptionServerSet
+
+    public static class SOCApplet extends Applet
+    {
+        SOCPlayerClient client;
+        
+        /**
+         * Retrieve a parameter and translate to a hex value.
+         *
+         * @param name a parameter name. null is ignored
+         * @return the parameter parsed as a hex value or -1 on error
+         */
+        public int getHexParameter(String name)
+        {
+            String value = null;
+            int iValue = -1;
+            try
+            {
+                value = getParameter(name);
+                if (value != null)
+                {
+                    iValue = Integer.parseInt(value, 16);
+                }
+            }
+            catch (Exception e)
+            {
+                System.err.println("Invalid " + name + ": " + value);
+            }
+            return iValue;
+        }
+
+        /**
+         * Called when the applet should start it's work.
+         */
+        @Override
+        public void start()
+        {
+            if (!client.hasConnectOrPractice)
+                client.nick.requestFocus();
+        }
+        
+        /**
+         * Initialize the applet
+         */
+        @Override
+        public synchronized void init()
+        {
+            client = new SOCPlayerClient();
+            
+            System.out.println("Java Settlers Client " + Version.version() +
+                               ", build " + Version.buildnum() + ", " + Version.copyright());
+            System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+
+            String param = null;
+            int intValue;
+                
+            intValue = getHexParameter("background"); 
+            if (intValue != -1)
+                    setBackground(new Color(intValue));
+
+            intValue = getHexParameter("foreground");
+            if (intValue != -1)
+                setForeground(new Color(intValue));
+
+            client.initVisualElements(); // after the background is set
+            add(client);
+
+            param = getParameter("suggestion");
+            if (param != null)
+                client.channel.setText(param); // after visuals initialized
+
+            param = getParameter("nickname");  // for use with dynamically-generated html
+            if (param != null)
+                client.nick.setText(param);
+
+            System.out.println("Getting host...");
+            String host = getCodeBase().getHost();
+            if (host == null || host.equals(""))
+                //host = null;  // localhost
+                host = "127.0.0.1"; // localhost - don't use "localhost" because Java 6 applets do not work
+
+            int port = ClientNetwork.SOC_PORT_DEFAULT;
+            try {
+                param = getParameter("PORT");
+                if (param != null)
+                    port = Integer.parseInt(param);
+            }
+            catch (Exception e) {
+                System.err.println("Invalid port: " + param);
+            }
+
+            client.net.connect(host, port);
+        }
+        
+        /**
+         * applet info, of the form similar to that seen at server startup:
+         * SOCPlayerClient (Java Settlers Client) 1.1.07, build JM20091027, 2001-2004 Robb Thomas, portions 2007-2009 Jeremy D Monin.
+         * Version and copyright info is from the {@link Version} utility class.
+         */
+        @Override
+        public String getAppletInfo()
+        {
+            return "SOCPlayerClient (Java Settlers Client) " + Version.version() +
+            ", build " + Version.buildnum() + ", " + Version.copyright();
+        }
+
+        @Override
+        public void destroy()
+        {
+            client.dispose();
+            client = null;
+        }
+    }  // class SOCApplet
 
 }  // public class SOCPlayerClient

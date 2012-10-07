@@ -696,7 +696,7 @@ public class TradeOfferPanel extends Panel
                             new SOCTradeOffer (game.getName(),
                                                player.getPlayerNumber(),
                                                to, giveSet, getSet);
-                        hp.getClient().offerTrade(game, tradeOffer);
+                        hp.getClient().getGameManager().offerTrade(game, tradeOffer);
 
                         setCounterOfferVisible(true);
                     }
@@ -719,7 +719,7 @@ public class TradeOfferPanel extends Panel
                 //int[] tempGive = new int[5];
                 //int[] tempGet = new int[5];
                 //squares.getValues(tempGive, tempGet);
-                hp.getClient().acceptOffer(hp.getGame(), from);
+                hp.getClient().getGameManager().acceptOffer(hp.getGame(), from);
                 hp.disableBankUndoButton();
             }
             } catch (Throwable th) {

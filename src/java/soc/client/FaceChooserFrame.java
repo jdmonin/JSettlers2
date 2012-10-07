@@ -257,7 +257,7 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
      */
     public void changeButtonChosen()
     {
-        pcli.changeFace(pi.getGame(), fcl.currentFaceId);
+        pcli.getGameManager().changeFace(pi.getGame(), fcl.currentFaceId);
     }
 
     /**
