@@ -22,8 +22,6 @@
 package soc.client;
 
 import java.applet.Applet;
-import java.applet.AppletContext;
-
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.CardLayout;
@@ -114,7 +112,7 @@ import soc.util.Version;
  *
  * @author Robert S Thomas
  */
-public class SOCPlayerClient extends Applet
+public class SOCPlayerClient extends Panel
 {
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
@@ -171,7 +169,6 @@ public class SOCPlayerClient extends Applet
     private Label versionOrlocalTCPPortLabel;   // shows port number in mainpanel, if running localTCPServer;
                                          // shows remote version# when connected to a remote server
     protected Button pgm;  // practice game on messagepanel
-    protected AppletContext ac;
 
     /**
      * SOCPlayerClient displays one of several panels to the user:
@@ -512,8 +509,6 @@ public class SOCPlayerClient extends Applet
         pg.addActionListener(actionListener);
         so.addActionListener(actionListener);
 
-        ac = null;
-
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         Panel mainPane = new Panel(gbl);
@@ -717,88 +712,6 @@ public class SOCPlayerClient extends Applet
 
         messageLabel.setText("Waiting to connect.");
         validate();
-    }
-
-    /**
-     * Retrieve a parameter and translate to a hex value.
-     *
-     * @param name a parameter name. null is ignored
-     * @return the parameter parsed as a hex value or -1 on error
-     */
-    public int getHexParameter(String name)
-    {
-        String value = null;
-        int iValue = -1;
-        try
-        {
-            value = getParameter(name);
-            if (value != null)
-            {
-                iValue = Integer.parseInt(value, 16);
-            }
-        }
-        catch (Exception e)
-        {
-            System.err.println("Invalid " + name + ": " + value);
-        }
-        return iValue;
-    }
-
-    /**
-     * Called when the applet should start it's work.
-     */
-    public void start()
-    {
-        if (! hasConnectOrPractice)
-            nick.requestFocus();
-    }
-    
-    /**
-     * Initialize the applet
-     */
-    public synchronized void init()
-    {
-        System.out.println("Java Settlers Client " + Version.version() +
-                           ", build " + Version.buildnum() + ", " + Version.copyright());
-        System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
-
-        String param = null;
-        int intValue;
-            
-        intValue = getHexParameter("background"); 
-        if (intValue != -1)
-                setBackground(new Color(intValue));
-
-        intValue = getHexParameter("foreground");
-        if (intValue != -1)
-            setForeground(new Color(intValue));
-
-        initVisualElements(); // after the background is set
-
-        param = getParameter("suggestion");
-        if (param != null)
-            channel.setText(param); // after visuals initialized
-
-        param = getParameter("nickname");  // for use with dynamically-generated html
-        if (param != null)
-            nick.setText(param);
-
-        System.out.println("Getting host...");
-        String host = getCodeBase().getHost();
-        if (host.equals(""))
-            host = null;  // localhost
-
-        int port = ClientNetwork.SOC_PORT_DEFAULT;
-        try {
-            param = getParameter("PORT");
-            if (param != null)
-                port = Integer.parseInt(param);
-        }
-        catch (Exception e) {
-            System.err.println("Invalid port: " + param);
-        }
-
-        net.connect(host, port);
     }
 
     /**
@@ -1451,10 +1364,12 @@ public class SOCPlayerClient extends Applet
      */
     private class MessageTreater
     {
+        private final SOCPlayerClient client;
         private final GameManager gmgr;
         
         public MessageTreater(SOCPlayerClient client)
         {
+            this.client = client;
             gmgr = client.getGameManager();
         }
 
@@ -2603,7 +2518,7 @@ public class SOCPlayerClient extends Applet
             gmgr.put(mes.toCmd(), isPractice);
         } else {
             net.ex = new RuntimeException("Kicked by player with same name.");
-            destroy();
+            client.dispose();
         }
     }
 
@@ -4711,9 +4626,16 @@ public class SOCPlayerClient extends Applet
              */
             public void mouseClicked(MouseEvent e)
             {
-                NotifyDialog.createAndShow(SOCPlayerClient.this, null, "For other players to connect to your server,\nthey need only your IP address and port " +
-                        "number.\nNo other server software install is needed.\nMake sure your firewall allows inbound traffic on port " + net.getLocalServerPort() + ".",
-                        "OK", true);
+                NotifyDialog.createAndShow
+                    (SOCPlayerClient.this,
+                     null,
+                     "For other players to connect to your server,\n" +
+                             "they need only your IP address and port number.\n" +
+                             "No other server software install is needed.\n" +
+                             "Make sure your firewall allows inbound traffic on " +
+                             "port " + net.getLocalServerPort() + ".",
+                     "OK",
+                     true);
             }
 
             /**
@@ -4792,25 +4714,6 @@ public class SOCPlayerClient extends Applet
             return sVersion;
     }
 
-    /**
-     * applet info, of the form similar to that seen at server startup:
-     * SOCPlayerClient (Java Settlers Client) 1.1.07, build JM20091027, 2001-2004 Robb Thomas, portions 2007-2009 Jeremy D Monin.
-     * Version and copyright info is from the {@link Version} utility class.
-     */
-    public String getAppletInfo()
-    {
-        return "SOCPlayerClient (Java Settlers Client) " + Version.version() +
-        ", build " + Version.buildnum() + ", " + Version.copyright();
-    }
-
-    /**
-     * Shut down; to be removed when this class is no longer an applet, for now just forward to {@link #dispose()}.
-     */
-    public void destroy()
-    {
-        dispose();
-    }
-    
     /**
      * network trouble; if possible, ask if they want to play locally (robots).
      * Otherwise, go ahead and shut down.
@@ -5708,5 +5611,117 @@ public class SOCPlayerClient extends Applet
         }
 
     }  // class GameOptionServerSet
+
+    public static class SOCApplet extends Applet
+    {
+        SOCPlayerClient client;
+        
+        /**
+         * Retrieve a parameter and translate to a hex value.
+         *
+         * @param name a parameter name. null is ignored
+         * @return the parameter parsed as a hex value or -1 on error
+         */
+        public int getHexParameter(String name)
+        {
+            String value = null;
+            int iValue = -1;
+            try
+            {
+                value = getParameter(name);
+                if (value != null)
+                {
+                    iValue = Integer.parseInt(value, 16);
+                }
+            }
+            catch (Exception e)
+            {
+                System.err.println("Invalid " + name + ": " + value);
+            }
+            return iValue;
+        }
+
+        /**
+         * Called when the applet should start it's work.
+         */
+        @Override
+        public void start()
+        {
+            if (!client.hasConnectOrPractice)
+                client.nick.requestFocus();
+        }
+        
+        /**
+         * Initialize the applet
+         */
+        @Override
+        public synchronized void init()
+        {
+            client = new SOCPlayerClient();
+            
+            System.out.println("Java Settlers Client " + Version.version() +
+                               ", build " + Version.buildnum() + ", " + Version.copyright());
+            System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+
+            String param = null;
+            int intValue;
+                
+            intValue = getHexParameter("background"); 
+            if (intValue != -1)
+                    setBackground(new Color(intValue));
+
+            intValue = getHexParameter("foreground");
+            if (intValue != -1)
+                setForeground(new Color(intValue));
+
+            client.initVisualElements(); // after the background is set
+            add(client);
+
+            param = getParameter("suggestion");
+            if (param != null)
+                client.channel.setText(param); // after visuals initialized
+
+            param = getParameter("nickname");  // for use with dynamically-generated html
+            if (param != null)
+                client.nick.setText(param);
+
+            System.out.println("Getting host...");
+            String host = getCodeBase().getHost();
+            if (host == null || host.equals(""))
+                //host = null;  // localhost
+                host = "127.0.0.1"; // localhost - don't use "localhost" because Java 6 applets do not work
+
+            int port = ClientNetwork.SOC_PORT_DEFAULT;
+            try {
+                param = getParameter("PORT");
+                if (param != null)
+                    port = Integer.parseInt(param);
+            }
+            catch (Exception e) {
+                System.err.println("Invalid port: " + param);
+            }
+
+            client.net.connect(host, port);
+        }
+        
+        /**
+         * applet info, of the form similar to that seen at server startup:
+         * SOCPlayerClient (Java Settlers Client) 1.1.07, build JM20091027, 2001-2004 Robb Thomas, portions 2007-2009 Jeremy D Monin.
+         * Version and copyright info is from the {@link Version} utility class.
+         */
+        @Override
+        public String getAppletInfo()
+        {
+            return "SOCPlayerClient (Java Settlers Client) " + Version.version() +
+            ", build " + Version.buildnum() + ", " + Version.copyright();
+        }
+
+        @Override
+        public void destroy()
+        {
+            client.dispose();
+            client = null;
+        }
+    }  // class SOCApplet
 
 }  // public class SOCPlayerClient
