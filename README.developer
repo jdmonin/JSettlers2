@@ -92,7 +92,7 @@ See below for how to set up the coding style in Eclipse.
 
 In my Eclipse project, I've created these debug/run configurations for testing:
 
-Java applet: soc.client.SOCPlayerClient
+Java applet: soc.client.SOCPlayerClient.SOCApplet
    width 600, height 340
    parameters: PORT = 44203
 

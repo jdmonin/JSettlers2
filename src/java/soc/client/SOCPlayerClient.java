@@ -492,7 +492,6 @@ public class SOCPlayerClient extends Panel
              * @param e textevent from {@link #gmlist}
              * @since 1.1.07
              */
-            @Override
             public void itemStateChanged(ItemEvent e)
             {
                 boolean wasSel = (e.getStateChange() == ItemEvent.SELECTED);
@@ -5716,12 +5715,16 @@ public class SOCPlayerClient extends Panel
             ", build " + Version.buildnum() + ", " + Version.copyright();
         }
 
+        /**
+         * When the applet is destroyed, calls {@link SOCPlayerClient#dispose()}.
+         */
         @Override
         public void destroy()
         {
             client.dispose();
             client = null;
         }
+
     }  // class SOCApplet
 
 }  // public class SOCPlayerClient
