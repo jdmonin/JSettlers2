@@ -2,5 +2,7 @@
 /bin
 CVS
 /dist
-/target
+/target/*.jar
+/target/classes/*
+/target/lib/*
 /.settings/
