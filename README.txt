@@ -87,7 +87,10 @@ SERVER STARTUP:
 Start the server with the following command
 (server requires Java 1.5 or higher):
 
-  java -jar JSettlersServer.jar 8880 10 socuser socpass
+  java -jar JSettlersServer.jar 8880 20 socuser socpass
+
+Those parameters are : TCP port number; max clients; db user; db password.
+You can also run with no parameters; the server will run on the default port of 8880.
 
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
