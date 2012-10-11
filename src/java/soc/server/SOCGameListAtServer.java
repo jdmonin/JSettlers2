@@ -28,6 +28,7 @@ import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.Version;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -149,8 +150,8 @@ public class SOCGameListAtServer extends SOCGameList
                 ga.clientVersionHighest = cliVers;
                 ga.hasOldClients = (cliVers < Version.versionNumber());
             }
-            else 
-            {    
+            else
+            {
                 final int cliLowestAlready  = ga.clientVersionLowest;
                 final int cliHighestAlready = ga.clientVersionHighest;
                 if (cliVers < cliLowestAlready)
@@ -225,11 +226,10 @@ public class SOCGameListAtServer extends SOCGameList
             throw new IllegalArgumentException("keyname data");
 
         System.err.println("L212: replaceMemberAllGames(" + oldConn + ", " + newConn + ")");  // JM TEMP
-        final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion()); 
-        Enumeration allGa = getGames();
-        while (allGa.hasMoreElements())
+        final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
+        Collection<String> allGa = getGameNames();
+        for (String gaName : allGa)
         {
-            final String gaName = (String) allGa.nextElement();
             Vector members = (Vector) gameMembers.get(gaName);
             if ((members != null) && members.contains(oldConn))
             {
@@ -308,7 +308,7 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public SOCGameBoardReset resetBoard(String gaName)
     {
-        SOCGame oldGame = (SOCGame) gameData.get(gaName);
+        SOCGame oldGame = gameData.get(gaName);
         if (oldGame == null)
             return null;
 
@@ -358,7 +358,7 @@ public class SOCGameListAtServer extends SOCGameList
         if (members != null)
         {
             members.removeAllElements();
-        }        
+        }
     }
 
     /**
@@ -401,7 +401,7 @@ public class SOCGameListAtServer extends SOCGameList
     /**
      * List of games containing this member.
      *
-     * @param c  Connection 
+     * @param c  Connection
      * @param firstGameName  Game name that should be first element of list
      *           (if <tt>newConn</tt> is a member of it), or null.
      * @return The games, in no particular order (past firstGameName),

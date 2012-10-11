@@ -20,7 +20,6 @@
 package soc.game;
 
 import java.util.Enumeration;
-import java.util.Hashtable;
 import java.util.Vector;
 
 /**
@@ -43,7 +42,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
      * The {@link SOCGameOption}(s) which are too new,
      *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Hashtable)}
      */
-    public Vector problemOptionsTooNew;
+    public Vector<?> problemOptionsTooNew;
 
     /**
      * @param optVers Minimum client version required by game options
@@ -51,7 +50,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
      * @param optsValuesTooNew The {@link SOCGameOption}(s) which are too new,
      *     as returned by {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Hashtable)}
      */
-    public SOCGameOptionVersionException(int optVers, int cliVers, Vector optsValuesTooNew)
+    public SOCGameOptionVersionException(int optVers, int cliVers, Vector<?> optsValuesTooNew)
     {
         super("Client version vs game options");
         gameOptsVersion = optVers;
@@ -70,7 +69,7 @@ public class SOCGameOptionVersionException extends IllegalArgumentException
 
         StringBuffer sb = new StringBuffer();
         boolean hadAny = false;
-        for (Enumeration e = problemOptionsTooNew.elements(); e.hasMoreElements(); )
+        for (Enumeration<?> e = problemOptionsTooNew.elements(); e.hasMoreElements(); )
         {
             Object opt = e.nextElement();
             String item;

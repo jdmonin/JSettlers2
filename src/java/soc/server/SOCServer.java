@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.server;
 
@@ -40,6 +40,7 @@ import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -285,7 +286,7 @@ public class SOCServer extends Server
      * 
      * @see soc.server.genericServer.LocalStringConnection
      */
-    public static String PRACTICE_STRINGPORT = "SOCPRACTICE"; 
+    public static String PRACTICE_STRINGPORT = "SOCPRACTICE";
 
     /**
      * So we can get random numbers.
@@ -501,7 +502,7 @@ public class SOCServer extends Server
      * You must start its thread yourself.
      *<P>
      * In 1.1.07 and later, will also print game options to stderr if
-     * any option defaults require a minimum client version, or if 
+     * any option defaults require a minimum client version, or if
      * {@link #hasSetGameOptions} is set.
      *
      * @param p    the TCP port that the server listens on
@@ -525,12 +526,12 @@ public class SOCServer extends Server
      * and {@link SOCDBHelper#PROP_JSETTLERS_DB_PASS}.
      *<P>
      * Will also print game options to stderr if
-     * any option defaults require a minimum client version, or if 
+     * any option defaults require a minimum client version, or if
      * {@link #hasSetGameOptions} is set.
      * 
      * @param p    the TCP port that the server listens on
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
-     *               and any other desired properties. 
+     *               and any other desired properties.
      * @since 1.1.09
      * @see #PROPS_LIST
      */
@@ -538,7 +539,7 @@ public class SOCServer extends Server
     {
         super(p);
         maxConnections = init_getIntProperty(props, PROP_JSETTLERS_CONNECTIONS, 15);
-        allowDebugUser = init_getBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);        
+        allowDebugUser = init_getBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);
         CLIENT_MAX_CREATE_GAMES = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
         CLIENT_MAX_CREATE_CHANNELS = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
         String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "dbuser");
@@ -551,7 +552,7 @@ public class SOCServer extends Server
      * You must start its thread yourself.
      *<P>
      * In 1.1.07 and later, will also print game options to stderr if
-     * any option defaults require a minimum client version, or if 
+     * any option defaults require a minimum client version, or if
      * {@link #hasSetGameOptions} is set.
      *
      * @param s    the stringport that the server listens on.
@@ -577,7 +578,7 @@ public class SOCServer extends Server
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
-     *       and any other desired properties. 
+     *       and any other desired properties.
      *       If <code>props</code> is null, the properties will be created empty.
      */
     private void initSocServer(String databaseUserName, String databasePassword, Properties props)
@@ -641,7 +642,7 @@ public class SOCServer extends Server
             } catch (Throwable th)
             {
                 // just a warning
-                System.err.println("Warning: Could not register shutdown hook for database disconnect. Check java security settings.");            
+                System.err.println("Warning: Could not register shutdown hook for database disconnect. Check java security settings.");
             }
         }
 
@@ -731,7 +732,7 @@ public class SOCServer extends Server
         }
         catch (NumberFormatException e) { }
 
-        return pDefault;        
+        return pDefault;
     }
 
     /**
@@ -788,7 +789,7 @@ public class SOCServer extends Server
             {
                 System.err.println("Not starting robots: Bad number format, ignoring property " + PROP_JSETTLERS_STARTROBOTS);
             }
-        }        
+        }
     }
 
     /**
@@ -887,7 +888,7 @@ public class SOCServer extends Server
      * and announce the new game to all clients.
      *<P>
      * After this, human players are free to join, until someone clicks "Start Game".
-     * At that point, server will look for robots to fill empty seats. 
+     * At that point, server will look for robots to fill empty seats.
      *
      * @param c    the Connection to be added; its name and version should already be set.
      * @param gaName  the name of the game
@@ -901,7 +902,7 @@ public class SOCServer extends Server
      *
      * @throws SOCGameOptionVersionException if asking to create a game (gaOpts != null),
      *           but client's version is too low to join because of a
-     *           requested game option's minimum version in gaOpts. 
+     *           requested game option's minimum version in gaOpts.
      *           Calculated via {@link SOCGameOption#optionsNewerThanVersion(int, boolean, boolean, Hashtable)}.
      *           (this exception was added in 1.1.07)
      * @throws IllegalArgumentException if client's version is too low to join for any
@@ -1026,12 +1027,12 @@ public class SOCServer extends Server
 
                     // Client version variables:
                     // cversMax: maximum version connected to server
-                    // cversMin: minimum version connected to server 
+                    // cversMin: minimum version connected to server
                     // VERSION_FOR_NEWGAMEWITHOPTIONS: minimum to understand game options
 
                     // Game version variables:
                     // gVersMinGameOptsNoChange: minimum to understand these game options
-                    //           without backwards-compatibility changes to their values     
+                    //           without backwards-compatibility changes to their values
                     // gVers: minimum to play the game
 
                     final int gVersMinGameOptsNoChange;
@@ -1117,7 +1118,7 @@ public class SOCServer extends Server
                             broadcastToVers(SOCNewGame.toCmd(gaName), gVers, newgameSimpleMsgMaxCliVers);
                             newgameSimpleMsgCantJoinVers = gVers - 1;
                         } else {
-                            // No older clients can join.  This game's already been announced to                       
+                            // No older clients can join.  This game's already been announced to
                             // some clients (new enough for NEWGAMEWITHOPTIONS).
                             newgameSimpleMsgCantJoinVers = newgameSimpleMsgMaxCliVers;
                         }
@@ -1223,13 +1224,13 @@ public class SOCServer extends Server
                     {
                         gameList.releaseMonitorForGame(gm);
                         ga.takeMonitor();
-                        resetBoardVoteNotifyOne(ga, playerNumber, plName, false);                
+                        resetBoardVoteNotifyOne(ga, playerNumber, plName, false);
                         ga.releaseMonitor();
                         gameList.takeMonitorForGame(gm);
                     }
                 }
 
-                /** 
+                /**
                  * Remove the player.
                  */
                 ga.removePlayer(plName);  // player obj name becomes null
@@ -1280,7 +1281,7 @@ public class SOCServer extends Server
                 {
                     SOCPlayer player = ga.getPlayer(pn);
 
-                    if ((player != null) && (player.getName() != null) && (player.getName().equals((String) member.getData())))
+                    if ((player != null) && (player.getName() != null) && (player.getName().equals(member.getData())))
                     {
                         nameMatch = true;
                         break;
@@ -1341,7 +1342,7 @@ public class SOCServer extends Server
                             (gm, SERVERNAME,
                              "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's "
                              + ga.getClientVersionMinRequired()));
-                    foundNoRobots = true;                        
+                    foundNoRobots = true;
                 }
                 else
                 {
@@ -1371,7 +1372,7 @@ public class SOCServer extends Server
     
                                 // D.ebugPrintln("CHECKING " + (String) robotConn.getData() + " == " + pname);
     
-                                if ((pname != null) && (pname.equals((String) robotConn.getData())))
+                                if ((pname != null) && (pname.equals(robotConn.getData())))
                                 {
                                     nameMatch = true;
     
@@ -1498,7 +1499,7 @@ public class SOCServer extends Server
      * May or may not have <tt>gameList.takeMonitorForGame(ga)</tt>;
      * use <tt>hasMonitorFromGameList</tt> to indicate.
      *<P>
-     * Not public, but package visibility, for use by {@link SOCGameTimeoutChecker}. 
+     * Not public, but package visibility, for use by {@link SOCGameTimeoutChecker}.
      *
      * @param ga   The game to end turn
      * @param plNumber  player.getNumber; may or may not be current player
@@ -1541,7 +1542,7 @@ public class SOCServer extends Server
             {
                 gameList.releaseMonitorForGame(gm);
                 ga.takeMonitor();
-                resetBoardVoteNotifyOne(ga, plNumber, plName, false);                
+                resetBoardVoteNotifyOne(ga, plNumber, plName, false);
                 ga.releaseMonitor();
                 gameList.takeMonitorForGame(gm);
             }
@@ -1841,9 +1842,9 @@ public class SOCServer extends Server
      * Used when SOCPlayerClient is also hosting games.
      * @return The names (Strings) of games on this server
      */
-    public Enumeration getGameNames()
+    public Collection<String> getGameNames()
     {
-        return gameList.getGames();
+        return gameList.getGameNames();
     }
 
     /**
@@ -1870,7 +1871,7 @@ public class SOCServer extends Server
      *       null if the game doesn't exist or has no options
      * @since 1.1.07
      */
-    public Hashtable getGameOptions(String gm)
+    public Hashtable<String,SOCGameOption> getGameOptions(String gm)
     {
         return gameList.getGameOptions(gm);
     }
@@ -1961,10 +1962,9 @@ public class SOCServer extends Server
 
             try
             {
-                for (Enumeration k = gameList.getGames(); k.hasMoreElements();)
+                for (String ga : gameList.getGameNames())
                 {
-                    String ga = (String) k.nextElement();
-                    Vector v = (Vector) gameList.getMembers(ga);
+                    Vector v = gameList.getMembers(ga);
 
                     if (v.contains(c))
                     {
@@ -2609,7 +2609,7 @@ public class SOCServer extends Server
         if (! c.isInputAvailable())
         {
             cdata.setVersionTimer(this, c);
-        } 
+        }
 
     }  // newConnection2
 
@@ -2743,7 +2743,7 @@ public class SOCServer extends Server
          * We release the monitor as soon as we can, even though we haven't yet
          * sent the list to the client.  It's theoretically possible the client will get
          * a NEWGAME message, which is OK, or a DELETEGAME message, before it receives the list
-         * we're building.  
+         * we're building.
          * NEWGAME is OK because the GAMES message won't clear the list contents at client.
          * DELETEGAME is less OK, but it's not very likely.
          * If the game is deleted, and then they see it in the list, trying to join that game
@@ -2854,7 +2854,7 @@ public class SOCServer extends Server
            }
            c.put(SOCGameStats.toCmd(gameName, scores, robots));
            }
-         */        
+         */
 
     }  // sendGameList
 
@@ -2899,7 +2899,7 @@ public class SOCServer extends Server
         }
 
         // check conns hashtable
-        StringConnection oldc = getConnection(n); 
+        StringConnection oldc = getConnection(n);
         if (oldc == null)
         {
             return 0;  // OK: no player by that name already
@@ -2965,7 +2965,7 @@ public class SOCServer extends Server
     /**
      * For a nickname that seems to be in use, build a text message with the
      * time remaining before someone can attempt to take over that nickname.
-     * Used for reconnect when a client loses connection, and server doesn't realize it. 
+     * Used for reconnect when a client loses connection, and server doesn't realize it.
      * A new connection can "take over" the name after a timeout.
      * ({@link #NICKNAME_TAKEOVER_SECONDS_SAME_IP},
      *  {@link #NICKNAME_TAKEOVER_SECONDS_DIFFERENT_IP})
@@ -2982,7 +2982,7 @@ public class SOCServer extends Server
             sb.append(nameTimeout);
             sb.append(" seconds");
         } else {
-            sb.append((int) ((nameTimeout + 20) / 60));
+            sb.append((nameTimeout + 20) / 60);
             sb.append(" minute(s)");
         }
         sb.append(MSG_NICKNAME_ALREADY_IN_USE_WAIT_TRY_AGAIN);
@@ -2993,7 +2993,7 @@ public class SOCServer extends Server
     /**
      * For a nickname that seems to be in use, build a text message with the
      * minimum version number needed to take over that nickname.
-     * Used for reconnect when a client loses connection, and server doesn't realize it. 
+     * Used for reconnect when a client loses connection, and server doesn't realize it.
      * A new connection can "take over" the name after a timeout.
      *
      * @param needsVersion Version number required to take it over;
@@ -3069,7 +3069,7 @@ public class SOCServer extends Server
     {
         try
         {
-            SOCMessage mes = (SOCMessage) SOCMessage.toMsg(s);
+            SOCMessage mes = SOCMessage.toMsg(s);
 
             // D.ebugPrintln(c.getData()+" - "+mes);
             if (mes != null)
@@ -3663,7 +3663,7 @@ public class SOCServer extends Server
             while (robotsEnum.hasMoreElements())
             {
                 StringConnection robotConn = (StringConnection) robotsEnum.nextElement();
-                if (botName.equals((String) robotConn.getData()))
+                if (botName.equals(robotConn.getData()))
                 {
                     botFound = true;
                     messageToGame(ga, "> SENDING RESET COMMAND TO " + botName);
@@ -3689,7 +3689,7 @@ public class SOCServer extends Server
             {
                 StringConnection robotConn = (StringConnection) robotsEnum.nextElement();
 
-                if (botName.equals((String) robotConn.getData()))
+                if (botName.equals(robotConn.getData()))
                 {
                     botFound = true;
                     messageToGame(ga, "> DISCONNECTING " + botName);
@@ -3979,13 +3979,13 @@ public class SOCServer extends Server
             if (msgPass != null)
                 msgPass = msgPass.trim();
 
-            if (c.getData() == null) 
+            if (c.getData() == null)
             {
                 if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
                 {
                     c.put(SOCStatusMessage.toCmd
                             (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                             SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
+                             SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
                     return;
                 }
 
@@ -4062,7 +4062,7 @@ public class SOCServer extends Server
                          SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_CHANNELS)));
                 // Too many of your chat channels still active; maximum: 2
 
-                return;  // <---- Early return ----            
+                return;  // <---- Early return ----
             }
 
             /**
@@ -4443,7 +4443,7 @@ public class SOCServer extends Server
         // time
         Date gstart = gameData.getStartTime();
         if (gstart != null)
-        {                
+        {
             long gameSeconds = ((new Date().getTime() - gstart.getTime())+500L) / 1000L;
             long gameMinutes = (gameSeconds+29L)/60L;
             String gLengthMsg = "This game started " + gameMinutes + " minutes ago.";
@@ -4650,7 +4650,7 @@ public class SOCServer extends Server
             {
                 c.put(SOCStatusMessage.toCmd
                         (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));    
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
                 return;
             }
 
@@ -4737,7 +4737,7 @@ public class SOCServer extends Server
                      SOCStatusMessage.MSG_SV_NEWGAME_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_GAMES)));
             // Too many of your games still active; maximum: 5
 
-            return;  // <---- Early return ----            
+            return;  // <---- Early return ----
         }
 
         /**
@@ -4829,7 +4829,7 @@ public class SOCServer extends Server
             SOCGame game = gameList.getGameData(gameName);
             if (game == null)
             {
-                D.ebugPrintStackTrace(e, "Exception in createOrJoinGameIfUserOK");   
+                D.ebugPrintStackTrace(e, "Exception in createOrJoinGameIfUserOK");
             } else {
                 // Let them know they can't join; include the game's version.
                 c.put(SOCStatusMessage.toCmd
@@ -5351,7 +5351,7 @@ public class SOCServer extends Server
                         // Set the "force end turn soon" field
                         ga.lastActionTime = 0L;
                     }
-                }                       
+                }
             }
             else
             {
@@ -5445,7 +5445,7 @@ public class SOCServer extends Server
                                 /**
                                  * else, the player needs to choose a victim
                                  */
-                                msgtext.append(", must choose a victim.");                            
+                                msgtext.append(", must choose a victim.");
                             }
 
                             messageToGame(gaName, msgtext.toString());
@@ -5541,8 +5541,8 @@ public class SOCServer extends Server
                         }
                         else if (!seatsFull)
                         {
-                            if (robots.isEmpty()) 
-                            {                                
+                            if (robots.isEmpty())
+                            {
                                 if (numPlayers < SOCGame.MINPLAYERS)
                                 {
                                     messageToGame(gn,
@@ -6129,7 +6129,7 @@ public class SOCServer extends Server
     /**
      * handle "end turn" message.
      * This normally ends a player's normal turn (phase {@link SOCGame#PLAY1}).
-     * On the 6-player board, it ends their placements during the 
+     * On the 6-player board, it ends their placements during the
      * {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
      *
      * @param c  the connection that sent the message
@@ -6143,7 +6143,7 @@ public class SOCServer extends Server
         if (ga == null)
             return;
 
-        final String gname = ga.getName();               
+        final String gname = ga.getName();
 
         if (ga.isDebugFreePlacement())
         {
@@ -6261,7 +6261,7 @@ public class SOCServer extends Server
         gameList.takeMonitorForGame(gname);
         if (ga.clientVersionLowest >= SOCClearOffer.VERSION_FOR_CLEAR_ALL)
         {
-            messageToGameWithMon(gname, new SOCClearOffer(gname, -1));            
+            messageToGameWithMon(gname, new SOCClearOffer(gname, -1));
         } else {
             for (int i = 0; i < ga.maxPlayers; i++)
                 messageToGameWithMon(gname, new SOCClearOffer(gname, i));
@@ -6371,7 +6371,7 @@ public class SOCServer extends Server
                     (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                      c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
             }
-            messageToGame(gaName, plName + "'s just-played development card was returned.");            
+            messageToGame(gaName, plName + "'s just-played development card was returned.");
         }
 
         /**
@@ -6379,7 +6379,7 @@ public class SOCServer extends Server
          * (Player number may go forward or backwards, new state isn't PLAY, etc.)
          * Update clients' gamestate, but don't call endGameTurn.
          */
-        final int forceRes = res.getResult(); 
+        final int forceRes = res.getResult();
         if ((forceRes == SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADV)
             || (forceRes == SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK))
         {
@@ -6529,7 +6529,7 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
                         {
-                            messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));            
+                            messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));
                         } else {
                             for (int i = 0; i < ga.maxPlayers; i++)
                                 messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
@@ -6577,7 +6577,7 @@ public class SOCServer extends Server
                     gameList.takeMonitorForGame(gaName);
                     if (ga.clientVersionLowest >= SOCClearTradeMsg.VERSION_FOR_CLEAR_ALL)
                     {
-                        messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));            
+                        messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, -1));
                     } else {
                         for (int i = 0; i < ga.maxPlayers; i++)
                             messageToGameWithMon(gaName, new SOCClearTradeMsg(gaName, i));
@@ -6666,7 +6666,7 @@ public class SOCServer extends Server
                             gameList.takeMonitorForGame(gaName);
                             if (ga.clientVersionLowest >= SOCClearOffer.VERSION_FOR_CLEAR_ALL)
                             {
-                                messageToGameWithMon(gaName, new SOCClearOffer(gaName, -1));            
+                                messageToGameWithMon(gaName, new SOCClearOffer(gaName, -1));
                             } else {
                                 for (int i = 0; i < ga.maxPlayers; i++)
                                     messageToGameWithMon(gaName, new SOCClearOffer(gaName, i));
@@ -7538,7 +7538,7 @@ public class SOCServer extends Server
         String gaName = mes.getGame();
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
-            return;        
+            return;
         SOCPlayer reqPlayer = ga.getPlayer((String) c.getData());
         if (reqPlayer == null)
         {
@@ -7596,9 +7596,9 @@ public class SOCServer extends Server
                 if ((i != reqPN) && ! ga.isSeatVacant(i))
                 {
                     StringConnection pc = getConnection(ga.getPlayer(i).getName());
-                    if ((pc != null) && pc.isConnected() && pc.getVersion() >= 1100)                        
+                    if ((pc != null) && pc.isConnected() && pc.getVersion() >= 1100)
                     {
-                         ++votingPlayers;                        
+                         ++votingPlayers;
                     }
                 }
             }
@@ -7663,7 +7663,7 @@ public class SOCServer extends Server
         // If vote succeeded, go ahead and reset the game.
         // If vote rejected, let everyone know.
 
-        resetBoardVoteNotifyOne(ga, reqPlayer.getPlayerNumber(), plName, mes.getPlayerVote());                
+        resetBoardVoteNotifyOne(ga, reqPlayer.getPlayerNumber(), plName, mes.getPlayerVote());
     }
 
     /**
@@ -7719,7 +7719,7 @@ public class SOCServer extends Server
     /**
      * process the "game option get defaults" message.
      * Responds to client by sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
-     * All of server's known options are sent, except empty string-valued options. 
+     * All of server's known options are sent, except empty string-valued options.
      * Depending on client version, server's response may include option names that
      * the client is too old to use; the client is able to ignore them.
      * @param c  the connection
@@ -7917,7 +7917,7 @@ public class SOCServer extends Server
 
     /**
      * Handle the client's "move piece request" message.
-     * @since 2.0.00 
+     * @since 2.0.00
      */
     private final void handleMOVEPIECEREQUEST(StringConnection c, SOCMovePieceRequest mes)
     {
@@ -8074,7 +8074,7 @@ public class SOCServer extends Server
             if (! isReset)
             {
                 SOCPlayer pl = gameData.getPlayer(i);
-                String plName = pl.getName(); 
+                String plName = pl.getName();
                 if ((plName != null) && (!gameData.isSeatVacant(i)))
                 {
                     c.put(SOCSitDown.toCmd(gameName, plName, i, pl.isRobot()));
@@ -8246,7 +8246,7 @@ public class SOCServer extends Server
 
         /**
          * If we're rejoining and taking over a seat after a network problem,
-         * send our resource and hand information. 
+         * send our resource and hand information.
          */
         if (isTakingOver)
         {
@@ -8509,7 +8509,7 @@ public class SOCServer extends Server
             gainRsrc = new SOCPlayerElement(gaName, pePN, SOCPlayerElement.GAIN, rsrc, 1);
             loseRsrc = new SOCPlayerElement(gaName, viPN, SOCPlayerElement.LOSE, rsrc, 1);
 
-            mes.append(" resource from "); 
+            mes.append(" resource from ");
 
             /**
              * send the game messages
@@ -8537,7 +8537,7 @@ public class SOCServer extends Server
              */
             messageToPlayer(peCon, gaName,
                 "You" + mes.toString() + viName + '.');
-            messageToPlayer(viCon, gaName, 
+            messageToPlayer(viCon, gaName,
                 peName + mes.toString() + "you.");
             messageToGameExcept(gaName, exceptions, new SOCGameTextMsg(gaName, SERVERNAME,
                 peName + " stole a resource from " + viName), true);
@@ -8595,7 +8595,7 @@ public class SOCServer extends Server
      *    If the client is too old (1.0.6), it will ignore the prompt.
      *
      * @return    did we send a text message to prompt the player to roll?
-     *    If so, sendTurn can also send a RollDicePrompt data message.  
+     *    If so, sendTurn can also send a RollDicePrompt data message.
      */
     protected boolean sendGameState(SOCGame ga, boolean sendRollPrompt)
     {
@@ -8722,7 +8722,7 @@ public class SOCServer extends Server
             
         }  // switch ga.getGameState
         
-        return promptedRoll; 
+        return promptedRoll;
     }
 
     /**
@@ -8827,7 +8827,7 @@ public class SOCServer extends Server
             {
                 if (winPl.getTotalVP() >= ga.vp_winner)
                 {
-                    winPl = ga.getPlayer(i);        
+                    winPl = ga.getPlayer(i);
                     break;
                 }
             }
@@ -8997,7 +8997,7 @@ public class SOCServer extends Server
                     }
 
                     long connTime = plConn.getConnectTime().getTime();
-                    long connMinutes = (((now.getTime() - connTime)) + 30000L) / 60000L;                    
+                    long connMinutes = (((now.getTime() - connTime)) + 30000L) / 60000L;
                     StringBuffer cLengthMsg = new StringBuffer(connMsg);
                     cLengthMsg.append(connMinutes);
                     if (connMinutes == 1)
@@ -9287,7 +9287,7 @@ public class SOCServer extends Server
 
             /**
              * send the player info
-             */            
+             */
             for (int i = 0; i < ga.maxPlayers; i++)
             {
                 if (! ga.isSeatVacant(i))
@@ -9507,7 +9507,7 @@ public class SOCServer extends Server
         if (ga != null)
         {
             String gname = ga.getName();
-            int pn = ga.getCurrentPlayerNumber();   
+            int pn = ga.getCurrentPlayerNumber();
 
             messageToGame(gname, new SOCSetPlayedDevCard(gname, pn, false));
 
@@ -9791,7 +9791,7 @@ public class SOCServer extends Server
         gameList.takeMonitor();
         
         // Add 2 minutes because of coarse 5-minute granularity in SOCGameTimeoutChecker.run()
-        long warn_ms = (2 + GAME_EXPIRE_WARN_MINUTES) * 60L * 1000L; 
+        long warn_ms = (2 + GAME_EXPIRE_WARN_MINUTES) * 60L * 1000L;
 
         try
         {
@@ -9872,7 +9872,7 @@ public class SOCServer extends Server
         // we shouldn't need to worry about locking.
         // So, we don't need gameList.takeMonitor().
 
-        final long inactiveTime = currentTimeMillis - (1000L * ROBOT_FORCE_ENDTURN_SECONDS); 
+        final long inactiveTime = currentTimeMillis - (1000L * ROBOT_FORCE_ENDTURN_SECONDS);
 
         try
         {
@@ -10000,7 +10000,7 @@ public class SOCServer extends Server
                  new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), true);
             messageToGameForVersions
                 (game, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                 new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, SOCDevCardConstants.KNIGHT), true);            
+                 new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, SOCDevCardConstants.KNIGHT), true);
         }
         messageToGame(game.getName(), outMes);
     }
@@ -10016,7 +10016,7 @@ public class SOCServer extends Server
     public static boolean parseCmdline_GameOption(final String optNameValue)
     {
         SOCGameOption op = SOCGameOption.parseOptionNameValue(optNameValue, true);
-        if (op == null) 
+        if (op == null)
         {
             System.err.println("Unknown or malformed game option: " + optNameValue);
             return false;
@@ -10085,7 +10085,7 @@ public class SOCServer extends Server
                     ++aidx;
                     if (aidx < args.length)
                         argValue = args[aidx];
-                    else 
+                    else
                         argValue = null;
                 }
                 if (argValue != null)
@@ -10200,7 +10200,7 @@ public class SOCServer extends Server
 
     /**
      * Print command line parameter information, including options ("--" / "-").
-     * @param longFormat short or long? 
+     * @param longFormat short or long?
      * Long format gives details and also calls {@link #printVersionText()} beforehand.
      * Short format is printed at most once, after checking {@link #printedUsageAlready}.
      * @since 1.1.07
@@ -10234,7 +10234,7 @@ public class SOCServer extends Server
             }
             printGameOptions();
         } else {
-            System.err.println("       use java soc.server.SOCServer --help to see recognized options");            
+            System.err.println("       use java soc.server.SOCServer --help to see recognized options");
         }
     }
 
