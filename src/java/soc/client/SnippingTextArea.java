@@ -60,7 +60,9 @@ public class SnippingTextArea extends TextArea
     static final boolean isJavaOnOSX105 =
         SOCPlayerClient.isJavaOnOSX
         && (System.getProperty("os.version").startsWith("10.5.")
-            || System.getProperty("os.version").startsWith("10.6."));
+            || System.getProperty("os.version").startsWith("10.6.")
+            || System.getProperty("os.version").startsWith("10.7.")
+            || System.getProperty("os.version").startsWith("10.8."));
 
     int maximumLines = 100;
     int lines = 0;
