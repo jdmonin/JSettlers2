@@ -54,7 +54,6 @@ import java.net.ConnectException;
 import java.net.Socket;
 
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -1950,7 +1949,7 @@ public class SOCPlayerClient extends Panel
             {
                 // Older server: Look for options created or changed since server's version.
                 // Ask it what it knows about them.
-                Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
+                Vector<SOCGameOption> tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
                 if (tooNewOpts != null)
                 {
                     if (! isPractice)
@@ -1995,7 +1994,7 @@ public class SOCPlayerClient extends Panel
             try
             {
                 String gameName = null;
-                Vector optNames = new Vector();
+                Vector<String> optNames = new Vector<String>();
                 errMsg = st.nextToken();
                 gameName = st.nextToken();
                 while (st.hasMoreTokens())
@@ -2004,14 +2003,14 @@ public class SOCPlayerClient extends Panel
                 err.append(gameName);
                 err.append("\nThere is a problem with the option values chosen.\n");
                 err.append(errMsg);
-                Hashtable knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
+                Hashtable<String, SOCGameOption> knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
                 for (int i = 0; i < optNames.size(); ++i)
                 {
                     err.append("\nThis option must be changed: ");
-                    String oname = (String) optNames.elementAt(i);
+                    String oname = optNames.elementAt(i);
                     SOCGameOption oinfo = null;
                     if (knowns != null)
-                        oinfo = (SOCGameOption) knowns.get(oname);
+                        oinfo = knowns.get(oname);
                     if (oinfo != null)
                         oname = oinfo.optDesc;
                     err.append(oname);
@@ -2074,11 +2073,11 @@ public class SOCPlayerClient extends Panel
         ChannelFrame fr;
         fr = channels.get(mes.getChannel());
 
-        Enumeration membersEnum = (mes.getMembers()).elements();
+        Collection<String> membersEnum = mes.getMembers();
 
-        while (membersEnum.hasMoreElements())
+        for (String member : membersEnum)
         {
-            fr.addMember((String) membersEnum.nextElement());
+            fr.addMember(member);
         }
 
         fr.began();
@@ -2187,7 +2186,7 @@ public class SOCPlayerClient extends Panel
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
         // We'll recognize and remove it in methods called from here.
 
-        Enumeration gameNamesEnum = mes.getGames().elements();
+        Collection<String> gameNamesEnum = mes.getGames();
 
         if (! isPractice)  // local's gameoption data is set up in handleVERSION
         {
@@ -2202,12 +2201,12 @@ public class SOCPlayerClient extends Panel
             tcpServGameOpts.noMoreOptions(false);
 
             // Reset enum for addToGameList call; serverGames.addGames has consumed it.
-            gameNamesEnum = mes.getGames().elements();
+            gameNamesEnum = mes.getGames();
         }
 
-        while (gameNamesEnum.hasMoreElements())
+        for (String gn : gameNamesEnum)
         {
-            addToGameList((String) gameNamesEnum.nextElement(), null, false);
+            addToGameList(gn, null, false);
         }
     }
 
@@ -2235,12 +2234,12 @@ public class SOCPlayerClient extends Panel
         }
 
         final String gaName = mes.getGame();
-        Hashtable gameOpts;
+        Hashtable<String,SOCGameOption> gameOpts;
         if (isPractice)
         {
             gameOpts = practiceServGameOpts.optionSet;  // holds most recent settings by user
             if (gameOpts != null)
-                gameOpts = (Hashtable) gameOpts.clone();  // changes here shouldn't change practiceServ's copy
+                gameOpts = new Hashtable<String,SOCGameOption>(gameOpts);  // changes here shouldn't change practiceServ's copy
         } else {
             if (serverGames != null)
                 gameOpts = serverGames.parseGameOptions(gaName);
@@ -3471,13 +3470,12 @@ public class SOCPlayerClient extends Panel
         {
             if (gameInfoWaiting != null)
             {
-                Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
-            } else if (newGameWaiting)
+                Hashtable<String,SOCGameOption> gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow(SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
+            }
+            else if (newGameWaiting)
             {
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow(SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
             }
         }
     }
@@ -4617,6 +4615,7 @@ public class SOCPlayerClient extends Panel
              * show a popup with more info.
              * @since 1.1.12
              */
+            @Override
             public void mouseClicked(MouseEvent e)
             {
                 NotifyDialog.createAndShow
@@ -4635,6 +4634,7 @@ public class SOCPlayerClient extends Panel
              * Set the hand cursor when entering the local-server info label.
              * @since 1.1.12
              */
+            @Override
             public void mouseEntered(MouseEvent e)
             {
                 if (e.getSource() == localTCPServerLabel)
@@ -4645,6 +4645,7 @@ public class SOCPlayerClient extends Panel
              * Clear the cursor when exiting the local-server info label.
              * @since 1.1.12
              */
+            @Override
             public void mouseExited(MouseEvent e)
             {
                 if (e.getSource() == localTCPServerLabel)
@@ -4703,8 +4704,7 @@ public class SOCPlayerClient extends Panel
     {
         if (game.isPractice)
             return Version.versionNumber();
-        else
-            return sVersion;
+        return sVersion;
     }
 
     /**
@@ -5316,6 +5316,7 @@ public class SOCPlayerClient extends Panel
          * If we are playing in a game, or running a local server hosting active games,
          * ask the user to confirm if possible.
          */
+        @Override
         public void windowClosing(WindowEvent evt)
         {
             SOCPlayerInterface piActive = null;
@@ -5359,6 +5360,7 @@ public class SOCPlayerClient extends Panel
         /**
          * Set focus to Nickname field
          */
+        @Override
         public void windowOpened(WindowEvent evt)
         {
             if (! cli.hasConnectOrPractice)
@@ -5392,6 +5394,7 @@ public class SOCPlayerClient extends Panel
         /**
          * Called when timer fires. See class description for action taken.
          */
+        @Override
         public void run()
         {
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
@@ -5429,6 +5432,7 @@ public class SOCPlayerClient extends Panel
         /**
          * Called when timer fires. See class description for action taken.
          */
+        @Override
         public void run()
         {
             pcli.gameOptsDefsTask = null;  // Clear reference to this soon-to-expire obj

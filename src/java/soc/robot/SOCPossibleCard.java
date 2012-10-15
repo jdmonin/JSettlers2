@@ -44,8 +44,8 @@ public class SOCPossibleCard extends SOCPossiblePiece
         player = pl;
         coord = 0;
         eta = et;
-        threats = new Vector();
-        biggestThreats = new Vector();
+        threats = new Vector<SOCPossiblePiece>();
+        biggestThreats = new Vector<SOCPossiblePiece>();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
     }
@@ -62,8 +62,8 @@ public class SOCPossibleCard extends SOCPossiblePiece
         player = pc.getPlayer();
         coord = 0;
         eta = pc.getETA();
-        threats = new Vector();
-        biggestThreats = new Vector();
+        threats = new Vector<SOCPossiblePiece>();
+        biggestThreats = new Vector<SOCPossiblePiece>();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
     }

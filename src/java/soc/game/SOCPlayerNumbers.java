@@ -43,7 +43,7 @@ public class SOCPlayerNumbers
      * {@link SOCBoardLarge#GOLD_HEX} is handled by adding the dice number to
      * all resource types in {@link #addNumberForResource(int, int, int)}.
      */
-    private Vector[] numbersForResource;
+    private Vector<Integer>[] numbersForResource;
 
     /**
      * Resources on dice roll numbers; uses indexes 2-12.
@@ -56,7 +56,7 @@ public class SOCPlayerNumbers
      * {@link SOCBoardLarge#GOLD_HEX} is handled by adding all resource types to
      * the dice number in {@link #addNumberForResource(int, int, int)}.
      */
-    private Vector[] resourcesForNumber;
+    private Vector<Integer>[] resourcesForNumber;
 
     /**
      * Hex dice-roll resource information, by land-hex coordinate ID.
@@ -68,7 +68,7 @@ public class SOCPlayerNumbers
      * {@link #updateNumbers(int, SOCBoard)} is called,
      * any land hex's entry in this hashtable may be null.
      */
-    private Hashtable numberAndResourceForHex;
+    private Hashtable<Integer, Vector<IntPair>> numberAndResourceForHex;
 
     /**
      * Reference to either {@link SOCBoard#HEXCOORDS_LAND_V1} or {@link SOCBoard#HEXCOORDS_LAND_V2}.
@@ -103,27 +103,24 @@ public class SOCPlayerNumbers
 
         numbersForResource = new Vector[SOCResourceConstants.MAXPLUSONE - 1];
 
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
-                i++)
+        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; i++)
         {
-            numbersForResource[i] = (Vector) numbers.numbersForResource[i].clone();
+            numbersForResource[i] = new Vector<Integer>(numbers.numbersForResource[i]);
         }
 
         resourcesForNumber = new Vector[13];  // dice roll totals 2 to 12
 
         for (int i = 0; i < 13; i++)
         {
-            resourcesForNumber[i] = (Vector) numbers.resourcesForNumber[i].clone();
+            resourcesForNumber[i] = new Vector<Integer>(numbers.resourcesForNumber[i]);
         }
 
         // deep copy, not shallow copy:
-        numberAndResourceForHex = new Hashtable((int) (numbers.numberAndResourceForHex.size() * 1.4f));
-        for (Enumeration hexes = numbers.numberAndResourceForHex.keys();
-             hexes.hasMoreElements(); )
+        numberAndResourceForHex = new Hashtable<Integer, Vector<IntPair>>((int) (numbers.numberAndResourceForHex.size() * 1.4f));
+        for (Enumeration<Integer> hexes = numbers.numberAndResourceForHex.keys(); hexes.hasMoreElements(); )
         {
-            Object hex = hexes.nextElement();
-            numberAndResourceForHex.put
-                (hex, ((Vector) numbers.numberAndResourceForHex.get(hex)).clone());
+            Integer hex = hexes.nextElement();
+            numberAndResourceForHex.put(hex, new Vector<IntPair>(numbers.numberAndResourceForHex.get(hex)));
         }
     }
 
@@ -160,17 +157,17 @@ public class SOCPlayerNumbers
         for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
                 i++)
         {
-            numbersForResource[i] = new Vector();
+            numbersForResource[i] = new Vector<Integer>();
         }
 
         resourcesForNumber = new Vector[13];  // dice roll totals 2 to 12
 
         for (int i = 0; i < 13; i++)
         {
-            resourcesForNumber[i] = new Vector();
+            resourcesForNumber[i] = new Vector<Integer>();
         }
 
-        numberAndResourceForHex = new Hashtable();
+        numberAndResourceForHex = new Hashtable<Integer, Vector<IntPair>>();
 
         //    Initially empty, until addNumberForResource is called.
         //    So, skip this loop:
@@ -185,8 +182,7 @@ public class SOCPlayerNumbers
      */
     public void clear()
     {
-        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
-                i++)
+        for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD; i++)
         {
             numbersForResource[i].removeAllElements();
         }
@@ -240,11 +236,11 @@ public class SOCPlayerNumbers
      */
     public void updateNumbers(final int nodeCoord, SOCBoard board)
     {
-        Enumeration hexes = board.getAdjacentHexesToNode(nodeCoord).elements();
+        Vector<Integer> hexes = board.getAdjacentHexesToNode(nodeCoord);
 
-        while (hexes.hasMoreElements())
+        for (Integer hexInt : hexes)
         {
-            final int hex = ((Integer) hexes.nextElement()).intValue();
+            final int hex = hexInt.intValue();
             final int number = board.getNumberOnHexFromCoord(hex);
             final int resource = board.getHexTypeFromCoord(hex);
             addNumberForResource(number, resource, hex);
@@ -270,15 +266,14 @@ public class SOCPlayerNumbers
      * @since 2.0.00
      * @see #updateNumbers(int, SOCBoard)
      */
-    public int updateNumbersAndProbability
-        (final int nodeCoord, SOCBoard board, final int[] numProb, final StringBuffer sb)
+    public int updateNumbersAndProbability(final int nodeCoord, SOCBoard board, final int[] numProb, final StringBuffer sb)
     {
         int probTotal = 0;
-        Enumeration hexes = board.getAdjacentHexesToNode(nodeCoord).elements();
+        Vector<Integer> hexes = board.getAdjacentHexesToNode(nodeCoord);
 
-        while (hexes.hasMoreElements())
+        for (Integer hexInt : hexes)
         {
-            final int hex = ((Integer) hexes.nextElement()).intValue();
+            final int hex = hexInt.intValue();
             final int number = board.getNumberOnHexFromCoord(hex);
             if (number > 0)
             {
@@ -313,7 +308,7 @@ public class SOCPlayerNumbers
      *   more than one Integer here with that resource type.
      * @see #getResourcesForNumber(int, int)
      */
-    public Vector getResourcesForNumber(final int diceNum)
+    public Vector<Integer> getResourcesForNumber(final int diceNum)
     {
         return resourcesForNumber[diceNum];
     }
@@ -329,7 +324,7 @@ public class SOCPlayerNumbers
      * @param resource  the resource, in range {@link SOCResourceConstants#CLAY} to {@link SOCResourceConstants#WOOD}
      * @see #getNumbersForResource(int, int)
      */
-    public Vector getNumbersForResource(int resource)
+    public Vector<Integer> getNumbersForResource(int resource)
     {
         return numbersForResource[resource];
     }
@@ -346,9 +341,9 @@ public class SOCPlayerNumbers
      * @param hexCoord  the hex coord
      * @see #hasNoResourcesForHex(int)
      */
-    public Vector getNumberResourcePairsForHex(final int hexCoord)
+    public Vector<IntPair> getNumberResourcePairsForHex(final int hexCoord)
     {
-        return (Vector) numberAndResourceForHex.get(new Integer(hexCoord));
+        return numberAndResourceForHex.get(Integer.valueOf(hexCoord));
     }
 
     /**
@@ -360,11 +355,10 @@ public class SOCPlayerNumbers
      */
     public boolean hasNoResourcesForHex(final int hexCoord)
     {
-        Vector v = (Vector) numberAndResourceForHex.get(new Integer(hexCoord));
+        Vector<IntPair> v = numberAndResourceForHex.get(Integer.valueOf(hexCoord));
         if (v == null)
             return true;
-        else
-            return v.isEmpty();
+        return v.isEmpty();
     }
 
     /**
@@ -381,9 +375,9 @@ public class SOCPlayerNumbers
      * @param robberHex the robber hex
      * @see #getNumbersForResource(int)
      */
-    public Vector getNumbersForResource(int resource, int robberHex)
+    public Vector<Integer> getNumbersForResource(int resource, int robberHex)
     {
-        Vector numbers = new Vector();
+        Vector<Integer> numbers = new Vector<Integer>();
 
         if (landHexCoords == null)
             return numbers;
@@ -393,18 +387,16 @@ public class SOCPlayerNumbers
             if (landHexCoords[i] == robberHex)
                 continue;
 
-            Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(landHexCoords[i]));
+            Vector<IntPair> pairs = numberAndResourceForHex.get(new Integer(landHexCoords[i]));
             if (pairs == null)
                 continue;
 
-            Enumeration pairsEnum = pairs.elements();
-            while (pairsEnum.hasMoreElements())
+            for (IntPair pair : pairs)
             {
-                IntPair pair = (IntPair) pairsEnum.nextElement();
                 final int res = pair.getB();
                 if ((res == resource) || (hasSeaBoard && (res == SOCBoardLarge.GOLD_HEX)))
                 {
-                    numbers.addElement(new Integer(pair.getA()));
+                    numbers.addElement(Integer.valueOf(pair.getA()));
                 }
             }
         }
@@ -430,9 +422,9 @@ public class SOCPlayerNumbers
      * @param robberHex the robber hex coordinate
      * @see #getResourcesForNumber(int)
      */
-    public Vector getResourcesForNumber(final int diceNum, final int robberHex)
+    public Vector<Integer> getResourcesForNumber(final int diceNum, final int robberHex)
     {
-        Vector resources = new Vector();
+        Vector<Integer> resources = new Vector<Integer>();
 
         if (landHexCoords == null)
             return resources;
@@ -442,14 +434,12 @@ public class SOCPlayerNumbers
             if (landHexCoords[i] == robberHex)
                 continue;
 
-            Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(landHexCoords[i]));
+            Vector<IntPair> pairs = numberAndResourceForHex.get(Integer.valueOf(landHexCoords[i]));
             if (pairs == null)
                 continue;
 
-            Enumeration pairsEnum = pairs.elements();
-            while (pairsEnum.hasMoreElements())
+            for (IntPair pair : pairs)
             {
-                IntPair pair = (IntPair) pairsEnum.nextElement();
                 if (pair.getA() == diceNum)
                 {
                     final int res = pair.getB();
@@ -509,10 +499,10 @@ public class SOCPlayerNumbers
         }
 
         final Integer hexInt = new Integer(hex);
-        Vector pairs = (Vector) numberAndResourceForHex.get(hexInt);
+        Vector<IntPair> pairs = numberAndResourceForHex.get(hexInt);
         if (pairs == null)
         {
-            pairs = new Vector();
+            pairs = new Vector<IntPair>();
             numberAndResourceForHex.put(hexInt, pairs);
         }
         pairs.addElement(new IntPair(diceNum, resource));
@@ -541,11 +531,11 @@ public class SOCPlayerNumbers
      */
     public void undoUpdateNumbers(final int coord, SOCBoard board)
     {
-        Enumeration hexes = board.getAdjacentHexesToNode(coord).elements();
+        Vector<Integer> hexes = board.getAdjacentHexesToNode(coord);
 
-        while (hexes.hasMoreElements())
+        for (Integer hexInt : hexes)
         {
-            final int hex = ((Integer) hexes.nextElement()).intValue();
+            final int hex = hexInt.intValue();
             final int number = board.getNumberOnHexFromCoord(hex);
             final int resource = board.getHexTypeFromCoord(hex);
             undoAddNumberForResource(number, resource, hex);
@@ -566,34 +556,23 @@ public class SOCPlayerNumbers
     {
         if ((resource >= SOCResourceConstants.CLAY) && (resource <= SOCResourceConstants.WOOD))
         {
-            Enumeration numEnum = numbersForResource[resource].elements();
-
-            while (numEnum.hasMoreElements())
+            for (Integer num : numbersForResource[resource])
             {
-                Integer num = (Integer) numEnum.nextElement();
-
                 if (num.intValue() == number)
                 {
                     numbersForResource[resource].removeElement(num);
-
                     break;
                 }
             }
 
-            Enumeration resourceEnum = resourcesForNumber[number].elements();
-
-            while (resourceEnum.hasMoreElements())
+            for (Integer resourceInt : resourcesForNumber[number])
             {
-                Integer resourceInt = (Integer) resourceEnum.nextElement();
-
                 if (resourceInt.intValue() == resource)
                 {
                     resourcesForNumber[number].removeElement(resourceInt);
-
                     break;
                 }
             }
-
         }
         else
         {
@@ -607,10 +586,10 @@ public class SOCPlayerNumbers
 
             for (int res = SOCResourceConstants.CLAY; res <= SOCResourceConstants.WOOD; ++res)
             {
-                Iterator numIter = numbersForResource[res].iterator();    
+                Iterator<Integer> numIter = numbersForResource[res].iterator();    
                 while (numIter.hasNext())
                 {
-                    final int num = ((Integer) numIter.next()).intValue();  
+                    final int num = numIter.next().intValue();  
                     if (num == number)
                     {
                         numIter.remove();
@@ -620,10 +599,10 @@ public class SOCPlayerNumbers
             }
 
             boolean[] removed = new boolean[SOCResourceConstants.UNKNOWN];  // range CLAY to WOOD
-            Iterator resIter = resourcesForNumber[number].iterator();
+            Iterator<Integer> resIter = resourcesForNumber[number].iterator();
             while (resIter.hasNext())
             {
-                final int res = ((Integer) resIter.next()).intValue();
+                final int res = resIter.next().intValue();
                 if (! removed[res])
                 {
                     resIter.remove();
@@ -634,15 +613,11 @@ public class SOCPlayerNumbers
             // GOLD_HEX will be in numberAndResourceForHex.
         }
 
-        Vector pairs = (Vector) numberAndResourceForHex.get(new Integer(hex));
+        Vector<IntPair> pairs = numberAndResourceForHex.get(Integer.valueOf(hex));
         if (pairs != null)
         {
-            Enumeration numAndResourceEnum = pairs.elements();
-
-            while (numAndResourceEnum.hasMoreElements())
+            for (IntPair numAndResource : pairs)
             {
-                IntPair numAndResource = (IntPair) numAndResourceEnum.nextElement();
-
                 if ((numAndResource.getA() == number) && (numAndResource.getB() == resource))
                 {
                     pairs.removeElement(numAndResource);
@@ -666,6 +641,7 @@ public class SOCPlayerNumbers
     /**
      * return a human readable form of this object
      */
+    @Override
     public String toString()
     {
         String str = "SOCPN:";
@@ -675,11 +651,8 @@ public class SOCPlayerNumbers
         {
             str += (i + ":");
 
-            Enumeration nums = numbersForResource[i].elements();
-
-            while (nums.hasMoreElements())
+            for (Integer num : numbersForResource[i])
             {
-                Integer num = (Integer) nums.nextElement();
                 str += (num + ",");
             }
 

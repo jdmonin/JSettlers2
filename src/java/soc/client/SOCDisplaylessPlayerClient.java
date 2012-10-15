@@ -109,12 +109,13 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * the channels
      */
-    protected Hashtable channels = new Hashtable();
+    //TODO: is this used?
+    protected Hashtable<String,?> channels = new Hashtable<String,Object>();
 
     /**
      * the games we're playing
      */
-    protected Hashtable games = new Hashtable();
+    protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
 
     /**
      * Create a SOCDisplaylessPlayerClient, which would connect to localhost port 8889.
@@ -189,7 +190,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                     s = in.readUTF();
                 else
                     s = sLocal.readNext();
-                treat((SOCMessage) SOCMessage.toMsg(s));
+                treat(SOCMessage.toMsg(s));
             }
         }
         catch (InterruptedIOException x)
@@ -831,7 +832,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleLEAVEGAME(SOCLeaveGame mes)
     {
         String gn = (mes.getGame());
-        SOCGame ga = (SOCGame) games.get(gn);
+        SOCGame ga = games.get(gn);
 
         if (ga != null)
         {
@@ -885,7 +886,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
         /**
          * tell the game that a player is sitting
          */
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -917,7 +918,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -936,7 +937,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -986,7 +987,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleGAMESTATE(SOCGameState mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1000,7 +1001,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleSETTURN(SOCSetTurn mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1014,7 +1015,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleFIRSTPLAYER(SOCFirstPlayer mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1028,7 +1029,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleTURN(SOCTurn mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1043,7 +1044,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
-        final SOCGame ga = (SOCGame) games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1271,7 +1272,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleRESOURCECOUNT(SOCResourceCount mes)
     {
-        final SOCGame ga = (SOCGame) games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1304,7 +1305,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleDICERESULT(SOCDiceResult mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1318,7 +1319,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handlePUTPIECE(SOCPutPiece mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1379,7 +1380,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     */
     protected void handleCANCELBUILDREQUEST(SOCCancelBuildRequest mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -1405,7 +1406,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleMOVEROBBER(SOCMoveRobber mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1454,7 +1455,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleMAKEOFFER(SOCMakeOffer mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1469,7 +1470,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleCLEAROFFER(SOCClearOffer mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1502,7 +1503,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleDEVCARDCOUNT(SOCDevCardCount mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1518,7 +1519,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1564,7 +1565,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleSETPLAYEDDEVCARD(SOCSetPlayedDevCard mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1578,14 +1579,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
      * @param mes  the message
      * @param games  The hashtable of client's {@link SOCGame}s; key = game name
      */
-    public static void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes, Hashtable games)
+    public static void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes, Hashtable<String, SOCGame> games)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
-        final Vector vset = mes.getPotentialSettlements();
-        final HashSet[] las = mes.landAreasLegalNodes;
+        final Vector<Integer> vset = mes.getPotentialSettlements();
+        final HashSet<Integer>[] las = mes.landAreasLegalNodes;
         int pn = mes.getPlayerNumber();
         if (ga.hasSeaBoard)
         {
@@ -1610,7 +1611,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleCHANGEFACE(SOCChangeFace mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1636,7 +1637,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleLONGESTROAD(SOCLongestRoad mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1657,7 +1658,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleLARGESTARMY(SOCLargestArmy mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1678,7 +1679,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      */
     protected void handleSETSEATLOCK(SOCSetSeatLock mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1709,7 +1710,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
 
@@ -1726,7 +1727,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected void handleMOVEPIECE(SOCMovePiece mes)
     {
         final String gaName = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gaName);
+        SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
 

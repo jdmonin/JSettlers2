@@ -93,10 +93,10 @@ public class NewGameOptionsFrame extends Frame
      * Create is hit.
      * @see #readOptsValuesFromControls(boolean)
      */
-    private Hashtable opts;
+    private Hashtable<String, SOCGameOption> opts;
 
     /** Key = AWT control; value = {@link SOCGameOption} within {@link #opts}. Empty if opts is null.  */
-    private Hashtable controlsOpts;
+    private Hashtable<Component, SOCGameOption> controlsOpts;
 
     /**
      * AWT control for each gameopt, for handling {@link SOCGameOption#refreshDisplay()}
@@ -108,13 +108,13 @@ public class NewGameOptionsFrame extends Frame
      * @since 1.1.13
      * @see #fireOptionChangeListener(soc.game.SOCGameOption.ChangeListener, SOCGameOption, Object, Object)
      */
-    private Hashtable optsControls;
+    private Hashtable<String, Component> optsControls;
 
     /** Key = {@link SOCGameOption#optKey}; value = {@link Checkbox} if bool/intbool option.
       * Empty if none, null if readOnly.
       * Used to quickly find an option's associated checkbox.
       */
-    private Hashtable boolOptCheckboxes;
+    private Hashtable<String, Checkbox> boolOptCheckboxes;
 
     /** create is null if readOnly */
     private Button create;
@@ -144,8 +144,7 @@ public class NewGameOptionsFrame extends Frame
      * @param forPractice Will this game be on local practice server, vs remote tcp server?
      * @param readOnly    Is this display-only (for use during a game), or can it be changed?
      */
-    public NewGameOptionsFrame
-        (SOCPlayerClient cli, String gaName, Hashtable opts, boolean forPractice, boolean readOnly)
+    public NewGameOptionsFrame(SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
                 ? ("Current game options: " + gaName)
@@ -160,11 +159,11 @@ public class NewGameOptionsFrame extends Frame
         this.opts = opts;
         this.forPractice = forPractice;
         this.readOnly = readOnly;
-        controlsOpts = new Hashtable();
+        controlsOpts = new Hashtable<Component, SOCGameOption>();
         if (! readOnly)
         {
-            optsControls = new Hashtable();
-            boolOptCheckboxes = new Hashtable();
+            optsControls = new Hashtable<String, Component>();
+            boolOptCheckboxes = new Hashtable<String, Checkbox>();
         }
         if ((gaName == null) && forPractice)
         {
@@ -199,8 +198,7 @@ public class NewGameOptionsFrame extends Frame
      * See constructor for parameters.
      * @return the new frame
      */
-    public static NewGameOptionsFrame createAndShow
-        (SOCPlayerClient cli, String gaName, Hashtable opts, boolean forPractice, boolean readOnly)
+    public static NewGameOptionsFrame createAndShow(SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
         ngof.pack();
@@ -333,12 +331,12 @@ public class NewGameOptionsFrame extends Frame
         // instead of at the start of a line.
         // TODO: for now these are on subsequent lines
         //   instead of sharing the same line.
-        Hashtable sameLineOpts = new Hashtable();  // key=on-same-line opt, value=opt to start line
+        Hashtable<String,String> sameLineOpts = new Hashtable<String,String>();  // key=on-same-line opt, value=opt to start line
         {
-            Enumeration okeys = opts.keys();
+            Enumeration<String> okeys = opts.keys();
             while (okeys.hasMoreElements())
             {
-                final String kf3 = (String) okeys.nextElement();
+                final String kf3 = okeys.nextElement();
                 if (kf3.length() <= 2)
                     continue;
                 final String kf2 = kf3.substring(0, 2);
@@ -350,10 +348,10 @@ public class NewGameOptionsFrame extends Frame
         // Sort and lay out options; remove unknowns from opts.
         // TreeSet sorts game options by description, using gameopt.compareTo.
         // The array lets us remove from opts without disrupting an iterator.
-        Object[] optArr =  new TreeSet(opts.values()).toArray();
+        SOCGameOption[] optArr = new TreeSet<SOCGameOption>(opts.values()).toArray(new SOCGameOption[0]);
         for (int i = 0; i < optArr.length; ++i)
         {
-            SOCGameOption op = (SOCGameOption) optArr[i];
+            SOCGameOption op = optArr[i];
             if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             {
                 opts.remove(op.optKey);
@@ -368,15 +366,15 @@ public class NewGameOptionsFrame extends Frame
             {
                 // Group them under this one.
                 // TODO group on same line, not following lines, if there's only 1.
-                Enumeration linekeys = sameLineOpts.keys();
+                Enumeration<String> linekeys = sameLineOpts.keys();
                 while (linekeys.hasMoreElements())
                 {
-                    final String kf3 = (String) linekeys.nextElement();
-                    final String kf2 = (String) sameLineOpts.get(kf3);
+                    final String kf3 = linekeys.nextElement();
+                    final String kf2 = sameLineOpts.get(kf3);
                     if ((kf2 == null) || ! kf2.equals(op.optKey))
                         continue;  // <-- Goes with a a different option --
 
-                    final SOCGameOption op3 = (SOCGameOption) opts.get(kf3);
+                    final SOCGameOption op3 = opts.get(kf3);
                     if (op3 != null)
                         initInterface_OptLine(op3, bp, gbl, gbc);
                 }
@@ -394,8 +392,7 @@ public class NewGameOptionsFrame extends Frame
      * @param gbl Use this layout
      * @param gbc Use these constraints
      */
-    private void initInterface_OptLine(SOCGameOption op, Panel bp,
-        GridBagLayout gbl, GridBagConstraints gbc)
+    private void initInterface_OptLine(SOCGameOption op, Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
         switch (op.optType)  // OTYPE_*
         {
@@ -764,12 +761,12 @@ public class NewGameOptionsFrame extends Frame
             return false;  // shouldn't be called in that case
 
         boolean allOK = true;
-        for (Enumeration e = controlsOpts.keys(); e.hasMoreElements(); )
+        for (Enumeration<Component> e = controlsOpts.keys(); e.hasMoreElements(); )
         {
-            Component ctrl = (Component) e.nextElement();
+            Component ctrl = e.nextElement();
             if (ctrl instanceof Label)
                 continue;
-            SOCGameOption op = (SOCGameOption) controlsOpts.get(ctrl);
+            SOCGameOption op = controlsOpts.get(ctrl);
 
             // OTYPE_* - new option types may have new AWT control objects, or
             //           may use the same controls with different contents as these.
@@ -905,7 +902,7 @@ public class NewGameOptionsFrame extends Frame
             // Check for a ChangeListener for OTYPE_STR and OTYPE_STRHIDE,
             // OTYPE_INT and OTYPE_INTBOOL.
             // if source is OTYPE_INTBOOL, check its checkbox vs notEmpty.
-            SOCGameOption opt = (SOCGameOption) controlsOpts.get(srcObj);
+            SOCGameOption opt = controlsOpts.get(srcObj);
             if (opt == null)
                 return;
             final String oldText = opt.getStringValue();
@@ -942,7 +939,7 @@ public class NewGameOptionsFrame extends Frame
             // If this string or int option also has a bool checkbox,
             // set or clear that based on string/int not empty.
             boolean cbSet = false;
-            Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
+            Checkbox cb = boolOptCheckboxes.get(opt.optKey);
             if ((cb != null) && (notEmpty != cb.getState()))
             {
                 cb.setState(notEmpty);
@@ -992,11 +989,11 @@ public class NewGameOptionsFrame extends Frame
     {
         final Object ctrl = e.getSource();
         boolean choiceSetCB = false;
-        SOCGameOption opt = (SOCGameOption) controlsOpts.get(ctrl);
+        SOCGameOption opt = controlsOpts.get(ctrl);
         if (opt == null)
             return;
 
-        Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
+        Checkbox cb = boolOptCheckboxes.get(opt.optKey);
         if ((cb != null) && (cb != ctrl) && ! cb.getState())
         {
             // If the user picked a choice, also set the checkbox
@@ -1058,8 +1055,7 @@ public class NewGameOptionsFrame extends Frame
      * @param newValue  New value, string or boxed primitive
      * @since 1.1.13
      */
-    private void fireOptionChangeListener
-        (SOCGameOption.ChangeListener cl, SOCGameOption opt, final Object oldValue, final Object newValue)
+    private void fireOptionChangeListener(SOCGameOption.ChangeListener cl, SOCGameOption opt, final Object oldValue, final Object newValue)
     {
         if (oldValue.equals(newValue))
             return;  // <--- Early return: Value didn't change ---
@@ -1080,7 +1076,7 @@ public class NewGameOptionsFrame extends Frame
             System.err.println();
         }
 
-        Vector refresh = SOCGameOption.getAndClearRefreshList();
+        Vector<SOCGameOption> refresh = SOCGameOption.getAndClearRefreshList();
         if (refresh == null)
             return;  // <--- Early return: Nothing else changed ---
 
@@ -1089,8 +1085,8 @@ public class NewGameOptionsFrame extends Frame
             return;  // should only be null if readOnly, and thus no changes to values anyway
         for (int i = refresh.size() - 1; i >= 0; --i)
         {
-            final SOCGameOption op = (SOCGameOption) (refresh.elementAt(i));
-            final Component opComp = (Component) optsControls.get(op.optKey);
+            final SOCGameOption op = refresh.elementAt(i);
+            final Component opComp = optsControls.get(op.optKey);
 
             switch (op.optType)  // OTYPE_*
             {
@@ -1108,7 +1104,7 @@ public class NewGameOptionsFrame extends Frame
                     final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_INTBOOL);
                     if (hasCheckbox)
                     {
-                        Checkbox cb = (Checkbox) boolOptCheckboxes.get(op.optKey);
+                        Checkbox cb = boolOptCheckboxes.get(op.optKey);
                         if (cb != null)
                             cb.setState(op.getBoolValue());
                     }
@@ -1122,7 +1118,7 @@ public class NewGameOptionsFrame extends Frame
                     final boolean hasCheckbox = (op.optType == SOCGameOption.OTYPE_ENUMBOOL);
                     if (hasCheckbox)
                     {
-                        Checkbox cb = (Checkbox) boolOptCheckboxes.get(op.optKey);
+                        Checkbox cb = boolOptCheckboxes.get(op.optKey);
                         if (cb != null)
                             cb.setState(op.getBoolValue());
                     }
@@ -1142,10 +1138,10 @@ public class NewGameOptionsFrame extends Frame
     /** when an option with a boolValue's label is clicked, toggle its checkbox */
     public void mouseClicked(MouseEvent e)
     {
-        SOCGameOption opt = (SOCGameOption) controlsOpts.get(e.getSource());
+        SOCGameOption opt = controlsOpts.get(e.getSource());
         if (opt == null)
             return;
-        Checkbox cb = (Checkbox) boolOptCheckboxes.get(opt.optKey);
+        Checkbox cb = boolOptCheckboxes.get(opt.optKey);
         if (cb == null)
             return;
         final boolean becameChecked = ! cb.getState();
@@ -1263,6 +1259,7 @@ public class NewGameOptionsFrame extends Frame
         /**
          * React to the Create button.
          */
+        @Override
         public void button1Chosen()
         {
             clickCreate(false);
@@ -1271,6 +1268,7 @@ public class NewGameOptionsFrame extends Frame
         /**
          * React to the Change button.
          */
+        @Override
         public void button2Chosen()
         {
             dispose();
@@ -1279,6 +1277,7 @@ public class NewGameOptionsFrame extends Frame
         /**
          * React to the dialog window closed by user, or Esc pressed. (same as Change button)
          */
+        @Override
         public void windowCloseChosen()
         {
             button2Chosen();

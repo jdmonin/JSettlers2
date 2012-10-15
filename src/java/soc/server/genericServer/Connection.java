@@ -54,7 +54,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
      * the arbitrary key data ("name") associated with this connection.
      * Protected to force callers to use getData() part of StringConnection interface.
      */
-    protected Object data;    
+    protected Object data;
 
     /**
      * the arbitrary app-specific data associated with this connection.
@@ -78,7 +78,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     protected boolean connected = false;
     /** @see #disconnectSoft() */
     protected boolean inputConnected = false;
-    public Vector outQueue = new Vector();
+    public Vector<String> outQueue = new Vector<String>();
 
     /** initialize the connection data */
     Connection(Socket so, Server sve)
@@ -247,7 +247,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
      *
      * @param str Data to send
      *
-     * @return True if sent, false if error 
+     * @return True if sent, false if error
      *         (and sets {@link #error})
      */
     public boolean putForReal(String str)
@@ -427,7 +427,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
     /**
      * Accept no further input, allow output to drain, don't immediately close the socket.
      * Once called, {@link #isConnected()} will return false, even if output is still being
-     * sent to the other side. 
+     * sent to the other side.
      */
     public void disconnectSoft()
     {
@@ -565,7 +565,7 @@ public final class Connection extends Thread implements Runnable, Serializable, 
                 {
                     if (outQueue.size() > 0)
                     {
-                        c = (String) outQueue.elementAt(0);
+                        c = outQueue.elementAt(0);
                         outQueue.removeElementAt(0);
                     }
                 }

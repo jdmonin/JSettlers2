@@ -1463,7 +1463,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @see #optionsMinimumVersion(Hashtable, boolean)
      * @see #getMinVersion(Hashtable)
      */
-    public static int optionsMinimumVersion(Hashtable<String, SOCGameOption> opts)
+    public static int optionsMinimumVersion(Hashtable<?, SOCGameOption> opts)
         throws ClassCastException
     {
         return optionsMinimumVersion(opts, false);
@@ -1497,11 +1497,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @see #optionsMinimumVersion(Hashtable)
      * @see #getMinVersion(Hashtable)
      */
-    public static int optionsMinimumVersion(Hashtable<String, SOCGameOption> opts, final boolean minCliVersionForUnchangedOpts)
+    public static int optionsMinimumVersion(Hashtable<?, SOCGameOption> opts, final boolean minCliVersionForUnchangedOpts)
 	throws ClassCastException
     {
     	int minVers = -1;
-    	final Hashtable<String, SOCGameOption> oarg = minCliVersionForUnchangedOpts ? opts : null;
+    	final Hashtable<?, SOCGameOption> oarg = minCliVersionForUnchangedOpts ? opts : null;
     	for (SOCGameOption op : opts.values())
     	{
             int opMin = op.getMinVersion(oarg);  // includes any option value checking for minVers

@@ -31,7 +31,6 @@ import java.io.Serializable;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Random;
@@ -2055,12 +2054,12 @@ public class SOCGame implements Serializable, Cloneable
                     && (ppPlayer.getPieces().size() == 3))))
         {
             SOCResourceSet resources = new SOCResourceSet();
-            Enumeration hexes = board.getAdjacentHexesToNode(pp.getCoordinates()).elements();
+            Vector<Integer> hexes = board.getAdjacentHexesToNode(pp.getCoordinates());
             int goldHexAdjacent = 0;
 
-            while (hexes.hasMoreElements())
+            for (Integer hex : hexes)
             {
-                final int hexCoord = ((Integer) hexes.nextElement()).intValue();
+                final int hexCoord = hex.intValue();
 
                 switch (board.getHexTypeFromCoord(hexCoord))
                 {
@@ -2136,18 +2135,16 @@ public class SOCGame implements Serializable, Cloneable
                     roads[i] = 0;
                 }
 
-                Enumeration adjEdgeEnum = board.getAdjacentEdgesToNode(pp.getCoordinates()).elements();
+                Vector<Integer> adjEdges = board.getAdjacentEdgesToNode(pp.getCoordinates());
 
-                while (adjEdgeEnum.hasMoreElements())
+                for (Integer adj : adjEdges)
                 {
-                    final int adjEdge = ((Integer) adjEdgeEnum.nextElement()).intValue();
+                    final int adjEdge = adj.intValue();
 
                     /**
                      * look for other player's roads adjacent to this node
                      */
-                    Collection<SOCRoad> allRoadsEnum = board.getRoads();
-
-                    for (SOCRoad road : allRoadsEnum)
+                    for (SOCRoad road : board.getRoads())
                     {
                         if (adjEdge == road.getCoordinates())
                         {
@@ -2192,7 +2189,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pp.getType() == SOCPlayingPiece.SHIP)
         {
-            placedShipsThisTurn.add(Integer.valueOf(pp.getCoordinates()));
+            placedShipsThisTurn.add(new Integer(pp.getCoordinates()));
         }
 
         /**
@@ -2598,8 +2595,8 @@ public class SOCGame implements Serializable, Cloneable
              * SOCPlayer knows them already.
              */
             setPlayersLandHexCoordinates();
-            HashSet psList = ((SOCBoardLarge) board).getLegalAndPotentialSettlements();
-            final HashSet[] las = ((SOCBoardLarge) board).getLandAreasLegalNodes();
+            HashSet<Integer> psList = ((SOCBoardLarge) board).getLegalAndPotentialSettlements();
+            final HashSet<Integer>[] las = ((SOCBoardLarge) board).getLandAreasLegalNodes();
             for (int i = 0; i < maxPlayers; ++i)
                 players[i].setPotentialAndLegalSettlements(psList, true, las);
         }
@@ -3166,14 +3163,10 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         if (gameState == WAITING_FOR_DISCARDS)
-        {
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD_WAIT, picks, true);
-        } else {
-            // gameState == PLAY1 - was set in discard()
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD, picks, true);
-        }
+            return new SOCForceEndTurnResult(SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD_WAIT, picks, true);
+        
+        // gameState == PLAY1 - was set in discard()
+        return new SOCForceEndTurnResult(SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD, picks, true);
     }
 
     /**
@@ -3441,17 +3434,23 @@ public class SOCGame implements Serializable, Cloneable
     private SOCResourceSet getResourcesGainedFromRoll(SOCPlayer player, final int roll)
     {
         SOCResourceSet resources = new SOCResourceSet();
+        SOCResourceSet missedResources = new SOCResourceSet();
         final int robberHex = board.getRobberHex();
 
         /**
          * check the hexes touching settlements
          */
-        getResourcesGainedFromRollPieces(roll, resources, robberHex, player.getSettlements(), 1);
+        getResourcesGainedFromRollPieces(roll, resources, missedResources, robberHex, player.getSettlements(), 1);
 
         /**
          * check the hexes touching cities
          */
-        getResourcesGainedFromRollPieces(roll, resources, robberHex, player.getCities(), 2);
+        getResourcesGainedFromRollPieces(roll, resources, missedResources, robberHex, player.getCities(), 2);
+        
+        if (missedResources.getTotal() > 0)
+        {
+            //System.out.println("SOCGame#getResourcesGainedFromRoll Player ["+player.getName()+"] would have gotten resources, but robber stole them: "+missedResources.toString());
+        }
 
         return resources;
     }
@@ -3475,44 +3474,46 @@ public class SOCGame implements Serializable, Cloneable
      */
     private final void getResourcesGainedFromRollPieces(int roll,
                                                         SOCResourceSet resources,
+                                                        SOCResourceSet missedResources,
                                                         int robberHex,
                                                         Collection<? extends SOCPlayingPiece> sEnum,
                                                         int incr)
     {
         for (SOCPlayingPiece sc : sEnum)
         {
-            Enumeration hexes = board.getAdjacentHexesToNode(sc.getCoordinates()).elements();
+            Collection<Integer> hexes = board.getAdjacentHexesToNode(sc.getCoordinates());
 
-            while (hexes.hasMoreElements())
+            for (Integer hex : hexes)
             {
-                final int hexCoord = ((Integer) hexes.nextElement()).intValue();
-                if ((board.getNumberOnHexFromCoord(hexCoord) == roll) && (hexCoord != robberHex))
+                final int hexCoord = hex.intValue();
+                SOCResourceSet rset = hexCoord != robberHex ? resources : missedResources;
+                if (board.getNumberOnHexFromCoord(hexCoord) == roll)
                 {
                     switch (board.getHexTypeFromCoord(hexCoord))
                     {
                     case SOCBoard.CLAY_HEX:
-                        resources.add(incr, SOCResourceConstants.CLAY);
+                        rset.add(incr, SOCResourceConstants.CLAY);
                         break;
 
                     case SOCBoard.ORE_HEX:
-                        resources.add(incr, SOCResourceConstants.ORE);
+                        rset.add(incr, SOCResourceConstants.ORE);
                         break;
 
                     case SOCBoard.SHEEP_HEX:
-                        resources.add(incr, SOCResourceConstants.SHEEP);
+                        rset.add(incr, SOCResourceConstants.SHEEP);
                         break;
 
                     case SOCBoard.WHEAT_HEX:
-                        resources.add(incr, SOCResourceConstants.WHEAT);
+                        rset.add(incr, SOCResourceConstants.WHEAT);
                         break;
 
                     case SOCBoard.WOOD_HEX:
-                        resources.add(incr, SOCResourceConstants.WOOD);
+                        rset.add(incr, SOCResourceConstants.WOOD);
                         break;
 
                     case SOCBoardLarge.GOLD_HEX:  // if not hasSeaBoard, == SOCBoard.MISC_PORT_HEX
                         if (hasSeaBoard)
-                            resources.add(incr, SOCResourceConstants.GOLD_LOCAL);
+                            rset.add(incr, SOCResourceConstants.GOLD_LOCAL);
                         break;
 
                     }
@@ -3796,7 +3797,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * do the robbing thing
          */
-        Vector victims = getPossibleVictims();
+        Vector<SOCPlayer> victims = getPossibleVictims();
 
         if (victims.isEmpty())
         {
@@ -3804,7 +3805,7 @@ public class SOCGame implements Serializable, Cloneable
         }
         else if (victims.size() == 1)
         {
-            SOCPlayer victim = (SOCPlayer) victims.firstElement();
+            SOCPlayer victim = victims.firstElement();
             int loot = stealFromPlayer(victim.getPlayerNumber());
             result.setLoot(loot);
         }
@@ -3880,7 +3881,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * do the robbing thing
          */
-        Vector victims = getPossibleVictims();
+        Vector<SOCPlayer> victims = getPossibleVictims();
 
         if (victims.isEmpty())
         {
@@ -3888,7 +3889,7 @@ public class SOCGame implements Serializable, Cloneable
         }
         else if (victims.size() == 1)
         {
-            SOCPlayer victim = (SOCPlayer) victims.firstElement();
+            SOCPlayer victim = victims.firstElement();
             int loot = stealFromPlayer(victim.getPlayerNumber());
             result.setLoot(loot);
         }
@@ -3923,12 +3924,8 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        Enumeration plEnum = getPossibleVictims().elements();
-
-        while (plEnum.hasMoreElements())
+        for (SOCPlayer pl : getPossibleVictims())
         {
-            SOCPlayer pl = (SOCPlayer) plEnum.nextElement();
-
             if (pl.getPlayerNumber() == pn)
             {
                 return true;
@@ -3944,24 +3941,21 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param hex  the coordinates of the hex
      */
-    public Vector getPlayersOnHex(final int hex)
+    public Vector<SOCPlayer> getPlayersOnHex(final int hex)
     {
-        Vector playerList = new Vector(3);
+        Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
 
         final int[] nodes = board.getAdjacentNodesToHex(hex);
 
         for (int i = 0; i < maxPlayers; i++)
         {
-            Vector settlements = players[i].getSettlements();
-            Vector cities = players[i].getCities();
-            Enumeration seEnum;
-            Enumeration ciEnum;
+            Vector<SOCSettlement> settlements = players[i].getSettlements();
+            Vector<SOCCity> cities = players[i].getCities();
             boolean touching = false;
 
-            seEnum = settlements.elements();
-            while (seEnum.hasMoreElements())
+            for (SOCSettlement ss : settlements)
             {
-                final int seCoord = ((SOCSettlement) seEnum.nextElement()).getCoordinates();
+                final int seCoord = ss.getCoordinates();
                 for (int d = 0; d < 6; ++d)
                 {
                     if (seCoord == nodes[d])
@@ -3974,10 +3968,9 @@ public class SOCGame implements Serializable, Cloneable
 
             if (!touching)
             {
-                ciEnum = cities.elements();
-                while (ciEnum.hasMoreElements())
+                for (SOCCity ci : cities)
                 {
-                    final int ciCoord = ((SOCCity) ciEnum.nextElement()).getCoordinates();
+                    final int ciCoord = ci.getCoordinates();
                     for (int d = 0; d < 6; ++d)
                     {
                         if (ciCoord == nodes[d])
@@ -4003,20 +3996,18 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @since 2.0.00
      */
-    public Vector getPlayersShipsOnHex(final int hex)
+    public Vector<SOCPlayer> getPlayersShipsOnHex(final int hex)
     {
-        Vector playerList = new Vector(3);
+        Vector<SOCPlayer> playerList = new Vector<SOCPlayer>(3);
 
         final int[] edges = ((SOCBoardLarge) board).getAdjacentEdgesToHex(hex);
 
         for (int i = 0; i < maxPlayers; i++)
         {
-            Vector roads_ships = players[i].getRoads();
-            Enumeration rsEnum = roads_ships.elements();
+            Vector<SOCRoad> roads_ships = players[i].getRoads();
             boolean touching = false;
-            while (rsEnum.hasMoreElements())
+            for (SOCRoad rs : roads_ships)
             {
-                final SOCRoad rs = (SOCRoad) rsEnum.nextElement();
                 if (rs.isRoadNotShip())
                     continue;
 
@@ -4056,20 +4047,19 @@ public class SOCGame implements Serializable, Cloneable
      * @return a list of possible players to rob, or an empty Vector
      * @see #canChoosePlayer(int)
      */
-    public Vector getPossibleVictims()
+    public Vector<SOCPlayer> getPossibleVictims()
     {
-        Vector victims = new Vector();
-        Enumeration plEnum;
+        Vector<SOCPlayer> victims = new Vector<SOCPlayer>();
+        Vector<SOCPlayer> candidates;
         if (robberyWithPirateNotRobber)
         {
-            plEnum = getPlayersShipsOnHex(((SOCBoardLarge) board).getPirateHex()).elements();
+            candidates = getPlayersShipsOnHex(((SOCBoardLarge) board).getPirateHex());
         } else {
-            plEnum = getPlayersOnHex(board.getRobberHex()).elements();
+            candidates = getPlayersOnHex(board.getRobberHex());
         }
 
-        while (plEnum.hasMoreElements())
+        for (SOCPlayer pl : candidates)
         {
-            SOCPlayer pl = (SOCPlayer) plEnum.nextElement();
             int pn = pl.getPlayerNumber();
 
             if ((pn != currentPlayerNumber) && (! isSeatVacant(pn)) && (pl.getResources().getTotal() > 0))
@@ -4893,13 +4883,8 @@ public class SOCGame implements Serializable, Cloneable
     public boolean canDoMonopolyAction()
     {
         if (gameState != WAITING_FOR_MONOPOLY)
-        {
             return false;
-        }
-        else
-        {
-            return true;
-        }
+        return true;
     }
 
     /**
@@ -5426,36 +5411,41 @@ public class SOCGame implements Serializable, Cloneable
         throws IllegalStateException, IllegalArgumentException
     {
         if (maxPlayers <= 4)
+        {
             if (throwExceptions)
                 throw new IllegalStateException("not 6-player");
-            else
-                return false;
+            return false;
+        }
         if ((pn < 0) || (pn >= maxPlayers))
+        {
             if (throwExceptions)
                 throw new IllegalArgumentException("pn range");
-            else
-                return false;
+            return false;
+        }
         SOCPlayer pl = players[pn];
         if ((pl == null) || isSeatVacant(pn))
+        {
             if (throwExceptions)
                 throw new IllegalArgumentException("pn not valid");
-            else
-                return false;
+            return false;
+        }
         if ((gameState < PLAY) || (gameState >= OVER)
               || pl.hasSpecialBuilt()
               || pl.hasAskedSpecialBuild())
+        {
             if (throwExceptions)
                 throw new IllegalStateException("cannot ask at this time");
-            else
-                return false;
+            return false;
+        }
         if ((pn == currentPlayerNumber)
             && ((gameState != PLAY)
                 || (turnCount == 1)       // since SBP occurs @ end of each turn, not @ start
                 || pl.hasPlayedDevCard()))
+        {
             if (throwExceptions)
                 throw new IllegalStateException("current player");
-            else
-                return false;
+            return false;
+        }
 
         return true;
     }
@@ -5586,6 +5576,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return "SOCGame{" + gameName + "}"
      * @since 1.1.12
      */
+    @Override
     public String toString()
     {
         return "SOCGame{" + name + "}";

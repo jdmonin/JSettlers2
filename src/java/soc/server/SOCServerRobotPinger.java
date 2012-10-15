@@ -20,7 +20,6 @@
  **/
 package soc.server;
 
-import java.util.Enumeration;
 import java.util.Vector;
 
 import soc.disableDebug.D;
@@ -36,7 +35,7 @@ import soc.server.genericServer.StringConnection;
  */
 public class SOCServerRobotPinger extends Thread
 {
-    private Vector robotConnections;
+    private Vector<StringConnection> robotConnections;
     private int sleepTime = 150000;
     private SOCServerPing ping;
     private boolean alive;
@@ -51,7 +50,7 @@ public class SOCServerRobotPinger extends Thread
      *
      * @param robots  the connections to robots; a Vector of {@link StringConnection}s
      */
-    public SOCServerRobotPinger(SOCServer s, Vector robots)
+    public SOCServerRobotPinger(SOCServer s, Vector<StringConnection> robots)
     {
         srv = s;
         robotConnections = robots;
@@ -63,17 +62,15 @@ public class SOCServerRobotPinger extends Thread
     /**
      * DOCUMENT ME!
      */
+    @Override
     public void run()
     {
         while (alive)
         {
             if (!robotConnections.isEmpty())
             {
-                Enumeration robotConnectionsEnum = robotConnections.elements();
-
-                while (robotConnectionsEnum.hasMoreElements())
+                for (StringConnection robotConnection : robotConnections)
                 {
-                    StringConnection robotConnection = (StringConnection) robotConnectionsEnum.nextElement();
                     D.ebugPrintln("(*)(*)(*)(*) PINGING " + robotConnection.getData());
                     robotConnection.put(ping.toCmd());
                 }

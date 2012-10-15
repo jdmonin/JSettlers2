@@ -26,7 +26,7 @@ import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.message.SOCGames;
 
-import java.util.Enumeration;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -221,9 +221,9 @@ public class SOCGameList
      * @see #getGameNames()
      * @since 1.1.06
      */
-    public Enumeration<SOCGame> getGamesData()
+    public Collection<SOCGame> getGamesData()
     {
-        return gameData.elements();
+        return gameData.values();
     }
 
     /**
@@ -274,8 +274,7 @@ public class SOCGameList
         GameInfo info = gameInfo.get(gaName);
         if (info == null)
             return null;
-        else
-            return info.optsStr;
+        return info.optsStr;
     }
 
     /**
@@ -413,13 +412,12 @@ public class SOCGameList
         if ((gl == null) || (gl.gameInfo == null))
             return;
         if (gl.gameData != null)
-            addGames(gl.gameData.elements(), ourVersion);
+            addGames(gl.gameData.values(), ourVersion);
         if (gl.gameInfo != null)
         {
             // add games, and/or update canJoin flag of games added via gameData.
-            for (Enumeration<String> gnEnum = gl.gameInfo.keys(); gnEnum.hasMoreElements(); )
+            for (String gaName : gl.gameInfo.keySet())
             {
-                String gaName = gnEnum.nextElement();
                 GameInfo gi = gl.gameInfo.get(gaName);
                 if (gi.opts != null)
                     addGame(gaName, gi.opts, null, ! gi.canJoin);
@@ -444,14 +442,13 @@ public class SOCGameList
      *          will be called.
      * @since 1.1.07
      */
-    public synchronized void addGames(Enumeration<?> gamelist, final int ourVersion)
+    public synchronized void addGames(Iterable<?> gamelist, final int ourVersion)
     {
         if (gamelist == null)
             return;
 
-        while (gamelist.hasMoreElements())
+        for (Object ob : gamelist)
         {
-            Object ob = gamelist.nextElement();
             String gaName;
             Hashtable<String, SOCGameOption> gaOpts;
             boolean cannotJoin;

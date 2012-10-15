@@ -53,14 +53,14 @@ public class SOCGameOptionGetInfos extends SOCMessage
     /**
      * List of game option keynames (Strings), or null
      */
-    private Vector optkeys;
+    private Vector<String> optkeys;
 
     /**
      * Create a GameOptionGetInfos Message.
      *
      * @param okeys  list of game option keynames (Strings), or null for "-"
      */
-    public SOCGameOptionGetInfos(Vector okeys)
+    public SOCGameOptionGetInfos(Vector<String> okeys)
     {
         messageType = GAMEOPTIONGETINFOS;
         optkeys = okeys;
@@ -71,12 +71,13 @@ public class SOCGameOptionGetInfos extends SOCMessage
      * GAMEOPTIONGETINFOS introduced in 1.1.07 for game-options feature.
      * @return Version number, 1107 for JSettlers 1.1.07.
      */
+    @Override
     public int getMinimumVersion() { return 1107; }
 
     /**
      * @return the list of option keynames (a vector of Strings), or null if "-" was sent
      */
-    public Vector getOptionKeys()
+    public Vector<String> getOptionKeys()
     {
         return optkeys;
     }
@@ -86,12 +87,12 @@ public class SOCGameOptionGetInfos extends SOCMessage
      *
      * @return the command string
      */
+    @Override
     public String toCmd()
     {
-	if (optkeys != null)
-	    return toCmd(optkeys.elements());
-	else
-	    return toCmd(null);
+    	if (optkeys != null)
+    	    return toCmd(optkeys.elements());
+        return toCmd(null);
     }
 
     /**
@@ -101,10 +102,10 @@ public class SOCGameOptionGetInfos extends SOCMessage
      *            or null to use "-" as 'optkeys'
      * @return    the command string
      */
-    public static String toCmd(Enumeration opts)
+    public static String toCmd(Enumeration<?> opts)
     {
-	StringBuffer cmd = new StringBuffer(Integer.toString(GAMEOPTIONGETINFOS));
-	cmd.append(sep);
+    	StringBuffer cmd = new StringBuffer(Integer.toString(GAMEOPTIONGETINFOS));
+    	cmd.append(sep);
 
         if (opts == null)
         {
@@ -142,18 +143,18 @@ public class SOCGameOptionGetInfos extends SOCMessage
      */
     public static SOCGameOptionGetInfos parseDataStr(String s)
     {
-        Vector okey = new Vector();
+        Vector<String> okey = new Vector<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
-	boolean hasDash = false;
-
+        boolean hasDash = false;
+        
         try
         {
             while (st.hasMoreTokens())
             {
-		String ntok = st.nextToken();
+                String ntok = st.nextToken();
                 okey.addElement(ntok);
-		if (ntok.equals("-"))
-		    hasDash = true;
+                if (ntok.equals("-"))
+                    hasDash = true;
             }
         }
         catch (Exception e)
@@ -162,20 +163,21 @@ public class SOCGameOptionGetInfos extends SOCMessage
 
             return null;
         }
-
-	if (hasDash)
-	{
-	    if (okey.size() == 1)
-		okey = null;  // empty list for "-"
-	    else
-		return null;  // parse error: more than "-" in list which contains "-"
-	}
+        
+        if (hasDash)
+        {
+            if (okey.size() == 1)
+                okey = null;  // empty list for "-"
+            else
+                return null;  // parse error: more than "-" in list which contains "-"
+        }
         return new SOCGameOptionGetInfos(okey);
     }
 
     /**
      * @return a human readable form of the message
      */
+    @Override
     public String toString()
     {
         StringBuffer sb = new StringBuffer("SOCGameOptionGetInfos:options=");

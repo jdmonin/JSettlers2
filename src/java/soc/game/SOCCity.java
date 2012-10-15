@@ -45,7 +45,7 @@ public class SOCCity extends SOCPlayingPiece
     /**
      * @return the hexes touching this city, same format as {@link SOCBoard#getAdjacentHexesToNode(int)}
      */
-    public Vector getAdjacentHexes()
+    public Vector<Integer> getAdjacentHexes()
     {
         return board.getAdjacentHexesToNode(coord);
     }

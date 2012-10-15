@@ -48,8 +48,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Set;
 import java.util.Timer;
 
 
@@ -1626,6 +1626,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @return DOCUMENT ME!
      */
+    @Override
     public Dimension getPreferredSize()
     {
         return new Dimension(scaledPanelX, scaledPanelY);
@@ -1636,6 +1637,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *
      * @return minimum size
      */
+    @Override
     public Dimension getMinimumSize()
     {
         return minSize;
@@ -1650,6 +1652,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *   During initial layout, the layoutmanager may make calls to setSize(0,0);
      *   such a call is passed to super without scaling graphics.
      */
+    @Override
     public void setSize(int newW, int newH)
         throws IllegalArgumentException
     {
@@ -1674,6 +1677,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *   During initial layout, the layoutmanager may make calls to setSize(0,0);
      *   such a call is passed to super without scaling graphics.
      */
+    @Override
     public void setSize(Dimension sz)
         throws IllegalArgumentException
     {
@@ -1692,6 +1696,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *   During initial layout, the layoutmanager may make calls to setBounds(0,0,0,0);
      *   such a call is passed to super without scaling graphics.
      */
+    @Override
     public void setBounds(int x, int y, int w, int h)
         throws IllegalArgumentException
     {
@@ -2040,6 +2045,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * To protect against bugs, paint contains a try-catch that will
      * print stack traces to the player chat print area.
      */
+    @Override
     public void paint(Graphics g)
     {
         Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
@@ -2064,6 +2070,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Overriden so the peer isn't painted, which clears background. Don't call
      * this directly, use {@link Component#repaint()} instead.
      */
+    @Override
     public void update(Graphics g)
     {
         paint(g);
@@ -3105,33 +3112,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * draw the roads and ships
          */
-        Enumeration roads = board.getRoads().elements();
-
-        while (roads.hasMoreElements())
+        for (SOCRoad r : board.getRoads())
         {
-            SOCRoad r = (SOCRoad) roads.nextElement();
             drawRoadOrShip(g, r.getCoordinates(), r.getPlayerNumber(), false, r.isRoadNotShip());
         }
 
         /**
          * draw the settlements
          */
-        Enumeration settlements = board.getSettlements().elements();
-
-        while (settlements.hasMoreElements())
+        for (SOCSettlement s : board.getSettlements())
         {
-            SOCSettlement s = (SOCSettlement) settlements.nextElement();
             drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), false);
         }
 
         /**
          * draw the cities
          */
-        Enumeration cities = board.getCities().elements();
-
-        while (cities.hasMoreElements())
+        for (SOCCity c : board.getCities())
         {
-            SOCCity c = (SOCCity) cities.nextElement();
             drawCity(g, c.getCoordinates(), c.getPlayerNumber(), false);
         }
 
@@ -3251,11 +3249,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private void drawBoardEmpty(Graphics g)
     {
-        HashSet landHexShow;
+        Set<Integer> landHexShow;
         if (debugShowPotentials[8] && isLargeBoard)
             landHexShow = ((SOCBoardLarge) board).getLandHexCoordsSet();
         else
-            landHexShow = null;
+            landHexShow = Collections.emptySet();
 
         g.setPaintMode();
 
@@ -3301,17 +3299,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 for (; c < bw; c += 2, x += deltaX)
                 {
                     final int hexCoord = rshift | c;
-                    drawHex
-                        (g, x, y, board.getHexTypeFromCoord(hexCoord), -1, hexCoord);
-                    if ((landHexShow != null)
-                        && landHexShow.contains(new Integer(hexCoord)))
-                   {
+                    drawHex(g, x, y, board.getHexTypeFromCoord(hexCoord), -1, hexCoord);
+                    if (landHexShow.contains(new Integer(hexCoord)))
+                    {
                        g.setColor(Color.RED);
                        g.drawRoundRect
                            (x + (halfdeltaX / 2),
                             y + ((halfdeltaY + HEXY_OFF_SLOPE_HEIGHT) / 2) + 1,
                             halfdeltaX, halfdeltaY + 1, 6, 6);
-                   }
+                    }
                 }
             }
 
@@ -3506,42 +3502,42 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 repaint();  // We'll have to try again
                 return;
-            } else {
-                final FontMetrics fm = getFontMetrics(bpf);
-                if (fm == null)
-                {
-                    repaint();
-                    return;  // We'll have to try again
-                } else {
-                    if (superText1_w == 0)
-                    {
-                        if (superText1 == null)
-                            return;  // avoid NPE from multi-threading
-                        superText1_w = fm.stringWidth(superText1);
-                        superText_h = fm.getHeight();
-                        superText_des = fm.getDescent();
-                    }
-                    if ((superText2 != null) && (superText2_w == 0))
-                    {
-                        superText2_w = fm.stringWidth(superText2);
-                    }
-                    // box size
-                    if (superText2_w > superText1_w)
-                        superTextBox_w = superText2_w;
-                    else
-                        superTextBox_w = superText1_w;
-                    if (superText2 != null)
-                        superTextBox_h = 2 * superText_h;
-                    else
-                        superTextBox_h = superText_h;
-
-                    superTextBox_w += 2 * SUPERTEXT_INSET + 2 * SUPERTEXT_PADDING_HORIZ;
-                    superTextBox_h += SUPERTEXT_INSET + 2 * fm.getDescent();
-
-                    superTextBox_x = (scaledPanelX - superTextBox_w) / 2;
-                    superTextBox_y = (scaledPanelY - superTextBox_h) / 2;
-                }
             }
+            
+            final FontMetrics fm = getFontMetrics(bpf);
+            if (fm == null)
+            {
+                repaint();
+                return;  // We'll have to try again
+            }
+
+            if (superText1_w == 0)
+            {
+                if (superText1 == null)
+                    return;  // avoid NPE from multi-threading
+                superText1_w = fm.stringWidth(superText1);
+                superText_h = fm.getHeight();
+                superText_des = fm.getDescent();
+            }
+            if ((superText2 != null) && (superText2_w == 0))
+            {
+                superText2_w = fm.stringWidth(superText2);
+            }
+            // box size
+            if (superText2_w > superText1_w)
+                superTextBox_w = superText2_w;
+            else
+                superTextBox_w = superText1_w;
+            if (superText2 != null)
+                superTextBox_h = 2 * superText_h;
+            else
+                superTextBox_h = superText_h;
+
+            superTextBox_w += 2 * SUPERTEXT_INSET + 2 * SUPERTEXT_PADDING_HORIZ;
+            superTextBox_h += SUPERTEXT_INSET + 2 * fm.getDescent();
+
+            superTextBox_x = (scaledPanelX - superTextBox_w) / 2;
+            superTextBox_y = (scaledPanelY - superTextBox_h) / 2;
         }
 
         // adj from center
@@ -3675,8 +3671,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
             return x;
-        else
-            return (int) ((x * (long) scaledPanelX) / panelMinBW);
+        return (int) ((x * (long) scaledPanelX) / panelMinBW);
     }
 
     /**
@@ -3689,8 +3684,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
             return y;
-        else
-            return (int) ((y * (long) scaledPanelY) / panelMinBH);
+        return (int) ((y * (long) scaledPanelY) / panelMinBH);
     }
 
     /**
@@ -4627,10 +4621,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     // do we have an adjacent settlement/city?
                     boolean cliAdjacent = false;
                     {
-                        Enumeration plEnum = game.getPlayersOnHex(hilight).elements();
-                        while (plEnum.hasMoreElements())
+                        for (SOCPlayer pl : game.getPlayersOnHex(hilight))
                         {
-                            SOCPlayer pl = (SOCPlayer) plEnum.nextElement();
                             if (pl.getPlayerNumber() == playerNumber)
                             {
                                 cliAdjacent = true;
@@ -4661,10 +4653,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     // do we have an adjacent ship?
                     boolean cliAdjacent = false;
                     {
-                        Enumeration plEnum = game.getPlayersShipsOnHex(hilight).elements();
-                        while (plEnum.hasMoreElements())
+                        for (SOCPlayer pl : game.getPlayersShipsOnHex(hilight))
                         {
-                            SOCPlayer pl = (SOCPlayer) plEnum.nextElement();
                             if (pl.getPlayerNumber() == playerNumber)
                             {
                                 cliAdjacent = true;
@@ -5052,8 +5042,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (board.isHexOnLand(hex))            
                 return edge;
-            else
-                return -edge;
+            return -edge;
 
         }  // if (isLargeBoard) ends
 
@@ -5079,8 +5068,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // System.out.println("SECTOR = "+sector+" | EDGE = "+edgeMap[sector]);
         if ((sector >= 0) && (sector < edgeMap.length))
             return edgeMap[sector];
-        else
-            return 0;
+        return 0;
     }
 
     /**
@@ -5104,8 +5092,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 || (secX > board.getBoardWidth())
                 || (secY > board.getBoardHeight()))
                 return 0;
-            else
-                return (secY << 8) | secX;
+            return (secY << 8) | secX;
         }
 
         // ( 46 is the y-distance between the centers of two hexes )
@@ -5125,8 +5112,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // System.out.println("SECTOR = "+sector+" | NODE = "+nodeMap[sector]);
         if ((sector >= 0) && (sector < nodeMap.length))
             return nodeMap[sector];
-        else
-            return 0;
+        return 0;
     }
 
     /**
@@ -5149,8 +5135,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             final int hex = (secY << 8) | secX;
             if (-1 != ((SOCBoardLarge) board).getHexTypeFromCoord(hex))                    
                 return hex;
-            else
-                return 0;
+            return 0;
         }
 
         // ( 46 is the y-distance between the centers of two hexes )
@@ -5170,8 +5155,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // System.out.println("SECTOR = "+sector+" | HEX = "+hexMap[sector]);
         if ((sector >= 0) && (sector < hexMap.length))
             return hexMap[sector];
-        else
-            return 0;
+        return 0;
     }
 
     /**
@@ -5220,7 +5204,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             return;
 
         Toolkit tk = c.getToolkit();
-        Class clazz = c.getClass();
+        Class<?> clazz = c.getClass();
 
         if (hexes == null)
         {
@@ -5289,7 +5273,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final void loadHexesPortsImages
         (Image[] newHexes, Image[] newPorts, String imageDir,
-         MediaTracker tracker, Toolkit tk, Class clazz,
+         MediaTracker tracker, Toolkit tk, Class<?> clazz,
          final boolean wantsRotated)
     {
         final int numHexImage;
@@ -6691,6 +6675,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @param x   Mouse x-position relative to colorsquare
          * @param y   Mouse y-position relative to colorsquare
          */
+        @Override
         public void show(int x, int y)
         {
             setEnabledIfCanTrade(false);
@@ -6704,6 +6689,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *                  The submenus are considered items.
          *                  Items within submenus are also items. 
          */
+        @Override
         public void setEnabledIfCanTrade(boolean itemsOnly)
         {
             int gs = hpan.getGame().getGameState();
@@ -6718,6 +6704,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
         /** Cleanup, for removing this menu. */
+        @Override
         public void destroy()
         {
             for (int i = 0; i < 5; ++i)
@@ -6898,6 +6885,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * React to the Move Robber button. (call playerClient.moveRobber)
          */
+        @Override
         public void button1Chosen()
         {
             // ask server to move it
@@ -6908,17 +6896,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * React to the Don't Move button.
          */
+        @Override
         public void button2Chosen() {}
 
         /**
          * React to the dialog window closed by user. (Don't move the robber)
          */
+        @Override
         public void windowCloseChosen() {}
 
         /**
          * Make a new thread and show() in that thread.
          * Keep track of the thread, in case we need to dispose of it.
          */
+        //TODO: figure out why this was needed - should run in display thread anyway
         public void showInNewThread()
         {
             rdt = new Thread(this);
@@ -6927,11 +6918,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             rdt.start();  // run method will show the dialog
         }
 
+        @Override
         public void dispose()
         {
             if (rdt != null)
             {
-                rdt.stop();
+                //FIXME: stop this thread internally
+                //rdt.stop();
                 rdt = null;
             }
             super.dispose();

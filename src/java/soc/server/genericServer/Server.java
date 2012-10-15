@@ -114,15 +114,15 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected int numberCurrentConnections = 0;
 
     /** the named connections */
-    protected Hashtable conns = new Hashtable();
+    protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
 
     /** the newly connected, unnamed connections.
      *  Adding/removing/naming/versioning of connections synchronizes on this Vector.
      */
-    protected Vector unnamedConns = new Vector();
+    protected Vector<StringConnection> unnamedConns = new Vector<StringConnection>();
 
     /** clients in process of connecting */
-    public Vector inQueue = new Vector();
+    public Vector<Command> inQueue = new Vector<Command>();
 
     /**
      * Versions of currently connected clients, according to
@@ -134,7 +134,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #clientVersionRem(int)
      * @since 1.1.06
      */
-    private TreeMap cliVersionsConnected = new TreeMap();
+    private TreeMap<Integer, ConnVersionCounter> cliVersionsConnected = new TreeMap<Integer, ConnVersionCounter>();
  
     /**
      * Minimum and maximum client version currently connected.
@@ -180,7 +180,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
      * @since 1.1.07
      */
-    public HashMap cliConnDisconPrintsPending = new HashMap();
+    public HashMap<StringConnection, ConnExcepDelayedPrintTask> cliConnDisconPrintsPending = new HashMap<StringConnection, ConnExcepDelayedPrintTask>();
 
     /**
      * Delay before printing a client disconnect error announcement.
@@ -258,16 +258,15 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     protected StringConnection getConnection(Object connKey)
     {
         if (connKey != null)
-            return (StringConnection) conns.get(connKey);
-        else
-            return null;
+            return conns.get(connKey);
+        return null;
     }
 
     /**
      * @return the list of named connections: StringConnections where {@link StringConnection#getData()}
      *         is not null
      */
-    protected Enumeration getConnections()
+    protected Enumeration<StringConnection> getConnections()
     {
         return conns.elements();
     }
@@ -326,6 +325,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * Start a single "treater" thread for processing inbound messages,
      * wait for new connections, and set them up in their own threads.
      */
+    @Override
     public void run()
     {
         Treater treater = new Treater();  // inner class - constructor is given "this" server
@@ -502,9 +502,9 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         up = false;
         serverDown();
 
-        for (Enumeration e = conns.elements(); e.hasMoreElements();)
+        for (Enumeration<StringConnection> e = conns.elements(); e.hasMoreElements();)
         {
-            ((StringConnection) e.nextElement()).disconnect();
+            e.nextElement().disconnect();
         }
 
         conns.clear();
@@ -528,7 +528,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         {
             if (cKey != null)
             {
-                final StringConnection cKeyConn = (StringConnection) conns.get(cKey);
+                final StringConnection cKeyConn = conns.get(cKey);
                 if (null == cKeyConn)
                 {
                     // Was not a member
@@ -561,9 +561,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             {
                 if (cKey != null)
                 {
-                    ConnExcepDelayedPrintTask leftMsgTask
-                        = new ConnExcepDelayedPrintTask(false, cerr, c);
-                    cliConnDisconPrintsPending.put(cKey, leftMsgTask);
+                    ConnExcepDelayedPrintTask leftMsgTask = new ConnExcepDelayedPrintTask(false, cerr, c);
+                    cliConnDisconPrintsPending.put(c, leftMsgTask);
                     utilTimer.schedule(leftMsgTask, CLI_DISCON_PRINT_TIMER_FIRE_MS);
                 } else {
                     // no connection-key data; we can't identify it later if it reconnects;
@@ -631,8 +630,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             numberOfConnections++;
             if (D.ebugIsEnabled())
             {
-                ConnExcepDelayedPrintTask cameMsgTask
-                    = new ConnExcepDelayedPrintTask(true, null, c);
+                ConnExcepDelayedPrintTask cameMsgTask = new ConnExcepDelayedPrintTask(true, null, c);
                 cliConnDisconPrintsPending.put(c, cameMsgTask);
                 utilTimer.schedule(cameMsgTask, CLI_CONN_PRINT_TIMER_FIRE_MS);
 
@@ -694,7 +692,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public void clientVersionAdd(final int cvers)
     {
         Integer cvkey = new Integer(cvers);
-        ConnVersionCounter cv = (ConnVersionCounter) cliVersionsConnected.get(cvkey);
+        ConnVersionCounter cv = cliVersionsConnected.get(cvkey);
         if (cv == null)
         {
             cv = new ConnVersionCounter(cvers);
@@ -734,25 +732,25 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     public void clientVersionRem(final int cvers)
     {
         Integer cvkey = new Integer(cvers);
-        ConnVersionCounter cv = (ConnVersionCounter) cliVersionsConnected.get(cvkey);
+        ConnVersionCounter cv = cliVersionsConnected.get(cvkey);
         if (cv == null)
         {
             // not found - must rebuild
             clientVersionRebuildMap(null);
             return;  // <---- Early return: Had to rebuild ----
-        } else {
-            cv.cliCount--;
-            if (cv.cliCount > 0)
-            {
-                return;  // <---- Early return: Nothing else to do ----
-            }
-
-            // We've removed the last client of a particular version.
-            // Update min/max if needed.
-            // (If there aren't any clients connected, doesn't matter.)
-
-            cliVersionsConnected.remove(cvkey);
         }
+        
+        cv.cliCount--;
+        if (cv.cliCount > 0)
+        {
+            return;  // <---- Early return: Nothing else to do ----
+        }
+
+        // We've removed the last client of a particular version.
+        // Update min/max if needed.
+        // (If there aren't any clients connected, doesn't matter.)
+
+        cliVersionsConnected.remove(cvkey);
 
         if (cliVersionsConnected.size() == 0)
         {
@@ -768,11 +766,11 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
         if (cvers == cliVersionMin)
         {
-            cliVersionMin = ((Integer) cliVersionsConnected.firstKey()).intValue();
+            cliVersionMin = cliVersionsConnected.firstKey().intValue();
         }
         else if (cvers == cliVersionMax)
         {
-            cliVersionMax = ((Integer) cliVersionsConnected.lastKey()).intValue();
+            cliVersionMax = cliVersionsConnected.lastKey().intValue();
         }
     }
 
@@ -810,8 +808,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     public boolean isCliVersionConnected(final int cvers)
     {
-        ConnVersionCounter cv = (ConnVersionCounter)
-            cliVersionsConnected.get(new Integer(cvers));
+        ConnVersionCounter cv = cliVersionsConnected.get(new Integer(cvers));
         return (cv != null) && (cv.cliCount > 0);
     }
 
@@ -825,25 +822,25 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #clientVersionRebuildMap(TreeMap)
      * @since 1.1.06
      */
-    private TreeMap clientVersionBuildMap()
+    private TreeMap<Integer, ConnVersionCounter> clientVersionBuildMap()
     {
         int cvers;
         int lastVers = 0;  // =0 needed to satisfy compiler; first iter will set a value.
         Integer cvkey = null;
         ConnVersionCounter cvc = null;
 
-        TreeMap cvmap = new TreeMap();
+        TreeMap<Integer, ConnVersionCounter> cvmap = new TreeMap<Integer, ConnVersionCounter>();
 
         // same enums as broadcast()
 
-        for (Enumeration e = getConnections(); e.hasMoreElements();)
+        for (Enumeration<StringConnection> e = getConnections(); e.hasMoreElements();)
         {
-            cvers = ((StringConnection) e.nextElement()).getVersion();
+            cvers = e.nextElement().getVersion();
 
             if ((cvkey == null) || (cvers != lastVers))
             {
                 cvkey = new Integer(cvers);
-                cvc = (ConnVersionCounter) cvmap.get(cvkey);
+                cvc = cvmap.get(cvkey);
                 if (cvc == null)
                 {
                     cvc = new ConnVersionCounter(cvers);
@@ -855,14 +852,14 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             lastVers = cvers;
         }
 
-        for (Enumeration e = unnamedConns.elements(); e.hasMoreElements();)
+        for (Enumeration<StringConnection> e = unnamedConns.elements(); e.hasMoreElements();)
         {
-            cvers = ((StringConnection) e.nextElement()).getVersion();
+            cvers = e.nextElement().getVersion();
 
             if ((cvkey == null) || (cvers != lastVers))
             {
                 cvkey = new Integer(cvers);
-                cvc = (ConnVersionCounter) cvmap.get(cvkey);
+                cvc = cvmap.get(cvkey);
                 if (cvc == null)
                 {
                     cvc = new ConnVersionCounter(cvers);
@@ -897,7 +894,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #clientVersionRebuildMap(TreeMap)
      * @since 1.1.06
      */
-    private boolean clientVersionCheckMap(TreeMap tree2, final boolean fullCheck)
+    private boolean clientVersionCheckMap(TreeMap<Integer, ConnVersionCounter> tree2, final boolean fullCheck)
     {
         if (fullCheck)
         {
@@ -918,15 +915,15 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         try
         {
             int cliCount = 0;  // quick only
-            Iterator cve1 = cliVersionsConnected.values().iterator();  // quick, full
-            Iterator cve2 = (fullCheck ? tree2.values().iterator() : null);  // full only
+            Iterator<ConnVersionCounter> cve1 = cliVersionsConnected.values().iterator();  // quick, full
+            Iterator<ConnVersionCounter> cve2 = (fullCheck ? tree2.values().iterator() : null);  // full only
 
             while (cve1.hasNext())
             {
-                ConnVersionCounter cvc1 = (ConnVersionCounter) cve1.next();
+                ConnVersionCounter cvc1 = cve1.next();
                 if (fullCheck)
                 {
-                    ConnVersionCounter cvc2 = (ConnVersionCounter) cve2.next();
+                    ConnVersionCounter cvc2 = cve2.next();
                     if ((cvc1.vers != cvc2.vers) || (cvc1.cliCount != cvc2.cliCount))
                     {
                         return false;
@@ -964,7 +961,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #clientVersionCheckMap(TreeMap, boolean)
      * @since 1.1.06
      */
-    private void clientVersionRebuildMap(TreeMap newTree)
+    private void clientVersionRebuildMap(TreeMap<Integer, ConnVersionCounter> newTree)
     {
         if (newTree == null) 
             newTree = clientVersionBuildMap();
@@ -976,13 +973,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         if (treeSize == 0)
             return;  // <---- Early return: Min/max version fields not needed ----
 
-        final int cvers = ((Integer) cliVersionsConnected.firstKey()).intValue();
+        final int cvers = cliVersionsConnected.firstKey().intValue();
         cliVersionMin = cvers;
         if (1 == treeSize)
         {
             cliVersionMax = cvers;
         } else {
-            cliVersionMax = ((Integer) cliVersionsConnected.lastKey()).intValue();
+            cliVersionMax = cliVersionsConnected.lastKey().intValue();
         }
     }
 
@@ -994,13 +991,13 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      */
     protected synchronized void broadcast(String m)
     {
-        for (Enumeration e = getConnections(); e.hasMoreElements();)
+        for (Enumeration<StringConnection> e = getConnections(); e.hasMoreElements();)
         {
-            ((StringConnection) e.nextElement()).put(m);
+            e.nextElement().put(m);
         }
-        for (Enumeration e = unnamedConns.elements(); e.hasMoreElements();)
+        for (Enumeration<StringConnection> e = unnamedConns.elements(); e.hasMoreElements();)
         {
-            ((StringConnection) e.nextElement()).put(m);
+            e.nextElement().put(m);
         }
     }
 
@@ -1023,16 +1020,16 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     {
         if (vmin > vmax)
             return;
-        for (Enumeration e = getConnections(); e.hasMoreElements();)
+        for (Enumeration<StringConnection> e = getConnections(); e.hasMoreElements();)
         {
-            StringConnection c = (StringConnection) e.nextElement();
+            StringConnection c = e.nextElement();
             int cvers = c.getVersion();
             if ((cvers >= vmin) && (cvers <= vmax))
                 c.put(m);
         }
-        for (Enumeration e = unnamedConns.elements(); e.hasMoreElements();)
+        for (Enumeration<StringConnection> e = unnamedConns.elements(); e.hasMoreElements();)
         {
-            StringConnection c = (StringConnection) e.nextElement();
+            StringConnection c = e.nextElement();
             int cvers = c.getVersion();
             if ((cvers >= vmin) && (cvers <= vmax))
                 c.put(m);
@@ -1069,6 +1066,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             setName("treater");  // Thread name for debug
         }
 
+        @Override
         public void run()
         {
             while (isUp())
@@ -1081,7 +1079,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     if (inQueue.size() > 0)
                     {
                         //D.ebugPrintln("treater getting command");
-                        c = (Command) inQueue.elementAt(0);
+                        c = inQueue.elementAt(0);
                         inQueue.removeElementAt(0);
                     }
                 }
@@ -1154,7 +1152,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      *
      * @since 1.1.06
      */
-    private static class ConnVersionCounter implements Comparable
+    private static class ConnVersionCounter implements Comparable<ConnVersionCounter>
     {
         public final int vers;
         public int cliCount;
@@ -1165,16 +1163,16 @@ public abstract class Server extends Thread implements Serializable, Cloneable
             cliCount = 1;
         }
 
+        @Override
         public boolean equals(Object o)
         {
             return (o instanceof ConnVersionCounter)
                 && (this.vers == ((ConnVersionCounter) o).vers);
         }
 
-        public int compareTo(Object o)
-            throws ClassCastException
+        public int compareTo(ConnVersionCounter cvc)
         {
-            return (this.vers - ((ConnVersionCounter) o).vers);
+            return (this.vers - cvc.vers);
         }
 
     }  // ConnVersionSetMember
@@ -1202,6 +1200,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          * Called when timer fires. See class description for action taken.
          * Synchronizes on {@link Server#unnamedConns}.
          */
+        @Override
         public void run()
         {
             final boolean wantsFull = (srv.cliVersionsConnectedQuickCheckCount
@@ -1209,7 +1208,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
 
             synchronized (srv.unnamedConns)
             {
-                TreeMap tree2 = (wantsFull ? srv.clientVersionBuildMap() : null);
+                TreeMap<Integer, ConnVersionCounter> tree2 = (wantsFull ? srv.clientVersionBuildMap() : null);
 
                 boolean checkPassed = srv.clientVersionCheckMap(tree2, wantsFull);
                 if (! checkPassed)
@@ -1303,6 +1302,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
          * Debug-print connection's arrival or departure,
          * and remove from pending list.
          */
+        @Override
         public void run()
         {
             if (isArriveNotDepart)

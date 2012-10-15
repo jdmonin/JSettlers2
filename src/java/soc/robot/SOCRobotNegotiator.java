@@ -31,7 +31,7 @@ import soc.game.SOCTradeOffer;
 
 import soc.util.CutoffExceededException;
 
-import java.util.Enumeration;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
@@ -59,9 +59,9 @@ public class SOCRobotNegotiator
      * {@link #ourPlayerData}'s building plan.
      * A stack of {@link SOCPossiblePiece}.
      */
-    protected Stack buildingPlan;
+    protected Stack<SOCPossiblePiece> buildingPlan;
 
-    protected HashMap playerTrackers;
+    protected HashMap<Integer, SOCPlayerTracker> playerTrackers;
     protected SOCPlayerTracker ourPlayerTracker;
     protected final SOCPlayer ourPlayerData;
     /**
@@ -72,7 +72,7 @@ public class SOCRobotNegotiator
     protected SOCRobotDM decisionMaker;
     protected boolean[][] isSellingResource;
     protected boolean[][] wantsAnotherOffer;
-    protected Vector offersMade;
+    protected Vector<SOCTradeOffer> offersMade;
     protected SOCPossiblePiece[] targetPieces;
 
     /**
@@ -98,7 +98,7 @@ public class SOCRobotNegotiator
         wantsAnotherOffer = new boolean[game.maxPlayers][SOCResourceConstants.MAXPLUSONE];
         resetWantsAnotherOffer();
 
-        offersMade = new Vector();
+        offersMade = new Vector<SOCTradeOffer>();
 
         targetPieces = new SOCPossiblePiece[game.maxPlayers];
         resetTargetPieces();
@@ -331,7 +331,7 @@ public class SOCRobotNegotiator
 
         ///
         /// Seperate resource types into needed and not-needed.  Sort
-        /// groups by frequency, most to least.  Start with most frequent 
+        /// groups by frequency, most to least.  Start with most frequent
         /// not-needed resources.  Trade for least frequent needed resources.
         ///
         int[] rollsPerResource = estimate.getRollsPerResource();
@@ -650,7 +650,7 @@ public class SOCRobotNegotiator
         }
 
         ///
-        /// consider offers where we give one for one unneeded we 
+        /// consider offers where we give one for one unneeded we
         /// we can use at a bank or port
         ///
         if (offer == null)
@@ -674,7 +674,7 @@ public class SOCRobotNegotiator
                 leftovers.add(1, notNeededRsrc[getRsrcIdx2]);
 
                 ///
-                /// give one unneeded 
+                /// give one unneeded
                 ///
                 if (offer == null)
                 {
@@ -712,7 +712,7 @@ public class SOCRobotNegotiator
                 }
 
                 ///
-                /// give one needed 
+                /// give one needed
                 ///
                 if (offer == null)
                 {
@@ -772,11 +772,11 @@ public class SOCRobotNegotiator
         /// see if we've made this offer before
         ///
         boolean match = false;
-        Iterator offersMadeIter = offersMade.iterator();
+        Iterator<SOCTradeOffer> offersMadeIter = offersMade.iterator();
 
         while ((offersMadeIter.hasNext() && !match))
         {
-            SOCTradeOffer pastOffer = (SOCTradeOffer) offersMadeIter.next();
+            SOCTradeOffer pastOffer = offersMadeIter.next();
 
             if ((pastOffer != null) && (pastOffer.getGiveSet().equals(giveResourceSet)) && (pastOffer.getGetSet().equals(getResourceSet)))
             {
@@ -819,7 +819,7 @@ public class SOCRobotNegotiator
 
             ///
             /// if it's our turn
-            ///			
+            ///
             if (game.getCurrentPlayerNumber() == ourPlayerNumber)
             {
                 ///
@@ -835,7 +835,7 @@ public class SOCRobotNegotiator
                         (! game.isSeatVacant(i)) &&
                         (game.getPlayer(i).getResources().getTotal() >= getResourceSet.getTotal()))
                     {
-                        SOCPlayerTracker tracker = (SOCPlayerTracker) playerTrackers.get(new Integer(i));
+                        SOCPlayerTracker tracker = playerTrackers.get(new Integer(i));
 
                         if ((tracker != null) && (tracker.getWinGameETA() >= WIN_GAME_CUTOFF))
                         {
@@ -860,7 +860,7 @@ public class SOCRobotNegotiator
                 {
                     D.ebugPrintln("** isSellingResource[" + curpn + "][" + neededResource + "] = " + isSellingResource[curpn][neededResource]);
 
-                    SOCPlayerTracker tracker = (SOCPlayerTracker) playerTrackers.get(new Integer(curpn));
+                    SOCPlayerTracker tracker = playerTrackers.get(new Integer(curpn));
 
                     if ((tracker != null) && (tracker.getWinGameETA() >= WIN_GAME_CUTOFF))
                     {
@@ -990,14 +990,14 @@ public class SOCRobotNegotiator
 
         D.ebugPrintln("targetPieces[" + receiverNum + "] = " + receiverTargetPiece);
 
-        SOCPlayerTracker receiverPlayerTracker = (SOCPlayerTracker) playerTrackers.get(new Integer(receiverNum));
+        SOCPlayerTracker receiverPlayerTracker = playerTrackers.get(new Integer(receiverNum));
 
         if (receiverPlayerTracker == null)
         {
             return response;
         }
 
-        SOCPlayerTracker senderPlayerTracker = (SOCPlayerTracker) playerTrackers.get(new Integer(senderNum));
+        SOCPlayerTracker senderPlayerTracker = playerTrackers.get(new Integer(senderNum));
 
         if (senderPlayerTracker == null)
         {
@@ -1008,7 +1008,7 @@ public class SOCRobotNegotiator
 
         if (receiverTargetPiece == null)
         {
-            Stack receiverBuildingPlan = new Stack();
+            Stack<SOCPossiblePiece> receiverBuildingPlan = new Stack<SOCPossiblePiece>();
             simulator = new SOCRobotDM(brain.getRobotParameters(), playerTrackers, receiverPlayerTracker, receiverPlayerData, receiverBuildingPlan);
 
             if (receiverNum == ourPlayerNumber)
@@ -1025,7 +1025,7 @@ public class SOCRobotNegotiator
                 return response;
             }
 
-            receiverTargetPiece = (SOCPossiblePiece) receiverBuildingPlan.peek();
+            receiverTargetPiece = receiverBuildingPlan.peek();
             targetPieces[receiverNum] = receiverTargetPiece;
         }
 
@@ -1039,7 +1039,7 @@ public class SOCRobotNegotiator
 
         if (senderTargetPiece == null)
         {
-            Stack senderBuildingPlan = new Stack();
+            Stack<SOCPossiblePiece> senderBuildingPlan = new Stack<SOCPossiblePiece>();
             simulator = new SOCRobotDM(brain.getRobotParameters(), playerTrackers, senderPlayerTracker, senderPlayerData, senderBuildingPlan);
 
             if (senderNum == ourPlayerNumber)
@@ -1056,7 +1056,7 @@ public class SOCRobotNegotiator
                 return response;
             }
 
-            senderTargetPiece = (SOCPossiblePiece) senderBuildingPlan.peek();
+            senderTargetPiece = senderBuildingPlan.peek();
             targetPieces[senderNum] = senderTargetPiece;
         }
 
@@ -1073,12 +1073,10 @@ public class SOCRobotNegotiator
 
             if ((receiverTargetPiece.getType() == SOCPossiblePiece.SETTLEMENT) || (receiverTargetPiece.getType() == SOCPossiblePiece.ROAD))
             {
-                Enumeration threatsEnum = receiverTargetPiece.getThreats().elements();
+                Collection<SOCPossiblePiece> threatsEnum = receiverTargetPiece.getThreats();
 
-                while (threatsEnum.hasMoreElements())
+                for (SOCPossiblePiece threat : threatsEnum)
                 {
-                    SOCPossiblePiece threat = (SOCPossiblePiece) threatsEnum.nextElement();
-
                     if ((threat.getType() == senderTargetPiece.getType()) && (threat.getCoordinates() == senderTargetPiece.getCoordinates()))
                     {
                         inARace = true;
@@ -1093,12 +1091,10 @@ public class SOCRobotNegotiator
                 }
                 else if (receiverTargetPiece.getType() == SOCPossiblePiece.SETTLEMENT)
                 {
-                    Enumeration conflictsEnum = ((SOCPossibleSettlement) receiverTargetPiece).getConflicts().elements();
+                    Collection<SOCPossibleSettlement> conflictsEnum = ((SOCPossibleSettlement) receiverTargetPiece).getConflicts();
 
-                    while (conflictsEnum.hasMoreElements())
+                    for (SOCPossibleSettlement conflict : conflictsEnum)
                     {
-                        SOCPossibleSettlement conflict = (SOCPossibleSettlement) conflictsEnum.nextElement();
-
                         if ((senderTargetPiece.getType() == SOCPossiblePiece.SETTLEMENT) && (conflict.getCoordinates() == senderTargetPiece.getCoordinates()))
                         {
                             inARace = true;
@@ -1585,7 +1581,7 @@ public class SOCRobotNegotiator
 
         if (targetPiece == null)
         {
-            Stack ourBuildingPlan = buildingPlan;
+            Stack<SOCPossiblePiece> ourBuildingPlan = buildingPlan;
 
             if (ourBuildingPlan.empty())
             {
@@ -1600,7 +1596,7 @@ public class SOCRobotNegotiator
                 return counterOffer;
             }
 
-            targetPiece = (SOCPossiblePiece) ourBuildingPlan.peek();
+            targetPiece = ourBuildingPlan.peek();
             targetPieces[ourPlayerNumber] = targetPiece;
         }
 
@@ -1669,7 +1665,7 @@ public class SOCRobotNegotiator
 
         ///
         /// Seperate resource types into needed and not-needed.  Sort
-        /// groups by frequency, most to least.  Start with most frequent 
+        /// groups by frequency, most to least.  Start with most frequent
         /// not-needed resources.  Trade for least frequent needed resources.
         ///
         int[] rollsPerResource = estimate.getRollsPerResource();
@@ -1963,7 +1959,7 @@ public class SOCRobotNegotiator
         }
 
         ///
-        /// consider offers where we give one for one unneeded we 
+        /// consider offers where we give one for one unneeded we
         /// we can use at a bank or port
         ///
         if (counterOffer == null)
@@ -1987,7 +1983,7 @@ public class SOCRobotNegotiator
                 leftovers.add(1, notNeededRsrc[getRsrcIdx2]);
 
                 ///
-                /// give one unneeded 
+                /// give one unneeded
                 ///
                 if (counterOffer == null)
                 {
@@ -2025,7 +2021,7 @@ public class SOCRobotNegotiator
                 }
 
                 ///
-                /// give one needed 
+                /// give one needed
                 ///
                 if (counterOffer == null)
                 {
@@ -2067,7 +2063,7 @@ public class SOCRobotNegotiator
         }
 
         ///
-        /// consider offers where we give one for two unneeded we 
+        /// consider offers where we give one for two unneeded we
         /// we can use at a bank or port
         ///
         if (counterOffer == null)
@@ -2091,7 +2087,7 @@ public class SOCRobotNegotiator
                 leftovers.add(2, notNeededRsrc[getRsrcIdx2]);
 
                 ///
-                /// give one unneeded 
+                /// give one unneeded
                 ///
                 if (counterOffer == null)
                 {
@@ -2129,7 +2125,7 @@ public class SOCRobotNegotiator
                 }
 
                 ///
-                /// give one needed 
+                /// give one needed
                 ///
                 if (counterOffer == null)
                 {
@@ -2171,7 +2167,7 @@ public class SOCRobotNegotiator
         }
 
         ///
-        /// consider offers where we give one for three unneeded we 
+        /// consider offers where we give one for three unneeded we
         /// we can use at a bank or port
         ///
         if (counterOffer == null)
@@ -2195,7 +2191,7 @@ public class SOCRobotNegotiator
                 leftovers.add(3, notNeededRsrc[getRsrcIdx2]);
 
                 ///
-                /// give one unneeded 
+                /// give one unneeded
                 ///
                 if (counterOffer == null)
                 {
@@ -2233,7 +2229,7 @@ public class SOCRobotNegotiator
                 }
 
                 ///
-                /// give one needed 
+                /// give one needed
                 ///
                 if (counterOffer == null)
                 {
@@ -2302,10 +2298,10 @@ public class SOCRobotNegotiator
 
         ///
         /// Seperate resource types into needed and not-needed.  Sort
-        /// groups by frequency, most to least.  Start with most frequent 
+        /// groups by frequency, most to least.  Start with most frequent
         /// not-needed resources.  Trade for least frequent needed resources.
         /// Loop until freq. of give resource + thresh >= get resource freq.
-        /// and there is not enough of that resource to trade after 
+        /// and there is not enough of that resource to trade after
         /// subtracting needed ammount.
         ///
         int[] neededRsrc = new int[5];
@@ -2428,10 +2424,8 @@ public class SOCRobotNegotiator
 
                 return bankTrade;
             }
-            else
-            {
-                giveRsrcIdx++;
-            }
+            
+            giveRsrcIdx++;
         }
 
         ///
@@ -2494,7 +2488,7 @@ public class SOCRobotNegotiator
             else
             {
                 ///
-                /// We can trade this even though we need it because 
+                /// We can trade this even though we need it because
                 /// we're betting that we'll get it by our next turn
                 ///
                 if (ourResources.getAmount(neededRsrc[giveRsrcIdx]) >= tradeRatio)

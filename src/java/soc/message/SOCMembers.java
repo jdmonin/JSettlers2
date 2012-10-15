@@ -22,7 +22,6 @@ package soc.message;
 
 import soc.server.genericServer.StringConnection;
 
-import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -37,7 +36,7 @@ public class SOCMembers extends SOCMessage
     /**
      * List of members
      */
-    private Vector members;
+    private Vector<String> members;
 
     /**
      * Name of channel
@@ -50,7 +49,7 @@ public class SOCMembers extends SOCMessage
      * @param ch  name of chat channel
      * @param ml  list of members
      */
-    public SOCMembers(String ch, Vector ml)
+    public SOCMembers(String ch, Vector<String> ml)
     {
         messageType = MEMBERS;
         members = ml;
@@ -60,7 +59,7 @@ public class SOCMembers extends SOCMessage
     /**
      * @return the list of members
      */
-    public Vector getMembers()
+    public Vector<String> getMembers()
     {
         return members;
     }
@@ -78,6 +77,7 @@ public class SOCMembers extends SOCMessage
      *
      * @return the command String
      */
+    @Override
     public String toCmd()
     {
         return toCmd(channel, members);
@@ -87,21 +87,27 @@ public class SOCMembers extends SOCMessage
      * MEMBERS sep channel sep2 members
      *
      * @param ch  the new channel name
-     * @param ml  the list of members
+     * @param ml  the list of members (String or StringConnection)
      * @return    the command string
      */
-    public static String toCmd(String ch, Vector ml)
+    public static String toCmd(String ch, Vector<?> ml)
     {
         String cmd = MEMBERS + sep + ch;
 
         try
         {
-            Enumeration mlEnum = ml.elements();
-
-            while (mlEnum.hasMoreElements())
+            for (Object obj : ml)
             {
-                StringConnection con = (StringConnection) mlEnum.nextElement();
-                cmd += (sep2 + (String) con.getData());
+                String msg = null;
+                if (obj instanceof StringConnection)
+                {
+                    msg = (String)((StringConnection)obj).getData();
+                }
+                if (obj instanceof String)
+                {
+                    msg = (String)obj;
+                }
+                cmd += (sep2 + msg);
             }
         }
         catch (Exception e) {}
@@ -118,7 +124,7 @@ public class SOCMembers extends SOCMessage
     public static SOCMembers parseDataStr(String s)
     {
         String ch;
-        Vector ml = new Vector();
+        Vector<String> ml = new Vector<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -141,6 +147,7 @@ public class SOCMembers extends SOCMessage
     /**
      * @return a human readable form of the message
      */
+    @Override
     public String toString()
     {
         StringBuffer sb = new StringBuffer("SOCMembers:channel=");

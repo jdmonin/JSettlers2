@@ -16,13 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
 import soc.server.genericServer.StringConnection;
 
-import java.util.Enumeration;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -42,7 +41,7 @@ public class SOCGameMembers extends SOCMessage
     /**
      * List of members
      */
-    private Vector members;
+    private Vector<String> members;
 
     /**
      * Name of game
@@ -55,7 +54,7 @@ public class SOCGameMembers extends SOCMessage
      * @param ga  name of game
      * @param ml  list of members
      */
-    public SOCGameMembers(String ga, Vector ml)
+    public SOCGameMembers(String ga, Vector<String> ml)
     {
         messageType = GAMEMEMBERS;
         members = ml;
@@ -65,7 +64,7 @@ public class SOCGameMembers extends SOCMessage
     /**
      * @return the list of member names; each element is a String with the member's nickname
      */
-    public Vector getMembers()
+    public Vector<String> getMembers()
     {
         return members;
     }
@@ -83,6 +82,7 @@ public class SOCGameMembers extends SOCMessage
      *
      * @return the command String
      */
+    @Override
     public String toCmd()
     {
         return toCmd(game, members);
@@ -92,21 +92,28 @@ public class SOCGameMembers extends SOCMessage
      * GAMEMEMBERS sep game sep2 members
      *
      * @param ga  the game name
-     * @param ml  the list of members
+     * @param ml  the list of members (String or StringConnection)
      * @return    the command string
      */
-    public static String toCmd(String ga, Vector ml)
+    public static String toCmd(String ga, Vector<?> ml)
     {
         String cmd = GAMEMEMBERS + sep + ga;
 
         try
         {
-            Enumeration mlEnum = ml.elements();
-
-            while (mlEnum.hasMoreElements())
+            for (Object obj : ml)
             {
-                StringConnection con = (StringConnection) mlEnum.nextElement();
-                cmd += (sep2 + (String) con.getData());
+                String str = null;
+                if (obj instanceof StringConnection)
+                {
+                    str = (String)((StringConnection)obj).getData();
+                }
+                if (obj instanceof String)
+                {
+                    str = (String)obj;
+                }
+                
+                cmd += (sep2 + str);
             }
         }
         catch (Exception e) {}
@@ -123,7 +130,7 @@ public class SOCGameMembers extends SOCMessage
     public static SOCGameMembers parseDataStr(String s)
     {
         String ga;
-        Vector ml = new Vector();
+        Vector<String> ml = new Vector<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -146,6 +153,7 @@ public class SOCGameMembers extends SOCMessage
     /**
      * @return a human readable form of the message
      */
+    @Override
     public String toString()
     {
         StringBuffer sb = new StringBuffer("SOCGameMembers:game=");

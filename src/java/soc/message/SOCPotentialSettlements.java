@@ -67,7 +67,7 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * List of potential settlements
      */
-    private Vector psList;
+    private Vector<Integer> psList;
 
     /**
      * How many land areas are on this board?
@@ -93,7 +93,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * @since 2.0.00
      * @see #startingLandArea
      */
-    public final HashSet[] landAreasLegalNodes;
+    public final HashSet<Integer>[] landAreasLegalNodes;
 
     /**
      * Create a SOCPotentialSettlements message.
@@ -106,7 +106,7 @@ public class SOCPotentialSettlements extends SOCMessage
      *   version 2.0.00 ({@link #VERSION_FOR_PLAYERNUM_ALL}),
      *   <tt>ps</tt> also is the list of legal settlements.
      */
-    public SOCPotentialSettlements(String ga, int pn, Vector ps)
+    public SOCPotentialSettlements(String ga, int pn, Vector<Integer> ps)
     {
         messageType = POTENTIALSETTLEMENTS;
         game = ga;
@@ -138,13 +138,13 @@ public class SOCPotentialSettlements extends SOCMessage
      * @throws IllegalArgumentException  if <tt>ln[pan] == null</tt>,
      *            or if <tt>ln[<i>i</i>]</tt> == <tt>null</tt> for any <i>i</i> &gt; 0
      */
-    public SOCPotentialSettlements(String ga, int pn, final int pan, HashSet[] lan)
+    public SOCPotentialSettlements(String ga, int pn, final int pan, HashSet<Integer>[] lan)
         throws IllegalArgumentException
     {
         messageType = POTENTIALSETTLEMENTS;
         game = ga;
         playerNumber = pn;
-        psList = new Vector(lan[pan]);
+        psList = new Vector<Integer>(lan[pan]);
         areaCount = lan.length - 1;
         landAreasLegalNodes = lan;
         startingLandArea = pan;
@@ -176,7 +176,7 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * @return the list of potential settlements
      */
-    public Vector getPotentialSettlements()
+    public Vector<Integer> getPotentialSettlements()
     {
         return psList;
     }
@@ -188,12 +188,12 @@ public class SOCPotentialSettlements extends SOCMessage
      *
      * @return the command String
      */
+    @Override
     public String toCmd()
     {
         if (landAreasLegalNodes == null)
             return toCmd(game, playerNumber, psList);
-        else
-            return toCmd(game, playerNumber, startingLandArea, landAreasLegalNodes);
+        return toCmd(game, playerNumber, startingLandArea, landAreasLegalNodes);
     }
 
     /**
@@ -206,14 +206,12 @@ public class SOCPotentialSettlements extends SOCMessage
      * @param ps  the list of potential settlements
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn, Vector ps)
+    public static String toCmd(String ga, int pn, Vector<Integer> ps)
     {
         String cmd = POTENTIALSETTLEMENTS + sep + ga + sep2 + pn;
-        Enumeration senum = ps.elements();
 
-        while (senum.hasMoreElements())
+        for (Integer number : ps)
         {
-            Integer number = (Integer) senum.nextElement();
             cmd += (sep2 + number);
         }
 
@@ -247,14 +245,14 @@ public class SOCPotentialSettlements extends SOCMessage
      *            Otherwise index 0 is unused (<tt>null</tt>).
      * @return   the command string
      */
-    public static String toCmd(String ga, int pn, final int pan, final HashSet[] lan)
+    public static String toCmd(String ga, int pn, final int pan, final HashSet<Integer>[] lan)
     {
         StringBuffer cmd = new StringBuffer(POTENTIALSETTLEMENTS + sep + ga + sep2 + pn);
 
-        Iterator siter = lan[pan].iterator();
+        Iterator<Integer> siter = lan[pan].iterator();
         while (siter.hasNext())
         {
-            int number = ((Integer) siter.next()).intValue();
+            int number = siter.next().intValue();
             cmd.append(sep2);
             cmd.append(number);
         }
@@ -278,11 +276,11 @@ public class SOCPotentialSettlements extends SOCMessage
             cmd.append("LA");
             cmd.append(i);
 
-            Iterator pnIter = lan[i].iterator();
+            Iterator<Integer> pnIter = lan[i].iterator();
             while (pnIter.hasNext())
             {
                 cmd.append(sep2);
-                int number = ((Integer) pnIter.next()).intValue();
+                int number = pnIter.next().intValue();
                 cmd.append(number);
             }
         }
@@ -301,8 +299,8 @@ public class SOCPotentialSettlements extends SOCMessage
     {
         String ga;
         int pn;
-        Vector ps = new Vector();
-        HashSet[] las = null;
+        Vector<Integer> ps = new Vector<Integer>();
+        HashSet<Integer>[] las = null;
         int pan = 0;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
@@ -357,7 +355,7 @@ public class SOCPotentialSettlements extends SOCMessage
                     if (! tok.startsWith("LA"))
                         return null;
                     final int areaNum = Integer.parseInt(tok.substring(2));
-                    HashSet ls = new HashSet();
+                    HashSet<Integer> ls = new HashSet<Integer>();
 
                     // Loop for node numbers, until next "LA#"
                     while (st.hasMoreTokens())
@@ -371,7 +369,7 @@ public class SOCPotentialSettlements extends SOCMessage
                 }
 
                 if (las[pan] == null)
-                    las[pan] = new HashSet(ps);
+                    las[pan] = new HashSet<Integer>(ps);
                 else
                     return null;  // not a well-formed message
 
@@ -388,22 +386,21 @@ public class SOCPotentialSettlements extends SOCMessage
 
         if (las == null)
             return new SOCPotentialSettlements(ga, pn, ps);
-        else
-            return new SOCPotentialSettlements(ga, pn, pan, las);
+        return new SOCPotentialSettlements(ga, pn, pan, las);
     }
 
     /**
      * @return a human readable form of the message
      */
+    @Override
     public String toString()
     {
-        StringBuffer s = new StringBuffer
-            ("SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=");
-        Enumeration senum = psList.elements();
+        StringBuffer s = new StringBuffer("SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=");
+        Enumeration<Integer> senum = psList.elements();
 
         while (senum.hasMoreElements())
         {
-            Integer number = (Integer) senum.nextElement();
+            Integer number = senum.nextElement();
             s.append(Integer.toHexString(number.intValue()));
             s.append(' ');
         }
@@ -423,10 +420,10 @@ public class SOCPotentialSettlements extends SOCMessage
                     continue;
                 }
     
-                Iterator laIter = landAreasLegalNodes[i].iterator();
+                Iterator<Integer> laIter = landAreasLegalNodes[i].iterator();
                 while (laIter.hasNext())
                 {
-                    int number = ((Integer) laIter.next()).intValue();
+                    int number = laIter.next().intValue();
                     s.append(Integer.toHexString(number));
                     s.append(' ');
                 }

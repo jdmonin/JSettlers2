@@ -27,17 +27,17 @@ import java.util.Vector;
  *
  * @author $author$
  */
-public class Queue
+public class Queue<T>
 {
     // Internal storage for the queue'd objects
-    private Vector vec = new Vector();
+    private Vector<T> vec = new Vector<T>();
 
     /**
      * DOCUMENT ME!
      *
      * @param o DOCUMENT ME!
      */
-    synchronized public void put(Object o)
+    synchronized public void put(T o)
     {
         //D.ebugPrintln(">put-> "+o);
         // Add the element
@@ -53,16 +53,16 @@ public class Queue
      *
      * @return DOCUMENT ME!
      */
-    synchronized public Object get()
+    synchronized public T get()
     {
         while (true)
         {
             if (vec.size() > 0)
             {
                 // There's an available object!
-                Object o = vec.elementAt(0);
+                T o = vec.elementAt(0);
 
-                //D.ebugPrintln("<-get< "+o); 
+                //D.ebugPrintln("<-get< "+o);
                 // Remove it from our internal list, so someone else
                 // doesn't get it.
                 vec.removeElementAt(0);

@@ -45,7 +45,7 @@ public class SOCBuildPossibility
     int priority;
     SOCPlayer player;
     SOCBuildPossibility parent;
-    Vector children;
+    Vector<SOCBuildPossibility> children;
 
     /**
      * this is a constructor
@@ -69,7 +69,7 @@ public class SOCBuildPossibility
         priority = pr;
         player = pl;
         parent = null;
-        children = new Vector();
+        children = new Vector<SOCBuildPossibility>();
     }
 
     /**
@@ -95,7 +95,7 @@ public class SOCBuildPossibility
         priority = pr;
         player = pl;
         parent = null;
-        children = new Vector();
+        children = new Vector<SOCBuildPossibility>();
     }
 
     /**
@@ -119,7 +119,7 @@ public class SOCBuildPossibility
         priority = pr;
         player = pl;
         parent = null;
-        children = new Vector();
+        children = new Vector<SOCBuildPossibility>();
     }
 
     /**
@@ -144,7 +144,7 @@ public class SOCBuildPossibility
         priority = pr;
         player = pl;
         parent = null;
-        children = new Vector();
+        children = new Vector<SOCBuildPossibility>();
     }
 
     /**
@@ -230,7 +230,7 @@ public class SOCBuildPossibility
     /**
      * @return the building children that this one makes
      */
-    public Vector getChildren()
+    public Vector<SOCBuildPossibility> getChildren()
     {
         return children;
     }
@@ -267,6 +267,7 @@ public class SOCBuildPossibility
     /**
      * @return a human readable form of this object
      */
+    @Override
     public String toString()
     {
         String str = "SOCBP:player=" + player + "|piece=" + piece + "|score=" + score + "|speedup=";

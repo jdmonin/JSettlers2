@@ -53,8 +53,8 @@ public class SOCPossibleCity extends SOCPossiblePiece
         player = pl;
         coord = co;
         eta = 0;
-        threats = new Vector();
-        biggestThreats = new Vector();
+        threats = new Vector<SOCPossiblePiece>();
+        biggestThreats = new Vector<SOCPossiblePiece>();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
         updateSpeedup();
@@ -74,8 +74,8 @@ public class SOCPossibleCity extends SOCPossiblePiece
         player = pc.getPlayer();
         coord = pc.getCoordinates();
         eta = pc.getETA();
-        threats = new Vector();
-        biggestThreats = new Vector();
+        threats = new Vector<SOCPossiblePiece>();
+        biggestThreats = new Vector<SOCPossiblePiece>();
         threatUpdatedFlag = false;
         hasBeenExpanded = false;
 
