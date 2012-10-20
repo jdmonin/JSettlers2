@@ -86,10 +86,10 @@ SERVER STARTUP:
 Start the server with the following command
 (server requires Java 1.4 or higher):
 
-  java -jar JSettlersServer.jar 8880 20 socuser socpass
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=7 8880 20 socuser socpass
 
-Those parameters are : TCP port number; max clients; db user; db password.
-You can also run with no parameters; the server will run on the default port of 8880.
+Those parameters are : number of bots; TCP port number; max clients; db user; db password.
+You can also run with no parameters; the server will run on the default port of 8880 with no bots.
 
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
