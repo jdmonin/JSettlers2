@@ -2,26 +2,27 @@
 -- Always use lowercase for table names and field names.  0-9 and underscore (_) are also safe.
 -- Remember that the sql must be valid for mysql, postgresql, sqlite, and oracle.
 -- For indexes, use the table name + __ + one lowercase letter.
--- See bottom of file for copyright and license information (GPLv3).
+-- For multi-line SQLs, indent so that SOCDBHelper.runSetupScript can combine them.
+-- See bottom of file for copyright and license information (GPLv3+).
 
 USE socdata;
 
 CREATE TABLE users (
 	nickname VARCHAR(20), host VARCHAR(50), password VARCHAR(20), email VARCHAR(50), lastlogin DATE,
 	PRIMARY KEY (nickname)
-);
+	);
 
 CREATE TABLE logins (
 	nickname VARCHAR(20), host VARCHAR(50), lastlogin DATE,
 	PRIMARY KEY (nickname)
-);
+	);
 
 CREATE TABLE games (
 	gamename VARCHAR(20),
 	player1 VARCHAR(20), player2 VARCHAR(20), player3 VARCHAR(20), player4 VARCHAR(20),
 	score1 SMALLINT, score2 SMALLINT, score3 SMALLINT, score4 SMALLINT,
 	starttime TIMESTAMP
-);
+	);
 
 CREATE INDEX "games__n" ON games(gamename);
 
@@ -30,7 +31,7 @@ CREATE TABLE robotparams (
 	maxgamelength INT, maxeta INT, etabonusfactor FLOAT, adversarialfactor FLOAT, leaderadversarialfactor FLOAT, devcardmultiplier FLOAT, threatmultiplier FLOAT,
 	strategytype INT, starttime TIMESTAMP, endtime TIMESTAMP, gameswon INT, gameslost INT, tradeFlag BOOL,
 	PRIMARY KEY (robotname)
-);
+	);
 
 
 
