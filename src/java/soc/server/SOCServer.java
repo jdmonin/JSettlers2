@@ -39,6 +39,7 @@ import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Enumeration;
@@ -173,7 +174,8 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
-        SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name"
+        SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name",
+        SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP, "If set, full path or relative path to db setup sql script; will run and exit"
     };
 
     /**
@@ -555,6 +557,13 @@ public class SOCServer extends Server
      * Common init for all constructors.
      * Starts all server threads except the main thread.
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
+     *<P>
+     * If there are problems with the network setup ({@link #error} != null),
+     * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
+     * this method will call {@link System#exit(int) System.exit(1)}.
+     *<P>
+     * If a db setup script runs successfully,
+     * this method will call {@link System#exit(int) System.exit(2)}.
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
@@ -589,6 +598,12 @@ public class SOCServer extends Server
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
             System.err.println("User database initialized.");
+            if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            {
+                // the sql script was ran by initialize
+                System.err.println("Setup script was successful. Exiting now.");
+                System.exit(2);
+            }
         }
         catch (SQLException x) // just a warning
         {
@@ -600,8 +615,40 @@ public class SOCServer extends Server
                 System.err.println("\t" + cause);
                 cause = cause.getCause();
             }
+
+            if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            {
+                // the sql script was ran by initialize, but failed to complete;
+                // don't continue server startup with just a warning
+                System.err.println("Setup script failed.");
+                System.exit(1);
+            }
+
             System.err.println("Users will not be authenticated.");
         }
+        catch (IOException iox) // error from requested script
+        {
+            System.err.println("Could not run database setup script: " + iox.getMessage());
+            Throwable cause = iox.getCause();
+            while ((cause != null) && ! (cause instanceof ClassNotFoundException))
+            {
+                System.err.println("\t" + cause);
+                cause = cause.getCause();
+            }
+
+            System.err.println("* Exiting due to error running db setup script.");
+            try
+            {
+                SOCDBHelper.cleanup(true);
+            }
+            catch (SQLException x) { }
+
+            System.exit(1);
+
+            // TODO throw some exception to constructors instead, for this & network setup error
+        }
+
+        // No errors; continue normal startup.
 
         if (SOCDBHelper.isInitialized())
         {
