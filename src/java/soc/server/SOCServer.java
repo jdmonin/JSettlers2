@@ -105,6 +105,12 @@ public class SOCServer extends Server
      */
     public static final int SOC_PORT_DEFAULT = 8880;
 
+    /**
+     * Default maximum number of connected clients (30; {@link #maxConnections} field).
+     * @since 1.1.15
+     */
+    public static final int SOC_MAXCONN_DEFAULT = 30;
+
     // If a new property is added, please add a PROP_JSETTLERS_ constant
     // and also add it to PROPS_LIST.
 
@@ -291,6 +297,7 @@ public class SOCServer extends Server
     /**
      * Maximum number of connections allowed.
      * Remember that robots count against this limit.
+     * Set with {@link #PROP_JSETTLERS_CONNECTIONS}.
      */
     protected int maxConnections;
 
