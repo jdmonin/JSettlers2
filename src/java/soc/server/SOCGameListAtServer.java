@@ -347,6 +347,7 @@ public class SOCGameListAtServer extends SOCGameList
 
     /**
      * remove the game from the list
+     * and call {@link SOCGame#destroyGame()} via {@link SOCGameList#deleteGame(String)}.
      *
      * @param gaName  the name of the game
      */

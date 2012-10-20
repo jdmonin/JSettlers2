@@ -467,7 +467,8 @@ public class SOCGameList
     }
 
     /**
-     * Remove the game from the list.
+     * Remove the game from the list
+     * and call {@link SOCGame#destroyGame()}.
      * Set its mutex's {@link GameInfo#gameDestroyed} flag.
      *
      * @param gaName  the name of the game; should not be marked with any prefix.
