@@ -24,9 +24,9 @@ package soc.client;
 import java.awt.TextArea;
 
 /*
- * SnippingTextArea.java 
- * Brian Davies 
- * Written 1/21/99 
+ * SnippingTextArea.java
+ * Brian Davies
+ * Written 1/21/99
  */
 
 /**
@@ -124,23 +124,26 @@ public class SnippingTextArea extends TextArea
     }
 
     // inherit javadoc from TextArea
+    @Override
     public synchronized void setText(String newString)
     {
         super.setText(newString);
         lines = countNewLines(newString);
-        snipText(); 
+        snipText();
     }
 
     // inherit javadoc from TextArea
+    @Override
     public synchronized void replaceRange(String newString, int x, int y)
     {
         lines -= countNewLines(getText().substring(x,y));
         super.replaceRange(newString, x, y);
         lines += countNewLines(newString);
-        snipText (); 
+        snipText ();
     }
 
     // inherit javadoc from TextArea
+    @Override
     public synchronized void insert(String newString, int x)
     {
         super.insert(newString, x);
@@ -149,6 +152,7 @@ public class SnippingTextArea extends TextArea
     }
 
     // inherit javadoc from TextArea
+    @Override
     public synchronized void append(String newString)
     {
         super.append(newString);
@@ -189,9 +193,8 @@ public class SnippingTextArea extends TextArea
 
             lines--;
         }
-        // java 1.2 deprecated getPeer, adding isDisplayable()
 
-        if (getPeer() != null)
+        if (isDisplayable())
         {
             setCaretPosition(getText().length());
         }

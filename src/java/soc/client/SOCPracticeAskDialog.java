@@ -43,14 +43,16 @@ class SOCPracticeAskDialog extends AskDialog
     /**
      * React to the Show button.
      */
+    @Override
     public void button1Chosen()
     {
-        pi.show();    
+        pi.setVisible(true);
     }
 
     /**
      * React to the Create button.
      */
+    @Override
     public void button2Chosen()
     {
         pcli.gameWithOptionsBeginSetup(true);
@@ -59,6 +61,7 @@ class SOCPracticeAskDialog extends AskDialog
     /**
      * React to the dialog window closed by user, or Esc pressed. (same as Show button)
      */
+    @Override
     public void windowCloseChosen()
     {
         button1Chosen();

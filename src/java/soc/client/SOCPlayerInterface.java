@@ -652,6 +652,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * this directly, use {@link #repaint()} instead.
      * For performance and display-bug avoidance, checks {@link #layoutNotReadyYet} flag.
      */
+    @Override
     public void update(Graphics g)
     {
         if (! layoutNotReadyYet)
@@ -667,6 +668,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * from the borders between the components.
      * @since 1.1.11
      */
+    @Override
     public void paint(Graphics g)
     {
         if (needRepaintBorders)
@@ -767,8 +769,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         if (isGhost)
             return playerColorsGhost[pn];
-        else
-            return playerColors[pn];
+        return playerColors[pn];
     }
     
     /**
@@ -1041,8 +1042,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         if (clientHand == null)
             return false;
-        else
-            return clientHand.isClientAndCurrentPlayer();
+        return clientHand.isClientAndCurrentPlayer();
     }
 
     /**
@@ -1929,7 +1929,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         for (int i = 0; i < hands.length; ++i)
         {
             hands[i].removePlayer();  // will cancel roll countdown timer, right-click menus, etc
-            hands[i].disable();
+            hands[i].setEnabled(false);
             hands[i].destroy();
         }
         final boolean[] boardDebugShow = boardPanel.debugShowPotentials.clone();
@@ -2051,6 +2051,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
      * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
      */
+    @Override
     public void doLayout()
     {
         Insets i = getInsets();
@@ -2272,7 +2273,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         textDisplaysLargerTemp_needsLayout = false;
 
         npix = textDisplay.getPreferredSize().width;
-        ncols = (int) (((bw) * 100.0) / (npix)) - 2;
+        ncols = (int) (((bw) * 100.0f) / (npix)) - 2; // use float division for closer approximation
 
         //FontMetrics fm = this.getFontMetrics(textDisplay.getFont());
         //int nrows = (tdh / fm.getHeight()) - 1;
@@ -2472,6 +2473,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * React to the Reset button. (call playerClient.resetBoardVote)
          */
+        @Override
         public void button1Chosen()
         {
             pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
@@ -2481,6 +2483,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * React to the No button. (call playerClient.resetBoardVote)
          */
+        @Override
         public void button2Chosen()
         {
             pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
@@ -2490,6 +2493,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * React to the dialog window closed by user. (Vote No)
          */
+        @Override
         public void windowCloseChosen()
         {
             if (! askedDisposeQuietly)
@@ -2511,7 +2515,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         public void disposeQuietly()
         {
             askedDisposeQuietly = true;
-            rdt.stop();
+            //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
+            //rdt.stop();
             dispose();
         }
 
@@ -2523,9 +2528,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         {
             try
             {
-                show();
+                setVisible(true);
             }
-            catch (ThreadDeath e) {}
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }  // class ResetBoardVoteDialog
@@ -2565,6 +2572,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * React to the Move Robber button.
          * Call {@link SOCPlayerClient#choosePlayer(SOCGame, int) pcli.choosePlayer(-1)}.
          */
+        @Override
         public void button1Chosen()
         {
             pcli.getGameManager().choosePlayer(game, -1);
@@ -2574,6 +2582,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * React to the Move Pirate button.
          * Call {@link SOCPlayerClient#choosePlayer(SOCGame, int) pcli.choosePlayer(-2)}.
          */
+        @Override
         public void button2Chosen()
         {
             pcli.getGameManager().choosePlayer(game, -2);
@@ -2582,6 +2591,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * React to the dialog window closed by user. (Default is move the robber)
          */
+        @Override
         public void windowCloseChosen() { button1Chosen(); }
 
         /**
@@ -2596,11 +2606,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             rdt.start();  // run method will show the dialog
         }
 
+        @Override
         public void dispose()
         {
             if (rdt != null)
             {
-                rdt.stop();
+                //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
+                //rdt.stop();
                 rdt = null;
             }
             super.dispose();
@@ -2614,9 +2626,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         {
             try
             {
-                show();
+                setVisible(true);
             }
-            catch (ThreadDeath e) {}
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }  // nested class ChooseMoveRobberOrPirateDialog
@@ -2639,6 +2653,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * Ask if player is sure - Leave the game when the window closes.
          * If they're observing, not playing, the window can close immediately.
          */
+        @Override
         public void windowClosing(WindowEvent e)
         {
             if (pi.clientHandPlayerNum != -1)
@@ -2651,6 +2666,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * When window loses focus, if 6-player, unexpand the chat window if needed.
          * @since 1.1.12
          */
+        @Override
         public void windowDeactivated(WindowEvent e)
         {
             if (! pi.textDisplaysLargerTemp)
@@ -2670,6 +2686,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * Close the GameStatisticsFrame if showing, etc.
          * @since 2.0.00
          */
+        @Override
         public void windowClosed(WindowEvent e)
         {
             // Close stats frame if showing
@@ -2697,6 +2714,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
         /** If first keypress in initially empty field, clear that prompt message */
+        @Override
         public void keyPressed(KeyEvent e)
         {
             if (! pi.textInputIsInitial)
@@ -2780,6 +2798,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * Called when timer fires. Examine game state and players.
          * Sets "discarding..." or "picking..." at handpanels of discarding players.
          */
+        @Override
         public void run()
         {
             final int needState;
@@ -2841,6 +2860,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * Called when timer fires; see class javadoc for actions taken.
          */
+        @Override
         public void run()
         {
             final boolean leftLarger =

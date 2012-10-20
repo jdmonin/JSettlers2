@@ -68,7 +68,7 @@ public class NewGameOptionsFrame extends Frame
 {
     /**
      * Maximum range (min-max value) for integer-type options
-     * to be rendered using a value popup, instead of a textfield. 
+     * to be rendered using a value popup, instead of a textfield.
      * @see #initOption_int(SOCGameOption)
      */
     public static final int INTFIELD_POPUP_MAXRANGE = 21;
@@ -181,7 +181,8 @@ public class NewGameOptionsFrame extends Frame
         initInterfaceElements(gaName);
 
         addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) { clickCancel(); }    
+            @Override
+            public void windowClosing(WindowEvent e) { clickCancel(); }
             });
 
         /**
@@ -189,7 +190,7 @@ public class NewGameOptionsFrame extends Frame
          * (was set to hourglass before calling this constructor)
          */
         cli.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        cli.status.setText("");  // clear "Talking to server..."        
+        cli.status.setText("");  // clear "Talking to server..."
     }
 
     /**
@@ -202,7 +203,7 @@ public class NewGameOptionsFrame extends Frame
     {
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
         ngof.pack();
-        ngof.show();
+        ngof.setVisible(true);
         return ngof;
     }
     
@@ -304,7 +305,7 @@ public class NewGameOptionsFrame extends Frame
     private final static Color LABEL_TXT_COLOR = new Color(252, 251, 243); // off-white
 
     /**
-     * Interface setup: Options. 
+     * Interface setup: Options.
      * One row per option, except for 3-letter options which group with 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
@@ -556,7 +557,7 @@ public class NewGameOptionsFrame extends Frame
 
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(optp, gbc);
-        bp.add(optp);      
+        bp.add(optp);
     }
 
     /**
@@ -626,17 +627,19 @@ public class NewGameOptionsFrame extends Frame
         int defaultIdx = op.getIntValue() - 1;  // enum numbering is 1-based
         if (defaultIdx > 0)
             ch.select(defaultIdx);
-        ch.addItemListener(this);  // for op.ChangeListener and userChanged 
+        ch.addItemListener(this);  // for op.ChangeListener and userChanged
         return ch;
     }
 
     /**
-     * Show the window, and request focus on game name textfield.
+     * When the window is shown, request focus on game name textfield.
      */
-    public void show()
+    @Override
+    public void setVisible(boolean b)
     {
-        super.show();
-        gameName.requestFocus();
+        super.setVisible(b);
+        if (b)
+            gameName.requestFocus();
     }
 
     /** React to button clicks */
@@ -739,6 +742,7 @@ public class NewGameOptionsFrame extends Frame
     /** Dismiss the frame, and clear client's {@link SOCPlayerClient#newGameOptsFrame}
      *  ref to this frame
      */
+    @Override
     public void dispose()
     {
         if (this == cl.newGameOptsFrame)
@@ -829,7 +833,7 @@ public class NewGameOptionsFrame extends Frame
             if ((optsVers > -1) && (optsVers > Version.versionNumberMaximumNoWarn()))
             {
                 allOK = false;
-                new VersionConfirmDialog(this, optsVers).show();
+                new VersionConfirmDialog(this, optsVers).setVisible(true);
             }
         }
 

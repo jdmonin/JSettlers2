@@ -853,7 +853,7 @@ public class SOCPlayerClient extends Panel
         }
         else
         {
-            cf.show();
+            cf.setVisible(true);
         }
 
         channel.setText("");
@@ -1029,7 +1029,7 @@ public class SOCPlayerClient extends Panel
             }
             else
             {
-                new SOCPracticeAskDialog(this, pi).show();
+                new SOCPracticeAskDialog(this, pi).setVisible(true);
             }
 
             return true;
@@ -1080,7 +1080,7 @@ public class SOCPlayerClient extends Panel
         }
         else
         {
-            pi.show();
+            pi.setVisible(true);
         }
 
         return true;
@@ -1174,7 +1174,7 @@ public class SOCPlayerClient extends Panel
     {
         if (newGameOptsFrame != null)
         {
-            newGameOptsFrame.show();
+            newGameOptsFrame.setVisible(true);
             return;
         }
 
@@ -5593,15 +5593,15 @@ public class SOCPlayerClient extends Panel
                 // That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
                 noMoreOptions(false);
                 return true;
-            } else {
-                // remove old, replace with new from server (if any)
-                SOCGameOption.addKnownOption(oinfo);
-                if (oldcopy != null)
-                    optionSet.remove(oKey);
-                if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
-                    optionSet.put(oKey, oinfo);
-                return false;
             }
+            
+            // remove old, replace with new from server (if any)
+            SOCGameOption.addKnownOption(oinfo);
+            if (oldcopy != null)
+                optionSet.remove(oKey);
+            if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
+                optionSet.put(oKey, oinfo);
+            return false;
         }
 
     }  // class GameOptionServerSet

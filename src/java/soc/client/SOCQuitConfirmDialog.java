@@ -46,7 +46,7 @@ class SOCQuitConfirmDialog extends AskDialog
         boolean gaOver = (ga.getGameState() >= SOCGame.OVER);
 
         SOCQuitConfirmDialog qcd = new SOCQuitConfirmDialog(cli, gamePI, gaOver);
-        qcd.show();      
+        qcd.setVisible(true);
     }
     
 
@@ -64,7 +64,7 @@ class SOCQuitConfirmDialog extends AskDialog
             (gameIsOver
                 ? "Do you want to quit this finished game?"
                 : "Do you want to quit the game being played?"),
-            "Quit this game", 
+            "Quit this game",
             (gameIsOver
                 ? "Don't quit"
                 : "Continue playing"),
@@ -77,6 +77,7 @@ class SOCQuitConfirmDialog extends AskDialog
     /**
      * React to the Quit button. (call playerInterface.leaveGame)
      */
+    @Override
     public void button1Chosen()
     {
         pi.leaveGame();
@@ -85,6 +86,7 @@ class SOCQuitConfirmDialog extends AskDialog
     /**
      * React to the Continue button. (Nothing to do)
      */
+    @Override
     public void button2Chosen()
     {
         // Nothing to do (continue playing)
@@ -93,6 +95,7 @@ class SOCQuitConfirmDialog extends AskDialog
     /**
      * React to the Reset Board button. (call playerInterface.resetBoardRequest)
      */
+    @Override
     public void button3Chosen()
     {
         pi.resetBoardRequest();
@@ -101,6 +104,7 @@ class SOCQuitConfirmDialog extends AskDialog
     /**
      * React to the dialog window closed by user. (Nothing to do)
      */
+    @Override
     public void windowCloseChosen()
     {
         // Nothing to do (continue playing)

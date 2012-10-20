@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -134,7 +134,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private static final int[] DELTAX_FACING =
     {
-        0, halfdeltaX, deltaX, halfdeltaX, -halfdeltaX, -deltaX, -halfdeltaX 
+        0, halfdeltaX, deltaX, halfdeltaX, -halfdeltaX, -deltaX, -halfdeltaX
     };
 
     /**
@@ -165,11 +165,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     };
     private static final int[] hexY_st =
     {
-        0, 0, 0, 0, 
-        deltaY, deltaY, deltaY, deltaY, deltaY, 
-        2 * deltaY, 2 * deltaY, 2 * deltaY, 2 * deltaY, 2 * deltaY, 2 * deltaY, 
+        0, 0, 0, 0,
+        deltaY, deltaY, deltaY, deltaY, deltaY,
+        2 * deltaY, 2 * deltaY, 2 * deltaY, 2 * deltaY, 2 * deltaY, 2 * deltaY,
         3 * deltaY, 3 * deltaY, 3 * deltaY, 3 * deltaY, 3 * deltaY, 3 * deltaY, 3 * deltaY,
-        4 * deltaY, 4 * deltaY, 4 * deltaY, 4 * deltaY, 4 * deltaY, 4 * deltaY, 
+        4 * deltaY, 4 * deltaY, 4 * deltaY, 4 * deltaY, 4 * deltaY, 4 * deltaY,
         5 * deltaY, 5 * deltaY, 5 * deltaY, 5 * deltaY, 5 * deltaY,
         6 * deltaY, 6 * deltaY, 6 * deltaY, 6 * deltaY
     };
@@ -228,11 +228,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int[] settlementY = { -7, -14, -7, 5, 5, -7, -7 };
 
     /***  city  ***/
-    private static final int[] cityX = 
+    private static final int[] cityX =
     {
         -10, -4, 2, 2, 10, 10, -10, -10, 0, 0, 10, 5, -10
     };
-    private static final int[] cityY = 
+    private static final int[] cityY =
     {
         -8, -14, -8, -4, -4, 6, 6, -8, -8, -4, -4, -8, -8
     };
@@ -379,7 +379,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /** for popup-menu build request, length of time after popup to ignore further
      *  mouse-clicks.  Avoids Windows accidental build by popup-click during game's
      *  initial piece placement. (150 ms)
-     */ 
+     */
     protected static int POPUP_MENU_IGNORE_MS = 150;
 
     /**
@@ -704,11 +704,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /***  robber  ***/
     private int[] scaledRobberX, scaledRobberY;
 
-    /** 
+    /**
      * arrow, left-pointing and right-pointing.
      * @see #rescaleCoordinateArrays()
      */
-    private int[] scaledArrowXL, scaledArrowXR, scaledArrowY; 
+    private int[] scaledArrowXL, scaledArrowXR, scaledArrowY;
 
     /** hex corners, clockwise from top-center, as located in waterHex.gif and other hex graphics:
      * (27,0) (54,16) (54,47) (27,63) (0,47) (0,16).
@@ -732,13 +732,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         0, 16, 47, 63, 47, 16
     };
 
-    /** 
+    /**
      * hex corner coordinates, as scaled to current board size.
      * @see #hexCornersX
      * @see #rescaleCoordinateArrays()
      * @since 1.1.07
      */
-    private int[] scaledHexCornersX, scaledHexCornersY; 
+    private int[] scaledHexCornersX, scaledHexCornersY;
 
     /**
      * Previous pointer coordinates for interface; the mouse was at this location when
@@ -762,7 +762,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Tracks last menu-popup time.  Avoids misinterpretation of popup-click with placement-click
      * during initial placement: On Windows, popup-click must be caught in mouseReleased,
-     * but mousePressed is called immediately afterwards.    
+     * but mousePressed is called immediately afterwards.
      */
     private long popupMenuSystime;
 
@@ -991,9 +991,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *  (previous position) when moving the robber.
      *  Values are determined the first time the
      *  robber is ghosted on that type of tile.
-     *  
+     * 
      *  Index ranges from 0 to SOCBoard.MAX_ROBBER_HEX.
-     *  
+     * 
      *  @see soc.client.ColorSquare
      *  @see #drawRobber(Graphics, int, boolean, boolean)
      */
@@ -1115,7 +1115,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // Set up popup menu
         popupMenu = new BoardPopupMenu(this);
         add (popupMenu);
-        popupMenuSystime = System.currentTimeMillis();  // Set to a reasonable value 
+        popupMenuSystime = System.currentTimeMillis();  // Set to a reasonable value
 
         // Overlay text
         superText1 = null;
@@ -1700,7 +1700,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public void setBounds(int x, int y, int w, int h)
         throws IllegalArgumentException
     {
-        if ((w != scaledPanelX) || (h != scaledPanelY))            
+        if ((w != scaledPanelX) || (h != scaledPanelY))
         {
             rescaleBoard(w, h);
         }
@@ -1720,7 +1720,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             emptyBoardBuffer = null;
         }
         if (isScaled)
-            scaledAt = System.currentTimeMillis();  // reset the image-scaling timeout 
+            scaledAt = System.currentTimeMillis();  // reset the image-scaling timeout
         repaint();
     }
 
@@ -2499,7 +2499,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int dy = 0;  // y-offset, if edge's hex would draw it off the map
 
             if ((((edgeNum & 0x0F) + (edgeNum >> 4)) % 2) == 0)
-            { // If first and second digit 
+            { // If first and second digit
               // are even, then it is '|'.
                 hexNum = hexIDtoNum[edgeNum + 0x11];
                 roadX = scaledVertRoadX;
@@ -2683,11 +2683,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     // this node's hex would be off the southern edge of the board.
                     // shift 1 hex north, then add to y.
-                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10]; 
+                    hexNum = hexIDtoNum[nodeNum - 0x20 + 0x02 + 0x10];
                     hx = hexX[hexNum];
                     hy = hexY[hexNum] + 17 + (2 * deltaY);
                 } else {
-                    hexNum = hexIDtoNum[nodeNum + 0x10]; 
+                    hexNum = hexIDtoNum[nodeNum + 0x10];
                     hx = hexX[hexNum];
                     hy = hexY[hexNum] + 17;
                 }
@@ -2902,7 +2902,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (! (game.isSpecialBuilding() || (gameState == SOCGame.OVER)))
             g.setColor(ARROW_COLOR);
         else
-            g.setColor(ARROW_COLOR_PLACING);        
+            g.setColor(ARROW_COLOR_PLACING);
         g.fillPolygon(scArrowX, scaledArrowY, scArrowX.length);
         g.setColor(Color.BLACK);
         g.drawPolygon(scArrowX, scaledArrowY, scArrowX.length);
@@ -3086,7 +3086,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
         if (board.getPreviousRobberHex() != -1)
         {
-            drawRobber(g, board.getPreviousRobberHex(), (gameState != SOCGame.PLACING_ROBBER), false);            
+            drawRobber(g, board.getPreviousRobberHex(), (gameState != SOCGame.PLACING_ROBBER), false);
         }
 
         if (isLargeBoard)
@@ -3101,7 +3101,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hex > 0)
             {
                 drawRoadOrShip(g, hex, -3, (gameState == SOCGame.PLACING_PIRATE), false);
-            }            
+            }
         }
 
         if (gameState != SOCGame.NEW)
@@ -3325,7 +3325,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // (The delay gives time for the new scaling to complete.)
             scaledAt = System.currentTimeMillis();
             repaint();
-            new DelayedRepaint(this).start();            
+            new DelayedRepaint(this).start();
         }
     }
 
@@ -3898,7 +3898,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     
     protected void updateHoverTipToMode()
     {
-        if ((mode == NONE) || (mode == TURN_STARTING) || (mode == GAME_OVER))            
+        if ((mode == NONE) || (mode == TURN_STARTING) || (mode == GAME_OVER))
             hoverTip.setOffsetX(0);
         else if ((mode == PLACE_ROBBER) || (mode == PLACE_PIRATE))
             hoverTip.setOffsetX(HOVER_OFFSET_X_FOR_ROBBER);
@@ -4222,7 +4222,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 // check potential roads, not ships, to keep it false if coastal edge
                                 isShip = (player != null) && canPlaceShip
                                     && ! player.isPotentialRoad(edgeNum);
-                            } 
+                            }
                         }
                     }
                 }
@@ -4832,7 +4832,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
     }
     
-    /** If the client has used the board popup menu to request building a piece,  
+    /** If the client has used the board popup menu to request building a piece,
      *  this method is used in client network-receive message treatment.
      */
     public boolean popupExpectingBuildRequest()
@@ -4966,7 +4966,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final int findEdge(int x, int y, final boolean checkCoastal)
     {
-        // find which grid section the pointer is in 
+        // find which grid section the pointer is in
         int secX, secY;
 
         if (isLargeBoard)
@@ -5012,7 +5012,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             else
             {
                 // y, relative to sector's upper-left corner
-                final int yrel = ((y - 22) % halfdeltaY); 
+                final int yrel = ((y - 22) % halfdeltaY);
                 if ((secX % 2) == ((secY/2) % 2))
                 {
                     // edge is "\".
@@ -5040,7 +5040,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             else
                 hex = hexRight;
 
-            if (board.isHexOnLand(hex))            
+            if (board.isHexOnLand(hex))
                 return edge;
             return -edge;
 
@@ -5081,7 +5081,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final int findNode(int x, int y)
     {
-        // find which grid section the pointer is in 
+        // find which grid section the pointer is in
         int secX, secY;
 
         if (isLargeBoard)
@@ -5133,7 +5133,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             secX = ((x + 13) / halfdeltaX);
             secY = ((y - 20) / halfdeltaY);
             final int hex = (secY << 8) | secX;
-            if (-1 != ((SOCBoardLarge) board).getHexTypeFromCoord(hex))                    
+            if (-1 != ((SOCBoardLarge) board).getHexTypeFromCoord(hex))
                 return hex;
             return 0;
         }
@@ -5192,7 +5192,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Load the images for the board.
-     * @param c  
+     * @param c
      * @param wantsRotated  True for the 6-player non-sea board
      *          (v2 encoding {@link SOCBoard#BOARD_ENCODING_6PLAYER}), false otherwise.
      *          The large board (v3 encoding)'s gold-hex image has no rotated version,
@@ -5333,7 +5333,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hexColor = ColorSquare.CLAY;
             break;
         case SOCBoard.ORE_HEX:
-            hexColor = ColorSquare.ORE;                
+            hexColor = ColorSquare.ORE;
             break;
         case SOCBoard.SHEEP_HEX:
             hexColor = ColorSquare.SHEEP;
@@ -5370,7 +5370,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         /**
          * Are we already waiting in another thread?
-         * Assumes since boolean is a simple var, will have atomic access. 
+         * Assumes since boolean is a simple var, will have atomic access.
          */
         private static boolean alreadyActive = false;
         private SOCBoardPanel bp;
@@ -5381,6 +5381,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             this.bp = bp;
         }
 
+        @Override
         public void run()
         {
             if (alreadyActive)
@@ -5714,7 +5715,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 && (mode != TURN_STARTING) && (mode != GAME_OVER));
 
             final boolean debugPP = game.isDebugFreePlacement();
-            final boolean playerIsCurrent = 
+            final boolean playerIsCurrent =
                 (player != null) && (debugPP || playerInterface.clientIsCurrentPlayer());
             boolean hoverTextSet = false;  // True once text is determined
 
@@ -5837,7 +5838,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             else
             {
                 hoverSettlementID = 0;
-                hoverCityID = 0;                
+                hoverCityID = 0;
             }
 
             // If not over a settlement, look for a road or ship
@@ -5923,9 +5924,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         }
                         else if (canPlaceShip  // checks isPotentialShip, pirate ship
                             && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
-                            && (debugPP || player.getResources().contains(SOCGame.SHIP_SET))) 
+                            && (debugPP || player.getResources().contains(SOCGame.SHIP_SET)))
                         {
-                            hoverShipID = id;                            
+                            hoverShipID = id;
                         }
                     }
                 }
@@ -6040,7 +6041,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             sb.append(" (pirate was here)");
                         }
                     }
-                    setHoverText(sb.toString());                     
+                    setHoverText(sb.toString());
                 }
                 
                 return;  // <--- Early return: Found hex ---
@@ -6110,11 +6111,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             case SOCBoard.WOOD_PORT:
                 portDesc = "2:1 Wood port";
-                break;                            
+                break;
 
             default:
                 // Just in case
-                portDesc = "port type " + portType;                        
+                portDesc = "port type " + portType;
             }
 
             return portDesc;
@@ -6192,7 +6193,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         super ("JSettlers");
         bp = bpanel;
 
-        buildRoadItem = new MenuItem("Build Road");         
+        buildRoadItem = new MenuItem("Build Road");
         buildSettleItem = new MenuItem("Build Settlement");
         upgradeCityItem = new MenuItem("Upgrade to City");
         if (game.hasSeaBoard)
@@ -6254,13 +6255,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           case SOCPlayingPiece.ROAD:
               cancelBuildItem.setLabel("Cancel road");
               buildRoadItem.setEnabled(menuPlayerIsCurrent);
-              hoverRoadID = hilightAt; 
+              hoverRoadID = hilightAt;
               break;
 
           case SOCPlayingPiece.SETTLEMENT:
               cancelBuildItem.setLabel("Cancel settlement");
               buildSettleItem.setEnabled(menuPlayerIsCurrent);
-              hoverSettlementID = hilightAt; 
+              hoverSettlementID = hilightAt;
               break;
 
           case SOCPlayingPiece.CITY:
@@ -6446,7 +6447,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                           (bp, playerInterface.getPlayerHandPanel(cpn));
                   else
                       portTradeSubmenu = new SOCHandPanel.ResourceTradeTypeMenu
-                          (playerInterface.getPlayerHandPanel(cpn), portType, false);                  
+                          (playerInterface.getPlayerHandPanel(cpn), portType, false);
                   add(portTradeSubmenu);
                   portTradeSubmenu.setEnabledIfCanTrade(true);
               }
@@ -6478,7 +6479,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           }
           else if (target == cancelBuildItem)
               tryCancel();
-      } 
+      }
 
       /**
        * Send message to server to request placing this piece, if allowable.
@@ -6575,9 +6576,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           // Set up timer to expect first-reply (and then send the second message)
           popupSetBuildRequest(buildLoc, ptype);
 
-          // Now that we're expecting that, use buttons to send the first message         
+          // Now that we're expecting that, use buttons to send the first message
           playerInterface.getBuildingPanel().clickBuildingButton
-              (game, btarget, true);          
+              (game, btarget, true);
       }
       
       /**
@@ -6608,7 +6609,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           case SOCPlayingPiece.SHIP:
               btarget = SOCBuildingPanel.SHIP;
               break;
-          }          
+          }
           // Use buttons to cancel the build request
           playerInterface.getBuildingPanel().clickBuildingButton
               (game, btarget, false);
@@ -6632,7 +6633,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           hoverTip.hideHoverAndPieces();  // calls repaint
       }
 
-    }  // inner class BoardPopupMenu    
+    }  // inner class BoardPopupMenu
 
     /**
      * Menu for right-click on 3-for-1 port to trade all resource types with bank/port.
@@ -6644,7 +6645,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /* package-access */ static class ResourceTradeAllMenu extends SOCHandPanel.ResourceTradePopupMenu
     {
         private SOCBoardPanel bpanel;
-        private SOCHandPanel.ResourceTradeTypeMenu[] tradeFromTypes;        
+        private SOCHandPanel.ResourceTradeTypeMenu[] tradeFromTypes;
 
         /**
          * Temporary menu for board popup menu
@@ -6687,7 +6688,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *
          * @param itemsOnly If true, enable/disable items, instead of the menu itself.
          *                  The submenus are considered items.
-         *                  Items within submenus are also items. 
+         *                  Items within submenus are also items.
          */
         @Override
         public void setEnabledIfCanTrade(boolean itemsOnly)
@@ -6695,11 +6696,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int gs = hpan.getGame().getGameState();
             for (int i = 0; i < 5; ++i)
             {
-                int numNeeded = tradeFromTypes[i].getResourceCost(); 
+                int numNeeded = tradeFromTypes[i].getResourceCost();
                 tradeFromTypes[i].setEnabledIfCanTrade(itemsOnly);
                 tradeFromTypes[i].setEnabledIfCanTrade
                     ((gs == SOCGame.PLAY1)
-                     && (numNeeded <= hpan.getPlayer().getResources().getAmount(i+1)));                    
+                     && (numNeeded <= hpan.getPlayer().getResources().getAmount(i+1)));
             }
         }
 
@@ -6722,7 +6723,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     }  /* static nested class ResourceTradeAllMenu */
 
-    /** 
+    /**
      * Used for the delay between sending a build-request message,
      * and receiving a game-state message.
      * 
@@ -6765,6 +6766,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * This timer will probably not be called, unless there's a large lag
          * between the server and client.  It's here just in case.
          */
+        @Override
         public void run()
         {
             // for debugging
@@ -6773,7 +6775,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 try {
                     Thread.currentThread().setName("timertask-boardpanel");
                 }
-                catch (Throwable th) {}
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             
             // Time is up.
@@ -6832,7 +6836,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
             }
 
-            clearModeAndHilight(pieceType);           
+            clearModeAndHilight(pieceType);
         }
         
     }  // inner class BoardPanelSendBuildTask
@@ -6855,7 +6859,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         private Thread rdt;
 
         private final SOCPlayer pl;
-        private final int robHex; 
+        private final int robHex;
 
         /**
          * Creates a new MoveRobberConfirmDialog.
@@ -6938,9 +6942,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             try
             {
-                show();
+                setVisible(true);
             }
-            catch (ThreadDeath e) {}
+            catch (ThreadDeath e)
+            {
+                e.printStackTrace();
+            }
         }
 
     }  // nested class MoveRobberConfirmDialog

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -337,7 +337,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected Button doneBut;
 
     /** True when {@link #doneBut}'s label is Restart ({@link #DONE_RESTART}) */
-    protected boolean doneButIsRestart; 
+    protected boolean doneButIsRestart;
 
     protected Button quitBut;
     protected SOCPlayerInterface playerInterface;
@@ -736,7 +736,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         offer = new TradeOfferPanel(this, playerNumber);
         offer.setVisible(false);
-        offerIsResetMessage = false;        
+        offerIsResetMessage = false;
         add(offer);
 
         // set the starting state of the panel
@@ -842,7 +842,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
         else if (target == BANK)
         {
-            int gstate = game.getGameState(); 
+            int gstate = game.getGameState();
             if (gstate == SOCGame.PLAY1)
             {
                 int[] give = new int[5];
@@ -1048,9 +1048,8 @@ public class SOCHandPanel extends Panel implements ActionListener
                 {
                     playerInterface.print("* Please click a card first to select it.");
                     return;
-                } else {
-                    item = itemNumText;
                 }
+                item = itemNumText;
             }
         }
 
@@ -1254,7 +1253,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         resourceSq.setVisible(false);
         resourceSqDivLine.setVisible(false);
 
-        offerHidingControls = false;  
+        offerHidingControls = false;
         offerCounterHidingFace = false;
 
         if (playerIsClient)
@@ -1686,17 +1685,17 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
         else
         {
-            rollBut.disable();
-            doneBut.disable();
-            playCardBut.disable();
-            bankBut.disable();  // enabled by updateAtPlay1()
+            rollBut.setEnabled(false);
+            doneBut.setEnabled(false);
+            playCardBut.setEnabled(false);
+            bankBut.setEnabled(false);  // enabled by updateAtPlay1()
         }
 
         bankUndoBut.setEnabled(false);
-        clearOfferBut.disable();  // No trade offer has been set yet
+        clearOfferBut.setEnabled(false);  // No trade offer has been set yet
         if (! playerTradingDisabled)
         {
-            offerBut.disable();
+            offerBut.setEnabled(false);
             if (offerButTip != null)
                 offerButTip.setTip(OFFERBUTTIP_DIS);
         }
@@ -2034,7 +2033,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         client.getGameManager().rejectOffer(game);
         if (offerHidesControls)
             hideTradeMsgShowOthers(false);
-        repaint();        
+        repaint();
     }
 
     /**
@@ -2159,7 +2158,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             if (updateSendCheckboxes && ! playerTradingDisabled)
             {
                 final int pcurr = game.getCurrentPlayerNumber();  // current player number
-                final boolean pIsCurr = (pcurr == playerNumber);  // are we current? 
+                final boolean pIsCurr = (pcurr == playerNumber);  // are we current?
                 for (int i = 0; i < game.maxPlayers - 1; i++)
                 {
                     boolean canSend, wantSend;
@@ -2178,10 +2177,10 @@ public class SOCHandPanel extends Panel implements ActionListener
                 }
             }
 
-            clearOfferBut.disable();
+            clearOfferBut.setEnabled(false);
             if (! playerTradingDisabled)
             {
-                offerBut.disable();
+                offerBut.setEnabled(false);
                 offerButTip.setTip(OFFERBUTTIP_DIS);
             }
         }
@@ -2253,7 +2252,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      *
      * @see #clearDiscardOrPickMsg()
      * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
-     * @param isDiscard  True to show {@link #TRADEMSG_DISCARD}, false for {@link #TRADEMSG_PICKING}.  
+     * @param isDiscard  True to show {@link #TRADEMSG_DISCARD}, false for {@link #TRADEMSG_PICKING}.
      * @return true if set, false if not set because was in reset-mode already.
      */
     public boolean setDiscardOrPickMsg(final boolean isDiscard)
@@ -2676,7 +2675,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     protected void setRollPrompt(String prompt, final boolean cancelTimer)
     {
-        boolean wasUse = rollPromptInUse; 
+        boolean wasUse = rollPromptInUse;
         rollPromptInUse = (prompt != null);
         if (rollPromptInUse)
         {
@@ -2695,7 +2694,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             {
                 autoRollTimerTask.cancel();
                 autoRollTimerTask = null;
-            }            
+            }
         }
     }
 
@@ -2714,6 +2713,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * Overriden to also update {@link #getBlankStandIn()} bounds.
      * @since 1.1.06
      */
+    @Override
     public void setBounds(int x, int y, int width, int height)
     {
         super.setBounds(x, y, width, height);
@@ -2724,6 +2724,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Custom layout for player hand panel.
      */
+    @Override
     public void doLayout()
     {
         Dimension dim = getSize();
@@ -2971,6 +2972,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             timeRemain = AUTOROLL_TIME;
         }
 
+        @Override
         public void run()
         {
             // for debugging
@@ -2999,7 +3001,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             }
             finally
             {
-                --timeRemain;  // for next tick                
+                --timeRemain;  // for next tick
             }
         }
 
@@ -3061,6 +3063,7 @@ public class SOCHandPanel extends Panel implements ActionListener
          * Enable or disable this menu item.
          * If from-to resources are same, always disabled.
          */
+        @Override
         public void setEnabled(boolean enable)
         {
             if (tradeFrom == tradeTo)
@@ -3090,7 +3093,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         public void createBankTradeRequest(SOCHandPanel hp)
         {
             // Code like actionPerformed for BANK button
-            SOCGame game = hp.getGame(); 
+            SOCGame game = hp.getGame();
             if (game.getGameState() != SOCGame.PLAY1)
             {
                 hp.getPlayerInterface().print("* You cannot trade at this time.\n");
@@ -3158,7 +3161,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         private int resTypeFrom;
         private int costFrom;
         boolean isForThree1;
-        private ResourceTradeMenuItem[] tradeForItems;        
+        private ResourceTradeMenuItem[] tradeForItems;
 
         /** Menu attached to a resource colorsquare in the client player's handpanel */
         public ResourceTradeTypeMenu(SOCHandPanel hp, int typeFrom, ColorSquare sq, int numFrom)
@@ -3217,6 +3220,7 @@ public class SOCHandPanel extends Panel implements ActionListener
          * @param x   Mouse x-position relative to colorsquare
          * @param y   Mouse y-position relative to colorsquare
          */
+        @Override
         public void show(int x, int y)
         {
             setEnabledIfCanTrade(true);  // enable/disable each item
@@ -3228,6 +3232,7 @@ public class SOCHandPanel extends Panel implements ActionListener
          *
          * @param itemsOnly If true, enable/disable items, instead of the menu itself.
          */
+        @Override
         public void setEnabledIfCanTrade(boolean itemsOnly)
         {
             final SOCPlayer p = hpan.player;
@@ -3276,7 +3281,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             try
             {
-                Object src = e.getSource(); 
+                Object src = e.getSource();
                 ResourceTradeMenuItem mi = null;
                 for (int i = 0; i < 5; ++i)
                 {
@@ -3337,6 +3342,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         public void mouseExited(MouseEvent evt) {}
 
         /** Cleanup, for removing this menu. */
+        @Override
         public void destroy()
         {
             for (int i = 0; i < 5; ++i)

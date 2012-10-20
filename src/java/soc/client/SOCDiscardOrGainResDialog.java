@@ -141,7 +141,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
         add(okBut);
         okBut.addActionListener(this);
         if (numPickNeeded > 0)
-            okBut.disable();  // Must choose that many first
+            okBut.setEnabled(false);  // Must choose that many first
 
         keep = new ColorSquare[5];
         pick = new ColorSquare[5];
@@ -160,7 +160,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
             pick[i] = new ColorSquareLarger(ColorSquare.BOUNDED_INC, false, sqColor);
             if (SOCPlayerClient.isJavaOnOSX)
             {
-                sqColor = ColorSquare.RESOURCE_COLORS[i];                
+                sqColor = ColorSquare.RESOURCE_COLORS[i];
                 keep[i].setBackground(sqColor);
                 pick[i].setBackground(sqColor);
             }
@@ -179,6 +179,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
      *
      * @param vis  True to make visible, false to hide
      */
+    @Override
     public void setVisible(final boolean vis)
     {
         if (vis)
@@ -203,6 +204,7 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
     /**
      * Custom layout, and setLocation call, for this dialog.
      */
+    @Override
     public void doLayout()
     {
         int x = getInsets().left;
@@ -364,12 +366,12 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
                 --numChosen;
                 if (numChosen == (numPickNeeded-1))
                 {
-                    okBut.disable();  // Count un-reached (too few)
+                    okBut.setEnabled(false);  // Count un-reached (too few)
                     wantsRepaint = true;
                 }
                 else if (numChosen == numPickNeeded)
                 {
-                    okBut.enable();   // Exact count reached
+                    okBut.setEnabled(true);   // Exact count reached
                     wantsRepaint = true;
                 }
                 break;
@@ -382,12 +384,12 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
                 ++numChosen;
                 if (numChosen == numPickNeeded)
                 {
-                    okBut.enable();  // Exact count reached
+                    okBut.setEnabled(true);  // Exact count reached
                     wantsRepaint = true;
                 }
                 else if (numChosen == (numPickNeeded+1))
                 {
-                    okBut.disable();  // Count un-reached (too many)
+                    okBut.setEnabled(false);  // Count un-reached (too many)
                     wantsRepaint = true;
                 }
                 break;

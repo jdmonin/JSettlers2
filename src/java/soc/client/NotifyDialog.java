@@ -53,7 +53,7 @@ class NotifyDialog extends AskDialog
             btnText = "OK";
         NotifyDialog nd = new NotifyDialog
 	    (cli, gamePI, promptText, btnText, hasDefault);
-        nd.show();      
+        nd.setVisible(true);
     }
 
     /**
@@ -80,6 +80,7 @@ class NotifyDialog extends AskDialog
     /**
      * React to the button. (AskDialog will dismiss the dialog)
      */
+    @Override
     public void button1Chosen()
     {
         // Nothing to do (AskDialog will dismiss it)
@@ -88,11 +89,13 @@ class NotifyDialog extends AskDialog
     /**
      * Required stub; there is no button 2 in this dialog.
      */
+    @Override
     public void button2Chosen() { }
 
     /**
      * React to the dialog window closed by user. (Nothing to do)
      */
+    @Override
     public void windowCloseChosen() { }
 
 }

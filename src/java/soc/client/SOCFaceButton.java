@@ -672,7 +672,7 @@ public class SOCFaceButton extends Canvas
                     (fb, fb.pi.getClient(), fb.pi, fb.pNumber, fb.getFace(), fb.getSize().width);
                 fsf.pack();
             }
-            fsf.show();
+            fsf.setVisible(true);
         }
 
         /**

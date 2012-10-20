@@ -49,7 +49,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
 
         boolean hasAny = cli.getNet().anyHostedActiveGames();
         SOCQuitAllConfirmDialog qcd = new SOCQuitAllConfirmDialog(cli, gamePIOrSelf, hasAny);
-        qcd.show();      
+        qcd.setVisible(true);
     }
     
 
@@ -77,6 +77,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
      * React to the Quit button. Just as SOCPlayerClient does,
      * call client.putLeaveAll() and System.exit(0).
      */
+    @Override
     public void button1Chosen()
     {
         pcli.getNet().putLeaveAll();
@@ -86,6 +87,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
     /**
      * React to the Continue button. (Nothing to do, continue playing)
      */
+    @Override
     public void button2Chosen()
     {
         // Nothing to do (continue playing)
@@ -94,6 +96,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
     /**
      * React to the dialog window closed by user. (Nothing to do, continue playing)
      */
+    @Override
     public void windowCloseChosen()
     {
         // Nothing to do (continue playing)

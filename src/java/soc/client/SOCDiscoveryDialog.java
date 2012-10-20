@@ -76,11 +76,11 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
 
         add(doneBut);
         doneBut.addActionListener(this);
-        doneBut.disable();  // Since nothing picked yet
+        doneBut.setEnabled(false);  // Since nothing picked yet
 
         add(clearBut);
         clearBut.addActionListener(this);
-        // clearBut.disable();        
+        // clearBut.disable();
 
         rsrc = new ColorSquare[5];
         for (int i = 0; i < 5; i++)
@@ -108,6 +108,7 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
      *
      * @param b Visible?
      */
+    @Override
     public void setVisible(boolean b)
     {
         super.setVisible(b);
@@ -121,6 +122,7 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
     /**
      * Custom layout for this dialog
      */
+    @Override
     public void doLayout()
     {
         int x = getInsets().left;
@@ -220,7 +222,7 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
                 rsrc[i].setIntValue(0);
             }
             rsrcTotal = 0;
-            doneBut.disable();
+            doneBut.setEnabled(false);
         }
         } catch (Throwable th) {
             pi.chatPrintStackTrace(th);
@@ -235,7 +237,7 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
     {
         boolean wasDone = (rsrcTotal == 2);
         rsrcTotal += (newValue - oldValue);
-        boolean isDone = (rsrcTotal == 2); 
+        boolean isDone = (rsrcTotal == 2);
         if (wasDone != isDone)
             doneBut.setEnabled(isDone);
     }
