@@ -23,18 +23,16 @@ package soc.server.database;
 import soc.util.SOCRobotParameters;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.Statement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 
 import java.util.ArrayList;
@@ -264,6 +262,10 @@ public class SOCDBHelper
 
             // Connect and prepare table queries; run the setup script, if any, first
             connect(user, pswd, prop_dbSetupScript);
+        }
+        catch (IOException iox)
+        {
+            throw iox;  // Let the caller deal with DB setup script IO errors
         }
         catch (Throwable x) // everything else
         {
