@@ -610,7 +610,7 @@ public class SOCServer extends Server
             if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
             {
                 // the sql script was ran by initialize
-                System.err.println("Setup script was successful. Exiting now.");
+                System.err.println("\nDB setup script was successful. Exiting now.\n");
                 System.exit(2);
             }
         }
@@ -629,7 +629,7 @@ public class SOCServer extends Server
             {
                 // the sql script was ran by initialize, but failed to complete;
                 // don't continue server startup with just a warning
-                System.err.println("Setup script failed.");
+                System.err.println("\n* DB setup script failed.\n");
                 System.exit(1);
             }
 
@@ -637,7 +637,7 @@ public class SOCServer extends Server
         }
         catch (IOException iox) // error from requested script
         {
-            System.err.println("Could not run database setup script: " + iox.getMessage());
+            System.err.println("\n* Could not run database setup script: " + iox.getMessage());
             Throwable cause = iox.getCause();
             while ((cause != null) && ! (cause instanceof ClassNotFoundException))
             {
@@ -645,7 +645,7 @@ public class SOCServer extends Server
                 cause = cause.getCause();
             }
 
-            System.err.println("* Exiting due to error running db setup script.");
+            System.err.println("\n* Exiting due to error running db setup script.");
             try
             {
                 SOCDBHelper.cleanup(true);
