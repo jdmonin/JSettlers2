@@ -358,6 +358,14 @@ public class SOCServer extends Server
         = new SOCRobotParameters(120, 35, 0.13f, 1.0f, 1.0f, 3.0f, 1.0f, 0, 1);
 
     /**
+     * Did the command line include an option that prints some information
+     * (like --help or --version) and should exit, instead of starting the server?
+     * Set in {@link #parseCmdline_DashedArgs(String[])}.
+     * @since 1.1.15
+     */
+    private static boolean hasStartupPrintAndExit = false;
+
+    /**
      * Did the command line include --option / -o to set {@link SOCGameOption game option} values?
      * Checked in constructors for possible stderr option-values printout.
      * @since 1.1.07
@@ -9299,6 +9307,8 @@ public class SOCServer extends Server
      *<P>
      * If <tt>args[]</tt> is empty, it will use defaults for
      * {@link #PROP_JSETTLERS_PORT} and {@link #PROP_JSETTLERS_CONNECTIONS}}.
+     *<P>
+     * Sets {@link #hasStartupPrintAndExit} if appropriate.
      *
      * @param args args as passed to main
      * @return Properties collection of args, or null for argument error.
@@ -9320,10 +9330,12 @@ public class SOCServer extends Server
             if (arg.equals("-V") || arg.equalsIgnoreCase("--version"))
             {
                 printVersionText();
+                hasStartupPrintAndExit = true;
             }
             else if (arg.equalsIgnoreCase("-h") || arg.equals("?") || arg.equalsIgnoreCase("--help"))
             {
                 printUsage(true);
+                hasStartupPrintAndExit = true;
             }
             else if (arg.startsWith("-o") || arg.equalsIgnoreCase("--option"))
             {
@@ -9555,6 +9567,10 @@ public class SOCServer extends Server
         if (argp == null)
         {
             printUsage(false);
+            return;
+        }
+        if (hasStartupPrintAndExit)
+        {
             return;
         }
 
