@@ -9278,6 +9278,10 @@ public class SOCServer extends Server
      * {@link #hasSetGameOptions} is set to true, and
      * {@link SOCGameOption#setKnownOptionCurrentValue(SOCGameOption)}
      * is called to set them globally.
+     *<P>
+     * If <tt>args[]</tt> is empty, it will use defaults for
+     * {@link #PROP_JSETTLERS_PORT} and {@link #PROP_JSETTLERS_CONNECTIONS}}.
+     *
      * @param args args as passed to main
      * @return Properties collection of args, or null for argument error.
      *     Will contain at least {@link #PROP_JSETTLERS_PORT},
@@ -9376,21 +9380,31 @@ public class SOCServer extends Server
 
         // Done parsing flagged parameters.
         // Look for the positional ones.
-        if ((args.length - aidx) < 4)
+        if ((args.length - aidx) == 0)
         {
-            if (! printedUsageAlready)
+            // No positional parameters: Take defaults.
+            argp.setProperty(PROP_JSETTLERS_PORT, Integer.toString(SOC_PORT_DEFAULT));
+            argp.setProperty(PROP_JSETTLERS_CONNECTIONS, Integer.toString(SOC_MAXCONN_DEFAULT));
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
+        } else {
+            // Require all 4 parameters
+            if ((args.length - aidx) < 4)
             {
-                // Print this hint only if parsed OK up to now, and
-                // if we haven't responded to -h / --help already.
-                System.err.println("SOCServer: Some required command-line parameters are missing.");
+                if (! printedUsageAlready)
+                {
+                    // Print this hint only if parsed OK up to now, and
+                    // if we haven't responded to -h / --help already.
+                    System.err.println("SOCServer: Some required command-line parameters are missing.");
+                }
+                printUsage(false);
+                return null;
             }
-            printUsage(false);
-            return null;
+            argp.setProperty(PROP_JSETTLERS_PORT, args[aidx]);  ++aidx;
+            argp.setProperty(PROP_JSETTLERS_CONNECTIONS, args[aidx]);  ++aidx;
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, args[aidx]);  ++aidx;
         }
-        argp.setProperty(PROP_JSETTLERS_PORT, args[aidx]);  ++aidx;
-        argp.setProperty(PROP_JSETTLERS_CONNECTIONS, args[aidx]);  ++aidx;
-        argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, args[aidx]);  ++aidx;
-        argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, args[aidx]);  ++aidx;
 
         if (aidx < args.length)
         {
@@ -9519,18 +9533,6 @@ public class SOCServer extends Server
      */
     static public void main(String[] args)
     {
-        if (args.length < 4)
-        {
-            if (! printedUsageAlready)
-            {
-                // Print this hint only if parsed OK up to now, and
-                // if we haven't responded to -h / --help already.
-                System.err.println("SOCServer: Some required command-line parameters are missing.");
-            }
-            printUsage(false);
-            return;
-        }
-
         Properties argp = parseCmdline_DashedArgs(args);
         if (argp == null)
         {
