@@ -1,1 +1,3 @@
-target
+target/*.jar
+target/classes/*
+target/lib/*
