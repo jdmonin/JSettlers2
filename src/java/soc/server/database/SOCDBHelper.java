@@ -217,25 +217,36 @@ public class SOCDBHelper
     	    }
     	}
 
-    	try
+        boolean driverNewInstanceFailed = false;
+        try
         {
             // Load the JDBC driver. Revisit exceptions when /any/ JDBC allowed.
-            Class.forName(driverclass).newInstance();
+            try
+            {
+                Class.forName(driverclass).newInstance();
+            }
+            catch (Throwable x)
+            {
+                // InstantiationException, IllegalAccessException, ClassNotFoundException
+                // (seen for org.gjt.mm.mysql.Driver)
+                driverNewInstanceFailed = true;
+                SQLException sx =
+                    new SQLException("JDBC driver is unavailable: " + driverclass);
+                sx.initCause(x);
+                throw sx;
+            }
 
+            // Connect and prepare table queries
             connect(user, pswd);
-        }
-        catch (ClassNotFoundException x)
-        {
-            SQLException sx =
-                new SQLException("JDBC driver is unavailable: " + driverclass);
-            sx.initCause(x);
-            throw sx;
         }
         catch (Throwable x) // everything else
         {
-            // InstantiationException & IllegalAccessException
-            // should not be possible  for org.gjt.mm.mysql.Driver
-            // ClassNotFound
+            if (driverNewInstanceFailed && (x instanceof SQLException))
+            {
+                // don't re-wrap driverclass exception thrown above
+                throw (SQLException) x;
+            }
+
             SQLException sx = new SQLException("Unable to initialize user database");
             sx.initCause(x);
             throw sx;
@@ -280,6 +291,9 @@ public class SOCDBHelper
     /**
      * Opens a new connection and initializes the prepared statements.
      * {@link #initialize(String, String, Properties)} and {@link #checkConnection()} use this to get ready.
+     * @param user  DB username
+     * @param pswd  DB user password
+     * @throws SQLException if any connect error, missing table, or SQL error occurs
      */
     private static boolean connect(String user, String pswd)
         throws SQLException
@@ -517,7 +531,7 @@ public class SOCDBHelper
     }
 
     /**
-     * DOCUMENT ME!
+     * Record this game's time, players, and scores in the database.
      *
      * @param gameName DOCUMENT ME!
      * @param player1 DOCUMENT ME!
@@ -721,7 +735,7 @@ public class SOCDBHelper
                 saveGameCommand.close();
                 robotParamsQuery.close();
             }
-            catch (SQLException sqlE)
+            catch (Throwable thr)
             {
                 ; /* ignore failures in query closes */
             }
