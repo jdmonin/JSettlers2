@@ -121,6 +121,13 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_SCRIPT_SETUP = "jsettlers.db.script.setup";
 
+    /** Property <tt>jsettlers.db.save.games</tt> to ask to save
+     * all game results in the database.
+     * Set this to 1 or Y to activate this feature.
+     * @since 1.1.15
+     */
+    public static final String PROP_JSETTLERS_DB_SAVE_GAMES = "jsettlers.db.save.games";
+
     /**
      * The db driver used, or null if none.
      * If {@link #driverinstance} != null, use that to connect instead of driverclass;
@@ -744,6 +751,14 @@ public class SOCDBHelper
                 scores[pn] = (short) pl.getTotalVP();
             }
 
+            if ((ga.maxPlayers > 4)
+                && ! (ga.isSeatVacant(4) && ga.isSeatVacant(5)))
+            {
+                // Need to try and fit player 5 and/or player 6
+                // into the 4 db slots (backwards-compatibility)
+                saveGameScores_fit6pInto4(ga, names, scores);
+            }
+
             try
             {
                 // fill in the data values to the Prepared statement
@@ -772,6 +787,83 @@ public class SOCDBHelper
         }
 
         return false;
+    }
+
+    /**
+     * Try and fit names and scores of player 5 and/or player 6
+     * into the 4 db slots, for backwards-compatibility.
+     * Checks {@link SOCGame#isSeatVacant(int) ga.isSeatVacant(pn)}
+     * for the first 4 player numbers, and copies player 5 and 6's
+     * data to those positions in <tt>names[]</tt> and <tt>scores[]</tt>.
+     * @param ga  Game that's over
+     * @param names  Player names for player number 0-5; contents will be changed
+     * @param scores  Player scores for player number 0-5; contents will be changed
+     * @since 1.1.15
+     */
+    private static void saveGameScores_fit6pInto4
+        (SOCGame ga, String[] names, short[] scores)
+    {
+        // Need to try and fit player 5 and/or player 6
+        // into the 4 db slots (backwards-compatibility)
+
+        int nVacantLow = 0;
+        for (int pn = 0; pn < 4; ++pn)
+            if (ga.isSeatVacant(pn))
+                ++nVacantLow;
+
+        int nOccupiedHigh = 0;
+        int plHighA = -1, plHighB = -1;
+        if (! ga.isSeatVacant(4))
+        {
+            ++nOccupiedHigh;
+            plHighA = 4;
+        }
+        if (! ga.isSeatVacant(5))
+        {
+            ++nOccupiedHigh;
+            if (plHighA != -1)
+                plHighB = 5;
+            else
+                plHighA = 5;
+        }
+
+        if (nVacantLow >= nOccupiedHigh)
+        {
+            // Enough room; total non-vacant players <= 4.
+
+            // First, find a spot for plHighA
+            int pn = 0;
+            for (; pn < 4; ++pn)
+            {
+                if (ga.isSeatVacant(pn))
+                {
+                    // pn gets plHighA's info
+                    names[pn] = names[plHighA];
+                    scores[pn] = scores[plHighA];
+                    break;
+                }
+            }
+
+            if (plHighB != -1)
+            {
+                // Find a spot for plHighB
+                ++pn;
+                for (; pn < 4; ++pn)
+                {
+                    if (ga.isSeatVacant(pn))
+                    {
+                        names[pn] = names[plHighB];
+                        scores[pn] = scores[plHighB];
+                        break;
+                    }
+                }
+            }
+        }
+
+        // TODO else not enough room.
+        // What if pl5 or pl6 is the winner?
+        // Replace lowest-score within first 4?
+        // Replace a robot if pl5/pl6 is a human? (What if bot won?)
     }
 
     /**

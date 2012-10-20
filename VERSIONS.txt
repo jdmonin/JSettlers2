@@ -9,6 +9,8 @@ and source history at https://github.com/jdmonin/JSettlers2
 - Bugfix: Occasional hangs creating new game, when old game isn't yet cleared
 - Bugfix: Hangs on mac osx 10.7, 10.8 after a few minutes (SnippingTextArea) - thanks olivierdeckers
 - Server command line simplified: port number, max conns, db info now optional
+- Can save all completed game results in database, with new option:
+	-Djsettlers.db.save.games=Y
 - Server db property for jdbc driver jar file: -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar
 - Server db easy setup script options:
 	 -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql
