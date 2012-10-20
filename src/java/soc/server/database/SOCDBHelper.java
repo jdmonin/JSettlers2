@@ -23,10 +23,14 @@ package soc.server.database;
 import soc.util.SOCRobotParameters;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -83,6 +87,14 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_PASS = "jsettlers.db.pass";
 
+    /** Property <tt>jsettlers.db.jar</tt> to specify the JAR filename for the server's JDBC driver.
+     * This is required since JVM ignores CLASSPATH when running a JAR file.
+     *<P>
+     * Default is blank (no driver jar file), since the filename varies when used.
+     * @since 1.1.15
+     */
+    public static final String PROP_JSETTLERS_DB_JAR = "jsettlers.db.jar";
+
     /** Property <tt>jsettlers.db.driver</tt> to specify the server's JDBC driver class.
      * The default driver is "com.mysql.jdbc.Driver".
      * If the {@link #PROP_JSETTLERS_DB_URL URL} begins with "jdbc:postgresql:",
@@ -109,10 +121,25 @@ public class SOCDBHelper
 
     /**
      * The db driver used, or null if none.
+     * If {@link #driverinstance} != null, use that to connect instead of driverclass;
+     * we still need to remember driverclass to detect various db-specific behaviors.
      * Set in {@link #initialize(String, String, Properties)}.
      * @since 1.1.14
      */
     private static String driverclass = null;
+
+    /**
+     * The db driver instance, if we dynamically loaded its JAR.
+     * Otherwise null, use {@link #dbURL} to connect instead.
+     *<P>
+     * Used because {@link DriverManager#registerDriver(Driver)} won't work
+     * if the classloader is different, which it will be for dynamic loading.
+     *<P>
+     * Set in {@link #initialize(String, String, Properties)}.
+     * Used in {@link #connect(String, String, String)}.
+     * @since 1.1.15
+     */
+    private static Driver driverinstance = null;
 
     /**
      * db connection, or <tt>null</tt> if never initialized or if cleaned up for shutdown.
@@ -125,6 +152,9 @@ public class SOCDBHelper
 
     /**
      * Retain the URL (default, or passed via props to {@link #initialize(String, String, Properties)}).
+     * Used in {@link #connect(String, String, String)}.
+     *<P>
+     * If {@link #driverinstance} != null, go through it to connect to dbURL.
      * @since 1.1.09
      */
     private static String dbURL = null;
@@ -236,13 +266,34 @@ public class SOCDBHelper
     	    }
     	}
 
+        driverinstance = null;
         boolean driverNewInstanceFailed = false;
         try
         {
             // Load the JDBC driver. Revisit exceptions when /any/ JDBC allowed.
             try
             {
-                Class.forName(driverclass).newInstance();
+                String prop_jarname = props.getProperty(PROP_JSETTLERS_DB_JAR);
+                if ((prop_jarname != null) && (prop_jarname.length() == 0))
+                    prop_jarname = null;
+                if (prop_jarname != null)
+                {
+                    // Dynamically load the JDBC driver's JAR file.
+                    // Required since JVM ignores CLASSPATH when running a JAR file.
+                    File jf = new File(prop_jarname);
+                    if (! jf.exists())
+                    {
+                        System.err.println("Could not find " + prop_jarname + " for JDBC driver class " + driverclass);
+                        throw new FileNotFoundException(prop_jarname);
+                    }
+                    final URL[] urls = { jf.toURL() };
+                    URLClassLoader child = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
+                    final Class dclass = Class.forName(driverclass, true, child);
+                    driverinstance = (Driver) dclass.newInstance();
+                } else {
+                    // JDBC driver class must already be loaded.
+                    Class.forName(driverclass).newInstance();
+                }
             }
             catch (Throwable x)
             {
@@ -250,7 +301,7 @@ public class SOCDBHelper
                 // (seen for org.gjt.mm.mysql.Driver)
                 driverNewInstanceFailed = true;
                 SQLException sx =
-                    new SQLException("JDBC driver is unavailable: " + driverclass);
+                    new SQLException("JDBC driver is unavailable: " + driverclass + ": " + x);
                 sx.initCause(x);
                 throw sx;
             }
@@ -325,6 +376,7 @@ public class SOCDBHelper
     /**
      * Opens a new connection and initializes the prepared statements.
      * {@link #initialize(String, String, Properties)} and {@link #checkConnection()} use this to get ready.
+     * Uses {@link #dbURL} and {@link #driverinstance}.
      *<P>
      * If <tt>setupScriptPath</tt> != null, it will be ran before preparing statements.
      * That way, it can create tables used by the statements.
@@ -338,7 +390,14 @@ public class SOCDBHelper
     private static boolean connect(final String user, final String pswd, final String setupScriptPath)
         throws SQLException, IOException
     {
-        connection = DriverManager.getConnection(dbURL, user, pswd);
+        if (driverinstance == null) {
+            connection = DriverManager.getConnection(dbURL, user, pswd);
+        } else {
+            Properties props = new Properties();
+            props.put("user", user);
+            props.put("password", pswd);
+            connection = driverinstance.connect(dbURL, props);
+        }
 
         errorCondition = false;
         userName = user;
