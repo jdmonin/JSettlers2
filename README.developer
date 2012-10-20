@@ -129,7 +129,7 @@ If you want to configure a sqlite database for testing
   - Run socserver once to create the db file and exit cleanly:
 	run configurations
 	  main class: soc.server.SOCServer
-	  program arguments: -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql 8880 20 dbs dbp
+	  program arguments: -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql
 	  working directory: filesystem: JSettlers2/target
 	If sqlite crashes on launch, retry with -Dsqlite.purejava=true
 	This line should appear in the console:
