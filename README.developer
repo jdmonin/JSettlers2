@@ -110,6 +110,8 @@ If you want to configure a sqlite database for testing
 ------------------------------------------------------
   These instructions are written for Eclipse 3.6.
   JSettlers+sqlite works with standard Eclipse; the j2ee eclipse also has a convenient data browser.
+  Note that README.txt mentions a command-line option -Djsettlers.db.jar=driverfile.jar ; that's
+  needed only while running the jsettlers JAR from the command line, not running inside eclipse.
 
   - See the "socserver-sqlite" line just above for the server command line;
 	this is an eclipse Run Configuration for a jsettlers server which

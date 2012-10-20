@@ -244,14 +244,24 @@ Your database system's JDBC drivers can be downloaded at these locations:
 	          or http://www.sqlite.org/cvstrac/wiki?p=SqliteWrappers
 	          If sqlite crashes on launch, retry with -Dsqlite.purejava=true
 
-To create the jsettlers database and tables, execute the SQL db scripts
+In some cases, adding to the classpath won't work because of JVM restrictions
+about JAR files.  If you find that's the case, place the JDBC jar in the same
+location as JSettlersServer.jar, and specify on the jsettlers command line:
+	-Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar
+
+To create the jsettlers database in mysql, execute the SQL db scripts
 jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql:
 
 $ mysql -u root -p -e "SOURCE jsettlers-create.sql"
 This will connect as root, prompt for the root password, create a 'socuser' user with the password
 'socpass', and create the 'socdata' database.
 
+To build the empty tables, run:
 $ mysql -u root -p -e "SOURCE jsettlers-tables.sql"
+
+or, for sqlite, run this command in the target directory:
+$ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql
+
 This will build the empty tables.  This script will fail if the tables already exist.
 
 To create player accounts, run the simple account creation client with the
