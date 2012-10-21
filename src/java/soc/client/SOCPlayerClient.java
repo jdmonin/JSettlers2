@@ -403,8 +403,8 @@ public class SOCPlayerClient extends Panel
         lastFaceChange = 1;  // Default human face
         
         net = new ClientNetwork(this);
-        treater = new MessageTreater(this);
         gameManager = new GameManager(this);
+        treater = new MessageTreater(this);
     }
 
     /**
@@ -1367,8 +1367,13 @@ public class SOCPlayerClient extends Panel
         
         public MessageTreater(SOCPlayerClient client)
         {
+            if (client == null)
+                throw new IllegalArgumentException("client is null");
             this.client = client;
             gmgr = client.getGameManager();
+            
+            if (gmgr == null)
+                throw new IllegalArgumentException("client game manager is null");
         }
 
     /**
@@ -3903,7 +3908,11 @@ public class SOCPlayerClient extends Panel
         GameManager(SOCPlayerClient client)
         {
             this.client = client;
+            if (client == null)
+                throw new IllegalArgumentException("client is null");
             net = client.getNet();
+            if (net == null)
+                throw new IllegalArgumentException("client network is null");
         }
         
         /**
@@ -4899,6 +4908,8 @@ public class SOCPlayerClient extends Panel
         public ClientNetwork(SOCPlayerClient c)
         {
             client = c;
+            if (client == null)
+                throw new IllegalArgumentException("client is null");
         }
         
         public void dispose()
