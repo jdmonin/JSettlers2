@@ -173,7 +173,7 @@ Current TODO list
 	You can also search the source for TODO for ideas.
 
 	- User documentation is out of date; unsure if any user ever reads it anyway
-	- Visual reminder to player when they've made an offer
+	- Visual reminder to player when they've made a trade offer
 	- Show # VP when choosing where to sit, if game is in progress
 	- Keyboard shortcuts for "roll", "done" buttons
 	- Occasionally an image does not re-scale when board is stretched.
@@ -199,12 +199,10 @@ Current TODO list
 	- Some way to mark bot seats so they are locked out when the board is reset after a game
 		Possibly right-click the robot icon for a menu/popup to set this
 	- At board reset, game observers not currently handled properly
-	- cmdline option to create db-schema if empty: jsettlers.xx.tablecreate (sqlite or general)
 	- Game "owner" with extra powers (kick out player, etc)
 		what happens if owner loses connection?
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)
 	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
-	- Seafarers support: Board coordinate-representation for larger board
 	- Cities & Knights support
 		- UI mock-ups
 		- state change / network message plans
@@ -214,7 +212,6 @@ Current TODO list
 	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
 		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
 	- refactor: name of dev-cards consolidate
-	- refactor: SOCPlayerClient gui to separate class (mainpanel)
 
 The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
 
@@ -318,7 +315,10 @@ Once 2.0.00 is out, we'll follow the usual jsettlers model:
 There are no branches, because jsettlers2 is mature at this point.
 Each minor release is a stable release, there is no experimental branch.
 
-Each release's files are tagged for the release ("release-1.1.13").
+Each release's files are tagged for the release ("release-1.1.14").
+The last commit for the release updates VERSION.txt with the final build number,
+with a commit message like: Version 1.1.14 is build OV20120930
+Then: git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'
 
 You can also see an overview of commit comments in the git log
 histories of src/java/resources/version.info.in and VERSIONS.txt.
