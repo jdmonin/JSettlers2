@@ -451,7 +451,7 @@ public class SOCDBHelper
         // Read 1 line at a time, with continuations; build a list
         try
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuffer sb = new StringBuffer();
 
             for (String nextLine = br.readLine(); nextLine != null; nextLine = br.readLine())
             {
@@ -469,7 +469,7 @@ public class SOCDBHelper
 
                 // If starts with whitespace, append it to sb (continue previous line).
                 // Otherwise, add previous sb to the sqls list, and start a new sb containing nextLine.
-                if (Character.isWhitespace(nextLine.codePointAt(0)))
+                if (Character.isWhitespace(nextLine.charAt(0)))
                 {
                     if (sb.length() > 0)
                         sb.append("\n");  // previous line's readLine doesn't include the trailing \n
