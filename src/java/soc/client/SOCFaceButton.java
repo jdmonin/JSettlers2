@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -146,7 +146,7 @@ public class SOCFaceButton extends Canvas
         {
             tracker = new MediaTracker(c);
             Toolkit tk = c.getToolkit();
-            Class clazz = c.getClass();
+            Class<?> clazz = c.getClass();
         
             images = new Image[NUM_FACES];
             robotImages = new Image[NUM_ROBOT_FACES];
@@ -222,7 +222,7 @@ public class SOCFaceButton extends Canvas
      *
      * @param pi  the interface that this button is attached to
      * @param pn  the number of the player that owns this button, or -1 if none;
-     *          if <tt>pn</tt> >= 0, <tt>pi.getGame()</tt> must not be null. 
+     *          if <tt>pn</tt> >= 0, <tt>pi.getGame()</tt> must not be null.
      * @param bgColor  background color to use
      * @param width width,height in pixels; FACE_WIDTH_PX or FACE_WIDTH_BORDERED_PX
      *
@@ -375,6 +375,7 @@ public class SOCFaceButton extends Canvas
      *
      * @return DOCUMENT ME!
      */
+    @Override
     public Dimension getMinimumSize()
     {
         return ourSize;
@@ -383,6 +384,7 @@ public class SOCFaceButton extends Canvas
     /**
      * @return Size of this square facebutton
      */
+    @Override
     public Dimension getSize()
     {
         return ourSize;
@@ -392,6 +394,7 @@ public class SOCFaceButton extends Canvas
      * Redraw the facebutton using double buffering. Don't call this directly, use
      * {@link Component#repaint()} instead.
      */
+    @Override
     public void paint(Graphics g)
     {
         if (buffer == null)
@@ -416,6 +419,7 @@ public class SOCFaceButton extends Canvas
      * Overriden so the peer isn't painted, which clears background. Don't call
      * this directly, use {@link Component#repaint()} instead.
      */
+    @Override
     public void update(Graphics g)
     {
         paint(g);
@@ -493,6 +497,7 @@ public class SOCFaceButton extends Canvas
          * Handle popup-click.
          * mousePressed has xwindows/OS-X popup trigger.
          */
+        @Override
         public void mousePressed(MouseEvent evt)
         {
             mouseReleased(evt);  // same desired code: react to isPopupTrigger
@@ -501,6 +506,7 @@ public class SOCFaceButton extends Canvas
         /**
          * Handle click to change face.
          */
+        @Override
         public void mouseClicked(MouseEvent evt)
         {
             try {
@@ -552,7 +558,7 @@ public class SOCFaceButton extends Canvas
                 if (evt.getClickCount() >= 2)  // Show FCF on double-click. added in 1.1.09
                 {
                     evt.consume();
-                    popupMenu.showFaceChooserFrame(); 
+                    popupMenu.showFaceChooserFrame();
                     return;  // <--- Notify, nothing else to do ---
                 }
 
@@ -590,6 +596,7 @@ public class SOCFaceButton extends Canvas
          * Handle popup-click.
          * mouseReleased has win32 popup trigger.
          */
+        @Override
         public void mouseReleased(MouseEvent evt)
         {
             try {
@@ -665,13 +672,13 @@ public class SOCFaceButton extends Canvas
                     (fb, fb.pi.getClient(), fb.pi, fb.pNumber, fb.getFace(), fb.getSize().width);
                 fsf.pack();
             }
-            fsf.show();
+            fsf.setVisible(true);
         }
 
         /**
          * The previous face-chooser window has been disposed.
          * If menu item is chosen, don't show it, create a new one.
-         */ 
+         */
         public void clearPreviousChooser()
         {
             if (fsf != null)

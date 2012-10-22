@@ -41,8 +41,10 @@ public class RobberStrategy {
    /**
     * Determine the best hex to move the robber.
     */
-   public static int getBestRobberHex
-       (SOCGame game, SOCPlayer ourPlayerData, HashMap playerTrackers, Random rand)
+   public static int getBestRobberHex(SOCGame game,
+                                      SOCPlayer ourPlayerData,
+                                      HashMap<Integer, SOCPlayerTracker> playerTrackers,
+                                      Random rand)
    {
        log.debug("%%% MOVEROBBER");
 
@@ -57,10 +59,10 @@ public class RobberStrategy {
        for (int i = game.maxPlayers - 1; i >= 0; --i)
            winGameETAs[i] = 100;
 
-       Iterator trackersIter = playerTrackers.values().iterator();
+       Iterator<SOCPlayerTracker> trackersIter = playerTrackers.values().iterator();
        while (trackersIter.hasNext())
        {
-           SOCPlayerTracker tracker = (SOCPlayerTracker) trackersIter.next();
+           SOCPlayerTracker tracker = trackersIter.next();
            final int trackerPN = tracker.getPlayer().getPlayerNumber();
            log.debug("%%%%%%%%% TRACKER FOR PLAYER " + trackerPN);
 
@@ -182,7 +184,7 @@ public class RobberStrategy {
     *                 1 element per player number (0 to <tt>game.maxPlayers</tt> - 1).
     * @return  Player number to rob
     */
-   public static int chooseRobberVictim(boolean[] choices, SOCGame game, HashMap playerTrackers)
+   public static int chooseRobberVictim(boolean[] choices, SOCGame game, HashMap<Integer, SOCPlayerTracker> playerTrackers)
    {
        int choice = -1;
 
@@ -200,8 +202,8 @@ public class RobberStrategy {
            }
            else
            {
-               SOCPlayerTracker tracker1 = (SOCPlayerTracker) playerTrackers.get(new Integer(i));
-               SOCPlayerTracker tracker2 = (SOCPlayerTracker) playerTrackers.get(new Integer(choice));
+               SOCPlayerTracker tracker1 = playerTrackers.get(new Integer(i));
+               SOCPlayerTracker tracker2 = playerTrackers.get(new Integer(choice));
    
                if ((tracker1 != null) && (tracker2 != null) && (tracker1.getWinGameETA() < tracker2.getWinGameETA()))
                {

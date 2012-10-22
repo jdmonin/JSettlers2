@@ -18,7 +18,6 @@
  **/
 package soc.message;
 
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
@@ -29,7 +28,7 @@ import soc.game.SOCBoard;
  * This message contains the board's layout information and its encoding version.
  * The layout is represented as a series of named integer arrays and
  * named integer parameters.  These contain the hex layout, the
- * number layout, where the robber is, and possibly the port layout. 
+ * number layout, where the robber is, and possibly the port layout.
  * This message does not contain information about where the
  * player's pieces are on the board.
  *<P>
@@ -56,7 +55,7 @@ import soc.game.SOCBoard;
  *         areas are sent to the client via {@link SOCPotentialSettlements}.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
- * <tt>SOCBoardLayout</tt> required a mapping/unmapping step. 
+ * <tt>SOCBoardLayout</tt> required a mapping/unmapping step.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @see SOCBoardLayout
@@ -91,7 +90,7 @@ public class SOCBoardLayout2 extends SOCMessage
     /**
      * Contents are int[] or String (which may be int).
      */
-    private Hashtable layoutParts;
+    private Hashtable<String, Object> layoutParts;
 
     /**
      * Create a SOCBoardLayout2 message
@@ -102,7 +101,7 @@ public class SOCBoardLayout2 extends SOCMessage
      *               contents are not validated here, but improper contents
      *               may cause a ClassCastException later.
      */
-    public SOCBoardLayout2(String ga, int bef, Hashtable parts)
+    public SOCBoardLayout2(String ga, int bef, Hashtable<String, Object> parts)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -123,13 +122,12 @@ public class SOCBoardLayout2 extends SOCMessage
      * @param pl   the port layout, or null
      * @param rh   the robber hex
      */
-    public SOCBoardLayout2
-        (final String ga, final int bef, final int[] hl, final int[] nl, final int[] pl, final int rh)
+    public SOCBoardLayout2(final String ga, final int bef, final int[] hl, final int[] nl, final int[] pl, final int rh)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
         boardEncodingFormat = bef;
-        layoutParts = new Hashtable();
+        layoutParts = new Hashtable<String, Object>();
 
         // Map the hex layout
         int[] hexLayout = new int[hl.length];
@@ -152,7 +150,7 @@ public class SOCBoardLayout2 extends SOCMessage
         layoutParts.put("NL", nl);
         if (pl != null)
             layoutParts.put("PL", pl);
-        layoutParts.put("RH", new Integer(rh));        
+        layoutParts.put("RH", new Integer(rh));
     }
 
     /**
@@ -171,7 +169,7 @@ public class SOCBoardLayout2 extends SOCMessage
         messageType = BOARDLAYOUT2;
         game = ga;
         boardEncodingFormat = bef;
-        layoutParts = new Hashtable();
+        layoutParts = new Hashtable<String, Object>();
         if (lh != null)
             layoutParts.put("LH", lh);
         if (pl != null)
@@ -272,10 +270,11 @@ public class SOCBoardLayout2 extends SOCMessage
      *<UL>
      *<LI>sep2 name sep2 value
      *<LI>sep2 name sep2 '['length sep2 value sep2 value ...
-     *</UL> 
+     *</UL>
      *
      * @return the command string
      */
+    @Override
     public String toCmd()
     {
         return toCmd(game, boardEncodingFormat, layoutParts);
@@ -287,7 +286,7 @@ public class SOCBoardLayout2 extends SOCMessage
      *
      * @return the command string
      */
-    public static String toCmd(String ga, int bev, Hashtable parts)
+    public static String toCmd(String ga, int bev, Hashtable<String, Object> parts)
     {
         StringBuffer cmd = new StringBuffer();
         cmd.append(BOARDLAYOUT2);
@@ -295,9 +294,8 @@ public class SOCBoardLayout2 extends SOCMessage
         cmd.append(ga);
         cmd.append(sep2);
         cmd.append(bev);
-        for (Enumeration e = parts.keys(); e.hasMoreElements(); )
+        for (String okey : parts.keySet())
         {
-            String okey = (String) e.nextElement();
             cmd.append(sep2);
             cmd.append(okey);
             cmd.append(sep2);
@@ -333,7 +331,7 @@ public class SOCBoardLayout2 extends SOCMessage
     {
         String ga; // game name
         final int bef;   // board encoding format
-        Hashtable parts = new Hashtable();
+        Hashtable<String, Object> parts = new Hashtable<String, Object>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -372,15 +370,15 @@ public class SOCBoardLayout2 extends SOCMessage
      *   are in hexadecimal instead of base-10.
      * @return a human readable form of the message
      */
+    @Override
     public String toString()
     {
         StringBuffer sb = new StringBuffer("SOCBoardLayout2:game=");
         sb.append(game);
         sb.append("|bef=");
         sb.append(boardEncodingFormat);
-        for (Enumeration e = layoutParts.keys(); e.hasMoreElements(); )
+        for (String okey : layoutParts.keySet())
         {
-            String okey = (String) e.nextElement();
             sb.append("|");
             sb.append(okey);
             sb.append("=");

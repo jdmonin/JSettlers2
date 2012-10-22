@@ -69,7 +69,7 @@ public class SOCGames extends SOCMessage
     /**
      * List of games (Strings)
      */
-    private Vector games;
+    private Vector<String> games;
 
     /**
      * Create a Games Message.
@@ -78,7 +78,7 @@ public class SOCGames extends SOCMessage
      *         Mark unjoinable games with the prefix
      *         {@link #MARKER_THIS_GAME_UNJOINABLE}.
      */
-    public SOCGames(Vector ga)
+    public SOCGames(Vector<String> ga)
     {
         messageType = GAMES;
         games = ga;
@@ -87,7 +87,7 @@ public class SOCGames extends SOCMessage
     /**
      * @return the list of games, a vector of Strings
      */
-    public Vector getGames()
+    public Vector<String> getGames()
     {
         return games;
     }
@@ -97,6 +97,7 @@ public class SOCGames extends SOCMessage
      *
      * @return the command string
      */
+    @Override
     public String toCmd()
     {
         return toCmd(games);
@@ -110,13 +111,13 @@ public class SOCGames extends SOCMessage
      *            {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @return    the command string
      */
-    public static String toCmd(Vector ga)
+    public static String toCmd(Vector<?> ga)
     {
         String cmd = GAMES + sep;
 
         try
         {
-            Enumeration gaEnum = ga.elements();
+            Enumeration<?> gaEnum = ga.elements();
             Object ob = gaEnum.nextElement();
             if (ob instanceof SOCGame)
                 cmd += ((SOCGame) ob).getName();
@@ -145,7 +146,7 @@ public class SOCGames extends SOCMessage
      */
     public static SOCGames parseDataStr(String s)
     {
-        Vector ga = new Vector();
+        Vector<String> ga = new Vector<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -162,12 +163,13 @@ public class SOCGames extends SOCMessage
             return null;
         }
 
-        return new SOCGames((Vector) ga);
+        return new SOCGames(ga);
     }
 
     /**
      * @return a human readable form of the message
      */
+    @Override
     public String toString()
     {
         StringBuffer sb = new StringBuffer("SOCGames:games=");

@@ -19,7 +19,6 @@
  **/
 package soc.game;
 
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -78,13 +77,13 @@ import soc.message.SOCMessage;
  * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
-public class SOCGameOption implements Cloneable, Comparable
+public class SOCGameOption implements Cloneable, Comparable<Object>
 {
     /**
      * Set of "known options".
      * allOptions must never be null, because other places assume it is filled.
      */
-    private static Hashtable allOptions = initAllOptions();
+    private static Hashtable<String, SOCGameOption> allOptions = initAllOptions();
 
     /**
      * List of options to refresh on-screen after a change during game creation;
@@ -92,7 +91,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @see ChangeListener
      * @since 1.1.13
      */
-    private static Vector refreshList;
+    private static Vector<SOCGameOption> refreshList;
 
     /**
      * Create a set of the known options.
@@ -220,9 +219,9 @@ public class SOCGameOption implements Cloneable, Comparable
      *
      * @return a fresh copy of the "known" options, with their hardcoded default values
      */
-    public static Hashtable initAllOptions()
+    public static Hashtable<String, SOCGameOption> initAllOptions()
     {
-        Hashtable opt = new Hashtable();
+        Hashtable<String, SOCGameOption> opt = new Hashtable<String, SOCGameOption>();
 
         final SOCGameOption pl = new SOCGameOption
                 ("PL", -1, 1108, 4, 2, 6, "Maximum # players");
@@ -257,8 +256,7 @@ public class SOCGameOption implements Cloneable, Comparable
         // If PL goes over 4, set PLB.
         pl.addChangeListener(new ChangeListener()
         {
-            public void valueChanged
-                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable currentOpts)
+            public void valueChanged(final SOCGameOption opt, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
             {
                 if  (! (oldValue instanceof Integer))
                     return;  // ignore unless int
@@ -266,7 +264,7 @@ public class SOCGameOption implements Cloneable, Comparable
                 final int nv = ((Integer) newValue).intValue();
                 if ((ov <= 4) && (nv > 4))
                 {
-                    SOCGameOption plb = (SOCGameOption) currentOpts.get("PLB");
+                    SOCGameOption plb = currentOpts.get("PLB");
                     if (plb == null)
                         return;
                     plb.setBoolValue(true);
@@ -279,10 +277,9 @@ public class SOCGameOption implements Cloneable, Comparable
         // if it becomes checked, set PL to 6 if <= 4, unless PL.userChanged already
         plb.addChangeListener(new ChangeListener()
         {
-            public void valueChanged
-                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable currentOpts)
+            public void valueChanged(final SOCGameOption opt, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
             {
-                SOCGameOption pl = (SOCGameOption) currentOpts.get("PL");
+                SOCGameOption pl = currentOpts.get("PL");
                 if (pl == null)
                     return;
                 final int numPl = pl.getIntValue();
@@ -318,7 +315,7 @@ public class SOCGameOption implements Cloneable, Comparable
                 // OTYPE_* - Add a commented-out debug of the new type, for testing the new type.
 
         opt.put("DEBUGENUM", new SOCGameOption
-                ("DEBUGENUM", 1107, 1107, 
+                ("DEBUGENUM", 1107, 1107,
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option # enum"));
         opt.put("DEBUGENUMBOOL", new SOCGameOption
                 ("DEBUGENUMBOOL", 1107, 1108, true,
@@ -340,7 +337,7 @@ public class SOCGameOption implements Cloneable, Comparable
                 (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable currentOpts)
             {
                 System.err.println("Test ChangeListener: " + opt.optKey
-                    + " changed from " + oldValue + " to " + newValue);                
+                    + " changed from " + oldValue + " to " + newValue);
             }
         };
         Enumeration okeys = opt.keys();
@@ -512,7 +509,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *<P>
      * Client use only; not sent over the network.
      * Set in <tt>NewGameOptionsFrame</tt>.
-     * @since 2.0.00 
+     * @since 2.0.00
      */
     public transient boolean userChanged;
 
@@ -579,7 +576,7 @@ public class SOCGameOption implements Cloneable, Comparable
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
         int defaultValue, int minValue, int maxValue, String desc)
-        throws IllegalArgumentException 
+        throws IllegalArgumentException
     {
 	this(OTYPE_INT, key, minVers, lastModVers, false, defaultValue,
 	     minValue, maxValue, false, null, desc);
@@ -704,7 +701,7 @@ public class SOCGameOption implements Cloneable, Comparable
      */
     public SOCGameOption(String key, int minVers, int lastModVers,
 	int maxLength, boolean hideTyping, boolean dropIfUnused, String desc)
-        throws IllegalArgumentException 
+        throws IllegalArgumentException
     {
 	this( (hideTyping ? OTYPE_STRHIDE : OTYPE_STR ),
 	     key, minVers, lastModVers, false, 0,
@@ -776,7 +773,7 @@ public class SOCGameOption implements Cloneable, Comparable
             for (int i = enumVals.length - 1; i>=0; --i)
                 if (! SOCMessage.isSingleLineAndSafe(enumVals[i]))
                     throw new IllegalArgumentException("enumVal fails isSingleLineAndSafe");
-        }    
+        }
 
 	// starting values (= defaults)
 	boolValue = defaultBoolValue;
@@ -856,7 +853,7 @@ public class SOCGameOption implements Cloneable, Comparable
         else if (v > maxIntValue)
             intValue = maxIntValue;
         else
-	    intValue = v;
+            intValue = v;
     }
 
     /**
@@ -866,9 +863,8 @@ public class SOCGameOption implements Cloneable, Comparable
      */
     public String getStringValue()
     {
-	if (strValue != null)
-	    return strValue;
-	else
+    	if (strValue != null)
+    	    return strValue;
 	    return "";
     }
 
@@ -879,7 +875,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *          if v.length > {@link #maxIntValue}, length will be truncated.
      *          Must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char} ('|' or ',').
      * @throws IllegalArgumentException if v contains characters reserved for
-     *          message handling: {@link SOCMessage#sep} or 
+     *          message handling: {@link SOCMessage#sep} or
      *          {@link SOCMessage#sep2} ('|' or ','), or is
      *          multi-line or otherwise fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
@@ -922,7 +918,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *
      * @param  opts  If null, return the minimum version supporting this option.
      *               Otherwise, the minimum version at which this option's value isn't changed
-     *               (for compatibility) by the presence of other options. 
+     *               (for compatibility) by the presence of other options.
      * @return minimum version, or -1;
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      *     If <tt>opts != null</tt>, the returned version will either be -1 or >= 1107
@@ -931,7 +927,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @see #getMaxEnumValueForVersion(String, int)
      * @see #getMaxIntValueForVersion(String, int)
      */
-    public int getMinVersion(Hashtable opts)
+    public int getMinVersion(Hashtable<?, SOCGameOption> opts)
     {
         if ((optType == OTYPE_BOOL) || (optType == OTYPE_INTBOOL)
             || (optType == OTYPE_ENUMBOOL))  // OTYPE_*: check here if boolean-valued
@@ -984,7 +980,7 @@ public class SOCGameOption implements Cloneable, Comparable
                 // For clients 1.1.13 and newer, PLB is recognized at the client,
                 // so PL can be less than 5 and still use the 6-player board.
 
-                SOCGameOption plb = (SOCGameOption) opts.get("PLB");
+                SOCGameOption plb = opts.get("PLB");
                 if (plb.boolValue)
                     return 1113;
             }
@@ -1053,9 +1049,9 @@ public class SOCGameOption implements Cloneable, Comparable
      * @return a deep copy of all known option objects
      * @see #addKnownOption(SOCGameOption)
      */
-    public static Hashtable getAllKnownOptions()
+    public static Hashtable<String, SOCGameOption> getAllKnownOptions()
     {
-	return cloneOptions(allOptions);
+        return cloneOptions(allOptions);
     }
 
     /**
@@ -1090,7 +1086,7 @@ public class SOCGameOption implements Cloneable, Comparable
         throws IllegalArgumentException
     {
         final String oKey = ocurr.optKey;
-        SOCGameOption oKnown = (SOCGameOption) allOptions.get(oKey);
+        SOCGameOption oKnown = allOptions.get(oKey);
         if (oKnown == null)
             return;
         switch (oKnown.optType)  // OTYPE_*
@@ -1121,21 +1117,23 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param opts  a hashtable of SOCGameOptions, or null
      * @return a deep copy of all option objects within opts, or null if opts is null
      */
-    public static Hashtable cloneOptions(Hashtable opts)
+    public static Hashtable<String, SOCGameOption> cloneOptions(Hashtable<String, SOCGameOption> opts)
     {
-	if (opts == null)
-	    return null;
-
-	Hashtable opts2 = new Hashtable();
-	for (Enumeration e = opts.keys(); e.hasMoreElements(); )
-	{
-	    SOCGameOption op = (SOCGameOption) opts.get(e.nextElement());
-	    try
-	    {
-	        opts2.put(op.optKey, (SOCGameOption) op.clone());
-	    } catch (CloneNotSupportedException ce) {}
-	}
-	return opts2;
+    	if (opts == null)
+    	    return null;
+    
+    	Hashtable<String, SOCGameOption> opts2 = new Hashtable<String, SOCGameOption>();
+    	for (Map.Entry<String, SOCGameOption> e : opts.entrySet())
+    	{
+    	    SOCGameOption op = e.getValue();
+    	    try
+    	    {
+    	        opts2.put(op.optKey, (SOCGameOption) op.clone());
+    	    } catch (CloneNotSupportedException ce) {
+    	        throw new IllegalStateException("Clone failed!", ce);
+    	    }
+    	}
+    	return opts2;
     }
 
     /**
@@ -1143,7 +1141,7 @@ public class SOCGameOption implements Cloneable, Comparable
      */
     public static SOCGameOption getOption(String key)
     {
-	return (SOCGameOption) allOptions.get(key);  // null is ok
+        return allOptions.get(key);  // null is ok
     }
 
     /**
@@ -1151,16 +1149,16 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param opts hashtable of SOCGameOption
      * @return vector(SOCGameOption) of unknown options, or null if all are known
      */
-    public static Vector findUnknowns(Hashtable opts)
+    public static Vector<String> findUnknowns(Hashtable<String, SOCGameOption> opts)
     {
-        Vector unknowns = null;
-        for (Enumeration e = opts.keys(); e.hasMoreElements(); )
+        Vector<String> unknowns = null;
+        for (Map.Entry<String, SOCGameOption> e : opts.entrySet())
         {
-            SOCGameOption op = (SOCGameOption) opts.get((String) e.nextElement());
+            SOCGameOption op = e.getValue();
             if (op.optType == SOCGameOption.OTYPE_UNKNOWN)
             {
                 if (unknowns == null)
-                    unknowns = new Vector();
+                    unknowns = new Vector<String>();
                 unknowns.addElement(op.optKey);
             }
         }
@@ -1180,7 +1178,7 @@ public class SOCGameOption implements Cloneable, Comparable
      */
     public static String packKnownOptionsToString(boolean hideEmptyStringOpts)
     {
-	return packOptionsToString(allOptions, hideEmptyStringOpts);
+        return packOptionsToString(allOptions, hideEmptyStringOpts);
     }
 
     /**
@@ -1206,7 +1204,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @see #parseOptionNameValue(String, boolean)
      * @see #packValue(StringBuffer)
      */
-    public static String packOptionsToString(Hashtable ohash, boolean hideEmptyStringOpts)
+    public static String packOptionsToString(Hashtable<String, SOCGameOption> ohash, boolean hideEmptyStringOpts)
 	throws ClassCastException
     {
         return packOptionsToString(ohash, hideEmptyStringOpts, -2);
@@ -1229,61 +1227,60 @@ public class SOCGameOption implements Cloneable, Comparable
      * @throws ClassCastException if hashtable contains anything other
      *         than SOCGameOptions
      */
-    public static String packOptionsToString(Hashtable ohash, boolean hideEmptyStringOpts, final int cliVers)
+    public static String packOptionsToString(Hashtable<String, SOCGameOption> ohash, boolean hideEmptyStringOpts, final int cliVers)
         throws ClassCastException
     {
-	if ((ohash == null) || ohash.size() == 0)
-	    return "-";
-
-	// If the "PLB" option is set, old client versions
-	//  may need adjustment of the "PL" option.
-	final boolean hasOptPLB = (cliVers != -2) && ohash.containsKey("PLB")
-	    && ((SOCGameOption) ohash.get("PLB")).boolValue;
-
-	// Pack all non-unknown options:
-	StringBuffer sb = new StringBuffer();
-	boolean hadAny = false;
-	for (Enumeration e = ohash.keys(); e.hasMoreElements(); )
-	{
-	    SOCGameOption op = (SOCGameOption) ohash.get(e.nextElement());
-	    if (op.optType == OTYPE_UNKNOWN)
-		continue;  // <-- Skip this one --
-	    if (hideEmptyStringOpts
-	        && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
-	        && op.getStringValue().length() == 0)
-                continue;  // <-- Skip this one --       
-
-	    if (hadAny)
-		sb.append(SOCMessage.sep2_char);
-	    else
-		hadAny = true;
-	    sb.append(op.optKey);
-	    sb.append('=');
-
-	    boolean wroteValueAlready = false;
-	    if (cliVers != -2)
-	    {
-	        if (hasOptPLB && op.optKey.equals("PL")
-	            && (cliVers < 1113) && (op.intValue < 5))
-	        {
-	            // When "PLB" is used (Use 6-player board)
-	            // but the client is too old to recognize PLB,
-	            // make sure "PL" is large enough to make the
-	            // client use that board.
-
-	            final int realValue = op.intValue;
-	            op.intValue = 5;  // big enough for 6-player
-	            op.packValue(sb);
-                    wroteValueAlready = true;
-	            op.intValue = realValue;
-	        }
-
-	        // NEW_OPTION - Check your option vs old clients here.
-	    }
-	    if (! wroteValueAlready)
-	        op.packValue(sb);
-	}
-	return sb.toString();
+    	if ((ohash == null) || ohash.size() == 0)
+    	    return "-";
+    
+    	// If the "PLB" option is set, old client versions
+    	//  may need adjustment of the "PL" option.
+    	final boolean hasOptPLB = (cliVers != -2) && ohash.containsKey("PLB")
+    	    && ohash.get("PLB").boolValue;
+    
+    	// Pack all non-unknown options:
+    	StringBuffer sb = new StringBuffer();
+    	boolean hadAny = false;
+    	for (SOCGameOption op : ohash.values())
+    	{
+    	    if (op.optType == OTYPE_UNKNOWN)
+    	        continue;  // <-- Skip this one --
+    	    if (hideEmptyStringOpts
+    	        && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
+    	        && op.getStringValue().length() == 0)
+                    continue;  // <-- Skip this one --
+    
+    	    if (hadAny)
+    		sb.append(SOCMessage.sep2_char);
+    	    else
+    		hadAny = true;
+    	    sb.append(op.optKey);
+    	    sb.append('=');
+    
+    	    boolean wroteValueAlready = false;
+    	    if (cliVers != -2)
+    	    {
+    	        if (hasOptPLB && op.optKey.equals("PL")
+    	            && (cliVers < 1113) && (op.intValue < 5))
+    	        {
+    	            // When "PLB" is used (Use 6-player board)
+    	            // but the client is too old to recognize PLB,
+    	            // make sure "PL" is large enough to make the
+    	            // client use that board.
+    
+    	            final int realValue = op.intValue;
+    	            op.intValue = 5;  // big enough for 6-player
+    	            op.packValue(sb);
+                        wroteValueAlready = true;
+    	            op.intValue = realValue;
+    	        }
+    
+    	        // NEW_OPTION - Check your option vs old clients here.
+    	    }
+    	    if (! wroteValueAlready)
+    	        op.packValue(sb);
+    	}
+    	return sb.toString();
     }
 
     /**
@@ -1337,25 +1334,25 @@ public class SOCGameOption implements Cloneable, Comparable
      *         will be in the hashtable as type {@link #OTYPE_UNKNOWN}.
      * @see #parseOptionNameValue(String, boolean)
      */
-    public static Hashtable parseOptionsToHash(String ostr)
+    public static Hashtable<String,SOCGameOption> parseOptionsToHash(String ostr)
     {
-	if ((ostr == null) || ostr.equals("-"))
-	    return null;
-
-	Hashtable ohash = new Hashtable();
-
-	StringTokenizer st = new StringTokenizer(ostr, SOCMessage.sep2);
-	String nvpair;
-	while (st.hasMoreTokens())
-	{
-	    nvpair = st.nextToken();  // skips any leading commas or doubled commas
+        if ((ostr == null) || ostr.equals("-"))
+            return null;
+        
+        Hashtable<String,SOCGameOption> ohash = new Hashtable<String,SOCGameOption>();
+        
+        StringTokenizer st = new StringTokenizer(ostr, SOCMessage.sep2);
+        String nvpair;
+        while (st.hasMoreTokens())
+        {
+            nvpair = st.nextToken();  // skips any leading commas or doubled commas
             SOCGameOption copyOpt = parseOptionNameValue(nvpair, false);
             if (copyOpt == null)
                 return null;  // parse error
             ohash.put(copyOpt.optKey, copyOpt);
-	}  // while (moreTokens)
-
-	return ohash;
+        }  // while (moreTokens)
+        
+        return ohash;
     }
 
     /**
@@ -1384,7 +1381,7 @@ public class SOCGameOption implements Cloneable, Comparable
         String optval = nvpair.substring(i+1);
         if (forceNameUpcase)
             optkey = optkey.toUpperCase();
-        SOCGameOption knownOpt = (SOCGameOption) allOptions.get(optkey);
+        SOCGameOption knownOpt = allOptions.get(optkey);
         SOCGameOption copyOpt;
         if (knownOpt == null)
         {
@@ -1418,7 +1415,7 @@ public class SOCGameOption implements Cloneable, Comparable
                 {
                     copyOpt.setIntValue(Integer.parseInt(optval));
                 } catch (NumberFormatException e)
-                { 
+                {
                     return null;  // malformed
                 }
                 break;
@@ -1431,7 +1428,7 @@ public class SOCGameOption implements Cloneable, Comparable
                     copyOpt.setBoolValue((ch0 == 't') || (ch0 == 'T'));
                     copyOpt.setIntValue(Integer.parseInt(optval.substring(1)));
                 } catch (NumberFormatException e)
-                { 
+                {
                     return null;  // malformed
                 }
                 break;
@@ -1466,7 +1463,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @see #optionsMinimumVersion(Hashtable, boolean)
      * @see #getMinVersion(Hashtable)
      */
-    public static int optionsMinimumVersion(Hashtable opts)
+    public static int optionsMinimumVersion(Hashtable<?, SOCGameOption> opts)
         throws ClassCastException
     {
         return optionsMinimumVersion(opts, false);
@@ -1500,19 +1497,18 @@ public class SOCGameOption implements Cloneable, Comparable
      * @see #optionsMinimumVersion(Hashtable)
      * @see #getMinVersion(Hashtable)
      */
-    public static int optionsMinimumVersion(Hashtable opts, final boolean minCliVersionForUnchangedOpts)
+    public static int optionsMinimumVersion(Hashtable<?, SOCGameOption> opts, final boolean minCliVersionForUnchangedOpts)
 	throws ClassCastException
     {
-	int minVers = -1;
-	final Hashtable oarg = minCliVersionForUnchangedOpts ? opts : null;
-	for (Enumeration e = opts.keys(); e.hasMoreElements(); )
-	{
-	    SOCGameOption op = (SOCGameOption) opts.get(e.nextElement());
+    	int minVers = -1;
+    	final Hashtable<?, SOCGameOption> oarg = minCliVersionForUnchangedOpts ? opts : null;
+    	for (SOCGameOption op : opts.values())
+    	{
             int opMin = op.getMinVersion(oarg);  // includes any option value checking for minVers
-	    if (opMin > minVers)
-		minVers = opMin;
-	}
-	return minVers;
+    	    if (opMin > minVers)
+    	        minVers = opMin;
+    	}
+    	return minVers;
     }
 
     /**
@@ -1539,16 +1535,14 @@ public class SOCGameOption implements Cloneable, Comparable
      * @return Vector of the newer {@link SOCGameOption}s, or null
      *     if all are known and unchanged since <tt>vers</tt>.
      */
-    public static Vector optionsNewerThanVersion(final int vers, final boolean checkValues, final boolean trimEnums, Hashtable opts)
+    public static Vector<SOCGameOption> optionsNewerThanVersion(final int vers, final boolean checkValues, final boolean trimEnums, Hashtable<String, SOCGameOption> opts)
     {
         if (opts == null)
             opts = allOptions;
-        Vector uopt = null;  // add problems to uopt
+        Vector<SOCGameOption> uopt = null;  // add problems to uopt
         
-        for (Enumeration e = opts.elements(); e.hasMoreElements(); )
+        for (SOCGameOption opt : opts.values())
         {
-            SOCGameOption opt = (SOCGameOption) e.nextElement();
-
             if (checkValues)
             {
                 if (opt.getMinVersion(null) <= vers)
@@ -1581,8 +1575,8 @@ public class SOCGameOption implements Cloneable, Comparable
             if (opt != null)
             {
                 if (uopt == null)
-                    uopt = new Vector();
-                uopt.addElement(opt);                
+                    uopt = new Vector<SOCGameOption>();
+                uopt.addElement(opt);
             }
         }
 
@@ -1642,8 +1636,9 @@ public class SOCGameOption implements Cloneable, Comparable
      *            </UL>
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
-    public static StringBuffer adjustOptionsToKnown
-        (Hashtable newOpts, Hashtable knownOpts, final boolean doServerPreadjust)
+    public static StringBuffer adjustOptionsToKnown(Hashtable<String, SOCGameOption> newOpts,
+                                                    Hashtable<String, SOCGameOption> knownOpts,
+                                                    final boolean doServerPreadjust)
         throws IllegalArgumentException
     {
         if (knownOpts == null)
@@ -1656,15 +1651,15 @@ public class SOCGameOption implements Cloneable, Comparable
             //    set a boolean option, think carefully before un-setting it and surprising them.
 
             // Set PLB if PL>4
-            SOCGameOption optPL = (SOCGameOption) newOpts.get("PL");
+            SOCGameOption optPL = newOpts.get("PL");
             if ((optPL != null) && (optPL.getIntValue() > 4))
             {
-                SOCGameOption optPLB = (SOCGameOption) newOpts.get("PLB");
+                SOCGameOption optPLB = newOpts.get("PLB");
                 if (optPLB == null)
                 {
                     try
                     {
-                        optPLB = (SOCGameOption) (((SOCGameOption) allOptions.get("PLB")).clone());
+                        optPLB = (SOCGameOption) (allOptions.get("PLB").clone());
                     }
                     catch (CloneNotSupportedException e)
                     {
@@ -1686,20 +1681,20 @@ public class SOCGameOption implements Cloneable, Comparable
 
         // use Iterator in loop, so we can remove from the hash if needed
         boolean allKnown = true;
-	for (Iterator ikv = newOpts.entrySet().iterator();
+	for (Iterator<Map.Entry<String, SOCGameOption>> ikv = newOpts.entrySet().iterator();
 	     ikv.hasNext(); )
 	{
-	    Map.Entry okv = (Map.Entry) ikv.next();
+	    Map.Entry<String, SOCGameOption> okv = ikv.next();
 
 	    SOCGameOption op;
 	    try {
-	        op = (SOCGameOption) okv.getValue();
+	        op = okv.getValue();
 	    }
 	    catch (ClassCastException ce)
 	    {
                 throw new IllegalArgumentException("wrong class, expected gameoption");
 	    }
-	    SOCGameOption knownOp = (SOCGameOption) knownOpts.get(op.optKey);
+	    SOCGameOption knownOp = knownOpts.get(op.optKey);
 	    if (knownOp == null)
 	    {
                 allKnown = false;
@@ -1778,8 +1773,7 @@ public class SOCGameOption implements Cloneable, Comparable
 
 	if (allKnown)
 	    return null;
-	else
-	    return optProblems;
+    return optProblems;
     }
 
     /**
@@ -1798,7 +1792,7 @@ public class SOCGameOption implements Cloneable, Comparable
             otname = "UNKNOWN";  break;
 
         case OTYPE_BOOL:
-            otname = "BOOL";  break; 
+            otname = "BOOL";  break;
 
         case OTYPE_INT:
             otname = "INT";  break;
@@ -1859,9 +1853,9 @@ public class SOCGameOption implements Cloneable, Comparable
      * @return the list, or null if refreshDisplay wasn't called on any option
      * @since 1.1.13
      */
-    public static final Vector getAndClearRefreshList()
+    public static final Vector<SOCGameOption> getAndClearRefreshList()
     {
-        Vector refr = refreshList;
+        Vector<SOCGameOption> refr = refreshList;
         refreshList = null;
         if ((refr != null) && (refr.size() == 0))
             refr = null;
@@ -1876,7 +1870,7 @@ public class SOCGameOption implements Cloneable, Comparable
     public void refreshDisplay()
     {
         if (refreshList == null)
-            refreshList = new Vector();
+            refreshList = new Vector<SOCGameOption>();
         else if (refreshList.contains(this))
             return;
         refreshList.addElement(this);
@@ -1944,8 +1938,7 @@ public class SOCGameOption implements Cloneable, Comparable
             SOCGameOption oopt = (SOCGameOption) other;
             if (optKey.equals(oopt.optKey))
                 return 0;
-            else
-                return optDesc.compareTo(oopt.optDesc);
+            return optDesc.compareTo(oopt.optDesc);
         }
         return hashCode() - other.hashCode();
     }
@@ -1958,7 +1951,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *<P>
      * Once written, the server can't do anything to update the client's
      * ChangeListener code, so be careful and write them defensively.
-     *<P> 
+     *<P>
      * Callback method is {@link #valueChanged(SOCGameOption, Object, Object, Hashtable)}.
      * Called from <tt>NewGameOptionsFrame</tt>.
      *<P>
@@ -2004,7 +1997,6 @@ public class SOCGameOption implements Cloneable, Comparable
          * @param newValue  New value; always the same class as <tt>oldValue</tt>
          * @param currentOpts  The current value of all {@link SOCGameOption}s in this set
          */
-        public void valueChanged
-          (final SOCGameOption opt, final Object oldValue, final Object newValue, Hashtable currentOpts);
+        public void valueChanged(final SOCGameOption opt, final Object oldValue, final Object newValue, Hashtable<String, SOCGameOption> currentOpts);
     }
 }

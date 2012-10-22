@@ -20,6 +20,10 @@
  **/
 package soc.server;
 
+import java.util.Date;
+import java.util.Hashtable;
+import java.util.Vector;
+
 import soc.debug.D;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -27,11 +31,6 @@ import soc.server.genericServer.StringConnection;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;
 import soc.util.Version;
-
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
 
 
 /**
@@ -57,7 +56,7 @@ public class SOCGameListAtServer extends SOCGameList
     public static int GAME_EXPIRE_MINUTES = 90;
 
     /** map of game names to Vector of game members ({@link StringConnection}s) */
-    protected Hashtable gameMembers;
+    protected Hashtable<String, Vector<StringConnection>> gameMembers;
 
     /**
      * constructor
@@ -65,7 +64,7 @@ public class SOCGameListAtServer extends SOCGameList
     public SOCGameListAtServer()
     {
         super();
-        gameMembers = new Hashtable();
+        gameMembers = new Hashtable<String, Vector<StringConnection>>();
     }
 
     /**
@@ -76,9 +75,9 @@ public class SOCGameListAtServer extends SOCGameList
     public synchronized boolean isGameEmpty(String gaName)
     {
         boolean result;
-        Vector members;
+        Vector<StringConnection> members;
 
-        members = (Vector) gameMembers.get(gaName);
+        members = gameMembers.get(gaName);
 
         if ((members != null) && (members.isEmpty()))
         {
@@ -97,9 +96,9 @@ public class SOCGameListAtServer extends SOCGameList
      * @param   gaName  game name
      * @return  list of members: a Vector of {@link StringConnection}s
      */
-    public synchronized Vector getMembers(String gaName)
+    public synchronized Vector<StringConnection> getMembers(String gaName)
     {
-        return (Vector) gameMembers.get(gaName);
+        return gameMembers.get(gaName);
     }
 
     /**
@@ -110,16 +109,11 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public synchronized boolean isMember(StringConnection conn, String gaName)
     {
-        Vector members = getMembers(gaName);
+        Vector<StringConnection> members = getMembers(gaName);
 
         if ((members != null) && (members.contains(conn)))
-        {
             return true;
-        }
-        else
-        {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -132,7 +126,7 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public synchronized void addMember(StringConnection conn, String gaName)
     {
-        Vector members = getMembers(gaName);
+        Vector<StringConnection> members = getMembers(gaName);
 
         if ((members != null) && (!members.contains(conn)))
         {
@@ -149,8 +143,8 @@ public class SOCGameListAtServer extends SOCGameList
                 ga.clientVersionHighest = cliVers;
                 ga.hasOldClients = (cliVers < Version.versionNumber());
             }
-            else 
-            {    
+            else
+            {
                 final int cliLowestAlready  = ga.clientVersionLowest;
                 final int cliHighestAlready = ga.clientVersionHighest;
                 if (cliVers < cliLowestAlready)
@@ -178,7 +172,7 @@ public class SOCGameListAtServer extends SOCGameList
     public synchronized void removeMember(StringConnection conn, String gaName)
     {
         System.err.println("L139: game " + gaName + " remove " + conn);  // JM TEMP
-        Vector members = getMembers(gaName);
+        Vector<StringConnection> members = getMembers(gaName);
 
         if ((members != null))
         {
@@ -187,12 +181,12 @@ public class SOCGameListAtServer extends SOCGameList
             // Check version of remaining members
             if (! members.isEmpty())
             {
-                StringConnection c = (StringConnection) members.firstElement();
+                StringConnection c = members.firstElement();
                 int lowVers = c.getVersion();
                 int highVers = lowVers;
                 for (int i = members.size() - 1; i > 1; --i)
                 {
-                    c = (StringConnection) members.elementAt(i);
+                    c = members.elementAt(i);
                     int v = c.getVersion();
                     if (v < lowVers)
                         lowVers = v;
@@ -225,12 +219,10 @@ public class SOCGameListAtServer extends SOCGameList
             throw new IllegalArgumentException("keyname data");
 
         System.err.println("L212: replaceMemberAllGames(" + oldConn + ", " + newConn + ")");  // JM TEMP
-        final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion()); 
-        Enumeration allGa = getGames();
-        while (allGa.hasMoreElements())
+        final boolean sameVersion = (oldConn.getVersion() == newConn.getVersion());
+        for (String gaName : getGameNames())
         {
-            final String gaName = (String) allGa.nextElement();
-            Vector members = (Vector) gameMembers.get(gaName);
+            Vector<StringConnection> members = gameMembers.get(gaName);
             if ((members != null) && members.contains(oldConn))
             {
                 System.err.println("L221: for game " + gaName + ":");  // JM TEMP
@@ -261,12 +253,12 @@ public class SOCGameListAtServer extends SOCGameList
      *                with <tt>doServerPreadjust</tt> true.
      * @return new game object, or null if it already existed
      */
-    public synchronized SOCGame createGame(final String gaName, final String gaOwner, Hashtable gaOpts)
+    public synchronized SOCGame createGame(final String gaName, final String gaOwner, Hashtable<String, SOCGameOption> gaOpts)
     {
         if (isGame(gaName))
             return null;
 
-        Vector members = new Vector();
+        Vector<StringConnection> members = new Vector<StringConnection>();
         gameMembers.put(gaName, members);
 
         SOCGame game = new SOCGame(gaName, gaOpts);
@@ -308,7 +300,7 @@ public class SOCGameListAtServer extends SOCGameList
      */
     public SOCGameBoardReset resetBoard(String gaName)
     {
-        SOCGame oldGame = (SOCGame) gameData.get(gaName);
+        SOCGame oldGame = gameData.get(gaName);
         if (oldGame == null)
             return null;
 
@@ -351,14 +343,15 @@ public class SOCGameListAtServer extends SOCGameList
      *
      * @param gaName  the name of the game
      */
+    @Override
     public synchronized void deleteGame(String gaName)
     {
-        super.deleteGame(gaName);
-        Vector members = (Vector) gameMembers.get(gaName);
+        Vector<StringConnection> members = gameMembers.get(gaName);
         if (members != null)
         {
             members.removeAllElements();
-        }        
+        }
+        super.deleteGame(gaName);
     }
 
     /**
@@ -380,11 +373,9 @@ public class SOCGameListAtServer extends SOCGameList
 
         synchronized(gameData)
         {
-            Enumeration gdEnum = getGamesData();
-            while (gdEnum.hasMoreElements())
+            for (SOCGame ga : getGamesData())
             {
-                SOCGame ga = (SOCGame) gdEnum.nextElement();
-                Vector members = getMembers(ga.getName());
+                Vector<StringConnection> members = getMembers(ga.getName());
                 if ((members == null) || ! members.contains(plConn))
                     continue;
 
@@ -401,7 +392,7 @@ public class SOCGameListAtServer extends SOCGameList
     /**
      * List of games containing this member.
      *
-     * @param c  Connection 
+     * @param c  Connection
      * @param firstGameName  Game name that should be first element of list
      *           (if <tt>newConn</tt> is a member of it), or null.
      * @return The games, in no particular order (past firstGameName),
@@ -410,9 +401,9 @@ public class SOCGameListAtServer extends SOCGameList
      * @see #replaceMemberAllGames(StringConnection, StringConnection)
      * @since 1.1.08
      */
-    public Vector memberGames(StringConnection c, final String firstGameName)
+    public Vector<SOCGame> memberGames(StringConnection c, final String firstGameName)
     {
-        Vector cGames = new Vector();
+        Vector<SOCGame> cGames = new Vector<SOCGame>();
 
         synchronized(gameData)
         {
@@ -422,19 +413,17 @@ public class SOCGameListAtServer extends SOCGameList
                 firstGame = getGameData(firstGameName);
                 if (firstGame != null)
                 {
-                    Vector members = getMembers(firstGameName);
+                    Vector<?> members = getMembers(firstGameName);
                     if ((members != null) && members.contains(c))
                         cGames.addElement(firstGame);
                 }
             }
 
-            Enumeration gdEnum = getGamesData();
-            while (gdEnum.hasMoreElements())
+            for (SOCGame ga : getGamesData())
             {
-                SOCGame ga = (SOCGame) gdEnum.nextElement();
                 if (ga == firstGame)
                     continue;
-                Vector members = getMembers(ga.getName());
+                Vector<?> members = getMembers(ga.getName());
                 if ((members == null) || ! members.contains(c))
                     continue;
 

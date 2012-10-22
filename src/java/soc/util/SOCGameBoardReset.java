@@ -42,7 +42,7 @@ import soc.server.genericServer.StringConnection;
  */
 public class SOCGameBoardReset
 {
-    /** The new game, created from an old game by {@link soc.game.SOCGame#resetAsCopy()} */ 
+    /** The new game, created from an old game by {@link soc.game.SOCGame#resetAsCopy()} */
     public SOCGame newGame;
 
     /** gamestate of old game at reset time
@@ -61,7 +61,7 @@ public class SOCGameBoardReset
     /**
      * Human and robot connections; both arrays null at vacant seats.
      * {@link soc.game.SOCGame#resetAsCopy()} will duplicate human players
-     * in the new game, but not robot players. 
+     * in the new game, but not robot players.
      * Indexed 0 to SOCGame.MAXPLAYERS-1
      */
     public StringConnection[] humanConns, robotConns;
@@ -80,7 +80,7 @@ public class SOCGameBoardReset
      *   as retrieved by {@link soc.server.SOCGameListAtServer#getMembers(String)}.
      *   Contents of this vector will be changed to remove any robot members.
      */
-    public SOCGameBoardReset (SOCGame oldGame, Vector memberConns)
+    public SOCGameBoardReset (SOCGame oldGame, Vector<StringConnection> memberConns)
     {
         oldGameState = oldGame.getGameState();
         hadRobots = false;
@@ -153,16 +153,16 @@ public class SOCGameBoardReset
      *
      * @return The number of human players in newGame
      */
-    public static int sortPlayerConnections (SOCGame newGame, SOCGame oldGame, Vector memberConns, StringConnection[] humanConns, StringConnection[] robotConns)
+    public static int sortPlayerConnections (SOCGame newGame, SOCGame oldGame, Vector<StringConnection> memberConns, StringConnection[] humanConns, StringConnection[] robotConns)
     {
         // This enum is easier than enumerating all connected clients;
         // there is no server-wide mapping of clientname -> connection.
 
         int numHuman = 0;
-        Enumeration playersEnum = memberConns.elements();
+        Enumeration<StringConnection> playersEnum = memberConns.elements();
         while (playersEnum.hasMoreElements())
         {
-            StringConnection pCon = (StringConnection) playersEnum.nextElement();
+            StringConnection pCon = playersEnum.nextElement();
             String pname = (String) pCon.getData();
             SOCPlayer p = newGame.getPlayer(pname);
             if (p != null)

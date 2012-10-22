@@ -24,10 +24,10 @@ package soc.util;
  *
  * @author $author$
  */
-public class Pair
+public class Pair<A,B>
 {
-    private Object a;
-    private Object b;
+    private A a;
+    private B b;
 
     /**
      * Creates a new Pair object.
@@ -35,7 +35,7 @@ public class Pair
      * @param i DOCUMENT ME!
      * @param j DOCUMENT ME!
      */
-    public Pair(Object i, Object j)
+    public Pair(A i, B j)
     {
         a = i;
         b = j;
@@ -48,16 +48,13 @@ public class Pair
      *
      * @return DOCUMENT ME!
      */
-    public boolean equals(Pair ip)
+    public boolean equals(Pair<?,?> ip)
     {
         if (((ip.a == a) && (ip.b == b)) || ((ip.a == b) && (ip.b == a)))
         {
             return true;
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -65,7 +62,7 @@ public class Pair
      *
      * @return DOCUMENT ME!
      */
-    public Object getA()
+    public A getA()
     {
         return a;
     }
@@ -75,7 +72,7 @@ public class Pair
      *
      * @return DOCUMENT ME!
      */
-    public Object getB()
+    public B getB()
     {
         return b;
     }
@@ -85,7 +82,7 @@ public class Pair
      *
      * @param val DOCUMENT ME!
      */
-    public void setA(Object val)
+    public void setA(A val)
     {
         a = val;
     }
@@ -95,7 +92,7 @@ public class Pair
      *
      * @param val DOCUMENT ME!
      */
-    public void setB(Object val)
+    public void setB(B val)
     {
         b = val;
     }

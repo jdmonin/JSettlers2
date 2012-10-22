@@ -36,9 +36,9 @@ public class DebugRecorder
 {
     public static final int NOT_RECORDING = 0;
     public static final int RECORDING = 1;
-    private Map records;
+    private Map<Object, Vector<String>> records;
     private Object currentKey;
-    private Vector currentRecord;
+    private Vector<String> currentRecord;
     private int state;
     private boolean on;
 
@@ -58,7 +58,7 @@ public class DebugRecorder
     {
         if (records == null)
         {
-            records = Collections.synchronizedMap(new Hashtable());
+            records = Collections.synchronizedMap(new Hashtable<Object, Vector<String>>());
         }
 
         on = true;
@@ -93,7 +93,7 @@ public class DebugRecorder
     {
         state = RECORDING;
         currentKey = key;
-        currentRecord = new Vector();
+        currentRecord = new Vector<String>();
     }
 
     /**
@@ -144,9 +144,9 @@ public class DebugRecorder
      * @param key  the key for the record
      * @return the record
      */
-    public Vector getRecord(Object key)
+    public Vector<String> getRecord(Object key)
     {
-        return (Vector) records.get(key);
+        return records.get(key);
     }
 
     /**
@@ -155,7 +155,7 @@ public class DebugRecorder
      * @param key  the key for the record
      * @param rec  the record (a vector of strings)
      */
-    public void putRecord(Object key, Vector rec)
+    public void putRecord(Object key, Vector<String> rec)
     {
         if ((key != null) && (rec != null))
         {

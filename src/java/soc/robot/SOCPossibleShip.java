@@ -40,7 +40,7 @@ public class SOCPossibleShip extends SOCPossibleRoad
      * @param co  coordinates
      * @param nr  necessaryRoads
      */
-    public SOCPossibleShip(SOCPlayer pl, int co, Vector nr)
+    public SOCPossibleShip(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
     {
         super(pl, co, nr);
         pieceType = SOCPossiblePiece.SHIP;

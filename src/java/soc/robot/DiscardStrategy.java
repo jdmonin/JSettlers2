@@ -41,7 +41,7 @@ public class DiscardStrategy {
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
 
     public static SOCResourceSet discard
-        (final int numDiscards, Stack buildingPlan, Random rand,
+        (final int numDiscards, Stack<SOCPossiblePiece> buildingPlan, Random rand,
          SOCPlayer ourPlayerData, SOCRobotParameters robotParameters, SOCRobotDM decisionMaker, SOCRobotNegotiator negotiator)
     {
         //log.debug("DISCARDING...");
@@ -62,7 +62,7 @@ public class DiscardStrategy {
 
         if (!buildingPlan.empty())
         {
-            SOCPossiblePiece targetPiece = (SOCPossiblePiece) buildingPlan.peek();
+            SOCPossiblePiece targetPiece = buildingPlan.peek();
             negotiator.setTargetPiece(ourPlayerData.getPlayerNumber(), targetPiece);
 
             //log.debug("targetPiece="+targetPiece);

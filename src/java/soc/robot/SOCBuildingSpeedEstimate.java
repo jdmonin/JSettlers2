@@ -360,7 +360,7 @@ public class SOCBuildingSpeedEstimate
 
             float totalProbability = 0.0f;
 
-            Enumeration numbersEnum =
+            Enumeration<Integer> numbersEnum =
                 ((robberHex != -1)
                    ? numbers.getNumbersForResource(resource, robberHex)
                    : numbers.getNumbersForResource(resource)
@@ -368,7 +368,7 @@ public class SOCBuildingSpeedEstimate
 
             while (numbersEnum.hasMoreElements())
             {
-                Integer number = (Integer) numbersEnum.nextElement();
+                Integer number = numbersEnum.nextElement();
                 totalProbability += SOCNumberProbabilities.FLOAT_VALUES[number.intValue()];
             }
 
@@ -404,7 +404,7 @@ public class SOCBuildingSpeedEstimate
 
         for (int diceResult = 2; diceResult <= 12; diceResult++)
         {
-            Vector resources = (robberHex != -1)
+            Vector<Integer> resources = (robberHex != -1)
                 ? numbers.getResourcesForNumber(diceResult, robberHex)
                 : numbers.getResourcesForNumber(diceResult);
 
@@ -422,11 +422,11 @@ public class SOCBuildingSpeedEstimate
                     resourceSet.clear();
                 }
 
-                Enumeration resourcesEnum = resources.elements();
+                Enumeration<Integer> resourcesEnum = resources.elements();
 
                 while (resourcesEnum.hasMoreElements())
                 {
-                    Integer resourceInt = (Integer) resourcesEnum.nextElement();
+                    Integer resourceInt = resourcesEnum.nextElement();
                     resourceSet.add(1, resourceInt.intValue());
                 }
 
@@ -728,9 +728,9 @@ public class SOCBuildingSpeedEstimate
 
         SOCResourceSet ourResources = startingResources.copy();
         int rolls = 0;
-        Hashtable[] resourcesOnRoll = new Hashtable[2];
-        resourcesOnRoll[0] = new Hashtable();
-        resourcesOnRoll[1] = new Hashtable();
+        Hashtable<SOCResourceSet, Float>[] resourcesOnRoll = new Hashtable[2];
+        resourcesOnRoll[0] = new Hashtable<SOCResourceSet, Float>();
+        resourcesOnRoll[1] = new Hashtable<SOCResourceSet, Float>();
 
         int lastRoll = 0;
         int thisRoll = 1;
@@ -748,12 +748,12 @@ public class SOCBuildingSpeedEstimate
                 D.ebugPrintln("roll: " + rolls);
                 D.ebugPrintln("resourcesOnRoll[lastRoll]:");
 
-                Enumeration roltEnum = resourcesOnRoll[lastRoll].keys();
+                Enumeration<SOCResourceSet> roltEnum = resourcesOnRoll[lastRoll].keys();
 
                 while (roltEnum.hasMoreElements())
                 {
-                    SOCResourceSet rs = (SOCResourceSet) roltEnum.nextElement();
-                    Float prob = (Float) resourcesOnRoll[lastRoll].get(rs);
+                    SOCResourceSet rs = roltEnum.nextElement();
+                    Float prob = resourcesOnRoll[lastRoll].get(rs);
                     D.ebugPrintln("---- prob:" + prob);
                     D.ebugPrintln("---- rsrcs:" + rs);
                     D.ebugPrintln();
@@ -784,12 +784,12 @@ public class SOCBuildingSpeedEstimate
                 //  each set of resources that we got on the last
                 //  roll and multiply the probabilities
                 //
-                Enumeration lastResourcesEnum = resourcesOnRoll[lastRoll].keys();
+                Enumeration<SOCResourceSet> lastResourcesEnum = resourcesOnRoll[lastRoll].keys();
 
                 while (lastResourcesEnum.hasMoreElements())
                 {
-                    SOCResourceSet lastResources = (SOCResourceSet) lastResourcesEnum.nextElement();
-                    Float lastProb = (Float) resourcesOnRoll[lastRoll].get(lastResources);
+                    SOCResourceSet lastResources = lastResourcesEnum.nextElement();
+                    Float lastProb = resourcesOnRoll[lastRoll].get(lastResources);
                     SOCResourceSet newResources = lastResources.copy();
                     newResources.add(gainedResources);
 
@@ -906,7 +906,7 @@ public class SOCBuildingSpeedEstimate
                     //  of possible outcomes, add this probability to
                     //  that one, else just add this to the list
                     //
-                    Float probFloat = (Float) resourcesOnRoll[thisRoll].get(newResources);
+                    Float probFloat = resourcesOnRoll[thisRoll].get(newResources);
                     float newProb2 = newProb;
 
                     if (probFloat != null)
@@ -961,12 +961,12 @@ public class SOCBuildingSpeedEstimate
             D.ebugPrintln("roll: " + rolls);
             D.ebugPrintln("resourcesOnRoll[lastRoll]:");
 
-            Enumeration roltEnum = resourcesOnRoll[lastRoll].keys();
+            Enumeration<SOCResourceSet> roltEnum = resourcesOnRoll[lastRoll].keys();
 
             while (roltEnum.hasMoreElements())
             {
-                SOCResourceSet rs = (SOCResourceSet) roltEnum.nextElement();
-                Float prob = (Float) resourcesOnRoll[lastRoll].get(rs);
+                SOCResourceSet rs = roltEnum.nextElement();
+                Float prob = resourcesOnRoll[lastRoll].get(rs);
                 probSum += prob.floatValue();
                 D.ebugPrintln("---- prob:" + prob);
                 D.ebugPrintln("---- rsrcs:" + rs);

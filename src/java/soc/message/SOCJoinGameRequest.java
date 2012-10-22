@@ -55,7 +55,7 @@ public class SOCJoinGameRequest extends SOCMessage
      * {@link SOCGameOption Game options}, or null
      * @since 1.1.07
      */
-    private Hashtable opts = null;
+    private Hashtable<String,SOCGameOption> opts = null;
 
     /**
      * Create a JoinGameRequest message.
@@ -64,12 +64,12 @@ public class SOCJoinGameRequest extends SOCMessage
      * @param pn  the seat number
      * @param opts {@link SOCGameOption game options}, or null
      */
-    public SOCJoinGameRequest(String ga, int pn, Hashtable opts)
+    public SOCJoinGameRequest(String ga, int pn, Hashtable<String,SOCGameOption> opts)
     {
         messageType = JOINGAMEREQUEST;
         game = ga;
         playerNumber = pn;
-	this.opts = opts;
+        this.opts = opts;
     }
 
     /**
@@ -92,7 +92,7 @@ public class SOCJoinGameRequest extends SOCMessage
      * @return game options, or null
      * @since 1.1.07
      */
-    public Hashtable getOptions()
+    public Hashtable<String,SOCGameOption> getOptions()
     {
 	return opts;
     }
@@ -102,6 +102,7 @@ public class SOCJoinGameRequest extends SOCMessage
      *
      * @return the command String
      */
+    @Override
     public String toCmd()
     {
         return toCmd(game, playerNumber, opts);
@@ -113,9 +114,9 @@ public class SOCJoinGameRequest extends SOCMessage
      * @param ga  the game name
      * @return    the command string
      */
-    public static String toCmd(String ga, int pn, Hashtable opts)
+    public static String toCmd(String ga, int pn, Hashtable<String,SOCGameOption> opts)
     {
-        return JOINGAMEREQUEST + sep + ga + sep2 + pn + sep2 
+        return JOINGAMEREQUEST + sep + ga + sep2 + pn + sep2
             + SOCGameOption.packOptionsToString(opts, false);
     }
 
@@ -129,7 +130,7 @@ public class SOCJoinGameRequest extends SOCMessage
     {
         String ga; // the game name
         int pn; // the seat number
-	String optstr;
+        String optstr;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
@@ -144,13 +145,14 @@ public class SOCJoinGameRequest extends SOCMessage
             return null;
         }
 
-	Hashtable opts = SOCGameOption.parseOptionsToHash(optstr);
+        Hashtable<String,SOCGameOption> opts = SOCGameOption.parseOptionsToHash(optstr);
         return new SOCJoinGameRequest(ga, pn, opts);
     }
 
     /**
      * @return a human readable form of the message
      */
+    @Override
     public String toString()
     {
         String s = "SOCJoinGameRequest:game=" + game + "|playerNumber=" + playerNumber;

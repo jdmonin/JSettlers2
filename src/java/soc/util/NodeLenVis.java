@@ -32,7 +32,7 @@ import soc.game.SOCRoad;
  *
  * @author Robert S Thomas &lt;thomas@infolab.northwestern.edu&gt;
  */
-public class NodeLenVis
+public class NodeLenVis<T>
 {
     /**
      * the coordinates of a node
@@ -47,7 +47,7 @@ public class NodeLenVis
     /**
      * nodes that we have visited along the way
      */
-    public Vector vis;
+    public Vector<T> vis;
 
     /**
      * the road or ship that lead us to this node,
@@ -64,7 +64,7 @@ public class NodeLenVis
      * @param l  Length so far
      * @param v  Vector of nodes visited so far, as {@link Integer}s
      */
-    public NodeLenVis(int n, int l, Vector v)
+    public NodeLenVis(int n, int l, Vector<T> v)
     {
         this (n, l, v, null);
     }
@@ -79,7 +79,7 @@ public class NodeLenVis
      *            only needed if {@link soc.game.SOCGame#hasSeaBoard}
      * @since 2.0.00
      */
-    public NodeLenVis(int n, int l, Vector v, SOCRoad rs)
+    public NodeLenVis(int n, int l, Vector<T> v, SOCRoad rs)
     {
         node = n;
         len = l;
@@ -93,6 +93,7 @@ public class NodeLenVis
      *
      * @return A string in the form of: <tt>NodeLenVis:n=<em>node</em>|l=<em>len</em>|vis=<em>vis</em></tt>
      */
+    @Override
     public String toString()
     {
         String s = "NodeLenVis:n=" + Integer.toHexString(node) + "|l=" + len + "|vis=" + vis;

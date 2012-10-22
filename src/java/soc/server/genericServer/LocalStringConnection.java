@@ -59,9 +59,9 @@ import soc.disableDebug.D;
 public class LocalStringConnection
     implements StringConnection, Runnable
 {
-    protected static Object EOF_MARKER = new Object();
+    protected static String EOF_MARKER = "__EOF_MARKER__";
 
-    protected Vector in, out;
+    protected Vector<String> in, out;
     protected boolean in_reachedEOF;
     protected boolean out_setEOF;
     /** Active connection, server has called accept, and not disconnected yet */
@@ -79,7 +79,7 @@ public class LocalStringConnection
     /**
      * the arbitrary key data associated with this connection.
      */
-    protected Object data;    
+    protected Object data;
 
     /**
      * the arbitrary app-specific data associated with this connection.
@@ -99,8 +99,8 @@ public class LocalStringConnection
      */
     public LocalStringConnection()
     {
-        in = new Vector();
-        out = new Vector();
+        in = new Vector<String>();
+        out = new Vector<String>();
         init();
     }
 
@@ -112,7 +112,7 @@ public class LocalStringConnection
      *
      * @param peer The peer to use.
      *
-     * @throws EOFException If peer is at EOF already 
+     * @throws EOFException If peer is at EOF already
      * @throws IllegalArgumentException if peer is null, or already
      *   has a peer.
      */
@@ -184,13 +184,15 @@ public class LocalStringConnection
                     error = new EOFException();
                     throw (EOFException) error;
                 }
-                else
+                
+                try
                 {
-                    try
-                    {
-                        in.wait();
-                    }
-                    catch (InterruptedException e) {}
+                    in.wait();
+                }
+                catch (InterruptedException e)
+                {
+                    System.err.println("Local string connection interrupted");
+                    e.printStackTrace();
                 }
             }
             obj = in.elementAt(0);
@@ -258,7 +260,7 @@ public class LocalStringConnection
     /**
      * Accept no further input, allow output to drain, don't immediately close the socket.
      * Once called, {@link #isConnected()} will return false, even if output is still being
-     * sent to the other side. 
+     * sent to the other side.
      */
     public void disconnectSoft()
     {
@@ -279,7 +281,7 @@ public class LocalStringConnection
     }
 
     /**
-     * Connect to specified stringport. Calling thread waits until accepted.  
+     * Connect to specified stringport. Calling thread waits until accepted.
      * 
      * @param serverSocketName  stringport name to connect to
      * @throws ConnectException If stringport name is not found, or is EOF,
@@ -374,7 +376,7 @@ public class LocalStringConnection
     {
         synchronized (out)
         {
-            return out_setEOF;            
+            return out_setEOF;
         }
     }
 
@@ -665,6 +667,7 @@ public class LocalStringConnection
      * toString includes data.toString for debugging.
      * @since 1.0.5.2
      */
+    @Override
     public String toString()
     {
         StringBuffer sb = new StringBuffer("LocalStringConnection[");

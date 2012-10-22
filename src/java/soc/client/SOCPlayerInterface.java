@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -284,7 +284,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     protected SOCHandPanel[] hands;
     
-    /** 
+    /**
      * Tracks our own hand within hands[], if we are
      * active in a game.  Null otherwise.
      * Set by SOCHandPanel's removePlayer() and addPlayer() methods.
@@ -558,7 +558,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         textInput = new TextField();
         textInput.setFont(new Font("SansSerif", Font.PLAIN, 10));
-        textInputListener = new SOCPITextfieldListener(this); 
+        textInputListener = new SOCPITextfieldListener(this);
         textInputHasSent = false;
         textInputGreyCountdown = textInputGreyCountFrom;
         textInput.addKeyListener(textInputListener);
@@ -624,7 +624,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * On windows, the scrollbars aren't considered part of the text areas, so
          * we get a mouseExited when user is trying to scroll the text area.
          * Workaround: Instead of looking for mouseExited, look for mouseEntered on
-         * handpanels or boardpanel. 
+         * handpanels or boardpanel.
          */
         if (is6player)
         {
@@ -652,6 +652,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * this directly, use {@link #repaint()} instead.
      * For performance and display-bug avoidance, checks {@link #layoutNotReadyYet} flag.
      */
+    @Override
     public void update(Graphics g)
     {
         if (! layoutNotReadyYet)
@@ -667,6 +668,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * from the borders between the components.
      * @since 1.1.11
      */
+    @Override
     public void paint(Graphics g)
     {
         if (needRepaintBorders)
@@ -690,7 +692,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             paintBordersHandColumn(g, hands[2]);
         } else {
             paintBordersHandColumn(g, hands[0]);
-            paintBordersHandColumn(g, hands[1]);           
+            paintBordersHandColumn(g, hands[1]);
         }
         g.clearRect(boardPanel.getX(), boardPanel.getY() - 4, boardPanel.getWidth(), 4);
         needRepaintBorders = false;
@@ -767,8 +769,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         if (isGhost)
             return playerColorsGhost[pn];
-        else
-            return playerColors[pn];
+        return playerColors[pn];
     }
     
     /**
@@ -820,7 +821,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * Call this only after updating the SOCGame objects.
      *
      * @param isRoadNotArmy Longest-road, not largest-army, has just changed
-     * @param oldp  Previous player with longest/largest, or null if none 
+     * @param oldp  Previous player with longest/largest, or null if none
      * @param newp  New player with longest/largest, or null if none
      */
     public void updateLongestLargest
@@ -862,16 +863,16 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                     msgbuf.append(oldp.getName());
                     msgbuf.append(" by ");
                 } else {
-                    msgbuf.append("taken by ");                    
+                    msgbuf.append("taken by ");
                 }
                 msgbuf.append(newp.getName());
             } else {
                 msgbuf.append("lost by ");
                 msgbuf.append(oldp.getName());
-            }        
+            }
 
             msgbuf.append('.');
-            print(msgbuf.toString());            
+            print(msgbuf.toString());
         }
     }
 
@@ -919,7 +920,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 for (int i = 0; i < game.maxPlayers; i++)
                     hands[i].removeSitBut();
             }
-            else if (playerLeaving != -1) 
+            else if (playerLeaving != -1)
             {
                 // Now there's a vacant seat again, re-add button,
                 // either as "sit here" or "lock" as appropriate.
@@ -1010,19 +1011,19 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * 
      * @return our player's hand interface, or null if not in a game.
      * @see #clientIsCurrentPlayer()
-     */ 
+     */
     public SOCHandPanel getClientHand()
     {
-        return clientHand; 
+        return clientHand;
     }
     
     /** Update the client player's SOCHandPanel interface, for joining
      *  or leaving a game.
-     *  
+     * 
      *  Set by SOCHandPanel's removePlayer() and addPlayer() methods.
-     *  
+     * 
      * @param h  The SOCHandPanel for us, or null if none (leaving).
-     */ 
+     */
     public void setClientHand(SOCHandPanel h)
     {
         clientHand = h;
@@ -1041,8 +1042,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         if (clientHand == null)
             return false;
-        else
-            return clientHand.isClientAndCurrentPlayer();
+        return clientHand.isClientAndCurrentPlayer();
     }
 
     /**
@@ -1185,7 +1185,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             textDisplay.append("*** Voting is already active. Try again when voting completes.\n");
             return;
         }
-        SOCPlayer pl = game.getPlayer(clientHandPlayerNum);        
+        SOCPlayer pl = game.getPlayer(clientHandPlayerNum);
         if (! pl.hasAskedBoardReset())
             client.getGameManager().resetBoardRequest(game);
         else
@@ -1322,7 +1322,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                             + rollText + currentText.substring(i+15+9);
                         textDisplay.setText(currentText);
                         //textDisplay.replaceRange(rollText, i+15, i+15+9);
-                        //textDisplay.replaceRange(rollText, i+5, i+5+9);                    
+                        //textDisplay.replaceRange(rollText, i+5, i+5+9);
                         //textDisplay.insert(rollText, 10); // i+5); // +15);
                     } else {
                         String rollText = "* Rolled a " + textDisplayRollExpected + ".\n";
@@ -1389,7 +1389,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      *
      * @param members Game member names from {@link soc.message.SOCGameMembers#getMembers()} (added in 1.1.12)
      */
-    public void began(Vector members)
+    public void began(Vector<String> members)
     {
         textInput.setEditable(true);
         textInput.setText("");
@@ -1405,7 +1405,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         StringBuffer obs = null;
         for (int i = members.size() - 1; i >= 0; --i)
         {
-            String mname = (String) members.elementAt(i);
+            String mname = members.elementAt(i);
             if (null != game.getPlayer(mname))
                 continue;
             if (mname.equals(client.getNickname()))
@@ -1906,7 +1906,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      *
      * @param newGame New game object
      * @param rejoinPlayerNumber Sanity check - must be our correct player number in this game
-     * @param requesterNumber Player who requested the board reset  
+     * @param requesterNumber Player who requested the board reset
      * 
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      */
@@ -1929,10 +1929,10 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         for (int i = 0; i < hands.length; ++i)
         {
             hands[i].removePlayer();  // will cancel roll countdown timer, right-click menus, etc
-            hands[i].disable();
+            hands[i].setEnabled(false);
             hands[i].destroy();
         }
-        final boolean[] boardDebugShow = (boolean[]) boardPanel.debugShowPotentials.clone();
+        final boolean[] boardDebugShow = boardPanel.debugShowPotentials.clone();
         clientHand = null;
         clientHandPlayerNum = -1;
 
@@ -2012,12 +2012,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         {
             chatDisplay.append("** --> Nested Cause Exception: **\n");
             chatPrintStackTrace (cause, true);
-        }        
+        }
         if (! isNested)
             chatDisplay.append("-- Exception ends: " + excepName + " --\n\n");
     }
 
-    /** 
+    /**
      * Calculate a color towards gray, for a hilight or the robber ghost.
      * If srcColor is light, ghost color is darker. (average with gray)
      * If it's dark or midtone, ghost should be lighter. (average with white)
@@ -2051,6 +2051,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
      * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
      */
+    @Override
     public void doLayout()
     {
         Insets i = getInsets();
@@ -2181,7 +2182,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 {
                     hands[1].setBounds(i.left + hw + bw + 12, i.top + 4, hw, hh);
                     hands[2].setBounds(i.left + hw + bw + 12, i.top + hh + 8, hw, hh);
-                    hands[3].setBounds(i.left + hw + bw + 12, i.top + 2 * hh + 12, hw, hh);                
+                    hands[3].setBounds(i.left + hw + bw + 12, i.top + 2 * hh + 12, hw, hh);
                 }
                 if (clientHandPlayerNum != -1)
                 {
@@ -2272,7 +2273,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         textDisplaysLargerTemp_needsLayout = false;
 
         npix = textDisplay.getPreferredSize().width;
-        ncols = (int) ((((float) bw) * 100.0) / ((float) npix)) - 2;
+        ncols = (int) (((bw) * 100.0f) / (npix)) - 2; // use float division for closer approximation
 
         //FontMetrics fm = this.getFontMetrics(textDisplay.getFont());
         //int nrows = (tdh / fm.getHeight()) - 1;
@@ -2321,7 +2322,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         if (! is6player)
             return;
 
-        final Object src = e.getSource(); 
+        final Object src = e.getSource();
         if (src == textDisplay)
             textDisplayHasMouse = true;
         else if (src == chatDisplay)
@@ -2356,7 +2357,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         if (! is6player)
             return;
 
-        final Object src = e.getSource(); 
+        final Object src = e.getSource();
         if (src == textDisplay)
             textDisplayHasMouse = false;
         else if (src == chatDisplay)
@@ -2472,6 +2473,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * React to the Reset button. (call playerClient.resetBoardVote)
          */
+        @Override
         public void button1Chosen()
         {
             pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), true);
@@ -2481,6 +2483,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * React to the No button. (call playerClient.resetBoardVote)
          */
+        @Override
         public void button2Chosen()
         {
             pcli.getGameManager().resetBoardVote(pi.getGame(), pi.getClientPlayerNumber(), false);
@@ -2490,6 +2493,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * React to the dialog window closed by user. (Vote No)
          */
+        @Override
         public void windowCloseChosen()
         {
             if (! askedDisposeQuietly)
@@ -2511,7 +2515,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         public void disposeQuietly()
         {
             askedDisposeQuietly = true;
-            rdt.stop();
+            //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
+            //rdt.stop();
             dispose();
         }
 
@@ -2523,9 +2528,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         {
             try
             {
-                show();
+                setVisible(true);
             }
-            catch (ThreadDeath e) {}
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }  // class ResetBoardVoteDialog
@@ -2565,6 +2572,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * React to the Move Robber button.
          * Call {@link SOCPlayerClient#choosePlayer(SOCGame, int) pcli.choosePlayer(-1)}.
          */
+        @Override
         public void button1Chosen()
         {
             pcli.getGameManager().choosePlayer(game, -1);
@@ -2574,6 +2582,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * React to the Move Pirate button.
          * Call {@link SOCPlayerClient#choosePlayer(SOCGame, int) pcli.choosePlayer(-2)}.
          */
+        @Override
         public void button2Chosen()
         {
             pcli.getGameManager().choosePlayer(game, -2);
@@ -2582,6 +2591,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * React to the dialog window closed by user. (Default is move the robber)
          */
+        @Override
         public void windowCloseChosen() { button1Chosen(); }
 
         /**
@@ -2596,11 +2606,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             rdt.start();  // run method will show the dialog
         }
 
+        @Override
         public void dispose()
         {
             if (rdt != null)
             {
-                rdt.stop();
+                //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
+                //rdt.stop();
                 rdt = null;
             }
             super.dispose();
@@ -2614,9 +2626,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         {
             try
             {
-                show();
+                setVisible(true);
             }
-            catch (ThreadDeath e) {}
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }  // nested class ChooseMoveRobberOrPirateDialog
@@ -2639,6 +2653,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * Ask if player is sure - Leave the game when the window closes.
          * If they're observing, not playing, the window can close immediately.
          */
+        @Override
         public void windowClosing(WindowEvent e)
         {
             if (pi.clientHandPlayerNum != -1)
@@ -2651,6 +2666,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * When window loses focus, if 6-player, unexpand the chat window if needed.
          * @since 1.1.12
          */
+        @Override
         public void windowDeactivated(WindowEvent e)
         {
             if (! pi.textDisplaysLargerTemp)
@@ -2670,6 +2686,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * Close the GameStatisticsFrame if showing, etc.
          * @since 2.0.00
          */
+        @Override
         public void windowClosed(WindowEvent e)
         {
             // Close stats frame if showing
@@ -2697,8 +2714,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         }
 
         /** If first keypress in initially empty field, clear that prompt message */
+        @Override
         public void keyPressed(KeyEvent e)
-        {            
+        {
             if (! pi.textInputIsInitial)
             {
                 return;
@@ -2780,6 +2798,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
          * Called when timer fires. Examine game state and players.
          * Sets "discarding..." or "picking..." at handpanels of discarding players.
          */
+        @Override
         public void run()
         {
             final int needState;
@@ -2841,10 +2860,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         /**
          * Called when timer fires; see class javadoc for actions taken.
          */
+        @Override
         public void run()
         {
             final boolean leftLarger =
-                sbFixNeeded 
+                sbFixNeeded
                     && (sbFixLHasMouse || sbFixRHasMouse || sbFixBHasMouse);
             final boolean wantsLarger =
                 (textDisplayHasMouse || chatDisplayHasMouse || textInputHasMouse)

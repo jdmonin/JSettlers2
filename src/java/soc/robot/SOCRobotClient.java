@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.robot;
 
@@ -42,7 +42,6 @@ import java.io.DataOutputStream;
 
 import java.net.Socket;
 
-import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -92,7 +91,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Initialized in {@link #treat(SOCMessage)}.
      * @since 1.1.11
      */
-    private Vector debugRandomPauseQueue = null;
+    private Vector<SOCMessage> debugRandomPauseQueue = null;
 
     /**
      * When {@link #debugRandomPauseActive} is true, resume at this time;
@@ -105,7 +104,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * When {@link #debugRandomPause} is true but not {@link #debugRandomPauseActive},
      * frequency of activating it; checked for each non-{@link SOCGameTextMsg}
-     * message received during our own turn. 
+     * message received during our own turn.
      * @since 1.1.11
      */
     private static final double DEBUGRANDOMPAUSE_FREQ = .04;  // 4%
@@ -118,9 +117,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     private static final int DEBUGRANDOMPAUSE_SECONDS = 12;
 
     /**
-     * the thread the reads incoming messages
+     * the thread that reads incoming messages
      */
-    private Thread reader;
+    private Thread readerRobot;
 
     /**
      * the current robot parameters for robot brains
@@ -131,17 +130,17 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * the robot's "brains", 1 for each game this robot is currently playing.
      * @see SOCDisplaylessPlayerClient#games
      */
-    private Hashtable robotBrains = new Hashtable();
+    private Hashtable<String, SOCRobotBrain> robotBrains = new Hashtable<String, SOCRobotBrain>();
 
     /**
      * the message queues for the different brains
      */
-    private Hashtable brainQs = new Hashtable();
+    private Hashtable<String, CappedQueue<SOCMessage>> brainQs = new Hashtable<String, CappedQueue<SOCMessage>>();
 
     /**
      * a table of requests from the server to sit at games
      */
-    private Hashtable seatRequests = new Hashtable();
+    private Hashtable<String, Integer> seatRequests = new Hashtable<String, Integer>();
 
     /**
      * options for all games on the server we've been asked to join.
@@ -152,7 +151,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Since the robot and server are the same version, the
      * set of "known options" will always be in sync.
      */
-    private Hashtable gameOptions = new Hashtable();
+    private Hashtable<String, Hashtable<String, SOCGameOption>> gameOptions = new Hashtable<String, Hashtable<String, SOCGameOption>>();
 
     /**
      * number of games this bot has played
@@ -243,15 +242,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             else
             {
                 sLocal = LocalStringServerSocket.connectTo(strSocketName);
-            }               
+            }
             connected = true;
-            reader = new Thread(this);
-            reader.start();
+            readerRobot = new Thread(this);
+            readerRobot.start();
 
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
             put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
-            put(SOCImARobot.toCmd(nickname, SOCImARobot.RBCLASS_BUILTIN)); 
+            put(SOCImARobot.toCmd(nickname, SOCImARobot.RBCLASS_BUILTIN));
         }
         catch (Exception e)
         {
@@ -285,8 +284,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 sLocal = LocalStringServerSocket.connectTo(strSocketName);
             }
             connected = true;
-            reader = new Thread(this);
-            reader.start();
+            readerRobot = new Thread(this);
+            readerRobot.start();
 
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
@@ -306,6 +305,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      *
      * @param mes    the message
      */
+    @Override
     public void treat(SOCMessage mes)
     {
         if (mes == null)
@@ -320,7 +320,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             final String ga = ((SOCMessageForGame) mes).getGame();
             if (ga != null)
             {
-                SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(ga);
+                SOCRobotBrain brain = robotBrains.get(ga);
                 if (brain != null)
                 {
                     if (! debugRandomPauseActive)
@@ -330,7 +330,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                             && ((debugRandomPauseQueue == null)
                                 || (debugRandomPauseQueue.isEmpty())))
                         {
-                            SOCGame gm = (SOCGame) games.get(ga);
+                            SOCGame gm = games.get(ga);
                             final int cpn = gm.getCurrentPlayerNumber();
                             SOCPlayer rpl = gm.getPlayer(nickname);
                             if ((rpl != null) && (cpn == rpl.getPlayerNumber())
@@ -338,10 +338,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                             {
                                 // we're current player, pause us
                                 debugRandomPauseActive = true;
-                                debugRandomPauseUntil = System.currentTimeMillis()
-                                    + (1000L * DEBUGRANDOMPAUSE_SECONDS);
+                                debugRandomPauseUntil = System.currentTimeMillis() + (1000L * DEBUGRANDOMPAUSE_SECONDS);
                                 if (debugRandomPauseQueue == null)
-                                    debugRandomPauseQueue = new Vector();
+                                    debugRandomPauseQueue = new Vector<SOCMessage>();
                                 System.err.println("L379 -> do random pause: " + nickname);
                                 sendText(gm,
                                     "debugRandomPauseActive for " + DEBUGRANDOMPAUSE_SECONDS + " seconds");
@@ -363,22 +362,20 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
                 return;  // <--- Early return: debugRandomPauseActive ---
             }
-            else
+            
+            // time to resume the queue
+            debugRandomPauseActive = false;
+            while (! debugRandomPauseQueue.isEmpty())
             {
-                // time to resume the queue
-                debugRandomPauseActive = false;
-                while (! debugRandomPauseQueue.isEmpty())
-                {
-                    // calling ourself is safe, because
-                    //  ! queue.isEmpty; thus won't decide
-                    //  to set debugRandomPauseActive=true again.
-                    treat((SOCMessage) debugRandomPauseQueue.firstElement());
-                    debugRandomPauseQueue.removeElementAt(0);
-                }
-
-                // Don't return from this method yet,
-                // we still need to process mes.
+                // calling ourself is safe, because
+                //  ! queue.isEmpty; thus won't decide
+                //  to set debugRandomPauseActive=true again.
+                treat(debugRandomPauseQueue.firstElement());
+                debugRandomPauseQueue.removeElementAt(0);
             }
+
+            // Don't return from this method yet,
+            // we still need to process mes.
         }
 
         D.ebugPrintln("IN - " + mes);
@@ -699,7 +696,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
-             * handle the reject connection message - JM TODO: placement within switch? (vs displaylesscli, playercli) 
+             * handle the reject connection message - JM TODO: placement within switch? (vs displaylesscli, playercli)
              */
             case SOCMessage.REJECTCONNECTION:
                 handleREJECTCONNECTION((SOCRejectConnection) mes);
@@ -764,15 +761,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     {
         D.ebugPrintln("*** Admin Ping message = " + mes);
 
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         //
         //  if the robot hears a PING and is in the game
         //  where the admin is, then just say "OK".
         //  otherwise, join the game that the admin is in
         //
-        //  note: this is a hack because the bot never 
-        //        leaves the game and the game must be 
+        //  note: this is a hack because the bot never
+        //        leaves the game and the game must be
         //        killed by the admin
         //
         if (ga != null)
@@ -819,10 +816,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     protected void handleJOINGAMEREQUEST(SOCJoinGameRequest mes)
     {
         D.ebugPrintln("**** handleJOINGAMEREQUEST ****");
-	final String gaName = mes.getGame();
-	Hashtable gaOpts = mes.getOptions();
-	if (gaOpts != null)
-	    gameOptions.put(gaName, gaOpts);
+        final String gaName = mes.getGame();
+        Hashtable<String,SOCGameOption> gaOpts = mes.getOptions();
+        if (gaOpts != null)
+            gameOptions.put(gaName, gaOpts);
 
         seatRequests.put(gaName, new Integer(mes.getPlayerNumber()));
         if (put(SOCJoinGame.toCmd(nickname, password, host, gaName)))
@@ -837,6 +834,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * once the initial welcome message has been printed.
      * @param mes  the message
      */
+    @Override
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
         final int sv = mes.getStatusValue();
@@ -853,16 +851,17 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "join game authorization" message
      * @param mes  the message
      */
+    @Override
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes)
     {
         gamesPlayed++;
 
-	final String gaName = mes.getGame();
+        final String gaName = mes.getGame();
 
-	SOCGame ga = new SOCGame(gaName, true, (Hashtable) gameOptions.get(gaName));
+        SOCGame ga = new SOCGame(gaName, true, gameOptions.get(gaName));
         games.put(gaName, ga);
 
-        CappedQueue brainQ = new CappedQueue();
+        CappedQueue<SOCMessage> brainQ = new CappedQueue<SOCMessage>();
         brainQs.put(gaName, brainQ);
 
         SOCRobotBrain rb = new SOCRobotBrain(this, currentRobotParameters, ga, brainQ);
@@ -873,6 +872,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "join game" message
      * @param mes  the message
      */
+    @Override
     protected void handleJOINGAME(SOCJoinGame mes) {}
 
     /**
@@ -880,12 +880,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * If we have a {@link #seatRequests} for this game, sit down now.
      * @param mes  the message
      */
+    @Override
     protected void handleGAMEMEMBERS(SOCGameMembers mes)
     {
         /**
          * sit down to play
          */
-        Integer pn = (Integer) seatRequests.get(mes.getGame());
+        Integer pn = seatRequests.get(mes.getGame());
 
         try
         {
@@ -912,13 +913,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handlePutBrainQ(SOCMessageForGame mes)
     {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
+        CappedQueue<SOCMessage> brainQ = brainQs.get(mes.getGame());
 
         if (brainQ != null)
         {
             try
             {
-                brainQ.put(mes);
+                brainQ.put((SOCMessage)mes);
             }
             catch (CutoffExceededException exc)
             {
@@ -931,6 +932,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "game text message" message
      * @param mes  the message
      */
+    @Override
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
         //D.ebugPrintln(mes.getNickname()+": "+mes.getText());
@@ -961,8 +963,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         if (dcmd.startsWith(":debug-off"))
         {
-            SOCGame ga = (SOCGame) games.get(mes.getGame());
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCGame ga = games.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if (brain != null)
             {
@@ -973,8 +975,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":debug-on"))
         {
-            SOCGame ga = (SOCGame) games.get(mes.getGame());
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCGame ga = games.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if (brain != null)
             {
@@ -985,8 +987,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":current-plans") || dcmd.startsWith(":cp"))
         {
-            SOCGame ga = (SOCGame) games.get(mes.getGame());
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCGame ga = games.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain != null) && (brain.getDRecorder().isOn()))
             {
@@ -996,8 +998,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":current-resources") || dcmd.startsWith(":cr"))
         {
-            SOCGame ga = (SOCGame) games.get(mes.getGame());
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCGame ga = games.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain != null) && (brain.getDRecorder().isOn()))
             {
@@ -1007,15 +1009,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":last-plans") || dcmd.startsWith(":lp"))
         {
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain != null) && (brain.getDRecorder().isOn()))
             {
-                Vector record = brain.getOldDRecorder().getRecord(CURRENT_PLANS);
+                Vector<String> record = brain.getOldDRecorder().getRecord(CURRENT_PLANS);
 
                 if (record != null)
                 {
-                    SOCGame ga = (SOCGame) games.get(mes.getGame());
+                    SOCGame ga = games.get(mes.getGame());
                     sendRecordsText(ga, record);
                 }
             }
@@ -1023,15 +1025,15 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":last-resources") || dcmd.startsWith(":lr"))
         {
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain != null) && (brain.getDRecorder().isOn()))
             {
-                Vector record = brain.getOldDRecorder().getRecord(CURRENT_RESOURCES);
+                Vector<String> record = brain.getOldDRecorder().getRecord(CURRENT_RESOURCES);
 
                 if (record != null)
                 {
-                    SOCGame ga = (SOCGame) games.get(mes.getGame());
+                    SOCGame ga = games.get(mes.getGame());
                     sendRecordsText(ga, record);
                 }
             }
@@ -1039,7 +1041,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":last-move") || dcmd.startsWith(":lm"))
         {
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain != null) && (brain.getOldDRecorder().isOn()))
             {
@@ -1072,11 +1074,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                         break;
                     }
 
-                    Vector record = brain.getOldDRecorder().getRecord(key);
+                    Vector<String> record = brain.getOldDRecorder().getRecord(key);
 
                     if (record != null)
                     {
-                        SOCGame ga = (SOCGame) games.get(mes.getGame());
+                        SOCGame ga = games.get(mes.getGame());
                         sendRecordsText(ga, record);
                     }
                 }
@@ -1085,7 +1087,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":consider-move ") || dcmd.startsWith(":cm "))
         {
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain != null) && (brain.getOldDRecorder().isOn()))
             {
@@ -1109,11 +1111,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     key = "CITY" + tokens[2].trim();
                 }
 
-                Vector record = brain.getOldDRecorder().getRecord(key);
+                Vector<String> record = brain.getOldDRecorder().getRecord(key);
 
                 if (record != null)
                 {
-                    SOCGame ga = (SOCGame) games.get(mes.getGame());
+                    SOCGame ga = games.get(mes.getGame());
                     sendRecordsText(ga, record);
                 }
             }
@@ -1121,7 +1123,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":last-target") || dcmd.startsWith(":lt"))
         {
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain != null) && (brain.getDRecorder().isOn()))
             {
@@ -1154,11 +1156,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                         break;
                     }
 
-                    Vector record = brain.getDRecorder().getRecord(key);
+                    Vector<String> record = brain.getDRecorder().getRecord(key);
 
                     if (record != null)
                     {
-                        SOCGame ga = (SOCGame) games.get(mes.getGame());
+                        SOCGame ga = games.get(mes.getGame());
                         sendRecordsText(ga, record);
                     }
                 }
@@ -1167,7 +1169,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":consider-target ") || dcmd.startsWith(":ct "))
         {
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain != null) && (brain.getDRecorder().isOn()))
             {
@@ -1191,11 +1193,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                     key = "CITY" + tokens[2].trim();
                 }
 
-                Vector record = brain.getDRecorder().getRecord(key);
+                Vector<String> record = brain.getDRecorder().getRecord(key);
 
                 if (record != null)
                 {
-                    SOCGame ga = (SOCGame) games.get(mes.getGame());
+                    SOCGame ga = games.get(mes.getGame());
                     sendRecordsText(ga, record);
                 }
             }
@@ -1211,7 +1213,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":stats"))
         {
-            SOCGame ga = (SOCGame) games.get(mes.getGame());
+            SOCGame ga = games.get(mes.getGame());
             sendText(ga, "Games played:" + gamesPlayed);
             sendText(ga, "Games finished:" + gamesFinished);
             sendText(ga, "Games won:" + gamesWon);
@@ -1225,7 +1227,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
         else if (dcmd.startsWith(":gc"))
         {
-            SOCGame ga = (SOCGame) games.get(mes.getGame());
+            SOCGame ga = games.get(mes.getGame());
             Runtime rt = Runtime.getRuntime();
             rt.gc();
             sendText(ga, "Free Memory:" + rt.freeMemory());
@@ -1237,12 +1239,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "someone is sitting down" message
      * @param mes  the message
      */
+    @Override
     protected void handleSITDOWN(SOCSitDown mes)
     {
         /**
          * tell the game that a player is sitting
          */
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1258,7 +1261,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             if (nickname.equals(mes.getNickname()))
             {
-                SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+                SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
                 /**
                  * retrieve the proper face for our strategy
@@ -1287,7 +1290,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 /**
                  * add tracker for player in previously vacant seat
                  */
-                SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+                SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
                 if (brain != null)
                 {
@@ -1301,19 +1304,21 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "start game" message
      * @param mes  the message
      */
+    @Override
     protected void handleSTARTGAME(SOCStartGame mes) {}
 
     /**
      * handle the "delete game" message
      * @param mes  the message
      */
+    @Override
     protected void handleDELETEGAME(SOCDeleteGame mes)
     {
-        SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+        SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
         if (brain != null)
         {
-            SOCGame ga = (SOCGame) games.get(mes.getGame());
+            SOCGame ga = games.get(mes.getGame());
 
             if (ga != null)
             {
@@ -1340,9 +1345,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "game state" message
      * @param mes  the message
      */
+    @Override
     protected void handleGAMESTATE(SOCGameState mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1354,9 +1360,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "put piece" message
      * @param mes  the message
      */
+    @Override
     protected void handlePUTPIECE(SOCPutPiece mes)
     {
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
+        CappedQueue<SOCMessage> brainQ = brainQs.get(mes.getGame());
 
         if (brainQ != null)
         {
@@ -1369,7 +1376,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 D.ebugPrintln("CutoffExceededException" + exc);
             }
 
-            SOCGame ga = (SOCGame) games.get(mes.getGame());
+            SOCGame ga = games.get(mes.getGame());
 
             if (ga != null)
             {
@@ -1383,6 +1390,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "clear trade" message
      * @param mes  the message
      */
+    @Override
     protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes) {}
 
     /**
@@ -1391,8 +1399,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     protected void handleROBOTDISMISS(SOCRobotDismiss mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
-        CappedQueue brainQ = (CappedQueue) brainQs.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
+        CappedQueue<SOCMessage> brainQ = brainQs.get(mes.getGame());
 
         if ((ga != null) && (brainQ != null))
         {
@@ -1409,11 +1417,11 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * if the brain isn't alive, then we need to leave
              * the game
              */
-            SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(mes.getGame());
+            SOCRobotBrain brain = robotBrains.get(mes.getGame());
 
             if ((brain == null) || (!brain.isAlive()))
             {
-                leaveGame((SOCGame) games.get(mes.getGame()), "brain not alive", false);
+                leaveGame(games.get(mes.getGame()), "brain not alive", false);
             }
         }
     }
@@ -1422,9 +1430,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "change face" message
      * @param mes  the message
      */
+    @Override
     protected void handleCHANGEFACE(SOCChangeFace mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1437,9 +1446,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "longest road" message
      * @param mes  the message
      */
+    @Override
     protected void handleLONGESTROAD(SOCLongestRoad mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1458,9 +1468,10 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle the "largest army" message
      * @param mes  the message
      */
+    @Override
     protected void handleLARGESTARMY(SOCLargestArmy mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -1489,16 +1500,17 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @see soc.game.SOCGame#resetAsCopy()
      * @see #handleJOINGAMEREQUEST(SOCJoinGameRequest)
      */
+    @Override
     protected void handleRESETBOARDAUTH(SOCResetBoardAuth mes)
     {
         D.ebugPrintln("**** handleRESETBOARDAUTH ****");
 
         String gname = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gname);
+        SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
 
-        SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(gname);
+        SOCRobotBrain brain = robotBrains.get(gname);
         if (brain != null)
             brain.kill();
         leaveGame(ga, "resetboardauth", false);  // Same as in handleROBOTDISMISS
@@ -1510,15 +1522,12 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param ga Game to sendText to
      * @param record Strings to send, or null
      */
-    protected void sendRecordsText(SOCGame ga, Vector record)
+    protected void sendRecordsText(SOCGame ga, Vector<String> record)
     {
         if (record != null)
         {
-            Enumeration renum = record.elements();
-
-            while (renum.hasMoreElements())
+            for (String str : record)
             {
-                String str = (String) renum.nextElement();
                 sendText(ga, str);
             }
         }
@@ -1532,7 +1541,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      */
     public void debugPrintBrainStatus(String gameName)
     {
-        SOCRobotBrain brain = (SOCRobotBrain) robotBrains.get(gameName);
+        SOCRobotBrain brain = robotBrains.get(gameName);
         if (brain == null)
             return;
         brain.debugPrintBrainStatus();
@@ -1552,7 +1561,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             robotBrains.remove(gaName);
             brainQs.remove(gaName);
             games.remove(gaName);
-            D.ebugPrintln("L1833 robot " + nickname + " leaving game " + gaName + " due to " + leaveReason);            
+            D.ebugPrintln("L1833 robot " + nickname + " leaving game " + gaName + " due to " + leaveReason);
             if (showDebugTrace)
             {
                 soc.debug.D.ebugPrintStackTrace(null, "Leaving game here");
@@ -1571,6 +1580,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     }
 
     /** losing connection to server; leave all games, then try to reconnect */
+    @Override
     public void destroy()
     {
         SOCLeaveAll leaveAllMes = new SOCLeaveAll();

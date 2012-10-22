@@ -100,7 +100,7 @@ public class SOCRobotParameters
      * @param gameOpts A hashtable of {@link SOCGameOption}, or null
      * @return This object, or a copy with updated parameters.
      */
-    public SOCRobotParameters copyIfOptionChanged(Hashtable gameOpts)
+    public SOCRobotParameters copyIfOptionChanged(Hashtable<String, SOCGameOption> gameOpts)
     {
         if (gameOpts == null)
             return this;
@@ -201,9 +201,14 @@ public class SOCRobotParameters
     /**
      * @return a human readable form of the data
      */
+    @Override
     public String toString()
     {
-        String s = "mgl=" + maxGameLength + "|me=" + maxETA + "|ebf=" + etaBonusFactor + "|af=" + adversarialFactor + "|laf=" + leaderAdversarialFactor + "|dcm=" + devCardMultiplier + "|tm=" + threatMultiplier + "|st=" + strategyType + "|tf=" + tradeFlag;
+        String s = "mgl=" + maxGameLength + "|me=" + maxETA +
+                   "|ebf=" + etaBonusFactor + "|af=" + adversarialFactor +
+                   "|laf=" + leaderAdversarialFactor + "|dcm=" + devCardMultiplier +
+                   "|tm=" + threatMultiplier + "|st=" + strategyType +
+                   "|tf=" + tradeFlag;
 
         return s;
     }

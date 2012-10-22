@@ -92,6 +92,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      * GAMESWITHOPTIONS introduced in 1.1.07 for game-options feature.
      * @return Version number, 1107 for JSettlers 1.1.07.
      */
+    @Override
     public int getMinimumVersion() { return 1107; }
 
     /**
@@ -118,7 +119,7 @@ public class SOCGamesWithOptions extends SOCMessageTemplateMs
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      * @return    the command string
      */
-    public static String toCmd(Vector ga, final int cliVers)
+    public static String toCmd(Vector<?> ga, final int cliVers)
     {
         // build by iteration
         StringBuffer sb = new StringBuffer(Integer.toString(SOCMessage.GAMESWITHOPTIONS));

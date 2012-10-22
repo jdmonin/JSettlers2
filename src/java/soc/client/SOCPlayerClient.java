@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -53,8 +53,9 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
 
-import java.util.Enumeration;
+import java.util.Collection;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -361,12 +362,12 @@ public class SOCPlayerClient extends Panel
      * Both key and value are the game name, without the UNJOINABLE prefix.
      * @since 1.1.06
      */
-    protected Hashtable<String,String> gamesUnjoinableOverride = new Hashtable<String,String>();
+    protected Map<String,String> gamesUnjoinableOverride = new Hashtable<String,String>();
 
     /**
      * the player interfaces for the games
      */
-    protected Hashtable playerInterfaces = new Hashtable();
+    protected Map<String,SOCPlayerInterface> playerInterfaces = new Hashtable<String,SOCPlayerInterface>();
 
     /**
      * the ignore list
@@ -402,8 +403,8 @@ public class SOCPlayerClient extends Panel
         lastFaceChange = 1;  // Default human face
         
         net = new ClientNetwork(this);
-        treater = new MessageTreater(this);
         gameManager = new GameManager(this);
+        treater = new MessageTreater(this);
     }
 
     /**
@@ -683,12 +684,12 @@ public class SOCPlayerClient extends Panel
 
         // secondary message at top of message pane, used with pgm button.
         messageLabel_top = new Label("", Label.CENTER);
-        messageLabel_top.setVisible(false);        
+        messageLabel_top.setVisible(false);
         messagePane.add(messageLabel_top, BorderLayout.NORTH);
 
         // message label that takes up the whole pane
         messageLabel = new Label("", Label.CENTER);
-        messageLabel.setForeground(new Color(252, 251, 243)); // off-white 
+        messageLabel.setForeground(new Color(252, 251, 243)); // off-white
         messagePane.add(messageLabel, BorderLayout.CENTER);
 
         // bottom of message pane: practice-game button
@@ -852,7 +853,7 @@ public class SOCPlayerClient extends Panel
         }
         else
         {
-            cf.show();
+            cf.setVisible(true);
         }
 
         channel.setText("");
@@ -946,7 +947,7 @@ public class SOCPlayerClient extends Panel
         {
             // This game is either from remote server, or local practice server,
             // both servers' games are in the same GUI list.
-            Hashtable opts = null;
+            Hashtable<String,SOCGameOption> opts = null;
             if ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gm)))
                 opts = net.practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
             else if (serverGames != null)
@@ -998,7 +999,7 @@ public class SOCPlayerClient extends Panel
         }
 
         // Are we already in a game with that name?
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gm);
+        SOCPlayerInterface pi = playerInterfaces.get(gm);
 
         if ((pi == null)
                 && ((target == pg) || (target == pgm))
@@ -1028,7 +1029,7 @@ public class SOCPlayerClient extends Panel
             }
             else
             {
-                new SOCPracticeAskDialog(this, pi).show();
+                new SOCPracticeAskDialog(this, pi).setVisible(true);
             }
 
             return true;
@@ -1079,7 +1080,7 @@ public class SOCPlayerClient extends Panel
         }
         else
         {
-            pi.show();
+            pi.setVisible(true);
         }
 
         return true;
@@ -1173,7 +1174,7 @@ public class SOCPlayerClient extends Panel
     {
         if (newGameOptsFrame != null)
         {
-            newGameOptsFrame.show();
+            newGameOptsFrame.setVisible(true);
             return;
         }
 
@@ -1227,7 +1228,7 @@ public class SOCPlayerClient extends Panel
         {
             // If we're only waiting on defaults, how long ago did we ask for them?
             // If > 5 seconds ago, assume we'll never know the unknown ones, and present gui frame.
-            if (optsAllKnown && (5000 < Math.abs(System.currentTimeMillis() - opts.askedDefaultsTime))) 
+            if (optsAllKnown && (5000 < Math.abs(System.currentTimeMillis() - opts.askedDefaultsTime)))
             {
                 knowDefaults = true;
                 opts.defaultsReceived = true;
@@ -1288,7 +1289,7 @@ public class SOCPlayerClient extends Panel
      * @since 1.1.07
      * @see #readValidNicknameAndPassword()
      */
-    public void askStartGameWithOptions(final String gmName, final boolean forPracticeServer, Hashtable opts)
+    public void askStartGameWithOptions(final String gmName, final boolean forPracticeServer, Hashtable<String, SOCGameOption> opts)
     {
         if (forPracticeServer)
         {
@@ -1317,31 +1318,29 @@ public class SOCPlayerClient extends Panel
         SOCPlayerInterface pi = null;
         int gs;  // gamestate
 
-        Enumeration gameNames;
+        Collection<String> gameNames;
         if (fromPracticeServer)
         {
             if (net.practiceServer == null)
                 return null;  // <---- Early return: no games if no practice server ----
             gameNames = net.practiceServer.getGameNames();
         } else {
-            gameNames = playerInterfaces.keys();
+            gameNames = playerInterfaces.keySet();
         }
 
-        while (gameNames.hasMoreElements())
+        for (String tryGm : gameNames)
         {
-            String tryGm = (String) gameNames.nextElement();
-
             if (fromPracticeServer)
             {
                 gs = net.practiceServer.getGameState(tryGm);
                 if (gs < SOCGame.OVER)
                 {
-                    pi = (SOCPlayerInterface) playerInterfaces.get(tryGm);
+                    pi = playerInterfaces.get(tryGm);
                     if (pi != null)
                         break;  // Active and we have a window with it
                 }
             } else {
-                pi = (SOCPlayerInterface) playerInterfaces.get(tryGm);
+                pi = playerInterfaces.get(tryGm);
                 if (pi != null)
                 {
                     // we have a window with it
@@ -1368,8 +1367,13 @@ public class SOCPlayerClient extends Panel
         
         public MessageTreater(SOCPlayerClient client)
         {
+            if (client == null)
+                throw new IllegalArgumentException("client is null");
             this.client = client;
             gmgr = client.getGameManager();
+            
+            if (gmgr == null)
+                throw new IllegalArgumentException("client game manager is null");
         }
 
     /**
@@ -1656,7 +1660,7 @@ public class SOCPlayerClient extends Panel
 
             /**
              * the current player has cancelled an initial settlement,
-             * or has tried to place a piece illegally. 
+             * or has tried to place a piece illegally.
              */
             case SOCMessage.CANCELBUILDREQUEST:
                 handleCANCELBUILDREQUEST((SOCCancelBuildRequest) mes);
@@ -1882,7 +1886,7 @@ public class SOCPlayerClient extends Panel
                 handlePICKRESOURCESREQUEST((SOCPickResourcesRequest) mes);
                 break;
 
-            }  // switch (mes.getType())            
+            }  // switch (mes.getType())
         }
         catch (Exception e)
         {
@@ -1950,7 +1954,7 @@ public class SOCPlayerClient extends Panel
             {
                 // Older server: Look for options created or changed since server's version.
                 // Ask it what it knows about them.
-                Vector tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
+                Vector<SOCGameOption> tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
                 if (tooNewOpts != null)
                 {
                     if (! isPractice)
@@ -1995,7 +1999,7 @@ public class SOCPlayerClient extends Panel
             try
             {
                 String gameName = null;
-                Vector optNames = new Vector();
+                Vector<String> optNames = new Vector<String>();
                 errMsg = st.nextToken();
                 gameName = st.nextToken();
                 while (st.hasMoreTokens())
@@ -2004,14 +2008,14 @@ public class SOCPlayerClient extends Panel
                 err.append(gameName);
                 err.append("\nThere is a problem with the option values chosen.\n");
                 err.append(errMsg);
-                Hashtable knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
+                Hashtable<String, SOCGameOption> knowns = isPractice ? practiceServGameOpts.optionSet : tcpServGameOpts.optionSet;
                 for (int i = 0; i < optNames.size(); ++i)
                 {
                     err.append("\nThis option must be changed: ");
-                    String oname = (String) optNames.elementAt(i);
+                    String oname = optNames.elementAt(i);
                     SOCGameOption oinfo = null;
                     if (knowns != null)
-                        oinfo = (SOCGameOption) knowns.get(oname);
+                        oinfo = knowns.get(oname);
                     if (oinfo != null)
                         oname = oinfo.optDesc;
                     err.append(oname);
@@ -2074,11 +2078,11 @@ public class SOCPlayerClient extends Panel
         ChannelFrame fr;
         fr = channels.get(mes.getChannel());
 
-        Enumeration membersEnum = (mes.getMembers()).elements();
+        Collection<String> membersEnum = mes.getMembers();
 
-        while (membersEnum.hasMoreElements())
+        for (String member : membersEnum)
         {
-            fr.addMember((String) membersEnum.nextElement());
+            fr.addMember(member);
         }
 
         fr.began();
@@ -2113,11 +2117,11 @@ public class SOCPlayerClient extends Panel
             status.setText("Login by entering nickname and then joining a channel or game.");
         }
 
-        Enumeration channelsEnum = (mes.getChannels()).elements();
+        Collection<String> channelsEnum = mes.getChannels();
 
-        while (channelsEnum.hasMoreElements())
+        for (String ch : channelsEnum)
         {
-            addToList((String) channelsEnum.nextElement(), chlist);
+            addToList(ch, chlist);
         }
     }
 
@@ -2127,19 +2131,13 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleBCASTTEXTMSG(SOCBCastTextMsg mes)
     {
-        ChannelFrame fr;
-        for (String ch : channels.keySet())
+        for (ChannelFrame fr : channels.values())
         {
-            fr = channels.get(ch);
             fr.print("::: " + mes.getText() + " :::");
         }
 
-        SOCPlayerInterface pi;
-        Enumeration playerInterfaceKeysEnum = playerInterfaces.keys();
-
-        while (playerInterfaceKeysEnum.hasMoreElements())
+        for (SOCPlayerInterface pi : playerInterfaces.values())
         {
-            pi = (SOCPlayerInterface) playerInterfaces.get(playerInterfaceKeysEnum.nextElement());
             pi.chatPrint("::: " + mes.getText() + " :::");
         }
     }
@@ -2193,7 +2191,7 @@ public class SOCPlayerClient extends Panel
         // SOCGames.MARKER_THIS_GAME_UNJOINABLE.
         // We'll recognize and remove it in methods called from here.
 
-        Enumeration gameNamesEnum = mes.getGames().elements();
+        Collection<String> gameNamesEnum = mes.getGames();
 
         if (! isPractice)  // local's gameoption data is set up in handleVERSION
         {
@@ -2208,12 +2206,12 @@ public class SOCPlayerClient extends Panel
             tcpServGameOpts.noMoreOptions(false);
 
             // Reset enum for addToGameList call; serverGames.addGames has consumed it.
-            gameNamesEnum = mes.getGames().elements();
+            gameNamesEnum = mes.getGames();
         }
 
-        while (gameNamesEnum.hasMoreElements())
+        for (String gn : gameNamesEnum)
         {
-            addToGameList((String) gameNamesEnum.nextElement(), null, false);
+            addToGameList(gn, null, false);
         }
     }
 
@@ -2241,12 +2239,12 @@ public class SOCPlayerClient extends Panel
         }
 
         final String gaName = mes.getGame();
-        Hashtable gameOpts;
+        Hashtable<String,SOCGameOption> gameOpts;
         if (isPractice)
         {
             gameOpts = practiceServGameOpts.optionSet;  // holds most recent settings by user
             if (gameOpts != null)
-                gameOpts = (Hashtable) gameOpts.clone();  // changes here shouldn't change practiceServ's copy
+                gameOpts = new Hashtable<String,SOCGameOption>(gameOpts);  // changes here shouldn't change practiceServ's copy
         } else {
             if (serverGames != null)
                 gameOpts = serverGames.parseGameOptions(gaName);
@@ -2272,7 +2270,7 @@ public class SOCPlayerClient extends Panel
     protected void handleJOINGAME(SOCJoinGame mes)
     {
         final String gn = mes.getGame();
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gn);
+        SOCPlayerInterface pi = playerInterfaces.get(gn);
         final String msg = "*** " + mes.getNickname() + " has joined this game.\n";
         pi.print(msg);
         SOCGame ga = games.get(gn);
@@ -2292,7 +2290,7 @@ public class SOCPlayerClient extends Panel
         final String name = mes.getNickname();
         if (ga != null)
         {
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gn);
+            SOCPlayerInterface pi = playerInterfaces.get(gn);
             SOCPlayer player = ga.getPlayer(name);
 
             if (player != null)
@@ -2340,7 +2338,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleGAMEMEMBERS(SOCGameMembers mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         pi.began(mes.getMembers());
     }
 
@@ -2372,7 +2370,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
 
         if (pi != null)
         {
@@ -2431,7 +2429,7 @@ public class SOCPlayerClient extends Panel
             /**
              * tell the GUI that a player is sitting
              */
-            final SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            final SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
             pi.addPlayer(mes.getNickname(), mesPN);
 
             /**
@@ -2499,7 +2497,7 @@ public class SOCPlayerClient extends Panel
             bd.setNumberLayout(mes.getNumberLayout());
             bd.setRobberHex(mes.getRobberHex(), false);
 
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
             pi.getBoardPanel().flushBoardLayoutAndRepaint();
         }
     }
@@ -2528,7 +2526,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
 
@@ -2565,7 +2563,7 @@ public class SOCPlayerClient extends Panel
                 ("Cannot recognize game encoding v" + bef + " for game " + ga.getName());
             return;
         }
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         pi.getBoardPanel().flushBoardLayoutAndRepaint();
     }
 
@@ -2575,7 +2573,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleSTARTGAME(SOCStartGame mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         pi.startGame();
     }
 
@@ -2585,11 +2583,11 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleGAMESTATE(SOCGameState mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
             if (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW)
             {
                 pi.startGame();
@@ -2607,7 +2605,7 @@ public class SOCPlayerClient extends Panel
     protected void handleSETTURN(SOCSetTurn mes)
     {
         final String gaName = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gaName);
+        SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // <--- Early return: not playing in that one ----
 
@@ -2615,7 +2613,7 @@ public class SOCPlayerClient extends Panel
         ga.setCurrentPlayerNumber(pn);
 
         // repaint board panel, update buttons' status, etc:
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+        SOCPlayerInterface pi = playerInterfaces.get(gaName);
         pi.updateAtTurn(pn);
     }
 
@@ -2625,7 +2623,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleFIRSTPLAYER(SOCFirstPlayer mes)
     {
-        SOCGame ga = (SOCGame) games.get(mes.getGame());
+        SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
@@ -2640,14 +2638,14 @@ public class SOCPlayerClient extends Panel
     protected void handleTURN(SOCTurn mes)
     {
         final String gaName = mes.getGame();
-        SOCGame ga = (SOCGame) games.get(gaName);
+        SOCGame ga = games.get(gaName);
 
         if (ga != null)
         {
             final int pnum = mes.getPlayerNumber();
             ga.setCurrentPlayerNumber(pnum);
             ga.updateAtTurn();
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+            SOCPlayerInterface pi = playerInterfaces.get(gaName);
             pi.updateAtTurn(pnum);
         }
     }
@@ -2658,13 +2656,13 @@ public class SOCPlayerClient extends Panel
      */
     protected void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
-        final SOCGame ga = (SOCGame) games.get(mes.getGame());
+        final SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
         {
             final int pn = mes.getPlayerNumber();
             final SOCPlayer pl = ga.getPlayer(pn);
-            final SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            final SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
             final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);
             final int etype = mes.getElementType();
             int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
@@ -2782,7 +2780,7 @@ public class SOCPlayerClient extends Panel
                 else
                 {
                     hpan.updateValue(SOCHandPanel.NUMRESOURCES);
-                }                
+                }
             }
 
             if (hpan.isClientPlayer() && (ga.getGameState() != SOCGame.NEW))
@@ -2803,7 +2801,7 @@ public class SOCPlayerClient extends Panel
         if (ga != null)
         {
             SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
 
             if (mes.getCount() != pl.getResources().getTotal())
             {
@@ -2819,7 +2817,7 @@ public class SOCPlayerClient extends Panel
                 //
                 SOCHandPanel hpan = pi.getPlayerHandPanel(mes.getPlayerNumber());
                 if (! hpan.isClientPlayer())
-                {                     
+                {
                     rsrcs.clear();
                     rsrcs.setAmount(mes.getCount(), SOCResourceConstants.UNKNOWN);
                     hpan.updateValue(SOCHandPanel.NUMRESOURCES);
@@ -2838,7 +2836,7 @@ public class SOCPlayerClient extends Panel
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
             int roll = mes.getResult();
             ga.setCurrentDice(roll);
             pi.setTextDisplayRollExpected(roll);
@@ -2860,7 +2858,7 @@ public class SOCPlayerClient extends Panel
         if (ga == null)
             return;
 
-        final SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        final SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         if (pi == null)
             return;
 
@@ -2880,7 +2878,7 @@ public class SOCPlayerClient extends Panel
      *<P>
      * - During game startup (START1B or START2B): <BR>
      *       Sent from server, CANCELBUILDREQUEST means the current player
-     *       wants to undo the placement of their initial settlement.  
+     *       wants to undo the placement of their initial settlement.
      *<P>
      * - During piece placement (PLACING_ROAD, PLACING_CITY, PLACING_SETTLEMENT,
      *                           PLACING_FREE_ROAD1 or PLACING_FREE_ROAD2):
@@ -2915,7 +2913,7 @@ public class SOCPlayerClient extends Panel
         SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
         ga.undoPutInitSettlement(pp);
 
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         pi.getPlayerHandPanel(pl.getPlayerNumber()).updateResourcesVP();
         pi.getBoardPanel().updateMode();
     }
@@ -2930,7 +2928,7 @@ public class SOCPlayerClient extends Panel
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
 
             /**
              * Note: Don't call ga.moveRobber() because that will call the
@@ -2952,7 +2950,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleDISCARDREQUEST(SOCDiscardRequest mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         pi.showDiscardOrGainDialog(mes.getNumberOfDiscards(), true);
     }
 
@@ -2963,7 +2961,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handlePICKRESOURCESREQUEST(SOCPickResourcesRequest mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         pi.showDiscardOrGainDialog(mes.getParam(), false);
     }
 
@@ -2973,7 +2971,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         boolean[] ch = mes.getChoices();
         int[] choices = new int[ch.length];  // == SOCGame.maxPlayers
         int count = 0;
@@ -3003,7 +3001,7 @@ public class SOCPlayerClient extends Panel
             // Since the message is from the network thread, ensure it runs in the display thread
             javax.swing.SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+                    SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
                     SOCTradeOffer offer = mes.getOffer();
                     ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
                     pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer();
@@ -3025,7 +3023,7 @@ public class SOCPlayerClient extends Panel
             // Since the message is from the network thread, ensure it runs in the display thread
             javax.swing.SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+                    SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
                     final int pn = mes.getPlayerNumber();
                     if (pn != -1)
                     {
@@ -3049,7 +3047,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         pi.getPlayerHandPanel(mes.getPlayerNumber()).rejectOfferShowNonClient();
     }
 
@@ -3059,7 +3057,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         pi.clearTradeMsg(mes.getPlayerNumber());
     }
 
@@ -3074,7 +3072,7 @@ public class SOCPlayerClient extends Panel
         if (ga != null)
         {
             ga.setNumDevCards(mes.getNumDevCards());
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
             if (pi != null)
                 pi.updateDevCardCount();
         }
@@ -3092,7 +3090,7 @@ public class SOCPlayerClient extends Panel
         {
             final int mesPN = mes.getPlayerNumber();
             SOCPlayer player = ga.getPlayer(mesPN);
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
 
             int ctype = mes.getCardType();
             if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
@@ -3163,7 +3161,7 @@ public class SOCPlayerClient extends Panel
     {
         SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, games);
 
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         if (pi == null)
             return;
         pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
@@ -3180,7 +3178,7 @@ public class SOCPlayerClient extends Panel
         if (ga != null)
         {
             SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
             player.setFaceId(mes.getFaceId());
             pi.changeFace(mes.getPlayerNumber(), mes.getFaceId());
         }
@@ -3238,7 +3236,7 @@ public class SOCPlayerClient extends Panel
             }
             ga.setPlayerWithLongestRoad(newLongestRoadPlayer);
 
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
 
             // Update player victory points; check for and announce change in longest road
             pi.updateLongestLargest(true, oldLongestRoadPlayer, newLongestRoadPlayer);
@@ -3267,7 +3265,7 @@ public class SOCPlayerClient extends Panel
             }
             ga.setPlayerWithLargestArmy(newLargestArmyPlayer);
 
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
 
             // Update player victory points; check for and announce change in largest army
             pi.updateLongestLargest(false, oldLargestArmyPlayer, newLargestArmyPlayer);
@@ -3293,7 +3291,7 @@ public class SOCPlayerClient extends Panel
                 ga.unlockSeat(mes.getPlayerNumber());
             }
 
-            SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
 
             for (int i = 0; i < ga.maxPlayers; i++)
             {
@@ -3312,9 +3310,9 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleROLLDICEPROMPT(SOCRollDicePrompt mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         if (pi == null)
-            return;  // Not one of our games        
+            return;  // Not one of our games
         pi.updateAtRollPrompt();
     }
 
@@ -3337,7 +3335,7 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
+        SOCPlayerInterface pi = playerInterfaces.get(gname);
         if (pi == null)
             return;  // Not one of our games
 
@@ -3360,7 +3358,7 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
+        SOCPlayerInterface pi = playerInterfaces.get(gname);
         if (pi == null)
             return;  // Not one of our games
 
@@ -3378,7 +3376,7 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
+        SOCPlayerInterface pi = playerInterfaces.get(gname);
         if (pi == null)
             return;  // Not one of our games
 
@@ -3396,7 +3394,7 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gname);
+        SOCPlayerInterface pi = playerInterfaces.get(gname);
         if (pi == null)
             return;  // Not one of our games
 
@@ -3477,13 +3475,12 @@ public class SOCPlayerClient extends Panel
         {
             if (gameInfoWaiting != null)
             {
-                Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
-            } else if (newGameWaiting)
+                Hashtable<String,SOCGameOption> gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow(SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
+            }
+            else if (newGameWaiting)
             {
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow(SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
             }
         }
     }
@@ -3544,7 +3541,7 @@ public class SOCPlayerClient extends Panel
      */
     private void handlePLAYERSTATS(SOCPlayerStats mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         if (pi == null)
             return;  // Not one of our games
 
@@ -3575,7 +3572,7 @@ public class SOCPlayerClient extends Panel
      */
     private final void handleDEBUGFREEPLACE(SOCDebugFreePlace mes)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
         if (pi == null)
             return;  // Not one of our games
 
@@ -3593,7 +3590,7 @@ public class SOCPlayerClient extends Panel
         if (ga == null)
             return;  // Not one of our games
 
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(gaName);
+        SOCPlayerInterface pi = playerInterfaces.get(gaName);
         if (pi == null)
             return;  // Not one of our games
 
@@ -3778,7 +3775,7 @@ public class SOCPlayerClient extends Panel
             return;  // Should not have been sent; game is not yet over.
         }
 
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(game);
+        SOCPlayerInterface pi = playerInterfaces.get(game);
         pi.updateAtOver(scores);
     }
 
@@ -3802,7 +3799,7 @@ public class SOCPlayerClient extends Panel
                 gmlist.replaceItem(" ", 0);
                 gmlist.deselect(0);
 
-                if ((! isPractice) && (serverGames != null)) 
+                if ((! isPractice) && (serverGames != null))
                 {
                     serverGames.deleteGame(gameName);  // may not be in there
                 }
@@ -3911,7 +3908,11 @@ public class SOCPlayerClient extends Panel
         GameManager(SOCPlayerClient client)
         {
             this.client = client;
+            if (client == null)
+                throw new IllegalArgumentException("client is null");
             net = client.getNet();
+            if (net == null)
+                throw new IllegalArgumentException("client network is null");
         }
         
         /**
@@ -3992,7 +3993,7 @@ public class SOCPlayerClient extends Panel
      * @param ga  the game where the action is taking place
      * @param pn  The piece's player number
      * @param ptype    The piece type, such as {@link SOCPlayingPiece#SHIP}
-     * @param fromCoord  Move the piece from here  
+     * @param fromCoord  Move the piece from here
      * @param toCoord    Move the piece to here
      * @since 2.0.00
      */
@@ -4379,7 +4380,7 @@ public class SOCPlayerClient extends Panel
      */
     public boolean doLocalCommand(SOCGame ga, String cmd)
     {
-        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(ga.getName());
+        SOCPlayerInterface pi = playerInterfaces.get(ga.getName());
 
         if (cmd.startsWith("\\ignore "))
         {
@@ -4518,7 +4519,7 @@ public class SOCPlayerClient extends Panel
         for (String s : ignoreList)
         {
             pi.print("* " + s);
-        }        
+        }
     }
 
     /**
@@ -4569,7 +4570,7 @@ public class SOCPlayerClient extends Panel
      *         False if we're being called from elsewhere, such as
      *         {@link SOCConnectOrPracticePanel}.
      */
-    public void startPracticeGame(String practiceGameName, Hashtable gameOpts, boolean mainPanelIsActive)
+    public void startPracticeGame(String practiceGameName, Hashtable<String, SOCGameOption> gameOpts, boolean mainPanelIsActive)
     {
         ++numPracticeGames;
 
@@ -4587,7 +4588,7 @@ public class SOCPlayerClient extends Panel
      * Setup for locally hosting a TCP server.
      * If needed, a local server and robots are started, and client connects to it.
      * If parent is a Frame, set titlebar to show "server" and port#.
-     * Show port number in {@link #versionOrlocalTCPPortLabel}. 
+     * Show port number in {@link #versionOrlocalTCPPortLabel}.
      * If the {@link #localTCPServer} is already created, does nothing.
      * If {@link #connected} already, does nothing.
      *
@@ -4623,6 +4624,7 @@ public class SOCPlayerClient extends Panel
              * show a popup with more info.
              * @since 1.1.12
              */
+            @Override
             public void mouseClicked(MouseEvent e)
             {
                 NotifyDialog.createAndShow
@@ -4641,6 +4643,7 @@ public class SOCPlayerClient extends Panel
              * Set the hand cursor when entering the local-server info label.
              * @since 1.1.12
              */
+            @Override
             public void mouseEntered(MouseEvent e)
             {
                 if (e.getSource() == localTCPServerLabel)
@@ -4651,6 +4654,7 @@ public class SOCPlayerClient extends Panel
              * Clear the cursor when exiting the local-server info label.
              * @since 1.1.12
              */
+            @Override
             public void mouseExited(MouseEvent e)
             {
                 if (e.getSource() == localTCPServerLabel)
@@ -4709,8 +4713,7 @@ public class SOCPlayerClient extends Panel
     {
         if (game.isPractice)
             return Version.versionNumber();
-        else
-            return sVersion;
+        return sVersion;
     }
 
     /**
@@ -4731,17 +4734,15 @@ public class SOCPlayerClient extends Panel
         }
         err = err + ((net.ex == null) ? "Load the page again." : net.ex.toString());
 
-        for (Enumeration e = channels.elements(); e.hasMoreElements();)
+        for (ChannelFrame cf : channels.values())
         {
-            ((ChannelFrame) e.nextElement()).over(err);
+            cf.over(err);
         }
 
-        for (Enumeration e = playerInterfaces.elements(); e.hasMoreElements();)
+        for (SOCPlayerInterface pi : playerInterfaces.values())
         {
             // Stop network games.
             // Local practice games can continue.
-
-            SOCPlayerInterface pi = ((SOCPlayerInterface) e.nextElement());
             if (! (canLocal && pi.getGame().isPractice))
             {
                 pi.over(err);
@@ -4758,13 +4759,13 @@ public class SOCPlayerClient extends Panel
             messageLabel_top.setText(err);
             messageLabel_top.setVisible(true);
             messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
-            pgm.setVisible(true);            
+            pgm.setVisible(true);
         }
         else
         {
             messageLabel_top.setVisible(false);
             messageLabel.setText(err);
-            pgm.setVisible(false);            
+            pgm.setVisible(false);
         }
         cardLayout.show(this, MESSAGE_PANEL);
         validate();
@@ -4907,6 +4908,8 @@ public class SOCPlayerClient extends Panel
         public ClientNetwork(SOCPlayerClient c)
         {
             client = c;
+            if (client == null)
+                throw new IllegalArgumentException("client is null");
         }
         
         public void dispose()
@@ -5043,7 +5046,7 @@ public class SOCPlayerClient extends Panel
                 if (ex_L == null)
                 {
                     client.pgm.setVisible(true);
-                    client.messageLabel_top.setText(msg);                
+                    client.messageLabel_top.setText(msg);
                     client.messageLabel_top.setVisible(true);
                     client.messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
                     client.validate();
@@ -5091,11 +5094,10 @@ public class SOCPlayerClient extends Panel
             if (localTCPServer == null)
                 return false;
             
-            Enumeration gameNames = localTCPServer.getGameNames();
+            Collection<String> gameNames = localTCPServer.getGameNames();
 
-            while (gameNames.hasMoreElements())
+            for (String tryGm : gameNames)
             {
-                String tryGm = (String) gameNames.nextElement();
                 int gs = localTCPServer.getGameState(tryGm);
                 if ((gs < SOCGame.OVER) && (gs >= SOCGame.START1A))
                 {
@@ -5199,7 +5201,7 @@ public class SOCPlayerClient extends Panel
          */
         public boolean putLeaveAll()
         {
-            boolean canLocal = (ex_L == null);  // Can we still start a local game? 
+            boolean canLocal = (ex_L == null);  // Can we still start a local game?
 
             SOCLeaveAll leaveAllMes = new SOCLeaveAll();
             putNet(leaveAllMes.toCmd());
@@ -5263,7 +5265,7 @@ public class SOCPlayerClient extends Panel
         {
             LocalStringConnection locl;
 
-            /** 
+            /**
              * Start a new thread and listen to local server.
              *
              * @param localConn Active connection to local server
@@ -5325,6 +5327,7 @@ public class SOCPlayerClient extends Panel
          * If we are playing in a game, or running a local server hosting active games,
          * ask the user to confirm if possible.
          */
+        @Override
         public void windowClosing(WindowEvent evt)
         {
             SOCPlayerInterface piActive = null;
@@ -5368,6 +5371,7 @@ public class SOCPlayerClient extends Panel
         /**
          * Set focus to Nickname field
          */
+        @Override
         public void windowOpened(WindowEvent evt)
         {
             if (! cli.hasConnectOrPractice)
@@ -5401,6 +5405,7 @@ public class SOCPlayerClient extends Panel
         /**
          * Called when timer fires. See class description for action taken.
          */
+        @Override
         public void run()
         {
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
@@ -5438,6 +5443,7 @@ public class SOCPlayerClient extends Panel
         /**
          * Called when timer fires. See class description for action taken.
          */
+        @Override
         public void run()
         {
             pcli.gameOptsDefsTask = null;  // Clear reference to this soon-to-expire obj
@@ -5598,15 +5604,15 @@ public class SOCPlayerClient extends Panel
                 // That is end of srv's response to cli sending GAMEOPTIONGETINFOS("-").
                 noMoreOptions(false);
                 return true;
-            } else {
-                // remove old, replace with new from server (if any)
-                SOCGameOption.addKnownOption(oinfo);
-                if (oldcopy != null)
-                    optionSet.remove(oKey);
-                if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
-                    optionSet.put(oKey, oinfo);
-                return false;
             }
+            
+            // remove old, replace with new from server (if any)
+            SOCGameOption.addKnownOption(oinfo);
+            if (oldcopy != null)
+                optionSet.remove(oKey);
+            if (oinfo.optType != SOCGameOption.OTYPE_UNKNOWN)
+                optionSet.put(oKey, oinfo);
+            return false;
         }
 
     }  // class GameOptionServerSet
@@ -5665,7 +5671,7 @@ public class SOCPlayerClient extends Panel
             String param = null;
             int intValue;
                 
-            intValue = getHexParameter("background"); 
+            intValue = getHexParameter("background");
             if (intValue != -1)
                     setBackground(new Color(intValue));
 

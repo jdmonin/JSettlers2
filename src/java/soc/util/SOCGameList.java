@@ -26,7 +26,7 @@ import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.message.SOCGames;
 
-import java.util.Enumeration;
+import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -117,7 +117,7 @@ public class SOCGameList
     {
         // D.ebugPrintln("SOCGameList : TAKE MONITOR FOR " + game);
 
-        GameInfo info = (GameInfo) gameInfo.get(game);
+        GameInfo info = gameInfo.get(game);
         if ((info == null) || info.gameDestroyed)
         {
             return false;
@@ -182,7 +182,7 @@ public class SOCGameList
     {
         // D.ebugPrintln("SOCGameList : RELEASE MONITOR FOR " + game);
 
-        GameInfo info = (GameInfo) gameInfo.get(game);
+        GameInfo info = gameInfo.get(game);
         if (info == null)
             return false;
         MutexFlag mutex = info.mutex;
@@ -199,17 +199,6 @@ public class SOCGameList
         }
 
         return true;
-    }
-
-    /**
-     * Get the names of every game we know about, even those with no {@link SOCGame} object.
-     * @return an enumeration of game names (Strings)
-     * @see #getGamesData()
-     * @see #getGameNames()
-     */
-    public Enumeration getGames()
-    {
-        return gameInfo.keys();
     }
 
     /**
@@ -232,9 +221,9 @@ public class SOCGameList
      * @see #getGameNames()
      * @since 1.1.06
      */
-    public Enumeration getGamesData()
+    public Collection<SOCGame> getGamesData()
     {
-        return gameData.elements();
+        return gameData.values();
     }
 
     /**
@@ -254,7 +243,7 @@ public class SOCGameList
      */
     public SOCGame getGameData(String gaName)
     {
-        return (SOCGame) gameData.get(gaName);
+        return gameData.get(gaName);
     }
 
     /**
@@ -265,13 +254,12 @@ public class SOCGameList
      * @see #parseGameOptions(String)
      * @since 1.1.07
      */
-    public Hashtable getGameOptions(String gaName)
+    public Hashtable<String,SOCGameOption> getGameOptions(String gaName)
     {
-        GameInfo info = (GameInfo) gameInfo.get(gaName);
+        GameInfo info = gameInfo.get(gaName);
         if (info == null)
             return null;
-        else
-            return info.opts;
+        return info.opts;
     }
 
     /**
@@ -283,11 +271,10 @@ public class SOCGameList
      */
     public String getGameOptionsString(String gaName)
     {
-        GameInfo info = (GameInfo) gameInfo.get(gaName);
+        GameInfo info = gameInfo.get(gaName);
         if (info == null)
             return null;
-        else
-            return info.optsStr;
+        return info.optsStr;
     }
 
     /**
@@ -298,13 +285,12 @@ public class SOCGameList
      * @see #getGameOptionsString(String)
      * @since 1.1.07
      */
-    public Hashtable parseGameOptions(String gaName)
+    public Hashtable<String,SOCGameOption> parseGameOptions(String gaName)
     {
-        GameInfo info = (GameInfo) gameInfo.get(gaName);
+        GameInfo info = gameInfo.get(gaName);
         if (info == null)
             return null;
-        else
-            return info.parseOptsStr();
+        return info.parseOptsStr();
     }
 
     /**
@@ -333,7 +319,7 @@ public class SOCGameList
     {
         if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
             return true;
-        GameInfo gi = (GameInfo) gameInfo.get(gaName);
+        GameInfo gi = gameInfo.get(gaName);
         if (gi == null)
             return false;
         return ! gi.canJoin;
@@ -371,7 +357,7 @@ public class SOCGameList
      *
      * @param gaName Name of added game; may be marked with the prefix
      *         {@link soc.message.SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param gaOpts Hashtable of {@link SOCGameOption game options} of added game, or null 
+     * @param gaOpts Hashtable of {@link SOCGameOption game options} of added game, or null
      * @param gaOptsStr set of {@link SOCGameOption}s as packed by
      *         {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}, or null.
      *         Game options should remain unparsed as late as possible.
@@ -382,7 +368,7 @@ public class SOCGameList
      * @see #addGames(Enumeration, int)
      * @since 1.1.07
      */
-    protected synchronized void addGame(String gaName, Hashtable gaOpts, String gaOptsStr, boolean cannotJoin)
+    protected synchronized void addGame(String gaName, Hashtable<String, SOCGameOption> gaOpts, String gaOptsStr, boolean cannotJoin)
     {
         if (gaName.charAt(0) == SOCGames.MARKER_THIS_GAME_UNJOINABLE)
         {
@@ -394,7 +380,7 @@ public class SOCGameList
         {
             if (cannotJoin)
             {
-                GameInfo gi = (GameInfo) gameInfo.get(gaName);
+                GameInfo gi = gameInfo.get(gaName);
                 if (gi.canJoin)
                     gi.canJoin = false;
             }
@@ -426,14 +412,13 @@ public class SOCGameList
         if ((gl == null) || (gl.gameInfo == null))
             return;
         if (gl.gameData != null)
-            addGames(gl.gameData.elements(), ourVersion);
+            addGames(gl.gameData.values(), ourVersion);
         if (gl.gameInfo != null)
         {
             // add games, and/or update canJoin flag of games added via gameData.
-            for (Enumeration gnEnum = gl.gameInfo.keys(); gnEnum.hasMoreElements(); )
+            for (String gaName : gl.gameInfo.keySet())
             {
-                String gaName = (String) gnEnum.nextElement();
-                GameInfo gi = (GameInfo) gl.gameInfo.get(gaName);
+                GameInfo gi = gl.gameInfo.get(gaName);
                 if (gi.opts != null)
                     addGame(gaName, gi.opts, null, ! gi.canJoin);
                 else
@@ -457,16 +442,15 @@ public class SOCGameList
      *          will be called.
      * @since 1.1.07
      */
-    public synchronized void addGames(Enumeration gamelist, final int ourVersion)
+    public synchronized void addGames(Iterable<?> gamelist, final int ourVersion)
     {
         if (gamelist == null)
             return;
 
-        while (gamelist.hasMoreElements())
+        for (Object ob : gamelist)
         {
-            Object ob = gamelist.nextElement();
             String gaName;
-            Hashtable gaOpts;
+            Hashtable<String, SOCGameOption> gaOpts;
             boolean cannotJoin;
             if (ob instanceof SOCGame)
             {
@@ -480,7 +464,7 @@ public class SOCGameList
             }
 
             addGame(gaName, gaOpts, null, cannotJoin);
-        }    
+        }
     }
 
     /**
@@ -494,7 +478,7 @@ public class SOCGameList
     {
         D.ebugPrintln("SOCGameList : deleteGame(" + gaName + ")");
 
-        SOCGame game = (SOCGame) gameData.get(gaName);
+        SOCGame game = gameData.get(gaName);
 
         if (game != null)
         {
@@ -502,14 +486,14 @@ public class SOCGameList
             gameData.remove(gaName);
         }
 
-        GameInfo info = (GameInfo) gameInfo.get(gaName);
+        GameInfo info = gameInfo.get(gaName);
         info.gameDestroyed = true;
         gameInfo.remove(gaName);
         synchronized (info.mutex)
         {
             info.mutex.notifyAll();
         }
-        info.finalize();
+        info.dispose();
     }
 
     /**
@@ -522,7 +506,7 @@ public class SOCGameList
     protected static class GameInfo
     {
         public MutexFlag mutex;
-        public Hashtable opts;  // or null
+        public Hashtable<String,SOCGameOption> opts;  // or null
         public String optsStr;  // or null
         public boolean canJoin;
         /** Flag for when game has been destroyed, in case anything's waiting on its mutex. @since 1.1.15 */
@@ -533,7 +517,7 @@ public class SOCGameList
          * @param canJoinGame can we join this game?
          * @param gameOpts Hashtable of {@link SOCGameOption}s, or null
          */
-        public GameInfo (boolean canJoinGame, Hashtable gameOpts)
+        public GameInfo(boolean canJoinGame, Hashtable<String,SOCGameOption> gameOpts)
         {
             mutex = new MutexFlag();
             opts = gameOpts;
@@ -546,7 +530,7 @@ public class SOCGameList
          * @param gameOptsStr set of {@link SOCGameOption}s as packed by
          *            {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}, or null
          */
-        public GameInfo (boolean canJoinGame, String gameOptsStr)
+        public GameInfo(boolean canJoinGame, String gameOptsStr)
         {
             mutex = new MutexFlag();
             optsStr = gameOptsStr;
@@ -557,7 +541,7 @@ public class SOCGameList
          * Parse optsStr to opts, unless it's already been parsed.
          * @return opts, after parsing if necessary, or null if opts==null and optsStr==null.
          */
-        public Hashtable parseOptsStr()
+        public Hashtable<String,SOCGameOption> parseOptsStr()
         {
             if (opts != null)  // already parsed
                 return opts;
@@ -570,7 +554,7 @@ public class SOCGameList
             }
         }
 
-        public void finalize()
+        public void dispose()
         {
             if (opts != null)
             {

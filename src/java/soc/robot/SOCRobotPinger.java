@@ -20,6 +20,7 @@
  **/
 package soc.robot;
 
+import soc.message.SOCMessage;
 import soc.message.SOCTimingPing;
 
 import soc.util.CappedQueue;
@@ -33,7 +34,7 @@ import soc.util.CutoffExceededException;
  */
 public class SOCRobotPinger extends Thread
 {
-    CappedQueue messageQueue;
+    CappedQueue<SOCMessage> messageQueue;
     SOCTimingPing ping;
     boolean alive;
     String robotNickname;
@@ -44,7 +45,7 @@ public class SOCRobotPinger extends Thread
      * @param q  the robot brain's message queue
      * @param nickname the robot's nickname, for debug thread naming
      */
-    public SOCRobotPinger(CappedQueue q, String gameName, String nickname)
+    public SOCRobotPinger(CappedQueue<SOCMessage> q, String gameName, String nickname)
     {
         messageQueue = q;
         ping = new SOCTimingPing(gameName);
@@ -55,6 +56,7 @@ public class SOCRobotPinger extends Thread
     /**
      * DOCUMENT ME!
      */
+    @Override
     public void run()
     {
         // Thread name for debug

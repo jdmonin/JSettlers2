@@ -35,14 +35,14 @@ public class SOCChannels extends SOCMessage
     /**
      * List of channels
      */
-    private Vector channels;
+    private Vector<String> channels;
 
     /**
      * Create a Channels Message.
      *
      * @param cl  list of channels
      */
-    public SOCChannels(Vector cl)
+    public SOCChannels(Vector<String> cl)
     {
         messageType = CHANNELS;
         channels = cl;
@@ -51,7 +51,7 @@ public class SOCChannels extends SOCMessage
     /**
      * @return the list of channels
      */
-    public Vector getChannels()
+    public Vector<String> getChannels()
     {
         return channels;
     }
@@ -61,6 +61,7 @@ public class SOCChannels extends SOCMessage
      *
      * @return the command String
      */
+    @Override
     public String toCmd()
     {
         return toCmd(channels);
@@ -72,18 +73,18 @@ public class SOCChannels extends SOCMessage
      * @param cl  the list of channels
      * @return    the command string
      */
-    public static String toCmd(Vector cl)
+    public static String toCmd(Vector<String> cl)
     {
         String cmd = CHANNELS + sep;
 
         try
         {
-            Enumeration clEnum = cl.elements();
-            cmd += (String) clEnum.nextElement();
+            Enumeration<String> clEnum = cl.elements();
+            cmd += clEnum.nextElement();
 
             while (clEnum.hasMoreElements())
             {
-                cmd += (sep2 + (String) clEnum.nextElement());
+                cmd += (sep2 + clEnum.nextElement());
             }
         }
         catch (Exception e) {}
@@ -99,7 +100,7 @@ public class SOCChannels extends SOCMessage
      */
     public static SOCChannels parseDataStr(String s)
     {
-        Vector cl = new Vector();
+        Vector<String> cl = new Vector<String>();
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
@@ -116,12 +117,13 @@ public class SOCChannels extends SOCMessage
             return null;
         }
 
-        return new SOCChannels((Vector) cl);
+        return new SOCChannels(cl);
     }
 
     /**
      * @return a human readable form of the message
      */
+    @Override
     public String toString()
     {
         StringBuffer sb = new StringBuffer("SOCChannels:channels=");

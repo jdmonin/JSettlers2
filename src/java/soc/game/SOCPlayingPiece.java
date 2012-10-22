@@ -115,7 +115,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
             if (pboard == null)
                 throw new IllegalArgumentException("player has null board");
         }
-        board = pboard;       
+        board = pboard;
     }
 
     /**
@@ -123,7 +123,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * Should not be called for roads, because they aren't placed at a node.
      * @return edges touching this piece, same format as {@link SOCBoard#getAdjacentEdgesToNode(int)}
      */
-    public Vector getAdjacentEdges()
+    public Vector<Integer> getAdjacentEdges()
     {
         return board.getAdjacentEdgesToNode(coord);
     }
@@ -166,6 +166,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * @return a human readable form of this object
      */
+    @Override
     public String toString()
     {
         String s = "SOCPlayingPiece:type=" + pieceType + "|player=" + player + "|coord=" + Integer.toHexString(coord);
@@ -184,6 +185,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * 
      * @param other The object to compare with, or null.
      */
+    @Override
     public boolean equals(Object other)
     {
         if (other == null)
@@ -207,7 +209,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * @since 1.1.08
      */
     public static SOCResourceSet getResourcesToBuild(final int pieceType)
-        throws IllegalArgumentException 
+        throws IllegalArgumentException
     {
         switch (pieceType)
         {

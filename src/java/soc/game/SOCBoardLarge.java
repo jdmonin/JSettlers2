@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Vector;
 
 /**
@@ -313,7 +312,7 @@ public class SOCBoardLarge extends SOCBoard
      * Sent from server to client, along with the land hex types / dice numbers,
      * via {@link #getLandHexLayout()} / {@link #setLandHexLayout(int[])}.
      */
-    private HashSet landHexLayout;
+    private HashSet<Integer> landHexLayout;
 
     /**
      * When the board has multiple "land areas" (groups of islands),
@@ -331,7 +330,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * The set {@link SOCBoard#nodesOnLand} contains all nodes of all land areas.
      */
-    private HashSet[] landAreasLegalNodes;
+    private HashSet<Integer>[] landAreasLegalNodes;
 
     /**
      * When players must start the game in a certain land area,
@@ -351,7 +350,7 @@ public class SOCBoardLarge extends SOCBoard
      * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
      * Used by {@link #initPlayerLegalRoads()}.
      */
-    private HashSet legalRoadEdges;
+    private HashSet<Integer> legalRoadEdges;
 
     /**
      * The legal set of water/coastline edge coordinates to build ships,
@@ -361,7 +360,7 @@ public class SOCBoardLarge extends SOCBoard
      * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
      * Used by {@link #initPlayerLegalShips()}.
      */
-    private HashSet legalShipEdges;
+    private HashSet<Integer> legalShipEdges;
 
     /**
      * Dice number from hex coordinate.
@@ -395,7 +394,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param maxPlayers Maximum players; must be 4 or 6
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      */
-    public SOCBoardLarge(Hashtable gameOpts, int maxPlayers)
+    public SOCBoardLarge(Hashtable<String,SOCGameOption> gameOpts, int maxPlayers)
             throws IllegalArgumentException
     {
         super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
@@ -407,9 +406,9 @@ public class SOCBoardLarge extends SOCBoard
 
         hexLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
         numberLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
-        landHexLayout = new HashSet();
-        legalRoadEdges = new HashSet();
-        legalShipEdges = new HashSet();
+        landHexLayout = new HashSet<Integer>();
+        legalRoadEdges = new HashSet<Integer>();
+        legalShipEdges = new HashSet<Integer>();
 
         // Assume 1 Land Area, unless or until makeNewBoard says otherwise
         landAreasLegalNodes = null;
@@ -453,9 +452,10 @@ public class SOCBoardLarge extends SOCBoard
      *          the same as passed to constructor, and thus give the same size and layout
      *          (same {@link #getBoardEncodingFormat()}).
      */
-    public void makeNewBoard(Hashtable opts)
+    @Override
+    public void makeNewBoard(Hashtable<String, SOCGameOption> opts)
     {
-        SOCGameOption opt_breakClumps = (opts != null ? (SOCGameOption)opts.get("BC") : null);
+        SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
 
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
@@ -507,7 +507,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // place the ports (hex numbers and facing) within portsLayout[] and nodeIDtoPortType.
         // fill out the ports[] vectors with node coordinates where a trade port can be placed.
-        nodeIDtoPortType = new Hashtable();
+        nodeIDtoPortType = new Hashtable<Integer, Integer>();
 
         // - main island:
         // i == port type array index
@@ -630,12 +630,11 @@ public class SOCBoardLarge extends SOCBoard
 
             if (checkClumps)
             {
-                Vector unvisited = new Vector();  // contains each land hex's coordinate
+                Vector<Integer> unvisited = new Vector<Integer>();  // contains each land hex's coordinate
                 for (int i = 0; i < landHexType.length; ++i)
                     unvisited.addElement(new Integer(numPath[i]));
 
-                clumpsNotOK = makeNewBoard_checkLandHexResourceClumps
-                    (unvisited, clumpSize);
+                clumpsNotOK = makeNewBoard_checkLandHexResourceClumps(unvisited, clumpSize);
             }
 
         } while (clumpsNotOK);
@@ -682,7 +681,7 @@ public class SOCBoardLarge extends SOCBoard
                 || (landAreaNumber >= landAreasLegalNodes.length)
                 || (landAreasLegalNodes[landAreaNumber] != null))
                 throw new IllegalStateException();
-            landAreasLegalNodes[landAreaNumber] = new HashSet();
+            landAreasLegalNodes[landAreaNumber] = new HashSet<Integer>();
         }
 
         for (int i = 0; i < landHexCoords.length; ++i)
@@ -717,10 +716,9 @@ public class SOCBoardLarge extends SOCBoard
 
         legalRoadEdges.clear();
 
-        Iterator nodes = nodesOnLand.iterator();
-        while (nodes.hasNext())
+        for (Integer nodeVal : nodesOnLand)
         {
-            final int node = ((Integer) nodes.next()).intValue();
+            final int node = nodeVal.intValue();
             for (int dir = 0; dir < 3; ++dir)
             {
                 int nodeAdjac = getAdjacentNodeToNode(node, dir);
@@ -824,6 +822,7 @@ public class SOCBoardLarge extends SOCBoard
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#getHexLayout()
      */
+    @Override
     public int[] getHexLayout()
         throws IllegalStateException
     {
@@ -840,6 +839,7 @@ public class SOCBoardLarge extends SOCBoard
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#setHexLayout(int[])
      */
+    @Override
     public void setHexLayout(final int[] hl)
         throws IllegalStateException
     {
@@ -853,6 +853,7 @@ public class SOCBoardLarge extends SOCBoard
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#getNumberLayout()
      */
+    @Override
     public int[] getNumberLayout()
         throws IllegalStateException
     {
@@ -868,6 +869,7 @@ public class SOCBoardLarge extends SOCBoard
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#setNumberLayout(int[])
      */
+    @Override
     public void setNumberLayout(int[] nl)
         throws IllegalStateException
     {
@@ -925,6 +927,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @return the dice-roll number on that hex, or 0 if not a hex coordinate
      */
+    @Override
     public int getNumberOnHexFromCoord(final int hex)
     {
         return getNumberOnHexFromNumber(hex);
@@ -937,6 +940,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @return the dice-roll number on that hex, or 0
      */
+    @Override
     public int getNumberOnHexFromNumber(final int hex)
     {
         if (hex == -1)
@@ -950,8 +954,7 @@ public class SOCBoardLarge extends SOCBoard
         int num = numberLayoutLg[r][c];
         if (num < 0)
             return 0;
-        else
-            return num;
+        return num;
     }
 
     /**
@@ -963,6 +966,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #getHexTypeFromCoord(int)
      * @throws IllegalStateException since the board encoding doesn't support this method
      */
+    @Override
     public int getHexNumFromCoord(final int hexCoord)
         throws IllegalStateException
     {
@@ -989,6 +993,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @see #getLandHexCoords()
      */
+    @Override
     public int getHexTypeFromCoord(final int hex)
     {
         return getHexTypeFromNumber(hex);
@@ -1009,6 +1014,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @see #getHexTypeFromCoord(int)
      */
+    @Override
     public int getHexTypeFromNumber(final int hex)
     {
         final int r = hex >> 8,     // retains sign bit; will handle hex == -1 as r < 0
@@ -1058,7 +1064,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return land hex coordinates, as a set of {@link Integer}s
      * @since 2.0.00
      */
-    public HashSet getLandHexCoordsSet()
+    public HashSet<Integer> getLandHexCoordsSet()
     {
         return landHexLayout;
     }
@@ -1071,6 +1077,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return land hex coordinates, in no particular order, or null if none (all water).
      * @since 1.1.08
      */
+    @Override
     public int[] getLandHexCoords()
     {
         final int LHL = landHexLayout.size();
@@ -1080,9 +1087,9 @@ public class SOCBoardLarge extends SOCBoard
             return cachedGetLandHexCoords;
 
         int[] hexCoords = new int[LHL];
-        Iterator hexes = landHexLayout.iterator();
-        for (int i = 0; hexes.hasNext(); ++i)
-            hexCoords[i] = ((Integer) hexes.next()).intValue();
+        int i=0;
+        for (Integer hex : landHexLayout)
+            hexCoords[i++] = hex.intValue();
 
         cachedGetLandHexCoords = hexCoords;
         return hexCoords;
@@ -1094,6 +1101,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return  True if land, false if water or not a valid hex coordinate
      * @see #isHexOnWater(int)
      */
+    @Override
     public boolean isHexOnLand(final int hexCoord)
     {
         final int htype = getHexTypeFromCoord(hexCoord);
@@ -1107,6 +1115,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #isHexOnLand(int)
      * @since 2.0.00
      */
+    @Override
     public boolean isHexOnWater(final int hexCoord)
     {
         return (getHexTypeFromCoord(hexCoord) == WATER_HEX);
@@ -1127,10 +1136,9 @@ public class SOCBoardLarge extends SOCBoard
 
         int[] lh = new int[3 * LHL];
         int i = 0;
-        Iterator hexes = landHexLayout.iterator();
-        while (hexes.hasNext())
+        for (Integer hex : landHexLayout)
         {
-            final int hexCoord = ((Integer) hexes.next()).intValue();
+            final int hexCoord = hex.intValue();
             final int r = hexCoord >> 8,
                       c = hexCoord & 0xFF;
             lh[i] = hexCoord;  ++i;
@@ -1220,7 +1228,7 @@ public class SOCBoardLarge extends SOCBoard
      *     Each index holds the nodes for that land area number.
      *     Index 0 is unused.
      */
-    public HashSet[] getLandAreasLegalNodes()
+    public HashSet<Integer>[] getLandAreasLegalNodes()
     {
         return landAreasLegalNodes;
     }
@@ -1239,12 +1247,11 @@ public class SOCBoardLarge extends SOCBoard
      * See also {@link #getLandAreasLegalNodes()} which returns
      * all the legal nodes when multiple "land areas" are used.
      */
-    public HashSet getLegalAndPotentialSettlements()
+    public HashSet<Integer> getLegalAndPotentialSettlements()
     {
         if ((landAreasLegalNodes == null) || (potentialsStartingLandArea == 0))
             return nodesOnLand;
-        else
-            return landAreasLegalNodes[potentialsStartingLandArea];
+        return landAreasLegalNodes[potentialsStartingLandArea];
     }
 
     /**
@@ -1266,8 +1273,9 @@ public class SOCBoardLarge extends SOCBoard
      * @param lan If non-null, all Land Areas' legal node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
      */
-    public void setLegalAndPotentialSettlements
-        (final Collection psNodes, final int sla, final HashSet[] lan)
+    public void setLegalAndPotentialSettlements(final Collection<Integer> psNodes,
+                                                final int sla,
+                                                final HashSet<Integer>[] lan)
     {
         if (lan == null)
         {
@@ -1276,7 +1284,7 @@ public class SOCBoardLarge extends SOCBoard
 
             if (psNodes instanceof HashSet)
             {
-                nodesOnLand = (HashSet) (((HashSet) psNodes).clone());
+                nodesOnLand = new HashSet<Integer>(psNodes);
             } else {
                 nodesOnLand.clear();
                 nodesOnLand.addAll(psNodes);
@@ -1307,9 +1315,10 @@ public class SOCBoardLarge extends SOCBoard
      * @return the set of legal edge coordinates for roads, as a new Set of {@link Integer}s
      * @since 1.1.12
      */
-    HashSet initPlayerLegalRoads()
+    @Override
+    HashSet<Integer> initPlayerLegalRoads()
     {
-        return (HashSet) (legalRoadEdges.clone());
+        return new HashSet<Integer>(legalRoadEdges);
     }
 
     /**
@@ -1324,9 +1333,9 @@ public class SOCBoardLarge extends SOCBoard
      * @return the set of legal edge coordinates for ships, as a new Set of {@link Integer}s
      * @since 2.0.00
      */
-    HashSet initPlayerLegalShips()
+    HashSet<Integer> initPlayerLegalShips()
     {
-        return (HashSet) (legalShipEdges.clone());
+        return new HashSet<Integer>(legalShipEdges);
     }
 
 
@@ -1353,9 +1362,10 @@ public class SOCBoardLarge extends SOCBoard
      * @return the hexes that touch this hex, as a Vector of Integer coordinates,
      *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
      */
-    public Vector getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
+    @Override
+    public Vector<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
     {
-        Vector hexes = new Vector();
+        Vector<Integer> hexes = new Vector<Integer>();
 
         final int r = hexCoord >> 8,
                   c = hexCoord & 0xFF;
@@ -1369,8 +1379,7 @@ public class SOCBoardLarge extends SOCBoard
 
         if (hexes.size() > 0)
             return hexes;
-        else
-            return null;
+        return null;
     }
 
     /**
@@ -1380,8 +1389,10 @@ public class SOCBoardLarge extends SOCBoard
      * @param r  Hex row coordinate
      * @param c  Hex column coordinate
      */
-    private final void getAdjacentHexes2Hex_AddIfOK
-        (Vector addTo, final boolean includeWater, final int r, final int c)
+    private final void getAdjacentHexes2Hex_AddIfOK(Vector<Integer> addTo,
+                                                    final boolean includeWater,
+                                                    final int r,
+                                                    final int c)
     {
         if ((r <= 0) || (c <= 0) || (r >= boardHeight) || (c >= boardWidth))
             return;  // not within the board's valid hex boundaries
@@ -1442,13 +1453,13 @@ public class SOCBoardLarge extends SOCBoard
      * @return Node coordinate in that direction
      * @throws IllegalArgumentException if dir &lt; 0 or dir &gt; 5
      */
+    @Override
     public int getAdjacentNodeToHex(final int hexCoord, final int dir)
         throws IllegalArgumentException
     {
         if ((dir >= 0) && (dir <= 5))
             return hexCoord + A_NODE2HEX[dir][0] + A_NODE2HEX[dir][1];
-        else
-            throw new IllegalArgumentException("dir");
+        throw new IllegalArgumentException("dir");
     }
 
     /**
@@ -1464,6 +1475,7 @@ public class SOCBoardLarge extends SOCBoard
      * @since 2.0.00
      * @see #getAdjacentNodeToHex(int, int)
      */
+    @Override
     public int[] getAdjacentNodesToHex(final int hexCoord)
     {
         int[] node = new int[6];
@@ -1499,6 +1511,7 @@ public class SOCBoardLarge extends SOCBoard
      * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6
      * @see #getAdjacentHexesToEdge_arr(int)
      */
+    @Override
     public int getAdjacentHexToEdge(final int edgeCoord, final int facing)
         throws IllegalArgumentException
     {
@@ -1574,8 +1587,7 @@ public class SOCBoardLarge extends SOCBoard
 
         if ((r > 0) && (c > 0) && (r < boardHeight) && (c < boardWidth))
             return ( (r << 8) | c );   // bounds-check OK: within the outer edge
-        else
-            return 0;  // hex is not on the board
+        return 0;  // hex is not on the board
     }
 
     /**
@@ -1636,7 +1648,8 @@ public class SOCBoardLarge extends SOCBoard
      * @param coord  Edge coordinate; not checked for validity
      * @return the valid adjacent edges to this edge, as a Vector of Integer coordinates
      */
-    public Vector getAdjacentEdgesToEdge(final int coord)
+    @Override
+    public Vector<Integer> getAdjacentEdgesToEdge(final int coord)
     {
         final int r = (coord >> 8),
                   c = (coord & 0xFF);
@@ -1654,7 +1667,7 @@ public class SOCBoardLarge extends SOCBoard
             offs = A_EDGE2EDGE[dir];
         }
 
-        Vector edge = new Vector(4);
+        Vector<Integer> edge = new Vector<Integer>(4);
         for (int i = 0; i < 8; )
         {
             final int er = r + offs[i];  ++i;
@@ -1755,9 +1768,10 @@ public class SOCBoardLarge extends SOCBoard
      * @see #getAdjacentNodesToEdge_arr(int)
      * @see #getAdjacentNodeToEdge(int, int)
      */
-    public Vector getAdjacentNodesToEdge(final int coord)
+    @Override
+    public Vector<Integer> getAdjacentNodesToEdge(final int coord)
     {
-        Vector nodes = new Vector(2);
+        Vector<Integer> nodes = new Vector<Integer>(2);
         final int[] narr = getAdjacentNodesToEdge_arr(coord);
         nodes.addElement(new Integer(narr[0]));
         nodes.addElement(new Integer(narr[1]));
@@ -1771,6 +1785,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #getAdjacentNodeToEdge(int, int)
      * @see #getNodeBetweenAdjacentEdges(int, int)
      */
+    @Override
     public int[] getAdjacentNodesToEdge_arr(final int coord)
     {
         int[] nodes = new int[2];
@@ -1888,7 +1903,8 @@ public class SOCBoardLarge extends SOCBoard
      *         within the boundaries (1, 1, boardHeight-1, boardWidth-1)
      *         because hex coordinates (their centers) are fully within the board.
      */
-    public Vector getAdjacentHexesToNode(final int nodeCoord)
+    @Override
+    public Vector<Integer> getAdjacentHexesToNode(final int nodeCoord)
     {
         // Determining (r,c) node direction: Y or A
         //  s = r/2
@@ -1897,7 +1913,7 @@ public class SOCBoardLarge extends SOCBoard
         // Bounds check for hexes: r > 0, c > 0, r < height, c < width
 
         final int r = (nodeCoord >> 8), c = (nodeCoord & 0xFF);
-        Vector hexes = new Vector(3);
+        Vector<Integer> hexes = new Vector<Integer>(3);
 
         final boolean nodeIsY = ( (c % 2) != ((r/2) % 2) );
         if (nodeIsY)
@@ -1954,6 +1970,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #getEdgeBetweenAdjacentNodes(int, int)
      * @see #getAdjacentNodeToNode(int, int)
      */
+    @Override
     public int getAdjacentEdgeToNode(final int nodeCoord, final int nodeDir)
         throws IllegalArgumentException
     {
@@ -1988,8 +2005,7 @@ public class SOCBoardLarge extends SOCBoard
 
         if (isEdgeInBounds(r, c))
             return ((r << 8) | c);
-        else
-            return -9;
+        return -9;
     }
 
     /**
@@ -2004,6 +2020,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #getAdjacentEdgesToNode(int)
      * @see #getAdjacentEdgeToNode(int, int)
      */
+    @Override
     public int getEdgeBetweenAdjacentNodes(final int nodeA, final int nodeB)
     {
         final int edge;
@@ -2045,6 +2062,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return  is the edge in-bounds and adjacent?
      * @see #getEdgeBetweenAdjacentNodes(int, int)
      */
+    @Override
     public boolean isEdgeAdjacentToNode(final int nodeCoord, final int edgeCoord)
     {
         final int edgeR = (edgeCoord >> 8), edgeC = (edgeCoord & 0xFF);
@@ -2062,8 +2080,7 @@ public class SOCBoardLarge extends SOCBoard
         final boolean nodeIsY = ( (nodeC % 2) != ((nodeR/2) % 2) );
         if (nodeIsY)
             return (edgeR == (nodeR + 1));  // S
-        else
-            return (edgeR == (nodeR - 1));  // N
+        return (edgeR == (nodeR - 1));  // N
     }
 
     /**
@@ -2081,6 +2098,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #getAdjacentEdgeToNode(int, int)
      * @see #isNodeAdjacentToNode(int, int)
      */
+    @Override
     public int getAdjacentNodeToNode(final int nodeCoord, final int nodeDir)
         throws IllegalArgumentException
     {
@@ -2122,8 +2140,7 @@ public class SOCBoardLarge extends SOCBoard
 
         if (isNodeInBounds(r, c))
             return ((r << 8) | c);
-        else
-            return -9;
+        return -9;
     }
 
 
@@ -2144,8 +2161,8 @@ public class SOCBoardLarge extends SOCBoard
      *   in the direction of the second node.
      * @see #getAdjacentNodeToNode2Away(int, int)
      */
-    public int getAdjacentEdgeToNode2Away
-        (final int node, final int node2away)
+    @Override
+    public int getAdjacentEdgeToNode2Away(final int node, final int node2away)
     {
         // Determining (r,c) node direction: Y or A
         //  s = r/2
@@ -2213,6 +2230,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #isNode2AwayFromNode(int, int)
      * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6
      */
+    @Override
     public int getAdjacentNodeToNode2Away(final int nodeCoord, int facing)
         throws IllegalArgumentException
     {
@@ -2226,8 +2244,7 @@ public class SOCBoardLarge extends SOCBoard
         c = c + NODE_TO_NODE_2_AWAY[facing];
         if (! isNodeInBounds(r, c))
             return -9;
-        else
-            return ((r << 8) | c);
+        return ((r << 8) | c);
     }
 
     /**
@@ -2239,6 +2256,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return are these nodes 2 away from each other?
      * @see #getAdjacentNodeToNode2Away(int, int)
      */
+    @Override
     public boolean isNode2AwayFromNode(final int n1, final int n2)
     {
         final int dr = (n2 >> 8) - (n1 >> 8),      // delta for rows
@@ -2299,15 +2317,12 @@ public class SOCBoardLarge extends SOCBoard
         {
             if (c == 0)
                 return false;
-            else
-                return ((boardWidth % 2) == 1); 
-        } else {
-            // r == boardHeight
-            if (c == 0)
-                return (((r/2) % 2) == 0);
-            else
-                return ((boardWidth % 2) == ((r/2) % 2));
+            return ((boardWidth % 2) == 1); 
         }
+        // r == boardHeight
+        if (c == 0)
+            return (((r/2) % 2) == 0);
+        return ((boardWidth % 2) == ((r/2) % 2));
     }
 
     /**
@@ -2337,8 +2352,7 @@ public class SOCBoardLarge extends SOCBoard
         {
             if ((r % 2) == 0)
                 return (c < boardWidth);
-            else
-                return (c <= boardWidth);
+            return (c <= boardWidth);
         }
         if ((r < 0) || (r > boardHeight))
             return false;
@@ -2348,8 +2362,7 @@ public class SOCBoardLarge extends SOCBoard
         {
             if (r == 0)
                 return false;
-            else
-                return isNodeInBounds(r, 0);
+            return isNodeInBounds(r, 0);
         }
         else if (c < (boardWidth - 1))
             return true;
@@ -2367,6 +2380,7 @@ public class SOCBoardLarge extends SOCBoard
     //
 
 
+    @Override
     public int getPortsCount()
     {
         return portsCount;
@@ -2381,6 +2395,7 @@ public class SOCBoardLarge extends SOCBoard
      * you are giving all information returned by {@link #getPortsLayout()}, not just the
      * port types.
      */
+    @Override
     public void setPortsLayout(final int[] portTypesAndInfo)
     {
         /**
@@ -2395,7 +2410,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // Clear any previous port layout info
         if (nodeIDtoPortType == null)
-            nodeIDtoPortType = new Hashtable();
+            nodeIDtoPortType = new Hashtable<Integer, Integer>();
         else
             nodeIDtoPortType.clear();
         for (int i = 0; i < ports.length; ++i)
@@ -2413,6 +2428,7 @@ public class SOCBoardLarge extends SOCBoard
         }
     }
 
+    @Override
     public int getPortFacing(int portNum)
     {
         if ((portNum < 0) || (portNum >= portsCount))
@@ -2420,6 +2436,7 @@ public class SOCBoardLarge extends SOCBoard
         return portsLayout[portNum - (2 * portsCount)];
     }
 
+    @Override
     public int[] getPortsEdges()
     {
         int[] edge = new int[portsCount];
@@ -2427,6 +2444,7 @@ public class SOCBoardLarge extends SOCBoard
         return edge;
     }
 
+    @Override
     public int[] getPortsFacing()
     {
         int[] facing = new int[portsCount];
@@ -2440,6 +2458,7 @@ public class SOCBoardLarge extends SOCBoard
      *      if a hex isn't a land hex, its number will be 0.
      * @see #getNumberOnHexFromCoord(int)
      */
+    @Override
     public String edgeCoordToString(final int edge)
     {
         final int[] hexes = getAdjacentHexesToEdge_arr(edge);

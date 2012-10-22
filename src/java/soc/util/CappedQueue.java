@@ -25,10 +25,10 @@ import java.util.Vector;
 /**
  * This queue has a size limit
  */
-public class CappedQueue
+public class CappedQueue<T>
 {
     // Internal storage for the queue'd objects
-    private Vector vec = new Vector();
+    private Vector<T> vec = new Vector<T>();
 
     // The max size for this queue
     private int sizeLimit;
@@ -58,7 +58,7 @@ public class CappedQueue
      *
      * @throws CutoffExceededException DOCUMENT ME!
      */
-    synchronized public void put(Object o) throws CutoffExceededException
+    synchronized public void put(T o) throws CutoffExceededException
     {
         //D.ebugPrintln(">put-> "+o);
         // Add the element
@@ -79,16 +79,16 @@ public class CappedQueue
      *
      * @return DOCUMENT ME!
      */
-    synchronized public Object get()
+    synchronized public T get()
     {
         while (true)
         {
             if (vec.size() > 0)
             {
                 // There's an available object!
-                Object o = vec.elementAt(0);
+                T o = vec.elementAt(0);
 
-                //D.ebugPrintln("<-get< "+o); 
+                //D.ebugPrintln("<-get< "+o);
                 // Remove it from our internal list, so someone else
                 // doesn't get it.
                 vec.removeElementAt(0);

@@ -72,11 +72,13 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      */
     public SOCNewGameWithOptions(String ga, String optstr, int minVers)
     {
-        super(NEWGAMEWITHOPTIONS, ga, Integer.toString(minVers),
-	      ((optstr != null) && (optstr.length() > 0) ? optstr : "-"));
-	gameMinVers = minVers;
-	// p1 = minVers
-	// p2 = optstr
+        super(NEWGAMEWITHOPTIONS,
+              ga,
+              Integer.toString(minVers),
+              ((optstr != null) && (optstr.length() > 0) ? optstr : "-"));
+        gameMinVers = minVers;
+        // p1 = minVers
+        // p2 = optstr
     }
 
     /**
@@ -90,11 +92,11 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *                Ignored if sent from client to server. Calculated at
      *                server and sent out to all clients.
      */
-    public SOCNewGameWithOptions(String ga, Hashtable opts, int minVers)
+    public SOCNewGameWithOptions(String ga, Hashtable<String,SOCGameOption> opts, int minVers)
     {
-	this(ga, SOCGameOption.packOptionsToString(opts, false), minVers);
-	// p1 = minVers
-	// p2 = optstr
+        this(ga, SOCGameOption.packOptionsToString(opts, false), minVers);
+        // p1 = minVers
+        // p2 = optstr
     }
 
     /**
@@ -130,7 +132,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     public static String toCmd(String ga, String optstr, int minVers)
     {
         return NEWGAMEWITHOPTIONS + sep + ga + sep2 + Integer.toString(minVers) + sep2
-	    + (((optstr != null) && (optstr.length() > 0)) ? optstr : "-");
+               + (((optstr != null) && (optstr.length() > 0)) ? optstr : "-");
     }
 
     /**
@@ -144,9 +146,9 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
      * @return the command string
      */
-    public static String toCmd(String ga, Hashtable opts, final int gameMinVers, final int cliVers)
+    public static String toCmd(String ga, Hashtable<String,SOCGameOption> opts, final int gameMinVers, final int cliVers)
     {
-	return toCmd(ga, SOCGameOption.packOptionsToString(opts, false, cliVers), gameMinVers);
+        return toCmd(ga, SOCGameOption.packOptionsToString(opts, false, cliVers), gameMinVers);
     }
 
     /**
@@ -176,24 +178,24 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
     public static SOCNewGameWithOptions parseDataStr(String s)
     {
         String ga; // the game name
-	int minVers;
-	String opts;
+        int minVers;
+        String opts;
 
         StringTokenizer st = new StringTokenizer(s, sep2);
 
         try
         {
             ga = st.nextToken();
-	    minVers = Integer.parseInt(st.nextToken());
-	    opts = st.nextToken(sep);  // NOT sep2! options may contain commas.	 
-	    // Will begin with "," (sep2) due to the separator change. This is cosmetic only.
+            minVers = Integer.parseInt(st.nextToken());
+            opts = st.nextToken(sep);  // NOT sep2! options may contain commas.
+            // Will begin with "," (sep2) due to the separator change. This is cosmetic only.
         }
         catch (Exception e)
         {
             return null;
         }
-	if (opts.equals("-"))
-	    opts = null;
+        if (opts.equals("-"))
+            opts = null;
 
         return new SOCNewGameWithOptions(ga, opts, minVers);
     }
@@ -203,6 +205,7 @@ public class SOCNewGameWithOptions extends SOCMessageTemplate2s
      * NEWGAMEWITHOPTIONS introduced in 1.1.07 for game-options feature.
      * @return Version number, 1107 for JSettlers 1.1.07.
      */
+    @Override
     public int getMinimumVersion()
     {
         return VERSION_FOR_NEWGAMEWITHOPTIONS; // == 1107;

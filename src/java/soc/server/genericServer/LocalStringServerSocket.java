@@ -45,7 +45,7 @@ import java.util.Vector;
  */
 public class LocalStringServerSocket implements StringServerSocket
 {
-    protected static Hashtable allSockets = new Hashtable();
+    protected static Hashtable<String, LocalStringServerSocket> allSockets = new Hashtable<String, LocalStringServerSocket>();
 
     /**
      * Length of queue for accepting new connections; default 100.
@@ -55,10 +55,10 @@ public class LocalStringServerSocket implements StringServerSocket
     public static int ACCEPT_QUEUELENGTH = 100; 
 
     /** Server-peer sides of connected clients; Added by accept method */
-    protected Vector allConnected;
+    protected Vector<LocalStringConnection> allConnected;
 
     /** Waiting client connections (client-peer sides); Added by connectClient, removed by accept method */
-    protected Vector acceptQueue;
+    protected Vector<LocalStringConnection> acceptQueue;
 
     private String socketName;
     boolean out_setEOF;
@@ -68,8 +68,8 @@ public class LocalStringServerSocket implements StringServerSocket
     public LocalStringServerSocket(String name)
     {
         socketName = name;
-        allConnected = new Vector();
-        acceptQueue = new Vector();
+        allConnected = new Vector<LocalStringConnection>();
+        acceptQueue = new Vector<LocalStringConnection>();
         out_setEOF = false;
         sync_out_setEOF = new Object();
         allSockets.put(name, this);
@@ -121,7 +121,7 @@ public class LocalStringServerSocket implements StringServerSocket
         if (! allSockets.containsKey(name))
             throw new ConnectException("LocalStringServerSocket name not found: " + name);
 
-        LocalStringServerSocket ss = (LocalStringServerSocket) allSockets.get(name);       
+        LocalStringServerSocket ss = allSockets.get(name);       
         if (ss.isOutEOF())
             throw new ConnectException("LocalStringServerSocket name is EOF: " + name);
 
@@ -244,7 +244,7 @@ public class LocalStringServerSocket implements StringServerSocket
                     catch (InterruptedException e) {}
                 }
             }
-            cliPeer = (LocalStringConnection) acceptQueue.elementAt(0);
+            cliPeer = acceptQueue.elementAt(0);
             acceptQueue.removeElementAt(0);            
         }
 
@@ -278,7 +278,7 @@ public class LocalStringServerSocket implements StringServerSocket
     /**
      * @return Server-peer sides of all currently connected clients (LocalStringConnections)
      */
-    public Enumeration allClients()
+    public Enumeration<LocalStringConnection> allClients()
     {
         return allConnected.elements();
     }
@@ -296,7 +296,7 @@ public class LocalStringServerSocket implements StringServerSocket
         {
             for (int i = allConnected.size() - 1; i >= 0; --i)
             {
-                LocalStringConnection c = (LocalStringConnection) allConnected.elementAt(i);
+                LocalStringConnection c = allConnected.elementAt(i);
                 c.put(msg);
             }
         }
@@ -315,7 +315,7 @@ public class LocalStringServerSocket implements StringServerSocket
         {
             for (int i = allConnected.size() - 1; i >= 0; --i)
             {
-                servPeer = (LocalStringConnection) allConnected.elementAt(i);
+                servPeer = allConnected.elementAt(i);
                 if (servPeer.isInEOF())
                 {
                     allConnected.removeElementAt(i);
@@ -365,13 +365,13 @@ public class LocalStringServerSocket implements StringServerSocket
             out_setEOF = true;
         }
 
-        Enumeration connected = allConnected.elements();
+        Enumeration<LocalStringConnection> connected = allConnected.elements();
         while (connected.hasMoreElements())
         {
             if (forceDisconnect)
-                ((LocalStringConnection) connected.nextElement()).disconnect();
+                connected.nextElement().disconnect();
             else
-                ((LocalStringConnection) connected.nextElement()).setEOF();
+                connected.nextElement().setEOF();
         }
     }
 
@@ -406,10 +406,8 @@ public class LocalStringServerSocket implements StringServerSocket
         // Notify any threads waiting for accept.
         // In those threads, our connectTo method will see
         // the EOF and throw SocketException.
-        Enumeration waits = acceptQueue.elements();
-        while (waits.hasMoreElements())
+        for (LocalStringConnection cliPeer : acceptQueue)
         {
-            LocalStringConnection cliPeer = (LocalStringConnection) waits.nextElement();
             cliPeer.disconnect();
             synchronized (cliPeer)
             {

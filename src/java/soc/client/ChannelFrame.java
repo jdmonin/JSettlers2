@@ -56,7 +56,7 @@ public class ChannelFrame extends Frame
     public int npix = 1;
     SOCPlayerClient cc;
     String cname;
-    Vector history = new Vector();
+    Vector<String> history = new Vector<String>();
     int historyCounter = 1;
     boolean down = false;
 
@@ -265,12 +265,12 @@ public class ChannelFrame extends Frame
                 }
 
                 historyCounter++;
-                tf.setText((String) history.elementAt(hs - historyCounter));
+                tf.setText(history.elementAt(hs - historyCounter));
             }
             else if ((key == KeyEvent.VK_DOWN) && (historyCounter > 1))
             {
                 historyCounter--;
-                tf.setText((String) history.elementAt(hs - historyCounter));
+                tf.setText(history.elementAt(hs - historyCounter));
             }
         }
     }
@@ -292,6 +292,7 @@ public class ChannelFrame extends Frame
     /**
      * DOCUMENT ME!
      */
+    @Override
     public void doLayout()
     {
         Insets i = getInsets();

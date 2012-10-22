@@ -37,7 +37,7 @@ import java.util.StringTokenizer;
  * data messages.
  *<P>
  * The message data is sent over the network as type ID + data strings
- * built by each SOCMessage subclass's toCmd() method.  
+ * built by each SOCMessage subclass's toCmd() method.
  *<P>
  * On the remote end, it's reconstructed to a new instance of the
  * appropriate SOCMessage subclass, by the subclass' required method
@@ -72,7 +72,7 @@ import java.util.StringTokenizer;
  *      <em>Note:</em> Most things added to SOCPlayerClient.treat should also be added to
  *      {@link soc.client.SOCDisplaylessPlayerClient#treat(SOCMessage)},
  *      to {@link soc.robot.SOCRobotClient#treat(SOCMessage)},
- *      and possibly to {@link soc.robot.SOCRobotBrain#run()}. 
+ *      and possibly to {@link soc.robot.SOCRobotBrain#run()}.
  *      <P>
  *      If the message is player-state related, you might also want to add
  *      it in <tt>SOCServer.sitDown_sendPrivateInfo()</tt>.
@@ -306,6 +306,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public abstract String toCmd();
 
     /** Simple human-readable representation, used for debug purposes. */
+    @Override
     public abstract String toString();
 
     /**
@@ -352,19 +353,19 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @throws NullPointerException if <tt>se</tt> or <tt>sb</tt> is null
      * @since 1.1.09
      */
-    protected static void enumIntoStringBuf(final Enumeration se, StringBuffer sb)
+    protected static void enumIntoStringBuf(final Enumeration<String> se, StringBuffer sb)
         throws ClassCastException, NullPointerException
     {
         if (! se.hasMoreElements())
             return;
         try
         {
-            sb.append ((String) se.nextElement());
+            sb.append (se.nextElement());
 
             while (se.hasMoreElements())
             {
                 sb.append(',');
-                sb.append((String) se.nextElement());
+                sb.append(se.nextElement());
             }
         }
         catch (ClassCastException cce) { throw cce; }
@@ -372,7 +373,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     }
 
     /**
-     * Utility, get the short simple name of the class: SOCResetBoardVote, not soc.message.SOCResetBoardVote 
+     * Utility, get the short simple name of the class: SOCResetBoardVote, not soc.message.SOCResetBoardVote
      * @return Short name of class, without package name
      * @since 1.1.01
      */
@@ -411,7 +412,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
         for (; i>=0; --i)
         {
             final char c = s.charAt(i);
-            if (Character.isISOControl(c) || 
+            if (Character.isISOControl(c) ||
                 (Character.isSpaceChar(c) && (Character.getType(c) != Character.SPACE_SEPARATOR)))
                 return false;
         }
@@ -476,7 +477,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
              *         return SOCPotentialSettlements.parseDataStr(multiData);
              *</code>
              */
-            String[] multiData = null; 
+            String[] multiData = null;
 
             try
             {
