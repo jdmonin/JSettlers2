@@ -87,10 +87,10 @@ SERVER STARTUP:
 Start the server with the following command
 (server requires Java 1.5 or higher):
 
-  java -jar JSettlersServer.jar 8880 20 socuser socpass
+  java -jar JSettlersServer.jar -Djsettlers.startrobots=7 8880 20 socuser socpass
 
-Those parameters are : TCP port number; max clients; db user; db password.
-You can also run with no parameters; the server will run on the default port of 8880.
+Those parameters are : number of bots; TCP port number; max clients; db user; db password.
+You can also run with no parameters; the server will run on the default port of 8880 with no bots.
 
 If MySQL or another database is not installed and running (See "Database Setup"),
 you will see a warning with the appropriate explanation:
@@ -250,14 +250,24 @@ Your database system's JDBC drivers can be downloaded at these locations:
 	          or http://www.sqlite.org/cvstrac/wiki?p=SqliteWrappers
 	          If sqlite crashes jsettlers on launch, retry with -Dsqlite.purejava=true
 
-To create the jsettlers database and tables, execute the SQL db scripts
+In some cases, adding to the classpath won't work because of JVM restrictions
+about JAR files.  If you find that's the case, place the JDBC jar in the same
+location as JSettlersServer.jar, and specify on the jsettlers command line:
+	-Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar
+
+To create the jsettlers database in mysql, execute the SQL db scripts
 jsettlers-create.sql and jsettlers-tables.sql located in src/bin/sql:
 
 $ mysql -u root -p -e "SOURCE jsettlers-create.sql"
 This will connect as root, prompt for the root password, create a 'socuser' user with the password
 'socpass', and create the 'socdata' database.
 
+To build the empty tables, run:
 $ mysql -u root -p -e "SOURCE jsettlers-tables.sql"
+
+or, for sqlite, run this command in the target directory:
+$ java -jar JSettlersServer.jar -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar  -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql
+
 This will build the empty tables.  This script will fail if the tables already exist.
 
 To create player accounts, run the simple account creation client with the
