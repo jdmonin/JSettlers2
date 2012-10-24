@@ -737,7 +737,7 @@ public class SOCBoard implements Serializable, Cloneable
      * @since 1.1.08
      */
     protected Hashtable<Integer,Integer> nodeIDtoPortType;
-        // was int[] in v1.1.08 - 1.1.13; Hashtable in v2.0.00+
+        // was int[] in v1.1.08 and later 1.1.xx versions; Hashtable in v2.0.00+
 
     /**
      * Offset to add to hex coordinate to get all adjacent node coords, starting at

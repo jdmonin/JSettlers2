@@ -65,7 +65,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
 
     /**
      * One past the maximum type number of playing piece.
-     * MAXPLUSONE == 3 up through version 1.1.13.
+     * MAXPLUSONE == 3 up through all 1.1.xx versions.
      * MAXPLUSONE == 4 in v2.0.00.
      */
     public static final int MAXPLUSONE = 4;
