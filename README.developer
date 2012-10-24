@@ -224,6 +224,31 @@ lines between them, and comment each one's closing brace with the class name.
 If you have a long method whose work can be divided into "sections",
 preface each section with a /** javadoc-style */ multi-line comment.
 
+If a declaration line is getting too long (about 120 characters), break it
+and indent it slightly from the first line, not aligned with the method name.
+Throws declarations are also always indented on the next line:
+    public SOCGameOption(String key, int minVers, int lastModVers,
+        boolean defaultValue, boolean dropIfUnused, String desc)
+        throws IllegalArgumentException
+
+Some methods return in the middle of their body, depending on conditions.
+That kind of early return should be marked with a prominent comment such as:
+	return;   // <--- Early return: Temporary piece ---
+
+Some methods end with this style of code:
+	if (x)
+	    return y;
+	else
+	    return z;
+In those cases, the return is part of the logical flow of the if-statement:
+Both y and z are normal and valid, and deserve equal "visual weight" and indenting.
+That section of code should not be reformatted to something like:
+	if (x)
+	    return y;
+	return z;
+because conventionally in jsettlers, that would mean z is the usual case
+and y is less common or is an edge condition.
+
 In emacs, you can place this in your .emacs file to use spaces instead of tabs:
 (setq-default c-basic-offset 4)
 (setq indent-tabs-mode nil)
