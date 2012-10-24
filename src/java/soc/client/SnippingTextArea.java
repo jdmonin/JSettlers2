@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * This file appears (by its comments) to be (C) 1999 Brian Davies
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -50,20 +50,17 @@ public class SnippingTextArea extends TextArea
         System.getProperty("java.version").startsWith("1.4.2");
 
     /**
-     * Bug in Mac OS X 10.5 java display: If multiple threads try to update display at once,
+     * Bug in Mac OS X java display: If multiple threads try to update display at once,
      * can hang the GUI (with rainbow "beach ball"). Non-display threads continue execution.
-     * We avoid this by not snipping our text area's length. Also extending to 10.6 in case
-     * it isn't fixed yet by that version.  - JDM 2009-05-21
+     * We avoid this by not snipping our text area's length. - JDM 2009-05-21
+     * Still present in OS X 10.7 and 10.8 per olivierdeckers bug report. - JDM 2012-10-20
      * To identify osx from within java, see technote TN2110:
-     * http://developer.apple.com/technotes/tn2002/tn2110.html
+     * http://developer.apple.com/library/mac/technotes/tn2002/tn2110.html
      * @since 1.1.06
      */
     static final boolean isJavaOnOSX105 =
         SOCPlayerClient.isJavaOnOSX
-        && (System.getProperty("os.version").startsWith("10.5.")
-            || System.getProperty("os.version").startsWith("10.6.")
-            || System.getProperty("os.version").startsWith("10.7.")
-            || System.getProperty("os.version").startsWith("10.8."));
+        && System.getProperty("os.version").startsWith("10.");
 
     int maximumLines = 100;
     int lines = 0;
