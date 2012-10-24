@@ -10376,7 +10376,9 @@ public class SOCServer extends Server
          *           can't be loaded. This can happen due to packaging of the server-only JAR.
          * @throws LinkageError  for same reason as ClassNotFoundException
          */
-        public static void createAndStartRobotClientThread(final String rname, final String strSocketName, final int port)
+        public static void createAndStartRobotClientThread
+            (final String rname, final String strSocketName, final int port)
+            throws ClassNotFoundException, LinkageError
         {
             SOCRobotClient rcli;
             if (strSocketName != null)
