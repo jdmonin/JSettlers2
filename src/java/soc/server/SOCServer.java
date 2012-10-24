@@ -807,16 +807,16 @@ public class SOCServer extends Server
      */
     public void connectToChannel(StringConnection c, String ch)
     {
-        if (c != null)
+        if (c == null)
+            return;
+
+        if (channelList.isChannel(ch))
         {
-            if (channelList.isChannel(ch))
+            if (!channelList.isMember(c, ch))
             {
-                if (!channelList.isMember(c, ch))
-                {
-                    c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
-                    D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch);
-                    channelList.addMember(c, ch);
-                }
+                c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
+                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch);
+                channelList.addMember(c, ch);
             }
         }
     }
@@ -834,52 +834,52 @@ public class SOCServer extends Server
      */
     public boolean leaveChannel(StringConnection c, String ch, boolean channelListLock)
     {
+        if (c == null)
+            return false;
+
         D.ebugPrintln("leaveChannel: " + c.getData() + " " + ch + " " + channelListLock);
 
         boolean result = false;
 
-        if (c != null)
+        if (channelList.isMember(c, ch))
         {
-            if (channelList.isMember(c, ch))
-            {
-                channelList.removeMember(c, ch);
+            channelList.removeMember(c, ch);
 
-                SOCLeave leaveMessage = new SOCLeave((String) c.getData(), c.host(), ch);
-                messageToChannelWithMon(ch, leaveMessage);
-                D.ebugPrintln("*** " + (String) c.getData() + " left the channel " + ch);
+            SOCLeave leaveMessage = new SOCLeave((String) c.getData(), c.host(), ch);
+            messageToChannelWithMon(ch, leaveMessage);
+            D.ebugPrintln("*** " + (String) c.getData() + " left the channel " + ch);
+        }
+
+        if (channelList.isChannelEmpty(ch))
+        {
+            final String chOwner = channelList.getOwner(ch);
+
+            if (channelListLock)
+            {
+                channelList.deleteChannel(ch);
             }
-
-            if (channelList.isChannelEmpty(ch))
+            else
             {
-                final String chOwner = channelList.getOwner(ch);
+                channelList.takeMonitor();
 
-                if (channelListLock)
+                try
                 {
                     channelList.deleteChannel(ch);
                 }
-                else
+                catch (Exception e)
                 {
-                    channelList.takeMonitor();
-
-                    try
-                    {
-                        channelList.deleteChannel(ch);
-                    }
-                    catch (Exception e)
-                    {
-                        D.ebugPrintStackTrace(e, "Exception in leaveChannel");
-                    }
-
-                    channelList.releaseMonitor();
+                    D.ebugPrintStackTrace(e, "Exception in leaveChannel");
                 }
 
-                // Reduce the owner's channels-active count
-                StringConnection oConn = conns.get(chOwner);
-                if (oConn != null)
-                    ((SOCClientData) oConn.getAppData()).deletedChannel();
-
-                result = true;
+                channelList.releaseMonitor();
             }
+
+            // Reduce the owner's channels-active count
+            StringConnection oConn = conns.get(chOwner);
+            if (oConn != null)
+                ((SOCClientData) oConn.getAppData()).deletedChannel();
+
+            result = true;
         }
 
         return result;
@@ -1887,62 +1887,60 @@ public class SOCServer extends Server
      */
     public Vector<?> leaveAllChannels(StringConnection c)
     {
-        if (c != null)
+        if (c == null)
+            return null;
+
+        Vector<?> ret = new Vector<Object>();
+        Vector<String> destroyed = new Vector<String>();
+
+        channelList.takeMonitor();
+
+        try
         {
-            Vector<?> ret = new Vector<Object>();
-            Vector<String> destroyed = new Vector<String>();
-
-            channelList.takeMonitor();
-
-            try
+            for (Enumeration<String> k = channelList.getChannels(); k.hasMoreElements();)
             {
-                for (Enumeration<String> k = channelList.getChannels(); k.hasMoreElements();)
+                String ch = k.nextElement();
+
+                if (channelList.isMember(c, ch))
                 {
-                    String ch = k.nextElement();
+                    boolean thisChannelDestroyed = false;
+                    channelList.takeMonitorForChannel(ch);
 
-                    if (channelList.isMember(c, ch))
+                    try
                     {
-                        boolean thisChannelDestroyed = false;
-                        channelList.takeMonitorForChannel(ch);
+                        thisChannelDestroyed = leaveChannel(c, ch, true);
+                    }
+                    catch (Exception e)
+                    {
+                        D.ebugPrintStackTrace(e, "Exception in leaveAllChannels (leaveChannel)");
+                    }
 
-                        try
-                        {
-                            thisChannelDestroyed = leaveChannel(c, ch, true);
-                        }
-                        catch (Exception e)
-                        {
-                            D.ebugPrintStackTrace(e, "Exception in leaveAllChannels (leaveChannel)");
-                        }
+                    channelList.releaseMonitorForChannel(ch);
 
-                        channelList.releaseMonitorForChannel(ch);
-
-                        if (thisChannelDestroyed)
-                        {
-                            destroyed.addElement(ch);
-                        }
+                    if (thisChannelDestroyed)
+                    {
+                        destroyed.addElement(ch);
                     }
                 }
             }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in leaveAllChannels");
-            }
-
-            channelList.releaseMonitor();
-
-            /**
-             * let everyone know about the destroyed channels
-             */
-            for (Enumeration<String> de = destroyed.elements(); de.hasMoreElements();)
-            {
-                String ga = de.nextElement();
-                broadcast(SOCDeleteChannel.toCmd(ga));
-            }
-
-            return ret;
         }
-        
-        return null;
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in leaveAllChannels");
+        }
+
+        channelList.releaseMonitor();
+
+        /**
+         * let everyone know about the destroyed channels
+         */
+        for (Enumeration<String> de = destroyed.elements(); de.hasMoreElements();)
+        {
+            String ga = de.nextElement();
+            broadcast(SOCDeleteChannel.toCmd(ga));
+        }
+
+        return ret;
     }
 
     /**
@@ -1953,65 +1951,63 @@ public class SOCServer extends Server
      */
     public Vector<String> leaveAllGames(StringConnection c)
     {
-        if (c != null)
+        if (c == null)
+            return null;
+
+        Vector<String> ret = new Vector<String>();
+        Vector<String> destroyed = new Vector<String>();
+
+        gameList.takeMonitor();
+
+        try
         {
-            Vector<String> ret = new Vector<String>();
-            Vector<String> destroyed = new Vector<String>();
-
-            gameList.takeMonitor();
-
-            try
+            for (String ga : gameList.getGameNames())
             {
-                for (String ga : gameList.getGameNames())
+                Vector<StringConnection> v = gameList.getMembers(ga);
+
+                if (v.contains(c))
                 {
-                    Vector<StringConnection> v = gameList.getMembers(ga);
+                    boolean thisGameDestroyed = false;
+                    gameList.takeMonitorForGame(ga);
 
-                    if (v.contains(c))
+                    try
                     {
-                        boolean thisGameDestroyed = false;
-                        gameList.takeMonitorForGame(ga);
-
-                        try
-                        {
-                            thisGameDestroyed = leaveGame(c, ga, true);
-                        }
-                        catch (Exception e)
-                        {
-                            D.ebugPrintStackTrace(e, "Exception in leaveAllGames (leaveGame)");
-                        }
-
-                        gameList.releaseMonitorForGame(ga);
-
-                        if (thisGameDestroyed)
-                        {
-                            destroyed.addElement(ga);
-                        }
-
-                        ret.addElement(ga);
+                        thisGameDestroyed = leaveGame(c, ga, true);
                     }
+                    catch (Exception e)
+                    {
+                        D.ebugPrintStackTrace(e, "Exception in leaveAllGames (leaveGame)");
+                    }
+
+                    gameList.releaseMonitorForGame(ga);
+
+                    if (thisGameDestroyed)
+                    {
+                        destroyed.addElement(ga);
+                    }
+
+                    ret.addElement(ga);
                 }
             }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in leaveAllGames");
-            }
-
-            gameList.releaseMonitor();
-
-            /**
-             * let everyone know about the destroyed games
-             */
-            for (Enumeration<String> de = destroyed.elements(); de.hasMoreElements();)
-            {
-                String ga = de.nextElement();
-                D.ebugPrintln("** Broadcasting SOCDeleteGame " + ga);
-                broadcast(SOCDeleteGame.toCmd(ga));
-            }
-
-            return ret;
         }
-        
-        return null;
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in leaveAllGames");
+        }
+
+        gameList.releaseMonitor();
+
+        /**
+         * let everyone know about the destroyed games
+         */
+        for (Enumeration<String> de = destroyed.elements(); de.hasMoreElements();)
+        {
+            String ga = de.nextElement();
+            D.ebugPrintln("** Broadcasting SOCDeleteGame " + ga);
+            broadcast(SOCDeleteGame.toCmd(ga));
+        }
+
+        return ret;
     }
 
     /**
@@ -2444,16 +2440,16 @@ public class SOCServer extends Server
     @Override
     public void leaveConnection(StringConnection c)
     {
-        if ((c != null) && (c.getData() != null))
-        {
-            leaveAllChannels(c);
-            leaveAllGames(c);
+        if ((c == null) || (c.getData() == null))
+            return;
 
-            /**
-             * if it is a robot, remove it from the list
-             */
-            robots.removeElement(c);
-        }
+        leaveAllChannels(c);
+        leaveAllGames(c);
+
+        /**
+         * if it is a robot, remove it from the list
+         */
+        robots.removeElement(c);
     }
 
     /**
@@ -2487,65 +2483,65 @@ public class SOCServer extends Server
     @Override
     public boolean newConnection1(StringConnection c)
     {
-        if (c != null)
+        if (c == null)
+            return false;
+
+        /**
+         * see if we are under the connection limit
+         */
+        try
+        {
+            if (getNamedConnectionCount() >= maxConnections)
+            {
+                SOCRejectConnection rcCommand = new SOCRejectConnection("Too many connections, please try another server.");
+                c.put(rcCommand.toCmd());
+            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Caught exception in SOCServer.newConnection(Connection)");
+        }
+
+        try
         {
             /**
-             * see if we are under the connection limit
+             * prevent someone from connecting twice from
+             * the same machine
+             * (Commented out: This is a bad idea due to proxies, NAT, etc.)
              */
-            try
-            {
-                if (getNamedConnectionCount() >= maxConnections)
-                {
-                    SOCRejectConnection rcCommand = new SOCRejectConnection("Too many connections, please try another server.");
-                    c.put(rcCommand.toCmd());
-                }
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Caught exception in SOCServer.newConnection(Connection)");
-            }
+            boolean hostMatch = false;
+            /*
+            Enumeration allConnections = this.getConnections();
 
-            try
+               while(allConnections.hasMoreElements()) {
+               StringConnection tempCon = (StringConnection)allConnections.nextElement();
+               if (!(c.host().equals("pippen")) && (tempCon.host().equals(c.host()))) {
+               hostMatch = true;
+               break;
+               }
+               }
+             */
+            if (hostMatch)
+            {
+                SOCRejectConnection rcCommand = new SOCRejectConnection("Can't connect to the server more than once from one machine.");
+                c.put(rcCommand.toCmd());
+            }
+            else
             {
                 /**
-                 * prevent someone from connecting twice from
-                 * the same machine
-                 * (Commented out: This is a bad idea due to proxies, NAT, etc.)
+                 * Accept this connection.
+                 * Once it's added to the list,
+                 * {@link #newConnection2(StringConnection)} will
+                 * try to wait for client version, and
+                 * will send the list of channels and games.
                  */
-                boolean hostMatch = false;
-                /*
-                Enumeration allConnections = this.getConnections();
-
-                   while(allConnections.hasMoreElements()) {
-                   StringConnection tempCon = (StringConnection)allConnections.nextElement();
-                   if (!(c.host().equals("pippen")) && (tempCon.host().equals(c.host()))) {
-                   hostMatch = true;
-                   break;
-                   }
-                   }
-                 */
-                if (hostMatch)
-                {
-                    SOCRejectConnection rcCommand = new SOCRejectConnection("Can't connect to the server more than once from one machine.");
-                    c.put(rcCommand.toCmd());
-                }
-                else
-                {
-                    /**
-                     * Accept this connection.
-                     * Once it's added to the list,
-                     * {@link #newConnection2(StringConnection)} will
-                     * try to wait for client version, and
-                     * will send the list of channels and games.
-                     */
-                    c.setVersion(-1);
-                    return true;
-                }
+                c.setVersion(-1);
+                return true;
             }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Caught exception in SOCServer.newConnection(Connection)");
-            }
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Caught exception in SOCServer.newConnection(Connection)");
         }
 
         return false;  // Not accepted
@@ -3954,182 +3950,182 @@ public class SOCServer extends Server
      */
     private void handleJOIN(StringConnection c, SOCJoin mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+
+        D.ebugPrintln("handleJOIN: " + mes);
+
+        int cliVers = c.getVersion();
+
+        /**
+         * Check the reported version; if none, assume 1000 (1.0.00)
+         */
+        if (cliVers == -1)
         {
-            D.ebugPrintln("handleJOIN: " + mes);
+            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
+                return;  // <--- Discon and Early return: Client too old ---
+            cliVers = c.getVersion();
+        }
 
-            int cliVers = c.getVersion();
+        /**
+         * Check that the nickname is ok
+         */
+        boolean isTakingOver = false;
 
-            /**
-             * Check the reported version; if none, assume 1000 (1.0.00)
-             */
-            if (cliVers == -1)
+        final String msgUser = mes.getNickname().trim();
+        String msgPass = mes.getPassword();
+        if (msgPass != null)
+            msgPass = msgPass.trim();
+
+        if (c.getData() == null)
+        {
+            if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
             {
-                if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
-                    return;  // <--- Discon and Early return: Client too old ---
-                cliVers = c.getVersion();
-            }
-
-            /**
-             * Check that the nickname is ok
-             */
-            boolean isTakingOver = false;
-
-            final String msgUser = mes.getNickname().trim();
-            String msgPass = mes.getPassword();
-            if (msgPass != null)
-                msgPass = msgPass.trim();
-
-            if (c.getData() == null)
-            {
-                if (msgUser.length() > PLAYER_NAME_MAX_LENGTH)
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
-                             SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
-                    return;
-                }
-
-                final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
-                if (nameTimeout == -1)
-                {
-                    isTakingOver = true;
-                } else if (nameTimeout == -2)
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                             MSG_NICKNAME_ALREADY_IN_USE));
-                    return;
-                } else if (nameTimeout <= -1000)
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                             checkNickname_getVersionText(-nameTimeout)));
-                    return;
-                } else if (nameTimeout > 0)
-                {
-                    c.put(SOCStatusMessage.toCmd
-                            (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                             checkNickname_getRetryText(nameTimeout)));
-                    return;
-                }
-            }
-
-            if ((c.getData() == null) && (!authenticateUser(c, msgUser, msgPass)))
-            {
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NEWGAME_NAME_TOO_LONG, cliVers,
+                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_TOO_LONG + Integer.toString(PLAYER_NAME_MAX_LENGTH)));
                 return;
             }
 
-            /**
-             * Check that the channel name is ok
-             */
-
-            /*
-               if (!checkChannelName(mes.getChannel())) {
-               return;
-               }
-             */
-            final String ch = mes.getChannel().trim();
-            if (! SOCMessage.isSingleLineAndSafe(ch))
+            final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
+            if (nameTimeout == -1)
+            {
+                isTakingOver = true;
+            } else if (nameTimeout == -2)
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
-                  // "This game name is not permitted, please choose a different name."
-
-                  return;  // <---- Early return ----
-            }
-
-            /**
-             * Now that everything's validated, name this connection/user/player.
-             * If isTakingOver, also copies their current game/channel count.
-             */
-            if (c.getData() == null)
-            {
-                c.setData(msgUser);
-                nameConnection(c, isTakingOver);
-                numberOfUsers++;
-            }
-
-            /**
-             * If creating a new channel, ensure they are below their max channel count.
-             */
-            if ((! channelList.isChannel(ch))
-                && (CLIENT_MAX_CREATE_CHANNELS >= 0)
-                && (CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                         MSG_NICKNAME_ALREADY_IN_USE));
+                return;
+            } else if (nameTimeout <= -1000)
             {
                 c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
-                         SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_CHANNELS)));
-                // Too many of your chat channels still active; maximum: 2
-
-                return;  // <---- Early return ----
-            }
-
-            /**
-             * Tell the client that everything is good to go
-             */
-            c.put(SOCJoinAuth.toCmd(msgUser, ch));
-            c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK, "Welcome to Java Settlers of Catan!"));
-
-            /**
-             * Add the StringConnection to the channel
-             */
-
-            if (channelList.takeMonitorForChannel(ch))
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                         checkNickname_getVersionText(-nameTimeout)));
+                return;
+            } else if (nameTimeout > 0)
             {
-                try
-                {
-                    connectToChannel(c, ch);
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in handleJOIN (connectToChannel)");
-                }
-
-                channelList.releaseMonitorForChannel(ch);
+                c.put(SOCStatusMessage.toCmd
+                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                         checkNickname_getRetryText(nameTimeout)));
+                return;
             }
-            else
-            {
-                /**
-                 * the channel did not exist, create it
-                 */
-                channelList.takeMonitor();
-
-                try
-                {
-                    channelList.createChannel(ch, (String) c.getData());
-                    ((SOCClientData) c.getAppData()).createdChannel();
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in handleJOIN (createChannel)");
-                }
-
-                channelList.releaseMonitor();
-                broadcast(SOCNewChannel.toCmd(ch));
-                c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
-                D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch);
-                channelList.takeMonitorForChannel(ch);
-
-                try
-                {
-                    channelList.addMember(c, ch);
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in handleJOIN (addMember)");
-                }
-
-                channelList.releaseMonitorForChannel(ch);
-            }
-
-            /**
-             * let everyone know about the change
-             */
-            messageToChannel(ch, new SOCJoin(msgUser, "", "dummyhost", ch));
         }
+
+        if ((c.getData() == null) && (!authenticateUser(c, msgUser, msgPass)))
+        {
+            return;
+        }
+
+        /**
+         * Check that the channel name is ok
+         */
+
+        /*
+           if (!checkChannelName(mes.getChannel())) {
+           return;
+           }
+         */
+        final String ch = mes.getChannel().trim();
+        if (! SOCMessage.isSingleLineAndSafe(ch))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWGAME_NAME_REJECTED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED));
+              // "This game name is not permitted, please choose a different name."
+
+              return;  // <---- Early return ----
+        }
+
+        /**
+         * Now that everything's validated, name this connection/user/player.
+         * If isTakingOver, also copies their current game/channel count.
+         */
+        if (c.getData() == null)
+        {
+            c.setData(msgUser);
+            nameConnection(c, isTakingOver);
+            numberOfUsers++;
+        }
+
+        /**
+         * If creating a new channel, ensure they are below their max channel count.
+         */
+        if ((! channelList.isChannel(ch))
+            && (CLIENT_MAX_CREATE_CHANNELS >= 0)
+            && (CLIENT_MAX_CREATE_CHANNELS <= ((SOCClientData) c.getAppData()).getcurrentCreatedChannels()))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NEWCHANNEL_TOO_MANY_CREATED, cliVers,
+                     SOCStatusMessage.MSG_SV_NEWCHANNEL_TOO_MANY_CREATED + Integer.toString(CLIENT_MAX_CREATE_CHANNELS)));
+            // Too many of your chat channels still active; maximum: 2
+
+            return;  // <---- Early return ----
+        }
+
+        /**
+         * Tell the client that everything is good to go
+         */
+        c.put(SOCJoinAuth.toCmd(msgUser, ch));
+        c.put(SOCStatusMessage.toCmd
+                (SOCStatusMessage.SV_OK, "Welcome to Java Settlers of Catan!"));
+
+        /**
+         * Add the StringConnection to the channel
+         */
+
+        if (channelList.takeMonitorForChannel(ch))
+        {
+            try
+            {
+                connectToChannel(c, ch);
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (connectToChannel)");
+            }
+
+            channelList.releaseMonitorForChannel(ch);
+        }
+        else
+        {
+            /**
+             * the channel did not exist, create it
+             */
+            channelList.takeMonitor();
+
+            try
+            {
+                channelList.createChannel(ch, (String) c.getData());
+                ((SOCClientData) c.getAppData()).createdChannel();
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (createChannel)");
+            }
+
+            channelList.releaseMonitor();
+            broadcast(SOCNewChannel.toCmd(ch));
+            c.put(SOCMembers.toCmd(ch, channelList.getMembers(ch)));
+            D.ebugPrintln("*** " + c.getData() + " joined the channel " + ch);
+            channelList.takeMonitorForChannel(ch);
+
+            try
+            {
+                channelList.addMember(c, ch);
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleJOIN (addMember)");
+            }
+
+            channelList.releaseMonitorForChannel(ch);
+        }
+
+        /**
+         * let everyone know about the change
+         */
+        messageToChannel(ch, new SOCJoin(msgUser, "", "dummyhost", ch));
     }
 
     /**
@@ -4142,26 +4138,26 @@ public class SOCServer extends Server
     {
         D.ebugPrintln("handleLEAVE: " + mes);
 
-        if (c != null)
+        if (c == null)
+            return;
+
+        boolean destroyedChannel = false;
+        channelList.takeMonitorForChannel(mes.getChannel());
+
+        try
         {
-            boolean destroyedChannel = false;
-            channelList.takeMonitorForChannel(mes.getChannel());
+            destroyedChannel = leaveChannel(c, mes.getChannel(), false);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in handleLEAVE");
+        }
 
-            try
-            {
-                destroyedChannel = leaveChannel(c, mes.getChannel(), false);
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in handleLEAVE");
-            }
+        channelList.releaseMonitorForChannel(mes.getChannel());
 
-            channelList.releaseMonitorForChannel(mes.getChannel());
-
-            if (destroyedChannel)
-            {
-                broadcast(SOCDeleteChannel.toCmd(mes.getChannel()));
-            }
+        if (destroyedChannel)
+        {
+            broadcast(SOCDeleteChannel.toCmd(mes.getChannel()));
         }
     }
 
@@ -4179,105 +4175,105 @@ public class SOCServer extends Server
      */
     private void handleIMAROBOT(StringConnection c, SOCImARobot mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+
+        /**
+         * Check the reported version; if none, assume 1000 (1.0.00)
+         */
+        final int srvVers = Version.versionNumber();
+        int cliVers = c.getVersion();
+        final String rbc = mes.getRBClass();
+        final boolean isBuiltIn = (rbc == null)
+            || (rbc.equals(SOCImARobot.RBCLASS_BUILTIN));
+        if (isBuiltIn)
         {
-            /**
-             * Check the reported version; if none, assume 1000 (1.0.00)
-             */
-            final int srvVers = Version.versionNumber();
-            int cliVers = c.getVersion();
-            final String rbc = mes.getRBClass();
-            final boolean isBuiltIn = (rbc == null)
-                || (rbc.equals(SOCImARobot.RBCLASS_BUILTIN));
-            if (isBuiltIn)
+            if (cliVers != srvVers)
             {
-                if (cliVers != srvVers)
-                {
-                    String rejectMsg = "Sorry, robot client version does not match, version number "
-                        + Version.version(srvVers) + " is required.";
-                    c.put(new SOCRejectConnection(rejectMsg).toCmd());
-                    c.disconnectSoft();
-                    System.out.println("Rejected robot " + mes.getNickname() + ": Version " + cliVers + " does not match server version");
-                    return;  // <--- Early return: Robot client too old ---
-                } else {
-                    System.out.println("Robot arrived: " + mes.getNickname() + ": built-in type");
-                }
-            } else {
-                System.out.println("Robot arrived: " + mes.getNickname() + ": type " + rbc);
-            }
-
-            /**
-             * Check that the nickname is ok
-             */
-            if ((c.getData() == null) && (0 != checkNickname(mes.getNickname(), c, false)))
-            {
-                c.put(SOCStatusMessage.toCmd
-                        (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
-                         MSG_NICKNAME_ALREADY_IN_USE));
-                SOCRejectConnection rcCommand = new SOCRejectConnection(MSG_NICKNAME_ALREADY_IN_USE);
-                c.put(rcCommand.toCmd());
-                System.err.println("Robot login attempt, name already in use: " + mes.getNickname());
-                // c.disconnect();
+                String rejectMsg = "Sorry, robot client version does not match, version number "
+                    + Version.version(srvVers) + " is required.";
+                c.put(new SOCRejectConnection(rejectMsg).toCmd());
                 c.disconnectSoft();
-
-                return;
+                System.out.println("Rejected robot " + mes.getNickname() + ": Version " + cliVers + " does not match server version");
+                return;  // <--- Early return: Robot client too old ---
+            } else {
+                System.out.println("Robot arrived: " + mes.getNickname() + ": built-in type");
             }
+        } else {
+            System.out.println("Robot arrived: " + mes.getNickname() + ": type " + rbc);
+        }
 
-            // Idle robots disconnect and reconnect every so often (socket timeout).
-            // In case of disconnect-reconnect, don't print the error or re-arrival debug announcements.
-            // The robot's nickname is used as the key for the disconnect announcement.
+        /**
+         * Check that the nickname is ok
+         */
+        if ((c.getData() == null) && (0 != checkNickname(mes.getNickname(), c, false)))
+        {
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_NAME_IN_USE, cliVers,
+                     MSG_NICKNAME_ALREADY_IN_USE));
+            SOCRejectConnection rcCommand = new SOCRejectConnection(MSG_NICKNAME_ALREADY_IN_USE);
+            c.put(rcCommand.toCmd());
+            System.err.println("Robot login attempt, name already in use: " + mes.getNickname());
+            // c.disconnect();
+            c.disconnectSoft();
+
+            return;
+        }
+
+        // Idle robots disconnect and reconnect every so often (socket timeout).
+        // In case of disconnect-reconnect, don't print the error or re-arrival debug announcements.
+        // The robot's nickname is used as the key for the disconnect announcement.
+        {
+            ConnExcepDelayedPrintTask depart
+                = cliConnDisconPrintsPending.get(mes.getNickname());
+            if (depart != null)
             {
-                ConnExcepDelayedPrintTask depart
-                    = cliConnDisconPrintsPending.get(mes.getNickname());
-                if (depart != null)
+                depart.cancel();
+                cliConnDisconPrintsPending.remove(mes.getNickname());
+                ConnExcepDelayedPrintTask arrive
+                    = cliConnDisconPrintsPending.get(c);
+                if (arrive != null)
                 {
-                    depart.cancel();
-                    cliConnDisconPrintsPending.remove(mes.getNickname());
-                    ConnExcepDelayedPrintTask arrive
-                        = cliConnDisconPrintsPending.get(c);
-                    if (arrive != null)
-                    {
-                        arrive.cancel();
-                        cliConnDisconPrintsPending.remove(c);
-                    }
+                    arrive.cancel();
+                    cliConnDisconPrintsPending.remove(c);
                 }
             }
-
-            SOCRobotParameters params = null;
-            //
-            // send the current robot parameters
-            //
-            try
-            {
-                params = SOCDBHelper.retrieveRobotParams(mes.getNickname());
-                if (params != null)
-                    D.ebugPrintln("*** Robot Parameters for " + mes.getNickname() + " = " + params);
-            }
-            catch (SQLException sqle)
-            {
-                System.err.println("Error retrieving robot parameters from db: Using defaults.");
-            }
-
-            if (params == null)
-            {
-                params = new SOCRobotParameters(ROBOT_PARAMS_DEFAULT);
-            }
-
-            c.put(SOCUpdateRobotParams.toCmd(params));
-
-            //
-            // add this connection to the robot list
-            //
-            c.setData(mes.getNickname());
-            c.setHideTimeoutMessage(true);
-            robots.addElement(c);
-            SOCClientData scd = (SOCClientData) c.getAppData();
-            scd.isRobot = true;
-            scd.isBuiltInRobot = isBuiltIn;
-            if (! isBuiltIn)
-                scd.robot3rdPartyBrainClass = rbc;
-            nameConnection(c);
         }
+
+        SOCRobotParameters params = null;
+        //
+        // send the current robot parameters
+        //
+        try
+        {
+            params = SOCDBHelper.retrieveRobotParams(mes.getNickname());
+            if (params != null)
+                D.ebugPrintln("*** Robot Parameters for " + mes.getNickname() + " = " + params);
+        }
+        catch (SQLException sqle)
+        {
+            System.err.println("Error retrieving robot parameters from db: Using defaults.");
+        }
+
+        if (params == null)
+        {
+            params = new SOCRobotParameters(ROBOT_PARAMS_DEFAULT);
+        }
+
+        c.put(SOCUpdateRobotParams.toCmd(params));
+
+        //
+        // add this connection to the robot list
+        //
+        c.setData(mes.getNickname());
+        c.setHideTimeoutMessage(true);
+        robots.addElement(c);
+        SOCClientData scd = (SOCClientData) c.getAppData();
+        scd.isRobot = true;
+        scd.isBuiltInRobot = isBuiltIn;
+        if (! isBuiltIn)
+            scd.robot3rdPartyBrainClass = rbc;
+        nameConnection(c);
     }
 
     /**
@@ -4567,23 +4563,22 @@ public class SOCServer extends Server
      */
     private void handleJOINGAME(StringConnection c, SOCJoinGame mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+
+        D.ebugPrintln("handleJOINGAME: " + mes);
+
+        /**
+         * Check the client's reported version; if none, assume 1000 (1.0.00)
+         */
+        if (c.getVersion() == -1)
         {
-            D.ebugPrintln("handleJOINGAME: " + mes);
-
-            /**
-             * Check the client's reported version; if none, assume 1000 (1.0.00)
-             */
-            if (c.getVersion() == -1)
-            {
-                if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
-                    return;  // <--- Early return: Client too old ---
-            }
-
-            createOrJoinGameIfUserOK
-                (c, mes.getNickname().trim(), mes.getPassword(), mes.getGame().trim(), null);
-
+            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
+                return;  // <--- Early return: Client too old ---
         }
+
+        createOrJoinGameIfUserOK
+            (c, mes.getNickname().trim(), mes.getPassword(), mes.getGame().trim(), null);
     }
 
     /**
@@ -4852,40 +4847,40 @@ public class SOCServer extends Server
      */
     private void handleLEAVEGAME(StringConnection c, SOCLeaveGame mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+
+        boolean isMember = false;
+        final String gaName = mes.getGame();
+        if (! gameList.takeMonitorForGame(gaName))
         {
-            boolean isMember = false;
-            final String gaName = mes.getGame();
-            if (! gameList.takeMonitorForGame(gaName))
-            {
-                return;  // <--- Early return: game not in gamelist ---
-            }
+            return;  // <--- Early return: game not in gamelist ---
+        }
 
-            try
-            {
-                isMember = gameList.isMember(c, gaName);
-            }
-            catch (Exception e)
-            {
-                D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (isMember)");
-            }
+        try
+        {
+            isMember = gameList.isMember(c, gaName);
+        }
+        catch (Exception e)
+        {
+            D.ebugPrintStackTrace(e, "Exception in handleLEAVEGAME (isMember)");
+        }
 
-            gameList.releaseMonitorForGame(gaName);
+        gameList.releaseMonitorForGame(gaName);
 
-            if (isMember)
-            {
-                handleLEAVEGAME_member(c, gaName);
-            }
-            else if (((SOCClientData) c.getAppData()).isRobot)
-            {
-                handleLEAVEGAME_maybeGameReset_oldRobot(gaName);
-                // During a game reset, this robot player
-                // will not be found among cg's players
-                // (isMember is false), because it's
-                // attached to the old game object
-                // instead of the new one.
-                // So, check game state and update game's reset data.
-            }
+        if (isMember)
+        {
+            handleLEAVEGAME_member(c, gaName);
+        }
+        else if (((SOCClientData) c.getAppData()).isRobot)
+        {
+            handleLEAVEGAME_maybeGameReset_oldRobot(gaName);
+            // During a game reset, this robot player
+            // will not be found among cg's players
+            // (isMember is false), because it's
+            // attached to the old game object
+            // instead of the new one.
+            // So, check game state and update game's reset data.
         }
     }
 
@@ -5002,108 +4997,108 @@ public class SOCServer extends Server
      */
     private void handleSITDOWN(StringConnection c, SOCSitDown mes)
     {
-        if (c != null)
-        {
-            final String gaName = mes.getGame();
-            SOCGame ga = gameList.getGameData(gaName);
+        if (c == null)
+            return;
 
-            if (ga != null)
+        final String gaName = mes.getGame();
+        SOCGame ga = gameList.getGameData(gaName);
+
+        if (ga != null)
+        {
+            /**
+             * make sure this player isn't already sitting
+             */
+            boolean canSit = true;
+            boolean gameIsFull = false;
+
+            /*
+               for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
+               if (ga.getPlayer(i).getName() == (String)c.getData()) {
+               canSit = false;
+               break;
+               }
+               }
+             */
+            //D.ebugPrintln("ga.isSeatVacant(mes.getPlayerNumber()) = "+ga.isSeatVacant(mes.getPlayerNumber()));
+            /**
+             * make sure a person isn't sitting here already;
+             * if a robot is sitting there, dismiss the robot.
+             */
+            ga.takeMonitor();
+
+            try
+            {
+                if (ga.isSeatVacant(mes.getPlayerNumber()))
+                {
+                    gameIsFull = (1 > ga.getAvailableSeatCount());
+                    if (gameIsFull)
+                        canSit = false;
+                } else {
+                    SOCPlayer seatedPlayer = ga.getPlayer(mes.getPlayerNumber());
+
+                    if (seatedPlayer.isRobot() && (!ga.isSeatLocked(mes.getPlayerNumber())) && (ga.getCurrentPlayerNumber() != mes.getPlayerNumber()))
+                    {
+                        /**
+                         * boot the robot out of the game
+                         */
+                        StringConnection robotCon = getConnection(seatedPlayer.getName());
+                        robotCon.put(SOCRobotDismiss.toCmd(gaName));
+
+                        /**
+                         * this connection has to wait for the robot to leave
+                         * and then it can sit down
+                         */
+                        Vector<SOCReplaceRequest> disRequests = robotDismissRequests.get(gaName);
+                        SOCReplaceRequest req = new SOCReplaceRequest(c, robotCon, mes);
+
+                        if (disRequests == null)
+                        {
+                            disRequests = new Vector<SOCReplaceRequest>();
+                            disRequests.addElement(req);
+                            robotDismissRequests.put(gaName, disRequests);
+                        }
+                        else
+                        {
+                            disRequests.addElement(req);
+                        }
+                    }
+
+                    canSit = false;
+                }
+            }
+            catch (Exception e)
+            {
+                D.ebugPrintStackTrace(e, "Exception in handleSITDOWN");
+            }
+
+            ga.releaseMonitor();
+
+            /**
+             * if this is a robot, remove it from the request list
+             */
+            Vector<StringConnection> joinRequests = robotJoinRequests.get(gaName);
+
+            if (joinRequests != null)
+            {
+                joinRequests.removeElement(c);
+            }
+
+            //D.ebugPrintln("canSit 2 = "+canSit);
+            if (canSit)
+            {
+                sitDown(ga, c, mes.getPlayerNumber(), mes.isRobot(), false);
+            }
+            else
             {
                 /**
-                 * make sure this player isn't already sitting
+                 * if the robot can't sit, tell it to go away.
+                 * otherwise if game is full, tell the player.
                  */
-                boolean canSit = true;
-                boolean gameIsFull = false;
-
-                /*
-                   for (int i = 0; i < SOCGame.MAXPLAYERS; i++) {
-                   if (ga.getPlayer(i).getName() == (String)c.getData()) {
-                   canSit = false;
-                   break;
-                   }
-                   }
-                 */
-                //D.ebugPrintln("ga.isSeatVacant(mes.getPlayerNumber()) = "+ga.isSeatVacant(mes.getPlayerNumber()));
-                /**
-                 * make sure a person isn't sitting here already;
-                 * if a robot is sitting there, dismiss the robot.
-                 */
-                ga.takeMonitor();
-
-                try
+                if (mes.isRobot())
                 {
-                    if (ga.isSeatVacant(mes.getPlayerNumber()))
-                    {
-                        gameIsFull = (1 > ga.getAvailableSeatCount());
-                        if (gameIsFull)
-                            canSit = false;
-                    } else {
-                        SOCPlayer seatedPlayer = ga.getPlayer(mes.getPlayerNumber());
-
-                        if (seatedPlayer.isRobot() && (!ga.isSeatLocked(mes.getPlayerNumber())) && (ga.getCurrentPlayerNumber() != mes.getPlayerNumber()))
-                        {
-                            /**
-                             * boot the robot out of the game
-                             */
-                            StringConnection robotCon = getConnection(seatedPlayer.getName());
-                            robotCon.put(SOCRobotDismiss.toCmd(gaName));
-
-                            /**
-                             * this connection has to wait for the robot to leave
-                             * and then it can sit down
-                             */
-                            Vector<SOCReplaceRequest> disRequests = robotDismissRequests.get(gaName);
-                            SOCReplaceRequest req = new SOCReplaceRequest(c, robotCon, mes);
-
-                            if (disRequests == null)
-                            {
-                                disRequests = new Vector<SOCReplaceRequest>();
-                                disRequests.addElement(req);
-                                robotDismissRequests.put(gaName, disRequests);
-                            }
-                            else
-                            {
-                                disRequests.addElement(req);
-                            }
-                        }
-
-                        canSit = false;
-                    }
-                }
-                catch (Exception e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception in handleSITDOWN");
-                }
-
-                ga.releaseMonitor();
-
-                /**
-                 * if this is a robot, remove it from the request list
-                 */
-                Vector<StringConnection> joinRequests = robotJoinRequests.get(gaName);
-
-                if (joinRequests != null)
-                {
-                    joinRequests.removeElement(c);
-                }
-
-                //D.ebugPrintln("canSit 2 = "+canSit);
-                if (canSit)
-                {
-                    sitDown(ga, c, mes.getPlayerNumber(), mes.isRobot(), false);
-                }
-                else
-                {
-                    /**
-                     * if the robot can't sit, tell it to go away.
-                     * otherwise if game is full, tell the player.
-                     */
-                    if (mes.isRobot())
-                    {
-                        c.put(SOCRobotDismiss.toCmd(gaName));
-                    } else if (gameIsFull) {
-                        messageToPlayer(c, gaName, "This game is full, you cannot sit down.");
-                    }
+                    c.put(SOCRobotDismiss.toCmd(gaName));
+                } else if (gameIsFull) {
+                    messageToPlayer(c, gaName, "This game is full, you cannot sit down.");
                 }
             }
         }
@@ -5480,138 +5475,138 @@ public class SOCServer extends Server
      */
     private void handleSTARTGAME(StringConnection c, SOCStartGame mes)
     {
-        if (c != null)
+        if (c == null)
+            return;
+
+        String gn = mes.getGame();
+        SOCGame ga = gameList.getGameData(gn);
+
+        if (ga == null)
+            return;
+
+        ga.takeMonitor();
+
+        try
         {
-            String gn = mes.getGame();
-            SOCGame ga = gameList.getGameData(gn);
-
-            if (ga != null)
+            if (ga.getGameState() == SOCGame.NEW)
             {
-                ga.takeMonitor();
+                boolean seatsFull = true;
+                boolean anyLocked = false;
+                int numEmpty = 0;
+                int numPlayers = 0;
 
-                try
+                //
+                // count the number of unlocked empty seats
+                //
+                for (int i = 0; i < ga.maxPlayers; i++)
                 {
-                    if (ga.getGameState() == SOCGame.NEW)
+                    if (ga.isSeatVacant(i))
                     {
-                        boolean seatsFull = true;
-                        boolean anyLocked = false;
-                        int numEmpty = 0;
-                        int numPlayers = 0;
-
-                        //
-                        // count the number of unlocked empty seats
-                        //
-                        for (int i = 0; i < ga.maxPlayers; i++)
+                        if (ga.isSeatLocked(i))
                         {
-                            if (ga.isSeatVacant(i))
-                            {
-                                if (ga.isSeatLocked(i))
-                                {
-                                    anyLocked = true;
-                                }
-                                else
-                                {
-                                    seatsFull = false;
-                                    ++numEmpty;
-                                }
-                            }
-                            else
-                            {
-                                ++numPlayers;
-                            }
+                            anyLocked = true;
                         }
-
-                        // Check vs max-players allowed in game (option "PL").
-                        // Like seat locks, this can cause robots to be unwanted
-                        // in otherwise-empty seats.
-                        {
-                            final int numAvail = ga.getAvailableSeatCount();
-                            if (numAvail < numEmpty)
-                            {
-                                numEmpty = numAvail;
-                                if (numEmpty == 0)
-                                    seatsFull = true;
-                            }
-                        }
-
-                        if (seatsFull && (numPlayers < 2))
+                        else
                         {
                             seatsFull = false;
-                            numEmpty = 3;
-                            String m = "Sorry, the only player cannot lock all seats.";
+                            ++numEmpty;
+                        }
+                    }
+                    else
+                    {
+                        ++numPlayers;
+                    }
+                }
+
+                // Check vs max-players allowed in game (option "PL").
+                // Like seat locks, this can cause robots to be unwanted
+                // in otherwise-empty seats.
+                {
+                    final int numAvail = ga.getAvailableSeatCount();
+                    if (numAvail < numEmpty)
+                    {
+                        numEmpty = numAvail;
+                        if (numEmpty == 0)
+                            seatsFull = true;
+                    }
+                }
+
+                if (seatsFull && (numPlayers < 2))
+                {
+                    seatsFull = false;
+                    numEmpty = 3;
+                    String m = "Sorry, the only player cannot lock all seats.";
+                    messageToGame(gn, m);
+                }
+                else if (!seatsFull)
+                {
+                    if (robots.isEmpty())
+                    {
+                        if (numPlayers < SOCGame.MINPLAYERS)
+                        {
+                            messageToGame(gn,
+                                "No robots on this server, please fill at least "
+                                + SOCGame.MINPLAYERS + " seats before starting." );
+                        }
+                        else
+                        {
+                            seatsFull = true;  // Enough players to start game.
+                        }
+                    }
+                    else
+                    {
+                        //
+                        // make sure there are enough robots connected,
+                        // then set gamestate READY and ask them to connect.
+                        //
+                        if (numEmpty > robots.size())
+                        {
+                            String m;
+                            if (anyLocked)
+                                m = "Sorry, not enough robots to fill all the seats.  Only " + robots.size() + " robots are available.";
+                            else
+                                m = "Sorry, not enough robots to fill all the seats.  Lock some seats.  Only " + robots.size() + " robots are available.";
                             messageToGame(gn, m);
                         }
-                        else if (!seatsFull)
+                        else
                         {
-                            if (robots.isEmpty())
-                            {
-                                if (numPlayers < SOCGame.MINPLAYERS)
-                                {
-                                    messageToGame(gn,
-                                        "No robots on this server, please fill at least "
-                                        + SOCGame.MINPLAYERS + " seats before starting." );
-                                }
-                                else
-                                {
-                                    seatsFull = true;  // Enough players to start game.
-                                }
-                            }
-                            else
-                            {
-                                //
-                                // make sure there are enough robots connected,
-                                // then set gamestate READY and ask them to connect.
-                                //
-                                if (numEmpty > robots.size())
-                                {
-                                    String m;
-                                    if (anyLocked)
-                                        m = "Sorry, not enough robots to fill all the seats.  Only " + robots.size() + " robots are available.";
-                                    else
-                                        m = "Sorry, not enough robots to fill all the seats.  Lock some seats.  Only " + robots.size() + " robots are available.";
-                                    messageToGame(gn, m);
-                                }
-                                else
-                                {
-                                    ga.setGameState(SOCGame.READY);
+                            ga.setGameState(SOCGame.READY);
 
-                                    /**
-                                     * Fill all the unlocked empty seats with robots.
-                                     * Build a Vector of StringConnections of robots asked
-                                     * to join, and add it to the robotJoinRequests table.
-                                     */
-                                    try
-                                    {
-                                        readyGameAskRobotsJoin(ga, null);
-                                    }
-                                    catch (IllegalStateException e)
-                                    {
-                                        String m = "Sorry, robots cannot join this game: " + e.getMessage();
-                                        messageToGame(gn, m);
-                                        System.err.println("Robot-join problem in game " + gn + ": " + m);
-                                    }
-                                }
+                            /**
+                             * Fill all the unlocked empty seats with robots.
+                             * Build a Vector of StringConnections of robots asked
+                             * to join, and add it to the robotJoinRequests table.
+                             */
+                            try
+                            {
+                                readyGameAskRobotsJoin(ga, null);
                             }
-                        }
-
-                        /**
-                         * If this doesn't need robots, then start the game.
-                         * Otherwise wait for them to sit before starting the game.
-                         */
-                        if (seatsFull)
-                        {
-                            startGame(ga);
+                            catch (IllegalStateException e)
+                            {
+                                String m = "Sorry, robots cannot join this game: " + e.getMessage();
+                                messageToGame(gn, m);
+                                System.err.println("Robot-join problem in game " + gn + ": " + m);
+                            }
                         }
                     }
                 }
-                catch (Throwable e)
-                {
-                    D.ebugPrintStackTrace(e, "Exception caught");
-                }
 
-                ga.releaseMonitor();
+                /**
+                 * If this doesn't need robots, then start the game.
+                 * Otherwise wait for them to sit before starting the game.
+                 */
+                if (seatsFull)
+                {
+                    startGame(ga);
+                }
             }
         }
+        catch (Throwable e)
+        {
+            D.ebugPrintStackTrace(e, "Exception caught");
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
@@ -8307,87 +8302,87 @@ public class SOCServer extends Server
      */
     private void sitDown(SOCGame ga, StringConnection c, int pn, boolean robot, boolean isReset)
     {
-        if ((c != null) && (ga != null))
+        if ((c == null) || (ga == null))
+            return;
+
+        ga.takeMonitor();
+
+        try
         {
-            ga.takeMonitor();
-
-            try
+            final String gaName = ga.getName();
+            if (! isReset)
             {
-                final String gaName = ga.getName();
-                if (! isReset)
+                // If reset, player is already added and knows if robot.
+                try
                 {
-                    // If reset, player is already added and knows if robot.
-                    try
-                    {
-                        SOCClientData cd = (SOCClientData) c.getAppData();
-                        ga.addPlayer((String) c.getData(), pn);
-                        ga.getPlayer(pn).setRobotFlag(robot, (cd != null) && cd.isBuiltInRobot);
-                    }
-                    catch (IllegalStateException e)
-                    {
-                        // Maybe already seated? (network lag)
-                        if (! robot)
-                            messageToPlayer(c, gaName, "You cannot sit down here.");
-                        ga.releaseMonitor();
-                        return;  // <---- Early return: cannot sit down ----
-                    }
+                    SOCClientData cd = (SOCClientData) c.getAppData();
+                    ga.addPlayer((String) c.getData(), pn);
+                    ga.getPlayer(pn).setRobotFlag(robot, (cd != null) && cd.isBuiltInRobot);
+                }
+                catch (IllegalStateException e)
+                {
+                    // Maybe already seated? (network lag)
+                    if (! robot)
+                        messageToPlayer(c, gaName, "You cannot sit down here.");
+                    ga.releaseMonitor();
+                    return;  // <---- Early return: cannot sit down ----
+                }
+            }
+
+            /**
+             * if the player can sit, then tell the other clients in the game
+             */
+            SOCSitDown sitMessage = new SOCSitDown(gaName, (String) c.getData(), pn, robot);
+            messageToGame(gaName, sitMessage);
+
+            D.ebugPrintln("*** sent SOCSitDown message to game ***");
+
+            recordGameEvent(gaName, sitMessage.toCmd());
+
+            Vector<StringConnection> requests;
+            if (! isReset)
+            {
+                requests = robotJoinRequests.get(gaName);
+            }
+            else
+            {
+                requests = null;  // Game already has all players from old game
+            }
+
+            if (requests != null)
+            {
+                /**
+                 * if the request list is empty and the game hasn't started yet,
+                 * then start the game
+                 */
+                if (requests.isEmpty() && (ga.getGameState() < SOCGame.START1A))
+                {
+                    startGame(ga);
                 }
 
                 /**
-                 * if the player can sit, then tell the other clients in the game
+                 * if the request list is empty, remove the empty list
                  */
-                SOCSitDown sitMessage = new SOCSitDown(gaName, (String) c.getData(), pn, robot);
-                messageToGame(gaName, sitMessage);
-
-                D.ebugPrintln("*** sent SOCSitDown message to game ***");
-
-                recordGameEvent(gaName, sitMessage.toCmd());
-
-                Vector<StringConnection> requests;
-                if (! isReset)
+                if (requests.isEmpty())
                 {
-                    requests = robotJoinRequests.get(gaName);
+                    robotJoinRequests.remove(gaName);
                 }
-                else
-                {
-                    requests = null;  // Game already has all players from old game
-                }
-
-                if (requests != null)
-                {
-                    /**
-                     * if the request list is empty and the game hasn't started yet,
-                     * then start the game
-                     */
-                    if (requests.isEmpty() && (ga.getGameState() < SOCGame.START1A))
-                    {
-                        startGame(ga);
-                    }
-
-                    /**
-                     * if the request list is empty, remove the empty list
-                     */
-                    if (requests.isEmpty())
-                    {
-                        robotJoinRequests.remove(gaName);
-                    }
-                }
-
-                broadcastGameStats(ga);
-
-                /**
-                 * send all the private information
-                 */
-                sitDown_sendPrivateInfo(ga, c, pn, gaName);
-            }
-            catch (Throwable e)
-            {
-                D.ebugPrintln("Exception caught - " + e);
-                e.printStackTrace();
             }
 
-            ga.releaseMonitor();
+            broadcastGameStats(ga);
+
+            /**
+             * send all the private information
+             */
+            sitDown_sendPrivateInfo(ga, c, pn, gaName);
         }
+        catch (Throwable e)
+        {
+            D.ebugPrintln("Exception caught - " + e);
+            e.printStackTrace();
+        }
+
+        ga.releaseMonitor();
     }
 
     /**
@@ -9207,19 +9202,17 @@ public class SOCServer extends Server
      */
     protected boolean checkTurn(StringConnection c, SOCGame ga)
     {
-        if ((c != null) && (ga != null))
+        if ((c == null) || (ga == null))
+            return false;
+
+        try
         {
-            try
-            {
-                return (ga.getCurrentPlayerNumber() == ga.getPlayer((String) c.getData()).getPlayerNumber());
-            }
-            catch (Throwable th)
-            {
-                return false;
-            }
+            return (ga.getCurrentPlayerNumber() == ga.getPlayer((String) c.getData()).getPlayerNumber());
         }
-        
-        return false;
+        catch (Throwable th)
+        {
+            return false;
+        }
     }
 
     /**
