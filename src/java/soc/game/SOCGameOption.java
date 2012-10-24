@@ -866,7 +866,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     {
     	if (strValue != null)
     	    return strValue;
-	    return "";
+    	else
+    	    return "";
     }
 
     /**
@@ -1774,7 +1775,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
 	if (allKnown)
 	    return null;
-    return optProblems;
+	else
+	    return optProblems;
     }
 
     /**
@@ -1940,8 +1942,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             if (optKey.equals(oopt.optKey))
                 return 0;
             return optDesc.compareTo(oopt.optDesc);
+        } else {
+            return hashCode() - other.hashCode();
         }
-        return hashCode() - other.hashCode();
     }
 
     /**
