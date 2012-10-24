@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -86,6 +86,9 @@ public class SOCMembers extends SOCMessage
 
     /**
      * MEMBERS sep channel sep2 members
+     *<P>
+     * Used from instance method {@link #toCmd()} with Strings,
+     * and from other callers with StringConnections for convenience.
      *
      * @param ch  the new channel name
      * @param ml  the list of members (String or StringConnection)
@@ -99,14 +102,18 @@ public class SOCMembers extends SOCMessage
         {
             for (Object obj : ml)
             {
-                String msg = null;
+                String msg;
                 if (obj instanceof StringConnection)
                 {
                     msg = (String)((StringConnection)obj).getData();
                 }
-                if (obj instanceof String)
+                else if (obj instanceof String)
                 {
                     msg = (String)obj;
+                }
+                else
+                {
+                    msg = obj.toString();  // fallback; expecting String or conn
                 }
                 cmd += (sep2 + msg);
             }
