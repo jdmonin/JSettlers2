@@ -1132,6 +1132,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     	    {
     	        opts2.put(op.optKey, (SOCGameOption) op.clone());
     	    } catch (CloneNotSupportedException ce) {
+    	        // required, but not expected to happen
     	        throw new IllegalStateException("Clone failed!", ce);
     	    }
     	}

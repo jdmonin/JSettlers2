@@ -348,12 +348,14 @@ public class SOCGameListAtServer extends SOCGameList
     @Override
     public synchronized void deleteGame(String gaName)
     {
+        // delete from super first, to destroy game and set its gameDestroyed flag
+        super.deleteGame(gaName);
+
         Vector<StringConnection> members = gameMembers.get(gaName);
         if (members != null)
         {
             members.removeAllElements();
         }
-        super.deleteGame(gaName);
     }
 
     /**

@@ -2532,7 +2532,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             {
                 setVisible(true);
             }
-            catch (Exception e) {
+            catch (ThreadDeath e) {}
+            catch (Throwable e) {
                 e.printStackTrace();
             }
         }
@@ -2630,7 +2631,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             {
                 setVisible(true);
             }
-            catch (Exception e) {
+            catch (ThreadDeath e) {}
+            catch (Throwable e) {
                 e.printStackTrace();
             }
         }

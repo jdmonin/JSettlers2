@@ -1,6 +1,6 @@
 /**
  * Local (StringConnection) network system.  Version 1.0.5.
- * Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>.
+ * Copyright (C) 2007-2010,2012 Jeremy D Monin <jeremy@nand.net>.
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -192,8 +192,7 @@ public class LocalStringConnection
                 }
                 catch (InterruptedException e)
                 {
-                    System.err.println("Local string connection interrupted");
-                    e.printStackTrace();
+                    // interruption is normal, not exceptional
                 }
             }
             obj = in.elementAt(0);

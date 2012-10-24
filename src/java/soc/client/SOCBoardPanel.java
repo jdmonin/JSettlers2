@@ -3254,7 +3254,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (debugShowPotentials[8] && isLargeBoard)
             landHexShow = ((SOCBoardLarge) board).getLandHexCoordsSet();
         else
-            landHexShow = Collections.emptySet();
+            landHexShow = null;  // almost always null, unless debugging large board
 
         g.setPaintMode();
 
@@ -3301,7 +3301,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     final int hexCoord = rshift | c;
                     drawHex(g, x, y, board.getHexTypeFromCoord(hexCoord), -1, hexCoord);
-                    if (landHexShow.contains(new Integer(hexCoord)))
+                    if ((landHexShow != null) && landHexShow.contains(new Integer(hexCoord)))
                     {
                        g.setColor(Color.RED);
                        g.drawRoundRect
@@ -6784,9 +6784,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 try {
                     Thread.currentThread().setName("timertask-boardpanel");
                 }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
+                catch (Throwable e) {}
             }
             
             // Time is up.
@@ -6953,10 +6951,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 setVisible(true);
             }
-            catch (ThreadDeath e)
-            {
-                e.printStackTrace();
-            }
+            catch (ThreadDeath e) {}
         }
 
     }  // nested class MoveRobberConfirmDialog

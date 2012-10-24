@@ -1033,6 +1033,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     break;
                 }
             }
+
+            if (routeContinues)
+                break;  // no need to keep looking at roads
         }
 
         return routeContinues;
@@ -2410,6 +2413,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                                 }
                                             }
                                         }
+
+                                        if (isPotentialRoad)
+                                            break;  // no need to keep looking at adjacent edges
                                     }
                                 }
                             }
