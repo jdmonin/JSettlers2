@@ -180,7 +180,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
      * @see #CLI_CONN_DISCON_PRINT_TIMER_FIRE_MS
      * @since 1.1.07
      */
-    public HashMap<StringConnection, ConnExcepDelayedPrintTask> cliConnDisconPrintsPending = new HashMap<StringConnection, ConnExcepDelayedPrintTask>();
+    public HashMap<Object, ConnExcepDelayedPrintTask> cliConnDisconPrintsPending = new HashMap<Object, ConnExcepDelayedPrintTask>();
 
     /**
      * Delay before printing a client disconnect error announcement.
@@ -563,7 +563,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                 if (cKey != null)
                 {
                     ConnExcepDelayedPrintTask leftMsgTask = new ConnExcepDelayedPrintTask(false, cerr, c);
-                    cliConnDisconPrintsPending.put(c, leftMsgTask);
+                    cliConnDisconPrintsPending.put(cKey, leftMsgTask);
                     utilTimer.schedule(leftMsgTask, CLI_DISCON_PRINT_TIMER_FIRE_MS);
                 } else {
                     // no connection-key data; we can't identify it later if it reconnects;
@@ -1251,7 +1251,10 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         /** may be null */
         public Throwable excep;
 
-        /** non-null unless isArriveNotDepart */
+        /** Key for {@link #cliConnDisconPrintsPending};
+         *  non-null unless isArriveNotDepart; if so,
+         *  connection name from {@link StringConnection#getData()}
+         */
         public Object connData;
 
         /** @see StringConnection#host() */
@@ -1260,7 +1263,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
         /** Arrival, not a departure */
         public boolean isArriveNotDepart;
 
-        /** null unless isArriveNotDepart */
+        /** Key for {@link #cliConnDisconPrintsPending}; null unless isArriveNotDepart */
         public StringConnection arrivingConn;
 
         /** Time at which this message was constructed, via {@link System#currentTimeMillis()} */
