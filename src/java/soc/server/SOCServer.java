@@ -2982,7 +2982,7 @@ public class SOCServer extends Server
             sb.append(nameTimeout);
             sb.append(" seconds");
         } else {
-            sb.append((int) ((nameTimeout + 20f) / 60));
+            sb.append((int) ((nameTimeout + 20) / 60));
             sb.append(" minute(s)");
         }
         sb.append(MSG_NICKNAME_ALREADY_IN_USE_WAIT_TRY_AGAIN);
@@ -9208,12 +9208,9 @@ public class SOCServer extends Server
         {
             try
             {
-                if (ga.getCurrentPlayerNumber() != ga.getPlayer((String) c.getData()).getPlayerNumber())
-                    return false;
-                
-                return true;
+                return (ga.getCurrentPlayerNumber() == ga.getPlayer((String) c.getData()).getPlayerNumber());
             }
-            catch (Exception e)
+            catch (Throwable th)
             {
                 return false;
             }

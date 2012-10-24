@@ -108,9 +108,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     protected boolean gotPassword;
 
     /**
-     * the channels
+     * Chat channels; for general use, or possibly in a future version to control bots.
      */
-    //TODO: is this used?
     protected Hashtable<String,?> channels = new Hashtable<String,Object>();
 
     /**

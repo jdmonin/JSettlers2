@@ -60,7 +60,8 @@ import soc.disableDebug.D;
 public class LocalStringConnection
     implements StringConnection, Runnable
 {
-    protected static String EOF_MARKER = "__EOF_MARKER__";
+    /** Unique end-of-file marker object.  Always compare against this with == not string.equals. */
+    protected static String EOF_MARKER = "__EOF_MARKER__" + '\004';
 
     protected Vector<String> in, out;
     protected boolean in_reachedEOF;
