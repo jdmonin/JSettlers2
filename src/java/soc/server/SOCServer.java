@@ -987,7 +987,8 @@ public class SOCServer extends Server
                 if (gVers > cliVers)
                 {
                     // Which option(s) are too new for client?
-                    Vector<SOCGameOption> optsValuesTooNew = SOCGameOption.optionsNewerThanVersion(cliVers, true, false, gaOpts);
+                    Vector<SOCGameOption> optsValuesTooNew = SOCGameOption.optionsNewerThanVersion
+                        (cliVers, true, false, gaOpts);
                     throw new SOCGameOptionVersionException(gVers, cliVers, optsValuesTooNew);
 
                     // <---- Exception: Early return ----
@@ -2367,12 +2368,8 @@ public class SOCServer extends Server
      * @since 2.0.00
      * @see #messageToGameExcept(String, StringConnection, SOCMessage, boolean)
      */
-    public void messageToGameForVersionsExcept(SOCGame ga,
-                                               final int vmin,
-                                               final int vmax,
-                                               StringConnection ex,
-                                               SOCMessage mes,
-                                               final boolean takeMon)
+    public void messageToGameForVersionsExcept
+        (SOCGame ga, final int vmin, final int vmax, StringConnection ex, SOCMessage mes, final boolean takeMon)
     {
         if ((ga.clientVersionLowest > vmax) || (ga.clientVersionHighest < vmin))
             return;  // <--- All clients too old or too new ---
@@ -2727,7 +2724,9 @@ public class SOCServer extends Server
                                    // strings are names of unjoinable games,
                                    // with the UNJOINABLE prefix.
         gameList.takeMonitor();
-        final boolean alreadySent = ((SOCClientData) c.getAppData()).hasSentGameList();  // Check while gamelist monitor is held
+
+        // Note this flag now, while gamelist monitor is held
+        final boolean alreadySent = ((SOCClientData) c.getAppData()).hasSentGameList();
         boolean cliVersionChange = alreadySent && (cliVers > prevVers);
 
         if (alreadySent && ! cliVersionChange)
@@ -4635,7 +4634,9 @@ public class SOCServer extends Server
      *
      * @since 1.1.07
      */
-    private void createOrJoinGameIfUserOK(StringConnection c, final String msgUser, String msgPass, final String gameName, Hashtable<String, SOCGameOption> gameOpts)
+    private void createOrJoinGameIfUserOK
+        (StringConnection c, final String msgUser, String msgPass,
+         final String gameName, Hashtable<String, SOCGameOption> gameOpts)
     {
         if (msgPass != null)
             msgPass = msgPass.trim();
@@ -5929,7 +5930,8 @@ public class SOCServer extends Server
      * @return true if this player appears to have a resource on a hex numbered <tt>roll</tt>
      * @since 2.0.00
      */
-    private boolean debug_printPieceDiceNumbers_pl(SOCPlayer pl, final int roll, final SOCBoard board, final String pieceType, Enumeration<? extends SOCPlayingPiece> pe)
+    private boolean debug_printPieceDiceNumbers_pl
+        (SOCPlayer pl, final int roll, final SOCBoard board, final String pieceType, Enumeration<? extends SOCPlayingPiece> pe)
     {
         final int robberHex = board.getRobberHex();
         boolean hadMatch = false;
@@ -6361,7 +6363,8 @@ public class SOCServer extends Server
             }
             if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
             {
-                messageToGameExcept(gaName, c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                messageToGameExcept
+                    (gaName, c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
             } else {
                 messageToGameForVersionsExcept
                     (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,

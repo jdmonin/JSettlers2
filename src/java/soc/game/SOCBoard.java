@@ -840,10 +840,9 @@ public class SOCBoard implements Serializable, Cloneable
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      * @since 1.1.11
      */
-    public static SOCBoard createBoard(Hashtable<String,SOCGameOption> gameOpts,
-                                       final boolean largeBoard,
-                                       final int maxPlayers)
-    throws IllegalArgumentException
+    public static SOCBoard createBoard
+        (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+        throws IllegalArgumentException
     {
         if (! largeBoard)
             return new SOCBoard(gameOpts, maxPlayers);
@@ -3177,7 +3176,8 @@ public class SOCBoard implements Serializable, Cloneable
      * @param d2  Delta along axis 2
      * @since 1.1.07
      */
-    private final void getAdjacentHexes_AddIfOK(Vector<Integer> addTo, final boolean includeWater, int hexCoord, final int d1, final int d2)
+    private final void getAdjacentHexes_AddIfOK
+        (Vector<Integer> addTo, final boolean includeWater, int hexCoord, final int d1, final int d2)
     {
         int a1 = ((hexCoord & 0xF0) >> 4) + d1;  // Axis-1 coordinate
         int a2 = (hexCoord & 0x0F) + d2;         // Axis-2 coordinate

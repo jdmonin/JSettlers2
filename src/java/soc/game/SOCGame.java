@@ -3458,7 +3458,8 @@ public class SOCGame implements Serializable, Cloneable
         
         if (missedResources.getTotal() > 0)
         {
-            //System.out.println("SOCGame#getResourcesGainedFromRoll Player ["+player.getName()+"] would have gotten resources, but robber stole them: "+missedResources.toString());
+            //System.out.println
+            // ("SOCGame#getResourcesGainedFromRoll Player ["+player.getName()+"] would have gotten resources, but robber stole them: "+missedResources.toString());
         }
 
         return resources;
@@ -3481,12 +3482,9 @@ public class SOCGame implements Serializable, Cloneable
      * @param incr   Add this many resources (1 or 2) per playing piece
      * @since 2.0.00
      */
-    private final void getResourcesGainedFromRollPieces(int roll,
-                                                        SOCResourceSet resources,
-                                                        SOCResourceSet missedResources,
-                                                        int robberHex,
-                                                        Collection<? extends SOCPlayingPiece> sEnum,
-                                                        int incr)
+    private final void getResourcesGainedFromRollPieces
+        (int roll, SOCResourceSet resources, SOCResourceSet missedResources,
+         int robberHex, Collection<? extends SOCPlayingPiece> sEnum, int incr)
     {
         for (SOCPlayingPiece sc : sEnum)
         {

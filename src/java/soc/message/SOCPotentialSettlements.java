@@ -398,7 +398,8 @@ public class SOCPotentialSettlements extends SOCMessage
     @Override
     public String toString()
     {
-        StringBuffer s = new StringBuffer("SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=");
+        StringBuffer s = new StringBuffer
+            ("SOCPotentialSettlements:game=" + game + "|playerNum=" + playerNumber + "|list=");
         Enumeration<Integer> senum = psList.elements();
 
         while (senum.hasMoreElements())

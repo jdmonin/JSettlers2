@@ -785,7 +785,9 @@ public class SOCPlayerTracker
      *                  0 to only check <tt>targetRoad</tt> for potential settlements
      *                  and not expand past it for new roads, ships, or further settlements
      */
-    public void expandRoadOrShip(SOCPossibleRoad targetRoad, SOCPlayer player, SOCPlayer dummy, HashMap<Integer, SOCPlayerTracker> trackers, final int level)
+    public void expandRoadOrShip
+        (SOCPossibleRoad targetRoad, SOCPlayer player, SOCPlayer dummy,
+         HashMap<Integer, SOCPlayerTracker> trackers, final int level)
     {
         //D.ebugPrintln("$$$ expandRoad at "+Integer.toHexString(targetRoad.getCoordinates())+" level="+level);
         SOCGame game = player.getGame();
@@ -2450,8 +2452,10 @@ public class SOCPlayerTracker
                 haveLR = true;
             }
 
-            TreeMap<Integer, SOCPossibleSettlement> posSetsCopy = new TreeMap<Integer, SOCPossibleSettlement>(possibleSettlements);
-            TreeMap<Integer, SOCPossibleCity> posCitiesCopy = new TreeMap<Integer, SOCPossibleCity>(possibleCities);
+            TreeMap<Integer, SOCPossibleSettlement> posSetsCopy =
+                new TreeMap<Integer, SOCPossibleSettlement>(possibleSettlements);
+            TreeMap<Integer, SOCPossibleCity> posCitiesCopy =
+                new TreeMap<Integer, SOCPossibleCity>(possibleCities);
 
             int points = player.getTotalVP();
             int fastestETA;
@@ -2521,7 +2525,8 @@ public class SOCPlayerTracker
                             if (!chosenSet.getNecessaryRoads().isEmpty())
                             {
                                 necRoadQueue.clear();
-                                necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>(Integer.valueOf(0), chosenSet.getNecessaryRoads()));
+                                necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
+                                    (Integer.valueOf(0), chosenSet.getNecessaryRoads()));
 
                                 while (!necRoadQueue.empty())
                                 {
@@ -2541,7 +2546,8 @@ public class SOCPlayerTracker
                                         while (necRoadEnum.hasMoreElements())
                                         {
                                             SOCPossibleRoad nr = necRoadEnum.nextElement();
-                                            necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>(Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
+                                            necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
+                                                (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
                                         }
                                     }
                                 }
@@ -2606,7 +2612,8 @@ public class SOCPlayerTracker
                     {
                         if (brain.getDRecorder().isOn())
                         {
-                            brain.getDRecorder().record(fastestETA + ": Stlmt at " + board.nodeCoordToString(chosenSet.getCoordinates()));
+                            brain.getDRecorder().record(fastestETA + ": Stlmt at "
+                                + board.nodeCoordToString(chosenSet.getCoordinates()));
                         }
                     }
 
@@ -2732,7 +2739,8 @@ public class SOCPlayerTracker
                                             tempPortFlagsSet[i][portType] = true;
 
                                         tempSetBSE[i].recalculateEstimates(tempPlayerNumbers);
-                                        chosenSetBuildingSpeed[i] = tempSetBSE[i].getEstimatesFromNothingFast(tempPortFlagsSet[i]);
+                                        chosenSetBuildingSpeed[i] =
+                                            tempSetBSE[i].getEstimatesFromNothingFast(tempPortFlagsSet[i]);
 
                                         for (int buildingType = SOCBuildingSpeedEstimate.MIN;
                                                 buildingType < SOCBuildingSpeedEstimate.MAXPLUSONE;
@@ -2740,7 +2748,8 @@ public class SOCPlayerTracker
                                         {
                                             if ((ourBuildingSpeed[buildingType] - chosenSetBuildingSpeed[i][buildingType]) > 0)
                                             {
-                                                bestSpeedupTotal += (ourBuildingSpeed[buildingType] - chosenSetBuildingSpeed[i][buildingType]);
+                                                bestSpeedupTotal +=
+                                                    (ourBuildingSpeed[buildingType] - chosenSetBuildingSpeed[i][buildingType]);
                                             }
                                         }
 
@@ -2774,7 +2783,8 @@ public class SOCPlayerTracker
                                         {
                                             if ((ourBuildingSpeed[buildingType] - tempBuildingSpeed[buildingType]) >= 0)
                                             {
-                                                tempSpeedupTotal += (ourBuildingSpeed[buildingType] - tempBuildingSpeed[buildingType]);
+                                                tempSpeedupTotal +=
+                                                    (ourBuildingSpeed[buildingType] - tempBuildingSpeed[buildingType]);
                                             }
                                             else
                                             {
@@ -2834,7 +2844,8 @@ public class SOCPlayerTracker
                                 if (!chosenSet[i].getNecessaryRoads().isEmpty())
                                 {
                                     necRoadQueue.clear();
-                                    necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>(Integer.valueOf(0), chosenSet[i].getNecessaryRoads()));
+                                    necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
+                                        (Integer.valueOf(0), chosenSet[i].getNecessaryRoads()));
 
                                     while (!necRoadQueue.empty())
                                     {
@@ -2854,7 +2865,8 @@ public class SOCPlayerTracker
                                             while (necRoadEnum.hasMoreElements())
                                             {
                                                 SOCPossibleRoad nr = necRoadEnum.nextElement();
-                                                necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>(Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
+                                                necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
+                                                    (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
                                             }
                                         }
                                     }
@@ -2918,7 +2930,10 @@ public class SOCPlayerTracker
                     ///
                     /// one of each
                     ///
-                    if ((cityPiecesLeft > 0) && (((settlementPiecesLeft > 0) && (citySpotsLeft >= 0)) || ((settlementPiecesLeft >= 0) && (citySpotsLeft > 0))) && !posSetsCopy.isEmpty())
+                    if ((cityPiecesLeft > 0)
+                        && (   ((settlementPiecesLeft > 0) && (citySpotsLeft >= 0))
+                            || ((settlementPiecesLeft >= 0) && (citySpotsLeft > 0))  )
+                        && ! posSetsCopy.isEmpty())
                     {
                         //
                         // choose a city to build
@@ -3022,7 +3037,8 @@ public class SOCPlayerTracker
                                     {
                                         if ((ourBuildingSpeed[buildingType] - chosenSetBuildingSpeed[0][buildingType]) > 0)
                                         {
-                                            bestSpeedupTotal += (ourBuildingSpeed[buildingType] - chosenSetBuildingSpeed[0][buildingType]);
+                                            bestSpeedupTotal +=
+                                                (ourBuildingSpeed[buildingType] - chosenSetBuildingSpeed[0][buildingType]);
                                         }
                                     }
 
@@ -3056,7 +3072,8 @@ public class SOCPlayerTracker
                                     {
                                         if ((ourBuildingSpeed[buildingType] - tempBuildingSpeed[buildingType]) >= 0)
                                         {
-                                            tempSpeedupTotal += (ourBuildingSpeed[buildingType] - tempBuildingSpeed[buildingType]);
+                                            tempSpeedupTotal +=
+                                                (ourBuildingSpeed[buildingType] - tempBuildingSpeed[buildingType]);
                                         }
                                         else
                                         {
@@ -3122,7 +3139,8 @@ public class SOCPlayerTracker
                         if (!chosenSet[0].getNecessaryRoads().isEmpty())
                         {
                             necRoadQueue.clear();
-                            necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>(Integer.valueOf(0), chosenSet[0].getNecessaryRoads()));
+                            necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
+                                (Integer.valueOf(0), chosenSet[0].getNecessaryRoads()));
 
                             while (!necRoadQueue.empty())
                             {
@@ -3142,7 +3160,8 @@ public class SOCPlayerTracker
                                     while (necRoadEnum.hasMoreElements())
                                     {
                                         SOCPossibleRoad nr = necRoadEnum.nextElement();
-                                        necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>(Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
+                                        necRoadQueue.put(new Pair<Integer, Vector<SOCPossibleRoad>>
+                                            (Integer.valueOf(totalNecRoads + 1), nr.getNecessaryRoads()));
                                     }
                                 }
                             }
@@ -3218,9 +3237,12 @@ public class SOCPlayerTracker
                         ///
                         knightsToBuy = 0;
 
-                        if ((player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) + player.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)) < laSize)
+                        if ((player.getNumKnights()
+                            + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT)
+                            + player.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)) < laSize)
                         {
-                            knightsToBuy = laSize - (player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));
+                            knightsToBuy = laSize -
+                                (player.getNumKnights() + player.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT));
                         }
 
                         ///
@@ -3268,7 +3290,8 @@ public class SOCPlayerTracker
                     winGameETA += fastestETA;
                     D.ebugPrintln("WWW WGETA SO FAR FOR PLAYER " + playerNumber + " = " + winGameETA);
 
-                    if ((settlementPiecesLeft > 1) && (posSetsCopy.size() > 1) && (canBuild2Settlements) && (fastestETA == twoSettlements))
+                    if ((settlementPiecesLeft > 1) && (posSetsCopy.size() > 1)
+                        && canBuild2Settlements && (fastestETA == twoSettlements))
                     {
                         Integer chosenSet0Int = new Integer(chosenSet[0].getCoordinates());
                         Integer chosenSet1Int = new Integer(chosenSet[1].getCoordinates());
@@ -3326,10 +3349,16 @@ public class SOCPlayerTracker
 
                         if (brain.getDRecorder().isOn())
                         {
-                            brain.getDRecorder().record(fastestETA + ": Stlmt at " + board.nodeCoordToString(chosenSet[0].getCoordinates()) + "; Stlmt at " + board.nodeCoordToString(chosenSet[1].getCoordinates()));
+                            brain.getDRecorder().record
+                                (fastestETA + ": Stlmt at " + board.nodeCoordToString(chosenSet[0].getCoordinates())
+                                 + "; Stlmt at " + board.nodeCoordToString(chosenSet[1].getCoordinates()));
                         }
                     }
-                    else if (((cityPiecesLeft > 0) && (((settlementPiecesLeft > 0) && (citySpotsLeft >= 0)) || ((settlementPiecesLeft >= 0) && (citySpotsLeft > 0))) && !posSetsCopy.isEmpty()) && (fastestETA == oneOfEach))
+                    else if ((  (cityPiecesLeft > 0)
+                               && (   ((settlementPiecesLeft > 0) && (citySpotsLeft >= 0))
+                                   || ((settlementPiecesLeft >= 0) && (citySpotsLeft > 0))  )
+                               && ! posSetsCopy.isEmpty()  )
+                             && (fastestETA == oneOfEach))
                     {
                         Integer chosenSet0Int = new Integer(chosenSet[0].getCoordinates());
                         posSetsCopy.remove(chosenSet0Int);
@@ -3378,11 +3407,15 @@ public class SOCPlayerTracker
                         {
                             if (fastestETA == settlementBeforeCity)
                             {
-                                brain.getDRecorder().record(fastestETA + ": Stlmt at " + board.nodeCoordToString(chosenSet[0].getCoordinates()) + "; City at " + board.nodeCoordToString(chosenCity[0].getCoordinates()));
+                                brain.getDRecorder().record
+                                    (fastestETA + ": Stlmt at " + board.nodeCoordToString(chosenSet[0].getCoordinates())
+                                     + "; City at " + board.nodeCoordToString(chosenCity[0].getCoordinates()));
                             }
                             else
                             {
-                                brain.getDRecorder().record(fastestETA + ": City at " + board.nodeCoordToString(chosenCity[0].getCoordinates()) + "; Stlmt at " + board.nodeCoordToString(chosenSet[0].getCoordinates()));
+                                brain.getDRecorder().record
+                                    (fastestETA + ": City at " + board.nodeCoordToString(chosenCity[0].getCoordinates())
+                                     + "; Stlmt at " + board.nodeCoordToString(chosenSet[0].getCoordinates()));
                             }
                         }
                     }
@@ -3445,7 +3478,8 @@ public class SOCPlayerTracker
                             //      }
                             tempPlayerNumbers.undoUpdateNumbers(posCity1.getCoordinates(), board);
                             D.ebugPrintln("tempPlayerNumbers = " + tempPlayerNumbers);
-                            D.ebugPrintln("WWW City at " + board.nodeCoordToString(posCity1.getCoordinates()) + " has tempSpeedupTotal = " + tempSpeedupTotal);
+                            D.ebugPrintln("WWW City at " + board.nodeCoordToString(posCity1.getCoordinates())
+                                + " has tempSpeedupTotal = " + tempSpeedupTotal);
 
                             if (tempSpeedupTotal >= bestCitySpeedupTotal)
                             {
@@ -3480,7 +3514,9 @@ public class SOCPlayerTracker
 
                         if (brain.getDRecorder().isOn())
                         {
-                            brain.getDRecorder().record(fastestETA + ": City at " + board.nodeCoordToString(chosenCity[0].getCoordinates()) + "; City at " + board.nodeCoordToString(chosenCity[1].getCoordinates()));
+                            brain.getDRecorder().record
+                                (fastestETA + ": City at " + board.nodeCoordToString(chosenCity[0].getCoordinates())
+                                 + "; City at " + board.nodeCoordToString(chosenCity[1].getCoordinates()));
                         }
                     }
                     else if (!haveLR && !needLR && (points > 5) && (fastestETA == tempLongestRoadETA))
@@ -3534,7 +3570,8 @@ public class SOCPlayerTracker
      *
      * @return a copy of the player trackers with the new piece in place
      */
-    public static HashMap<Integer, SOCPlayerTracker> tryPutPiece(SOCPlayingPiece piece, SOCGame game, HashMap<Integer, SOCPlayerTracker> trackers)
+    public static HashMap<Integer, SOCPlayerTracker> tryPutPiece
+        (SOCPlayingPiece piece, SOCGame game, HashMap<Integer, SOCPlayerTracker> trackers)
     {
         HashMap<Integer, SOCPlayerTracker> trackersCopy = SOCPlayerTracker.copyPlayerTrackers(trackers);
 
@@ -3580,7 +3617,8 @@ public class SOCPlayerTracker
      * @param game       the game
      * @param trackers   the player trackers
      */
-    public static void tryPutPieceNoCopy(SOCPlayingPiece piece, SOCGame game, HashMap<Integer, SOCPlayerTracker> trackers)
+    public static void tryPutPieceNoCopy
+        (SOCPlayingPiece piece, SOCGame game, HashMap<Integer, SOCPlayerTracker> trackers)
     {
         if (piece != null)
         {

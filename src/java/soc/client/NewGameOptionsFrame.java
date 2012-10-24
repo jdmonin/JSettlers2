@@ -145,7 +145,8 @@ public class NewGameOptionsFrame extends Frame
      * @param forPractice Will this game be on local practice server, vs remote tcp server?
      * @param readOnly    Is this display-only (for use during a game), or can it be changed?
      */
-    public NewGameOptionsFrame(SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
+    public NewGameOptionsFrame
+        (SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
                 ? ("Current game options: " + gaName)
@@ -200,7 +201,8 @@ public class NewGameOptionsFrame extends Frame
      * See constructor for parameters.
      * @return the new frame
      */
-    public static NewGameOptionsFrame createAndShow(SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
+    public static NewGameOptionsFrame createAndShow
+        (SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
         ngof.pack();

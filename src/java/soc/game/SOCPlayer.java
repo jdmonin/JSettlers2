@@ -1071,8 +1071,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (! game.hasSeaBoard)
             throw new IllegalStateException();
 
-        List<Vector<Object>> encounteredSelf = new ArrayList<Vector<Object>>();  // if route loops around, contains Vectors of node coords & SOCShips
-                                                      // -- see isTradeRouteFarEndClosed javadoc for details
+        List<Vector<Object>> encounteredSelf = new ArrayList<Vector<Object>>();
+            // if route loops around, contains Vectors of node coords & SOCShips
+            // -- see isTradeRouteFarEndClosed javadoc for details
+
         HashSet<Integer> alreadyVisited = new HashSet<Integer>();  // contains Integer coords as segment is built
 
         // Check the far end node of fromEdge
@@ -1080,7 +1082,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         // of that node's directions.
         // Note that if it becomes closed, segment will contain newShipEdge.
 
-        Vector<SOCShip> segment = isTradeRouteFarEndClosed(newShipEdge, edgeFarNode, alreadyVisited, encounteredSelf);
+        Vector<SOCShip> segment = isTradeRouteFarEndClosed
+            (newShipEdge, edgeFarNode, alreadyVisited, encounteredSelf);
 
         if (segment == null)
             return null;
@@ -1111,14 +1114,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 if (self.size() == 2)
                 {
                     // just 1 ship along that segment
-                    recheck = isTradeRouteFarEndClosed(nearestShip, farNode, reAlready, reSelf);
+                    recheck = isTradeRouteFarEndClosed
+                        (nearestShip, farNode, reAlready, reSelf);
                 } else {
                     // 2 or more ships
                     final int nextNearEdge = ((SOCShip) self.elementAt(2)).getCoordinates();
-                    recheck = isTradeRouteFarEndClosed(nearestShip,
-                                                       ((SOCBoardLarge)game.getBoard()).getNodeBetweenAdjacentEdges(nearestShip.getCoordinates(), nextNearEdge),
-                                                       reAlready,
-                                                       reSelf);
+                    recheck = isTradeRouteFarEndClosed
+                        (nearestShip,
+                         ((SOCBoardLarge) game.getBoard()).getNodeBetweenAdjacentEdges
+                             (nearestShip.getCoordinates(), nextNearEdge),
+                         reAlready, reSelf);
                 }
 
                 if (recheck == null)
@@ -1167,11 +1172,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @throws IllegalArgumentException if {@link SOCShip#isClosed() edgeFirstShip.isClosed()}
      * @since 2.0.00
      */
-    private Vector<SOCShip> isTradeRouteFarEndClosed(final SOCShip edgeFirstShip,
-                                                     final int edgeFarNode,
-                                                     HashSet<Integer> alreadyVisited,
-                                                     List<Vector<Object>> encounteredSelf)
-    throws ClassCastException, IllegalArgumentException
+    private Vector<SOCShip> isTradeRouteFarEndClosed
+        (final SOCShip edgeFirstShip, final int edgeFarNode,
+         HashSet<Integer> alreadyVisited, List<Vector<Object>> encounteredSelf)
+        throws ClassCastException, IllegalArgumentException
     {
         if (edgeFirstShip.isClosed())
             throw new IllegalArgumentException();
@@ -1267,14 +1271,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 // Recursive call to the 2 directions out from node:
 
                 final int encounterSize = encounteredSelf.size();
-                Vector<SOCShip> shipsFrom1 = isTradeRouteFarEndClosed(nextShip1,
-                                                                      board.getAdjacentNodeFarEndOfEdge(nextShip1.getCoordinates(), node),
-                                                                      alreadyVisited,
-                                                                      encounteredSelf);
-                Vector<SOCShip> shipsFrom2 = isTradeRouteFarEndClosed(nextShip2,
-                                                                      board.getAdjacentNodeFarEndOfEdge(nextShip2.getCoordinates(), node),
-                                                                      alreadyVisited,
-                                                                      encounteredSelf);
+                Vector<SOCShip> shipsFrom1 = isTradeRouteFarEndClosed
+                    (nextShip1, board.getAdjacentNodeFarEndOfEdge(nextShip1.getCoordinates(), node),
+                     alreadyVisited, encounteredSelf);
+                Vector<SOCShip> shipsFrom2 = isTradeRouteFarEndClosed
+                    (nextShip2, board.getAdjacentNodeFarEndOfEdge(nextShip2.getCoordinates(), node),
+                     alreadyVisited, encounteredSelf);
 
                 // Did we encounter our route while recursing?
                 if (encounterSize != encounteredSelf.size())
@@ -2749,7 +2751,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
      */
-    public void setPotentialAndLegalSettlements(Collection<Integer> psList, final boolean setLegalsToo, final HashSet<Integer>[] legalLandAreaNodes)
+    public void setPotentialAndLegalSettlements
+        (Collection<Integer> psList, final boolean setLegalsToo, final HashSet<Integer>[] legalLandAreaNodes)
     {
         clearPotentialSettlements();
         potentialSettlements.addAll(psList);

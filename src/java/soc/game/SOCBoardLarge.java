@@ -1276,9 +1276,8 @@ public class SOCBoardLarge extends SOCBoard
      * @param lan If non-null, all Land Areas' legal node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
      */
-    public void setLegalAndPotentialSettlements(final Collection<Integer> psNodes,
-                                                final int sla,
-                                                final HashSet<Integer>[] lan)
+    public void setLegalAndPotentialSettlements
+        (final Collection<Integer> psNodes, final int sla, final HashSet<Integer>[] lan)
     {
         if (lan == null)
         {
@@ -1393,10 +1392,8 @@ public class SOCBoardLarge extends SOCBoard
      * @param r  Hex row coordinate
      * @param c  Hex column coordinate
      */
-    private final void getAdjacentHexes2Hex_AddIfOK(Vector<Integer> addTo,
-                                                    final boolean includeWater,
-                                                    final int r,
-                                                    final int c)
+    private final void getAdjacentHexes2Hex_AddIfOK
+        (Vector<Integer> addTo, final boolean includeWater, final int r, final int c)
     {
         if ((r <= 0) || (c <= 0) || (r >= boardHeight) || (c >= boardWidth))
             return;  // not within the board's valid hex boundaries

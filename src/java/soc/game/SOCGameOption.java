@@ -257,7 +257,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         // If PL goes over 4, set PLB.
         pl.addChangeListener(new ChangeListener()
         {
-            public void valueChanged(final SOCGameOption opt, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
+            public void valueChanged
+                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
             {
                 if  (! (oldValue instanceof Integer))
                     return;  // ignore unless int
@@ -278,7 +279,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         // if it becomes checked, set PL to 6 if <= 4, unless PL.userChanged already
         plb.addChangeListener(new ChangeListener()
         {
-            public void valueChanged(final SOCGameOption opt, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
+            public void valueChanged
+                (final SOCGameOption opt, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
             {
                 SOCGameOption pl = currentOpts.get("PL");
                 if (pl == null)
@@ -1207,7 +1209,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @see #parseOptionNameValue(String, boolean)
      * @see #packValue(StringBuffer)
      */
-    public static String packOptionsToString(Hashtable<String, SOCGameOption> ohash, boolean hideEmptyStringOpts)
+    public static String packOptionsToString
+        (Hashtable<String, SOCGameOption> ohash, boolean hideEmptyStringOpts)
 	throws ClassCastException
     {
         return packOptionsToString(ohash, hideEmptyStringOpts, -2);
@@ -1230,7 +1233,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @throws ClassCastException if hashtable contains anything other
      *         than SOCGameOptions
      */
-    public static String packOptionsToString(Hashtable<String, SOCGameOption> ohash, boolean hideEmptyStringOpts, final int cliVers)
+    public static String packOptionsToString
+        (Hashtable<String, SOCGameOption> ohash, boolean hideEmptyStringOpts, final int cliVers)
         throws ClassCastException
     {
     	if ((ohash == null) || ohash.size() == 0)
@@ -1639,9 +1643,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *            </UL>
      * @throws IllegalArgumentException if newOpts contains a non-SOCGameOption
      */
-    public static StringBuffer adjustOptionsToKnown(Hashtable<String, SOCGameOption> newOpts,
-                                                    Hashtable<String, SOCGameOption> knownOpts,
-                                                    final boolean doServerPreadjust)
+    public static StringBuffer adjustOptionsToKnown
+        (Hashtable<String, SOCGameOption> newOpts, Hashtable<String, SOCGameOption> knownOpts,
+         final boolean doServerPreadjust)
         throws IllegalArgumentException
     {
         if (knownOpts == null)
@@ -2002,6 +2006,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
          * @param newValue  New value; always the same class as <tt>oldValue</tt>
          * @param currentOpts  The current value of all {@link SOCGameOption}s in this set
          */
-        public void valueChanged(final SOCGameOption opt, final Object oldValue, final Object newValue, Hashtable<String, SOCGameOption> currentOpts);
+        public void valueChanged
+            (final SOCGameOption opt, final Object oldValue, final Object newValue,
+             Hashtable<String, SOCGameOption> currentOpts);
     }
+
 }

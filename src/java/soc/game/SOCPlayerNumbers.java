@@ -267,7 +267,8 @@ public class SOCPlayerNumbers
      * @since 2.0.00
      * @see #updateNumbers(int, SOCBoard)
      */
-    public int updateNumbersAndProbability(final int nodeCoord, SOCBoard board, final int[] numProb, final StringBuffer sb)
+    public int updateNumbersAndProbability
+        (final int nodeCoord, SOCBoard board, final int[] numProb, final StringBuffer sb)
     {
         int probTotal = 0;
         Vector<Integer> hexes = board.getAdjacentHexesToNode(nodeCoord);

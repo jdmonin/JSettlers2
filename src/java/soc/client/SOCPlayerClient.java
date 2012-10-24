@@ -3476,11 +3476,13 @@ public class SOCPlayerClient extends Panel
             if (gameInfoWaiting != null)
             {
                 Hashtable<String,SOCGameOption> gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow(SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow
+                    (SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
             }
             else if (newGameWaiting)
             {
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow(SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow
+                    (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
             }
         }
     }
