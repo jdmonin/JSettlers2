@@ -218,6 +218,8 @@ Although we may not agree with every detail of it, for consistency's sake,
 please keep the conventions of the code that's already there.
 
 Use spaces, not tabs.  The basic indent is 4.  Place braces on their own line.
+Lines should be less than about 120 characters long; if you have to indent too
+much, consider refactoring into a new method.
 
 Use 1 blank line between methods.  If you have nested classes, use 3 blank 
 lines between them, and comment each one's closing brace with the class name.
@@ -230,6 +232,8 @@ Throws declarations are also always indented on the next line:
     public SOCGameOption(String key, int minVers, int lastModVers,
         boolean defaultValue, boolean dropIfUnused, String desc)
         throws IllegalArgumentException
+If related methods have the same name but different sets of arguments, indent
+all their declarations the same way for easier comparison.
 
 Some methods return in the middle of their body, depending on conditions.
 That kind of early return should be marked with a prominent comment such as:
@@ -262,6 +266,8 @@ Here's how to set up the coding style in Eclipse:
 	preferences -> general -> editors -> text editors:
 	[x] insert spaces for tabs
 	displayed tab width: 8
+	[x] show print margin
+	print margin column: 120
 
 	project properties -> java compiler -> configure workspace settings
 	  compiler compliance level: 1.5
