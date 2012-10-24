@@ -6862,7 +6862,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /** prevent serializable warning */
         private static final long serialVersionUID = 1110L;
 
-        /** Runs in own thread, to not tie up client's message-treater thread. */
+        /** Runs in own thread, to not tie up client's message-treater thread which initially shows the dialog. */
         private Thread rdt;
 
         private final SOCPlayer pl;
@@ -6919,8 +6919,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * Make a new thread and show() in that thread.
          * Keep track of the thread, in case we need to dispose of it.
+         * As noted in {@link #rdt} javadoc, the dialog runs in its
+         * own thread, to not tie up the client's message-treater thread
+         * which initially shows the dialog.
          */
-        //TODO: figure out why this was needed - should run in display thread anyway
         public void showInNewThread()
         {
             rdt = new Thread(this);

@@ -2439,7 +2439,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
      */
     protected static class ResetBoardVoteDialog extends AskDialog implements Runnable
     {
-        /** Runs in own thread, to not tie up client's message-treater thread. */
+        /** Runs in own thread, to not tie up client's message-treater thread which initially shows the dialog. */
         private Thread rdt;
 
         /** If true, don't call any methods from callbacks here */
@@ -2518,7 +2518,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         {
             askedDisposeQuietly = true;
             //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
-            //rdt.stop();
+            rdt.stop();
             dispose();
         }
 
@@ -2615,7 +2615,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             if (rdt != null)
             {
                 //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
-                //rdt.stop();
+                rdt.stop();
                 rdt = null;
             }
             super.dispose();
