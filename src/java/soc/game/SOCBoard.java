@@ -847,7 +847,8 @@ public class SOCBoard implements Serializable, Cloneable
     {
         if (! largeBoard)
             return new SOCBoard(gameOpts, maxPlayers);
-        return new SOCBoardLarge(gameOpts, maxPlayers);
+        else
+            return new SOCBoardLarge(gameOpts, maxPlayers);
     }
 
     /**
@@ -1748,7 +1749,8 @@ public class SOCBoard implements Serializable, Cloneable
         int hnum = hexIDtoNum[hexCoord];
         if (hnum < 0)
             return false;
-        return ((hexLayout[hnum] <= MAX_LAND_HEX) && (hexLayout[hnum] != WATER_HEX));
+        else
+            return ((hexLayout[hnum] <= MAX_LAND_HEX) && (hexLayout[hnum] != WATER_HEX));
     }
 
     /**
@@ -1763,7 +1765,8 @@ public class SOCBoard implements Serializable, Cloneable
         int hnum = hexIDtoNum[hexCoord];
         if (hnum < 0)
             return false;
-        return ((hexLayout[hnum] > MAX_LAND_HEX) || (hexLayout[hnum] == WATER_HEX));
+        else
+            return ((hexLayout[hnum] > MAX_LAND_HEX) || (hexLayout[hnum] == WATER_HEX));
     }
 
     /**
@@ -2047,7 +2050,8 @@ public class SOCBoard implements Serializable, Cloneable
     {
         if (boardEncodingFormat == BOARD_ENCODING_ORIGINAL)
             return PORTS_FACING_V1.length;
-        return PORTS_FACING_V2.length;
+        else
+            return PORTS_FACING_V2.length;
 
         // v3 BOARD_ENCODING_LARGE overrides this method
         // in SOCBoardLarge to return its port count.
@@ -2087,7 +2091,8 @@ public class SOCBoard implements Serializable, Cloneable
             pfacings = PORTS_FACING_V2;
         if ((portNum >= 0) && (portNum < pfacings.length))
             return pfacings[portNum];
-        return 0;
+        else
+            return 0;
 
         // v3 encoding overrides this method in SOCBoardLarge. 
     }
@@ -2107,7 +2112,8 @@ public class SOCBoard implements Serializable, Cloneable
         Integer ptype = nodeIDtoPortType.get(new Integer(nodeCoord));
         if (ptype != null)
             return ptype.intValue();
-        return -1;
+        else
+            return -1;
     }
 
     /**
@@ -2122,7 +2128,8 @@ public class SOCBoard implements Serializable, Cloneable
     {
         if ((hex >= 0) && (hex < hexIDtoNum.length))
             return getNumberOnHexFromNumber(hexIDtoNum[hex]);
-        return 0;
+        else
+            return 0;
     }
 
     /**
@@ -2141,7 +2148,8 @@ public class SOCBoard implements Serializable, Cloneable
 
         if (num < 0)
             return 0;
-        return num;
+        else
+            return num;
     }
 
     /**
@@ -2159,7 +2167,8 @@ public class SOCBoard implements Serializable, Cloneable
     {
         if ((hexCoord >= 0) && (hexCoord <= hexIDtoNum.length))
             return hexIDtoNum[hexCoord];
-        return -1;
+        else
+            return -1;
     }
 
     /**
@@ -2436,7 +2445,8 @@ public class SOCBoard implements Serializable, Cloneable
         final int[] nodes = getAdjacentNodesToEdge_arr(edgeCoord);
         if (nodeCoord == nodes[0])
             return nodes[1];
-        return nodes[0];
+        else
+            return nodes[0];
     }
 
     /**
@@ -2858,7 +2868,8 @@ public class SOCBoard implements Serializable, Cloneable
          */
         if (((nodeCoord & 0x0F) % 2) == 1)
             return (edgeCoord == (nodeCoord - 0x01));  // (even, odd)
-        return (edgeCoord == (nodeCoord - 0x10));  // (odd, even)
+        else
+            return (edgeCoord == (nodeCoord - 0x10));  // (odd, even)
     }
 
     /**
@@ -3152,7 +3163,8 @@ public class SOCBoard implements Serializable, Cloneable
 
         if (hexes.size() > 0)
             return hexes;
-        return null;
+        else
+            return null;
     }
 
     /**

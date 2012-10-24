@@ -359,7 +359,8 @@ public class SOCPlayerNumbers
         Vector<IntPair> v = numberAndResourceForHex.get(Integer.valueOf(hexCoord));
         if (v == null)
             return true;
-        return v.isEmpty();
+        else
+            return v.isEmpty();
     }
 
     /**

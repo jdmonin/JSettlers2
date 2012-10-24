@@ -3672,7 +3672,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
             return x;
-        return (int) ((x * (long) scaledPanelX) / panelMinBW);
+        else
+            return (int) ((x * (long) scaledPanelX) / panelMinBW);
     }
 
     /**
@@ -3685,7 +3686,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
             return y;
-        return (int) ((y * (long) scaledPanelY) / panelMinBH);
+        else
+            return (int) ((y * (long) scaledPanelY) / panelMinBH);
     }
 
     /**
@@ -3698,7 +3700,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
             return x;
-        return (int) ((x * (long) panelMinBW) / scaledPanelX);
+        else
+            return (int) ((x * (long) panelMinBW) / scaledPanelX);
     }
 
     /**
@@ -3711,7 +3714,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (! isScaled)
             return y;
-        return (int) ((y * (long) panelMinBH) / scaledPanelY);
+        else
+            return (int) ((y * (long) panelMinBH) / scaledPanelY);
     }
 
     /**
@@ -5043,7 +5047,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (board.isHexOnLand(hex))
                 return edge;
-            return -edge;
+            else
+                return -edge;
 
         }  // if (isLargeBoard) ends
 
@@ -5069,7 +5074,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // System.out.println("SECTOR = "+sector+" | EDGE = "+edgeMap[sector]);
         if ((sector >= 0) && (sector < edgeMap.length))
             return edgeMap[sector];
-        return 0;
+        else
+            return 0;
     }
 
     /**
@@ -5113,7 +5119,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // System.out.println("SECTOR = "+sector+" | NODE = "+nodeMap[sector]);
         if ((sector >= 0) && (sector < nodeMap.length))
             return nodeMap[sector];
-        return 0;
+        else
+            return 0;
     }
 
     /**
@@ -5156,7 +5163,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // System.out.println("SECTOR = "+sector+" | HEX = "+hexMap[sector]);
         if ((sector >= 0) && (sector < hexMap.length))
             return hexMap[sector];
-        return 0;
+        else
+            return 0;
     }
 
     /**

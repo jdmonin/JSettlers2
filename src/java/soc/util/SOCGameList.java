@@ -274,7 +274,8 @@ public class SOCGameList
         GameInfo info = gameInfo.get(gaName);
         if (info == null)
             return null;
-        return info.optsStr;
+        else
+            return info.optsStr;
     }
 
     /**

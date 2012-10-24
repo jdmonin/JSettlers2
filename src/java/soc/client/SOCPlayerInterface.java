@@ -769,7 +769,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         if (isGhost)
             return playerColorsGhost[pn];
-        return playerColors[pn];
+        else
+            return playerColors[pn];
     }
     
     /**
@@ -1042,7 +1043,8 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     {
         if (clientHand == null)
             return false;
-        return clientHand.isClientAndCurrentPlayer();
+        else
+            return clientHand.isClientAndCurrentPlayer();
     }
 
     /**

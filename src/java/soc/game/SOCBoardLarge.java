@@ -955,7 +955,8 @@ public class SOCBoardLarge extends SOCBoard
         int num = numberLayoutLg[r][c];
         if (num < 0)
             return 0;
-        return num;
+        else
+            return num;
     }
 
     /**
@@ -1252,7 +1253,8 @@ public class SOCBoardLarge extends SOCBoard
     {
         if ((landAreasLegalNodes == null) || (potentialsStartingLandArea == 0))
             return nodesOnLand;
-        return landAreasLegalNodes[potentialsStartingLandArea];
+        else
+            return landAreasLegalNodes[potentialsStartingLandArea];
     }
 
     /**
@@ -1380,7 +1382,8 @@ public class SOCBoardLarge extends SOCBoard
 
         if (hexes.size() > 0)
             return hexes;
-        return null;
+        else
+            return null;
     }
 
     /**
@@ -1460,7 +1463,8 @@ public class SOCBoardLarge extends SOCBoard
     {
         if ((dir >= 0) && (dir <= 5))
             return hexCoord + A_NODE2HEX[dir][0] + A_NODE2HEX[dir][1];
-        throw new IllegalArgumentException("dir");
+        else
+            throw new IllegalArgumentException("dir");
     }
 
     /**
@@ -1588,7 +1592,8 @@ public class SOCBoardLarge extends SOCBoard
 
         if ((r > 0) && (c > 0) && (r < boardHeight) && (c < boardWidth))
             return ( (r << 8) | c );   // bounds-check OK: within the outer edge
-        return 0;  // hex is not on the board
+        else
+            return 0;  // hex is not on the board
     }
 
     /**
@@ -2006,7 +2011,8 @@ public class SOCBoardLarge extends SOCBoard
 
         if (isEdgeInBounds(r, c))
             return ((r << 8) | c);
-        return -9;
+        else
+            return -9;
     }
 
     /**
@@ -2081,7 +2087,8 @@ public class SOCBoardLarge extends SOCBoard
         final boolean nodeIsY = ( (nodeC % 2) != ((nodeR/2) % 2) );
         if (nodeIsY)
             return (edgeR == (nodeR + 1));  // S
-        return (edgeR == (nodeR - 1));  // N
+        else
+            return (edgeR == (nodeR - 1));  // N
     }
 
     /**
@@ -2141,7 +2148,8 @@ public class SOCBoardLarge extends SOCBoard
 
         if (isNodeInBounds(r, c))
             return ((r << 8) | c);
-        return -9;
+        else
+            return -9;
     }
 
 
@@ -2245,7 +2253,8 @@ public class SOCBoardLarge extends SOCBoard
         c = c + NODE_TO_NODE_2_AWAY[facing];
         if (! isNodeInBounds(r, c))
             return -9;
-        return ((r << 8) | c);
+        else
+            return ((r << 8) | c);
     }
 
     /**
@@ -2318,12 +2327,15 @@ public class SOCBoardLarge extends SOCBoard
         {
             if (c == 0)
                 return false;
-            return ((boardWidth % 2) == 1); 
+            else
+                return ((boardWidth % 2) == 1);
+        } else {
+            // r == boardHeight
+            if (c == 0)
+                return (((r/2) % 2) == 0);
+            else
+                return ((boardWidth % 2) == ((r/2) % 2));
         }
-        // r == boardHeight
-        if (c == 0)
-            return (((r/2) % 2) == 0);
-        return ((boardWidth % 2) == ((r/2) % 2));
     }
 
     /**
@@ -2353,7 +2365,8 @@ public class SOCBoardLarge extends SOCBoard
         {
             if ((r % 2) == 0)
                 return (c < boardWidth);
-            return (c <= boardWidth);
+            else
+                return (c <= boardWidth);
         }
         if ((r < 0) || (r > boardHeight))
             return false;
@@ -2363,7 +2376,8 @@ public class SOCBoardLarge extends SOCBoard
         {
             if (r == 0)
                 return false;
-            return isNodeInBounds(r, 0);
+            else
+                return isNodeInBounds(r, 0);
         }
         else if (c < (boardWidth - 1))
             return true;

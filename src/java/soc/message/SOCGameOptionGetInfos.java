@@ -93,7 +93,8 @@ public class SOCGameOptionGetInfos extends SOCMessage
     {
     	if (optkeys != null)
     	    return toCmd(optkeys.elements());
-        return toCmd(null);
+    	else
+    	    return toCmd(null);
     }
 
     /**

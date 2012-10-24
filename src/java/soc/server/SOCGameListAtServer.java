@@ -114,7 +114,8 @@ public class SOCGameListAtServer extends SOCGameList
 
         if ((members != null) && (members.contains(conn)))
             return true;
-        return false;
+        else
+            return false;
     }
 
     /**

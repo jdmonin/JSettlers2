@@ -194,7 +194,8 @@ public class SOCPotentialSettlements extends SOCMessage
     {
         if (landAreasLegalNodes == null)
             return toCmd(game, playerNumber, psList);
-        return toCmd(game, playerNumber, startingLandArea, landAreasLegalNodes);
+        else
+            return toCmd(game, playerNumber, startingLandArea, landAreasLegalNodes);
     }
 
     /**
@@ -387,7 +388,8 @@ public class SOCPotentialSettlements extends SOCMessage
 
         if (las == null)
             return new SOCPotentialSettlements(ga, pn, ps);
-        return new SOCPotentialSettlements(ga, pn, pan, las);
+        else
+            return new SOCPotentialSettlements(ga, pn, pan, las);
     }
 
     /**

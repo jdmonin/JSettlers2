@@ -259,7 +259,8 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     {
         if (connKey != null)
             return conns.get(connKey);
-        return null;
+        else
+            return null;
     }
 
     /**

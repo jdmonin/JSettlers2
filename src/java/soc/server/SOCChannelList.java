@@ -223,7 +223,8 @@ public class SOCChannelList
 
         if ((members != null) && (members.contains(conn)))
             return true;
-        return false;
+        else
+            return false;
     }
 
     /**
@@ -300,8 +301,8 @@ public class SOCChannelList
 
         if ((members != null) && (members.isEmpty()))
             return true;
-
-        return false;
+        else
+            return false;
     }
 
     /**

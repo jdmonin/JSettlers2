@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,11 +52,8 @@ public class Pair<A,B>
      */
     public boolean equals(Pair<?,?> ip)
     {
-        if (((ip.a == a) && (ip.b == b)) || ((ip.a == b) && (ip.b == a)))
-        {
-            return true;
-        }
-        return false;
+        return ((ip.a == a) && (ip.b == b))
+            || ((ip.a == b) && (ip.b == a));
     }
 
     /**

@@ -1861,7 +1861,8 @@ public class SOCServer extends Server
         SOCGame g = gameList.getGameData(gm);
         if (g != null)
             return g.getGameState();
-        return -1;
+        else
+            return -1;
     }
 
     /**
@@ -2937,10 +2938,10 @@ public class SOCServer extends Server
                 // it's OK to take over this nickname.  A call made soon
                 // to nameConnection(c,true) will transfer data from old conn, to new conn.
                 return -1;
+            } else {            
+                // Already sent ping, timeout not yet expired.
+                return timeoutNeeded - secondsSincePing;
             }
-            
-            // Already sent ping, timeout not yet expired.
-            return timeoutNeeded - secondsSincePing;
         }
 
         // Have not yet sent a ping.

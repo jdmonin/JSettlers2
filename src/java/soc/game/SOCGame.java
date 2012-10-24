@@ -1235,7 +1235,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (opts == null)
             return false;
-        return opts.containsKey(optKey);
+        else
+            return opts.containsKey(optKey);
     }
 
     /**
@@ -1635,7 +1636,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (playerWithLargestArmy != -1)
             return players[playerWithLargestArmy];
-        return null;
+        else
+            return null;
     }
 
     /**
@@ -1662,7 +1664,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (playerWithLongestRoad != -1)
             return players[playerWithLongestRoad];
-        return null;
+        else
+            return null;
     }
 
     /**
@@ -1692,7 +1695,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (playerWithWin != -1)
             return players[playerWithWin];
-        return null;
+        else
+            return null;
     }
 
     /**
@@ -3164,10 +3168,14 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         if (gameState == WAITING_FOR_DISCARDS)
-            return new SOCForceEndTurnResult(SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD_WAIT, picks, true);
-        
-        // gameState == PLAY1 - was set in discard()
-        return new SOCForceEndTurnResult(SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD, picks, true);
+        {
+            return new SOCForceEndTurnResult
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD_WAIT, picks, true);
+        } else {
+            // gameState == PLAY1 - was set in discard()
+            return new SOCForceEndTurnResult
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD, picks, true);
+        }
     }
 
     /**
@@ -4885,7 +4893,8 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (gameState != WAITING_FOR_MONOPOLY)
             return false;
-        return true;
+        else
+            return true;
     }
 
     /**
@@ -5415,29 +5424,36 @@ public class SOCGame implements Serializable, Cloneable
         {
             if (throwExceptions)
                 throw new IllegalStateException("not 6-player");
-            return false;
+            else
+                return false;
         }
         if ((pn < 0) || (pn >= maxPlayers))
         {
             if (throwExceptions)
                 throw new IllegalArgumentException("pn range");
-            return false;
+            else
+                return false;
         }
+
         SOCPlayer pl = players[pn];
         if ((pl == null) || isSeatVacant(pn))
         {
             if (throwExceptions)
                 throw new IllegalArgumentException("pn not valid");
-            return false;
+            else
+                return false;
         }
+
         if ((gameState < PLAY) || (gameState >= OVER)
               || pl.hasSpecialBuilt()
               || pl.hasAskedSpecialBuild())
         {
             if (throwExceptions)
                 throw new IllegalStateException("cannot ask at this time");
-            return false;
+            else
+                return false;
         }
+
         if ((pn == currentPlayerNumber)
             && ((gameState != PLAY)
                 || (turnCount == 1)       // since SBP occurs @ end of each turn, not @ start
@@ -5445,7 +5461,8 @@ public class SOCGame implements Serializable, Cloneable
         {
             if (throwExceptions)
                 throw new IllegalStateException("current player");
-            return false;
+            else
+                return false;
         }
 
         return true;
