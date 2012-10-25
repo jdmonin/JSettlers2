@@ -87,6 +87,7 @@ Setup instructions for JSettlers as an Eclipse project
 - choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
 - Browse to jsettlers-1.1.xx-src/build.xml, select the "javac" task in target "compile".
 - You'll need to build once before you run it, to create version.info from resources/version.info.in.
+- Project -> Properties: Resource: Text file encoding: UTF-8
 
 See below for how to set up the coding style in Eclipse.
 
@@ -342,6 +343,7 @@ github
 ------
 The project code lives at https://github.com/jdmonin/JSettlers2 .
 Patches can be sent by email or by pull request.
+Please make sure your patch follows the project coding style.
 
 The master branch recieves new features and enhancements for next 'minor'
 release.  As soon as a bug is fixed or a feature's design is fairly stable, it

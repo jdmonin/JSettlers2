@@ -4,6 +4,12 @@ Unless otherwise indicated, versions are hosted at http://nand.net/jsettlers/dev
 and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 and source history at https://github.com/jdmonin/JSettlers2
 
+From 1.0 up through 1.1.13, there is a single line of development.
+
+Right after 1.1.13, new development branch 2.0.00 split off; further 1.1.xx versions are stable-
+branch releases to bring out bugfixes and backport minor new features, until 2.0.00 is ready.
+
+
 
     > 2.0.00 (build JM20121xxx)
 - Large board (sea board) support
@@ -23,7 +29,8 @@ and source history at https://github.com/jdmonin/JSettlers2
 	-Djsettlers.db.save.games=Y
 - Server db property for jdbc driver jar file: -Djsettlers.db.jar=sqlite-jdbc-3.7.2.jar
 - Server db easy setup script options:
-	 -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql
+	-Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite
+	-Djsettlers.db.script.setup=../src/bin/sql/jsettlers-tables.sql
 - Server db sqlite driver URLs updated in readme
 
     > 1.1.14 (build OV20120930)
