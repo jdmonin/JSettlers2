@@ -5,6 +5,9 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 and source history at https://github.com/jdmonin/JSettlers2
 
 
+    > 1.1.16 (build OV201210xx)
+- Bugfix: Can't start practice games
+
     > 1.1.15 (build OV20121021)
 - Bugfix: Occasional hangs creating new game, when old game isn't yet cleared
 - Bugfix: Hangs on mac osx 10.7, 10.8 after a few minutes (SnippingTextArea) - thanks olivierdeckers

@@ -600,11 +600,8 @@ public class SOCServer extends Server
         }
 
         if (props == null)
-        {
-            this.props = new Properties();
-        } else {
-            this.props = props;
-        }
+            props = new Properties();
+        this.props = props;
 
         if (allowDebugUser)
         {
