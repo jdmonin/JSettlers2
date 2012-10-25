@@ -181,6 +181,7 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_USER,     "DB username",
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
+        SOCDBHelper.PROP_JSETTLERS_DB_JAR,      "DB driver jar filename",
         SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name",
         SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP, "If set, full path or relative path to db setup sql script; will run and exit",
         SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES,  "Flag to save all games in DB (if 1 or Y)"
