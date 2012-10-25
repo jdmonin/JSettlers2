@@ -24,15 +24,22 @@ import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.util.SOCRobotParameters;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Properties;
 
 
@@ -93,6 +100,13 @@ public class SOCDBHelper
      */
     public static final String PROP_JSETTLERS_DB_URL = "jsettlers.db.url";
 
+    /** Property <tt>jsettlers.db.script.setup</tt> to run a SQL setup script
+     * at server startup, then exit.  Used to create tables when setting up a server.
+     * To activate this feature, set this to the SQL script's full path or relative path.
+     * @since 1.1.15
+     */
+    public static final String PROP_JSETTLERS_DB_SCRIPT_SETUP = "jsettlers.db.script.setup";
+
     /** Property <tt>jsettlers.db.save.games</tt> to ask to save
      * all game results in the database.
      * Set this to 1 or Y to activate this feature.
@@ -110,7 +124,7 @@ public class SOCDBHelper
     /**
      * db connection, or <tt>null</tt> if never initialized or if cleaned up for shutdown.
      * If this is non-null but closed, most queries will try to recreate it via {@link #checkConnection()}.
-     * Set in {@link #connect(String, String)}, based on the {@link #dbURL}
+     * Set in {@link #connect(String, String, String)}, based on the {@link #dbURL}
      * from {@link #initialize(String, String, Properties)}.
      * Cleared in {@link #cleanup(boolean) cleanup(true)}.
      */
@@ -175,8 +189,11 @@ public class SOCDBHelper
      *         initialized;
      *         or if the {@link #PROP_JSETTLERS_DB_DRIVER} property is not mysql, not sqlite, not postgres,
      *         but the {@link #PROP_JSETTLERS_DB_URL} property is not provided.
+     * @throws IOException  if <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP} but
+     *         the SQL file wasn't found, or if any other IO error occurs running the script
      */
-    public static void initialize(String user, String pswd, Properties props) throws SQLException
+    public static void initialize(final String user, final String pswd, Properties props)
+        throws SQLException, IOException
     {
         initialized = false;
 
@@ -239,14 +256,24 @@ public class SOCDBHelper
                 // InstantiationException, IllegalAccessException, ClassNotFoundException
                 // (seen for org.gjt.mm.mysql.Driver)
     	        driverNewInstanceFailed = true;
-    	        SQLException sx = new SQLException("JDBC driver is unavailable: " + driverclass);
+    	        SQLException sx =
+    	            new SQLException("JDBC driver is unavailable: " + driverclass + ": " + x);
     	        sx.initCause(x);
     	        throw sx;
     	    }
 
-            // Connect and prepare table queries
-            connect(user, pswd);
+    	    // Do we have a setup script to run?
+    	    String prop_dbSetupScript = props.getProperty(PROP_JSETTLERS_DB_SCRIPT_SETUP);
+    	    if ((prop_dbSetupScript != null) && (prop_dbSetupScript.length() == 0))
+    	        prop_dbSetupScript = null;
+
+            // Connect and prepare table queries; run the setup script, if any, first
+            connect(user, pswd, prop_dbSetupScript);
         }
+    	catch (IOException iox)
+    	{
+    	    throw iox;  // Let the caller deal with DB setup script IO errors
+    	}
         catch (Throwable x) // everything else
         {
             if (driverNewInstanceFailed && (x instanceof SQLException))
@@ -288,7 +315,13 @@ public class SOCDBHelper
     {
         if (connection != null)
         {
-            return (! errorCondition) || connect(userName, password);
+            try
+            {
+                return (! errorCondition) || connect(userName, password, null);
+            } catch (IOException ioe) {
+                // will not occur, connect script is null
+                return false;
+            }
         }
 
         return false;
@@ -297,20 +330,29 @@ public class SOCDBHelper
     /**
      * Opens a new connection and initializes the prepared statements.
      * {@link #initialize(String, String, Properties)} and {@link #checkConnection()} use this to get ready.
+     *<P>
+     * If <tt>setupScriptPath</tt> != null, it will be ran before preparing statements.
+     * That way, it can create tables used by the statements.
+     *
      * @param user  DB username
      * @param pswd  DB user password
+     * @param setupScriptPath  Full path or relative path to SQL script to run at connect, or null
+     * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs running the script
      * @throws SQLException if any connect error, missing table, or SQL error occurs
      * @return  true on success; will never return false, instead will throw a sqlexception
      */
-    private static boolean connect(String user, String pswd)
-        throws SQLException
+    private static boolean connect(final String user, final String pswd, final String setupScriptPath)
+        throws SQLException, IOException
     {
         connection = DriverManager.getConnection(dbURL, user, pswd);
 
         errorCondition = false;
         userName = user;
         password = pswd;
-        
+
+        if (setupScriptPath != null)
+            runSetupScript(setupScriptPath);  // may throw IOException, SQLException
+
         // prepare PreparedStatements for queries
         createAccountCommand = connection.prepareStatement(CREATE_ACCOUNT_COMMAND);
         recordLoginCommand = connection.prepareStatement(RECORD_LOGIN_COMMAND);
@@ -321,6 +363,89 @@ public class SOCDBHelper
         robotParamsQuery = connection.prepareStatement(ROBOT_PARAMS_QUERY);
 
         return true;
+    }
+
+    /**
+     * Load and run a SQL script.
+     * Typically DDL commands to create or alter tables, indexes, etc.
+     * @param setupScriptPath  Full path or relative path to the SQL script filename
+     * @throws FileNotFoundException  if file not found
+     * @throws IOException  if any other IO error occurs
+     * @throws SQLException if any unexpected database problem
+     * @since 1.1.15
+     */
+    private static void runSetupScript(final String setupScriptPath)
+        throws FileNotFoundException, IOException, SQLException
+    {
+        if (! checkConnection())
+            return;  // also may throw SQLException
+
+        final boolean isSqlite = (dbURL.startsWith("jdbc:sqlite:"));
+
+        FileReader fr = new FileReader(setupScriptPath);
+        BufferedReader br = new BufferedReader(fr);
+        List<String> sqls = new ArrayList<String>();
+
+        // Read 1 line at a time, with continuations; build a list
+        try
+        {
+            StringBuilder sb = new StringBuilder();
+
+            for (String nextLine = br.readLine(); nextLine != null; nextLine = br.readLine())
+            {
+                // Reminder: java String.trim removes ascii whitespace (including tabs) but not unicode whitespace.
+                // Character.isWhitespace is true for both ascii and unicode whitespace, except non-breaking spaces.
+
+                if ((nextLine.length() == 0) || (nextLine.trim().length() == 0))
+                    continue;  // <-- skip empty lines --
+
+                if (nextLine.startsWith("--"))
+                    continue;  // <-- skip comment lines with no leading whitespace --
+
+                if (isSqlite && nextLine.toLowerCase().startsWith("use "))
+                    continue;  // <-- sqlite doesn't support "USE"
+
+                // If starts with whitespace, append it to sb (continue previous line).
+                // Otherwise, add previous sb to the sqls list, and start a new sb containing nextLine.
+                if (Character.isWhitespace(nextLine.codePointAt(0)))
+                {
+                    if (sb.length() > 0)
+                        sb.append("\n");  // previous line's readLine doesn't include the trailing \n
+                } else {
+                    sqls.add(sb.toString());
+                    sb.delete(0, sb.length());
+                }
+                sb.append(nextLine);
+            }
+
+            // don't forget the last command
+            sqls.add(sb.toString());
+
+            // done reading the file
+            try { br.close(); }
+            catch (IOException eclose) {}
+            try { fr.close(); }
+            catch (IOException eclose) {}
+        }
+        catch (IOException e)
+        {
+            try { br.close(); }
+            catch (IOException eclose) {}
+            try { fr.close(); }
+            catch (IOException eclose) {}
+
+            throw e;
+        }
+
+        // No errors: Run the built list of SQLs
+        for (String sql : sqls)
+        {
+            if (sql.trim().length() == 0)
+                continue;
+            Statement cmd = connection.createStatement();
+            cmd.executeUpdate(sql);
+            cmd.close();
+        }
     }
     
     /**

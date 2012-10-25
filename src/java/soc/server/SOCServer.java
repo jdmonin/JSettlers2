@@ -40,6 +40,7 @@ import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
@@ -181,6 +182,7 @@ public class SOCServer extends Server
         SOCDBHelper.PROP_JSETTLERS_DB_PASS,     "DB password",
         SOCDBHelper.PROP_JSETTLERS_DB_URL,      "DB connection URL",
         SOCDBHelper.PROP_JSETTLERS_DB_DRIVER,   "DB driver class name",
+        SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP, "If set, full path or relative path to db setup sql script; will run and exit",
         SOCDBHelper.PROP_JSETTLERS_DB_SAVE_GAMES,  "Flag to save all games in DB (if 1 or Y)"
     };
 
@@ -616,19 +618,59 @@ public class SOCServer extends Server
         {
             SOCDBHelper.initialize(databaseUserName, databasePassword, props);
             System.err.println("User database initialized.");
+
+            if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            {
+                // the sql script was ran by initialize
+                System.err.println("\nDB setup script was successful. Exiting now.\n");
+                System.exit(2);
+            }
         }
         catch (SQLException x) // just a warning
         {
             System.err.println("No user database available: " +
                                x.getMessage());
             Throwable cause = x.getCause();
+
             while ((cause != null) && ! (cause instanceof ClassNotFoundException))
             {
                 System.err.println("\t" + cause);
                 cause = cause.getCause();
             }
+
+            if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
+            {
+                // the sql script was ran by initialize, but failed to complete;
+                // don't continue server startup with just a warning
+                System.err.println("\n* DB setup script failed.\n");
+                System.exit(1);
+            }
+
             System.err.println("Users will not be authenticated.");
         }
+        catch (IOException iox) // error from requested script
+        {
+            System.err.println("\n* Could not run database setup script: " + iox.getMessage());
+            Throwable cause = iox.getCause();
+            while ((cause != null) && ! (cause instanceof ClassNotFoundException))
+            {
+                System.err.println("\t" + cause);
+                cause = cause.getCause();
+            }
+
+            System.err.println("\n* Exiting due to error running DB setup script.");
+            try
+            {
+                SOCDBHelper.cleanup(true);
+            }
+            catch (SQLException x) { }
+
+            System.exit(1);
+
+            // TODO throw some exception to constructors instead, for this & network setup error
+        }
+
+        // No errors; continue normal startup.
 
         if (SOCDBHelper.isInitialized())
         {
