@@ -34,13 +34,13 @@ import java.util.Vector;
  * In version 2.0.00 and newer:
  *<UL>
  *<LI> <tt>playerNumber</tt> can be -1
- *   to indicate this applies to all players.  For the
+ *   to indicate this message applies to all players.  For the
  *   SOCBoardLarge encoding only, this will also indicate
  *   the legal settlements should be set and the
- *   legal roads recalculated.
+ *   legal roads recalculated from this message's list of potentials.
  *<LI> More than one "land area" (group of islands, or subset of islands)
  *   can be designated; can also require the player to start
- *   the game in a certain land area.
+ *   the game in a certain land area ({@link #startingLandArea}).
  *</UL>
  *
  * @author Robert S Thomas

@@ -35,28 +35,31 @@ import soc.game.SOCBoard;
  *<P>
  * Names of typical parts of the board layout:
  *<UL>
- *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}.
- *         For backwards compatibility, the values for {@link SOCBoard#WATER_HEX} and
- *         {@link SOCBoard#DESERT_HEX} are changed to their pre-v2.0.00 values in the
- *         constructor before sending over the network, and changed back in
- *         {@link #getIntArrayPart(String) getIntArrayPart("HL")}.
+ *<LI> HL: The hexes, from {@link SOCBoard#getHexLayout()}.<br>
+ *         Not sent if <tt>LH</tt> is sent.  See note below on value mapping.
  *<LI> NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
  *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}, if &gt; 0
  *<LI> PL: The ports, from {@link SOCBoard#getPortsLayout()}
- *<LI> LH: The land hexes (v3 board encoding), from {@link soc.game.SOCBoardLarge#getLandHexLayout()}
  *<LI> PH: The pirate hex, from {@link soc.game.SOCBoardLarge#getPirateHex()}, if &gt; 0
+ *<LI> LH: The land hexes (v3 board encoding), from {@link soc.game.SOCBoardLarge#getLandHexLayout()}.<br>
+ *         The v3 board's land hexes may be logically grouped into several
+ *         "land areas" (groups of islands, or subsets of islands).  Those
+ *         areas are sent to the client via {@link SOCPotentialSettlements}.
  *</UL>
  * Board layout parts by board encoding version:
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
  *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL; LH is null before makeNewBoard is called.
- *         The v3 board's land hexes may be logically grouped into several
- *         "land areas" (groups of islands, or subsets of islands).  Those
- *         areas are sent to the client via {@link SOCPotentialSettlements}.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
  * <tt>SOCBoardLayout</tt> required a mapping/unmapping step.
+ *<P>
+ * For backwards compatibility, the <tt>HL</tt> values for {@link SOCBoard#WATER_HEX} and
+ * {@link SOCBoard#DESERT_HEX} are changed to their pre-v2.0 values in the
+ * constructor before sending over the network, and changed back in
+ * {@link #getIntArrayPart(String) getIntArrayPart("HL")}.
+
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @see SOCBoardLayout
