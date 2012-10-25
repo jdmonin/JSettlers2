@@ -5269,7 +5269,7 @@ public class SOCPlayerClient extends Panel
             LocalStringConnection locl;
 
             /**
-             * Start a new thread and listen to local server.
+             * Start a new thread and listen to local practice server.
              *
              * @param localConn Active connection to local server
              */
@@ -5283,7 +5283,7 @@ public class SOCPlayerClient extends Panel
             }
 
             /**
-             * continuously read from the local string server in a separate thread
+             * continuously read from the local practice string server in a separate thread
              */
             public void run()
             {

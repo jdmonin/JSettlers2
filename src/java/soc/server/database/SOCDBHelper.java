@@ -96,7 +96,7 @@ public class SOCDBHelper
     /** Property <tt>jsettlers.db.save.games</tt> to ask to save
      * all game results in the database.
      * Set this to 1 or Y to activate this feature.
-     * @since 2.0.00
+     * @since 1.1.15
      */
     public static final String PROP_JSETTLERS_DB_SAVE_GAMES = "jsettlers.db.save.games";
 
@@ -600,7 +600,7 @@ public class SOCDBHelper
      * @param ga  Game that's over
      * @param names  Player names for player number 0-5; contents will be changed
      * @param scores  Player scores for player number 0-5; contents will be changed
-     * @since 2.0.00
+     * @since 1.1.15
      */
     private static void saveGameScores_fit6pInto4
         (SOCGame ga, String[] names, short[] scores)

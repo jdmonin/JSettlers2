@@ -349,6 +349,7 @@ public class SOCGameListAtServer extends SOCGameList
     public synchronized void deleteGame(String gaName)
     {
         // delete from super first, to destroy game and set its gameDestroyed flag
+        // (Removes game from list before dealing with members, in case of locks)
         super.deleteGame(gaName);
 
         Vector<StringConnection> members = gameMembers.get(gaName);
