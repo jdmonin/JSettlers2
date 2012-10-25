@@ -546,12 +546,12 @@ public class SOCServer extends Server
     public SOCServer(final int p, Properties props)
     {
         super(p);
-        maxConnections = init_getIntProperty(props, PROP_JSETTLERS_CONNECTIONS, 15);
+        maxConnections = init_getIntProperty(props, PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
         allowDebugUser = init_getBoolProperty(props, PROP_JSETTLERS_ALLOW_DEBUG, false);
         CLIENT_MAX_CREATE_GAMES = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATEGAMES, CLIENT_MAX_CREATE_GAMES);
         CLIENT_MAX_CREATE_CHANNELS = init_getIntProperty(props, PROP_JSETTLERS_CLI_MAXCREATECHANNELS, CLIENT_MAX_CREATE_CHANNELS);
-        String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "dbuser");
-        String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "dbpass");
+        String dbuser = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
+        String dbpass = props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
         initSocServer(dbuser, dbpass, props);
     }
 
@@ -10144,8 +10144,8 @@ public class SOCServer extends Server
             // No positional parameters: Take defaults.
             argp.setProperty(PROP_JSETTLERS_PORT, Integer.toString(SOC_PORT_DEFAULT));
             argp.setProperty(PROP_JSETTLERS_CONNECTIONS, Integer.toString(SOC_MAXCONN_DEFAULT));
-            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "dbUser");
-            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "dbPass");
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_USER, "socuser");
+            argp.setProperty(SOCDBHelper.PROP_JSETTLERS_DB_PASS, "socpass");
         } else {
             // Require all 4 parameters
             if ((args.length - aidx) < 4)
@@ -10292,18 +10292,6 @@ public class SOCServer extends Server
      */
     static public void main(String[] args)
     {
-        if ((args.length > 0) && (args.length < 4))
-        {
-            if (! printedUsageAlready)
-            {
-                // Print this hint only if parsed OK up to now, and
-                // if we haven't responded to -h / --help already.
-                System.err.println("SOCServer: Some required command-line parameters are missing.");
-            }
-            printUsage(false);
-            return;
-        }
-
         Properties argp = parseCmdline_DashedArgs(args);
         if (argp == null)
         {
