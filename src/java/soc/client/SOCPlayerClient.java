@@ -120,7 +120,11 @@ public class SOCPlayerClient extends Applet
     /** message panel, in cardlayout */
     protected static final String MESSAGE_PANEL = "message";
 
-    /** connect-or-practice panel (if jar launch), in cardlayout */
+    /**
+     * Connect-or-practice panel (if jar launch), in cardlayout.
+     * Panel field is {@link #connectOrPracticePane}.
+     * Available if {@link #hasConnectOrPractice}.
+     */
     protected static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
 
     /** text prefix to show games this client cannot join. "(cannot join) "
@@ -164,7 +168,7 @@ public class SOCPlayerClient extends Applet
 
     protected Button jc;  // join channel
     protected Button jg;  // join game
-    protected Button pg;  // practice game (local)
+    protected Button pg;  // practice game (against practiceServer, not localTCPServer)
 
     /**
      * "Show Options" button, shows a game's {@link SOCGameOption}s
@@ -269,10 +273,11 @@ public class SOCPlayerClient extends Applet
      *
      * @see #cardLayout
      */
-    protected boolean hasConnectOrPractice;
+    protected final boolean hasConnectOrPractice;
 
     /**
      * If applicable, is set up in {@link #initVisualElements()}.
+     * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
      * @see #hasConnectOrPractice
      */
     protected SOCConnectOrPracticePanel connectOrPracticePane;
@@ -429,6 +434,7 @@ public class SOCPlayerClient extends Applet
      *
      * @param cp  If true, start by showing 'Connect or Practice' panel,
      *       instead of connecting to localhost port.
+     *       Typically true for JAR launch, false for applet.
      */
     public SOCPlayerClient(boolean cp)
     {
@@ -4973,11 +4979,10 @@ public class SOCPlayerClient extends Applet
      */
     public void destroy()
     {
-        boolean canLocal;  // Can we still start a local game?
-        canLocal = putLeaveAll();
+        final boolean canPractice = putLeaveAll();  // Can we still start a practice game?
 
         String err;
-        if (canLocal)
+        if (canPractice)
         {
             err = "Sorry, network trouble has occurred. ";
         } else {
@@ -4996,7 +5001,7 @@ public class SOCPlayerClient extends Applet
             // Local practice games can continue.
 
             SOCPlayerInterface pi = ((SOCPlayerInterface) e.nextElement());
-            if (! (canLocal && pi.getGame().isPractice))
+            if (! (canPractice && pi.getGame().isPractice))
             {
                 pi.over(err);
             }
@@ -5004,22 +5009,22 @@ public class SOCPlayerClient extends Applet
         
         disconnect();
 
-        showErrorPanel(err, canLocal);
+        showErrorPanel(err, canPractice);
     }
 
     /**
      * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
      * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
      * @param err  Error message to show
-     * @param canLocal  In current state of client, can we start a local practice game?
+     * @param canPractice  In current state of client, can we start a practice game?
      * @since 1.1.16
      */
-    private void showErrorPanel(final String err, final boolean canLocal)
+    private void showErrorPanel(final String err, final boolean canPractice)
     {
         // In case was WAIT_CURSOR while connecting
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
-        if (canLocal)
+        if (canPractice)
         {
             messageLabel_top.setText(err);
             messageLabel_top.setVisible(true);
@@ -5034,7 +5039,7 @@ public class SOCPlayerClient extends Applet
         }
         cardLayout.show(this, MESSAGE_PANEL);
         validate();
-        if (canLocal)
+        if (canPractice)
         {
             if (null == findAnyActiveGame(true))
                 pgm.requestFocus();  // No practice games: put this msg as topmost window
@@ -5055,11 +5060,11 @@ public class SOCPlayerClient extends Applet
      */
     public boolean putLeaveAll()
     {
-        boolean canLocal = (ex_L == null);  // Can we still start a local game? 
+        boolean canPractice = (ex_L == null);  // Can we still start a practice game? 
 
         SOCLeaveAll leaveAllMes = new SOCLeaveAll();
         putNet(leaveAllMes.toCmd());
-        if ((prCli != null) && ! canLocal)
+        if ((prCli != null) && ! canPractice)
             putPractice(leaveAllMes.toCmd());
         if ((localTCPServer != null) && (localTCPServer.isUp()))
         {
@@ -5067,7 +5072,7 @@ public class SOCPlayerClient extends Applet
             localTCPServer = null;
         }
 
-        return canLocal;
+        return canPractice;
     }
 
     /**
