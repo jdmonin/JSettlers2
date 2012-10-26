@@ -90,7 +90,7 @@ public class SOCDBHelper
     public static final String PROP_JSETTLERS_DB_PASS = "jsettlers.db.pass";
 
     /** Property <tt>jsettlers.db.jar</tt> to specify the JAR filename for the server's JDBC driver.
-     * This is required since JVM ignores CLASSPATH when running a JAR file.
+     * This is required when running a JAR file, since JVM will ignore CLASSPATH.
      *<P>
      * Default is blank (no driver jar file), since the filename varies when used.
      * @since 1.1.15
@@ -114,8 +114,7 @@ public class SOCDBHelper
     public static final String PROP_JSETTLERS_DB_URL = "jsettlers.db.url";
 
     /** Property <tt>jsettlers.db.script.setup</tt> to run a SQL setup script
-     * at server startup, then exit.
-     * Used to create tables when setting up a server.
+     * at server startup, then exit.  Used to create tables when setting up a server.
      * To activate this feature, set this to the SQL script's full path or relative path.
      * @since 1.1.15
      */
@@ -224,7 +223,7 @@ public class SOCDBHelper
      * @throws IOException  if <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP} but
      *         the SQL file wasn't found, or if any other IO error occurs running the script
      */
-    public static void initialize(String user, String pswd, Properties props)
+    public static void initialize(final String user, final String pswd, Properties props)
         throws SQLException, IOException
     {
         initialized = false;
@@ -279,12 +278,13 @@ public class SOCDBHelper
         boolean driverNewInstanceFailed = false;
         try
         {
-            // Load the JDBC driver. Revisit exceptions when /any/ JDBC allowed.
+            // Load the JDBC driver
             try
             {
                 String prop_jarname = props.getProperty(PROP_JSETTLERS_DB_JAR);
                 if ((prop_jarname != null) && (prop_jarname.length() == 0))
                     prop_jarname = null;
+
                 if (prop_jarname != null)
                 {
                     // Dynamically load the JDBC driver's JAR file.
@@ -370,11 +370,11 @@ public class SOCDBHelper
     {
         if (connection != null)
         {
-            // try/catch required due to connect's declaration; will not occur, script is null
             try
             {
                 return (! errorCondition) || connect(userName, password, null);
             } catch (IOException ioe) {
+                // will not occur, connect script is null
                 return false;
             }
         }
@@ -395,6 +395,7 @@ public class SOCDBHelper
      * @param setupScriptPath  Full path or relative path to SQL script to run at connect, or null
      * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs running the script
      * @throws SQLException if any connect error, missing table, or SQL error occurs
+     * @return  true on success; will never return false, instead will throw a sqlexception
      */
     private static boolean connect(final String user, final String pswd, final String setupScriptPath)
         throws SQLException, IOException
@@ -495,15 +496,19 @@ public class SOCDBHelper
             catch (IOException eclose) {}
             try { fr.close(); }
             catch (IOException eclose) {}
+
             throw e;
         }
 
-        // Run the built list of SQLs
+        // No errors: Run the built list of SQLs
         for (Iterator li = sqls.iterator(); li.hasNext(); )
         {
-            Statement cmd = connection.createStatement();
             String sql = (String) li.next();
+            if (sql.trim().length() == 0)
+                continue;
+            Statement cmd = connection.createStatement();
             cmd.executeUpdate(sql);
+            cmd.close();
         }
     }
     
