@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -3526,26 +3526,7 @@ public class SOCPlayerClient extends Applet
     {
         disconnect();
 
-        // In case was WAIT_CURSOR while connecting
-        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        
-        if (ex_L == null)
-        {
-            messageLabel_top.setText(mes.getText());                
-            messageLabel_top.setVisible(true);
-            messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
-            pgm.setVisible(true);
-        }
-        else
-        {
-            messageLabel_top.setVisible(false);
-            messageLabel.setText(mes.getText());
-            pgm.setVisible(false);
-        }
-        cardLayout.show(this, MESSAGE_PANEL);
-        validate();
-        if (ex_L == null)
-            pgm.requestFocus();
+        showErrorPanel(mes.getText(), (ex_L == null));
     }
 
     /**
@@ -5023,6 +5004,18 @@ public class SOCPlayerClient extends Applet
         
         disconnect();
 
+        showErrorPanel(err, canLocal);
+    }
+
+    /**
+     * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
+     * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
+     * @param err  Error message to show
+     * @param canLocal  In current state of client, can we start a local practice game?
+     * @since 1.1.16
+     */
+    private void showErrorPanel(final String err, final boolean canLocal)
+    {
         // In case was WAIT_CURSOR while connecting
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
