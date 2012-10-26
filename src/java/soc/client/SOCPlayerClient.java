@@ -121,7 +121,10 @@ public class SOCPlayerClient extends Panel
     /** message panel, in cardlayout */
     protected static final String MESSAGE_PANEL = "message";
 
-    /** connect-or-practice panel (if jar launch), in cardlayout */
+    /** Connect-or-practice panel (if jar launch), in cardlayout.
+      * Panel field is {@link #connectOrPracticePane}.
+      * Available if {@link #hasConnectOrPractice}.
+      */
     protected static final String CONNECT_OR_PRACTICE_PANEL = "connOrPractice";
 
     /** text prefix to show games this client cannot join. "(cannot join) "
@@ -156,7 +159,7 @@ public class SOCPlayerClient extends Panel
 
     protected Button jc;  // join channel
     protected Button jg;  // join game
-    protected Button pg;  // practice game (local)
+    protected Button pg;  // practice game (against practiceServer, not localTCPServer)
 
     /**
      * "Show Options" button, shows a game's {@link SOCGameOption}s
@@ -259,10 +262,11 @@ public class SOCPlayerClient extends Panel
      *
      * @see #cardLayout
      */
-    protected boolean hasConnectOrPractice;
+    protected final boolean hasConnectOrPractice;
 
     /**
      * If applicable, is set up in {@link #initVisualElements()}.
+     * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
      * @see #hasConnectOrPractice
      */
     protected SOCConnectOrPracticePanel connectOrPracticePane;
@@ -274,17 +278,17 @@ public class SOCPlayerClient extends Panel
     public NewGameOptionsFrame newGameOptsFrame = null;
 
     /**
-     * For local practice games, default player name.
+     * For practice games, default player name.
      */
     public static String DEFAULT_PLAYER_NAME = "Player";
 
     /**
-     * For local practice games, default game name.
+     * For practice games, default game name.
      */
     public static String DEFAULT_PRACTICE_GAMENAME = "Practice";
 
     /**
-     * For local practice games, reminder message for network problems.
+     * For practice games, reminder message for network problems.
      */
     public static String NET_UNAVAIL_CAN_PRACTICE_MSG = "The server is unavailable. You can still play practice games.";
 
@@ -395,6 +399,7 @@ public class SOCPlayerClient extends Panel
      * @param p  port
      * @param cp  If true, start by showing 'Connect or Practice' panel,
      *       instead of connecting to host and port.
+     *       Typically true for JAR launch, false for applet.
      */
     public SOCPlayerClient(boolean cp)
     {
@@ -945,7 +950,7 @@ public class SOCPlayerClient extends Panel
 
         if (target == so)  // show game options
         {
-            // This game is either from remote server, or local practice server,
+            // This game is either from the tcp server, or practice server,
             // both servers' games are in the same GUI list.
             Hashtable<String,SOCGameOption> opts = null;
             if ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gm)))
@@ -1055,7 +1060,7 @@ public class SOCPlayerClient extends Panel
                 gm = gm.substring(0, endOfName);
             }
 
-            if (((target == pg) || (target == pgm)) && (null == net.ex_L))
+            if (((target == pg) || (target == pgm)) && (null == net.ex_P))
             {
                 if (target == pg)
                 {
@@ -1253,7 +1258,7 @@ public class SOCPlayerClient extends Panel
 
         // OK, we need the options.
         // Ask the server by sending GAMEOPTIONGETDEFAULTS.
-        // (This will never happen for local practice games, see above.)
+        // (This will never happen for practice games, see above.)
 
         // May take a while for server to send our info.
         // The new-game-options window will clear this cursor
@@ -1277,14 +1282,14 @@ public class SOCPlayerClient extends Panel
 
     /**
      * Ask server to start a game with options.
-     * If is local(practice), will call {@link #startPracticeGame(String, Hashtable, boolean)}.
-     * Otherwise, ask remote server, and also set WAIT_CURSOR and status line ("Talking to server...").
+     * If it's practice, will call {@link #startPracticeGame(String, Hashtable, boolean)}.
+     * Otherwise, ask tcp server, and also set WAIT_CURSOR and status line ("Talking to server...").
      *<P>
      * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link #host},
      * and {@link #gotPassword} are already called and valid.
      *
      * @param gmName Game name; for practice, null is allowed
-     * @param forPracticeServer Is this for a new game on the local-practice (not remote) server?
+     * @param forPracticeServer Is this for a new game on the practice (not tcp) server?
      * @param opts Set of {@link SOCGameOption game options} to use, or null
      * @since 1.1.07
      * @see #readValidNicknameAndPassword()
@@ -1381,7 +1386,7 @@ public class SOCPlayerClient extends Panel
      * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
      *
      * @param mes    the message
-     * @param isPractice  Server is local (practice game, not network)
+     * @param isPractice  Server is {@link ClientNetwork#practiceServer}, not tcp network
      */
     public void treat(SOCMessage mes, final boolean isPractice)
     {
@@ -1969,11 +1974,11 @@ public class SOCPlayerClient extends Panel
             }
         } else {
             // sVersion == cliVersion, so we have same code as server for getAllKnownOptions.
-            // For local practice games, optionSet may already be initialized, so check vs null.
+            // For practice games, optionSet may already be initialized, so check vs null.
             GameOptionServerSet opts = (isPractice ? practiceServGameOpts : tcpServGameOpts);
             if (opts.optionSet == null)
                 opts.optionSet = SOCGameOption.getAllKnownOptions();
-            opts.noMoreOptions(isPractice);  // defaults not known unless it's local practice
+            opts.noMoreOptions(isPractice);  // defaults not known unless it's practice
         }
     }
 
@@ -2101,7 +2106,7 @@ public class SOCPlayerClient extends Panel
      * handle the "list of channels" message; this message indicates that
      * we're newly connected to the server.
      * @param mes  the message
-     * @param isPractice is the server actually local (practice game)?
+     * @param isPractice is the server actually {@link ClientNetwork#practiceServer} (practice game)?
      */
     protected void handleCHANNELS(SOCChannels mes, final boolean isPractice)
     {
@@ -2193,7 +2198,7 @@ public class SOCPlayerClient extends Panel
 
         Collection<String> gameNamesEnum = mes.getGames();
 
-        if (! isPractice)  // local's gameoption data is set up in handleVERSION
+        if (! isPractice)  // practiceServer's gameoption data is set up in handleVERSION
         {
             if (serverGames == null)
                 serverGames = new SOCGameList();
@@ -2219,7 +2224,7 @@ public class SOCPlayerClient extends Panel
      * handle the "join game authorization" message: create new {@link SOCGame} and
      * {@link SOCPlayerInterface} so user can join the game
      * @param mes  the message
-     * @param isPractice server is local for practice (vs. normal network)
+     * @param isPractice server is practiceServer (not normal tcp network)
      */
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
     {
@@ -3192,7 +3197,7 @@ public class SOCPlayerClient extends Panel
     {
         net.disconnect();
 
-        showErrorPanel(mes.getText(), (net.ex_L == null));
+        showErrorPanel(mes.getText(), (net.ex_P == null));
     }
 
     /**
@@ -3592,7 +3597,7 @@ public class SOCPlayerClient extends Panel
      *                 may have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}
      * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
      * @param addToSrvList Should this game be added to the list of remote-server games?
-     *                 Local practice games should not be added.
+     *                 Practice games should not be added.
      *                 The {@link #serverGames} list also has a flag for cannotJoin.
      */
     public void addToGameList(String gameName, String gameOptsStr, final boolean addToSrvList)
@@ -3614,7 +3619,7 @@ public class SOCPlayerClient extends Panel
      *                 must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
      * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
      * @param addToSrvList Should this game be added to the list of remote-server games?
-     *                 Local practice games should not be added.
+     *                 Practice games should not be added.
      */
     public void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList)
     {
@@ -3767,7 +3772,7 @@ public class SOCPlayerClient extends Panel
      * If it's on the list, also remove from {@link #serverGames}.
      *
      * @param gameName  the game to remove
-     * @param isPractice   local practice, not at remote server?
+     * @param isPractice   Game is practice, not at tcp server?
      * @return true if deleted, false if not found in list
      */
     public boolean deleteFromGameList(String gameName, final boolean isPractice)
@@ -3899,14 +3904,14 @@ public class SOCPlayerClient extends Panel
         }
         
         /**
-         * Write a message to the net or local server.
-         * Because the player can be in both network games and local games,
+         * Write a message to the net or practice server.
+         * Because the player can be in both network games and practice games,
          * we must route to the appropriate client-server connection.
          * 
          * @param s  the message
-         * @param isPractice Is the server local (practice game), not network?
-         *                {@link #localTCPServer} is considered "network" here.
-         *                Use <tt>isPractice</tt> only with {@link #practiceServer}.
+         * @param isPractice  Put to the practice server, not tcp network?
+         *                {@link ClientNetwork#localTCPServer} is considered "network" here.
+         *                Use <tt>isPractice</tt> only with {@link ClientNetwork#practiceServer}.
          * @return true if the message was sent, false if not
          */
         private synchronized boolean put(String s, final boolean isPractice)
@@ -4543,8 +4548,8 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * Setup for local practice game (local non-tcp server).
-     * If needed, a (stringport, not tcp) server, client, and robots are started.
+     * Setup for practice game (on the non-tcp server).
+     * If needed, a (stringport, not tcp) {@link ClientNetwork#practiceServer}, client, and robots are started.
      *
      * @param practiceGameName Unique name to give practice game; if name unknown, call
      *         {@link #startPracticeGame()} instead
@@ -4569,7 +4574,7 @@ public class SOCPlayerClient extends Panel
 
     /**
      * Setup for locally hosting a TCP server.
-     * If needed, a local server and robots are started, and client connects to it.
+     * If needed, a {@link ClientNetwork#localTCPServer local server} and robots are started, and client connects to it.
      * If parent is a Frame, set titlebar to show "server" and port#.
      * Show port number in {@link #versionOrlocalTCPPortLabel}.
      * If the {@link #localTCPServer} is already created, does nothing.
@@ -4688,7 +4693,7 @@ public class SOCPlayerClient extends Panel
     /**
      * Server version, for checking feature availability.
      * Returns -1 if unknown.
-     * @param  game  Game being played on a local (practice) or remote server.
+     * @param  game  Game being played on a practice or tcp server.
      * @return Server version, format like {@link soc.util.Version#versionNumber()},
      *         or 0 or -1.
      */
@@ -4701,16 +4706,16 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * network trouble; if possible, ask if they want to play locally (robots).
+     * network trouble; if possible, ask if they want to play locally (practiceServer vs. robots).
      * Otherwise, go ahead and shut down.
      */
     public void dispose()
     {
-        boolean canLocal;  // Can we still start a local game?
-        canLocal = net.putLeaveAll();
+     
+        final boolean canPractice = net.putLeaveAll(); // Can we still start a practice game?
 
         String err;
-        if (canLocal)
+        if (canPractice)
         {
             err = "Sorry, network trouble has occurred. ";
         } else {
@@ -4726,8 +4731,8 @@ public class SOCPlayerClient extends Panel
         for (SOCPlayerInterface pi : playerInterfaces.values())
         {
             // Stop network games.
-            // Local practice games can continue.
-            if (! (canLocal && pi.getGame().isPractice))
+            // Practice games can continue.
+            if (! (canPractice && pi.getGame().isPractice))
             {
                 pi.over(err);
             }
@@ -4735,22 +4740,22 @@ public class SOCPlayerClient extends Panel
         
         net.dispose();
 
-        showErrorPanel(err, canLocal);
+        showErrorPanel(err, canPractice);
     }
 
     /**
      * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
      * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
      * @param err  Error message to show
-     * @param canLocal  In current state of client, can we start a local practice game?
+     * @param canPractice  In current state of client, can we start a practice game?
      * @since 1.1.16
      */
-    private void showErrorPanel(final String err, final boolean canLocal)
+    private void showErrorPanel(final String err, final boolean canPractice)
     {
         // In case was WAIT_CURSOR while connecting
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
-        if (canLocal)
+        if (canPractice)
         {
             messageLabel_top.setText(err);
             messageLabel_top.setVisible(true);
@@ -4765,7 +4770,7 @@ public class SOCPlayerClient extends Panel
         }
         cardLayout.show(this, MESSAGE_PANEL);
         validate();
-        if (canLocal)
+        if (canPractice)
         {
             if (null == findAnyActiveGame(true))
                 pgm.requestFocus();  // No practice games: put this msg as topmost window
@@ -4843,6 +4848,13 @@ public class SOCPlayerClient extends Panel
 
     /**
      * Helper object to encapsulate and deal with network connectivity.
+     *<P>
+     * Local practice server (if any) is started in {@link #startPracticeGame(String, Hashtable)}.
+     *<br>
+     * Local tcp server (if any) is started in {@link #initLocalServer(int)}.
+     *<br>
+     * Network shutdown is {@link #disconnect()} or {@link #dispose()}.
+     *
      * @author Paul Bilnoski <paul@bilnoski.net>
      */
     public static class ClientNetwork
@@ -4877,15 +4889,17 @@ public class SOCPlayerClient extends Panel
         DataInputStream in;
         DataOutputStream out;
         Thread reader = null;
-        Exception ex = null;    // Network errors (TCP communication)
-        Exception ex_L = null;  // Local errors (stringport pipes)
+        /** Network error (TCP communication), or null */
+        Exception ex = null;
+        /** Practice-server error (stringport pipes), or null */
+        Exception ex_P = null;
         boolean connected = false;
         
-        /** For debug, our last messages sent, over the net and locally (pipes) */
-        protected String lastMessage_N, lastMessage_L;
+        /** For debug, our last messages sent, over the net or practice server (pipes) */
+        protected String lastMessage_N, lastMessage_P;
 
         /**
-         * for local-practice game via {@link #prCli}; not connected to
+         * Server for practice games via {@link #prCli}; not connected to
          * the network, not suited for multi-player games. Use {@link #localTCPServer}
          * for those.
          * SOCMessages of games where {@link SOCGame#isPractice} is true are sent
@@ -4896,8 +4910,10 @@ public class SOCPlayerClient extends Panel
         protected SOCServer practiceServer = null;
 
         /**
-         * for connection to local-practice server {@link #practiceServer}.
+         * Client connection to {@link #practiceServer practice server}.
          * Null before it's started in {@link #startPracticeGame()}.
+         *<P>
+         * Last message is in {@link #lastMessage_P}; any error is in {@link #ex_P}.
          */
         protected StringConnection prCli = null;
         
@@ -4907,13 +4923,19 @@ public class SOCPlayerClient extends Panel
             if (client == null)
                 throw new IllegalArgumentException("client is null");
         }
-        
+
+        /** Shut down the local TCP server (if any) and disconnect from the network. */
         public void dispose()
         {
             shutdownLocalServer();
             disconnect();
         }
-        
+
+        /**
+         * Start a practice game.  If needed, create and start {@link #practiceServer}.
+         * @param practiceGameName  Game name
+         * @param gameOpts  Game {@link SOCGameOption options}
+         */
         public void startPracticeGame(String practiceGameName, Hashtable<String, SOCGameOption> gameOpts)
         {
             if (practiceServer == null)
@@ -4936,31 +4958,36 @@ public class SOCPlayerClient extends Panel
                     // Send VERSION right away (1.1.06 and later)
                     putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
 
-                    // local server will support per-game options
+                    // practice server will support per-game options
                     if (client.so != null)
                         client.so.setEnabled(true);
                 }
                 catch (ConnectException e)
                 {
-                    ex_L = e;
+                    ex_P = e;
                     return;
                 }
             }
 
-            // Ask local "server" to create the game
+            // Ask practice server to create the game
             if (gameOpts == null)
                 putPractice(SOCJoinGame.toCmd(client.nickname, client.password, getHost(), practiceGameName));
             else
                 putPractice(SOCNewGameWithOptionsRequest.toCmd(client.nickname, client.password, getHost(), practiceGameName, gameOpts));
         }
 
+        /**
+         * Get the tcp port number of the local server.
+         * @see #isRunningLocalServer()
+         */
         public int getLocalServerPort()
         {
             if (localTCPServer == null)
                 return 0;
             return localTCPServer.getPort();
         }
-        
+
+        /** Shut down the local TCP server. */
         public void shutdownLocalServer()
         {
             if ((localTCPServer != null) && (localTCPServer.isUp()))
@@ -4970,6 +4997,7 @@ public class SOCPlayerClient extends Panel
             }
         }
 
+        /** Create and start the local TCP server on a given port. */
         public void initLocalServer(int tport)
         {
             localTCPServer = new SOCServer(tport, 30, null, null);
@@ -4981,23 +5009,26 @@ public class SOCPlayerClient extends Panel
             localTCPServer.setupLocalRobots(5, 2);
         }
 
+        /** Port number of the tcp server we're a client of */
         public int getPort()
         {
             return port;
         }
-        
+
+        /** Hostname of the tcp server we're a client of */
         public String getHost()
         {
             return host;
         }
-        
+
+        /** Are we connected to a tcp server? */
         public synchronized boolean isConnected()
         {
             return connected;
         }
         
         /**
-         * Attempts to connect to the server. See {@link #connected} for success or
+         * Attempts to connect to the server. See {@link #isConnected()} for success or
          * failure. Once connected, starts a {@link #reader} thread.
          * The first message over the connection is our version,
          * and the second is the server's response:
@@ -5039,7 +5070,7 @@ public class SOCPlayerClient extends Panel
                 ex = e;
                 String msg = "Could not connect to the server: " + ex;
                 System.err.println(msg);
-                if (ex_L == null)
+                if (ex_P == null)
                 {
                     client.pgm.setVisible(true);
                     client.messageLabel_top.setText(msg);
@@ -5056,7 +5087,8 @@ public class SOCPlayerClient extends Panel
         }
         
         /**
-         * disconnect from the net
+         * Disconnect from the net (client of remote server).
+         * @see #dispose()
          */
         protected synchronized void disconnect()
         {
@@ -5074,6 +5106,11 @@ public class SOCPlayerClient extends Panel
             }
         }
 
+        /**
+         * Are we running a local tcp server?
+         * @see #getLocalServerPort()
+         * @see #anyHostedActiveGames()
+         */
         public boolean isRunningLocalServer()
         {
             return localTCPServer != null;
@@ -5107,6 +5144,8 @@ public class SOCPlayerClient extends Panel
         /**
          * write a message to the net: either to a remote server,
          * or to {@link #localTCPServer} for games we're hosting.
+         *<P>
+         * This message is copied to {@link #lastMessage_N}; any error sets {@link #ex}.
          *
          * @param s  the message
          * @return true if the message was sent, false if not
@@ -5154,9 +5193,9 @@ public class SOCPlayerClient extends Panel
          */
         public synchronized boolean putPractice(String s)
         {
-            lastMessage_L = s;
+            lastMessage_P = s;
 
-            if ((ex_L != null) || !prCli.isConnected())
+            if ((ex_P != null) || !prCli.isConnected())
             {
                 return false;
             }
@@ -5178,35 +5217,35 @@ public class SOCPlayerClient extends Panel
         }
 
         /**
-         * resend the last message (to the local practice server)
+         * resend the last message (to the practice server)
          */
         public void resendPractice()
         {
-            putPractice(lastMessage_L);
+            putPractice(lastMessage_P);
         }
 
         /**
          * For shutdown - Tell the server we're leaving all games.
-         * If we've started a local practice server, also tell that server.
+         * If we've started a practice server, also tell that server.
          * If we've started a TCP server, tell all players on that server, and shut it down.
          *<P><em>
          * Since no other state variables are set, call this only right before
          * discarding this object or calling System.exit.
          *</em>
-         * @return Can we still start local games? (No local exception yet in {@link #ex_L})
+         * @return Can we still start practice games? (No local exception yet in {@link #ex_P})
          */
         public boolean putLeaveAll()
         {
-            boolean canLocal = (ex_L == null);  // Can we still start a local game?
+            final boolean canPractice = (ex_P == null);  // Can we still start a practice game?
 
             SOCLeaveAll leaveAllMes = new SOCLeaveAll();
             putNet(leaveAllMes.toCmd());
-            if ((prCli != null) && ! canLocal)
+            if ((prCli != null) && ! canPractice)
                 putPractice(leaveAllMes.toCmd());
             
             shutdownLocalServer();
 
-            return canLocal;
+            return canPractice;
         }
         
         /**
@@ -5254,21 +5293,21 @@ public class SOCPlayerClient extends Panel
         }  // nested class NetReadTask
 
         /**
-         * For local practice games, reader thread to get messages from the
-         * local server to be treated and reacted to.
+         * For practice games, reader thread to get messages from the
+         * practice server to be treated and reacted to.
          */
         class SOCPlayerLocalStringReader implements Runnable
         {
             LocalStringConnection locl;
 
             /**
-             * Start a new thread and listen to local practice server.
+             * Start a new thread and listen to practice server.
              *
-             * @param localConn Active connection to local server
+             * @param prConn Active connection to practice server
              */
-            protected SOCPlayerLocalStringReader (LocalStringConnection localConn)
+            protected SOCPlayerLocalStringReader (LocalStringConnection prConn)
             {
-                locl = localConn;
+                locl = prConn;
 
                 Thread thr = new Thread(this);
                 thr.setDaemon(true);
@@ -5276,7 +5315,7 @@ public class SOCPlayerClient extends Panel
             }
 
             /**
-             * continuously read from the local practice string server in a separate thread
+             * Continuously read from the practice string server in a separate thread.
              */
             public void run()
             {
@@ -5296,8 +5335,8 @@ public class SOCPlayerClient extends Panel
                     // purposefully closing the socket brings us here too
                     if (locl.isConnected())
                     {
-                        ex_L = e;
-                        System.out.println("could not read from string localnet: " + ex_L);
+                        ex_P = e;
+                        System.out.println("could not read from practice server: " + ex_P);
                         client.dispose();
                     }
                 }
@@ -5320,7 +5359,7 @@ public class SOCPlayerClient extends Panel
         /**
          * User has clicked window Close button.
          * Check for active games, before exiting.
-         * If we are playing in a game, or running a local server hosting active games,
+         * If we are playing in a game, or running a local tcp server hosting active games,
          * ask the user to confirm if possible.
          */
         @Override
