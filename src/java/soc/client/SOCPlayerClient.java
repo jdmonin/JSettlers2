@@ -4746,6 +4746,10 @@ public class SOCPlayerClient extends Panel
     /**
      * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
      * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
+     *<P>
+     * If {@link #hasConnectOrPractice we have the startup panel} with buttons to connect
+     * to a server or practice, we'll show that instead of the simpler practice-only message panel.
+     *
      * @param err  Error message to show
      * @param canPractice  In current state of client, can we start a practice game?
      * @since 1.1.16
@@ -4768,14 +4772,32 @@ public class SOCPlayerClient extends Panel
             messageLabel.setText(err);
             pgm.setVisible(false);
         }
-        cardLayout.show(this, MESSAGE_PANEL);
-        validate();
-        if (canPractice)
+
+        if (hasConnectOrPractice)
         {
-            if (null == findAnyActiveGame(true))
-                pgm.requestFocus();  // No practice games: put this msg as topmost window
-            else
-                pgm.requestFocusInWindow();  // Practice game is active; don't interrupt to show this
+            // If we have the startup panel with buttons to connect to a server or practice,
+            // prep to show that by un-setting read-only fields we'll need again after connect.
+            nick.setEditable(true);
+            pass.setText("");
+            pass.setEditable(true);
+
+            cardLayout.show(this, CONNECT_OR_PRACTICE_PANEL);
+            validate();
+            connectOrPracticePane.clickConnCancel();
+            connectOrPracticePane.setTopText(err);
+            connectOrPracticePane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        }
+        else
+        {
+            cardLayout.show(this, MESSAGE_PANEL);
+            validate();
+            if (canPractice)
+            {
+                if (null == findAnyActiveGame(true))
+                    pgm.requestFocus();  // No practice games: put this msg as topmost window
+                else
+                    pgm.requestFocusInWindow();  // Practice game is active; don't interrupt to show this
+            }
         }
     }
 
