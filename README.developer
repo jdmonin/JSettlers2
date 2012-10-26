@@ -54,7 +54,7 @@ If you want to inspect the game object state at the server or robot:
 	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
 	  send a text msg from a client (the chat textfield), and inspect the game obj at that point
 	To inspect game state at robot, breakpoint robotcli.treat and send a text msg like *BOTLIST* or robot2:current-plans
-	On non-Windows JVMs, you can print a stack trace / thread dump to the shell by sending SIGQUIT.
+	On Linux/Unix JVMs, you can print a stack trace / thread dump to the shell by sending SIGQUIT.
 
 To use the "Free Placement" debug mode, type this debug command on your turn:
 	*FREEPLACE* 1
@@ -85,6 +85,7 @@ Setup instructions for JSettlers as an Eclipse project
 - choose File -> New -> Project... -> Java Project from Existing Ant Buildfile.
 - Browse to jsettlers-1.1.xx-src/build.xml, select the "javac" task in target "compile".
 - You'll need to build once before you run it, to create version.info from resources/version.info.in.
+- Project -> Properties: Resource: Text file encoding: UTF-8
 
 See below for how to set up the coding style in Eclipse.
 
@@ -169,7 +170,7 @@ Current partially-done work
 Current TODO list
 -----------------
 	Work on these items has not yet begun.
-	Ranked from easier, to more difficult.
+	This list is ranked from easier, to more difficult.
 	You can also search the source for TODO for ideas.
 
 	- User documentation is out of date; unsure if any user ever reads it anyway
@@ -198,6 +199,7 @@ Current TODO list
 	- Refactor: SOCGameOption static methods to check and change values within a set
 	- Some way to mark bot seats so they are locked out when the board is reset after a game
 		Possibly right-click the robot icon for a menu/popup to set this
+		So, you could reset to start a new game with fewer/no bots
 	- At board reset, game observers not currently handled properly
 	- Game "owner" with extra powers (kick out player, etc)
 		what happens if owner loses connection?
@@ -223,11 +225,40 @@ Although we may not agree with every detail of it, for consistency's sake,
 please keep the conventions of the code that's already there.
 
 Use spaces, not tabs.  The basic indent is 4.  Place braces on their own line.
+Lines should be less than about 120 characters long; if you have to indent too
+much, consider refactoring into a new method.
 
 Use 1 blank line between methods.  If you have nested classes, use 3 blank 
 lines between them, and comment each one's closing brace with the class name.
 If you have a long method whose work can be divided into "sections",
 preface each section with a /** javadoc-style */ multi-line comment.
+
+If a declaration line is getting too long (about 120 characters), break it
+and indent it slightly from the first line, not aligned with the method name.
+Throws declarations are also always indented on the next line:
+    public SOCGameOption(String key, int minVers, int lastModVers,
+        boolean defaultValue, boolean dropIfUnused, String desc)
+        throws IllegalArgumentException
+If related methods have the same name but different sets of arguments, indent
+all their declarations the same way for easier comparison.
+
+Some methods return in the middle of their body, depending on conditions.
+That kind of early return should be marked with a prominent comment such as:
+	return;   // <--- Early return: Temporary piece ---
+
+Some methods end with this style of code:
+	if (x)
+	    return y;
+	else
+	    return z;
+In those cases, the return is part of the logical flow of the if-statement:
+Both y and z are normal and valid, and deserve equal "visual weight" and indenting.
+That section of code should not be reformatted to something like:
+	if (x)
+	    return y;
+	return z;
+because conventionally in jsettlers, that would mean z is the usual case
+and y is less common or is an edge condition.
 
 In emacs, you can place this in your .emacs file to use spaces instead of tabs:
 (setq-default c-basic-offset 4)
@@ -242,6 +273,8 @@ Here's how to set up the coding style in Eclipse:
 	preferences -> general -> editors -> text editors:
 	[x] insert spaces for tabs
 	displayed tab width: 8
+	[x] show print margin
+	print margin column: 120
 
 	project properties -> java compiler -> configure workspace settings
 	  compiler compliance level: 1.4
@@ -302,9 +335,10 @@ github
 ------
 The project code lives at https://github.com/jdmonin/JSettlers2 .
 Patches can be sent by email or by pull request.
+Please make sure your patch follows the project coding style.
 
-master recieves new features and enhancements for next 'minor' release.
-As soon as a bug is fixed or a feature's design is fairly stable, it
+The master branch recieves new features and enhancements for next 'minor'
+release.  As soon as a bug is fixed or a feature's design is fairly stable, it
 should be committed to master.
 
 The master branch has new 2.0.xx development.  Until 2.0.00 is ready,
@@ -316,7 +350,7 @@ There are no branches, because jsettlers2 is mature at this point.
 Each minor release is a stable release, there is no experimental branch.
 
 Each release's files are tagged for the release ("release-1.1.14").
-The last commit for the release updates VERSION.txt with the final build number,
+The last commit for the release updates VERSIONS.txt with the final build number,
 with a commit message like: Version 1.1.14 is build OV20120930
 Then: git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'
 

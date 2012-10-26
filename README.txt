@@ -114,6 +114,10 @@ The started robots count against your max connections (15 in this example).
 If the robots leave less than 6 player connections available, or if they take
 more than half the max connections, a warning message is printed at startup.
 
+To see a list of all jsettlers options (use them with -D), run:
+  java -jar JSettlersServer.jar --help
+
+
 CLIENT CONNECT:
 
 Now, from another command line window, start the player client with
@@ -168,6 +172,7 @@ Shutting down the server
 To shut down the server enter *STOP* in the chat area of a game
 window.  This will stop the server and all connected clients will be
 disconnected.
+(Only debug users can shut down the server.)
 
 
 Hosting a JSettlers server
@@ -242,7 +247,7 @@ Your database system's JDBC drivers can be downloaded at these locations:
 	PostgreSQL:  http://jdbc.postgresql.org/download.html
 	SQLite:  http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC
 	          or http://www.sqlite.org/cvstrac/wiki?p=SqliteWrappers
-	          If sqlite crashes on launch, retry with -Dsqlite.purejava=true
+	          If sqlite crashes jsettlers on launch, retry with -Dsqlite.purejava=true
 
 In some cases, adding to the classpath won't work because of JVM restrictions
 about JAR files.  If you find that's the case, place the JDBC jar in the same
