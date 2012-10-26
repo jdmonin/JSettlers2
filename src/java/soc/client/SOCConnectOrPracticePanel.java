@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2008-2009 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,6 +51,9 @@ public class SOCConnectOrPracticePanel extends Panel
     implements ActionListener, KeyListener
 {
     private SOCPlayerClient cl;
+
+    /** Welcome message, or error after disconnect */
+    private Label topText;
 
     /** "Practice" */
     private Button prac;
@@ -172,10 +175,10 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.fill = GridBagConstraints.BOTH;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
 
-        Label L = new Label("Welcome to JSettlers!  Please choose an option.");
-        L.setAlignment(Label.CENTER);
-        gbl.setConstraints(L, gbc);
-        bp.add(L);
+        topText = new Label("Welcome to JSettlers!  Please choose an option.");
+        topText.setAlignment(Label.CENTER);
+        gbl.setConstraints(topText, gbc);
+        bp.add(topText);
 
         /**
          * Interface setup: Connect to a Server
@@ -413,6 +416,17 @@ public class SOCConnectOrPracticePanel extends Panel
         run_cancel.setEnabled(false);
     }
 
+    /**
+     * Set the line of text displayed at the top of the panel.
+     * @param newText  New text to display
+     * @since 1.1.16
+     */
+    public void setTopText(final String newText)
+    {
+        topText.setText(newText);
+        validate();
+    }
+
     /** React to button clicks */
     public void actionPerformed(ActionEvent ae)
     {
@@ -532,8 +546,8 @@ public class SOCConnectOrPracticePanel extends Panel
         cl.connect(cserv, cport, conn_user.getText(), conn_pass.getText());
     }
 
-    /** Hide fields used to connect to server */
-    private void clickConnCancel()
+    /** Hide fields used to connect to server. Called by client after a network error. */
+    public void clickConnCancel()
     {
         panel_conn.setVisible(false);
         connserv.setVisible(true);
