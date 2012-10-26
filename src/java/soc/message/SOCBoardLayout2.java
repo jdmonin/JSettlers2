@@ -59,7 +59,6 @@ import soc.game.SOCBoard;
  * {@link SOCBoard#DESERT_HEX} are changed to their pre-v2.0 values in the
  * constructor before sending over the network, and changed back in
  * {@link #getIntArrayPart(String) getIntArrayPart("HL")}.
-
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @see SOCBoardLayout

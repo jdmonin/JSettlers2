@@ -427,6 +427,7 @@ public class SOCConnectOrPracticePanel extends Panel
     public void setTopText(final String newText)
     {
         topText.setText(newText);
+        validate();
     }
 
     /** React to button clicks */
