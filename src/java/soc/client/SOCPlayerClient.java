@@ -3192,26 +3192,7 @@ public class SOCPlayerClient extends Panel
     {
         net.disconnect();
 
-        // In case was WAIT_CURSOR while connecting
-        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        
-        if (net.ex_L == null)
-        {
-            messageLabel_top.setText(mes.getText());
-            messageLabel_top.setVisible(true);
-            messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
-            pgm.setVisible(true);
-        }
-        else
-        {
-            messageLabel_top.setVisible(false);
-            messageLabel.setText(mes.getText());
-            pgm.setVisible(false);
-        }
-        cardLayout.show(SOCPlayerClient.this, MESSAGE_PANEL);
-        validate();
-        if (net.ex_L == null)
-            pgm.requestFocus();
+        showErrorPanel(mes.getText(), (net.ex_L == null));
     }
 
     /**
@@ -4754,6 +4735,18 @@ public class SOCPlayerClient extends Panel
         
         net.dispose();
 
+        showErrorPanel(err, canLocal);
+    }
+
+    /**
+     * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
+     * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
+     * @param err  Error message to show
+     * @param canLocal  In current state of client, can we start a local practice game?
+     * @since 1.1.16
+     */
+    private void showErrorPanel(final String err, final boolean canLocal)
+    {
         // In case was WAIT_CURSOR while connecting
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
