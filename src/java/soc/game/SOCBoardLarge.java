@@ -36,6 +36,7 @@ import java.util.Vector;
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
+ * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
  *<P>
  * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
@@ -1124,6 +1125,27 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Get a node's Land Area number, if applicable.
+     * @param nodeCoord  the node's coordinate
+     * @return  The node's land area, if any, or 0 if not found or if in water.
+     *     If {@link #getLandAreasLegalNodes()} is <tt>null</tt>,
+     *     always returns 1 if {@link #isNodeOnLand(int) isNodeOnLand(nodeCoord)}.
+     * @see #getLandAreasLegalNodes()
+     */
+    public int getNodeLandArea(final int nodeCoord)
+    {
+        if (landAreasLegalNodes == null)
+            return ( isNodeOnLand(nodeCoord) ? 1 : 0);
+
+        final Integer nodeInt = Integer.valueOf(nodeCoord);
+        for (int i = 1; i < landAreasLegalNodes.length; ++i)
+            if (landAreasLegalNodes[i].contains(nodeInt))
+                return i;
+
+        return 0;
+    }
+
+    /**
      * Get the land hex layout, for sending from server to client.
      * Contains 3 int elements per land hex:
      * Coordinate, Hex type (resource, as in {@link #SHEEP_HEX}), Dice Number (-1 for desert).
@@ -1229,6 +1251,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return the land areas' nodes, or <tt>null</tt> if only one land area (one group of islands).
      *     Each index holds the nodes for that land area number.
      *     Index 0 is unused.
+     * @see #getNodeLandArea(int)
      */
     public HashSet<Integer>[] getLandAreasLegalNodes()
     {
