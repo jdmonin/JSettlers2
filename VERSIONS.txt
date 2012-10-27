@@ -5,9 +5,9 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 and source history at https://github.com/jdmonin/JSettlers2
 
 
-    > 1.1.16 (build OV201210xx)
+    > 1.1.16 (build OV20121027)
 - Bugfix: Can't start practice games
-- If jar client loses server connection, return to first panel, with buttons
+- If jar client loses server connection, returns to first panel, with buttons
   to connect to a server or practice
 
     > 1.1.15 (build OV20121021)

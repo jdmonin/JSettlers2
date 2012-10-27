@@ -177,7 +177,8 @@ disconnected.
 
 Hosting a JSettlers server
 --------------------------
-  - Start MySQL or PostgreSQL server (optional)
+  - Start MySQL or PostgreSQL server
+    (the database is optional; if you want a db, file-based sqlite also works)
   - Start JSettlers Server
   - Start http server (optional)
   - Copy JSettlers.jar jar and "web/*.html" server directory (optional)

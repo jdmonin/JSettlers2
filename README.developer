@@ -3,6 +3,9 @@ README.developer - Notes and current status of 2012 JSettlers development (versi
 	http://sourceforge.net/projects/jsettlers2/
 	https://github.com/jdmonin/JSettlers2
 
+At this point (after 1.1.13), the 1.1.xx series is for stable bugfixes.
+New JSettlers development is version 2.0.xx.
+
 Scroll down a bit for the current TODO list.
 See VERSIONS.txt for recent changes.
 
