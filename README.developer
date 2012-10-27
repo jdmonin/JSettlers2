@@ -351,7 +351,9 @@ should be committed to master.
 
 The master branch has new 2.0.xx development.  Until 2.0.00 is ready,
 there's an old-1.1.xx branch in case of urgent bugfixes, so we can release
-new stable versions.
+new stable versions.  Most work on 1.1.xx is backported from 2.0; changeset
+comments often mention a hash from a master commit.  Version 2.0.00 was
+split off right after releasing version 1.1.13.
 
 Once 2.0.00 is out, we'll follow the usual jsettlers model:
 There are no branches, because jsettlers2 is mature at this point.

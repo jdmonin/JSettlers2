@@ -6,8 +6,9 @@ and source history at https://github.com/jdmonin/JSettlers2
 
 From 1.0 up through 1.1.13, there is a single line of development.
 
-Right after 1.1.13, new development branch 2.0.00 split off; further 1.1.xx versions are stable-
-branch releases to bring out bugfixes and backport minor new features, until 2.0.00 is ready.
+Right after 1.1.13, new development branch 2.0.00 split off; further 1.1.xx
+versions are stable-branch releases to bring out bugfixes and backport minor
+new features, until 2.0.00 is ready.
 
 
 
@@ -22,9 +23,9 @@ branch releases to bring out bugfixes and backport minor new features, until 2.0
 
 
 
-    > 1.1.16 (build OV201210xx)
-- Bugfix: Can't start practice games
-- If jar client loses server connection, return to first panel, with buttons
+    > 1.1.16 (build OV20121027)
+- Bugfix: 1.1.15 can't start practice games
+- If jar client loses server connection, returns to first panel, with buttons
   to connect to a server or practice
 
     > 1.1.15 (build OV20121021)
