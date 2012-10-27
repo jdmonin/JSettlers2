@@ -585,6 +585,13 @@ public class SOCServer extends Server
      * Common init for all constructors.
      * Starts all server threads except the main thread.
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
+     *<P>
+     * If there are problems with the network setup ({@link #error} != null),
+     * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
+     * this method will call {@link System#exit(int) System.exit(1)}.
+     *<P>
+     * If a db setup script runs successfully,
+     * this method will call {@link System#exit(int) System.exit(2)}.
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
@@ -9684,7 +9691,7 @@ public class SOCServer extends Server
         }
         catch (SQLException sqle)
         {
-            System.err.println("Error saving game scores in db.");
+            System.err.println("Error saving game scores in db: " + sqle);
         }
     }
 
