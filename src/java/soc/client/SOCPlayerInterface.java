@@ -1803,6 +1803,13 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 mesHp.updateValue(SOCHandPanel.NUMRESOURCES);
             }
 
+            /**
+             * on the large sea board, there might be an SVP awarded for settlements.
+             */
+            if (game.hasSeaBoard && (pl.getSpecialVP() != 0))
+                // TODO temporary for testing; event-based is better
+                mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
+
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
                 || debugShowPotentials[6])
                 boardPanel.flushBoardLayoutAndRepaint();
