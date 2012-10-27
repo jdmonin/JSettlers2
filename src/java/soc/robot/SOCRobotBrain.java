@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -743,6 +743,12 @@ public class SOCRobotBrain extends Thread
      */
     public void debugPrintBrainStatus()
     {
+        if ((ourPlayerData == null) || (game == null))
+        {
+            System.err.println("Robot internal state: Cannot print: null game or player");
+            return;
+        }
+
         System.err.println("Robot internal state: " + client.getNickname() + " in game " + game.getName() + ": gs=" + game.getGameState());
         if (game.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
             System.err.println("  bot card count = " + ourPlayerData.getResources().getTotal());
