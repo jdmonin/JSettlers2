@@ -2823,6 +2823,28 @@ public class SOCHandPanel extends Panel implements ActionListener
             faceImg.setBounds(inset, inset, faceW, faceW);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
 
+            // To right of face, below player name:
+            // Victory Points count, Largest Army, Longest Road
+            final int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));
+            int y = inset + lineH + 2*space;
+            vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
+            vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+
+            final int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
+
+            // always position these: though they may not be visible
+            larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+            lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
+                (dim.width - (topStuffW + inset + space)) / 2, lineH);
+
+            // SVP goes below Victory Points count; usually invisible
+            if (svpSq != null)
+            {
+                y += (lineH + 1);
+                svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
+                svpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+            }
+
             //if (true) {
             if (playerIsClient)
             {
@@ -2855,28 +2877,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 // Always reposition everything
                 startBut.setBounds(inset + faceW + inset, inset + lineH + space, dim.width - (inset + faceW + inset + inset), lineH);
 
-                // To right of face, below player name:
-                // Victory Points count, Largest Army, Longest Road
-                final int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));
-                int y = inset + lineH + 2*space;
-                vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
-                vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.WIDTH);
-
-                final int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
-
-                // always position these: though they may not be visible
-                larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
-                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
-                    (dim.width - (topStuffW + inset + space)) / 2, lineH);
-
-                // SVP goes below Victory Points count; usually invisible
-                if (svpSq != null)
-                {
-                    y += (lineH + 1);
-                    svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
-                    svpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.WIDTH);
-                }
-
+                // Below face, player name, VP count, etc:
                 // Section spacer, then:
                 // Trade area to left; item counts to right (soldiers,roads,settlements,cities,ships)
 
@@ -2995,7 +2996,6 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 final int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
                 final int dcardsW = fm.stringWidth("Dev._Cards:_");  //Bug in stringWidth does not give correct size for ' '
-                final int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));  //Bug in stringWidth
 
                 if (player.isRobot())
                 {
@@ -3041,27 +3041,6 @@ public class SOCHandPanel extends Panel implements ActionListener
                     offerCounterHidesFace = false;
                 }
                 offer.doLayout();
-
-                // Below name, still to right of face icon:
-                // Victory point count; Largest Army, Longest Road
-                int y = inset + lineH + 2*space;
-                vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
-                vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
-
-                int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
-
-                // always position these: though they may not be visible
-                larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
-                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
-                    (dim.width - (topStuffW + inset + space)) / 2, lineH);
-
-                // SVP goes below Victory Points count; usually invisible
-                if (svpSq != null)
-                {
-                    y += (lineH + 1);
-                    svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
-                    svpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.WIDTH);
-                }
 
                 // Lower-left: Column of item counts:
                 // Soldiers, Resources, Dev Cards
