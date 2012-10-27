@@ -172,7 +172,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         add(optsBut);
         optsBut.addActionListener(this);
 
-        cardT = new Label("Card: ");
+        cardT = new Label("Dev Card: ");
         add(cardT);
         new AWTToolTip ("? VP  (largest army = 2 VP) ", cardT);
         cardC = new Label("Cost: ");
