@@ -352,7 +352,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     /**
      * Our player number.  Set in {@link #creation(SOCPlayerInterface, SOCPlayer, boolean)}
      * to {@link #player}.{@link SOCPlayer#getPlayerNumber() getPlayerNumber()}
-     * @since 2.0.00
+     * @since 1.1.16
      */
     private int playerNumber = -1;
 
@@ -1670,6 +1670,8 @@ public class SOCHandPanel extends Panel implements ActionListener
      *<P>
      * Should not be called except by client's playerinterface.
      * Call only when if player is client and is current player.
+     *<P>
+     * Before 2.0.00, this was updateAtPlay1().
      */
     void updateAtOurGameState()
     {
@@ -1694,7 +1696,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             rollBut.setEnabled(false);
             doneBut.setEnabled(false);
             playCardBut.setEnabled(false);
-            bankBut.setEnabled(false);  // enabled by updateAtPlay1()
+            bankBut.setEnabled(false);  // enabled by updateAtOurGameState()
         }
 
         bankUndoBut.setEnabled(false);
@@ -2787,8 +2789,8 @@ public class SOCHandPanel extends Panel implements ActionListener
                 final int resCardsH = 5 * (lineH + space);   // Clay,Ore,Sheep,Wheat,Wood
                 final int tradeH = sqpDim.height + space + (2 * (lineH + space));  // sqPanel + 2 rows of buttons
                 final int sectionSpace = (dim.height - (inset + faceW + resCardsH + tradeH + lineH + inset)) / 3;
-                final int tradeY = inset + faceW + sectionSpace;  // 
-                final int devCardsY = tradeY + tradeH + sectionSpace;
+                final int tradeY = inset + faceW + sectionSpace;  // top of trade area
+                final int devCardsY = tradeY + tradeH + sectionSpace;  // top of dev card list
 
                 // Always reposition everything
                 startBut.setBounds(inset + faceW + inset, inset + lineH + space, dim.width - (inset + faceW + inset + inset), lineH);

@@ -947,6 +947,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     
     /**
      * player number of our {@link #player} if in a game, or -1.
+     * @since 1.1.00
      */
     private int playerNumber;
 
@@ -4748,8 +4749,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
         }
         else if ((player != null)
-                 && ((game.getCurrentPlayerNumber() == playerNumber))
-                     || game.isDebugFreePlacement())
+                 && ((game.getCurrentPlayerNumber() == playerNumber)
+                     || game.isDebugFreePlacement()))
         {
             // No hilight. But, they clicked the board, expecting something.
             // It's possible the mode is incorrect.
