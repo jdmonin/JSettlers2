@@ -771,6 +771,12 @@ public class SOCRobotBrain extends Thread
      */
     public void debugPrintBrainStatus()
     {
+        if ((ourPlayerData == null) || (game == null))
+        {
+            System.err.println("Robot internal state: Cannot print: null game or player");
+            return;
+        }
+
         System.err.println("Robot internal state: "
                 + ((client != null) ? client.getNickname() : ourPlayerData.getName())
                 + " in game " + game.getName()
