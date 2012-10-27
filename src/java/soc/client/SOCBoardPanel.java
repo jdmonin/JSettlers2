@@ -3057,10 +3057,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private void drawBoard(Graphics g)
     {
-        if (scaledMissedImage || emptyBoardBuffer == null)
+        Image ebb = emptyBoardBuffer;
+            // Local copy, in case field becomes null in another thread
+            // during drawBoardEmpty or other calls. (this has happened)
+
+        if (scaledMissedImage || ebb == null)
         {
-            Image ebb = emptyBoardBuffer;  // Local copy, in case field becomes null in another thread
-                                           // during drawBoardEmpty. (this has happened)
             if (ebb == null)
             {
                 ebb = createImage(scaledPanelX, scaledPanelY);
@@ -3076,8 +3078,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledMissedImage = false;  // eventually give up scaling it
         }
 
+        // draw from local variable, to avoid occasional NPE
         g.setPaintMode();
-        g.drawImage(emptyBoardBuffer, 0, 0, this);
+        g.drawImage(ebb, 0, 0, this);
 
         int gameState = game.getGameState();
 
