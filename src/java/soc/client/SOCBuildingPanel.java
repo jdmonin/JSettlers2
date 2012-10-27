@@ -198,7 +198,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         add(statsBut);
         statsBut.addActionListener(this);
 
-        cardT = new Label("Card: ");
+        cardT = new Label("Dev Card: ");
         add(cardT);
         new AWTToolTip ("? VP  (largest army = 2 VP) ", cardT);
         cardC = new Label("Cost: ");
@@ -228,7 +228,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         if (ga.hasSeaBoard)
         {
             shipT = new Label("Ship: ");
-            shipT.setAlignment(Label.RIGHT);
+            shipT.setAlignment(Label.LEFT);
             add(shipT);
             new AWTToolTip ("0 VP  (longest route = 2 VP) ", shipT);
             shipC = new Label("Cost: ");
@@ -326,12 +326,13 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (shipBut != null)
         {
-            // Ship buying button is top-right of panel
+            // Ship buying button is top-center of panel
             // (3 squares over from Road)
+            final int shipTW = fm.stringWidth(shipT.getText());
             curX += 3 * (ColorSquare.WIDTH + 3);
-            shipT.setSize(settlementTW, lineH);
+            shipT.setSize(shipTW, lineH);
             shipT.setLocation(curX, curY);
-            curX += settlementTW + margin;
+            curX += shipTW + margin;
             shipBut.setSize(butW, lineH);
             shipBut.setLocation(curX, curY);
             curX += butW + margin;
@@ -423,12 +424,18 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         cardCountLab.setSize(cardCLabW + 2, lineH);
 
         // Game Options button is bottom-right of panel
+        // Game Statistics button is just above it for 4-player games,
+        //     top-right for 6-player games (to make room for Special Building button)
         curX = dim.width - (2 * butW) - margin;
         optsBut.setSize(butW * 2, lineH);
         optsBut.setLocation(curX, curY);
         statsBut.setSize(butW * 2, lineH);
-        statsBut.setLocation(curX, curY - lineH - 5);
+        if (pi.getGame().maxPlayers <= 4)
+            statsBut.setLocation(curX, curY - lineH - 5);
+        else
+            statsBut.setLocation(curX, 1);
 
+        // VP to Win label moves to make room for various buttons. 
         if (vpToWin != null)
         {
             // #VP total to Win
@@ -444,13 +451,26 @@ public class SOCBuildingPanel extends Panel implements ActionListener
                 vpToWinLab.setSize(vpLabW + margin, lineH);
             } else {
                 // upper-right corner of panel
+                //    If 6-player, shift left to make room for Game Stats button
+                //    (which is moved up to make room for Special Building button)
                 curY = 1;
-                curX = dim.width - ColorSquare.WIDTH - margin;
-                vpToWin.setLocation(curX, curY);
-    
                 final int vpLabW = fm.stringWidth(vpToWinLab.getText());
-                curX -= (vpLabW + (2*margin));
-                vpToWinLab.setLocation(curX, curY);
+                if (pi.getGame().maxPlayers <= 4)
+                {
+                    // 4-player: align from right
+                    curX = dim.width - ColorSquare.WIDTH - margin;
+                    vpToWin.setLocation(curX, curY);
+        
+                    curX -= (vpLabW + (2*margin));
+                    vpToWinLab.setLocation(curX, curY);
+                } else {
+                    // 6-player: align from left, from width of piece-buying buttons/colorsquares
+                    curX = buttonMargin + butW + margin + (1 + costW + 3) + (4 * (ColorSquare.WIDTH + 3));
+                    vpToWinLab.setLocation(curX, curY);
+
+                    curX += (vpLabW + (2*margin));
+                    vpToWin.setLocation(curX, curY);
+                }
                 vpToWinLab.setSize(vpLabW + margin, lineH);
             }
         }
