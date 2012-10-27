@@ -37,6 +37,7 @@ import java.util.Vector;
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
+ * The starting land area is {@link #getPotentialsStartingLandArea()}.
  *<P>
  * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
@@ -341,6 +342,9 @@ public class SOCBoardLarge extends SOCBoard
      * legal nodes is also the players' potential settlement nodes.
      * 0 if players can start anywhere and/or
      * {@link #landAreasLegalNodes} == <tt>null</tt>.
+     *<P>
+     * The startingLandArea is sent from the server to client as part
+     * of a <tt>POTENTIALSETTLEMENTS</tt> message.
      */
     private int potentialsStartingLandArea;
 
