@@ -375,6 +375,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean hasSpecialBuiltThisTurn;
 
     /**
+     * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board},
+     * true if the player has been given a Special Victory Point for placing
+     * a settlement in a new land area.
+     * @since 2.0.00
+     */
+    private boolean scenario_svpFromNewLandArea;
+
+    /**
      * this is true if this player is a robot
      */
     private boolean robotFlag;
@@ -474,6 +482,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             currentOffer = null;
         }
+
+        scenario_svpFromNewLandArea = player.scenario_svpFromNewLandArea;
     }
 
     /**
@@ -1665,6 +1675,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * <b>Note:</b> Placing a city automatically removes the settlement there
      *<P>
      * Call this before calling {@link SOCBoard#putPiece(SOCPlayingPiece)}.
+     *<P>
+     * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board}, placing
+     * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
+     * This method will increment {@link #specialVP}
+     * and set the {@link #scenario_svpFromNewLandArea} flag.
      *
      * @param piece         the piece to be put into play; coordinates are not checked for validity
      */
@@ -1709,6 +1724,26 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
                 if (portType != -1)
                     setPortFlag(portType, true);
+
+                /**
+                 * Do we get an SVP for reaching a new land area?
+                 */
+                if ((! scenario_svpFromNewLandArea)
+                    && (board instanceof SOCBoardLarge)
+                    && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
+                {
+                    final int startArea = ((SOCBoardLarge) board).getPotentialsStartingLandArea();
+                    if (startArea != 0)
+                    {
+                        final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(lastSettlementCoord);
+                        if (newSettleArea != startArea)
+                        {
+                            scenario_svpFromNewLandArea = true;
+                            ++specialVP;
+                            // TODO notify server or GUI
+                        }
+                    }
+                }
 
                 break;
 
