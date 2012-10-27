@@ -47,6 +47,9 @@ import soc.message.SOCMessage;
  * You will see calls to {@link SOCGame#isGameOptionDefined(String)},
  * {@link SOCGame#getGameOptionIntValue(Hashtable, String, int, boolean)}, etc.
  *<P>
+ * Most option name keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
+ * The maximum key length is now 8, but older clients will reject keys longer than 3.
+ *<P>
  * Option name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z') and digits ('0' through '9'), in order to normalize
  * handling and network message formats.  This is enforced in constructors via
@@ -717,9 +720,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Create a new game option - common constructor.
      * @param otype   Option type; use caution, as this is unvalidated against
      *                {@link #OTYPE_MIN} or {@link #OTYPE_MAX}.
-     * @param key     Alphanumeric 2-character code for this option;
+     * @param key     Alphanumeric uppercase code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
-     * @param minVers Minimum client version if this option is set (boolean is true), or -1
+     *                Most option keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
+     *                The maximum key length is now 8, but older clients will reject keys longer than 3.
+     * @param minVers Minimum client version for games where this option is set (its boolean field is true), or -1.
+     *                If <tt>key</tt> is longer than 3 characters, <tt>minVers</tt> must be at least 2000.
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
      * @param defaultIntValue Default int value, to use if option is set
@@ -736,7 +742,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
-     *        or if key length is > 3 or not alphanumeric,
+     *        or if key is not alphanumeric or length is > 8,
+     *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
@@ -748,8 +755,14 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     {
 	// validate & set option properties:
 
-        if ((key.length() > 3) && ! key.startsWith("DEBUG"))
-            throw new IllegalArgumentException("Key length: " + key);
+        final int L = key.length(); 
+        if ((L > 3) && ! key.startsWith("DEBUG"))
+        {
+            if (L > 8)
+                throw new IllegalArgumentException("Key length > 8: " + key);
+            else if (minVers < 2000)
+                throw new IllegalArgumentException("Key length > 3 needs minVers 2000 or newer: " + key);
+        }
         if (! (isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
             throw new IllegalArgumentException("Key not alphanumeric: " + key);
         if ((minVers < 1000) && (minVers != -1))
