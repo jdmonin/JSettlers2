@@ -83,7 +83,8 @@ public class SOCHandPanel extends Panel implements ActionListener
         NUMDEVCARDS = -4,
         VICTORYPOINTS = -6,
         LONGESTROAD = -7,
-        LARGESTARMY = -8;
+        LARGESTARMY = -8,
+        SPECIALVICTORYPOINTS = 9;
 
     /** Auto-roll timer countdown, 5 seconds unless changed at program start. */
     public static int AUTOROLL_TIME = 5;
@@ -202,6 +203,19 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected Label pname;
     protected Label vpLab;
     protected ColorSquare vpSq;
+
+    /** Label for Special Victory Points.  Hidden if {@link SOCPlayer#getSpecialVP()} is 0.
+     *  Null unless {@link SOCGame#hasSeaBoard}.
+     *  @since 2.0.00
+     */
+    private Label svpLab;
+
+    /** Special Victory Points, if > 0.  Hidden if 0.
+     *  Null unless {@link SOCGame#hasSeaBoard}.
+     *  @since 2.0.00
+     */
+    private ColorSquare svpSq;
+
     protected Label larmyLab;
     protected Label lroadLab;
     protected ColorSquare claySq;
@@ -515,6 +529,21 @@ public class SOCHandPanel extends Panel implements ActionListener
             vpSq.setTooltipHighWarningLevel("Close to winning", game.vp_winner - 3);
         }
         add(vpSq);
+
+        if (game.hasSeaBoard)
+        {
+            svpLab = new Label("SVP: ");
+            svpLab.setVisible(false);
+            add(svpLab);
+            new AWTToolTip("Special Victory Points for this player", svpLab);
+            svpSq = new ColorSquare(ColorSquare.GREY, 0);
+            svpSq.setVisible(false);
+            svpSq.setTooltipText("Special Victory Points for this player");
+            add(svpSq);
+        } else {
+            svpLab = null;
+            svpSq = null;
+        }
 
         larmyLab = new Label("", Label.CENTER);
         larmyLab.setForeground(new Color(142, 45, 10));
@@ -1234,6 +1263,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         //D.ebugPrintln("NAME = "+player.getName());
         vpLab.setVisible(false);
         vpSq.setVisible(false);
+        if (svpSq != null)
+        {
+            svpLab.setVisible(false);
+            svpSq.setVisible(false);
+        }
         faceImg.setVisible(false);
         pname.setVisible(false);
         roadSq.setVisible(false);
@@ -1402,6 +1436,15 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         resourceLab.setVisible(true);
         resourceSq.setVisible(true);
+
+        if (svpSq != null)
+        {
+            final int newSVP = player.getSpecialVP();
+            svpSq.setIntValue(newSVP);
+            final boolean vis = (newSVP != 0);
+            svpSq.setVisible(vis);
+            svpLab.setVisible(vis);
+        }
 
         playerIsCurrent = (game.getCurrentPlayerNumber() == playerNumber);
 
@@ -2130,6 +2173,12 @@ public class SOCHandPanel extends Panel implements ActionListener
             vpSq.setVisible(! counterIsShowing);
             larmyLab.setVisible(! counterIsShowing);
             lroadLab.setVisible(! counterIsShowing);
+            if (svpSq != null)
+            {
+                final boolean vis = (! counterIsShowing) && (player.getSpecialVP() > 0);
+                svpLab.setVisible(vis);
+                svpSq.setVisible(vis);
+            }
 
             offerCounterHidingFace = counterIsShowing;
             invalidate();
@@ -2428,7 +2477,6 @@ public class SOCHandPanel extends Panel implements ActionListener
         switch (vt)
         {
         case VICTORYPOINTS:
-
             {
                 int newVP = player.getTotalVP();
                 vpSq.setIntValue(newVP);
@@ -2449,6 +2497,17 @@ public class SOCHandPanel extends Panel implements ActionListener
                     doneBut.setEnabled(true);  // In case it's another player's turn
                     doneButIsRestart = true;
                 }
+            }
+            break;
+
+        case SPECIALVICTORYPOINTS:
+            if (svpSq != null)
+            {
+                final int newSVP = player.getSpecialVP();
+                svpSq.setIntValue(newSVP);
+                final boolean vis = (newSVP != 0) && ! offerCounterHidingFace;
+                svpSq.setVisible(vis);
+                svpLab.setVisible(vis);
             }
             break;
 
@@ -2771,6 +2830,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 // Top has name, then a row with VP count, largest army, longest road
                 //   (If game hasn't started yet, "Start Game" button is here instead of that row)
+                //   SVP is under VP count, if applicable
                 // To left below top area: Trade area 
                 //   (Give/Get and SquaresPanel; below that, Offer button and checkboxes, then Clear/Bank buttons)
                 // To left below trade area: Resource counts 
@@ -2798,15 +2858,24 @@ public class SOCHandPanel extends Panel implements ActionListener
                 // To right of face, below player name:
                 // Victory Points count, Largest Army, Longest Road
                 final int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));
-                vpLab.setBounds(inset + faceW + inset, (inset + faceW) - lineH, vpW, lineH);
-                vpSq.setBounds(inset + faceW + inset + vpW + space, (inset + faceW) - lineH, ColorSquare.WIDTH, ColorSquare.WIDTH);
+                int y = inset + lineH + 2*space;
+                vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
+                vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.WIDTH);
 
                 final int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
 
                 // always position these: though they may not be visible
-                larmyLab.setBounds(topStuffW, (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
-                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, (inset + faceW) - lineH,
+                larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
                     (dim.width - (topStuffW + inset + space)) / 2, lineH);
+
+                // SVP goes below Victory Points count; usually invisible
+                if (svpSq != null)
+                {
+                    y += (lineH + 1);
+                    svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
+                    svpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.WIDTH);
+                }
 
                 // Section spacer, then:
                 // Trade area to left; item counts to right (soldiers,roads,settlements,cities,ships)
@@ -2917,7 +2986,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             {
                 /* This is another player's hand */
 
-                // Top has name, VP count, largest army, longest road
+                // Top has name, VP count, largest army, longest road; SVP under VP count if applicable
                 // Trade offers appear in center when a trade is active
                 // Bottom has columns of item counts on left, right:
                 //   Soldiers, Res, Dev Cards to left;
@@ -2975,15 +3044,24 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 // Below name, still to right of face icon:
                 // Victory point count; Largest Army, Longest Road
-                vpLab.setBounds(inset + faceW + inset, (inset + faceW) - lineH, vpW, lineH);
-                vpSq.setBounds(inset + faceW + inset + vpW + space, (inset + faceW) - lineH, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                int y = inset + lineH + 2*space;
+                vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
+                vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
                 int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
 
                 // always position these: though they may not be visible
-                larmyLab.setBounds(topStuffW, (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
-                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space,
-                    (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+                larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
+                    (dim.width - (topStuffW + inset + space)) / 2, lineH);
+
+                // SVP goes below Victory Points count; usually invisible
+                if (svpSq != null)
+                {
+                    y += (lineH + 1);
+                    svpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
+                    svpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.WIDTH);
+                }
 
                 // Lower-left: Column of item counts:
                 // Soldiers, Resources, Dev Cards
