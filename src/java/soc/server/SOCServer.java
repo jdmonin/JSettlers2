@@ -8921,7 +8921,7 @@ public class SOCServer extends Server
         }
         catch (SQLException sqle)
         {
-            System.err.println("Error saving game scores in db.");
+            System.err.println("Error saving game scores in db: " + sqle);
         }
     }
 

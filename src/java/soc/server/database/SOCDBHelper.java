@@ -201,6 +201,11 @@ public class SOCDBHelper
     private static PreparedStatement hostQuery = null;
     private static PreparedStatement lastloginUpdate = null;
     private static PreparedStatement saveGameCommand = null;
+
+    /**
+     * Query all robot parameters for a bot name; {@link #ROBOT_PARAMS_QUERY}.
+     * Used in {@link #retrieveRobotParams(String)}.
+     */
     private static PreparedStatement robotParamsQuery = null;
 
     /**
@@ -221,7 +226,7 @@ public class SOCDBHelper
      *         or if the {@link #PROP_JSETTLERS_DB_DRIVER} property is not mysql, not sqlite, not postgres,
      *         but the {@link #PROP_JSETTLERS_DB_URL} property is not provided.
      * @throws IOException  if <tt>props</tt> includes {@link #PROP_JSETTLERS_DB_SCRIPT_SETUP} but
-     *         the SQL file wasn't found, or if any other IO error occurs running the script
+     *         the SQL file wasn't found, or if any other IO error occurs reading the script
      */
     public static void initialize(final String user, final String pswd, Properties props)
         throws SQLException, IOException
@@ -393,7 +398,7 @@ public class SOCDBHelper
      * @param user  DB username
      * @param pswd  DB user password
      * @param setupScriptPath  Full path or relative path to SQL script to run at connect, or null
-     * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs running the script
+     * @throws IOException  if <tt>setupScriptPath</tt> wasn't found, or if any other IO error occurs reading the script
      * @throws SQLException if any connect error, missing table, or SQL error occurs
      * @return  true on success; will never return false, instead will throw a sqlexception
      */
