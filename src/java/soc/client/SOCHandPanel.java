@@ -241,15 +241,18 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected Label cityLab;
     protected Label roadLab;
     protected Label shipLab;
+    /** Resource card count */
     protected ColorSquare resourceSq;
     protected Label resourceLab;
+    /** Development card count */
     protected ColorSquare developmentSq;
     protected Label developmentLab;
     protected ColorSquare knightsSq;
     protected Label knightsLab;
-    //protected Label cardLab; // no longer used?
+    /** Player's development cards */
     protected List cardList;
     protected Button playCardBut;
+    /** Trade offer resource squares; visible only for client's own player */
     protected SquaresPanel sqPanel;
 
     // Trading interface
@@ -304,7 +307,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected Button bankUndoBut;
 
     /**
-     * Checkboxes to send to the other three players.
+     * Checkboxes to send to the other 3 or 5 players.
      * Enabled/disabled at removeStartBut().
      * Updated at start of each turn in {@link #clearOffer(boolean)}.
      *<P>
@@ -655,7 +658,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         sqPanel = new SquaresPanel(interactive, this);
         add(sqPanel);
-        sqPanel.setVisible(false); // else it's visible in all (dunno why?)
+        sqPanel.setVisible(false); // will become visible only for seated client player
 
         if (playerTradingDisabled)
         {
@@ -1219,6 +1222,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * To prevent inconsistencies, call this <em>before</em> calling
      * {@link SOCGame#removePlayer(String)}.
      * Also called from constructor, before {@link #doLayout()}.
+     * @see #addPlayer(String)
      */
     public void removePlayer()
     {
@@ -1332,7 +1336,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         inPlay = false;
 
-        validate();
+        validate();  // doLayout() will lay things out for empty seat
         if (blankStandIn != null)
             blankStandIn.setVisible(false);
         setVisible(true);
@@ -1357,6 +1361,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      * If game still forming, can lock seats (for fewer players/robots).
      *
      * @param name Name of player to add
+     * @see #removePlayer()
      */
     public void addPlayer(String name)
     {
@@ -1402,7 +1407,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         if (player.getName().equals(client.getNickname()))
         {
-            D.ebugPrintln("SOCHandPanel.addPlayer: This is our hand");
+            // this is our hand
 
             playerIsClient = true;
             playerInterface.setClientHand(this);
@@ -1549,7 +1554,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         inPlay = true;
 
-        validate();
+        validate();  // doLayout() will lay things out for our hand or other player's hand
         if (blankStandIn != null)
             blankStandIn.setVisible(false);
         setVisible(true);
@@ -2724,18 +2729,20 @@ public class SOCHandPanel extends Panel implements ActionListener
 
     /**
      * Custom layout for player hand panel.
+     * Different arrangements for our hand, other player's hand, or empty seat.
+     * See comments for arrangement details.
      */
     @Override
     public void doLayout()
     {
-        Dimension dim = getSize();
-        int inset = 3;  // was 8 before 1.1.08
-        int space = 2;
+        final Dimension dim = getSize();
+        final int inset = 3;  // margin from edge of panel; was 8 before 1.1.08
+        final int space = 2;  // vertical and horizontal spacing between most items
 
-        FontMetrics fm = this.getFontMetrics(this.getFont());
-        int lineH = ColorSquare.HEIGHT;
-        int faceW = 40;
-        int pnameW = dim.width - (inset + faceW + inset + inset);
+        final FontMetrics fm = this.getFontMetrics(this.getFont());
+        final int lineH = ColorSquare.HEIGHT;  // layout's basic line height; most rows have a ColorSquare 
+        final int faceW = 40;  // face icon width
+        final int pnameW = dim.width - (inset + faceW + inset + inset);  // player name width, to right of face
 
         if (!inPlay)
         {
@@ -2747,9 +2754,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
         else
         {
-            int stlmtsW = fm.stringWidth("Stlmts:_");     //Bug in stringWidth does not give correct size for ' '
-            int knightsW = fm.stringWidth("Soldiers:") + 2;  // +2 because Label text does not start at pixel column 0
+            final int stlmtsW = fm.stringWidth("Stlmts:_");  // Bug in stringWidth does not give correct size for ' '
+            final int knightsW = fm.stringWidth("Soldiers:") + 2;  // +2 because Label text is inset from column 0
+            // (for item count labels, either Settlements or Soldiers/Knights is widest text)
 
+            // Top of panel: Face icon, player name to right
             faceImg.setBounds(inset, inset, faceW, faceW);
             pname.setBounds(inset + faceW + inset, inset, pnameW, lineH);
 
@@ -2757,39 +2766,61 @@ public class SOCHandPanel extends Panel implements ActionListener
             if (playerIsClient)
             {
                 /* This is our hand */
-                //sqPanel.doLayout();
 
-                Dimension sqpDim = sqPanel.getSize();
-                int sheepW = fm.stringWidth("Sheep:_");           //Bug in stringWidth does not give correct size for ' '
-                int pcW = fm.stringWidth(CARD.replace(' ','_'));  //Bug in stringWidth
-                int giveW = fm.stringWidth(GIVE.replace(' ','_'));
+                // Top has name, then a row with VP count, largest army, longest road
+                //   (If game hasn't started yet, "Start Game" button is here instead of that row)
+                // To left below top area: Trade area 
+                //   (Give/Get and SquaresPanel; below that, Offer button and checkboxes, then Clear/Bank buttons)
+                // To left below trade area: Resource counts 
+                //   (Clay, Ore, Sheep, Wheat, Wood, Total)
+                // To right below top area: Piece counts 
+                //   (Soldiers, Roads, Settlements, Cities, Ships)
+                // To right below piece counts: Dev card list, Play button
+                // Bottom of panel: 1 button row: Quit to left; Roll, Restart to right
+
+                final Dimension sqpDim = sqPanel.getSize();  // Trading SquaresPanel (doesn't include Give/Get labels)
+                final int sheepW = fm.stringWidth("Sheep:_");  // Bug in stringWidth does not give correct size for ' '
+                final int pcW = fm.stringWidth(CARD.replace(' ','_'));  // Bug in stringWidth
+                final int giveW = fm.stringWidth(GIVE.replace(' ','_'));  // Width of trading Give/Get labels
                 // int clearW = fm.stringWidth(CLEAR.replace(' ','_'));
                 // int bankW = fm.stringWidth(BANK.replace(' ','_'));
-                int cardsH = 5 * (lineH + space);
-                int tradeH = sqpDim.height + space + (2 * (lineH + space));
-                int sectionSpace = (dim.height - (inset + faceW + cardsH + tradeH + lineH + inset)) / 3;
-                int tradeY = inset + faceW + sectionSpace;
-                int cardsY = tradeY + tradeH + sectionSpace;
+                final int resCardsH = 5 * (lineH + space);   // Clay,Ore,Sheep,Wheat,Wood
+                final int tradeH = sqpDim.height + space + (2 * (lineH + space));  // sqPanel + 2 rows of buttons
+                final int sectionSpace = (dim.height - (inset + faceW + resCardsH + tradeH + lineH + inset)) / 3;
+                final int tradeY = inset + faceW + sectionSpace;  // 
+                final int devCardsY = tradeY + tradeH + sectionSpace;
 
                 // Always reposition everything
                 startBut.setBounds(inset + faceW + inset, inset + lineH + space, dim.width - (inset + faceW + inset + inset), lineH);
 
-                int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));  //Bug in stringWidth
+                // To right of face, below player name:
+                // Victory Points count, Largest Army, Longest Road
+                final int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));
                 vpLab.setBounds(inset + faceW + inset, (inset + faceW) - lineH, vpW, lineH);
                 vpSq.setBounds(inset + faceW + inset + vpW + space, (inset + faceW) - lineH, ColorSquare.WIDTH, ColorSquare.WIDTH);
 
-                int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
+                final int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
 
                 // always position these: though they may not be visible
                 larmyLab.setBounds(topStuffW, (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
-                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, (inset + faceW) - lineH,
+                    (dim.width - (topStuffW + inset + space)) / 2, lineH);
 
+                // Section spacer, then:
+                // Trade area to left; item counts to right (soldiers,roads,settlements,cities,ships)
+
+                // Trading: Give,Get labels to left of SquaresPanel
                 giveLab.setBounds(inset, tradeY, giveW, lineH);
                 getLab.setBounds(inset, tradeY + ColorSquareLarger.HEIGHT_L, giveW, lineH);
                 sqPanel.setLocation(inset + giveW + space, tradeY);
 
-                int tbW = ((giveW + sqpDim.width) / 2);
-                int tbX = inset;
+                // Button rows Below SquaresPanel:
+                // Offer button, playerSend checkboxes (3 or 5)
+                // Clear, Bank/Port
+                // Undo button (below Bank/Port, leaving room on left for resource card counts)
+
+                final int tbW = ((giveW + sqpDim.width) / 2);
+                final int tbX = inset;
                 int tbY = tradeY + sqpDim.height + space;
                 if (offerBut != null)
                 {
@@ -2804,6 +2835,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 if (! playerTradingDisabled)
                 {
+                    // Checkboxes to select players to send trade offers
                     if (game.maxPlayers == 4)
                     {
                         playerSend[0].setBounds(tbX + tbW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
@@ -2817,7 +2849,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                     }
                 }
 
-                // Various counts, to the right of give/get/offer/trade area
+                // Various item counts, to the right of give/get/offer/trade area
                 knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
                 knightsSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 roadLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + lineH + space, knightsW, lineH);
@@ -2858,12 +2890,16 @@ public class SOCHandPanel extends Panel implements ActionListener
                 resourceLab.setBounds(inset, tbY, sheepW, lineH);
                 resourceSq.setBounds(inset + sheepW + space, tbY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
-                int clW = dim.width - (inset + sheepW + space + ColorSquare.WIDTH + (4 * space) + inset);
-                int clX = inset + sheepW + space + ColorSquare.WIDTH + (4 * space);
-                cardList.setBounds(clX, cardsY, clW, (4 * (lineH + space)) - 2);
-                playCardBut.setBounds(((clW - pcW) / 2) + clX, cardsY + (4 * (lineH + space)), pcW, lineH);
+                // To the right of resource counts:
+                // Development Card list, Play button below
+                final int clW = dim.width - (inset + sheepW + space + ColorSquare.WIDTH + (4 * space) + inset);
+                final int clX = inset + sheepW + space + ColorSquare.WIDTH + (4 * space);
+                cardList.setBounds(clX, devCardsY, clW, (4 * (lineH + space)) - 2);
+                playCardBut.setBounds(((clW - pcW) / 2) + clX, devCardsY + (4 * (lineH + space)), pcW, lineH);
 
-                int bbW = 50;
+                // Bottom of panel:
+                // 1 button row: Quit to left; Roll, Restart to right
+                final int bbW = 50;
                 tbY = dim.height - lineH - inset;
                 // Label lines up over Roll button
                 rollPromptCountdownLab.setBounds(dim.width - (bbW + space + bbW + inset), tbY - lineH, dim.width - 2*inset, lineH);
@@ -2878,20 +2914,32 @@ public class SOCHandPanel extends Panel implements ActionListener
             else
             {
                 /* This is another player's hand */
-                int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
-                int dcardsW = fm.stringWidth("Dev._Cards:_");                //Bug in stringWidth does not give correct size for ' '
-                int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));  //Bug in stringWidth
+
+                // Top has name, VP count, largest army, longest road
+                // Trade offers appear in center when a trade is active
+                // Bottom has columns of item counts on left, right:
+                //   Soldiers, Res, Dev Cards to left;
+                //   Ships, Roads, Settlements, Cities to right
+                //   Robot lock button (during play) in bottom center
+
+                final int balloonH = dim.height - (inset + (4 * (lineH + space)) + inset);  // offer-message panel
+                final int dcardsW = fm.stringWidth("Dev._Cards:_");  //Bug in stringWidth does not give correct size for ' '
+                final int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));  //Bug in stringWidth
 
                 if (player.isRobot())
                 {
                     if (game.getPlayer(client.getNickname()) == null)
                     {
+                        // If client not seated at this game, show "Take Over" button
                         takeOverBut.setBounds(10, (inset + balloonH) - 10, dim.width - 20, 20);
                     }
                     else if (sittingRobotLockBut.isVisible())
                     {
                         //seatLockBut.setBounds(10, inset+balloonH-10, dim.width-20, 20);
-                        sittingRobotLockBut.setBounds(inset + dcardsW + space + ColorSquare.WIDTH + space, inset + balloonH + (lineH + space) + (lineH / 2), (dim.width - (2 * (inset + ColorSquare.WIDTH + (2 * space))) - stlmtsW - dcardsW), 2 * (lineH + space));
+                        // Lock button during play: Bottom of panel, between the 2 columns of item counts
+                        sittingRobotLockBut.setBounds
+                            (inset + dcardsW + space + ColorSquare.WIDTH + space, inset + balloonH + (lineH + space) + (lineH / 2),
+                             (dim.width - (2 * (inset + ColorSquare.WIDTH + (2 * space))) - stlmtsW - dcardsW), 2 * (lineH + space));
                     }
                 }
 
@@ -2923,6 +2971,8 @@ public class SOCHandPanel extends Panel implements ActionListener
                 }
                 offer.doLayout();
 
+                // Below name, still to right of face icon:
+                // Victory point count; Largest Army, Longest Road
                 vpLab.setBounds(inset + faceW + inset, (inset + faceW) - lineH, vpW, lineH);
                 vpSq.setBounds(inset + faceW + inset + vpW + space, (inset + faceW) - lineH, ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
@@ -2930,8 +2980,11 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 // always position these: though they may not be visible
                 larmyLab.setBounds(topStuffW, (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
-                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space,
+                    (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
 
+                // Lower-left: Column of item counts:
+                // Soldiers, Resources, Dev Cards
                 resourceLab.setBounds(inset, inset + balloonH + (2 * (lineH + space)), dcardsW, lineH);
                 resourceSq.setBounds(inset + dcardsW + space, inset + balloonH + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 developmentLab.setBounds(inset, inset + balloonH + (3 * (lineH + space)), dcardsW, lineH);
@@ -2939,6 +2992,8 @@ public class SOCHandPanel extends Panel implements ActionListener
                 knightsLab.setBounds(inset, inset + balloonH + (lineH + space), dcardsW, lineH);
                 knightsSq.setBounds(inset + dcardsW + space, inset + balloonH + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
+                // Lower-right: Column of piece counts:
+                // Ships, Roads, Settlements, Cities
                 if (shipSq != null)
                 {
                     shipLab.setBounds(dim.width - inset - stlmtsW - ColorSquare.WIDTH - space, inset + balloonH, stlmtsW, lineH);
