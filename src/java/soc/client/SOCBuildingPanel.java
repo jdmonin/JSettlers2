@@ -291,6 +291,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     public void doLayout()
     {
         final Dimension dim = getSize();
+        final int maxPlayers = pi.getGame().maxPlayers;
         int curY = 1;
         int curX;
         FontMetrics fm = this.getFontMetrics(this.getFont());
@@ -369,7 +370,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         settlementSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
         settlementSheep.setLocation(curX, curY);
 
-        if (pi.getGame().maxPlayers > 4)
+        if (maxPlayers > 4)
         {
             // Special Building Phase button for 6-player game
             curX += (ColorSquare.WIDTH + 3);
@@ -426,14 +427,19 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         // Game Options button is bottom-right of panel
         // Game Statistics button is just above it for 4-player games,
         //     top-right for 6-player games (to make room for Special Building button)
+        // On 4-player classic board, both are moved up to make room for the dev card count.
+        if ((maxPlayers <= 4) && ! pi.getGame().hasSeaBoard)
+            curY -= (lineH + 5);
         curX = dim.width - (2 * butW) - margin;
         optsBut.setSize(butW * 2, lineH);
         optsBut.setLocation(curX, curY);
         statsBut.setSize(butW * 2, lineH);
-        if (pi.getGame().maxPlayers <= 4)
+        if (maxPlayers <= 4)
             statsBut.setLocation(curX, curY - lineH - 5);
         else
             statsBut.setLocation(curX, 1);
+        if ((maxPlayers <= 4) && ! pi.getGame().hasSeaBoard)
+            curY += (lineH + 5);
 
         // VP to Win label moves to make room for various buttons. 
         if (vpToWin != null)
@@ -455,7 +461,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
                 //    (which is moved up to make room for Special Building button)
                 curY = 1;
                 final int vpLabW = fm.stringWidth(vpToWinLab.getText());
-                if (pi.getGame().maxPlayers <= 4)
+                if (maxPlayers <= 4)
                 {
                     // 4-player: align from right
                     curX = dim.width - ColorSquare.WIDTH - margin;
