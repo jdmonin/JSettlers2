@@ -346,6 +346,13 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected SOCGame game;
     protected SOCPlayer player;
 
+    /**
+     * Our player number.  Set in {@link #creation(SOCPlayerInterface, SOCPlayer, boolean)}
+     * to {@link #player}.{@link SOCPlayer#getPlayerNumber() getPlayerNumber()}
+     * @since 1.1.16
+     */
+    private int playerNumber = -1;
+
     /** Does this panel represent our client's own hand?  If true, implies {@link #interactive}. */
     protected boolean playerIsClient;
 
@@ -464,13 +471,14 @@ public class SOCHandPanel extends Panel implements ActionListener
         client = pi.getClient();
         game = pi.getGame();
         player = pl;
+        playerNumber = player.getPlayerNumber();
         playerIsCurrent = false;
         playerIsClient = false;  // confirmed by call to removePlayer() at end of method.
         interactive = in;
 
         // Note no AWT layout is used - custom layout, see doLayout().
 
-        final Color pcolor = playerInterface.getPlayerColor(player.getPlayerNumber());
+        final Color pcolor = playerInterface.getPlayerColor(playerNumber);
         setBackground(pcolor);
         setForeground(COLOR_FOREGROUND);
         setFont(new Font("Helvetica", Font.PLAIN, 10));
@@ -479,7 +487,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         blankStandIn.setVisible(false);
         // playerinterface.initInterfaceElements will add blankStandIn to its layout, and set its size/position.
 
-        faceImg = new SOCFaceButton(playerInterface, player.getPlayerNumber());
+        faceImg = new SOCFaceButton(playerInterface, playerNumber);
         add(faceImg);
 
         pname = new Label();
@@ -677,7 +685,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             int cnt = 0;
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
-                if (pn != player.getPlayerNumber())
+                if (pn != playerNumber)
                 {
                     Color color = playerInterface.getPlayerColor(pn);
                     playerSendMap[cnt] = pn;
@@ -712,7 +720,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         quitBut.setEnabled(interactive);
         add(quitBut);
 
-        offer = new TradeOfferPanel(this, player.getPlayerNumber());
+        offer = new TradeOfferPanel(this, playerNumber);
         offer.setVisible(false);
         offerIsResetMessage = false;        
         add(offer);
@@ -766,19 +774,19 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         if (target == LOCKSEAT)
         {
-            client.lockSeat(game, player.getPlayerNumber(), true);
+            client.lockSeat(game, playerNumber, true);
         }
         else if (target == UNLOCKSEAT)
         {
-            client.lockSeat(game, player.getPlayerNumber(), false);
+            client.lockSeat(game, playerNumber, false);
         }
         else if (target == TAKEOVER)
         {
-            client.sitDown(game, player.getPlayerNumber());
+            client.sitDown(game, playerNumber);
         }
         else if (target == SIT)
         {
-            client.sitDown(game, player.getPlayerNumber());
+            client.sitDown(game, playerNumber);
         }
         else if (target == START)
         {
@@ -884,7 +892,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                     boolean[] to = new boolean[game.maxPlayers];
                     boolean toAny = false;
 
-                    if (game.getCurrentPlayerNumber() == player.getPlayerNumber())
+                    if (game.getCurrentPlayerNumber() == playerNumber)
                     {
                         for (int i = 0; i < (game.maxPlayers - 1); i++)
                         {
@@ -913,7 +921,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                     {
                         SOCTradeOffer tradeOffer =
                             new SOCTradeOffer(game.getName(),
-                                              player.getPlayerNumber(),
+                                              playerNumber,
                                               to, giveSet, getSet);
                         client.offerTrade(game, tradeOffer);
                         disableBankUndoButton();
@@ -1042,14 +1050,14 @@ public class SOCHandPanel extends Panel implements ActionListener
         int cardTypeToPlay = -1;
         if (item.equals("Soldier"))
         {
-            if (game.canPlayKnight(player.getPlayerNumber()))
+            if (game.canPlayKnight(playerNumber))
             {
                 cardTypeToPlay = SOCDevCardConstants.KNIGHT;
             }
         }
         else if (item.equals("Road Building"))
         {
-            if (game.canPlayRoadBuilding(player.getPlayerNumber()))
+            if (game.canPlayRoadBuilding(playerNumber))
             {
                 cardTypeToPlay = SOCDevCardConstants.ROADS;
             }
@@ -1061,14 +1069,14 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
         else if (item.equals("Year of Plenty"))
         {
-            if (game.canPlayDiscovery(player.getPlayerNumber()))
+            if (game.canPlayDiscovery(playerNumber))
             {
                 cardTypeToPlay = SOCDevCardConstants.DISC;
             }
         }
         else if (item.equals("Monopoly"))
         {
-            if (game.canPlayMonopoly(player.getPlayerNumber()))
+            if (game.canPlayMonopoly(playerNumber))
             {
                 cardTypeToPlay = SOCDevCardConstants.MONO;
             }
@@ -1113,7 +1121,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         D.ebugPrintln("seatLockBut = " + sittingRobotLockBut);
 
             final String tipText;
-            if (game.isSeatLocked(player.getPlayerNumber()))
+            if (game.isSeatLocked(playerNumber))
             {
                 sittingRobotLockBut.setLabel(UNLOCKSEAT);
                 tipText = ROBOTLOCKBUTTIP_U;
@@ -1367,7 +1375,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         resourceLab.setVisible(true);
         resourceSq.setVisible(true);
 
-        playerIsCurrent = (game.getCurrentPlayerNumber() == player.getPlayerNumber());
+        playerIsCurrent = (game.getCurrentPlayerNumber() == playerNumber);
 
         if (player.getName().equals(client.getNickname()))
         {
@@ -1462,11 +1470,10 @@ public class SOCHandPanel extends Panel implements ActionListener
             // Remove all of the sit and take over buttons.
             // If game still forming, can lock seats (for fewer players/robots).
             boolean gameForming = (game.getGameState() == SOCGame.NEW);
-            int pnum = player.getPlayerNumber();
             for (int i = 0; i < game.maxPlayers; i++)
             {
                 playerInterface.getPlayerHandPanel(i).removeTakeOverBut();
-                if (gameForming && (i != pnum) && game.isSeatVacant(i))
+                if (gameForming && (i != playerNumber) && game.isSeatVacant(i))
                     playerInterface.getPlayerHandPanel(i).renameSitButLock();
                 else
                     playerInterface.getPlayerHandPanel(i).removeSitBut();
@@ -1479,9 +1486,9 @@ public class SOCHandPanel extends Panel implements ActionListener
             /* This is another player's hand */
 
             D.ebugPrintln("**** SOCHandPanel.addPlayer(name) ****");
-            D.ebugPrintln("player.getPlayerNumber() = " + player.getPlayerNumber());
+            D.ebugPrintln("player.getPlayerNumber() = " + playerNumber);
             D.ebugPrintln("player.isRobot() = " + player.isRobot());
-            D.ebugPrintln("game.isSeatLocked(" + player.getPlayerNumber() + ") = " + game.isSeatLocked(player.getPlayerNumber()));
+            D.ebugPrintln("game.isSeatLocked(" + playerNumber + ") = " + game.isSeatLocked(playerNumber));
             D.ebugPrintln("game.getPlayer(client.getNickname()) = " + game.getPlayer(client.getNickname()));
 
             knightsSq.setTooltipText("Size of this opponent's army");
@@ -1491,7 +1498,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             // because it may not have been set at this point.
             // Use game.getPlayer(client.getNickname()) instead:
 
-            if (player.isRobot() && (game.getPlayer(client.getNickname()) == null) && (!game.isSeatLocked(player.getPlayerNumber())))
+            if (player.isRobot() && (game.getPlayer(client.getNickname()) == null) && (!game.isSeatLocked(playerNumber)))
             {
                 addTakeOverBut();
             }
@@ -1539,7 +1546,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         Timer piTimer = playerInterface.getEventTimer();
         if (autoRollTimerTask != null)
             autoRollTimerTask.cancel();  // cancel any previous
-        if (! game.canRollDice(player.getPlayerNumber()))
+        if (! game.canRollDice(playerNumber))
             return;
 
         // Set up to run once per second, it will cancel
@@ -1558,8 +1565,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public void updateAtTurn()
     {
-        final int pn = player.getPlayerNumber();
-        playerIsCurrent = (game.getCurrentPlayerNumber() == pn);
+        playerIsCurrent = (game.getCurrentPlayerNumber() == playerNumber);
         if (playerIsCurrent)
         {
             if (pnameActiveBG == null)
@@ -1574,7 +1580,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             {
                 showAsCurrent = playerIsCurrent;
             } else {
-                showAsCurrent = (pn == playerInterface.getBoardPanel().getPlayerNumber());
+                showAsCurrent = (playerNumber == playerInterface.getBoardPanel().getPlayerNumber());
                 if (pnameActiveBG == null)
                     pnameCalcColors();
             }
@@ -1867,7 +1873,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         if (game.getGameState() != SOCGame.NEW)
             return;  // TODO consider IllegalStateException
         final String buttonText, ttipText;
-        if (game.isSeatLocked(player.getPlayerNumber()))
+        if (game.isSeatLocked(playerNumber))
         {
             buttonText = UNLOCKSEAT;  // actionPerformed target becomes UNLOCKSEAT
             ttipText = UNLOCKSEATTIP;
@@ -2063,7 +2069,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     
                 if (clientAlreadySat)
                     sittingRobotLockBut.setVisible(hideTradeMsg);
-                else if (! game.isSeatLocked(player.getPlayerNumber()))
+                else if (! game.isSeatLocked(playerNumber))
                     takeOverBut.setVisible(hideTradeMsg);
             }
 
@@ -2118,7 +2124,7 @@ public class SOCHandPanel extends Panel implements ActionListener
             if (updateSendCheckboxes && ! playerTradingDisabled)
             {
                 final int pcurr = game.getCurrentPlayerNumber();  // current player number
-                boolean pIsCurr = (pcurr == player.getPlayerNumber());  // are we current? 
+                final boolean pIsCurr = (pcurr == playerNumber);  // are we current?
                 for (int i = 0; i < game.maxPlayers - 1; i++)
                 {
                     boolean canSend, wantSend;
@@ -2244,8 +2250,8 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public void updateTakeOverButton()
     {
-        if ((!game.isSeatLocked(player.getPlayerNumber())) &&
-            (game.getCurrentPlayerNumber() != player.getPlayerNumber()))
+        if (( ! game.isSeatLocked(playerNumber)) &&
+            (game.getCurrentPlayerNumber() != playerNumber))
         {
             takeOverBut.setLabel(TAKEOVER);
         }
@@ -2276,7 +2282,7 @@ public class SOCHandPanel extends Panel implements ActionListener
      */
     public void updateSeatLockButton()
     {
-        boolean isLocked = game.isSeatLocked(player.getPlayerNumber());
+        final boolean isLocked = game.isSeatLocked(playerNumber);
         final String tipText;
         if (isLocked)
         {
@@ -3212,7 +3218,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             final SOCPlayer p = hpan.player;
             boolean canTrade = (hpan.getGame().getGameState() == SOCGame.PLAY1)
-                && (hpan.getGame().getCurrentPlayerNumber() == p.getPlayerNumber())
+                && (hpan.getGame().getCurrentPlayerNumber() == hpan.playerNumber)
                 && (costFrom <= p.getResources().getAmount(resTypeFrom));
             if (itemsOnly)
             {
