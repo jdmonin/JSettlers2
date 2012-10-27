@@ -185,6 +185,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int buildingVP;
 
     /**
+     * The number of Special Victory Points (SVPs), which are awarded in certain game scenarios on the large sea board.
+     * @since 2.0.00
+     */
+    private int specialVP;
+
+    /**
      * the final total score (pushed from server at end of game),
      * or 0 if no score has been forced.
      * 
@@ -421,6 +427,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         devCards = new SOCDevCardSet(player.devCards);
         numKnights = player.numKnights;
         buildingVP = player.buildingVP;
+        specialVP = player.specialVP;
         finalTotalVP = 0;
         playedDevCard = player.playedDevCard;
         needToDiscard = player.needToDiscard;
@@ -510,6 +517,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         devCards = new SOCDevCardSet();
         numKnights = 0;
         buildingVP = 0;
+        specialVP = 0;
         playedDevCard = false;
         needToDiscard = false;
         needToPickGoldHexResources = 0;
@@ -1519,11 +1527,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the number of Special Victory Points (SVPs) awarded to this player.
+     * SVPs are part of some game scenarios on the large sea board.
+     * @return the number of SVPs, or 0
+     * @since 2.0.00
+     */
+    public int getSpecialVP()
+    {
+        return specialVP;
+    }
+
+    /**
      * This player's number of publicly known victory points.
      * Public victory points exclude VP development cards, except at
      * end of game, when they've been announced by server.
+     * Special Victory Points (SVPs) are included, if the game scenario awards them.
      *  
      * @return the number of publicly known victory points
+     * @see #getTotalVP()
+     * @see #getSpecialVP()
      * @see #forceFinalVP(int)
      */
     public int getPublicVP()
@@ -1531,7 +1553,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (finalTotalVP > 0)
             return finalTotalVP;
         
-        int vp = buildingVP;
+        int vp = buildingVP + specialVP;
 
         /**
          * if we have longest road, then add 2 VP
@@ -1554,6 +1576,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return the actual number of victory points (including VP cards)
+     * @see #getPublicVP()
      * @see #forceFinalVP(int)
      */
     public int getTotalVP()
