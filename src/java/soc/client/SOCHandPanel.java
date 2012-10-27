@@ -2735,14 +2735,15 @@ public class SOCHandPanel extends Panel implements ActionListener
                 // To right of face, below player name:
                 // Victory Points count, Largest Army, Longest Road
                 final int vpW = fm.stringWidth(vpLab.getText().replace(' ','_'));
-                vpLab.setBounds(inset + faceW + inset, (inset + faceW) - lineH, vpW, lineH);
-                vpSq.setBounds(inset + faceW + inset + vpW + space, (inset + faceW) - lineH, ColorSquare.WIDTH, ColorSquare.WIDTH);
+                int y = (inset + faceW) - lineH;
+                vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
+                vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.WIDTH);
 
                 final int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
 
                 // always position these: though they may not be visible
-                larmyLab.setBounds(topStuffW, (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
-                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, (inset + faceW) - lineH,
+                larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
                     (dim.width - (topStuffW + inset + space)) / 2, lineH);
 
                 // Section spacer, then:
@@ -2907,15 +2908,16 @@ public class SOCHandPanel extends Panel implements ActionListener
 
                 // Below name, still to right of face icon:
                 // Victory point count; Largest Army, Longest Road
-                vpLab.setBounds(inset + faceW + inset, (inset + faceW) - lineH, vpW, lineH);
-                vpSq.setBounds(inset + faceW + inset + vpW + space, (inset + faceW) - lineH, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                int y = (inset + faceW) - lineH;
+                vpLab.setBounds(inset + faceW + inset, y, vpW, lineH);
+                vpSq.setBounds(inset + faceW + inset + vpW + space, y, ColorSquare.WIDTH, ColorSquare.HEIGHT);
 
                 int topStuffW = inset + faceW + inset + vpW + space + ColorSquare.WIDTH + space;
 
                 // always position these: though they may not be visible
-                larmyLab.setBounds(topStuffW, (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
-                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space,
-                    (inset + faceW) - lineH, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+                larmyLab.setBounds(topStuffW, y, (dim.width - (topStuffW + inset + space)) / 2, lineH);
+                lroadLab.setBounds(topStuffW + ((dim.width - (topStuffW + inset + space)) / 2) + space, y,
+                    (dim.width - (topStuffW + inset + space)) / 2, lineH);
 
                 // Lower-left: Column of item counts:
                 // Soldiers, Resources, Dev Cards
