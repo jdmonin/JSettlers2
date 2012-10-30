@@ -1707,46 +1707,48 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              * placing a settlement
              */
             case SOCPlayingPiece.SETTLEMENT:
-                numPieces[SOCPlayingPiece.SETTLEMENT]--;
-                putPiece_settlement_checkTradeRoutes((SOCSettlement)piece, board);
-                settlements.addElement((SOCSettlement)piece);
-                lastSettlementCoord = piece.getCoordinates();
-                buildingVP++;
-
-                /**
-                 * update what numbers we're touching
-                 */
-                ourNumbers.updateNumbers(piece, board);
-
-                /**
-                 * update our port flags
-                 */
-                int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
-                if (portType != -1)
-                    setPortFlag(portType, true);
-
-                /**
-                 * Do we get an SVP for reaching a new land area?
-                 */
-                if ((! scenario_svpFromNewLandArea)
-                    && (board instanceof SOCBoardLarge)
-                    && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
                 {
-                    final int startArea = ((SOCBoardLarge) board).getPotentialsStartingLandArea();
-                    if (startArea != 0)
+                    numPieces[SOCPlayingPiece.SETTLEMENT]--;
+                    putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
+                    settlements.addElement((SOCSettlement) piece);
+                    lastSettlementCoord = piece.getCoordinates();
+                    buildingVP++;
+    
+                    /**
+                     * update what numbers we're touching
+                     */
+                    ourNumbers.updateNumbers(piece, board);
+    
+                    /**
+                     * update our port flags
+                     */
+                    int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
+                    if (portType != -1)
+                        setPortFlag(portType, true);
+    
+                    /**
+                     * Do we get an SVP for reaching a new land area?
+                     */
+                    if ((! scenario_svpFromNewLandArea)
+                        && (board instanceof SOCBoardLarge)
+                        && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
                     {
-                        final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(lastSettlementCoord);
-                        if ((newSettleArea != 0) && (newSettleArea != startArea))
+                        final int startArea = ((SOCBoardLarge) board).getPotentialsStartingLandArea();
+                        if (startArea != 0)
                         {
-                            scenario_svpFromNewLandArea = true;
-                            ++specialVP;
-
-                            if (game.scenarioEventListener != null)
+                            final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(lastSettlementCoord);
+                            if ((newSettleArea != 0) && (newSettleArea != startArea))
                             {
-                                // Notify (server or GUI)
-                                game.scenarioEventListener.playerEvent
-                                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
-                            }                            
+                                scenario_svpFromNewLandArea = true;
+                                ++specialVP;
+    
+                                if (game.scenarioEventListener != null)
+                                {
+                                    // Notify (server or GUI)
+                                    game.scenarioEventListener.playerEvent
+                                        (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
+                                }                            
+                            }
                         }
                     }
                 }
@@ -1762,7 +1764,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                  * place the city
                  */
                 numPieces[SOCPlayingPiece.CITY]--;
-                cities.addElement((SOCCity)piece);
+                cities.addElement((SOCCity) piece);
                 buildingVP += 2;
 
                 /**
