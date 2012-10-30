@@ -1683,7 +1683,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param piece         the piece to be put into play; coordinates are not checked for validity
      */
-    public void putPiece(SOCPlayingPiece piece)
+    public void putPiece(final SOCPlayingPiece piece)
     {
         /**
          * only do this stuff if it's our piece
@@ -1692,7 +1692,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             pieces.addElement(piece);
 
-            SOCBoard board = game.getBoard();
+            final SOCBoard board = game.getBoard();
             switch (piece.getType())
             {
             /**
@@ -1708,10 +1708,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.SETTLEMENT:
                 {
+                    final int settlementNode = piece.getCoordinates();
                     numPieces[SOCPlayingPiece.SETTLEMENT]--;
                     putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
                     settlements.addElement((SOCSettlement) piece);
-                    lastSettlementCoord = piece.getCoordinates();
+                    lastSettlementCoord = settlementNode;
                     buildingVP++;
     
                     /**
@@ -1722,7 +1723,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     /**
                      * update our port flags
                      */
-                    int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
+                    final int portType = board.getPortTypeFromNodeCoord(settlementNode);
                     if (portType != -1)
                         setPortFlag(portType, true);
     
@@ -1736,7 +1737,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         final int startArea = ((SOCBoardLarge) board).getPotentialsStartingLandArea();
                         if (startArea != 0)
                         {
-                            final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(lastSettlementCoord);
+                            final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(settlementNode);
                             if ((newSettleArea != 0) && (newSettleArea != startArea))
                             {
                                 scenario_svpFromNewLandArea = true;
