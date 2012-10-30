@@ -98,6 +98,7 @@ import java.util.Vector;
  * starting with PROP_JSETTLERS_, and listed in {@link #PROPS_LIST}.
  */
 public class SOCServer extends Server
+    implements SOCScenarioEventListener
 {
     /**
      * Default tcp port number 8880 to listen, and for client to connect to remote server.
@@ -1056,11 +1057,12 @@ public class SOCServer extends Server
             try
             {
                 // Create new game, expiring in SOCGameListAtServer.GAME_EXPIRE_MINUTES .
-                gameList.createGame(gaName, (String) c.getData(), gaOpts);
+                SOCGame newGame = gameList.createGame(gaName, (String) c.getData(), gaOpts);
                 if ((strSocketName != null) && (strSocketName.equals(PRACTICE_STRINGPORT)))
                 {
-                    gameList.getGameData(gaName).isPractice = true;  // flag if practice game (set since 1.1.09)
+                    newGame.isPractice = true;  // flag if practice game (set since 1.1.09)
                 }
+                newGame.setScenarioEventListener(this);  // for playerEvent, gameEvent callbacks (since 2.0.00)
 
                 // Add this (creating) player to the game
                 gameList.addMember(c, gaName);
@@ -1707,6 +1709,29 @@ public class SOCServer extends Server
         }
 
         return gameStillActive;
+    }
+
+    /**
+     * Listener callback for per-player scenario events on the large sea board.
+     * For example, there might be an SVP awarded for settlements.
+     *<P>
+     * <em>Threads:</em> The game's treater thread handles incoming client messages and calls
+     * game methods that change state. Those same game methods will trigger the scenario events;
+     * so, the treater thread will also run this <tt>playerEvent</tt> callback.
+     *
+     * @since 2.0.00
+     */
+    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt)
+    {
+        switch (evt)
+        {
+        case SVP_SETTLED_ANY_NEW_LANDAREA:
+            {
+                messageToGame
+                    (ga.getName(), pl.getName() + " gets a Special Victory Point for growing past the main island.");
+                // TODO adjust wording
+            }
+        }
     }
 
     /**

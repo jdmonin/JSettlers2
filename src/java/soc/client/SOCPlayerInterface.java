@@ -1874,8 +1874,11 @@ public class SOCPlayerInterface extends Frame
             return;
 
         if (pl.getSpecialVP() != 0)
+        {
             // assumes will never be reduced to 0 again
             mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
+            mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
+        }
     }
 
     /**
