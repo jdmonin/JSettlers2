@@ -29,6 +29,8 @@ import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
+import soc.game.SOCScenarioEventListener;
+import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.message.SOCPlayerElement;
@@ -80,7 +82,8 @@ import java.io.StringWriter;
  *
  * @author Robert S. Thomas
  */
-public class SOCPlayerInterface extends Frame implements ActionListener, MouseListener
+public class SOCPlayerInterface extends Frame
+    implements ActionListener, MouseListener, SOCScenarioEventListener
 {
     /**
      * System property os.name; For use by {@link #isPlatformWindows}.
@@ -427,6 +430,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
         client = cl;
         game = ga;
+        game.setScenarioEventListener(this);
         gameStats = new SOCGameStatistics(game);
         gameIsStarting = false;
         clientHand = null;
@@ -1803,13 +1807,6 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
                 mesHp.updateValue(SOCHandPanel.NUMRESOURCES);
             }
 
-            /**
-             * on the large sea board, there might be an SVP awarded for settlements.
-             */
-            if (game.hasSeaBoard && (pl.getSpecialVP() != 0))
-                // TODO temporary for testing; event-based is better
-                mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
-
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
                 || debugShowPotentials[6])
                 boardPanel.flushBoardLayoutAndRepaint();
@@ -1863,6 +1860,22 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         {
             updateLongestLargest(true, oldLongestRoadPlayer, newLongestRoadPlayer);
         }
+    }
+
+    /**
+     * Listener callback for per-player scenario events on the large sea board.
+     * For example, there might be an SVP awarded for settlements. 
+     * @since 2.0.00
+     */
+    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt)
+    {
+        final SOCHandPanel mesHp = getPlayerHandPanel(pl.getPlayerNumber());
+        if (mesHp == null)
+            return;
+
+        if (pl.getSpecialVP() != 0)
+            // assumes will never be reduced to 0 again
+            mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
     }
 
     /**
