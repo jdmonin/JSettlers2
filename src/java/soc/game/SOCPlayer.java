@@ -1736,11 +1736,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     if (startArea != 0)
                     {
                         final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(lastSettlementCoord);
-                        if (newSettleArea != startArea)
+                        if ((newSettleArea != 0) && (newSettleArea != startArea))
                         {
                             scenario_svpFromNewLandArea = true;
                             ++specialVP;
-                            // TODO notify server or GUI
+
+                            if (game.scenarioEventListener != null)
+                            {
+                                // Notify (server or GUI)
+                                game.scenarioEventListener.playerEvent
+                                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
+                            }                            
                         }
                     }
                 }

@@ -64,6 +64,9 @@ import java.util.Vector;
  *<P>
  * The winner is the player who has {@link #vp_winner} or more victory points (typically 10)
  * on their own turn.
+ *<P>
+ * The {@link SOCGame#hasSeaBoard large sea board} features scenario events.
+ * To listen for these, call {@link #setScenarioEventListener(SOCScenarioEventListener)}.
  *
  * @author Robert S. Thomas
  */
@@ -473,6 +476,13 @@ public class SOCGame implements Serializable, Cloneable
      * the full client can launched a tcp LAN server.
      */
     public boolean isPractice;
+
+    /**
+     * Listener for scenario events on the {@link #hasSeaBoard large sea board}, or null.
+     * Package access for read-only use by {@link SOCPlayer}.
+     * @since 2.0.00
+     */
+    SOCScenarioEventListener scenarioEventListener;
 
     /**
      * For use at server; are there clients connected which aren't at the latest version?
@@ -1004,6 +1014,24 @@ public class SOCGame implements Serializable, Cloneable
     public long getExpiration()
     {
         return expiration;
+    }
+
+    /**
+     * Set or clear the scenario event listener.
+     * Used with {@link #hasSeaBoard large sea board} scenario events.
+     *<P>
+     * Only one listener is allowed.  If you are setting the listener, it must currently be null.
+     * @param sel  Listener, or null for none
+     * @throws IllegalStateException  If listener already not null, <tt>sel</tt> is not null, and listener is not <tt>sel</tt>
+     * @since 2.0.00
+     */
+    public void setScenarioEventListener(SOCScenarioEventListener sel)
+        throws IllegalStateException
+    {
+        if ((sel != null) && (scenarioEventListener != null) && (scenarioEventListener != sel))
+            throw new IllegalStateException("Listener already " + scenarioEventListener + ", wants " + sel);
+
+        scenarioEventListener = sel;
     }
 
     /**
