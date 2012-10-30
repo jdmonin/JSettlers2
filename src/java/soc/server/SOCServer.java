@@ -9331,13 +9331,18 @@ public class SOCServer extends Server
                 // Some boards may have multiple land areas.
                 final HashSet<Integer>[] lan;
                 final int pan;
+                boolean addedPsList = false;
                 if (ga.hasSeaBoard)
                 {
                     final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
                     lan = bl.getLandAreasLegalNodes();
                     pan = bl.getPotentialsStartingLandArea();
-                    if (lan != null)
-                        lan[pan] = psList;
+                    if ((lan != null) && ! lan[pan].equals(psList))
+                    {
+                        // If potentials != legals[startingLandArea], send as legals[0]
+                        lan[0] = psList;
+                        addedPsList = true;
+                    }
                 } else {
                     lan = null;
                     pan = 0;
@@ -9346,6 +9351,9 @@ public class SOCServer extends Server
                     messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, new Vector<Integer>(psList)));
                 else
                     messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, pan, lan));
+
+                if (addedPsList)
+                    lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
             }
 
             /**
