@@ -8168,23 +8168,33 @@ public class SOCServer extends Server
             final HashSet<Integer> psList = gameData.getPlayer(0).getPotentialSettlements();
 
             // Some boards may have multiple land areas.
+            // See also below, and startGame which has very similar code.
             final HashSet<Integer>[] lan;
             final int pan;
+            boolean addedPsList = false;
             if (gameData.hasSeaBoard)
             {
                 final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
                 lan = bl.getLandAreasLegalNodes();
                 pan = bl.getStartingLandArea();
-                if (lan != null)
-                    lan[pan] = psList;
+                if ((lan != null) && ! lan[pan].equals(psList))
+                {
+                    // If potentials != legals[startingLandArea], send as legals[0]
+                    lan[0] = psList;
+                    addedPsList = true;
+                }
             } else {
                 lan = null;
                 pan = 0;
             }
+
             if (lan == null)
                 c.put(SOCPotentialSettlements.toCmd(gameName, -1, new Vector<Integer>(psList)));
             else
                 c.put(SOCPotentialSettlements.toCmd(gameName, -1, pan, lan));
+
+            if (addedPsList)
+                lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
         }
 
         /**
@@ -8222,6 +8232,7 @@ public class SOCServer extends Server
 
                 // Some boards may have multiple land areas.
                 // Note: Assumes all players have same legal nodes.
+                // See also above, and startGame which has very similar code.
                 final HashSet<Integer>[] lan;
                 final int pan;
                 if (gameData.hasSeaBoard && (i == 0))
@@ -8236,10 +8247,14 @@ public class SOCServer extends Server
                     lan = null;
                     pan = 0;
                 }
+
                 if (lan == null)
+                {
                     c.put(SOCPotentialSettlements.toCmd(gameName, i, new Vector<Integer>(psList)));
-                else
+                } else {
                     c.put(SOCPotentialSettlements.toCmd(gameName, i, pan, lan));
+                    lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
+                }
             }
 
             /**
@@ -9316,6 +9331,7 @@ public class SOCServer extends Server
             // Send the updated Potential/Legal Settlement node list
             // Note: Assumes all players have same potential settlements
             //    (sends with playerNumber -1 == all)
+            // See also joinGame which has very similar code.
             final HashSet<Integer> psList = ga.getPlayer(0).getPotentialSettlements();
 
             // Some boards may have multiple land areas.
@@ -9337,6 +9353,7 @@ public class SOCServer extends Server
                 lan = null;
                 pan = 0;
             }
+
             if (lan == null)
                 messageToGameWithMon(gaName, new SOCPotentialSettlements(gaName, -1, new Vector<Integer>(psList)));
             else
