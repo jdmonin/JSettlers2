@@ -37,12 +37,12 @@ import java.util.Vector;
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
- * The starting land area is {@link #getPotentialsStartingLandArea()}.
+ * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
  *<P>
  * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
  * followed by the robber hex and pirate hex (if they're &gt; 0),
- * and then (separately) the legal settlement/city nodes.
+ * and then (a separate message) the legal settlement/city nodes and land areas.
  *<P>
  * Ship pieces extend the {@link SOCRoad} class; road-related getters/setters will work on them,
  * but check {@link SOCRoad#isRoadNotShip()} to differentiate.
@@ -327,8 +327,8 @@ public class SOCBoardLarge extends SOCBoard
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
      * If the players must start in a certain land area,
-     * {@link #potentialsStartingLandArea} != 0, and
-     * <tt>landAreasLegalNodes[{@link #potentialsStartingLandArea}]</tt>
+     * {@link #startingLandArea} != 0, and
+     * <tt>landAreasLegalNodes[{@link #startingLandArea}]</tt>
      * is also the players' potential settlement nodes.
      *<P>
      * The set {@link SOCBoard#nodesOnLand} contains all nodes of all land areas.
@@ -337,16 +337,16 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * When players must start the game in a certain land area,
-     * starting land area number; also its index in
+     * the starting land area number; also its index in
      * {@link #landAreasLegalNodes}, because that set of
      * legal nodes is also the players' potential settlement nodes.
      * 0 if players can start anywhere and/or
      * {@link #landAreasLegalNodes} == <tt>null</tt>.
      *<P>
-     * The startingLandArea is sent from the server to client as part
-     * of a <tt>POTENTIALSETTLEMENTS</tt> message.
+     * The startingLandArea and {@link #landAreasLegalNodes} are sent
+     * from the server to client as part of a <tt>POTENTIALSETTLEMENTS</tt> message.
      */
-    private int potentialsStartingLandArea;
+    private int startingLandArea;
 
     /**
      * The legal set of land edge coordinates to build roads,
@@ -418,7 +418,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // Assume 1 Land Area, unless or until makeNewBoard says otherwise
         landAreasLegalNodes = null;
-        potentialsStartingLandArea = 0;
+        startingLandArea = 0;
 
         // Only odd-numbered rows are valid,
         // but we fill all rows here just in case.
@@ -478,7 +478,7 @@ public class SOCBoardLarge extends SOCBoard
         makeNewBoard_placeHexes
             (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, 2, (SOCGameOption) null);
         // - Require players to start on mainland
-        potentialsStartingLandArea = 1;
+        startingLandArea = 1;
 
         // Set up legalRoadEdges:
         makeNewBoard_makeLegalRoadsFromLandNodes();
@@ -1226,9 +1226,9 @@ public class SOCBoardLarge extends SOCBoard
      *   0 if players can start anywhere and/or
      *   <tt>landAreasLegalNodes == null</tt>.
      */
-    public int getPotentialsStartingLandArea()
+    public int getStartingLandArea()
     {
-        return potentialsStartingLandArea;
+        return startingLandArea;
     }
 
     /**
@@ -1243,13 +1243,13 @@ public class SOCBoardLarge extends SOCBoard
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
      * If the players must start in a certain land area,
-     * {@link #potentialsStartingLandArea} != 0.
+     * {@link #startingLandArea} != 0.
      *<P>
      * See also {@link #getLegalAndPotentialSettlements()}
      * which returns the starting land area's nodes, or if no starting
      * land area, all nodes of all land areas.
      *<P>
-     * See also {@link #getPotentialsStartingLandArea()} to
+     * See also {@link #getStartingLandArea()} to
      * see if the players must start the game in a certain land area.
      *
      * @return the land areas' nodes, or <tt>null</tt> if only one land area (one group of islands).
@@ -1278,10 +1278,10 @@ public class SOCBoardLarge extends SOCBoard
      */
     public HashSet<Integer> getLegalAndPotentialSettlements()
     {
-        if ((landAreasLegalNodes == null) || (potentialsStartingLandArea == 0))
+        if ((landAreasLegalNodes == null) || (startingLandArea == 0))
             return nodesOnLand;
         else
-            return landAreasLegalNodes[potentialsStartingLandArea];
+            return landAreasLegalNodes[startingLandArea];
     }
 
     /**
@@ -1309,7 +1309,7 @@ public class SOCBoardLarge extends SOCBoard
         if (lan == null)
         {
             landAreasLegalNodes = null;
-            potentialsStartingLandArea = 0;
+            startingLandArea = 0;
 
             if (psNodes instanceof HashSet)
             {
@@ -1322,7 +1322,7 @@ public class SOCBoardLarge extends SOCBoard
         else
         {
             landAreasLegalNodes = lan; 
-            potentialsStartingLandArea = sla;
+            startingLandArea = sla;
 
             nodesOnLand.clear();
             for (int i = 1; i < lan.length; ++i)

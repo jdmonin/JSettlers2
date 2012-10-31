@@ -8174,7 +8174,7 @@ public class SOCServer extends Server
             {
                 final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
                 lan = bl.getLandAreasLegalNodes();
-                pan = bl.getPotentialsStartingLandArea();
+                pan = bl.getStartingLandArea();
                 if (lan != null)
                     lan[pan] = psList;
             } else {
@@ -8229,7 +8229,7 @@ public class SOCServer extends Server
                     // send this info once, not per-player
                     final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
                     lan = bl.getLandAreasLegalNodes();
-                    pan = bl.getPotentialsStartingLandArea();
+                    pan = bl.getStartingLandArea();
                     if (lan != null)
                         lan[0] = psList;
                 } else {
@@ -9326,7 +9326,7 @@ public class SOCServer extends Server
             {
                 final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
                 lan = bl.getLandAreasLegalNodes();
-                pan = bl.getPotentialsStartingLandArea();
+                pan = bl.getStartingLandArea();
                 if ((lan != null) && ! lan[pan].equals(psList))
                 {
                     // If potentials != legals[startingLandArea], send as legals[0]

@@ -1734,7 +1734,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         && (board instanceof SOCBoardLarge)
                         && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
                     {
-                        final int startArea = ((SOCBoardLarge) board).getPotentialsStartingLandArea();
+                        final int startArea = ((SOCBoardLarge) board).getStartingLandArea();
                         if (startArea != 0)
                         {
                             final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(settlementNode);
