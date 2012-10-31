@@ -1374,7 +1374,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return Option's current {@link SOCGameOption#getIntValue() intValue},
      *         or <tt>defValue</tt> if not defined in the set of options;
      *         OTYPE_ENUM's and _ENUMBOOL's choices give an intVal in range 1 to n.
-     * @since 2.0.00
+     * @since 1.1.14
      * @see #isGameOptionDefined(String)
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(Hashtable, String)
@@ -2013,6 +2013,7 @@ public class SOCGame implements Serializable, Cloneable
      * Calls {@link SOCBoard#putPiece(SOCPlayingPiece)} and {@link SOCPlayer#putPiece(SOCPlayingPiece)}.
      * Updates longest road if necessary.
      * Calls {@link #advanceTurnStateAfterPutPiece()}.
+     * (player.putPiece may also score Special Victory Point(s), see below.)
      *<P>
      * If the piece is a city, putPiece removes the settlement there.
      *<P>
@@ -2022,6 +2023,11 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #getGameState()} to ensure that piece type can be placed now.
      * For ships, call {@link #canPlaceShip(SOCPlayer, int)} to check
      * the potentials and pirate ship location.
+     *<P>
+     * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board}, placing
+     * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
+     * This method will increment {@link #specialVP}
+     * and set the {@link #scenario_svpFromNewLandArea} flag.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
@@ -2037,6 +2043,8 @@ public class SOCGame implements Serializable, Cloneable
      * Put a piece or temporary piece on the board, and update all related game state.
      * Update player potentials, longest road, etc.
      * Common to {@link #putPiece(SOCPlayingPiece)} and {@link #putTempPiece(SOCPlayingPiece)}.
+     * See {@link #putPiece(SOCPlayingPiece)} javadoc for more information on what putPieceCommon does.
+     *
      * @param pp  The piece to put on the board; coordinates are not checked for validity
      * @param isTempPiece  Is this a temporary piece?  If so, do not change current
      *                     player or gamestate.
