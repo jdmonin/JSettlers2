@@ -104,9 +104,11 @@ Java applications:
   robot2      soc.robot.SOCRobotClient
      arguments: localhost 44203 robot2 r2
   socserver   soc.server.SOCServer
-     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2  44203 20 dbuser dbpass
+     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2
+                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
   socserver-sqlite  soc.server.SOCServer
-     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7 44203 20 dbuser dbpass
+     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
+                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
 
 
 If you want to configure a sqlite database for testing
