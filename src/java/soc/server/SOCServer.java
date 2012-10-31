@@ -2097,6 +2097,8 @@ public class SOCServer extends Server
      */
     public void messageToChannel(String ch, SOCMessage mes)
     {
+        final String mesCmd = mes.toCmd();
+
         channelList.takeMonitorForChannel(ch);
 
         try
@@ -2113,7 +2115,7 @@ public class SOCServer extends Server
 
                     if (c != null)
                     {
-                        c.put(mes.toCmd());
+                        c.put(mesCmd);
                     }
                 }
             }
@@ -2141,6 +2143,8 @@ public class SOCServer extends Server
 
         if (v != null)
         {
+            final String mesCmd = mes.toCmd();
+
             Enumeration<StringConnection> menum = v.elements();
 
             while (menum.hasMoreElements())
@@ -2149,7 +2153,7 @@ public class SOCServer extends Server
 
                 if (c != null)
                 {
-                    c.put(mes.toCmd());
+                    c.put(mesCmd);
                 }
             }
         }
@@ -2201,6 +2205,8 @@ public class SOCServer extends Server
      */
     public void messageToGame(String ga, SOCMessage mes)
     {
+        final String mesCmd = mes.toCmd();
+
         gameList.takeMonitorForGame(ga);
 
         try
@@ -2219,7 +2225,7 @@ public class SOCServer extends Server
                     if (c != null)
                     {
                         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", c.getData()));
-                        c.put(mes.toCmd());
+                        c.put(mesCmd);
                     }
                 }
             }
@@ -2298,6 +2304,7 @@ public class SOCServer extends Server
             return;
 
         //D.ebugPrintln("M2G - "+mes);
+        final String mesCmd = mes.toCmd();
         Enumeration<StringConnection> menum = v.elements();
 
         while (menum.hasMoreElements())
@@ -2307,7 +2314,7 @@ public class SOCServer extends Server
             if (c != null)
             {
                 //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", c.getData()));
-                c.put(mes.toCmd());
+                c.put(mesCmd);
             }
         }
     }
@@ -2335,6 +2342,7 @@ public class SOCServer extends Server
             if (v != null)
             {
                 //D.ebugPrintln("M2GE - "+mes);
+                final String mesCmd = mes.toCmd();
                 Enumeration<StringConnection> menum = v.elements();
 
                 while (menum.hasMoreElements())
@@ -2344,7 +2352,7 @@ public class SOCServer extends Server
                     if ((con != null) && (!ex.contains(con)))
                     {
                         //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
-                        con.put(mes.toCmd());
+                        con.put(mesCmd);
                     }
                 }
             }
@@ -2382,6 +2390,7 @@ public class SOCServer extends Server
             if (v != null)
             {
                 //D.ebugPrintln("M2GE - "+mes);
+                final String mesCmd = mes.toCmd();
                 Enumeration<StringConnection> menum = v.elements();
 
                 while (menum.hasMoreElements())
@@ -2391,7 +2400,7 @@ public class SOCServer extends Server
                         continue;
 
                     //currentGameEventRecord.addMessageOut(new SOCMessageRecord(mes, "SERVER", con.getData()));
-                    con.put(mes.toCmd());
+                    con.put(mesCmd);
                 }
             }
         }
