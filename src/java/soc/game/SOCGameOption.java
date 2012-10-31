@@ -54,6 +54,8 @@ import soc.message.SOCMessage;
  * letters ('A' through 'Z') and digits ('0' through '9'), in order to normalize
  * handling and network message formats.  This is enforced in constructors via
  * {@link #isAlphanumericUpcaseAscii(String)}.
+ * Version 2.0.00 and newer allow '_'; please check {@link #minVersion},
+ * name keys with '_' can't be sent to older clients.
  *<P>
  * For the same reason, option string values (and enum choices) must not contain
  * certain characters or span more than 1 line; this is checked by calling
@@ -69,6 +71,7 @@ import soc.message.SOCMessage;
  * If you create a ChangeListener, consider adding equivalent code to
  * {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)} for the server side.
  *<P>
+ * <B>Version negotiation:</B><br>
  * Game options were introduced in 1.1.07; check server, client versions against
  * {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
  * Each option has version information, because options can be added or changed
@@ -765,6 +768,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         }
         if (! (isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
             throw new IllegalArgumentException("Key not alphanumeric: " + key);
+        if ((minVers < 2000) && key.contains("_"))
+            throw new IllegalArgumentException("Key with '_' needs minVers 2000 or newer: " + key);
         if ((minVers < 1000) && (minVers != -1))
             throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
         if ((lastModVers < 1000) && (lastModVers != -1))
@@ -1845,6 +1850,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * must start with a letter and contain only ASCII uppercase letters
      * ('A' through 'Z') and digits ('0' through '9'), in order to normalize
      * handling and network message formats.
+     *<P>
+     * Version 2.0.00 and newer allow '_'; please check {@link #minVersion},
+     * name keys with '_' can't be sent to older clients.
+     *
      * @param s string to test
      * @return true if all characters are OK, false otherwise
      */
@@ -1854,7 +1863,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         {
             final char c = s.charAt(i);
             if (((c < '0') || (c > '9'))
-                && (c < 'A') || (c > 'Z'))
+                && ((c < 'A') || (c > 'Z'))
+                && (c != '_'))
                 return false;
             if ((i == 0) && (c < 'A'))
                 return false;
