@@ -626,9 +626,12 @@ public class SOCServer extends Server
         throws SocketException, EOFException, SQLException
     {
         printVersionText();
-        
-        /* Check for problems during super setup (such as port already in use) */
-        if (error != null)
+
+        /* Check for problems during super setup (such as port already in use).
+         * Ignore net errors if we're running a DB setup script and then exiting.
+         */
+        if ((error != null)
+            && (null == props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP)))
         {
             final String errMsg = "* Exiting due to network setup problem: " + error.toString();
             throw new SocketException(errMsg);
