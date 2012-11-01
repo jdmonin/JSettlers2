@@ -4603,7 +4603,11 @@ public class SOCPlayerClient extends Panel
         // At end of method, we'll clear this cursor.
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        net.initLocalServer(tport);
+        if (! net.initLocalServer(tport))
+        {
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            return;  // Unable to start local server, or bind to port
+        }
 
         MouseAdapter mouseListener = new MouseAdapter()
         {
@@ -4962,13 +4966,21 @@ public class SOCPlayerClient extends Panel
         {
             if (practiceServer == null)
             {
-                practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, 30, null, null);
-                practiceServer.setPriority(5);  // same as in SOCServer.main
-                practiceServer.start();
+                try
+                {
+                    practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, 30, null, null);
+                    practiceServer.setPriority(5);  // same as in SOCServer.main
+                    practiceServer.start();
 
-                // We need some opponents.
-                // Let the server randomize whether we get smart or fast ones.
-                practiceServer.setupLocalRobots(5, 2);
+                    // We need some opponents.
+                    // Let the server randomize whether we get smart or fast ones.
+                    practiceServer.setupLocalRobots(5, 2);
+                }
+                catch (Throwable th)
+                {
+                    NotifyDialog.createAndShow
+                        (client, null, "Problem starting practice server:\n" + th, "Cancel", true);
+                }
             }
             if (prCli == null)
             {
@@ -5019,16 +5031,31 @@ public class SOCPlayerClient extends Panel
             }
         }
 
-        /** Create and start the local TCP server on a given port. */
-        public void initLocalServer(int tport)
+        /**
+         * Create and start the local TCP server on a given port.
+         * If startup fails, show a {@link NotifyDialog} with the error message.
+         * @return True if started, false if not
+         */
+        public boolean initLocalServer(int tport)
         {
-            localTCPServer = new SOCServer(tport, 30, null, null);
-            localTCPServer.setPriority(5);  // same as in SOCServer.main
-            localTCPServer.start();
+            try
+            {
+                localTCPServer = new SOCServer(tport, 30, null, null);
+                localTCPServer.setPriority(5);  // same as in SOCServer.main
+                localTCPServer.start();
 
-            // We need some opponents.
-            // Let the server randomize whether we get smart or fast ones.
-            localTCPServer.setupLocalRobots(5, 2);
+                // We need some opponents.
+                // Let the server randomize whether we get smart or fast ones.
+                localTCPServer.setupLocalRobots(5, 2);
+            }
+            catch (Throwable th)
+            {
+                NotifyDialog.createAndShow
+                    (client, null, "Problem starting server:\n" + th, "Cancel", true);
+                return false;
+            }
+
+            return true;
         }
 
         /** Port number of the tcp server we're a client of */

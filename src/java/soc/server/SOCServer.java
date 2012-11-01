@@ -40,7 +40,9 @@ import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
 import soc.util.Version;
 
+import java.io.EOFException;
 import java.io.IOException;
+import java.net.SocketException;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
@@ -66,6 +68,9 @@ import java.util.Vector;
  * be set up with a username & password in that database to log in and play.
  * Users without accounts can connect by leaving the password blank,
  * as long as they aren't using a nickname which has a password in the database.
+ * There's a database setup script parameter {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP}.
+ * If the setup script is ran, the server exits afterward, so that the
+ * script won't be part of the command line for normal server operation.
  *<P>
  *<b>Network traffic:</b>
  * The first message over the connection is the client's version
@@ -522,8 +527,12 @@ public class SOCServer extends Server
      *            remember that robots count against this limit.
      * @param databaseUserName  the user name for accessing the database
      * @param databasePassword  the password for the user
+     * @throws SocketException  If a network setup problem occurs
+     * @throws EOFException   If db setup script ran successfully and server should exit now
+     * @throws SQLException   If db setup script fails
      */
     public SOCServer(int p, int mc, String databaseUserName, String databasePassword)
+        throws SocketException, EOFException, SQLException
     {
         super(p);
         maxConnections = mc;
@@ -545,9 +554,13 @@ public class SOCServer extends Server
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
      *               and any other desired properties.
      * @since 1.1.09
+     * @throws SocketException  If a network setup problem occurs
+     * @throws EOFException   If db setup script ran successfully and server should exit now
+     * @throws SQLException   If db setup script fails
      * @see #PROPS_LIST
      */
     public SOCServer(final int p, Properties props)
+        throws SocketException, EOFException, SQLException
     {
         super(p);
         maxConnections = init_getIntProperty(props, PROP_JSETTLERS_CONNECTIONS, SOC_MAXCONN_DEFAULT);
@@ -574,8 +587,12 @@ public class SOCServer extends Server
      *            remember that robots count against this limit.
      * @param databaseUserName  the user name for accessing the database
      * @param databasePassword  the password for the user
+     * @throws SocketException  If a network setup problem occurs
+     * @throws EOFException   If db setup script ran successfully and server should exit now
+     * @throws SQLException   If db setup script fails
      */
     public SOCServer(String s, int mc, String databaseUserName, String databasePassword)
+        throws SocketException, EOFException, SQLException
     {
         super(s);
         maxConnections = mc;
@@ -588,27 +605,33 @@ public class SOCServer extends Server
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
      *<P>
      * If there are problems with the network setup ({@link #error} != null),
-     * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
-     * this method will call {@link System#exit(int) System.exit(1)}.
+     * this method will throw {@link SocketException}.
+     * If problems running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
+     * this method will throw {@link SQLException}.
      *<P>
      * If a db setup script runs successfully,
-     * this method will call {@link System#exit(int) System.exit(2)}.
+     * the server does not complete its startup; this method will throw {@link EOFException}.
      *
      * @param databaseUserName Used for DB connect - not retained
      * @param databasePassword Used for DB connect - not retained
      * @param props  null, or properties containing {@link #PROP_JSETTLERS_CONNECTIONS}
      *       and any other desired properties.
      *       If <code>props</code> is null, the properties will be created empty.
+     * @throws SocketException  If a network setup problem occurs
+     * @throws EOFException   If db setup script ran successfully and server should exit now
+     * @throws SQLException   If db setup script fails
      */
     private void initSocServer(String databaseUserName, String databasePassword, Properties props)
+        throws SocketException, EOFException, SQLException
     {
         printVersionText();
         
         /* Check for problems during super setup (such as port already in use) */
         if (error != null)
         {
-            System.err.println("* Exiting due to network setup problem: " + error.toString());
-            System.exit (1);
+            final String errMsg = "* Exiting due to network setup problem: " + error.toString();
+            System.err.println(errMsg);
+            throw new SocketException(errMsg);
         }
 
         if (props == null)
@@ -629,7 +652,7 @@ public class SOCServer extends Server
             {
                 // the sql script was ran by initialize
                 System.err.println("\nDB setup script was successful. Exiting now.\n");
-                System.exit(2);
+                throw new EOFException("DB setup script successful");
             }
         }
         catch (SQLException x) // just a warning
@@ -649,10 +672,14 @@ public class SOCServer extends Server
                 // the sql script was ran by initialize, but failed to complete;
                 // don't continue server startup with just a warning
                 System.err.println("\n* DB setup script failed.\n");
-                System.exit(1);
+                throw x;  // x is SQLException
             }
 
             System.err.println("Users will not be authenticated.");
+        }
+        catch (EOFException eox)  // successfully ran script, signal to exit
+        {
+            throw eox;
         }
         catch (IOException iox) // error from requested script
         {
@@ -671,9 +698,9 @@ public class SOCServer extends Server
             }
             catch (SQLException x) { }
 
-            System.exit(1);
-
-            // TODO throw some exception to constructors instead, for this & network setup error
+            SQLException sqle = new SQLException("Error running DB setup script");
+            sqle.initCause(iox);
+            throw sqle;
         }
 
         // No errors; continue normal startup.
@@ -10372,6 +10399,13 @@ public class SOCServer extends Server
 
     /**
      * Starting the server from the command line
+     *<P>
+     * If there are problems with the network setup,
+     * or with running a {@link SOCDBHelper#PROP_JSETTLERS_DB_SCRIPT_SETUP db setup script},
+     * this method will call {@link System#exit(int) System.exit(1)}.
+     *<P>
+     * If a db setup script runs successfully,
+     * this method will call {@link System#exit(int) System.exit(2)}.
      *
      * @param args  arguments: port number, etc
      * @see #printUsage(boolean)
@@ -10396,12 +10430,32 @@ public class SOCServer extends Server
             // SOCServer constructor will also print game options if we've set them on
             // commandline, or if any option defaults require a minimum client version.
 
-            SOCServer server = new SOCServer(port, argp);
-            server.setPriority(5);
-            server.start();  // <---- Start the Main SOCServer Thread ----
+            try
+            {
+                SOCServer server = new SOCServer(port, argp);
+                server.setPriority(5);
+                server.start();  // <---- Start the Main SOCServer Thread ----
 
-            // Most threads are started in the SOCServer constructor, via initSocServer.
-            // Messages from clients are handled in processCommand's loop.
+                // Most threads are started in the SOCServer constructor, via initSocServer.
+                // Messages from clients are handled in processCommand's loop.
+            }
+            catch (SocketException e)
+            {
+                // network setup problem
+                System.exit (1);
+            }
+            catch (EOFException e)
+            {
+                // the sql setup script was ran successfully by initialize;
+                // exit server, user will re-run without the setup script param.
+                System.exit(2);
+            }
+            catch (SQLException e)
+            {
+                // the sql setup script was ran by initialize, but failed to complete;
+                // don't continue server startup with just a warning
+                System.exit(1);
+            }
         }
         catch (Throwable e)
         {
