@@ -57,7 +57,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     Button settlementBut;
     Button cityBut;
     Button cardBut;
-    Button optsBut;  // show SOCGameOptions; @since 1.1.07
+    Button gameInfoBut;  // show SOCGameOptions; @since 1.1.07; 2.0.00 renamed from optsBut
     Button statsBut;
     JFrame statsFrame;
     Label roadT;  // text
@@ -189,9 +189,9 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         cityBut.setActionCommand(CITY);
         cityBut.addActionListener(this);
 
-        optsBut = new Button("Game Options...");
-        add(optsBut);
-        optsBut.addActionListener(this);
+        gameInfoBut = new Button("Game Info...");  // show game options
+        add(gameInfoBut);
+        gameInfoBut.addActionListener(this);
 
         //TODO: disable until the game initialization is complete and the first roll is made
         statsBut = new Button("Game Statistics...");
@@ -424,15 +424,15 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         cardCountLab.setLocation(curX, curY);
         cardCountLab.setSize(cardCLabW + 2, lineH);
 
-        // Game Options button is bottom-right of panel
+        // Game Info button is bottom-right of panel
         // Game Statistics button is just above it for 4-player games,
         //     top-right for 6-player games (to make room for Special Building button)
         // On 4-player classic board, both are moved up to make room for the dev card count.
         if ((maxPlayers <= 4) && ! pi.getGame().hasSeaBoard)
             curY -= (lineH + 5);
         curX = dim.width - (2 * butW) - margin;
-        optsBut.setSize(butW * 2, lineH);
-        optsBut.setLocation(curX, curY);
+        gameInfoBut.setSize(butW * 2, lineH);
+        gameInfoBut.setLocation(curX, curY);
         statsBut.setSize(butW * 2, lineH);
         if (maxPlayers <= 4)
             statsBut.setLocation(curX, curY - lineH - 5);
@@ -447,7 +447,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             // #VP total to Win
             if (pi.getGame().hasSeaBoard)
             {
-                // bottom-right corner of panel, left of Game Options
+                // bottom-right corner of panel, left of Game Info
                 curX -= (1.5f * ColorSquare.WIDTH + margin);
                 vpToWin.setLocation(curX, curY);
     
@@ -494,7 +494,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         String target = e.getActionCommand();
         SOCGame game = pi.getGame();
 
-        if (e.getSource() == optsBut)
+        if (e.getSource() == gameInfoBut)
         {
             NewGameOptionsFrame.createAndShow(pi.getClient(), game.getName(), game.getGameOptions(), false, true);
             return;

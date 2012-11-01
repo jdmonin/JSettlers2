@@ -149,7 +149,7 @@ public class NewGameOptionsFrame extends Frame
         (SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
-                ? ("Current game options: " + gaName)
+                ? ("Game info and options: " + gaName)
                 :
                    (forPractice
                     ? "New Game options: Practice game"

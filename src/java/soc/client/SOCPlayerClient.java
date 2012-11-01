@@ -162,10 +162,12 @@ public class SOCPlayerClient extends Panel
     protected Button pg;  // practice game (against practiceServer, not localTCPServer)
 
     /**
-     * "Show Options" button, shows a game's {@link SOCGameOption}s
+     * "Game Info" button, shows a game's {@link SOCGameOption}s.
+     *<P>
+     * Renamed in 2.0.00 to 'gi'; previously 'so' Show Options.
      * @since 1.1.07
      */
-    protected Button so;
+    protected Button gi;
 
     protected Label messageLabel;  // error message for messagepanel
     protected Label messageLabel_top;   // secondary message
@@ -436,7 +438,7 @@ public class SOCPlayerClient extends Panel
         jc = new Button("Join Channel");
         jg = new Button("Join Game");
         pg = new Button("Practice");  // "practice game" text is too wide
-        so = new Button("Show Options");  // show game options
+        gi = new Button("Game Info");  // show game options
 
         // Username not entered yet: can't click buttons
         ng.setEnabled(false);
@@ -444,7 +446,7 @@ public class SOCPlayerClient extends Panel
 
         // when game is selected in gmlist, these buttons will be enabled:
         jg.setEnabled(false);
-        so.setEnabled(false);
+        gi.setEnabled(false);
 
         nick.addTextListener(new TextListener()
         {
@@ -504,7 +506,8 @@ public class SOCPlayerClient extends Panel
                 if (wasSel != jg.isEnabled())
                 {
                     jg.setEnabled(wasSel);
-                    so.setEnabled(wasSel && ((net.practiceServer != null) || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
+                    gi.setEnabled(wasSel &&
+                        ((net.practiceServer != null) || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
                 }
             }
         });
@@ -512,7 +515,7 @@ public class SOCPlayerClient extends Panel
         jc.addActionListener(actionListener);
         jg.addActionListener(actionListener);
         pg.addActionListener(actionListener);
-        so.addActionListener(actionListener);
+        gi.addActionListener(actionListener);
 
         GridBagLayout gbl = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
@@ -635,8 +638,8 @@ public class SOCPlayerClient extends Panel
         mainPane.add(l);
 
         c.gridwidth = 1;
-        gbl.setConstraints(so, c);
-        mainPane.add(so);
+        gbl.setConstraints(gi, c);
+        mainPane.add(gi);
 
         l = new Label();
         c.gridwidth = 1;
@@ -766,7 +769,7 @@ public class SOCPlayerClient extends Panel
             showPopupCannotJoin = ! guardedActionPerform_channels(target);
         }
         else if ((target == jg) || (target == ng) || (target == gmlist)
-                || (target == pg) || (target == pgm) || (target == so)) // Join game stuff
+                || (target == pg) || (target == pgm) || (target == gi)) // Join game stuff
         {
             showPopupCannotJoin = ! guardedActionPerform_games(target);
         }
@@ -948,7 +951,7 @@ public class SOCPlayerClient extends Panel
             return true;
         }
 
-        if (target == so)  // show game options
+        if (target == gi)  // show game info, game options, for an existing game
         {
             // This game is either from the tcp server, or practice server,
             // both servers' games are in the same GUI list.
@@ -1934,8 +1937,8 @@ public class SOCPlayerClient extends Panel
             }
 
             if ((net.practiceServer == null) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    && (so != null))
-                so.setEnabled(false);  // server too old for options, so don't use that button
+                    && (gi != null))
+                gi.setEnabled(false);  // server too old for options, so don't use that button
         }
 
         // If we ever require a minimum server version, would check that here.
@@ -3429,7 +3432,7 @@ public class SOCPlayerClient extends Panel
     /**
      * process the "game option info" message
      * by calling {@link GameOptionServerSet#receiveInfo(SOCGameOptionInfo)}.
-     * If all are now received, possibly show options window for new game or existing game.
+     * If all are now received, possibly show game info/options window for new game or existing game.
      *<P>
      * For a summary of the flags and variables involved with game options,
      * and the client/server interaction about their values, see
@@ -3644,7 +3647,7 @@ public class SOCPlayerClient extends Panel
             gmlist.replaceItem(gameName, 0);
             gmlist.select(0);
             jg.setEnabled(true);
-            so.setEnabled((net.practiceServer != null)
+            gi.setEnabled((net.practiceServer != null)
                 || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS));
         }
         else
@@ -4993,8 +4996,8 @@ public class SOCPlayerClient extends Panel
                     putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
 
                     // practice server will support per-game options
-                    if (client.so != null)
-                        client.so.setEnabled(true);
+                    if (client.gi != null)
+                        client.gi.setEnabled(true);
                 }
                 catch (ConnectException e)
                 {
@@ -5585,8 +5588,8 @@ public class SOCPlayerClient extends Panel
         public boolean   newGameWaitingForOpts = false;
 
         /**
-         * If non-null, we're waiting to hear about options because
-         * user has clicked 'show options' on a game.  When all are
+         * If non-null, we're waiting to hear about game options because
+         * user has clicked 'game info' on a game.  When all are
          * received, we should create and show a NewGameOptionsFrame
          * with that game's options.
          */
