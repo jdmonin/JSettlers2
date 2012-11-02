@@ -5122,19 +5122,7 @@ public class SOCPlayerClient extends Panel
                 ex = e;
                 String msg = "Could not connect to the server: " + ex;
                 System.err.println(msg);
-                if (ex_P == null)
-                {
-                    client.pgm.setVisible(true);
-                    client.messageLabel_top.setText(msg);
-                    client.messageLabel_top.setVisible(true);
-                    client.messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
-                    client.validate();
-                    client.pgm.requestFocus();
-                }
-                else
-                {
-                    client.messageLabel.setText(msg);
-                }
+                client.showErrorPanel(msg, (ex_P == null));
             }
         }
         
