@@ -1792,6 +1792,7 @@ public class SOCGame implements Serializable, Cloneable
      * Put a piece or temporary piece on the board, and update all related game state.
      * Update player potentials, longest road, etc.
      * Common to {@link #putPiece(SOCPlayingPiece)} and {@link #putTempPiece(SOCPlayingPiece)}.
+     * See {@link #putPiece(SOCPlayingPiece)} javadoc for more information on what putPieceCommon doees.
      *<P>
      * Backported from 2.0.00 to 1.1.14.
      *
