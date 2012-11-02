@@ -10455,6 +10455,7 @@ public class SOCServer extends Server
             catch (SQLException e)
             {
                 // the sql setup script was ran by initialize, but failed to complete.
+                // exception detail was printed in initSocServer.
                 System.err.println("\n* DB setup script failed. Exiting now.\n");
                 System.exit(1);
             }
@@ -10464,6 +10465,7 @@ public class SOCServer extends Server
             printUsage(false);
             return;
         }
+
     }  // main
 
     /**

@@ -4586,7 +4586,7 @@ public class SOCPlayerClient extends Panel
      * @param tport Port number to host on; must be greater than zero.
      * @throws IllegalArgumentException If port is 0 or negative
      */
-    public void startLocalTCPServer(int tport)
+    public void startLocalTCPServer(final int tport)
         throws IllegalArgumentException
     {
         if (net.localTCPServer != null)
