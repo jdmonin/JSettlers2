@@ -1132,23 +1132,24 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              * placing a settlement
              */
             case SOCPlayingPiece.SETTLEMENT:
-                numPieces[SOCPlayingPiece.SETTLEMENT]--;
-                settlements.addElement(piece);
-                lastSettlementCoord = piece.getCoordinates();
-                buildingVP++;
-
-                /**
-                 * update what numbers we're touching
-                 */
-                ourNumbers.updateNumbers(piece, board);
-
-                /**
-                 * update our port flags
-                 */
-                int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
-                if (portType != -1)
-                    setPortFlag(portType, true);
-
+                {
+                    numPieces[SOCPlayingPiece.SETTLEMENT]--;
+                    settlements.addElement(piece);
+                    lastSettlementCoord = piece.getCoordinates();
+                    buildingVP++;
+    
+                    /**
+                     * update what numbers we're touching
+                     */
+                    ourNumbers.updateNumbers(piece, board);
+    
+                    /**
+                     * update our port flags
+                     */
+                    int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
+                    if (portType != -1)
+                        setPortFlag(portType, true);
+                }
                 break;
 
             /**
