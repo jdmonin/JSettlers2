@@ -217,7 +217,6 @@ Current TODO list
 	- refactor: resource-type constants consolidate somewhere (Clay, Wheat, etc)
 		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
 	- refactor: name of dev-cards consolidate
-	- refactor: SOCPlayerClient gui to separate class (mainpanel)
 
 The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
 
