@@ -1,4 +1,5 @@
-README.developer - Notes and current status of 2012 JSettlers development (version 1.1.xx, running at nand.net)
+README.developer - Notes and current status of 2012 JSettlers development
+	(version 1.1.xx, running at nand.net)
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
 	https://github.com/jdmonin/JSettlers2
@@ -105,9 +106,11 @@ Java applications:
   robot2      soc.robot.SOCRobotClient
      arguments: localhost 44203 robot2 r2
   socserver   soc.server.SOCServer
-     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2  44203 20 dbuser dbpass
+     arguments: -o NT=t -o PL=5 -Djsettlers.startrobots=7 -Djsettlers.client.maxcreategames=2
+                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
   socserver-sqlite  soc.server.SOCServer
-     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7 44203 20 dbuser dbpass
+     arguments: -o NT=t -o NT=y -Djsettlers.db.url=jdbc:sqlite:jsettlers.sqlite  -Djsettlers.startrobots=7
+                -Djsettlers.allow.debug=Y 44203 20 dbuser dbpass
 
 
 If you want to configure a sqlite database for testing
@@ -203,7 +206,7 @@ Current TODO list
 		So, you could reset to start a new game with fewer/no bots
 	- At board reset, game observers not currently handled properly
 	- Game "owner" with extra powers (kick out player, etc)
-		what happens if owner loses connection?
+		What happens if owner loses connection?
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)
 	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
 	- Cities & Knights support
@@ -344,7 +347,9 @@ should be committed to master.
 
 The master branch has new 2.0.xx development.  Until 2.0.00 is ready,
 there's an old-1.1.xx branch in case of urgent bugfixes, so we can release
-new stable versions.
+new stable versions.  Most work on 1.1.xx is backported from 2.0; changeset
+comments often mention a hash from a master commit.  Version 2.0.00 was
+split off right after releasing version 1.1.13.
 
 Once 2.0.00 is out, we'll follow the usual jsettlers model:
 There are no branches, because jsettlers2 is mature at this point.
