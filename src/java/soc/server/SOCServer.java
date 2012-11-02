@@ -589,6 +589,7 @@ public class SOCServer extends Server
 
     /**
      * Common init for all constructors.
+     * Prints some progress messages to {@link System#err}.
      * Starts all server threads except the main thread.
      * If {@link #PROP_JSETTLERS_STARTROBOTS} is specified, those aren't started until {@link #serverUp()}.
      *<P>
@@ -618,7 +619,6 @@ public class SOCServer extends Server
         if (error != null)
         {
             final String errMsg = "* Exiting due to network setup problem: " + error.toString();
-            System.err.println(errMsg);
             throw new SocketException(errMsg);
         }
 
@@ -638,7 +638,6 @@ public class SOCServer extends Server
             if (props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP) != null)
             {
                 // the sql script was ran by initialize
-                System.err.println("\nDB setup script was successful. Exiting now.\n");
                 throw new EOFException("DB setup script successful");
             }
         }
@@ -657,7 +656,6 @@ public class SOCServer extends Server
             {
                 // the sql script was ran by initialize, but failed to complete;
                 // don't continue server startup with just a warning
-                System.err.println("\n* DB setup script failed.\n");
                 throw x;  // x is SQLException
             }
 
@@ -677,7 +675,6 @@ public class SOCServer extends Server
                 cause = cause.getCause();
             }
 
-            System.err.println("\n* Exiting due to error running db setup script.");
             try
             {
                 SOCDBHelper.cleanup(true);
@@ -9624,18 +9621,21 @@ public class SOCServer extends Server
             catch (SocketException e)
             {
                 // network setup problem
+                System.err.println(e.getMessage());  // "* Exiting due to network setup problem: ..."
                 System.exit (1);
             }
             catch (EOFException e)
             {
                 // the sql setup script was ran successfully by initialize;
                 // exit server, user will re-run without the setup script param.
+                System.err.println("\nDB setup script was successful. Exiting now.\n");
                 System.exit(2);
             }
             catch (SQLException e)
             {
-                // the sql setup script was ran by initialize, but failed to complete;
-                // don't continue server startup with just a warning
+                // the sql setup script was ran by initialize, but failed to complete.
+                // exception detail was printed in initSocServer.
+                System.err.println("\n* DB setup script failed. Exiting now.\n");
                 System.exit(1);
             }
         }
