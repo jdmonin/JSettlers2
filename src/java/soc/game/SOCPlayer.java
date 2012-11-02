@@ -1067,12 +1067,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * put a piece into play
+     * Put a piece into play.
      * note: placing a city automatically removes the settlement there
      *
      * @param piece         the piece to be put into play; coordinates are not checked for validity
      */
-    public void putPiece(SOCPlayingPiece piece)
+    public void putPiece(final SOCPlayingPiece piece)
     {
         /**
          * only do this stuff if it's our piece
@@ -1081,7 +1081,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             pieces.addElement(piece);
 
-            SOCBoard board = game.getBoard();
+            final SOCBoard board = game.getBoard();
             switch (piece.getType())
             {
             /**
@@ -1133,9 +1133,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
              */
             case SOCPlayingPiece.SETTLEMENT:
                 {
+                    final int settlementNode = piece.getCoordinates();
                     numPieces[SOCPlayingPiece.SETTLEMENT]--;
                     settlements.addElement(piece);
-                    lastSettlementCoord = piece.getCoordinates();
+                    lastSettlementCoord = settlementNode;
                     buildingVP++;
     
                     /**
@@ -1146,7 +1147,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     /**
                      * update our port flags
                      */
-                    int portType = board.getPortTypeFromNodeCoord(piece.getCoordinates());
+                    int portType = board.getPortTypeFromNodeCoord(settlementNode);
                     if (portType != -1)
                         setPortFlag(portType, true);
                 }
