@@ -5,6 +5,10 @@ and (recent versions) at http://sourceforge.net/projects/jsettlers2/files/
 and source history at https://github.com/jdmonin/JSettlers2
 
 
+    > 1.1.17 (build OV20121xxx)
+- If try to start server in JSettlers.jar, but port already in use, show message instead of exiting immediately
+- Server constructors: throw exceptions instead of System.exit
+
     > 1.1.16 (build OV20121027)
 - Bugfix: Can't start practice games
 - If jar client loses server connection, returns to first panel, with buttons

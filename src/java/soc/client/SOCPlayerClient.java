@@ -4831,13 +4831,21 @@ public class SOCPlayerClient extends Applet
 
         if (practiceServer == null)
         {
-            practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, 30, null, null);
-            practiceServer.setPriority(5);  // same as in SOCServer.main
-            practiceServer.start();
-
-            // We need some opponents.
-            // Let the server randomize whether we get smart or fast ones.
-            practiceServer.setupLocalRobots(5, 2);
+            try
+            {
+                practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, 30, null, null);
+                practiceServer.setPriority(5);  // same as in SOCServer.main
+                practiceServer.start();
+    
+                // We need some opponents.
+                // Let the server randomize whether we get smart or fast ones.
+                practiceServer.setupLocalRobots(5, 2);
+            }
+            catch (Throwable th)
+            {
+                NotifyDialog.createAndShow
+                    (this, null, "Problem starting practice server:\n" + th, "Cancel", true);
+            }
         }
         if (prCli == null)
         {
@@ -4870,6 +4878,7 @@ public class SOCPlayerClient extends Applet
     /**
      * Setup for locally hosting a TCP server.
      * If needed, a local server and robots are started, and client connects to it.
+     * If server startup fails, show a {@link NotifyDialog} with the error message.
      * If parent is a Frame, set titlebar to show "server" and port#.
      * Show port number in {@link #versionOrlocalTCPPortLabel}. 
      * If the {@link #localTCPServer} is already created, does nothing.
@@ -4878,7 +4887,7 @@ public class SOCPlayerClient extends Applet
      * @param tport Port number to host on; must be greater than zero.
      * @throws IllegalArgumentException If port is 0 or negative
      */
-    public void startLocalTCPServer(int tport)
+    public void startLocalTCPServer(final int tport)
         throws IllegalArgumentException
     {
         if (localTCPServer != null)
@@ -4898,13 +4907,23 @@ public class SOCPlayerClient extends Applet
         // At end of method, we'll clear this cursor.
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
-        localTCPServer = new SOCServer(tport, 30, null, null);
-        localTCPServer.setPriority(5);  // same as in SOCServer.main
-        localTCPServer.start();
-
-        // We need some opponents.
-        // Let the server randomize whether we get smart or fast ones.
-        localTCPServer.setupLocalRobots(5, 2);
+        try
+        {
+            localTCPServer = new SOCServer(tport, 30, null, null);
+            localTCPServer.setPriority(5);  // same as in SOCServer.main
+            localTCPServer.start();
+    
+            // We need some opponents.
+            // Let the server randomize whether we get smart or fast ones.
+            localTCPServer.setupLocalRobots(5, 2);
+        }
+        catch (Throwable th)
+        {
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            NotifyDialog.createAndShow
+                (this, null, "Problem starting server:\n" + th, "Cancel", true);
+            return;  // Unable to start local server, or bind to port
+        }
 
         // Set label
         localTCPServerLabel.setText("Server is Running. (Click for info)");

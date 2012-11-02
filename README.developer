@@ -184,8 +184,6 @@ Current TODO list
 		Instead of giving up (SOCBoardPanel.scaledHexFail, etc),
 		try re-scaling again, but increase width or height by 1 pixel.
 	- Kick robots if inactive but current player in game, assume they're buggy (use forceEndTurn)
-	- If try to start server in JSettlers.jar, but port already in use, currently ends program immediately
-		should instead show MessagePanel with option to practice, or even just show a message
 	- Control the speed of robots in practice
 		Adjust SOCRobotBrain.pause, ROBOT_FORCE_ENDTURN_TRADEOFFER_SECONDS, etc
 	- Sound effects
