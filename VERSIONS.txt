@@ -6,6 +6,7 @@ and source history at https://github.com/jdmonin/JSettlers2
 
 
     > 1.1.17 (build OV20121xxx)
+- If jar client can't connect to server, returns to first panel, with buttons to connect or practice
 - If try to start server in JSettlers.jar, but port already in use, show message instead of exiting immediately
 - Server constructors: throw exceptions instead of System.exit
 

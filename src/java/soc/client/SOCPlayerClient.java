@@ -865,19 +865,7 @@ public class SOCPlayerClient extends Applet
             ex = e;
             String msg = "Could not connect to the server: " + ex;
             System.err.println(msg);
-            if (ex_L == null)
-            {
-                pgm.setVisible(true);
-                messageLabel_top.setText(msg);                
-                messageLabel_top.setVisible(true);
-                messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
-                validate();
-                pgm.requestFocus();
-            }
-            else
-            {
-                messageLabel.setText(msg);
-            }
+            showErrorPanel(msg, (ex_L == null));
         }
     }
 
