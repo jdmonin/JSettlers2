@@ -56,6 +56,9 @@ import soc.message.SOCMessage;
  * {@link #isAlphanumericUpcaseAscii(String)}.
  * Version 2.0.00 and newer allow '_'; please check {@link #minVersion},
  * name keys with '_' can't be sent to older clients.
+ * Options starting with '_' are meant to be set by the server during game creation,
+ * not requested by the client. They're set during
+ * {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean) adjustOptionsToKnown(Hashtable, null, true)}.
  *<P>
  * For the same reason, option string values (and enum choices) must not contain
  * certain characters or span more than 1 line; this is checked by calling

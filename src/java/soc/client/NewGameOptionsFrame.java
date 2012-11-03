@@ -143,7 +143,7 @@ public class NewGameOptionsFrame extends Frame
      *                 Null if server doesn't support game options.
      *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
      * @param forPractice Will this game be on local practice server, vs remote tcp server?
-     * @param readOnly    Is this display-only (for use during a game), or can it be changed?
+     * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
         (SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
@@ -312,10 +312,17 @@ public class NewGameOptionsFrame extends Frame
      * One row per option, except for 3-letter options which group with 2-letter ones.
      * Boolean checkboxes go on the left edge; text and int/enum values are to right of checkboxes.
      *<P>
+     * When showing options to create a new game, option keys starting with '_' are hidden
+     * unless the player nickname is "debug".  This prevents unwanted changes to those options,
+     * which are set at the server during game creation.  When the options are shown read-only
+     * during a game, these options are shown and not hidden.
+     *<P>
      * If options are null, put a label with {@link #TXT_SERVER_TOO_OLD}.
      */
     private void initInterface_Options(Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
+        final boolean hideUnderscoreOpts = (! readOnly) && (! cl.nick.getText().equalsIgnoreCase("debug"));
+
         Label L;
 
         if (opts == null)
@@ -361,6 +368,9 @@ public class NewGameOptionsFrame extends Frame
                 opts.remove(op.optKey);
                 continue;  // <-- Removed, Go to next entry --
             }
+            if (hideUnderscoreOpts && (op.optKey.charAt(0) == '_'))
+                continue;  // <-- Don't show options starting with '_'
+
             if (sameLineOpts.containsKey(op.optKey))
                 continue;  // <-- Shares a line, Go to next entry --
             final boolean sharesLine = sameLineOpts.containsValue(op.optKey);

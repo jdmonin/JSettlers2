@@ -59,6 +59,16 @@ If you want to inspect the game object state at the server or robot:
 	To inspect game state at robot, breakpoint robotcli.treat and send a text msg like *BOTLIST* or robot2:current-plans
 	On Linux/Unix JVMs, you can print a stack trace / thread dump to the shell by sending SIGQUIT.
 
+Some game options are meant to be set by the server during game creation,
+not requested by the client.  Their option keynames all start with '_'.
+(These are used for game scenario rules.)  The New Game Options frame normally
+hides them during game setup.  If you want to show them:
+	Launch the client
+	Start a Server, or Join a Server
+	In the Nickname field, type: debug
+	Click Practice or New Game
+The values you set may still be overridden by the server in SOCGameOption.adjustOptionsToKnown.
+
 To use the "Free Placement" debug mode, type this debug command on your turn:
 	*FREEPLACE* 1
 You can now build and place pieces without consuming resources, by clicking
