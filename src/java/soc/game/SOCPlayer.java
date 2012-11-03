@@ -2318,6 +2318,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 pieces.removeElement(p);
 
+                if (p.specialVP != 0)
+                    removePieceUpdateSpecialVP(p);
+
                 switch (ptype)
                 {
                 case SOCPlayingPiece.SHIP:  // fall through to ROAD
@@ -2530,6 +2533,24 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 break;
             }
+        }
+    }
+
+    /**
+     * As part of {@link #removePiece(SOCPlayingPiece)},
+     * update player's {@link #specialVP} and related fields.
+     * @param p  Our piece being removed, which has {@link SOCPlayingPiece#specialVP} != 0
+     * @since 2.0.00
+     */
+    private final void removePieceUpdateSpecialVP(final SOCPlayingPiece p)
+    {
+        specialVP -= p.specialVP;
+
+        switch (p.specialVPEvent)
+        {
+        case SVP_SETTLED_ANY_NEW_LANDAREA:
+            scenario_svpFromNewLandArea = false;
+            break;
         }
     }
 
