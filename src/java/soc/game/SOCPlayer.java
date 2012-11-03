@@ -582,7 +582,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Called by {@link SOCGame#putPiece(SOCPlayingPiece)}
      * in state {@link SOCGame#START2A} after 2nd settlement placement.
      * After they have placed another road, that road's
-     * {@link #putPiece(SOCPlayingPiece)} call will call
+     * {@link #putPiece(SOCPlayingPiece, boolean)} call will call
      * {@link #updatePotentials(SOCPlayingPiece)}, which
      * will set potentialSettlements at the road's new end node.
      */
@@ -1681,9 +1681,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * This method will increment {@link #specialVP}
      * and set the {@link #scenario_svpFromNewLandArea} flag.
      *
-     * @param piece         the piece to be put into play; coordinates are not checked for validity
+     * @param piece        The piece to be put into play; coordinates are not checked for validity.
+     * @param isTempPiece  Is this a temporary piece?  If so, do not call the
+     *                     game's {@link SOCScenarioEventListener}.
      */
-    public void putPiece(final SOCPlayingPiece piece)
+    public void putPiece(final SOCPlayingPiece piece, final boolean isTempPiece)
     {
         /**
          * only do this stuff if it's our piece
@@ -1743,7 +1745,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 scenario_svpFromNewLandArea = true;
                                 ++specialVP;
     
-                                if (game.scenarioEventListener != null)
+                                if ((game.scenarioEventListener != null) && ! isTempPiece)
                                 {
                                     // Notify (server or GUI)
                                     game.scenarioEventListener.playerEvent
@@ -1790,7 +1792,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * For {@link #putPiece(SOCPlayingPiece)}, update road/ship-related info,
+     * For {@link #putPiece(SOCPlayingPiece, boolean) putPiece}, update road/ship-related info,
      * {@link #roadNodes}, {@link #roadNodeGraph} and {@link #lastRoadCoord}.
      * Call only when the piece is ours.
      * @param piece  The road or ship
@@ -1895,7 +1897,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Check this new ship for adjacent settlements/cities, to see if its trade route
      * will be closed.  Close it if so.
-     * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece)};
+     * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roads}
      * @param board  game board
      * @since 2.0.00
@@ -1925,7 +1927,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Check this new settlement for adjacent open ships, to see their its trade route
      * will be closed.  Close it if so.
-     * @param newSettlement  Our new settlement being placed in {@link #putPiece(SOCPlayingPiece)};
+     * @param newSettlement  Our new settlement being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #settlements}
      * @param board  game board
      * @since 2.0.00

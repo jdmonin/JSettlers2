@@ -798,7 +798,7 @@ public class SOCPlayerTracker
             dummyRoad = new SOCRoad(dummy, tgtRoadEdge, board);
         else
             dummyRoad = new SOCShip(dummy, tgtRoadEdge, board);
-        dummy.putPiece(dummyRoad);
+        dummy.putPiece(dummyRoad, true);
 
         //
         // see if this road/ship adds any new possible settlements
@@ -2220,7 +2220,7 @@ public class SOCPlayerTracker
                     dummyRoad = new SOCRoad(dummy, posRoad.getCoordinates(), null);
                 else
                     dummyRoad = new SOCShip(dummy, posRoad.getCoordinates(), null);
-                dummy.putPiece(dummyRoad);
+                dummy.putPiece(dummyRoad, true);
 
                 int newLRLength = dummy.calcLongestRoad2();
 
@@ -2330,7 +2330,7 @@ public class SOCPlayerTracker
                         newDummyRoad = new SOCRoad(dummy, adjEdge, board);
                     else
                         newDummyRoad = new SOCShip(dummy, adjEdge, board);
-                    dummy.putPiece(newDummyRoad);
+                    dummy.putPiece(newDummyRoad, true);
                     updateLRPotential(posRoad, dummy, newDummyRoad, lrLength, level - 1);
                     dummy.removePiece(newDummyRoad);
                 }

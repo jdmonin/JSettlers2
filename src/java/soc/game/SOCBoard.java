@@ -2244,7 +2244,7 @@ public class SOCBoard implements Serializable, Cloneable
      * put a piece on the board.
      *<P>
      * Call this only after calling
-     * {@link SOCPlayer#putPiece(SOCPlayingPiece) pl.putPiece(pp)}
+     * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) pl.putPiece(pp)}
      * for each player.
      *
      * @param pp  Piece to place on the board; coordinates are not checked for validity

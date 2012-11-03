@@ -2010,7 +2010,8 @@ public class SOCGame implements Serializable, Cloneable
      * If {@link #hasSeaBoard}, you should check {@link SOCPlayer#getNeedToPickGoldHexResources()} != 0
      * after calling, to see if they placed next to a gold hex.
      *<P>
-     * Calls {@link SOCBoard#putPiece(SOCPlayingPiece)} and {@link SOCPlayer#putPiece(SOCPlayingPiece)}.
+     * Calls {@link SOCBoard#putPiece(SOCPlayingPiece)} and each player's
+     * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) SOCPlayer.putPiece(pp, false)}.
      * Updates longest road if necessary.
      * Calls {@link #advanceTurnStateAfterPutPiece()}.
      * (player.putPiece may also score Special Victory Point(s), see below.)
@@ -2047,7 +2048,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pp  The piece to put on the board; coordinates are not checked for validity
      * @param isTempPiece  Is this a temporary piece?  If so, do not change current
-     *                     player or gamestate.
+     *                     player or gamestate, or call our {@link SOCScenarioEventListener}.
      * @since 1.1.14
      */
     private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
@@ -2058,7 +2059,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         for (int i = 0; i < maxPlayers; i++)
         {
-            players[i].putPiece(pp);
+            players[i].putPiece(pp, isTempPiece);
         }
 
         board.putPiece(pp);
@@ -2510,9 +2511,10 @@ public class SOCGame implements Serializable, Cloneable
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}
      * if a player gets the longest trade route.
      *<P>
-     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece)}
+     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece) undoPutPieceCommon(sh, false)}
      * and {@link #putPiece(SOCPlayingPiece)}.
      * Updates longest trade route.
+     * Not for use with temporary pieces.
      *<P>
      *<b>Note:</b> Because <tt>sh</tt> and <tt>toEdge</tt>
      * are not checked for validity, please call
@@ -2526,13 +2528,13 @@ public class SOCGame implements Serializable, Cloneable
      * unless the current player gains enough points to win.
      *
      * @param sh the ship to move on the board; its coordinate must be
-     *           the edge to move from
+     *           the edge to move from. Must not be a temporary ship.
      * @param toEdge    Edge coordinate to move to
      * @since 2.0.00
      */
     public void moveShip(SOCShip sh, final int toEdge)
     {
-        undoPutPieceCommon(sh);
+        undoPutPieceCommon(sh, false);
         SOCShip sh2 = new SOCShip(sh.getPlayer(), toEdge, board);
         putPiece(sh2);  // calls checkForWinner, etc
         movedShipThisTurn = true;
@@ -2543,8 +2545,10 @@ public class SOCGame implements Serializable, Cloneable
      * or a ship being moved.
      *
      * @param pp  the piece to remove from the board
+     * @param isTempPiece  Is this a temporary piece?  If so, do not call the
+     *                     game's {@link SOCScenarioEventListener}.
      */
-    protected void undoPutPieceCommon(SOCPlayingPiece pp)
+    protected void undoPutPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
     {
         //D.ebugPrintln("@@@ undoPutTempPiece "+pp);
         board.removePiece(pp);
@@ -2567,7 +2571,7 @@ public class SOCGame implements Serializable, Cloneable
 
             for (int i = 0; i < maxPlayers; i++)
             {
-                players[i].putPiece(se);
+                players[i].putPiece(se, isTempPiece);
             }
 
             board.putPiece(se);
@@ -2584,7 +2588,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void undoPutTempPiece(SOCPlayingPiece pp)
     {
-        undoPutPieceCommon(pp);
+        undoPutPieceCommon(pp, true);
 
         //
         // update which player has longest road
@@ -2597,6 +2601,7 @@ public class SOCGame implements Serializable, Cloneable
      * undo the putting of an initial settlement.
      * If state is STATE2B, resources will be returned.
      * Player is unchanged; state will become STATE1A or STATE2A.
+     * Not for use with temporary pieces (use {@link #undoPutTempPiece(SOCPlayingPiece)} instead).
      *
      * @param pp the piece to remove from the board
      */
@@ -2609,7 +2614,7 @@ public class SOCGame implements Serializable, Cloneable
         if (pp.getCoordinates() != pp.getPlayer().getLastSettlementCoord())
             throw new IllegalArgumentException("Not coordinate of last settlement");
 
-        undoPutPieceCommon(pp);  // Will also zero resources via player.undoPutPiece
+        undoPutPieceCommon(pp, false);  // Will also zero resources via player.undoPutPiece
 
         if (gameState == START1B)
             gameState = START1A;
