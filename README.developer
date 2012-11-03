@@ -334,6 +334,10 @@ will add whitespace to the blank line to match the current indent.
 If desired, in Eclipse preferences, you can bind a key combination to Remove Trailing Whitespace.
 This will trim it from the entire file when the key is pressed.
 
+To manually clean up trailing whitespace:
+Eclipse preferences -> general -> editors -> text editors -> [x] Show whitespace characters
+Find/Replace: Regular expressions: Find [\t ]+$
+
 
 github
 ------
