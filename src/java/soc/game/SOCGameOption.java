@@ -1705,6 +1705,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             if ((opt != null) && (opt.getIntValue() > 4))
                 setBoolOption(newOpts, "PLB");
 
+            // If PLL is set, set game scenario option _SC_SANY
+            //  (This code will change once we've implemented multiple scenarios)
+            opt = newOpts.get("PLL");
+            if ((opt != null) && opt.getBoolValue())
+                setBoolOption(newOpts, K_SC_SANY);
+
         }  // if(doServerPreadjust)
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
