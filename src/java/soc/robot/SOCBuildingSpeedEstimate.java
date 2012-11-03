@@ -125,7 +125,7 @@ public class SOCBuildingSpeedEstimate
     {
         SOCBuildingSpeedEstimate estimate = new SOCBuildingSpeedEstimate(pl.getNumbers());
         final int[] rollsPerResource = estimate.getRollsPerResource();
-        int[] resourceOrder = 
+        int[] resourceOrder =
         {
             SOCResourceConstants.CLAY, SOCResourceConstants.ORE,
             SOCResourceConstants.SHEEP, SOCResourceConstants.WHEAT,
@@ -781,7 +781,7 @@ public class SOCBuildingSpeedEstimate
                 float diceProb = SOCNumberProbabilities.FLOAT_VALUES[diceResult];
 
                 //
-                //  add the resources that we get on this roll to 
+                //  add the resources that we get on this roll to
                 //  each set of resources that we got on the last
                 //  roll and multiply the probabilities
                 //
@@ -839,8 +839,8 @@ public class SOCBuildingSpeedEstimate
                                 for (int trades = 0; trades < numTrades;
                                         trades++)
                                 {
-                                    // 
-                                    // find the most needed resource by looking at 
+                                    //
+                                    // find the most needed resource by looking at
                                     // which of the resources we still need takes the
                                     // longest to aquire
                                     //

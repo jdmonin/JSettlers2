@@ -2425,7 +2425,7 @@ public class SOCRobotNegotiator
 
                 return bankTrade;
             }
-            
+
             giveRsrcIdx++;
         }
 

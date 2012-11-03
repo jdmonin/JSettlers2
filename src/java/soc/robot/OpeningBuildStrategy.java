@@ -59,7 +59,7 @@ public class OpeningBuildStrategy {
     /** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
     private transient D log = new D();
-    
+
     /**
      * used in planning where to put our first and second settlements
      */
@@ -151,7 +151,7 @@ public class OpeningBuildStrategy {
             //
             log.debug("FIRST NODE -----------");
             log.debug("firstNode = " + board.nodeCoordToString(firstNode));
-            
+
             StringBuffer sb = new StringBuffer();
             sb.append("numbers:[");
 
@@ -584,7 +584,7 @@ public class OpeningBuildStrategy {
 
         return secondSettlement;
     }
-    
+
     /**
      * Plan and place a road attached to our most recently placed initial settlement,
      * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}.
@@ -770,10 +770,10 @@ public class OpeningBuildStrategy {
               (settlementNode, plannedRoadDestinationNode);
 
         dummy.destroyPlayer();
-        
+
         return roadEdge;
     }
-    
+
     /**
      * Given a set of nodes, run a bunch of metrics across them
      * to find which one is best for building a
@@ -825,7 +825,7 @@ public class OpeningBuildStrategy {
             }
         }
     }
-    
+
     /**
      * Takes a table of nodes and adds a weighted score to
      * each node score in the table.  A vector of nodes that
@@ -874,7 +874,7 @@ public class OpeningBuildStrategy {
             //log.debug("BSIANS -- put node "+Integer.toHexString(node)+" with old score "+oldScore+" + new score "+score);
         }
     }
-    
+
     /**
      * Takes a table of nodes and adds a weighted score to
      * each node score in the table.  A vector of nodes that
@@ -926,7 +926,7 @@ public class OpeningBuildStrategy {
             //log.debug("BS2AFANS -- put node "+Integer.toHexString(node)+" with old score "+oldScore+" + new score "+score);
         }
     }
-    
+
     /**
      * Estimate the rarity of each resource, given this board's resource locations vs dice numbers.
      * Useful for initial settlement placement and free-resource choice (when no other info available).
@@ -1053,7 +1053,7 @@ public class OpeningBuildStrategy {
 
         return numberOfBuilds;
     }
-    
+
     /**
      * Takes a table of nodes and adds a weighted score to
      * each node score in the table.  Nodes touching hexes

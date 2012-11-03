@@ -363,7 +363,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
                 return;  // <--- Early return: debugRandomPauseActive ---
             }
-            
+
             // time to resume the queue
             debugRandomPauseActive = false;
             while (! debugRandomPauseQueue.isEmpty())
@@ -1233,7 +1233,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
             rt.gc();
             sendText(ga, "Free Memory:" + rt.freeMemory());
         }
-        
+
     }
 
     /**
@@ -1496,7 +1496,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * Server will soon send a JOINGAMEREQUEST if we should join the new game.
      *
      * @param mes  the message
-     * 
+     *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
      * @see soc.game.SOCGame#resetAsCopy()
      * @see #handleJOINGAMEREQUEST(SOCJoinGameRequest)

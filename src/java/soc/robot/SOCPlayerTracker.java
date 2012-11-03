@@ -521,18 +521,18 @@ public class SOCPlayerTracker
             addTheirNewRoadOrShip(road, false);
         }
     }
-    
+
     /**
      * Remove our incorrect road or ship placement, it's been rejected by the server.
-     * 
+     *
      * @param road Location of our bad road or ship
-     * 
+     *
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
      */
     public void cancelWrongRoadOrShip(SOCRoad road)
     {
         addTheirNewRoadOrShip(road, true);
-        
+
         //
         // Cancel-actions to remove from potential settlements list,
         // (since it was wrongly placed), taken from addOurNewRoad.
@@ -1131,19 +1131,19 @@ public class SOCPlayerTracker
 
     /**
      * Remove our incorrect settlement placement, it's been rejected by the server.
-     * 
+     *
      * @param settlement Location of our bad settlement
-     * 
+     *
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
      */
     public void cancelWrongSettlement(SOCSettlement settlement)
     {
         addTheirNewSettlement(settlement, true);
-        
+
         /**
          * Cancel-actions to remove from potential settlements list,
          * (since it was wrongly placed), taken from addOurNewSettlement.
-         * 
+         *
          * see if the new settlement was a possible settlement in
          * the list.  if so, remove it.
          */
@@ -1376,16 +1376,16 @@ public class SOCPlayerTracker
                         final int settleCoord = settlement.getCoordinates(),
                                   settlePN    = settlement.getPlayerNumber();
                         Enumeration<SOCPossiblePiece> threatEnum = pr.getThreats().elements();
-    
+
                         while (threatEnum.hasMoreElements())
                         {
                             SOCPossiblePiece threat = threatEnum.nextElement();
-    
+
                             if ((threat.getType() == SOCPossiblePiece.SETTLEMENT) && (threat.getCoordinates() == settleCoord) && (threat.getPlayer().getPlayerNumber() == settlePN))
                             {
                                 D.ebugPrintln("$$$ new settlement cuts off road at " + Integer.toHexString(pr.getCoordinates()));
                                 prTrash.addElement(pr);
-    
+
                                 break;
                             }
                         }
@@ -1624,9 +1624,9 @@ public class SOCPlayerTracker
     /**
      * Remove our incorrect city placement, it's been rejected by the server.
      * Note, there is no addNewCity or addTheirNewCity method.
-     * 
+     *
      * @param city Location of our bad city
-     * 
+     *
      * @see SOCRobotBrain#cancelWrongPiecePlacement(SOCCancelBuildRequest)
      */
     public void cancelWrongCity(SOCCity city)

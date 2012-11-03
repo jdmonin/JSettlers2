@@ -209,7 +209,7 @@ public class SOCRobotBrain extends Thread
      * This is what we tried building this turn,
      * but the server said it was an illegal move
      * (due to a bug in our robot).
-     * 
+     *
      * @see #whatWeWantToBuild
      * @see #failedBuildingAttempts
      */
@@ -220,16 +220,16 @@ public class SOCRobotBrain extends Thread
      * made this turn.  Avoid infinite turn length, by
      * preventing robot from alternately choosing two
      * wrong things when the server denies a bad build.
-     * 
+     *
      * @see #whatWeFailedToBuild
      * @see #MAX_DENIED_BUILDING_PER_TURN
      */
     protected int failedBuildingAttempts;
-    
+
     /**
      * If, during a turn, we make this many illegal build
      * requests that the server denies, stop trying.
-     * 
+     *
      * @see #failedBuildingAttempts
      */
     public static int MAX_DENIED_BUILDING_PER_TURN = 3;
@@ -1542,11 +1542,11 @@ public class SOCRobotBrain extends Thread
                         if (expectDICERESULT)
                         {
                             expectDICERESULT = false;
-    
+
                             if (((SOCDiceResult) mes).getResult() == 7)
                             {
                                 moveRobberOnSeven = true;
-    
+
                                 if (ourPlayerData.getResources().getTotal() > 7)
                                     expectDISCARD = true;
 
@@ -1755,7 +1755,7 @@ public class SOCRobotBrain extends Thread
                     waitingForGameState = true;
                     counter = 0;
                     expectPLAY1 = true;
-    
+
                     //D.ebugPrintln("!!! PUTTING PIECE "+whatWeWantToBuild+" !!!");
                     pause(500);
                     client.putPiece(game, whatWeWantToBuild);
@@ -1836,9 +1836,9 @@ public class SOCRobotBrain extends Thread
                     waitingForGameState = true;
                     counter = 0;
                     expectPLAY1 = true;
-    
+
                     SOCPossiblePiece posPiece = buildingPlan.pop();
-    
+
                     if (posPiece.getType() == SOCPossiblePiece.ROAD)
                         whatWeWantToBuild = new SOCRoad(ourPlayerData, posPiece.getCoordinates(), null);
                     else
@@ -1857,7 +1857,7 @@ public class SOCRobotBrain extends Thread
             case SOCGame.START1A:
             {
                 expectSTART1A = false;
-    
+
                 if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START1A && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START1A = true;
@@ -1872,7 +1872,7 @@ public class SOCRobotBrain extends Thread
             case SOCGame.START1B:
             {
                 expectSTART1B = false;
-    
+
                 if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START1B && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START1B = true;
@@ -1887,7 +1887,7 @@ public class SOCRobotBrain extends Thread
             case SOCGame.START2A:
             {
                 expectSTART2A = false;
-    
+
                 if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START2A && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START2A = true;
@@ -1902,7 +1902,7 @@ public class SOCRobotBrain extends Thread
             case SOCGame.START2B:
             {
                 expectSTART2B = false;
-    
+
                 if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START2B && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START2B = true;
@@ -2691,7 +2691,7 @@ public class SOCRobotBrain extends Thread
                 cancelWrongPiecePlacementLocal(whatWeWantToBuild);
                 // cancel sets whatWeWantToBuild = null;
             }
-            
+
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
@@ -2708,7 +2708,7 @@ public class SOCRobotBrain extends Thread
                 cancelWrongPiecePlacementLocal(whatWeWantToBuild);
                 // cancel sets whatWeWantToBuild = null;
             }
-            
+
             break;
 
         case SOCPlayingPiece.CITY:
@@ -2743,7 +2743,7 @@ public class SOCRobotBrain extends Thread
                 cancelWrongPiecePlacementLocal(whatWeWantToBuild);
                 // cancel sets whatWeWantToBuild = null;
             }
-            
+
             break;
 
         }
@@ -2831,7 +2831,7 @@ public class SOCRobotBrain extends Thread
             break;
 
         case SOCPlayerElement.ORE:
-            
+
             handlePLAYERELEMENT_numRsrc
                 (mes, pl, SOCResourceConstants.ORE, "ORE");
             break;
@@ -3079,7 +3079,7 @@ public class SOCRobotBrain extends Thread
                 }
             }
         }
-        
+
         final int pNum = newSettlement.getPlayerNumber();
 
         ///
@@ -3206,7 +3206,7 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Run a newly placed road or ship through the playerTrackers.
-     * 
+     *
      * @param newRoad  The newly placed road or ship
      * @param isCancel Is this our own robot's placement, rejected by the server?
      *     If so, this method call will cancel its placement within the game data / robot data.
@@ -3312,7 +3312,7 @@ public class SOCRobotBrain extends Thread
             tracker.releaseMonitor();
         }
     }
-    
+
     /**
      *  We've asked for an illegal piece placement.
      *  Cancel and invalidate this planned piece, make a new plan.
@@ -3366,7 +3366,7 @@ public class SOCRobotBrain extends Thread
             if (coord != -1)
             {
                 SOCPlayingPiece cancelPiece;
-    
+
                 /**
                  * First, invalidate that piece in trackers, so we don't try again to
                  * build it. If we treat it like another player's new placement, we
@@ -3377,11 +3377,11 @@ public class SOCRobotBrain extends Thread
                 case SOCPlayingPiece.ROAD:
                     cancelPiece = new SOCRoad(dummyCancelPlayerData, coord, null);
                     break;
-    
+
                 case SOCPlayingPiece.SETTLEMENT:
                     cancelPiece = new SOCSettlement(dummyCancelPlayerData, coord, null);
                     break;
-    
+
                 case SOCPlayingPiece.CITY:
                     cancelPiece = new SOCCity(dummyCancelPlayerData, coord, null);
                     break;
@@ -3389,11 +3389,11 @@ public class SOCRobotBrain extends Thread
                 case SOCPlayingPiece.SHIP:
                     cancelPiece = new SOCShip(dummyCancelPlayerData, coord, null);
                     break;
-    
+
                 default:
                     cancelPiece = null;  // To satisfy javac
                 }
-    
+
                 cancelWrongPiecePlacementLocal(cancelPiece);
             }
         } else {
@@ -3959,7 +3959,7 @@ public class SOCRobotBrain extends Thread
 
             return true;
         }
-        
+
         return false;
     }
 
@@ -4166,7 +4166,7 @@ public class SOCRobotBrain extends Thread
         do
         {
             int numNeededResources = 0;
-    
+
             for (int resource = SOCResourceConstants.CLAY;
                     resource <= SOCResourceConstants.WOOD;
                     resource++)
@@ -4175,14 +4175,14 @@ public class SOCRobotBrain extends Thread
                 if (diff > 0)
                     numNeededResources += diff;
             }
-    
+
             if ((numNeededResources == numMore)  // TODO >= numMore ? (could change details of current bot behavior)
                 || (chooseIfNotNeeded && (numNeededResources > numMore)))
             {
                 chooseFreeResources(targetResources, numMore, ! chooseIfNotNeeded);
                 return true;
             }
-    
+
             if (! chooseIfNotNeeded)
                 return false;
 

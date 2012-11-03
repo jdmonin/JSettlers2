@@ -66,7 +66,7 @@ public class SOCRobotPinger extends Thread
             Thread.currentThread().setName("robotPinger-" + robotNickname);
         }
         catch (Throwable th) {}
-        
+
         while (alive)
         {
             try
