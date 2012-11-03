@@ -2250,7 +2250,7 @@ public class SOCPlayerClient extends Panel
         Hashtable<String,SOCGameOption> gameOpts;
         if (isPractice)
         {
-            gameOpts = practiceServGameOpts.optionSet;  // holds most recent settings by user
+            gameOpts = net.practiceServer.getGameOptions(gaName);
             if (gameOpts != null)
                 gameOpts = new Hashtable<String,SOCGameOption>(gameOpts);  // changes here shouldn't change practiceServ's copy
         } else {
