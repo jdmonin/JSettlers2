@@ -71,6 +71,13 @@ import soc.message.SOCMessage;
  * If you create a ChangeListener, consider adding equivalent code to
  * {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)} for the server side.
  *<P>
+ * <B>Sea Board Scenarios:</B><br>
+ * Game scenarios were introduced with the large sea board in 2.0.00.
+ * Game options are used to indicate which {@link SOCScenarioPlayerEvent scenario events}
+ * and rules are possible in the current game.
+ * These all start with <tt>"_SC_"</tt> and have a static key string;
+ * an example is {@link #K_SC_SANY} for scenario game option <tt>"_SC_SANY"</tt>.
+ *<P>
  * <B>Version negotiation:</B><br>
  * Game options were introduced in 1.1.07; check server, client versions against
  * {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
@@ -119,6 +126,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
      *    existing option.  So in NewGameOptionsFrame, it appears on the line following
      *    the PL option in client version 1.1.13 and above.
+     *
+     * <h3>Current Game Scenario options:</h3>
+     *<UL>
+     *<LI> _SC_SANY  SVP to settle in any new land area: {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     *</UL>
      *
      * <h3>If you want to add a game option:</h3>
      *<UL>
@@ -252,6 +264,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         opt.put("DH", new SOCGameOption
                 ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
                 // TODO no robot players for DH
+
+        // Game scenario options (rules and events)
+        opt.put(K_SC_SANY, new SOCGameOption
+                (K_SC_SANY, 2000, 2000, false, true, "Scenarios: SVP for your first settlement on any island"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -399,6 +415,15 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /** Highest OTYPE value known at this version */
     public static final int OTYPE_MAX = OTYPE_STRHIDE;  // OTYPE_* - adj OTYPE_MAX if adding new type
+
+    // Game option keynames for scenario flags.
+
+    /**
+     * Scenario key <tt>_SC_SANY</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_SANY = "_SC_SANY";
+
 
     // If you create a new option type,
     // please update parseOptionsToHash(), packOptionsToString(),

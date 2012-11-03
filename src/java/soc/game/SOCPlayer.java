@@ -1737,7 +1737,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      */
                     if ((! scenario_svpFromNewLandArea)
                         && (board instanceof SOCBoardLarge)
-                        && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
+                        && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes())
+                        && game.isGameOptionSet(SOCGameOption.K_SC_SANY))
                     {
                         final int startArea = ((SOCBoardLarge) board).getStartingLandArea();
                         if (startArea != 0)

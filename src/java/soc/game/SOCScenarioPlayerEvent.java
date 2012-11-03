@@ -23,6 +23,7 @@ package soc.game;
 /**
  * Per-player scenario event codes.
  * Used by {@link SOCScenarioEventListener}s.
+ * Each event also has a {@link SOCGameOption} to indicate its scenario rules are active; see enum value javadocs.
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
@@ -31,6 +32,7 @@ public enum SOCScenarioPlayerEvent
     /**
      * Special victory point awarded for first settlement in any land area past the starting land area.
      * Once per player per game (not once per player in each other land area).
+     * Game option {@link SOCGameOption#K_SC_SANY _SC_SANY}.
      */
     SVP_SETTLED_ANY_NEW_LANDAREA(1);
 

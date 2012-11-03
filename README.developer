@@ -28,6 +28,7 @@ Communication is described in soc.message.SOCMessage.
 Robots talk with the server like normal human clients.
 Most robot messages are per-game; instead of being handled in SOCRobotClient,
 these are handled in a loop in SOCRobotBrain.run().
+Game options and scenario rules are controlled through SOCGameOption.
 
 Coding is done in Java 1.5, but should compile cleanly in newer JDKs.
 (Before v2.0, we restricted ourselves to 1.4 for backwards compatibility.)
