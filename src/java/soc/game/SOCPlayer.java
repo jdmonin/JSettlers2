@@ -2304,6 +2304,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         D.ebugPrintln("--- SOCPlayer.removePiece(" + piece + ")");
 
+        final int pieceCoord = piece.getCoordinates();
+        final Integer pieceCoordInt = new Integer(pieceCoord);
+        final int ptype = piece.getType();
+
         Enumeration<SOCPlayingPiece> pEnum = pieces.elements();
         SOCBoard board = game.getBoard();
 
@@ -2311,9 +2315,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             SOCPlayingPiece p = pEnum.nextElement();
 
-            final int pieceCoord = piece.getCoordinates();
-            final Integer pieceCoordInt = new Integer(pieceCoord);
-            final int ptype = piece.getType();
             if ((ptype == p.getType()) && (pieceCoord == p.getCoordinates()))
             {
                 pieces.removeElement(p);
