@@ -438,13 +438,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private boolean hasCalledSetSize;
 
     /**
-     * The board is configured for 6-player mode (and is {@link #isRotated});
+     * The board is configured for 6-player layout (and is {@link #isRotated});
      * set in constructor by checking {@link SOCBoard#getBoardEncodingFormat()}.
      * The entire coordinate system is land, except the rightmost hexes are unused
      * (7D-DD-D7 row).
      * The 6-player mode uses {@link #hexX_6pl} instead of {@link #hexX_st} for coordinates.
      *<P>
      * When {@link #isLargeBoard}, this field is false even if the game has 5 or 6 players.
+     * The <tt>is6player</tt> flag is about the hex layout on the board, not the number of players.
      * @see #inactiveHexNums
      * @see #isLargeBoard
      * @since 1.1.08
@@ -2815,8 +2816,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         // Since we have seats 0-3 in the corners already for 4-player,
         // just change pnum for 6-player.  Seats 0 and 1 need no change.
         // We'll use 4 for middle-right, and 5 for middle-left.
+        // Must check game.maxPlayers and not the is6player flag,
+        // in case we're on the large sea board (isLargeBoard).
 
-        if (is6player)
+        if (game.maxPlayers > 4)
         {
             switch (pnum)
             {
