@@ -2568,7 +2568,7 @@ public class SOCPlayerClient extends Applet
         Hashtable gameOpts;
         if (isPractice)
         {
-            gameOpts = practiceServGameOpts.optionSet;  // holds most recent settings by user
+            gameOpts = practiceServer.getGameOptions(gaName);
             if (gameOpts != null)
                 gameOpts = (Hashtable) gameOpts.clone();  // changes here shouldn't change practiceServ's copy
         } else {
