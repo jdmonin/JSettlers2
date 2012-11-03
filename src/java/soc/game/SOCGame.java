@@ -2393,6 +2393,9 @@ public class SOCGame implements Serializable, Cloneable
      * Does not advance turn or update gamestate-related fields.
      *
      * @param pp the piece to put on the board
+     *
+     * @see #undoPutTempPiece(SOCPlayingPiece)
+     * @see #saveLargestArmyState()
      */
     public void putTempPiece(SOCPlayingPiece pp)
     {
@@ -2577,6 +2580,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pp  the piece to remove from the board
      *
      * @see #undoPutInitSettlement(SOCPlayingPiece)
+     * @see #restoreLargestArmyState()
      */
     public void undoPutTempPiece(SOCPlayingPiece pp)
     {
@@ -5010,7 +5014,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * save the state of who has largest army
+     * Save the state of who has largest army.
+     * This is a field, not a stack, so do not call twice
+     * unless you call {@link #restoreLargestArmyState()} between them.
      */
     public void saveLargestArmyState()
     {
@@ -5018,7 +5024,9 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * restore the state of who had largest army
+     * Restore the state of who had largest army.
+     * This is a field, not a stack, so do not call twice
+     * unless you call {@link #saveLargestArmyState()} between them.
      */
     public void restoreLargestArmyState()
     {

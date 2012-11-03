@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.game;
 
@@ -24,7 +24,11 @@ import soc.disableDebug.D;
 
 
 /***
- * this keeps track of the old LR stats
+ * This keeps track of the old LR stats (Longest Road).
+ * Used with {@link SOCGame#putTempPiece(SOCPlayingPiece)}
+ * / {@link SOCGame#undoPutTempPiece(SOCPlayingPiece)}.
+ * Tracks each player's LR length, and the player who
+ * currently has the longest road.
  *
  * @author  Robert S. Thomas
  */
@@ -34,7 +38,7 @@ public class SOCOldLRStats
     SOCPlayer playerWithLR;
 
     /**
-     * constructor
+     * Remembers the game's current LR player and each player's LR lengths.
      *
      * @param  ga  the game
      */
@@ -62,7 +66,8 @@ public class SOCOldLRStats
     }
 
     /**
-     * restore the old stats
+     * Restores the old LR stats within game state, from this object's saved data,
+     * after removing a temporary piece.
      *
      * @param  ga  the game
      */

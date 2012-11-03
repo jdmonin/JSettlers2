@@ -1484,6 +1484,9 @@ public class SOCRobotDM
 	  brain.getDRecorder().suspend();
 	}
 	SOCPlayerTracker.updateWinGameETAs(trackersCopy);
+
+	// TODO refactor? This section is like a copy of calcWGETABonus, with something added in the middle
+
 	Iterator<SOCPlayerTracker> trackersBeforeIter = trackersCopy.values().iterator();
 	while (trackersBeforeIter.hasNext())
 	{
@@ -1839,7 +1842,7 @@ public class SOCRobotDM
    * @param posRoad  the possible piece that we're scoring
    * @param roadETA  the eta for the road
    * @param leadersCurrentWGETA  the leaders current WGETA
-   * @param playerTrackers  the player trackers (passed in as an argument for figuring out road building plan)
+   * @param playerTrackers  the player trackers (for figuring out road building plan and bonus/ETA)
    */
   protected float getWinGameETABonusForRoad
       (final SOCPossibleRoad posRoad, final int roadETA, final int leadersCurrentWGETA,
@@ -1897,10 +1900,13 @@ public class SOCRobotDM
   }
 
   /**
-   * calc the win game eta bonus
+   * Calc the win game ETA bonus for a move, based on {@link SOCPlayerTracker#getWinGameETA()}.
+   * The bonus is based on lowering your bot's WGETA and increasing the leaders' WGETA.
    *
    * @param  trackersBefore   list of player trackers before move
-   * @param  trackersAfter    list of player trackers after move
+   * @param  trackersAfter    list of player trackers after move;
+   *           call {@link SOCPlayerTracker#updateWinGameETAs(HashMap) SOCPlayerTracker.updateWinGameETAs(trackersAfter)}
+   *           before calling this method
    */
   protected float calcWGETABonus
       (HashMap<Integer, SOCPlayerTracker> trackersBefore, HashMap<Integer, SOCPlayerTracker> trackersAfter)
@@ -1908,8 +1914,8 @@ public class SOCRobotDM
     D.ebugPrintln("^^^^^ calcWGETABonus");
     int originalWGETAs[] = new int[game.maxPlayers];
     int WGETAdiffs[] = new int[game.maxPlayers];
-    Vector<SOCPlayerTracker> leaders = new Vector<SOCPlayerTracker>();
-    int bestWGETA = 1000;
+    Vector<SOCPlayerTracker> leaders = new Vector<SOCPlayerTracker>();  // Players winning soonest, based on ETA
+    int bestWGETA = 1000;  // Lower is better
     float bonus = 0;
 
     Iterator<SOCPlayerTracker> trackersBeforeIter = trackersBefore.values().iterator();
@@ -1940,13 +1946,18 @@ public class SOCRobotDM
   }
 
   /**
-   * calcWGETABonusAux
+   * Helps calculate WGETA bonus for making a move or other change in the game.
+   * The bonus is based on lowering your bot's WGETA and increasing the leaders' WGETA.
    *
-   * @param originalWGETAs   the original WGETAs
-   * @param trackersAfter    the playerTrackers after the change
-   * @param leaders          a list of leaders
+   * @param originalWGETAs   the original WGETAs; each player's {@link SOCPlayerTracker#getWinGameETA()} before the change
+   * @param trackersAfter    the playerTrackers after the change;
+   *          call {@link SOCPlayerTracker#updateWinGameETAs(HashMap) SOCPlayerTracker.updateWinGameETAs(trackersAfter)}
+   *          before calling this method
+   * @param leaders          a list of leaders (players winning soonest);
+   *          the player(s) with lowest {@link SOCPlayerTracker#getWinGameETA()}.
+   *          Contains only one element, unless there is an ETA tie.
    */
-  public float calcWGETABonusAux
+  private float calcWGETABonusAux
       (final int[] originalWGETAs, HashMap<Integer, SOCPlayerTracker> trackersAfter, Vector<SOCPlayerTracker> leaders)
   {
     int WGETAdiffs[] = new int[game.maxPlayers];
@@ -1984,7 +1995,7 @@ public class SOCRobotDM
     
     //
     // bonus is based on lowering your WGETA
-    // and increaseing the leaders' WGETA
+    // and increasing the leaders' WGETA
     //
     if ((originalWGETAs[ourPlayerNumber] > 0) &&
 	(bonus == 0)) {
@@ -2011,7 +2022,11 @@ public class SOCRobotDM
 
 	  if (originalWGETAs[pn] > 0)
 	  {
-	    float takedownBonus = -1.0f * (100.0f / game.maxPlayers) * adversarialFactor * ((float)WGETAdiffs[pn] / (float)originalWGETAs[pn]) * ((float)bestWGETA / (float)originalWGETAs[pn]);
+	    final float takedownBonus = -1.0f
+	        * (100.0f / game.maxPlayers)
+	        * adversarialFactor
+	        * ((float) WGETAdiffs[pn] / (float) originalWGETAs[pn])
+	        * ((float) bestWGETA / (float) originalWGETAs[pn]);
 	    bonus += takedownBonus;
 	    D.ebugPrintln("^^^^ added takedown bonus for player "+pn+" : "+takedownBonus);
 	    if (((brain != null) && (brain.getDRecorder().isOn())) && (takedownBonus != 0)) {
@@ -2041,7 +2056,7 @@ public class SOCRobotDM
 
         if (originalWGETAs[leaderPN] > 0)
         {
-	  float takedownBonus = -1.0f
+	  final float takedownBonus = -1.0f
 	      * (100.0f / game.maxPlayers)
 	      * leaderAdversarialFactor
 	      * ((float) WGETAdiffs[leaderPN] / (float) originalWGETAs[leaderPN]);
@@ -2052,7 +2067,7 @@ public class SOCRobotDM
 	  }
 	  
 	} else if (WGETAdiffs[leaderPN] < 0) {
-	  float takedownBonus = (100.0f / game.maxPlayers) * leaderAdversarialFactor;
+	  final float takedownBonus = (100.0f / game.maxPlayers) * leaderAdversarialFactor;
 	  bonus += takedownBonus;
 	  D.ebugPrintln("^^^^ added takedown bonus for leader " + leaderPN + " : +" + takedownBonus);
 	  if (((brain != null) && (brain.getDRecorder().isOn())) && (takedownBonus != 0)) {
@@ -2077,6 +2092,9 @@ public class SOCRobotDM
     D.ebugPrintln("$$$ devCardScore = +"+devCardScore);
     D.ebugPrintln("--- before [start] ---");
     // int ourCurrentWGETA = ourPlayerTracker.getWinGameETA();
+
+    // TODO refactor? This section is like a copy of calcWGETABonus, with something added in the middle
+
     int WGETAdiffs[] = new int[game.maxPlayers];
     int originalWGETAs[] = new int[game.maxPlayers];
     int bestWGETA = 1000;

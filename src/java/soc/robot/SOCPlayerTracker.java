@@ -3562,13 +3562,16 @@ public class SOCPlayerTracker
     }
 
     /**
-     * See how building a piece impacts the game
+     * See how building a piece impacts the game.
+     * Calls {@link SOCGame#putTempPiece(SOCPlayingPiece)} and {@link SOCPlayerTracker#copyPlayerTrackers(HashMap)},
+     * then adds <tt>piece</tt> to the tracker copies.
      *
      * @param piece      the piece to build
      * @param game       the game
      * @param trackers   the player trackers
      *
      * @return a copy of the player trackers with the new piece in place
+     * @see #tryPutPieceNoCopy(SOCPlayingPiece, SOCGame, HashMap)
      */
     public static HashMap<Integer, SOCPlayerTracker> tryPutPiece
         (SOCPlayingPiece piece, SOCGame game, HashMap<Integer, SOCPlayerTracker> trackers)
@@ -3610,12 +3613,12 @@ public class SOCPlayerTracker
     }
 
     /**
-     * same as tryPutPiece, but we don't make a copy of the player trackers
-     * instead you supply the copy
+     * Same as {@link #tryPutPiece(SOCPlayingPiece, SOCGame, HashMap) tryPutPiece},
+     * but we don't make a copy of the player trackers. Instead caller supplies the copy.
      *
      * @param piece      the piece to build
      * @param game       the game
-     * @param trackers   the player trackers
+     * @param trackers   the already-copied player trackers
      */
     public static void tryPutPieceNoCopy
         (SOCPlayingPiece piece, SOCGame game, HashMap<Integer, SOCPlayerTracker> trackers)
@@ -3785,7 +3788,9 @@ public class SOCPlayerTracker
     }
 
     /**
-     * update winGameETAs for player trackers
+     * Update winGameETAs for player trackers.
+     * For each tracker, call {@link #recalcLongestRoadETA()},
+     * {@link #recalcLongestRoadETA()}, {@link #recalcWinGameETA()}.
      *
      * @param playerTrackers  the player trackers
      */
