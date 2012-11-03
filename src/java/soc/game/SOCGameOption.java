@@ -1616,26 +1616,8 @@ public class SOCGameOption implements Cloneable, Comparable
             // Set PLB if PL>4
             SOCGameOption optPL = (SOCGameOption) newOpts.get("PL");
             if ((optPL != null) && (optPL.getIntValue() > 4))
-            {
-                SOCGameOption optPLB = (SOCGameOption) newOpts.get("PLB");
-                if (optPLB == null)
-                {
-                    try
-                    {
-                        optPLB = (SOCGameOption) (((SOCGameOption) allOptions.get("PLB")).clone());
-                    }
-                    catch (CloneNotSupportedException e)
-                    {
-                        // required stub; is Cloneable, so won't happen
-                    }
-                    optPLB.boolValue = true;
-                    newOpts.put("PLB", optPLB);
-                }
-                else if (! optPLB.boolValue)
-                {
-                    optPLB.boolValue = true;
-                }
-            }
+                setBoolOption(newOpts, "PLB");
+
         }  // if(doServerPreadjust)
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
@@ -1738,6 +1720,39 @@ public class SOCGameOption implements Cloneable, Comparable
 	    return null;
 	else
 	    return optProblems;
+    }
+
+    /**
+     * Within a set of options, include a boolean option and make it true.
+     * If the option object doesn't exist in <tt>newOpts</tt>, it will be cloned from
+     * the set of known options.
+     * @param newOpts Options to set <tt>boKey</tt> within
+     * @param boKey   Key name for boolean option to set
+     * @throws NullPointerException  if <tt>boKey</tt> isn't in <tt>newOpts</tt>
+     *   and doesn't exist in the set of known options
+     * @since 1.1.17
+     */
+    public static void setBoolOption(Hashtable newOpts, final String boKey)
+        throws NullPointerException
+    {
+        SOCGameOption opt = (SOCGameOption) newOpts.get(boKey);
+        if (opt == null)
+        {
+            try
+            {
+                opt = (SOCGameOption) (((SOCGameOption) allOptions.get(boKey)).clone());
+            }
+            catch (CloneNotSupportedException e)
+            {
+                // required stub; is Cloneable, so won't be thrown
+            }
+            opt.boolValue = true;
+            newOpts.put(boKey, opt);
+        }
+        else if (! opt.boolValue)
+        {
+            opt.boolValue = true;
+        }
     }
 
     /**
