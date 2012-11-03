@@ -1513,6 +1513,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         D.ebugPrintln("--- SOCPlayer.removePiece(" + piece + ")");
 
+        final int pieceCoord = piece.getCoordinates();
+        final int ptype = piece.getType();
+
         Enumeration pEnum = pieces.elements();
         SOCBoard board = game.getBoard();
 
@@ -1520,11 +1523,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             SOCPlayingPiece p = (SOCPlayingPiece) pEnum.nextElement();
 
-            if ((piece.getType() == p.getType()) && (piece.getCoordinates() == p.getCoordinates()))
+            if ((ptype == p.getType()) && (pieceCoord == p.getCoordinates()))
             {
                 pieces.removeElement(p);
 
-                switch (piece.getType())
+                switch (ptype)
                 {
                 case SOCPlayingPiece.ROAD:
                     roads.removeElement(p);
@@ -1533,7 +1536,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     /**
                      * remove the nodes this road touches from the roadNodes list
                      */
-                    Enumeration nodes = board.getAdjacentNodesToEdge(piece.getCoordinates()).elements();
+                    Enumeration nodes = board.getAdjacentNodesToEdge(pieceCoord).elements();
                     int[] nodeCoords = new int[2];
                     int i = 0;
 
@@ -1592,8 +1595,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * NOTE: we're assuming that we could build a road here
                      * before, so we can make it a legal spot again
                      */
-                    potentialRoads[piece.getCoordinates()] = true;
-                    legalRoads[piece.getCoordinates()] = true;
+                    potentialRoads[pieceCoord] = true;
+                    legalRoads[pieceCoord] = true;
 
                     /**
                      * check each adjacent legal edge, if there are
@@ -1601,7 +1604,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * potential road
                      */
                     Vector allPieces = board.getPieces();
-                    Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(piece.getCoordinates()).elements();
+                    Enumeration adjEdgesEnum = board.getAdjacentEdgesToEdge(pieceCoord).elements();
 
                     while (adjEdgesEnum.hasMoreElements())
                     {
