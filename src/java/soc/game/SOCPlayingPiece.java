@@ -92,6 +92,30 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     protected SOCBoard board;
 
     /**
+     * Special Victory Points (SVP) awarded for placing this piece, if any.
+     * Used with the {@link SOCGame#hasSeaBoard large sea board} game scenarios.
+     * When {@link #specialVP} != 0, the source is {@link #specialVPEvent}.
+     *<P>
+     * <b>Note:</b> This is set when the piece was placed, so it's always accurate at server.
+     * At client it may be 0 if the client joined the game after this piece was placed. 
+     *<P>
+     * Package access for SOCPlayer's benefit.
+     * @since 2.0.00
+     */
+    int specialVP;
+
+    /**
+     * If {@link #specialVP} != 0, the event for which the SVP was awarded. Otherwise <tt>null</tt>.
+     *<P>
+     * <b>Note:</b> This is set when the piece was placed, so it's always accurate at server.
+     * At client it may be <tt>null</tt> if the client joined the game after this piece was placed. 
+     *<P>
+     * Package access for SOCPlayer's benefit.
+     * @since 2.0.00
+     */
+    SOCScenarioPlayerEvent specialVPEvent;
+
+    /**
      * Make a new piece.
      *
      * @param ptype  the type of piece, such as {@link #SETTLEMENT}

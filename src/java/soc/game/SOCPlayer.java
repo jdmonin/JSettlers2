@@ -186,6 +186,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * The number of Special Victory Points (SVPs), which are awarded in certain game scenarios on the large sea board.
+     *<P>
+     * When updating this value, if the SVP came from a piece, also set or check {@link SOCPlayingPiece#specialVP}
+     * and {@link SOCPlayingPiece#specialVPEvent}.
      * @since 2.0.00
      */
     private int specialVP;
@@ -1744,6 +1747,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             {
                                 scenario_svpFromNewLandArea = true;
                                 ++specialVP;
+                                piece.specialVP = 1;
+                                piece.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
     
                                 if ((game.scenarioEventListener != null) && ! isTempPiece)
                                 {
