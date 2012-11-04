@@ -1735,8 +1735,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     /**
                      * Do we get an SVP for reaching a new land area?
                      */
-                    if ((! scenario_svpFromNewLandArea)
-                        && (board instanceof SOCBoardLarge)
+                    if ((board instanceof SOCBoardLarge)
                         && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes())
                         && game.isGameOptionSet(SOCGameOption.K_SC_SANY))
                     {
@@ -1746,17 +1745,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(settlementNode);
                             if ((newSettleArea != 0) && (newSettleArea != startArea))
                             {
-                                scenario_svpFromNewLandArea = true;
-                                ++specialVP;
-                                piece.specialVP = 1;
-                                piece.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
-    
-                                if ((game.scenarioEventListener != null) && ! isTempPiece)
-                                {
-                                    // Notify (server or GUI)
-                                    game.scenarioEventListener.playerEvent
-                                        (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
-                                }                            
+                                putPiece_settlement_checkScenarioSVPs
+                                    ((SOCSettlement) piece, newSettleArea, isTempPiece);                            
                             }
                         }
                     }
@@ -1961,6 +1951,34 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                   (edge, newSettle.getCoordinates());
             checkTradeRouteFarEndClosed
                 (sh, edgeFarNode);
+        }
+    }
+
+    /**
+     * Does the player get a Special Victory Point (SVP) for reaching a new land area?
+     * Call when a settlement has been placed in a land area different from {@link SOCBoardLarge#getStartingLandArea()}.
+     * @param piece  Newly placed settlement
+     * @param newSettleArea  Land area number of new settlement's location
+     * @param isTempPiece  Is this a temporary piece?  If so, do not call the
+     *                     game's {@link SOCScenarioEventListener}.
+     * @since 2.0.00
+     */
+    private final void putPiece_settlement_checkScenarioSVPs
+        (final SOCSettlement piece, final int newSettleArea, final boolean isTempPiece)
+    {
+        if (! scenario_svpFromNewLandArea)
+        {
+            scenario_svpFromNewLandArea = true;
+            ++specialVP;
+            piece.specialVP = 1;
+            piece.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
+       
+            if ((game.scenarioEventListener != null) && ! isTempPiece)
+            {
+                // Notify (server or GUI)
+                game.scenarioEventListener.playerEvent
+                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
+            }
         }
     }
 
