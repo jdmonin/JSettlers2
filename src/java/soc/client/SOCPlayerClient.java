@@ -4991,7 +4991,7 @@ public class SOCPlayerClient extends Panel
             {
                 try
                 {
-                    practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, 30, null, null);
+                    practiceServer = new SOCServer(SOCServer.PRACTICE_STRINGPORT, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
                     practiceServer.setPriority(5);  // same as in SOCServer.main
                     practiceServer.start();
 
