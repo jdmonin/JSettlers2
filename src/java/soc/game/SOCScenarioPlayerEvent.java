@@ -34,7 +34,14 @@ public enum SOCScenarioPlayerEvent
      * Once per player per game (not once per player in each other land area).
      * Game option {@link SOCGameOption#K_SC_SANY _SC_SANY}.
      */
-    SVP_SETTLED_ANY_NEW_LANDAREA(1);
+    SVP_SETTLED_ANY_NEW_LANDAREA(0x01),
+
+    /**
+     * 2 SVP awarded each time player settles in another new land area past the starting land area.
+     * Once per area per player per game.
+     * Game option {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
+     */
+    SVP_SETTLED_EACH_NEW_LANDAREA(0x02);
 
     /**
      * Value for sending event codes over a network.
