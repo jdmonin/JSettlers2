@@ -392,7 +392,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * The bit value is (1 &lt;&lt; (landAreaNumber - 1)).
      * @since 2.0.00
      */
-    private int scenario_svpFromEachLandArea;
+    private int scenario_svpFromEachLandArea_bitmask;
 
     /**
      * this is true if this player is a robot
@@ -1990,9 +1990,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
 
         final int laBit = (1 << (newSettleArea - 1));
-        if ((0 == (laBit & scenario_svpFromEachLandArea)) && game.isGameOptionSet(SOCGameOption.K_SC_SEAC))
+        if ((0 == (laBit & scenario_svpFromEachLandArea_bitmask)) && game.isGameOptionSet(SOCGameOption.K_SC_SEAC))
         {
-            scenario_svpFromEachLandArea |= laBit;
+            scenario_svpFromEachLandArea_bitmask |= laBit;
             specialVP += 2;
             newSettle.specialVP = 2;
             newSettle.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA;
