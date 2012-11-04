@@ -1231,6 +1231,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Sets robberHex, contents of hexLayout[] and numberLayout[].
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
+     * Called from {@link #makeNewBoard(Hashtable)} at server only; client has its board layout sent from the server.
      *<P>
      * This method does not clear out {@link #hexLayout} or {@link #numberLayout}
      * before it starts placement.  Since hexLayout's land hex coordinates are hardcoded within
@@ -1314,6 +1315,7 @@ public class SOCBoard implements Serializable, Cloneable
      * Once we've visited each hex, check if any clump subset's
      * size is larger than the allowed size.
      *<P>
+     * Called from {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * Before v2.0.00, this was part of makeNewBoard_placeHexes.
      * 
      * @param unvisited  Contains each land hex's coordinate as an Integer;

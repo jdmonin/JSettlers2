@@ -38,6 +38,9 @@ import java.util.Vector;
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
  * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
+ * During board setup, {@link #makeNewBoard(Hashtable)} calls
+ * {@link #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)}
+ * once for each land area.
  *<P>
  * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
@@ -452,7 +455,8 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Shuffle the hex tiles and layout a board.
      * This is called at server, but not at client;
-     * client instead calls methods such as {@link #setLandHexLayout(int[])}.
+     * client instead calls methods such as {@link #setLandHexLayout(int[])}
+     * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      * @param opts {@link SOCGameOption Game options}, which may affect
      *          tile placement on board, or null.  <tt>opts</tt> must be
      *          the same as passed to constructor, and thus give the same size and layout
@@ -477,7 +481,7 @@ public class SOCBoardLarge extends SOCBoard
         // - Outlying islands:
         makeNewBoard_placeHexes
             (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, 2, (SOCGameOption) null);
-        // - Require players to start on mainland
+        // - Players must start on mainland
         startingLandArea = 1;
 
         // Set up legalRoadEdges:
@@ -559,10 +563,11 @@ public class SOCBoardLarge extends SOCBoard
      * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
      * (for land hex resource types).
      * If <tt>landAreaNumber</tt> != 0, also adds to {@link #landAreasLegalNodes}.
+     * Called from {@link #makeNewBoard(Hashtable)} at server only; client has its board layout sent from the server.
      *<P>
      * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
      * before it starts placement.  You can call it multiple times to set up multiple
-     * areas of land hexes.
+     * areas of land hexes: Call once for each land area.
      *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
@@ -660,10 +665,12 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Calculate the board's legal settlement/city nodes, based on land hexes.
      * All corners of these hexes are legal for settlements/cities.
+     * Called from {@link #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)}.
      *<P>
      * Iterative: Can call multiple times, giving different hexes each time.
      * Each call will add those hexes to {@link #nodesOnLand}.
      * If <tt>landAreaNumber</tt> != 0, also adds them to {@link #landAreasLegalNodes}.
+     * Call this method once for each land area.
      *<P>
      * Before the first call, clear <tt>nodesOnLand</tt>.
      *
