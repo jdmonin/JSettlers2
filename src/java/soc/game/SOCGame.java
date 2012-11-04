@@ -5193,6 +5193,7 @@ public class SOCGame implements Serializable, Cloneable
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
         cp.isPractice = isPractice;
         cp.ownerName = ownerName;
+        cp.scenarioEventListener = scenarioEventListener;
 
         // Game min-version from options
         cp.clientVersionMinRequired = clientVersionMinRequired;
