@@ -386,6 +386,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean scenario_svpFromNewLandArea;
 
     /**
+     * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board},
+     * bitmask: true if the player has been given a Special Victory Point for placing
+     * a settlement in a given new land area.
+     * The bit value is (1 &lt;&lt; (landAreaNumber - 1)).
+     * @since 2.0.00
+     */
+    private int scenario_svpFromEachLandArea;
+
+    /**
      * this is true if this player is a robot
      */
     private boolean robotFlag;
@@ -1736,8 +1745,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * Do we get an SVP for reaching a new land area?
                      */
                     if ((board instanceof SOCBoardLarge)
-                        && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes())
-                        && game.isGameOptionSet(SOCGameOption.K_SC_SANY))
+                        && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
                     {
                         final int startArea = ((SOCBoardLarge) board).getStartingLandArea();
                         if (startArea != 0)
@@ -1964,20 +1972,36 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @since 2.0.00
      */
     private final void putPiece_settlement_checkScenarioSVPs
-        (final SOCSettlement piece, final int newSettleArea, final boolean isTempPiece)
+        (final SOCSettlement newSettle, final int newSettleArea, final boolean isTempPiece)
     {
-        if (! scenario_svpFromNewLandArea)
+        if ((! scenario_svpFromNewLandArea) && game.isGameOptionSet(SOCGameOption.K_SC_SANY))
         {
             scenario_svpFromNewLandArea = true;
             ++specialVP;
-            piece.specialVP = 1;
-            piece.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
+            newSettle.specialVP = 1;
+            newSettle.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
        
             if ((game.scenarioEventListener != null) && ! isTempPiece)
             {
                 // Notify (server or GUI)
                 game.scenarioEventListener.playerEvent
                     (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
+            }
+        }
+
+        final int laBit = (1 << (newSettleArea - 1));
+        if ((0 == (laBit & scenario_svpFromEachLandArea)) && game.isGameOptionSet(SOCGameOption.K_SC_SEAC))
+        {
+            scenario_svpFromEachLandArea |= laBit;
+            specialVP += 2;
+            newSettle.specialVP = 2;
+            newSettle.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA;
+       
+            if ((game.scenarioEventListener != null) && ! isTempPiece)
+            {
+                // Notify (server or GUI)
+                game.scenarioEventListener.playerEvent
+                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA);
             }
         }
     }

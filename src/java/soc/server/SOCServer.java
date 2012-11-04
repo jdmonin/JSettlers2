@@ -1758,6 +1758,15 @@ public class SOCServer extends Server
                     (ga.getName(), pl.getName() + " gets a Special Victory Point for growing past the main island.");
                 // TODO adjust wording
             }
+            break;
+
+        case SVP_SETTLED_EACH_NEW_LANDAREA:
+            {
+                messageToGame
+                    (ga.getName(), pl.getName() + " gets 2 Special Victory Points for settling a new island.");
+            }
+            break;
+
         }
     }
 
