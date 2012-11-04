@@ -473,14 +473,15 @@ public class SOCBoardLarge extends SOCBoard
         // Clears cachedGetlandHexCoords.
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
 
-        landAreasLegalNodes = new HashSet[3];
+        landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
+            // TODO revisit, un-hardcode, when we have multiple scenarios
 
         // - Mainland:
         makeNewBoard_placeHexes
             (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, 1, opt_breakClumps);
         // - Outlying islands:
         makeNewBoard_placeHexes
-            (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, 2, (SOCGameOption) null);
+            (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, LANDHEX_LANDAREA_RANGES_ISLANDS, null);
         // - Players must start on mainland
         startingLandArea = 1;
 
@@ -2701,6 +2702,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * My sample board layout: Each outlying island's land hex coordinates.
      * @see #LANDHEX_COORD_ISLANDS_ALL
+     * @see #LANDHEX_LANDAREA_RANGES_ISLANDS
      */
     private static final int LANDHEX_COORD_ISLANDS_EACH[][] =
     {
@@ -2710,7 +2712,19 @@ public class SOCBoardLarge extends SOCBoard
     };
 
     /**
-     * My sample board layout: Land hex types,
+     * Island hex counts and land area numbers within {@link #LANDHEX_COORD_ISLANDS_ALL}.
+     * Allows us to shuffle them all together ({@link #LANDHEX_TYPE_ISLANDS}).
+     * @see #LANDHEX_COORD_ISLANDS_EACH
+     */
+    private static final int LANDHEX_LANDAREA_RANGES_ISLANDS[] =
+    {
+        2, 5,  // landarea 2 is an island with 5 hexes
+        3, 5,  // landarea 3
+        4, 4   // landarea 4
+    };
+
+    /**
+     * My sample board layout: Land hex types for the 3 small islands,
      * to be used with (for the main island) {@link #makeNewBoard_landHexTypes_v1}[].
      */
     private static final int LANDHEX_TYPE_ISLANDS[] =
