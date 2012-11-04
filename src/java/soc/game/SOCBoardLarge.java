@@ -356,7 +356,7 @@ public class SOCBoardLarge extends SOCBoard
      * based on {@link #nodesOnLand}.
      * Calculated in {@link #makeNewBoard_makeLegalRoadsFromLandNodes()},
      * after {@link #nodesOnLand} is filled by
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
      * Used by {@link #initPlayerLegalRoads()}.
      */
     private HashSet<Integer> legalRoadEdges;
@@ -366,7 +366,7 @@ public class SOCBoardLarge extends SOCBoard
      * based on {@link #hexLayoutLg}.
      * Calculated in {@link #makeNewBoard_makeLegalShipEdges()},
      * after {@link #hexLayoutLg} is filled by
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
      * Used by {@link #initPlayerLegalShips()}.
      */
     private HashSet<Integer> legalShipEdges;
@@ -575,7 +575,6 @@ public class SOCBoardLarge extends SOCBoard
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
      * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
      *                    same array length as <tt>landHexType[]</tt>
-     *                    <BR> Also must contain the coordinate of each land hex.
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
      *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
      * @param landAreaNumber  0 unless there will be more than 1 Land Area (group of islands).
@@ -585,14 +584,93 @@ public class SOCBoardLarge extends SOCBoard
      * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
      *             {@link #landAreasLegalNodes} == null, or not long enough, or
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
+     *             because the land area has already been placed.
+     * @see #makeNewBoard_placeHexes(int[], int[], int[], int[], SOCGameOption)
      */
     private final void makeNewBoard_placeHexes
         (int[] landHexType, final int[] numPath, final int[] number, final int landAreaNumber, SOCGameOption optBC)
         throws IllegalStateException
     {
+        final int[] pathRanges = { landAreaNumber, numPath.length };  // 1 range, uses all of numPath
+        makeNewBoard_placeHexes
+            (landHexType, numPath, number, pathRanges, optBC);
+    }
+
+    /**
+     * For {@link #makeNewBoard(Hashtable)}, place the land hexes, number, and robber
+     * for multiple land areas, after shuffling their common landHexType[].
+     * Sets robberHex, contents of hexLayoutLg[] and numberLayoutLg[].
+     * Adds to {@link #landHexLayout} and {@link SOCBoard#nodesOnLand}.
+     * Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
+     * (for land hex resource types).
+     * If Land Area Number != 0, also adds to {@link #landAreasLegalNodes}.
+     * Called from {@link #makeNewBoard(Hashtable)} at server only; client has its board layout sent from the server.
+     *<P>
+     * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
+     * before it starts placement.  You can call it multiple times to set up multiple
+     * areas of land hexes: Call once for each group of Land Areas which shares a numPath and landHexType.
+     * For each land area, it updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
+     * with the same nodes added to {@link SOCBoard#nodesOnLand}.
+     *<P>
+     * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
+     *
+     * @param landHexType  Resource type to place into {@link #hexLayoutLg} for each land hex; will be shuffled.
+     *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
+     * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
+     *                    same array length as <tt>landHexType[]</tt>.
+     *                    <BR> <tt>landAreaPathRanges[]</tt> tells how to split this array of land hex coordindates
+     *                    into multiple Land Areas.
+     * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
+     *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
+     * @param landAreaPathRanges  <tt>numPath[]</tt>'s Land Area Numbers, and the size of each land area.
+     *                    Array length is 2 x the count of land areas included.
+     *                    Index 0 is the first landAreaNumber, index 1 is the length of that land area (number of hexes).
+     *                    Index 2 is the next landAreaNumber, index 3 is that one's length, etc.
+     *                    The sum of those lengths must equal <tt>numPath.length</tt>.
+     * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
+     * @throws IllegalStateException  if land area number != 0 and either
+     *             {@link #landAreasLegalNodes} == null, or not long enough, or any
+     *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
+     *             because the land area has already been placed.
+     * @throws IllegalArgumentException if <tt>landAreaPathRanges</tt> is null or has an uneven length,
+     *             or if the total length of its land areas != <tt>numPath.length</tt>.
+     * @see #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)
+     */
+    private final void makeNewBoard_placeHexes
+        (int[] landHexType, final int[] numPath, final int[] number, final int[] landAreaPathRanges, SOCGameOption optBC)
+        throws IllegalStateException, IllegalArgumentException
+    {
         final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
         final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
         boolean clumpsNotOK = checkClumps;
+
+        // Validate landAreaPathRanges lengths within numPath
+        if ((landAreaPathRanges == null) || ((landAreaPathRanges.length % 2) != 0))
+            throw new IllegalArgumentException("landAreaPathRanges: uneven length");
+        if (landAreaPathRanges.length <= 2)
+        {
+            final int L = landAreaPathRanges[1];
+            if (L != numPath.length)
+                throw new IllegalArgumentException
+                    ("landAreaPathRanges: landarea " + landAreaPathRanges[0]
+                     + ": range length " + L + " should be " + numPath.length);
+        } else {
+            int L = 0, i;
+            for (i = 1; i < landAreaPathRanges.length; i += 2)
+            {
+                L += landAreaPathRanges[i];
+                if (L > numPath.length)
+                    throw new IllegalArgumentException
+                        ("landAreaPathRanges: landarea " + landAreaPathRanges[i-1]
+                          + ": total range length " + L + " should be " + numPath.length);
+            }
+            if (L < numPath.length)
+                throw new IllegalArgumentException
+                    ("landAreaPathRanges: landarea " + landAreaPathRanges[i-3]
+                      + ": total range length " + L + " should be " + numPath.length);
+        }
+
+        // Shuffle, place, then check layout for clumps:
 
         if (numPath.length > 0)
             cachedGetLandHexCoords = null;  // invalidate the previous cached set
@@ -641,6 +719,8 @@ public class SOCBoardLarge extends SOCBoard
 
             if (checkClumps)
             {
+                // Check the newly placed land area(s) for clumps;
+                // ones placed in previous method calls are ignored
                 Vector<Integer> unvisited = new Vector<Integer>();  // contains each land hex's coordinate
                 for (int i = 0; i < landHexType.length; ++i)
                     unvisited.addElement(new Integer(numPath[i]));
@@ -654,11 +734,20 @@ public class SOCBoardLarge extends SOCBoard
         // add the hex coordinates to landHexLayout,
         // and the hexes' nodes to nodesOnLand.
         // Throws IllegalStateException if landAreaNumber incorrect
-        // vs size/contents of landAreasLegalNodes.
+        // vs size/contents of landAreasLegalNodes
+        // from previously placed land areas.
 
         for (int i = 0; i < landHexType.length; i++)
             landHexLayout.add(new Integer(numPath[i]));
-        makeNewBoard_fillNodesOnLandFromHexes(numPath, landAreaNumber);
+        for (int i = 0, hexIdx = 0; i < landAreaPathRanges.length; i += 2)
+        {
+            final int landAreaNumber = landAreaPathRanges[i],
+                      landAreaLength = landAreaPathRanges[i + 1],
+                      nextHexIdx = hexIdx + landAreaLength;
+            makeNewBoard_fillNodesOnLandFromHexes
+                (numPath, hexIdx, nextHexIdx, landAreaNumber);
+            hexIdx = nextHexIdx;
+        }
 
     }  // makeNewBoard_placeHexes
 
@@ -666,6 +755,7 @@ public class SOCBoardLarge extends SOCBoard
      * Calculate the board's legal settlement/city nodes, based on land hexes.
      * All corners of these hexes are legal for settlements/cities.
      * Called from {@link #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)}.
+     * Can use all or part of a <tt>landHexCoords</tt> array.
      *<P>
      * Iterative: Can call multiple times, giving different hexes each time.
      * Each call will add those hexes to {@link #nodesOnLand}.
@@ -674,7 +764,12 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Before the first call, clear <tt>nodesOnLand</tt>.
      *
-     * @param landHexCoords  Coordinates of a contiguous group of land hexes
+     * @param landHexCoords  Coordinates of a contiguous group of land hexes.
+     *                    If <tt>startIdx</tt> and <tt>pastEndIdx</tt> partially use this array,
+     *                    only that part needs to be contiguous, the rest of <tt>landHexCoords</tt> is ignored.
+     * @param startIdx    First index to use within <tt>landHexCoords[]</tt>; 0 if using the entire array
+     * @param pastEndIdx  Just past the last index to use within <tt>landHexCoords[]</tt>;
+     *                    If this call uses landHexCoords up through its end, this is <tt>landHexCoords.length</tt>
      * @param landAreaNumber  0 unless there will be more than 1 Land Area (groups of islands).
      *                    If != 0, updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
      *                    with the same nodes added to {@link SOCBoard#nodesOnLand}.
@@ -685,7 +780,7 @@ public class SOCBoardLarge extends SOCBoard
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
      */
     private void makeNewBoard_fillNodesOnLandFromHexes
-        (final int landHexCoords[], final int landAreaNumber)
+        (final int landHexCoords[], final int startIdx, final int pastEndIdx, final int landAreaNumber)
         throws IllegalStateException
     {
         if (landAreaNumber != 0)
@@ -697,7 +792,7 @@ public class SOCBoardLarge extends SOCBoard
             landAreasLegalNodes[landAreaNumber] = new HashSet<Integer>();
         }
 
-        for (int i = 0; i < landHexCoords.length; ++i)
+        for (int i = startIdx; i < pastEndIdx; ++i)
         {
             final int[] nodes = getAdjacentNodesToHex(landHexCoords[i]);
             for (int j = 0; j < 6; ++j)
@@ -717,7 +812,7 @@ public class SOCBoardLarge extends SOCBoard
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.
      * Call this only after the very last call to
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
      */
     private void makeNewBoard_makeLegalRoadsFromLandNodes()
     {
@@ -774,7 +869,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Not iterative; clears all previous legal ship edges.
      * Call this only after the very last call to
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int)}.
+     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
      */
     private void makeNewBoard_makeLegalShipEdges()
     {
