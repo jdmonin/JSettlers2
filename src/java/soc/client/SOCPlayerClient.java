@@ -55,6 +55,7 @@ import java.net.Socket;
 
 import java.util.Collection;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
@@ -210,7 +211,7 @@ public class SOCPlayerClient extends Panel
     /**
      * Track the game options available at the remote server, at the practice server.
      * Initialized by {@link #gameWithOptionsBeginSetup(boolean)}
-     * and/or {@link #handleVERSION(boolean, SOCVersion)}.
+     * and/or {@link MessageTreater#handleVERSION(boolean, SOCVersion)}.
      * These fields are never null, even if the respective server is not connected or not running.
      *<P>
      * For a summary of the flags and variables involved with game options,
@@ -1963,6 +1964,25 @@ public class SOCPlayerClient extends Panel
                 // Older server: Look for options created or changed since server's version.
                 // Ask it what it knows about them.
                 Vector<SOCGameOption> tooNewOpts = SOCGameOption.optionsNewerThanVersion(sVersion, false, false, null);
+                if ((tooNewOpts != null) && (sVersion < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES) && ! isPractice)
+                {
+                    // Server is older than 2.0.00; we can't send it any long option names.
+                    // Remove them from our set of options for games at this server.
+                    if (tcpServGameOpts.optionSet == null)
+                        tcpServGameOpts.optionSet = SOCGameOption.getAllKnownOptions();
+                    Iterator<SOCGameOption> opi = tooNewOpts.iterator();
+                    while (opi.hasNext())
+                    {
+                        final SOCGameOption op = opi.next();
+                        if ((op.optKey.length() > 3) || op.optKey.contains("_"))
+                        {
+                            tcpServGameOpts.optionSet.remove(op.optKey);
+                            opi.remove();
+                        }
+                    }
+                    if (tooNewOpts.isEmpty())
+                        tooNewOpts = null;
+                }
                 if (tooNewOpts != null)
                 {
                     if (! isPractice)

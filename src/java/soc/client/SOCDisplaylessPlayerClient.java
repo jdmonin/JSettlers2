@@ -62,6 +62,8 @@ import java.util.Vector;
  * specify the port.
  *<P>
  * The {@link soc.robot.SOCRobotClient} is based on this client.
+ * Because of this, some methods (such as {@link #handleVERSION(boolean, SOCVersion)})
+ * assume the client and server are the same version.
  *
  * @author Robert S Thomas
  */
