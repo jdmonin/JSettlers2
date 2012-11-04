@@ -5043,7 +5043,7 @@ public class SOCPlayerClient extends Panel
         {
             try
             {
-                localTCPServer = new SOCServer(tport, 30, null, null);
+                localTCPServer = new SOCServer(tport, SOCServer.SOC_MAXCONN_DEFAULT, null, null);
                 localTCPServer.setPriority(5);  // same as in SOCServer.main
                 localTCPServer.start();
 
