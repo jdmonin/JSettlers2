@@ -419,6 +419,14 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /** Highest OTYPE value known at this version */
     public static final int OTYPE_MAX = OTYPE_STRHIDE;  // OTYPE_* - adj OTYPE_MAX if adding new type
 
+    /**
+     * Version 2.0.00 introduced longer option keynames (8 characters, earlier max was 3)
+     * and underscores '_' in option names.
+     * Game option names sent to 1.1.xx servers must be 3 characters or less, alphanumeric, no underscores ('_').
+     * @since 2.0.00
+     */
+    public static final int VERSION_FOR_LONGER_OPTNAMES = 2000;
+
     // Game option keynames for scenario flags.
 
     /**
@@ -756,7 +764,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *                Most option keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
      *                The maximum key length is now 8, but older clients will reject keys longer than 3.
      * @param minVers Minimum client version for games where this option is set (its boolean field is true), or -1.
-     *                If <tt>key</tt> is longer than 3 characters, <tt>minVers</tt> must be at least 2000.
+     *                If <tt>key</tt> is longer than 3 characters, <tt>minVers</tt> must be at least 2000
+     *                ({@link #VERSION_FOR_LONGER_OPTNAMES}).
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
      * @param defaultIntValue Default int value, to use if option is set
@@ -791,12 +800,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         {
             if (L > 8)
                 throw new IllegalArgumentException("Key length > 8: " + key);
-            else if (minVers < 2000)
+            else if (minVers < VERSION_FOR_LONGER_OPTNAMES)
                 throw new IllegalArgumentException("Key length > 3 needs minVers 2000 or newer: " + key);
         }
         if (! (isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
             throw new IllegalArgumentException("Key not alphanumeric: " + key);
-        if ((minVers < 2000) && key.contains("_"))
+        if ((minVers < VERSION_FOR_LONGER_OPTNAMES) && key.contains("_"))
             throw new IllegalArgumentException("Key with '_' needs minVers 2000 or newer: " + key);
         if ((minVers < 1000) && (minVers != -1))
             throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
@@ -1574,6 +1583,17 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * <LI> check if client can create game with a specific set of option values: <tt>checkValues</tt> == true
      *</UL>
      * See <tt>checkValues</tt> for method's behavior in each mode.
+     *<P>
+     * <B>Game option names:</B><br>
+     * When running this at the client (<tt>vers</tt> is the older remote server's version),
+     * some of the returned too-new options have long names that can't be sent to a 1.1.xx
+     * server (<tt>vers</tt> &lt; {@link #VERSION_FOR_LONGER_OPTNAMES}).
+     * You must check for this and remove them before sending them to the remote server.
+     * Game option names sent to 1.1.xx servers must be 3 characters or less, alphanumeric, no underscores ('_').
+     *<P>
+     * When running at the server, we will never send an option whose name is invalid to 1.1.xx clients,
+     * because the SOCGameOption constructors enforce <tt>minVers >= 2000</tt> when the name is longer than 3
+     * characters or contains '_'.
      *
      * @param vers  Version to compare known options against
      * @param checkValues  Which mode: Check options' current values and {@link #minVersion},
@@ -1588,7 +1608,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @return Vector of the newer {@link SOCGameOption}s, or null
      *     if all are known and unchanged since <tt>vers</tt>.
      */
-    public static Vector<SOCGameOption> optionsNewerThanVersion(final int vers, final boolean checkValues, final boolean trimEnums, Hashtable<String, SOCGameOption> opts)
+    public static Vector<SOCGameOption> optionsNewerThanVersion
+        (final int vers, final boolean checkValues, final boolean trimEnums, Hashtable<String, SOCGameOption> opts)
     {
         if (opts == null)
             opts = allOptions;
