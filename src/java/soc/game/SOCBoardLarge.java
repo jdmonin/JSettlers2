@@ -212,8 +212,21 @@ public class SOCBoardLarge extends SOCBoard
      */
     public static final int GOLD_HEX = 7;
 
-    /** Maximum land hex type (== {@link #GOLD_HEX}) for this encoding. */
-    private static final int MAX_LAND_HEX_LG = GOLD_HEX;
+    /**
+     * Hex type for the Fog Hex, with actual land type revealed when roads are placed.
+     *<P>
+     * There is no 2-for-1 port for this hex type.
+     *<P>
+     * The numeric value (8) for <tt>FOG_HEX</tt> is the same as
+     * the v1/v2 encoding's {@link SOCBoard#CLAY_PORT_HEX}, but the
+     * ports aren't encoded as hexes for this encoding, so there is no ambiguity
+     * as long as callers of {@link #getHexTypeFromCoord(int)}
+     * check the board encoding format.
+     */
+    public static final int FOG_HEX = 8;
+
+    /** Maximum land hex type (== {@link #FOG_HEX}) for this encoding. */
+    private static final int MAX_LAND_HEX_LG = FOG_HEX;
 
     private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
 
@@ -297,7 +310,8 @@ public class SOCBoardLarge extends SOCBoard
        4 : wheat   {@link #WHEAT_HEX}
        5 : wood    {@link #WOOD_HEX}
        6 : desert  {@link #DESERT_HEX}
-       7 : gold    {@link #GOLD_HEX} (see its javadoc for rule)  also: {@link #MAX_LAND_HEX_LG}
+       7 : gold    {@link #GOLD_HEX} (see its javadoc for rule)
+       8 : fog     {@link #FOG_HEX}  (see its javadoc for rule)  also: {@link #MAX_LAND_HEX_LG}
        </pre>
      *<P>
      * @see SOCBoard#portsLayout
@@ -1090,14 +1104,15 @@ public class SOCBoardLarge extends SOCBoard
      * encoded in the hex layout; use {@link #getPortTypeFromNodeCoord(int)} instead.
      *<P>
      * The numeric value (7) for {@link #GOLD_HEX} is the same as
-     * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, but the
-     * ports aren't encoded that way here, so there is no ambiguity
+     * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, and
+     * {@link #FOG_HEX} (8) is the same as {@link SOCBoard#CLAY_PORT_HEX}.
+     * The ports aren't encoded that way in <tt>SOCBoardLarge</tt>, so there is no ambiguity
      * as long as callers check the board encoding format.
      *
      * @param hex  the coordinates ("ID") for a hex
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX},
+     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
      *         or {@link #WATER_HEX}.
      *         Invalid hex coordinates return -1.
      *
@@ -1119,7 +1134,8 @@ public class SOCBoardLarge extends SOCBoard
      * @param hex  the number of a hex, or -1 for invalid
      * @return the type of hex:
      *         Land in range {@link #CLAY_HEX} to {@link #WOOD_HEX},
-     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, or {@link #WATER_HEX}.
+     *         {@link #DESERT_HEX}, {@link #GOLD_HEX}, {@link #FOG_HEX},
+     *         or {@link #WATER_HEX}.
      *         Invalid hex numbers return -1.
      *
      * @see #getHexTypeFromCoord(int)

@@ -49,7 +49,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Set;
 import java.util.Timer;
 
@@ -5366,6 +5365,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             else
                 hexColor = ColorSquare.WATER;  // for MISC_PORT_HEX
             break;
+        case SOCBoardLarge.FOG_HEX:
+            if (isLargeBoard)
+                hexColor = ColorSquare.FOG;
+            else
+                hexColor = ColorSquare.WATER;  // for CLAY_PORT_HEX
+            break;
+
         default:  // WATER_HEX
             hexColor = ColorSquare.WATER;
         }
@@ -5990,6 +5996,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         sb.append("Wheat");   break;
                     case SOCBoard.WOOD_HEX:
                         sb.append("Wood");    break;
+                    case SOCBoard.WATER_HEX:
+                        sb.append("Water");   break;
+
                     case SOCBoardLarge.GOLD_HEX:
                         if (isLargeBoard)
                             sb.append("Gold");
@@ -5997,8 +6006,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             // GOLD_HEX is also MISC_PORT_HEX
                             sb.append(portDescForType(SOCBoard.MISC_PORT));
                         break;
-                    case SOCBoard.WATER_HEX:
-                        sb.append("Water");   break;
+
+                    case SOCBoardLarge.FOG_HEX:
+                        if (isLargeBoard)
+                            sb.append("Fog (place roads to reveal)");
+                        else
+                            // FOG_HEX is also CLAY_PORT_HEX
+                            sb.append(portDescForType(SOCBoard.CLAY_PORT));
+                        break;
+
                     default:
                         {
                             // Check for a port at this hex.

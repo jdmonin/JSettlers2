@@ -967,17 +967,19 @@ public class OpeningBuildStrategy {
                     for (int i = 0; i < L; i++)
                     {
                         final int hexNumber = board.getNumberOnHexFromCoord(hcoord[i]);
-                        if (hexNumber > 0)
+                        if (hexNumber == 0)
+                            continue;
+
+                        final int htype = board.getHexTypeFromCoord(hcoord[i]);
+                        if (htype == SOCBoardLarge.GOLD_HEX)
                         {
-                            final int htype = board.getHexTypeFromCoord(hcoord[i]);
-                            if (htype != SOCBoardLarge.GOLD_HEX)
-                            {
-                                resourceEstimates[htype] += numberWeights[hexNumber];
-                            } else {
-                                // Count gold as all resource types
-                                for (int ht = SOCBoard.CLAY_HEX; ht <= SOCBoard.WOOD_HEX; ++ht)
-                                    resourceEstimates[ht] += numberWeights[hexNumber];
-                            }
+                            // Count gold as all resource types
+                            for (int ht = SOCBoard.CLAY_HEX; ht <= SOCBoard.WOOD_HEX; ++ht)
+                                resourceEstimates[ht] += numberWeights[hexNumber];
+                        }
+                        else if ((htype >= 0) && (htype <= SOCBoard.WOOD_HEX))
+                        {
+                            resourceEstimates[htype] += numberWeights[hexNumber];
                         }
                     }
                 }

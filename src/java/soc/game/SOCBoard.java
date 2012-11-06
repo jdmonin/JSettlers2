@@ -209,8 +209,8 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Highest-numbered land hex type ({@link #DESERT_HEX}).
      *<P>
-     * The v3 encoding has a higher {@link SOCBoardLarge#GOLD_HEX}, but that's not
-     * encodable in this class (v1 or v2 encoding) because of {@link #MISC_PORT_HEX}.
+     * The v3 encoding has a higher {@link SOCBoardLarge#GOLD_HEX} and {@link SOCBoardLarge#FOG_HEX},
+     * but they aren't encodable in this class (v1 or v2 encoding) because of {@link #MISC_PORT_HEX}.
      * @since 1.1.07
      * @see #isHexOnLand(int)
      * @see #isHexOnWater(int)
@@ -780,6 +780,7 @@ public class SOCBoard implements Serializable, Cloneable
     /**
      * Maximum hex type value for the robber; can be used for array sizing.
      * Same value range as {@link #getHexTypeFromCoord(int)} for the current board encoding.
+     * @see SOCGame#canMoveRobber(int, int)
      * @since 2.0.00
      */
     public final int max_robber_hextype;
@@ -901,9 +902,6 @@ public class SOCBoard implements Serializable, Cloneable
      * Create a new Settlers of Catan Board, with the v1 or v2 encoding.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6. (Added in 1.1.08)
-     * @param maxRobberHextype  Maximum land hextype value, or maximum hex type
-     *         the robber can be placed at.  Same value range as {@link #max_robber_hextype}
-     *         and as your subclass's {@link #getHexTypeFromCoord(int)} method.
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      * @see #createBoard(Hashtable, int)
      */

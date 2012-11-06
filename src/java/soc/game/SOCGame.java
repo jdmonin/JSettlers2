@@ -3811,10 +3811,11 @@ public class SOCGame implements Serializable, Cloneable
             return true;
 
         case SOCBoardLarge.GOLD_HEX:
+        case SOCBoardLarge.FOG_HEX:
             return (board instanceof SOCBoardLarge);
 
         default:
-            return false;  // Land hexes only (Could check max_robber_hex, if we didn't special-case desert,gold)
+            return false;  // Land hexes only (Could check board.max_robber_hex, if we didn't special-case desert,gold,fog)
         }
     }
 

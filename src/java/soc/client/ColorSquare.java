@@ -66,6 +66,12 @@ public class ColorSquare extends Canvas implements MouseListener
      */
     public final static Color GOLD = new Color(255, 250, 0);
 
+    /**
+     * {@link soc.game.SOCBoardLarge#FOG_HEX Fog hex} color.
+     * @since 2.0.00
+     */
+    public final static Color FOG = new Color(220, 220, 220);  // Should not equal GREY, for comparisons
+
     /** Water hex color, for fallback if graphic is missing. @since 1.1.07 */
     public static final Color WATER = new Color(72, 97, 162);  // grey-blue; waterHex.gif average is actually (76, 102, 152)
 
