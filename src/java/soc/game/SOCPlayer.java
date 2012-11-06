@@ -2016,7 +2016,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Call this only after calling {@link SOCBoard#removePiece(SOCPlayingPiece)}.
      *<P>
-     * If the piece is ours, calls {@link #removePiece(SOCPlayingPiece)}.
+     * If the piece is ours, calls {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece) removePiece(piece, null)}.
      *<P>
      * For roads, does not update longest road; if you need to,
      * call {@link #calcLongestRoad2()} after this call.
@@ -2047,7 +2047,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 //
                 // update the potential places to build roads/ships
                 // 
-                removePiece(piece);
+                removePiece(piece, null);
             }
             else
             {
@@ -2098,7 +2098,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             if (ours)
             {
-                removePiece(piece);
+                removePiece(piece, null);
                 ourNumbers.undoUpdateNumbers(piece, board);
 
                 //
@@ -2188,7 +2188,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
             if (ours)
             {
-                removePiece(piece);
+                removePiece(piece, null);
                 potentialCities.add(pieceCoordInt);
 
                 /**
@@ -2341,9 +2341,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * For roads, updates {@link #roadNodes} and {@link #roadNodeGraph}.
      *
      * @param piece  Our player's piece, to be removed from the board
+     * @param replacementPiece  Piece that's replacing this piece; usually null unless player is upgrading to a city.
+     *          If not null, and same player as <tt>piece</tt>, the removed piece's {@link SOCPlayingPiece#specialVP}
+     *          and {@link SOCPlayingPiece#specialVPEvent} are copied to <tt>replacementPiece</tt>
+     *          instead of being subtracted from the player's {@link #getSpecialVP()} count.
      * @see #undoPutPiece(SOCPlayingPiece)
      */
-    public void removePiece(SOCPlayingPiece piece)
+    public void removePiece(SOCPlayingPiece piece, SOCPlayingPiece replacementPiece)
     {
         D.ebugPrintln("--- SOCPlayer.removePiece(" + piece + ")");
 
@@ -2363,7 +2367,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 pieces.removeElement(p);
 
                 if (p.specialVP != 0)
-                    removePieceUpdateSpecialVP(p);
+                {
+                    if ((replacementPiece == null)
+                        || (replacementPiece.player != piece.player))
+                    {
+                        removePieceUpdateSpecialVP(p);
+                    } else {
+                        replacementPiece.specialVP = p.specialVP;
+                        replacementPiece.specialVPEvent = p.specialVPEvent;
+                    }
+                }
 
                 switch (ptype)
                 {
@@ -2581,8 +2594,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * As part of {@link #removePiece(SOCPlayingPiece)},
+     * As part of {@link #removePiece(SOCPlayingPiece, SOCPlayingPiece) removePiece(SOCPlayingPiece, null)},
      * update player's {@link #specialVP} and related fields.
+     * Not called if the removed piece is being replaced by another one (settlement upgrade to city).
      * @param p  Our piece being removed, which has {@link SOCPlayingPiece#specialVP} != 0
      * @since 2.0.00
      */

@@ -2078,7 +2078,7 @@ public class SOCGame implements Serializable, Cloneable
 
             for (int i = 0; i < maxPlayers; i++)
             {
-                players[i].removePiece(se);
+                players[i].removePiece(se, pp);
             }
 
             board.removePiece(se);

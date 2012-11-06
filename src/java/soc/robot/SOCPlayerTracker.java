@@ -1015,7 +1015,7 @@ public class SOCPlayerTracker
         //
         // remove the dummy road
         //
-        dummy.removePiece(dummyRoad);
+        dummy.removePiece(dummyRoad, null);
     }
 
     /**
@@ -2239,7 +2239,7 @@ public class SOCPlayerTracker
                 //
                 posRoad.setLRPotential(0);
                 updateLRPotential(posRoad, dummy, dummyRoad, lrLength, LR_CALC_LEVEL);
-                dummy.removePiece(dummyRoad);
+                dummy.removePiece(dummyRoad, null);
             }
             else
             {
@@ -2332,7 +2332,7 @@ public class SOCPlayerTracker
                         newDummyRoad = new SOCShip(dummy, adjEdge, board);
                     dummy.putPiece(newDummyRoad, true);
                     updateLRPotential(posRoad, dummy, newDummyRoad, lrLength, level - 1);
-                    dummy.removePiece(newDummyRoad);
+                    dummy.removePiece(newDummyRoad, null);
                 }
             }
         }
