@@ -214,6 +214,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Hex type for the Fog Hex, with actual land type revealed when roads are placed.
+     * Bots should treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
      *<P>
      * There is no 2-for-1 port for this hex type.
      *<P>
@@ -387,8 +388,10 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Dice number from hex coordinate.
-     * One element per water, land, or port hex; non-land hexes are 0, robber hexes are -1.
      * Order: [row][column].
+     * For land hexes, <tt>numberLayoutLg</tt>[r][c] is the dice number on {@link #hexLayoutLg}[r][c].
+     * One element per water, land, or port hex; non-land hexes are 0.
+     * Desert and fog hexes are -1, although {@link #getNumberOnHexFromNumber(int)} returns 0 for them.
      */
     private int[][] numberLayoutLg;
 
@@ -588,6 +591,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param landHexType  Resource type to place into {@link #hexLayoutLg} for each land hex; will be shuffled.
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
+     *                    There should be no {@link #FOG_HEX} in here; land hexes are hidden by fog later.
      * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
      *                    same array length as <tt>landHexType[]</tt>
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
@@ -600,11 +604,12 @@ public class SOCBoardLarge extends SOCBoard
      *             {@link #landAreasLegalNodes} == null, or not long enough, or
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
      *             because the land area has already been placed.
+     * @throws IllegalArgumentException  if <tt>landHexType</tt> contains {@link #FOG_HEX}.
      * @see #makeNewBoard_placeHexes(int[], int[], int[], int[], SOCGameOption)
      */
     private final void makeNewBoard_placeHexes
         (int[] landHexType, final int[] numPath, final int[] number, final int landAreaNumber, SOCGameOption optBC)
-        throws IllegalStateException
+        throws IllegalStateException, IllegalArgumentException
     {
         final int[] pathRanges = { landAreaNumber, numPath.length };  // 1 range, uses all of numPath
         makeNewBoard_placeHexes
@@ -631,6 +636,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param landHexType  Resource type to place into {@link #hexLayoutLg} for each land hex; will be shuffled.
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
+     *                    There should be no {@link #FOG_HEX} in here; land hexes are hidden by fog later.
      * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
      *                    same array length as <tt>landHexType[]</tt>.
      *                    <BR> <tt>landAreaPathRanges[]</tt> tells how to split this array of land hex coordindates
@@ -648,7 +654,8 @@ public class SOCBoardLarge extends SOCBoard
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
      *             because the land area has already been placed.
      * @throws IllegalArgumentException if <tt>landAreaPathRanges</tt> is null or has an uneven length,
-     *             or if the total length of its land areas != <tt>numPath.length</tt>.
+     *             or if the total length of its land areas != <tt>numPath.length</tt>,
+     *             or if <tt>landHexType</tt> contains {@link #FOG_HEX}.
      * @see #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)
      */
     private final void makeNewBoard_placeHexes
@@ -723,6 +730,10 @@ public class SOCBoardLarge extends SOCBoard
                     setRobberHex(numPath[i], false);
                     numberLayoutLg[r][c] = -1;
                     // TODO do we want to not set robberHex? or a specific point?
+                }
+                else if (landHexType[i] == FOG_HEX)
+                {
+                    throw new IllegalArgumentException("landHexType can't contain FOG_HEX");
                 }
                 else
                 {
