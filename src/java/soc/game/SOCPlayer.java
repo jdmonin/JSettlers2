@@ -672,6 +672,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get the player's seat number in the {@link #getGame() game}.
      * @return the player id
      */
     public int getPlayerNumber()

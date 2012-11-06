@@ -62,7 +62,7 @@ import java.util.Vector;
  *<P>
  *
  * (Dissertation excerpt)
- *
+ *<blockquote>
  * "When a player places a road, that player's PlayerTracker will look ahead by
  *  pretending to place new roads attached to that road and then recording new
  *  potential settlements [and their roads]...
@@ -72,15 +72,15 @@ import java.util.Vector;
  *  a road or settlement. This is because another player's road or settlement
  *  may cut off a path to a future settlement. This update can be done by
  *  keeping track of which pieces support the building of others."
+ *</blockquote>
  *<p>
- *  For a legible overview of the data in a SOCPlayerTracker, use playerTrackersDebug.
- *  @see #playerTrackersDebug(HashMap)
+ *  For a legible overview of the data in a SOCPlayerTracker, use {@link #playerTrackersDebug(HashMap)}.
  *
  * @author Robert S Thomas
  */
 public class SOCPlayerTracker
 {
-    protected static final DecimalFormat df1 = new DecimalFormat("###0.00");
+    // protected static final DecimalFormat df1 = new DecimalFormat("###0.00");
 
     /**
      * Road expansion level for {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)};
@@ -96,12 +96,17 @@ public class SOCPlayerTracker
      */
     static protected int LR_CALC_LEVEL = 2;
 
-    protected SOCRobotBrain brain;
+    /** The robot brain using this tracker */
+    protected final SOCRobotBrain brain;
+
+    /** The player being tracked */
     private final SOCPlayer player;
+
+    /** Seat number of the player being tracked; {@link #player}{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()} */
     private final int playerNumber;
 
     /**
-     * Possible neat-future settlements for this player.
+     * Possible near-future settlements for this player.
      * Key = {@link Integer} node coordinate, value = {@link SOCPossibleSettlement}.
      * Expanded in {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)}
      * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
@@ -139,10 +144,10 @@ public class SOCPlayerTracker
     boolean inUse;
 
     /**
-     * constructor
+     * Constructor.
      *
-     * @param pl  the player
-     * @param br  the robot brain
+     * @param pl  the player being tracked
+     * @param br  the robot brain using this tracker
      */
     public SOCPlayerTracker(SOCPlayer pl, SOCRobotBrain br)
     {
@@ -161,8 +166,8 @@ public class SOCPlayerTracker
     }
 
     /**
-     * copy constructor
-     *
+     * Copy constructor.
+     *<P>
      * Note: Does NOT copy connections between possible pieces
      *
      * @param pt  the player tracker
@@ -214,7 +219,7 @@ public class SOCPlayerTracker
     /**
      * make copies of player trackers and then
      * make connections between copied pieces
-     *
+     *<P>
      * Note: not copying threats
      *
      * param trackers  player trackers for each player
@@ -493,7 +498,7 @@ public class SOCPlayerTracker
     /**
      * set this player's pending initial settlement, to be
      * placed/calculated by this tracker after their road.
-     *
+     *<P>
      * You must call addNewSettlement and then addNewRoadOrShip:
      * This is just a place to store the settlement data.
      *
@@ -1623,6 +1628,7 @@ public class SOCPlayerTracker
 
     /**
      * Remove our incorrect city placement, it's been rejected by the server.
+     *<P>
      * Note, there is no addNewCity or addTheirNewCity method.
      *
      * @param city Location of our bad city
@@ -3671,7 +3677,10 @@ public class SOCPlayerTracker
     }
 
     /**
-     * debug output for player trackers
+     * Print debug output for a set of player trackers.
+     *<P>
+     * Calls <tt>D.ebugPrintln</tt>; no output will appear if this class
+     * imports <tt>soc.disableDebug.D</tt> instead of <tt>soc.debug.D</tt>.
      *
      * @param playerTrackers  the player trackers
      */
