@@ -24,6 +24,7 @@ package soc.game;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -203,6 +204,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * There is no 2-for-1 port (unlike {@link SOCBoard#SHEEP_PORT},
      * {@link SOCBoard#WOOD_PORT}, etc) for this hex type.
+     * Gold is not a resource.
      *<P>
      * The numeric value (7) for <tt>GOLD_HEX</tt> is the same as
      * the v1/v2 encoding's {@link SOCBoard#MISC_PORT_HEX}, but the
@@ -214,15 +216,16 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Hex type for the Fog Hex, with actual land type revealed when roads are placed.
+     * Used in some scenarios.
      * Bots should treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
-     *<P>
-     * There is no 2-for-1 port for this hex type.
      *<P>
      * The numeric value (8) for <tt>FOG_HEX</tt> is the same as
      * the v1/v2 encoding's {@link SOCBoard#CLAY_PORT_HEX}, but the
      * ports aren't encoded as hexes for this encoding, so there is no ambiguity
      * as long as callers of {@link #getHexTypeFromCoord(int)}
      * check the board encoding format.
+     *
+     * @see #revealFogHiddenHex(int)
      */
     public static final int FOG_HEX = 8;
 
@@ -301,6 +304,8 @@ public class SOCBoardLarge extends SOCBoard
      * For land hexes, the dice number on <tt>hexLayoutLg</tt>[r][c] is {@link #numberLayoutLg}[r][c].
      *<P>
      * For the set of all land hex coordinates, see {@link #landHex}.
+     * Hexes obscured by {@link #FOG_HEX}, if any, are stored in {@link #fogHiddenHexes} (server only).
+     * Because of bit shifts there, please don't use the top 8 bits of <tt>hexLayoutLg</tt>.
      *<P>
      * Key to the hexLayoutLg[][] values:
        <pre>
@@ -392,8 +397,20 @@ public class SOCBoardLarge extends SOCBoard
      * For land hexes, <tt>numberLayoutLg</tt>[r][c] is the dice number on {@link #hexLayoutLg}[r][c].
      * One element per water, land, or port hex; non-land hexes are 0.
      * Desert and fog hexes are -1, although {@link #getNumberOnHexFromNumber(int)} returns 0 for them.
+     * Hex dice numbers obscured by {@link #FOG_HEX}, if any, are stored in {@link #fogHiddenHexes} (server only).
      */
     private int[][] numberLayoutLg;
+
+    /**
+     * Actual land hex types and dice numbers hidden under {@link #FOG_HEX}.
+     * Key is the hex coordinate; value is
+     * <tt>({@link #hexLayoutLg}[coord] &lt;&lt; 8) | ({@link #numberLayoutLg}[coord] & 0xFF)</tt>.
+     *<P>
+     * Filled at server only; the client doesn't know what's under the fog until hexes are revealed.
+     * @see #makeNewBoard_hideHexesInFog(int[])
+     * @see #revealFogHiddenHex(int)
+     */
+    private HashMap<Integer, Integer> fogHiddenHexes;
 
     /**
      * This board layout's number of ports;
@@ -433,6 +450,7 @@ public class SOCBoardLarge extends SOCBoard
         hexLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
         numberLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
         landHexLayout = new HashSet<Integer>();
+        fogHiddenHexes = new HashMap<Integer, Integer>();
         legalRoadEdges = new HashSet<Integer>();
         legalShipEdges = new HashSet<Integer>();
 
@@ -513,6 +531,9 @@ public class SOCBoardLarge extends SOCBoard
                 if (landAreasLegalNodes[i] == null)
                     throw new IllegalStateException("inconsistent landAreasLegalNodes: idx " + i);
         }
+
+        // Hide some land hexes behind fog, if the scenario does that
+        // makeNewBoard_hideHexesInFog(...);
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
@@ -631,6 +652,11 @@ public class SOCBoardLarge extends SOCBoard
      * areas of land hexes: Call once for each group of Land Areas which shares a numPath and landHexType.
      * For each land area, it updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
      * with the same nodes added to {@link SOCBoard#nodesOnLand}.
+     *<P>
+     * If part of the board will be hidden by {@link #FOG_HEX}, wait before doing that:
+     * This method must shuffle and place the unobscured land hexes.
+     * After the last call to <tt>makeNewBoard_placeHexes</tt>, call
+     * {@link #makeNewBoard_hideHexesInFog(int[])}.
      *<P>
      * This method clears {@link #cachedGetLandHexCoords} to <tt>null</tt>.
      *
@@ -940,6 +966,60 @@ public class SOCBoardLarge extends SOCBoard
 
     }  // makeNewBoard_makeLegalShipEdges
 
+    /**
+     * For {@link #makeNewBoard(Hashtable)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
+     * The hexes will be stored in {@link #fogHiddenHexes}; their {@link #hexLayoutLg} and {@link #numberLayoutLg}
+     * elements will be set to {@link #FOG_HEX} and -1.
+     *<P>
+     * To simplify the bot, client, and network, hexes can be hidden only during makeNewBoard,
+     * before the board layout is made and sent to the client.
+     * 
+     * @param hexCoords  Coordinates of each land hex to hide in the fog
+     * @throws IllegalStateException  if any hexCoord is already {@link #FOG_HEX} within {@link #hexLayoutLg}
+     * @see #revealFogHiddenHex(int)
+     */
+    protected void makeNewBoard_hideHexesInFog(final int[] hexCoords)
+        throws IllegalStateException
+    {
+        for (int i = 0; i < hexCoords.length; ++i)
+        {
+            final int hexCoord = hexCoords[i];
+            final int r = hexCoord >> 8,
+                      c = hexCoord & 0xFF;
+            final int hex = hexLayoutLg[r][c];
+            if (hex == FOG_HEX)
+                throw new IllegalStateException("Already fog: 0x" + Integer.toHexString(hexCoord));
+
+            fogHiddenHexes.put(new Integer(hexCoord), (hex << 8) | (numberLayoutLg[r][c] & 0xFF));
+            hexLayoutLg[r][c] = FOG_HEX;
+            numberLayoutLg[r][c] = -1;
+        }
+    }
+
+    /**
+     * Reveal one land hex hidden by fog.
+     * @param hexCoord  Coordinate of the land hex to reveal
+     * @return The revealed hex type, same value as {@link #getHexTypeFromCoord(int) getHexTypeFromCoord(hexCoord)}
+     * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}  
+     */
+    public int revealFogHiddenHex(final int hexCoord)
+        throws IllegalArgumentException
+    {
+        final int r = hexCoord >> 8,
+                  c = hexCoord & 0xFF;
+        final Integer encoded = fogHiddenHexes.remove(Integer.valueOf(hexCoord));
+        if ((hexLayoutLg[r][c] != FOG_HEX) || (encoded == null))
+            throw new IllegalArgumentException("Not fog: 0x" + Integer.toHexString(hexCoord));
+
+        final int hex = encoded >> 8;
+        int diceNum = encoded & 0xFF;
+        if (diceNum == 0xFF)
+            diceNum = -1;
+
+        hexLayoutLg[r][c] = hex;
+        numberLayoutLg[r][c] = diceNum;
+        return hex;
+    }
 
     ////////////////////////////////////////////
     //

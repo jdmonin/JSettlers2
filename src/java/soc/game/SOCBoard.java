@@ -163,6 +163,9 @@ import java.util.Vector;
  *</UL>
  * On the large sea board, there can optionally be multiple "land areas"
  * (groups of islands), if {@link SOCBoardLarge#getLandAreasLegalNodes()} != null.
+ *<P>
+ * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
+ * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  *
  * @author Robert S Thomas
  * @see SOCBoardLarge
