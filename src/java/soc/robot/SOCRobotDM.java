@@ -48,14 +48,15 @@ import soc.util.Queue;
 import soc.util.SOCRobotParameters;
 
 /**
- * Moved the routines that pick what to build
+ * Moved the routines that pick what to build or buy
  * next out of SOCRobotBrain.  Didn't want
  * to call this SOCRobotPlanner because it
  * doesn't really plan, but you could think
  * of it that way.  DM = Decision Maker
  *<P>
  * Uses the info in the {@link SOCPlayerTrackers}s.
- * One important method here is {@link #planStuff(int)}.
+ * One important method here is {@link #planStuff(int)},
+ * which updates {@link #buildingPlan} and related fields.
  *
  * @author Robert S. Thomas
  */
@@ -110,9 +111,10 @@ public class SOCRobotDM
   private final int ourPlayerNumber;
 
   /**
-   * {@link #ourPlayerData}'s building plan.
-   * A stack of {@link SOCPossiblePiece}.
+   * {@link #ourPlayerData}'s building plan; a stack of {@link SOCPossiblePiece}.
+   * Same Stack as {@link SOCRobotBrain#getBuildingPlan()}.
    * May include {@link SOCPossibleCard} to be bought.
+   * 
    */
   protected Stack<SOCPossiblePiece> buildingPlan;
 
@@ -129,7 +131,12 @@ public class SOCRobotDM
   /** Good settlements, as calculated by {@link #scorePossibleSettlements(int, int)} */
   protected Vector<SOCPossibleSettlement> goodSettlements;
 
+  /**
+   * A settlement to build, chosen from {@link #goodSettlements} or {@link #threatenedSettlements}.
+   * If we want to build this soon, it will be added to {@link #buildingPlan}.
+   */
   protected SOCPossibleSettlement favoriteSettlement;
+
   protected SOCPossibleCity favoriteCity;
   protected SOCPossibleCard possibleCard;
 
@@ -232,6 +239,7 @@ public class SOCRobotDM
 
   /**
    * make some building plans.
+   * Sets {@link #buildingPlan}, {@link #favoriteSettlement}, etc.
    * Calls either {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}.
    * Both of these will check whether this is our normal turn, or if
    * it's the 6-player board's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.
