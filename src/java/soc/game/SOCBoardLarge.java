@@ -398,6 +398,7 @@ public class SOCBoardLarge extends SOCBoard
      * One element per water, land, or port hex; non-land hexes are 0.
      * Desert and fog hexes are -1, although {@link #getNumberOnHexFromNumber(int)} returns 0 for them.
      * Hex dice numbers obscured by {@link #FOG_HEX}, if any, are stored in {@link #fogHiddenHexes} (server only).
+     * Because of bit shifts there, <tt>numberLayoutLg</tt> values must stay within the range -1 to 254.
      */
     private int[][] numberLayoutLg;
 
@@ -1020,6 +1021,7 @@ public class SOCBoardLarge extends SOCBoard
         numberLayoutLg[r][c] = diceNum;
         return hex;
     }
+
 
     ////////////////////////////////////////////
     //

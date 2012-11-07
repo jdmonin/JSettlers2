@@ -203,6 +203,10 @@ public class OpeningBuildStrategy {
             // end test
             //
 
+            //
+            // calculate pairs of first and second settlement together
+            //
+
             for (int j = 1 + i; j < ourPotentialSettlements.length; ++j)
             {
                 final int secondNode = ourPotentialSettlements[j];
@@ -932,6 +936,9 @@ public class OpeningBuildStrategy {
      * Useful for initial settlement placement and free-resource choice (when no other info available).
      * This is based on the board and doesn't change when pieces are placed.
      * Cached after the first call, as {@link #resourceEstimates}.
+     *<P>
+     * Calls each hex's {@link SOCBoard#getHexTypeFromCoord(int)}, ignores all hex types besides
+     * the usual {@link SOCBoard#CLAY_HEX} through {@link SOCBoard#WOOD_HEX} and {@link SOCBoardLarge#GOLD_HEX}. 
      *
      * @return an array of rarity numbers, where
      *         estimates[SOCBoard.CLAY_HEX] == the clay rarity,

@@ -30,7 +30,11 @@ import java.util.Vector;
 
 
 /**
- * This class tracks what dice-roll numbers a player's pieces are touching
+ * This class tracks what dice-roll numbers a player's pieces are touching,
+ * and the probability of getting resources based on their hex types.
+ *<P>
+ * Calls each touched hex's {@link SOCBoard#getHexTypeFromCoord(int)}, ignores all hex types besides
+ * the usual {@link SOCBoard#CLAY_HEX} through {@link SOCBoard#WOOD_HEX} and {@link SOCBoardLarge#GOLD_HEX}. 
  *
  * @author Robert S. Thomas
  */

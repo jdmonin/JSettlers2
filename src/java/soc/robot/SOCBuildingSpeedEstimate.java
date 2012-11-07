@@ -40,6 +40,7 @@ import java.util.Vector;
 /**
  * This class calculates approximately how
  * long it would take a player to build something.
+ * Uses {@link SOCPlayerNumbers} to get resources of currently reached hexes.
  */
 public class SOCBuildingSpeedEstimate
 {
