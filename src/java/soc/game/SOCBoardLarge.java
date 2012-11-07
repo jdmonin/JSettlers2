@@ -229,7 +229,11 @@ public class SOCBoardLarge extends SOCBoard
      */
     public static final int FOG_HEX = 8;
 
-    /** Maximum land hex type (== {@link #FOG_HEX}) for this encoding. */
+    /**
+     * Maximum land hex type (== {@link #FOG_HEX}) for this encoding.
+     * If you add a hex type, search for this and for FOG_HEX for likely changes.
+     * Be sure to also update the client's SOCBoardPanel.loadImages.
+     */
     private static final int MAX_LAND_HEX_LG = FOG_HEX;
 
     private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
@@ -534,7 +538,8 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         // Hide some land hexes behind fog, if the scenario does that
-        // makeNewBoard_hideHexesInFog(...);
+        //    TODO game option
+        makeNewBoard_hideHexesInFog(LANDHEX_COORD_MAINLAND_FOG);
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
@@ -2795,6 +2800,20 @@ public class SOCBoardLarge extends SOCBoard
         0x0502, 0x0504, 0x0506, 0x0508, 0x050A,
         0x0703, 0x0705, 0x0707, 0x0709,
         0x0904, 0x0906, 0x0908
+    };
+
+    /**
+     * My sample board layout: Main island's land hex coordinates in fog.
+     * For testing only: An actual fog scenario would have a larger main island layout.
+     * @see #LANDHEX_COORD_MAINLAND
+     */
+    private static final int LANDHEX_COORD_MAINLAND_FOG[] =
+    {
+        // 1st row ok
+        0x0303, 0x0305, // 2nd row 1st,2nd
+                0x0504, 0x0506, // middle row 2nd,3rd
+                0x0705  // 4th row 2nd
+        // 5th row ok
     };
 
     /**
