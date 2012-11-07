@@ -5207,7 +5207,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Load the images for the board.
-     * @param c
+     * {@link #hexes}, {@link #dice}, and {@link #ports}.
+     * Loads all hex types, up through {@link SOCBoardLarge#FOG_HEX},
+     * because {@link #hexes} is static for all boards and all game options.
+     * @param c  Our component, to load image resources
      * @param wantsRotated  True for the 6-player non-sea board
      *          (v2 encoding {@link SOCBoard#BOARD_ENCODING_6PLAYER}), false otherwise.
      *          The large board (v3 encoding)'s gold-hex image has no rotated version,
@@ -5225,7 +5228,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            hexes = new Image[8];  // water, desert, 5 resources, gold
+            hexes = new Image[9];  // water, desert, 5 resources, gold, fog
             ports = new Image[12];
             dice = new Image[14];
 
@@ -5253,7 +5256,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             MediaTracker tracker = new MediaTracker(c);
 
-            rotatHexes = new Image[7];
+            rotatHexes = new Image[7];  // only 7: large board (gold,fog) is not rotated
             rotatPorts = new Image[12];
             loadHexesPortsImages(rotatHexes, rotatPorts, IMAGEDIR + "/rotat", tracker, tk, clazz, true);
 
@@ -5280,7 +5283,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @param tk   Toolkit to load image from resource
      * @param clazz  Class for getResource
      * @param wantsRotated  True for rotated, false otherwise;
-     *             some hex types (goldHex) aren't available in rotated versions,
+     *             some hex types (goldHex, fogHex) aren't available in rotated versions,
      *             because their board layout is never rotated.
      *             This parameter isn't about whether the current board is rotated,
      *             but about whether this image directory's contents are rotated.
@@ -5303,8 +5306,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             numHexImage = 7;
         } else {
-            numHexImage = 8;
+            numHexImage = 9;
             newHexes[7] = tk.getImage(clazz.getResource(imageDir + "/goldHex.gif"));
+            newHexes[8] = tk.getImage(clazz.getResource(imageDir + "/fogHex.gif"));
         }
         for (int i = 0; i < numHexImage; i++)
         {
