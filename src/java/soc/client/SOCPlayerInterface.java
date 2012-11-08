@@ -30,6 +30,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
 import soc.game.SOCScenarioEventListener;
+import soc.game.SOCScenarioGameEvent;
 import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
@@ -1863,8 +1864,31 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Listener callback for scenario events on the large sea board which affect the game or board,
+     * not a specific player. For example, a hex might be revealed from fog.
+     *<P>
+     * <em>Threads:</em> The game's treater thread handles incoming client messages and calls
+     * game methods that change state. Those same game methods will trigger the scenario events;
+     * so, the treater thread will also run this <tt>gameEvent</tt> callback.
+     *
+     * @param ga  Game
+     * @param evt Event code
+     * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>  
+     * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent)
+     * @since 2.0.00
+     */
+    public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail)
+    {
+        // stub for now
+    }
+
+    /**
      * Listener callback for per-player scenario events on the large sea board.
      * For example, there might be an SVP awarded for settlements. 
+     * @param ga  Game
+     * @param pl  Player
+     * @param evt  Event code
+     * @see #gameEvent(SOCGame, SOCScenarioGameEvent, Object)
      * @since 2.0.00
      */
     public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt)

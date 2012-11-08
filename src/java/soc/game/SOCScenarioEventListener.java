@@ -31,6 +31,19 @@ package soc.game;
 public interface SOCScenarioEventListener
 {
     /**
+     * A scenario event has occurred whichs affect the game or board, not a specific player.
+     *<P>
+     * <em>Threads:</em> The game's treater thread handles incoming client messages and calls
+     * game methods that change state. Those same game methods will trigger the scenario events;
+     * so, the treater thread will also run this <tt>gameEvent</tt> callback.
+     *
+     * @param ga  Game
+     * @param evt  Event code
+     * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>  
+     */
+    public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail);
+
+    /**
      * A per-player scenario event has occurred.
      * @param ga  Game
      * @param pl  Player
@@ -38,6 +51,4 @@ public interface SOCScenarioEventListener
      */
     public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt);
 
-    // A per-game scenario event has occurred. (None defined yet)
-    // public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt);
 }

@@ -134,6 +134,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<UL>
      *<LI> _SC_SANY  SVP to settle in any new land area: {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
      *<LI> _SC_SEAC  2 SVP each time settle in another new land area: {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
+     *<LI> _SC_FOG   A hex has been revealed from behind fog: {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
      *</UL>
      *
      * <h3>If you want to add a game option:</h3>
@@ -274,6 +275,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 (K_SC_SANY, 2000, 2000, false, true, "Scenarios: SVP for your first settlement on any island"));
         opt.put(K_SC_SEAC, new SOCGameOption
                 (K_SC_SEAC, 2000, 2000, false, true, "Scenarios: 2 SVP for your first settlement on each island"));
+        opt.put(K_SC_FOG, new SOCGameOption
+                (K_SC_FOG, 2000, 2000, false, true, "Scenarios: Some land hexes initially hidden by fog"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -443,6 +446,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @since 2.0.00
      */
     public static final String K_SC_SEAC = "_SC_SEAC";
+
+    /**
+     * Scenario key <tt>_SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_FOG = "_SC_FOG";
 
 
     // If you create a new option type,

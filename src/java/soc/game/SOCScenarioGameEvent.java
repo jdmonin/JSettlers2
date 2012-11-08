@@ -21,28 +21,23 @@
 package soc.game;
 
 /**
- * Per-player scenario event codes.
+ * Scenario event codes which affect the game or board, not a specific player.
  * Used by {@link SOCScenarioEventListener}s.
  * Each event also has a {@link SOCGameOption} to indicate its scenario rules are active; see enum value javadocs.
- * @see SOCScenarioGameEvent
+ * @see SOCScenarioPlayerEvent
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
-public enum SOCScenarioPlayerEvent
+public enum SOCScenarioGameEvent
 {
     /**
-     * Special victory point awarded for first settlement in any land area past the starting land area.
-     * Once per player per game (not once per player in each other land area).
-     * Game option {@link SOCGameOption#K_SC_SANY _SC_SANY}.
+     * A hex hidden by fog has been revealed by road placement.
+     * Game option {@link SOCGameOption#K_SC_FOG _SC_FOG}.
+     *<P>
+     * In {@link SOCScenarioEventListener#gameEvent(SOCGame, SOCScenarioGameEvent, Object)},
+     * <tt>detail</tt> is the revealed hex's coordinate as an Integer.
      */
-    SVP_SETTLED_ANY_NEW_LANDAREA(0x01),
-
-    /**
-     * 2 SVP awarded each time player settles in another new land area past the starting land area.
-     * Once per area per player per game.
-     * Game option {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
-     */
-    SVP_SETTLED_EACH_NEW_LANDAREA(0x02);
+    SGE_FOG_HEX_REVEALED(0x01);
 
     /**
      * Value for sending event codes over a network.
@@ -50,7 +45,7 @@ public enum SOCScenarioPlayerEvent
      */
     public final int flagValue;
 
-    private SOCScenarioPlayerEvent(final int fv)
+    private SOCScenarioGameEvent(final int fv)
     {
         flagValue = fv; 
     }
