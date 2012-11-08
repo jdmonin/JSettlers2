@@ -1895,6 +1895,14 @@ public class SOCPlayerClient extends Panel
                 handlePICKRESOURCESREQUEST((SOCPickResourcesRequest) mes);
                 break;
 
+            /**
+             * reveal a hidden hex on the board.
+             * Added 2012-11-08 for v2.0.00.
+             */
+            case SOCMessage.REVEALFOGHEX:
+                handleREVEALFOGHEX((SOCRevealFogHex) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -3608,6 +3616,28 @@ public class SOCPlayerClient extends Panel
         pi.updateAtPutPiece
             (mes.getPlayerNumber(), mes.getFromCoord(), mes.getPieceType(),
              true, mes.getToCoord());
+    }
+
+    /**
+     * Reveal a hidden hex on the board.
+     * @since 2.0.00
+     */
+    protected void handleREVEALFOGHEX(final SOCRevealFogHex mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+        if (! ga.hasSeaBoard)
+            return;  // should not happen
+
+        ((SOCBoardLarge) (ga.getBoard())).revealFogHiddenHex
+            (mes.getParam1(), mes.getParam2(), mes.getParam3());
+
+        SOCPlayerInterface pi = playerInterfaces.get(gaName);
+        if (pi == null)
+            return;  // Not one of our games
+        pi.getBoardPanel().flushBoardLayoutAndRepaint();
     }
 
     }  // nested class MessageTreater

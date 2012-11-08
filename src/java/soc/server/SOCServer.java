@@ -1754,7 +1754,21 @@ public class SOCServer extends Server
      */
     public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail)
     {
-        // stub for now
+        switch (evt)
+        {
+        case SGE_FOG_HEX_REVEALED:
+            {
+                final SOCBoard board = ga.getBoard();
+                final int hexCoord = ((Integer) detail).intValue(),
+                          hexType  = board.getHexTypeFromCoord(hexCoord),
+                          diceNum  = board.getNumberOnHexFromCoord(hexCoord);
+                final String gaName = ga.getName();
+                messageToGame
+                    (gaName, new SOCRevealFogHex(gaName, hexCoord, hexType, diceNum));
+            }
+            break;
+
+        }
     }
 
     /**
@@ -5306,6 +5320,9 @@ public class SOCServer extends Server
                         if (player.isPotentialRoad(coord))
                         {
                             ga.putPiece(rd);  // Changes state and sometimes player (initial placement)
+
+                            // If placing this piece reveals a fog hex, putPiece will call srv.gameEvent
+                            // which will send a SOCRevealFogHex message to the game.
 
                             /*
                                if (D.ebugOn) {

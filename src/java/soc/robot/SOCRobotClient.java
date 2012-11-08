@@ -720,6 +720,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 handlePutBrainQ((SOCPickResourcesRequest) mes);
                 break;
 
+            /**
+             * reveal a hidden hex on the board.
+             * Added 2012-11-08 for v2.0.00.
+             */
+            case SOCMessage.REVEALFOGHEX:
+                super.handleREVEALFOGHEX((SOCRevealFogHex) mes);
+                break;
+
             }
         }
         catch (Throwable e)
