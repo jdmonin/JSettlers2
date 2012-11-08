@@ -2054,6 +2054,39 @@ public class SOCGame implements Serializable, Cloneable
     private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
     {
         /**
+         * on large board, look for fog and reveal its hex if we're
+         * placing a road or ship touching the fog hex's corner.
+         */
+        if (hasSeaBoard && (pp instanceof SOCRoad))
+        {
+            int fogRevealedHexCoord = -1;
+
+            final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(pp.getCoordinates());
+            for (int i = 0; i < 2; ++i)
+            {
+                final int hexCoord = endHexes[i];
+                if ((hexCoord != 0) && (board.getHexTypeFromCoord(hexCoord) == SOCBoardLarge.FOG_HEX))
+                {
+                    fogRevealedHexCoord = hexCoord;
+                    break;
+                    // No need to keep looking, because only one end of the edge is new;
+                    // player was already at the other end, so it can't be fog.
+                }
+            }
+
+            if (fogRevealedHexCoord != -1)
+            {
+                // Reveal it before placing the new piece, so it's easier for
+                // players and bots to updatePotentials (their data about the
+                // board reachable through their roads/ships).
+                ((SOCBoardLarge) board).revealFogHiddenHex(fogRevealedHexCoord);
+                if (scenarioEventListener != null)
+                    scenarioEventListener.gameEvent
+                        (this, SOCScenarioGameEvent.SGE_FOG_HEX_REVEALED, new Integer(fogRevealedHexCoord));
+            }
+        }
+
+        /**
          * call putPiece() on every player so that each
          * player's updatePotentials() function gets called
          */

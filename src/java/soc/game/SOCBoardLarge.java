@@ -1007,7 +1007,8 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Reveal one land hex hidden by fog.
+     * Reveal one land hex hidden by fog (server-side call).
+     * Gets the hidden hex type and dice number, calls {@link #revealFogHiddenHex(int, int, int)}.
      * @param hexCoord  Coordinate of the land hex to reveal
      * @return The revealed hex type, same value as {@link #getHexTypeFromCoord(int) getHexTypeFromCoord(hexCoord)}
      * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}  
@@ -1015,10 +1016,8 @@ public class SOCBoardLarge extends SOCBoard
     public int revealFogHiddenHex(final int hexCoord)
         throws IllegalArgumentException
     {
-        final int r = hexCoord >> 8,
-                  c = hexCoord & 0xFF;
         final Integer encoded = fogHiddenHexes.remove(Integer.valueOf(hexCoord));
-        if ((hexLayoutLg[r][c] != FOG_HEX) || (encoded == null))
+        if (encoded == null)
             throw new IllegalArgumentException("Not fog: 0x" + Integer.toHexString(hexCoord));
 
         final int hex = encoded >> 8;
@@ -1026,9 +1025,31 @@ public class SOCBoardLarge extends SOCBoard
         if (diceNum == 0xFF)
             diceNum = -1;
 
-        hexLayoutLg[r][c] = hex;
-        numberLayoutLg[r][c] = diceNum;
+        revealFogHiddenHex(hexCoord, hex, diceNum);
         return hex;
+    }
+
+    /**
+     * Reveal one land hex hidden by fog (client-side call).
+     * @param hexCoord  Coordinate of the land hex to reveal
+     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
+     * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
+     * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
+     * @see #revealFogHiddenHex(int)
+     */
+    public void revealFogHiddenHex(final int hexCoord, final int hexType, int diceNum)
+        throws IllegalArgumentException
+    {
+        final int r = hexCoord >> 8,
+                  c = hexCoord & 0xFF;
+        if (hexLayoutLg[r][c] != FOG_HEX)
+            throw new IllegalArgumentException("Not fog: 0x" + Integer.toHexString(hexCoord));
+
+        if ((diceNum == 0) && (hexType == DESERT_HEX))
+            diceNum = -1;  // internally, desert and fog hex dice numbers are stored as -1 not 0
+
+        hexLayoutLg[r][c] = hexType;
+        numberLayoutLg[r][c] = diceNum;
     }
 
 
@@ -1150,7 +1171,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hex  the coordinates for a hex
      *
-     * @return the dice-roll number on that hex, or 0 if not a hex coordinate
+     * @return the dice-roll number on that hex, or 0 if no number or not a hex coordinate
      */
     @Override
     public int getNumberOnHexFromCoord(final int hex)
