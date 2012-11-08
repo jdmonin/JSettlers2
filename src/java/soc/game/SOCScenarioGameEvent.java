@@ -33,6 +33,7 @@ public enum SOCScenarioGameEvent
     /**
      * A hex hidden by fog has been revealed by road placement.
      * Game option {@link SOCGameOption#K_SC_FOG _SC_FOG}.
+     * This event fires only at the server.
      *<P>
      * In {@link SOCScenarioEventListener#gameEvent(SOCGame, SOCScenarioGameEvent, Object)},
      * <tt>detail</tt> is the revealed hex's coordinate as an Integer.

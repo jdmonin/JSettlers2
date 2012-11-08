@@ -2065,7 +2065,7 @@ public class SOCGame implements Serializable, Cloneable
          * on large board, look for fog and reveal its hex if we're
          * placing a road or ship touching the fog hex's corner.
          */
-        if (hasSeaBoard && (pp instanceof SOCRoad))
+        if (hasSeaBoard && isAtServer && (pp instanceof SOCRoad))
         {
             int fogRevealedHexCoord = -1;
 
