@@ -62,7 +62,8 @@ import java.util.Vector;
  *    </td>
  *    <td><!-- Hex adjac to edge -->
  *      {@link #getAdjacentHexToEdge(int, int)} <br>
- *      {@link #getAdjacentHexesToEdge_arr(int)}
+ *      {@link #getAdjacentHexesToEdge_arr(int)} <br>
+ *      {@link #getAdjacentHexesToEdgeEnds(int)}
  *    </td>
  *    <td><!-- Hex adjac to node -->
  *      {@link #getAdjacentHexesToNode(int)}
@@ -1759,6 +1760,7 @@ public class SOCBoardLarge extends SOCBoard
      *           or 0 if that hex would be off the edge of the board.
      * @throws IllegalArgumentException if facing &lt; 1 or facing &gt; 6
      * @see #getAdjacentHexesToEdge_arr(int)
+     * @see #getAdjacentHexesToEdgeEnds(int)
      */
     @Override
     public int getAdjacentHexToEdge(final int edgeCoord, final int facing)
@@ -1846,6 +1848,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return hex coordinate of each adjacent hex,
      *           or 0 if that hex would be off the edge of the board.
      * @see #getAdjacentHexToEdge(int, int)
+     * @see #getAdjacentHexesToEdgeEnds(int)
      */
     public int[] getAdjacentHexesToEdge_arr(final int edgeCoord)
         throws IllegalArgumentException
@@ -1888,6 +1891,62 @@ public class SOCBoardLarge extends SOCBoard
             // FACING_SW: (r+1, c)
             if (r < (boardHeight-1))
                 hexes[1] = edgeCoord + 0x100;
+        }
+
+        return hexes;
+    }
+
+    /**
+     * The valid hex or two hexes past each end of an edge.
+     * The edge connects these two hexes.
+     * For a north-south edge, for example, they would be north and south of the edge.
+     * @param edgeCoord The edge's coordinate. Not checked for validity.
+     * @return 2-element array with hex coordinate of each hex,
+     *           or 0 if that hex would be off the edge of the board.
+     * @see #getAdjacentHexToEdge(int, int)
+     * @see #getAdjacentHexesToEdge_arr(int)
+     */
+    public int[] getAdjacentHexesToEdgeEnds(final int edgeCoord)
+        throws IllegalArgumentException
+    {
+        int[] hexes = new int[2];
+        final int r = (edgeCoord >> 8),
+                  c = (edgeCoord & 0xFF);
+
+        // "|" if r is odd
+        if ((r % 2) == 1)
+        {
+            // N: (r-2, c)
+            if (r > 2)
+                hexes[0] = edgeCoord - 0x200;
+
+            // S: (r+2, c)
+            if (r < (boardHeight-2))
+                hexes[1] = edgeCoord + 0x200;
+        }
+
+        // "/" if (s,c) is even,odd or odd,even
+        else if ((c % 2) != ((r/2) % 2))
+        {
+            // NE: (r-1, c+2)
+            if ((r > 1) && (c < (boardWidth-2)))
+                hexes[0] = edgeCoord - 0x100 + 0x02;
+
+            // SW: (r+1, c-1)
+            if ((r < (boardHeight-1)) && (c > 1))
+                hexes[1] = edgeCoord + 0x100 - 0x01;
+        }
+        else
+        {
+            // "\" if (s,c) is odd,odd or even,even
+
+            // NW: (r-1, c-1)
+            if ((r > 1) && (c > 1))
+                hexes[0] = edgeCoord - 0x101;
+
+            // SE: (r+1, c+2)
+            if ((r < (boardHeight-1)) && (c < (boardWidth-2)))
+                hexes[1] = edgeCoord + 0x102;
         }
 
         return hexes;
