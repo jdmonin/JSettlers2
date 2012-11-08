@@ -216,7 +216,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Hex type for the Fog Hex, with actual land type revealed when roads are placed.
-     * Used in some scenarios.
+     * Used with some scenarios (see {@link SOCGameOption#K_SC_FOG}).
      * Bots should treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
      *<P>
      * The numeric value (8) for <tt>FOG_HEX</tt> is the same as
@@ -538,8 +538,11 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         // Hide some land hexes behind fog, if the scenario does that
-        //    TODO game option
-        makeNewBoard_hideHexesInFog(LANDHEX_COORD_MAINLAND_FOG);
+        {
+            final SOCGameOption opt_scenFog = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
+            if ((opt_scenFog != null) && opt_scenFog.getBoolValue())
+                makeNewBoard_hideHexesInFog(LANDHEX_COORD_MAINLAND_FOG);
+        }
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
