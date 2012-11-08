@@ -60,7 +60,7 @@ import java.util.StringTokenizer;
  * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version.
  *      Do not add if (TODO what instead??) extends SOCMessageTemplateMs or SOCMessageTemplateMi
  * <LI> Extend the SOCMessage class, including the required parseDataStr method.
- *      ({@link SOCDiceResult} and {@link SOCSetTurn} are good example subclasses.)
+ *      ({@link SOCRevealFogHex} and {@link SOCSetTurn} are good example subclasses.)
  *      Template parent-classes can help; the example subclasses extend them.
  *      Be sure to override the minimum version reported in {@link #getMinimumVersion()}.
  *      Set <tt>serialVersionUID</tt> to the version it's added in.
@@ -228,12 +228,16 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int PICKRESOURCES = 1092;  // gold hex resources, 20120112, v2.0.00
 
+    /** Reveal a hidden hex on the board; server to all clients in game.
+     *  @since 2.0.00 */
+    public static final int REVEALFOGHEX = 1093;  // fog hexes, 20121108, v2.0.00
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
     /////////////////////////////////////////
     // Gametype-specific messages (jsettlers) above 10000;
-    // messages applicable to any game (game options, etc) in current low-1000s range.
+    // messages applicable to any game (game options, move piece, etc) in current low-1000s range.
     // Please see class javadoc.
     /////////////////////////////////////////
 
@@ -789,6 +793,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
                 
             case PICKRESOURCES:     // gold hex resources, 20120112, v2.0.00
                 return SOCPickResources.parseDataStr(data);
+
+            case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
+                return SOCRevealFogHex.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
