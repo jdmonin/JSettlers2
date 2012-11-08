@@ -50,6 +50,7 @@ import java.util.Vector;
  * players' resources or devel cards may be of unknown type); and the server directly
  * updates clients' game state by sending messages such as
  * {@link soc.message.SOCGameState} and {@link soc.message.SOCSetPlayedDevCard}.
+ * Within this package, you can check {@link #isAtServer}.
  *<P>
  * Many methods assume you've already checked whether the move is valid,
  * and won't check it a second time.  For example, {@link #canPlayKnight(int)}
@@ -441,6 +442,13 @@ public class SOCGame implements Serializable, Cloneable
      * the name of the game
      */
     private String name;
+
+    /**
+     * Is this the server's complete copy of the game, not the client's?
+     * Set during {@link #startGame()}.
+     * @since 1.1.17
+     */
+    boolean isAtServer;
 
     /**
      * For games at the server, the owner (creator) of the game.
@@ -2666,6 +2674,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void startGame()
     {
+        isAtServer = true;
         board.makeNewBoard(opts);
         if (hasSeaBoard)
         {
@@ -5225,6 +5234,7 @@ public class SOCGame implements Serializable, Cloneable
         gameState = RESET_OLD;
 
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
+        cp.isAtServer = isAtServer;
         cp.isPractice = isPractice;
         cp.ownerName = ownerName;
         cp.scenarioEventListener = scenarioEventListener;
