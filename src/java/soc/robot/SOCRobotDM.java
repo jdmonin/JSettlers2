@@ -34,6 +34,7 @@ import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
@@ -724,7 +725,9 @@ public class SOCRobotDM
           /// we have longest road
           ///
           D.ebugPrintln("We have longest road");
-      } else {
+      }
+      else if (! game.isGameOptionSet(SOCGameOption.K_SC_0RVP))
+      {
           if (lrPlayer == null) {
               ///
               /// no one has longest road
@@ -1014,6 +1017,9 @@ public class SOCRobotDM
    * Does a depth first search from the end point of the longest
    * path in a graph of nodes and returns how many roads would
    * need to be built to take longest road.
+   *<P>
+   * Do not call if {@link SOCGameOption#K_SC_0RVP} is set, because
+   * this method needs {@link SOCPlayer#getLRPaths()} which will be empty.
    *<P>
    * Combined implementation for use by SOCRobotDM and {@link SOCPlayerTracker}.
    *

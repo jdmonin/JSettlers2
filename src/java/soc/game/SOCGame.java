@@ -5124,11 +5124,16 @@ public class SOCGame implements Serializable, Cloneable
      * if there is a tie, the last player to have LR keeps it.
      * if two or more players are tied for LR and none of them
      * used to have LR, then no one has LR.
+     *<P>
+     * If {@link SOCGameOption#K_SC_0RVP} is set, does nothing.
      *
      * @param pn  the number of the player who is affected
      */
     public void updateLongestRoad(int pn)
     {
+        if (isGameOptionSet(SOCGameOption.K_SC_0RVP))
+            return;  // <--- No longest road ---
+
         //D.ebugPrintln("## updateLongestRoad("+pn+")");
         int longestLength;
         int playerLength;

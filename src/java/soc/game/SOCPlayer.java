@@ -1385,6 +1385,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get our longest road paths.
+     * Vector is empty if {@link SOCGameOption#K_SC_0RVP} is set.
      * @return longest road paths
      */
     public Vector<SOCLRPathData> getLRPaths()

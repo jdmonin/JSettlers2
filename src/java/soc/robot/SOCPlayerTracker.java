@@ -29,6 +29,7 @@ import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCLRPathData;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
@@ -2044,7 +2045,8 @@ public class SOCPlayerTracker
     }
 
     /**
-     * calculate the longest road ETA
+     * Calculate the longest road ETA.
+     * Always 500 or more if {@link SOCGameOption#K_SC_0RVP} is set.
      */
     public void recalcLongestRoadETA()
     {
@@ -2079,7 +2081,7 @@ public class SOCPlayerTracker
             longestRoadETA = 0;
             roadsToGo = 0;
         }
-        else
+        else if (! player.getGame().isGameOptionSet(SOCGameOption.K_SC_0RVP))
         {
             if (lrPlayer == null)
             {
@@ -2116,6 +2118,8 @@ public class SOCPlayerTracker
      * Does a depth first search from the end point of the longest
      * path in a graph of nodes and returns how many roads would
      * need to be built to take longest road.
+     *<P>
+     * Do not call if {@link SOCGameOption#K_SC_0RVP} is set.
      *
      * @param startNode     the path endpoint
      * @param pathLength    the length of that path
