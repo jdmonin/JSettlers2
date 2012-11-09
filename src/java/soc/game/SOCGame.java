@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Stack;
 import java.util.Vector;
@@ -2023,6 +2024,7 @@ public class SOCGame implements Serializable, Cloneable
      * Updates longest road if necessary.
      * Calls {@link #advanceTurnStateAfterPutPiece()}.
      * (player.putPiece may also score Special Victory Point(s), see below.)
+     * If placing this piece reveals any {@link SOCBoardLarge#FOG_HEX fog hex}, does that first of all.
      *<P>
      * If the piece is a city, putPiece removes the settlement there.
      *<P>
@@ -2061,14 +2063,30 @@ public class SOCGame implements Serializable, Cloneable
      */
     private void putPieceCommon(SOCPlayingPiece pp, final boolean isTempPiece)
     {
+        final int coord = pp.getCoordinates();
+
         /**
          * on large board, look for fog and reveal its hex if we're
          * placing a road or ship touching the fog hex's corner.
+         * During initial placement, a settlement could reveal up to 3.
          */
-        if (hasSeaBoard && isAtServer && (pp instanceof SOCRoad))
+        if (hasSeaBoard && isAtServer)
         {
-            final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(pp.getCoordinates());
-            putPieceCommon_checkFogHexes(endHexes);
+            if (pp instanceof SOCRoad)
+            {
+                final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(coord);
+                putPieceCommon_checkFogHexes(endHexes, false);
+            }
+            else if (isInitialPlacement())
+            {
+                final Collection<Integer> hexColl = board.getAdjacentHexesToNode(coord);
+                int[] seHexes = new int[hexColl.size()];
+                int i;
+                Iterator<Integer> hi;
+                for (i = 0, hi = hexColl.iterator(); hi.hasNext(); ++i)
+                    seHexes[i] = hi.next();
+                putPieceCommon_checkFogHexes(seHexes, true);                
+            }
         }
 
         /**
@@ -2092,7 +2110,7 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer ppPlayer = pp.getPlayer();
         if (pieceType == SOCPlayingPiece.CITY)
         {
-            SOCSettlement se = new SOCSettlement(ppPlayer, pp.getCoordinates(), board);
+            SOCSettlement se = new SOCSettlement(ppPlayer, coord, board);
 
             for (int i = 0; i < maxPlayers; i++)
             {
@@ -2114,7 +2132,7 @@ public class SOCGame implements Serializable, Cloneable
                     && (ppPlayer.getPieces().size() == 3))))
         {
             SOCResourceSet resources = new SOCResourceSet();
-            Vector<Integer> hexes = board.getAdjacentHexesToNode(pp.getCoordinates());
+            Vector<Integer> hexes = board.getAdjacentHexesToNode(coord);
             int goldHexAdjacent = 0;
 
             for (Integer hex : hexes)
@@ -2195,7 +2213,7 @@ public class SOCGame implements Serializable, Cloneable
                     roads[i] = 0;
                 }
 
-                Vector<Integer> adjEdges = board.getAdjacentEdgesToNode(pp.getCoordinates());
+                Vector<Integer> adjEdges = board.getAdjacentEdgesToNode(coord);
 
                 for (Integer adj : adjEdges)
                 {
@@ -2249,7 +2267,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (pp.getType() == SOCPlayingPiece.SHIP)
         {
-            placedShipsThisTurn.add(new Integer(pp.getCoordinates()));
+            placedShipsThisTurn.add(new Integer(coord));
         }
 
         /**
@@ -2270,36 +2288,35 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * On the large sea board, look for and reveal any adjacent fog hex,
      * if we're placing a road or ship touching the fog hex's corner node.
+     * Reveal it before placing the new piece, so it's easier for
+     * players and bots to updatePotentials (their data about the
+     * board reachable through their roads/ships).
+     *<P>
+     * During initial placement, placing a settlement could reveal up to 3.
      * Called only at server.
      *
      * @param hexCoords  Hex coordinates to check type for {@link SOCBoardLarge#FOG_HEX}
+     * @param initialSettlement  Are we checking for initial settlement placement?
+     *     If so, keep checking after finding a fog hex.
      * @since 2.0.00
      */
-    private final void putPieceCommon_checkFogHexes(final int[] hexCoords)
+    private final void putPieceCommon_checkFogHexes(final int[] hexCoords, final boolean initialSettlement)
     {
-        int fogRevealedHexCoord = -1;
-
-        for (int i = 0; i < 2; ++i)
+        for (int i = 0; i < hexCoords.length; ++i)
         {
             final int hexCoord = hexCoords[i];
             if ((hexCoord != 0) && (board.getHexTypeFromCoord(hexCoord) == SOCBoardLarge.FOG_HEX))
             {
-                fogRevealedHexCoord = hexCoord;
-                break;
-                // No need to keep looking, because only one end of the edge is new;
-                // player was already at the other end, so it can't be fog.
-            }
-        }
+                ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord);
+                if (scenarioEventListener != null)
+                    scenarioEventListener.gameEvent
+                        (this, SOCScenarioGameEvent.SGE_FOG_HEX_REVEALED, new Integer(hexCoord));
 
-        if (fogRevealedHexCoord != -1)
-        {
-            // Reveal it before placing the new piece, so it's easier for
-            // players and bots to updatePotentials (their data about the
-            // board reachable through their roads/ships).
-            ((SOCBoardLarge) board).revealFogHiddenHex(fogRevealedHexCoord);
-            if (scenarioEventListener != null)
-                scenarioEventListener.gameEvent
-                    (this, SOCScenarioGameEvent.SGE_FOG_HEX_REVEALED, new Integer(fogRevealedHexCoord));
+                if (! initialSettlement)
+                    break;
+                    // No need to keep looking, because only one end of the road or ship's
+                    // edge is new; player was already at the other end, so it can't be fog.
+            }
         }
     }
 
