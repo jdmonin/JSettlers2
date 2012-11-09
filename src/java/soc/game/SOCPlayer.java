@@ -2930,12 +2930,39 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Can a settlement be placed at this node?
+     * Calls {@link #isPotentialSettlement(int)}.
+     * Does not check {@link #getNumPieces(int) getNumPieces(SETTLEMENT)}.
+     * On the large board, checks against {@link SOCBoardLarge#getPlayerExcludedLandAreas()}.
+     * @param node  node coordinate
+     * @return  True if can place, false otherwise
+     * @see SOCGame#couldBuildSettlement(int)
+     * @since 2.0.00
+     */
+    public boolean canPlaceSettlement(final int node)
+    {
+        if (! isPotentialSettlement(node))
+            return false;
+
+        if (game.hasSeaBoard)
+        {
+            final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
+            if (board.isNodeInLandAreas
+                (node, board.getPlayerExcludedLandAreas()))
+                return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Is this node a potential settlement?
      * True if the location is legal, currently not occupied,
      * no settlement is currently on an adjacent node,
      * and we have an adjacent road or ship.
      * @return true if this node is a potential settlement
      * @param node        the coordinates of a node on the board
+     * @see #canPlaceSettlement(int)
      */
     public boolean isPotentialSettlement(final int node)
     {
