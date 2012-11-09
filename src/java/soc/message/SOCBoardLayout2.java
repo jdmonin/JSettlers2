@@ -23,6 +23,7 @@ import java.util.Hashtable;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;  // for javadocs
 
 
 /**
@@ -40,17 +41,21 @@ import soc.game.SOCBoard;
  *<LI> NL: The dice numbers, from {@link SOCBoard#getNumberLayout()}
  *<LI> RH: The robber hex, from {@link SOCBoard#getRobberHex()}, if &gt; 0
  *<LI> PL: The ports, from {@link SOCBoard#getPortsLayout()}
- *<LI> PH: The pirate hex, from {@link soc.game.SOCBoardLarge#getPirateHex()}, if &gt; 0
- *<LI> LH: The land hexes (v3 board encoding), from {@link soc.game.SOCBoardLarge#getLandHexLayout()}.<br>
+ *<LI> PH: The pirate hex, from {@link SOCBoardLarge#getPirateHex()}, if &gt; 0
+ *<LI> LH: The land hexes (v3 board encoding), from {@link SOCBoardLarge#getLandHexLayout()}.<br>
  *         The v3 board's land hexes may be logically grouped into several
  *         "land areas" (groups of islands, or subsets of islands).  Those
  *         areas are sent to the client via {@link SOCPotentialSettlements}.
+ *<LI> PX: Players are excluded from settling these land area numbers (usually none)
+ *<LI> RX: Robber is excluded from these land area numbers (usually none)
  *</UL>
  * Board layout parts by board encoding version:
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
- *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL; LH is null before makeNewBoard is called.
+ *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL.
+ *         Sometimes PX and/or RX (for game scenarios).
+ *         LH is null before makeNewBoard is called.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
  * <tt>SOCBoardLayout</tt> required a mapping/unmapping step.
@@ -166,8 +171,10 @@ public class SOCBoardLayout2 extends SOCMessage
      * @param pl   the port layout, or null
      * @param rh   the robber hex, or -1
      * @param ph   the pirate hex, or 0
+     * @param px   the player exclusion land areas, or null, from {@link SOCBoardLarge#getPlayerExcludedLandAreas()}
+     * @param rx   the robber exclusion land areas, or null, from {@link SOCBoardLarge#getRobberExcludedLandAreas()}
      */
-    public SOCBoardLayout2(String ga, final int bef, int[] lh, int[] pl, int rh, int ph)
+    public SOCBoardLayout2(String ga, final int bef, int[] lh, int[] pl, int rh, int ph, int[] px, int[] rx)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -181,6 +188,10 @@ public class SOCBoardLayout2 extends SOCMessage
             layoutParts.put("RH", new Integer(rh));
         if (ph > 0)
             layoutParts.put("PH", new Integer(ph));
+        if (px != null)
+            layoutParts.put("PX", px);
+        if (rx != null)
+            layoutParts.put("RX", rx);
     }
 
     /**

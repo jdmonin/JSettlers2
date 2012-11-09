@@ -968,6 +968,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
             int[] portLayout = mes.getIntArrayPart("PL");
             if (portLayout != null)
                 bd.setPortsLayout(portLayout);
+            int[] x = mes.getIntArrayPart("PX");
+            if (x != null)
+                ((SOCBoardLarge) bd).setPlayerExcludedLandAreas(x);
+            x = mes.getIntArrayPart("RX");
+            if (x != null)
+                ((SOCBoardLarge) bd).setRobberExcludedLandAreas(x);
         }
         else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
         {

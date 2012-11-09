@@ -9717,9 +9717,10 @@ public class SOCServer extends Server
             return new SOCBoardLayout2(ga.getName(), bef, hexes, numbers, board.getPortsLayout(), robber);
 
         case SOCBoard.BOARD_ENCODING_LARGE:  // v3
+            final SOCBoardLarge bl = (SOCBoardLarge) board;
             return new SOCBoardLayout2
-                (ga.getName(), bef, ((SOCBoardLarge) board).getLandHexLayout(), board.getPortsLayout(),
-                 robber, ((SOCBoardLarge) board).getPirateHex());
+                (ga.getName(), bef, bl.getLandHexLayout(), board.getPortsLayout(),
+                 robber, bl.getPirateHex(), bl.getPlayerExcludedLandAreas(), bl.getRobberExcludedLandAreas());
 
         default:
             throw new IllegalArgumentException("unknown board encoding v" + bef);

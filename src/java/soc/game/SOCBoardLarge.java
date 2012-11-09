@@ -41,7 +41,8 @@ import java.util.Vector;
  * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
  * During board setup, {@link #makeNewBoard(Hashtable)} calls
  * {@link #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)}
- * once for each land area.
+ * once for each land area.  In some game scenarios, players and the robber can be
+ * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
  * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
  * The board layout is sent using {@link #getLandHexLayout()} and {@link #getPortsLayout()},
@@ -417,6 +418,18 @@ public class SOCBoardLarge extends SOCBoard
      * @see #revealFogHiddenHex(int)
      */
     private HashMap<Integer, Integer> fogHiddenHexes;
+
+    /**
+     * Land area numbers from which the player is excluded and cannot place settlements, or null.
+     * Used in some game scenarios.
+     */
+    private int[] playerExcludedLandAreas;
+
+    /**
+     * Land areas numbers from which the robber is excluded and cannot be placed, or null.
+     * Used in some game scenarios.
+     */
+    private int[] robberExcludedLandAreas;
 
     /**
      * This board layout's number of ports;
@@ -1164,6 +1177,54 @@ public class SOCBoardLarge extends SOCBoard
     public int getPreviousPirateHex()
     {
         return prevPirateHex;
+    }
+
+    /**
+     * Get the land area numbers, if any, from which all players are excluded and cannot place settlements.
+     * Used in some game scenarios.
+     * @return land area numbers, or null if none
+     * @see #setPlayerExcludedLandAreas(int[])
+     * @see #getRobberExcludedLandAreas()
+     */
+    public int[] getPlayerExcludedLandAreas()
+    {
+        return playerExcludedLandAreas;
+    }
+
+    /**
+     * Set or clear the land area numbers from which all players are excluded and cannot place settlements.
+     * Used in some game scenarios.
+     * @param px  Land area numbers, or null if none
+     * @see #getPlayerExcludedLandAreas()
+     * @see #setRobberExcludedLandAreas(int[])
+     */
+    public void setPlayerExcludedLandAreas(final int[] px)
+    {
+        playerExcludedLandAreas = px;
+    }
+
+    /**
+     * Get the land area numbers, if any, from which the robber is excluded and cannot be placed.
+     * Used in some game scenarios.
+     * @return land area numbers, or null if none
+     * @see #setRobberExcludedLandAreas(int[])
+     * @see #getPlayerExcludedLandAreas()
+     */
+    public int[] getRobberExcludedLandAreas()
+    {
+        return robberExcludedLandAreas;
+    }
+
+    /**
+     * Set or clear the land area numbers from which the robber is excluded and cannot be placed.
+     * Used in some game scenarios.
+     * @param rx  Land area numbers, or null if none
+     * @see #getRobberExcludedLandAreas()
+     * @see #setPlayerExcludedLandAreas(int[])
+     */
+    public void setRobberExcludedLandAreas(final int[] rx)
+    {
+        robberExcludedLandAreas = rx;
     }
 
     /**
