@@ -9711,6 +9711,8 @@ public class SOCServer extends Server
         }
         switch (bef)
         {
+        case SOCBoard.BOARD_ENCODING_ORIGINAL: // v1
+            // fall through to v2
         case SOCBoard.BOARD_ENCODING_6PLAYER:  // v2
             return new SOCBoardLayout2(ga.getName(), bef, hexes, numbers, board.getPortsLayout(), robber);
 
