@@ -4260,7 +4260,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ptrOldY = y;
                 nodeNum = findNode(xb, yb);
 
-                if ((player == null) || !player.isPotentialSettlement(nodeNum))
+                if ((player == null) || ! player.canPlaceSettlement(nodeNum))
                 {
                     nodeNum = 0;
                 }
@@ -4592,7 +4592,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             case PLACE_SETTLEMENT:
 
-                if (player.isPotentialSettlement(hilight))
+                if (player.canPlaceSettlement(hilight))
                 {
                     client.getGameManager().putPiece(game, new SOCSettlement(player, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
@@ -4691,7 +4691,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             case CONSIDER_LM_SETTLEMENT:
 
-                if (otherPlayer.isPotentialSettlement(hilight))
+                if (otherPlayer.canPlaceSettlement(hilight))
                 {
                     client.getGameManager().considerMove(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
@@ -4721,7 +4721,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             case CONSIDER_LT_SETTLEMENT:
 
-                if (otherPlayer.isPotentialSettlement(hilight))
+                if (otherPlayer.canPlaceSettlement(hilight))
                 {
                     client.getGameManager().considerTarget(game, otherPlayer.getName(), new SOCSettlement(otherPlayer, hilight, board));
                     clearModeAndHilight(SOCPlayingPiece.SETTLEMENT);
@@ -5817,7 +5817,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         // Nothing currently here.
                         hoverCityID = 0;
                         if (modeAllowsHoverPieces
-                            && player.isPotentialSettlement(id)
+                            && player.canPlaceSettlement(id)
                             && (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
                             && (debugPP || player.getResources().contains(SOCGame.SETTLEMENT_SET)))
                             hoverSettlementID = id;
@@ -6433,7 +6433,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         (debugPP ? (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
                                  : game.couldBuildRoad(cpn)) );
                   buildSettleItem.setEnabled
-                      ( player.isPotentialSettlement(hSe) &&
+                      ( player.canPlaceSettlement(hSe) &&
                         (debugPP ? (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
                                  : game.couldBuildSettlement(cpn)) );
                   upgradeCityItem.setEnabled
@@ -6558,7 +6558,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
           case SOCPlayingPiece.SETTLEMENT:
               buildLoc = hoverSettlementID;
-              canBuild = player.isPotentialSettlement(buildLoc);
+              canBuild = player.canPlaceSettlement(buildLoc);
               if (! sendNow)
                   canBuild = canBuild && game.couldBuildSettlement(cpn);
               if (canBuild && sendNow)
@@ -6855,7 +6855,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
-                if (player.isPotentialSettlement(buildLoc))
+                if (player.canPlaceSettlement(buildLoc))
                     client.getGameManager().putPiece(game, new SOCSettlement(player, buildLoc, board));
                 break;
 

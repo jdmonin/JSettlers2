@@ -2029,7 +2029,7 @@ public class SOCGame implements Serializable, Cloneable
      * If the piece is a city, putPiece removes the settlement there.
      *<P>
      *<b>Note:</b> Because <tt>pp</tt> is not checked for validity, please call
-     * methods such as {@link SOCPlayer#isPotentialSettlement(int)}
+     * methods such as {@link SOCPlayer#canPlaceSettlement(int)}
      * to verify <tt>pp</tt> before calling this method, and also check
      * {@link #getGameState()} to ensure that piece type can be placed now.
      * For ships, call {@link #canPlaceShip(SOCPlayer, int)} to check
@@ -3870,6 +3870,13 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
+        if (board instanceof SOCBoardLarge)
+        {
+            if (((SOCBoardLarge) board).isHexInLandAreas
+                (co, ((SOCBoardLarge) board).getRobberExcludedLandAreas()))
+                return false;
+        }
+
         switch (board.getHexTypeFromCoord(co))
         {
         case SOCBoard.DESERT_HEX:
@@ -3884,6 +3891,8 @@ public class SOCGame implements Serializable, Cloneable
 
         case SOCBoardLarge.GOLD_HEX:
         case SOCBoardLarge.FOG_HEX:
+            // Must check these because the original board has port types (water hexes)
+            // with the same numeric values as GOLD_HEX and FOG_HEX.
             return (board instanceof SOCBoardLarge);
 
         default:
@@ -4564,6 +4573,7 @@ public class SOCGame implements Serializable, Cloneable
      *         room to build a settlement
      *
      * @param pn  the number of the player
+     * @see SOCPlayer#canPlaceSettlement(int)
      */
     public boolean couldBuildSettlement(int pn)
     {
@@ -4607,6 +4617,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      * @since 2.0.00
+     * @see #canPlaceShip(SOCPlayer, int)
      */
     public boolean couldBuildShip(int pn)
     {

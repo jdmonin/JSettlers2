@@ -5379,7 +5379,7 @@ public class SOCServer extends Server
 
                     if ((gameState == SOCGame.START1A) || (gameState == SOCGame.START2A) || (gameState == SOCGame.PLACING_SETTLEMENT))
                     {
-                        if (player.isPotentialSettlement(coord))
+                        if (player.canPlaceSettlement(coord))
                         {
                             ga.putPiece(se);   // Changes game state and (if game start) player
                             gameList.takeMonitorForGame(gaName);
@@ -7997,7 +7997,7 @@ public class SOCServer extends Server
             break;
 
         case SOCPlayingPiece.SETTLEMENT:
-            if (player.isPotentialSettlement(coord) && ! initialDeny)
+            if (player.canPlaceSettlement(coord) && ! initialDeny)
             {
                 ga.putPiece(new SOCSettlement(player, coord, null));
                 didPut = true;

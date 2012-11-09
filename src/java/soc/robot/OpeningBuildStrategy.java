@@ -626,7 +626,7 @@ public class OpeningBuildStrategy {
         {
             // each of 6 directions: NE, E, SE, SW, W, NW
             int tmp = board.getAdjacentNodeToNode2Away(settlementNode, facing);
-            if ((tmp != -9) && ourPlayerData.isPotentialSettlement(tmp))
+            if ((tmp != -9) && ourPlayerData.canPlaceSettlement(tmp))
                 twoAway.put(new Integer(tmp), new Integer(0));
         }
 
@@ -752,7 +752,7 @@ public class OpeningBuildStrategy {
 
             log.debug("Considering " + Integer.toHexString(coord) + " with a score of " + score);
 
-            if (dummy.isPotentialSettlement(coord))
+            if (dummy.canPlaceSettlement(coord))
             {
                 if (bestNodePair.getScore() < score)
                 {

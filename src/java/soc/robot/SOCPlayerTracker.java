@@ -617,7 +617,7 @@ public class SOCPlayerTracker
 
         for (Integer adjNode : adjNodeEnum)
         {
-            if (player.isPotentialSettlement(adjNode.intValue()))
+            if (player.canPlaceSettlement(adjNode.intValue()))
             {
                 //
                 // see if possible settlement is already in the list
@@ -686,7 +686,7 @@ public class SOCPlayerTracker
                 // Determine if can transition ship <-> road
                 // at a coastal settlement
                 final int nodeBetween = ((SOCBoardLarge) board).getNodeBetweenAdjacentEdges(road.getCoordinates(), edge);
-                if (player.isPotentialSettlement(nodeBetween))
+                if (player.canPlaceSettlement(nodeBetween))
                 {
                     // check opposite type at transition
                     edgeIsPotentialRoute = (road.isRoadNotShip())
@@ -815,7 +815,7 @@ public class SOCPlayerTracker
         Vector<Integer> adjNodeEnum = board.getAdjacentNodesToEdge(tgtRoadEdge);
         for (Integer adjNode : adjNodeEnum)
         {
-            if (dummy.isPotentialSettlement(adjNode.intValue()))
+            if (dummy.canPlaceSettlement(adjNode.intValue()))
             {
                 //
                 // see if possible settlement is already in the list
@@ -905,7 +905,7 @@ public class SOCPlayerTracker
                     // at a coastal settlement
                     final int nodeBetween =
                         ((SOCBoardLarge) board).getNodeBetweenAdjacentEdges(tgtRoadEdge, edge);
-                    if (dummy.isPotentialSettlement(nodeBetween))
+                    if (dummy.canPlaceSettlement(nodeBetween))
                     {
                         // check opposite type at transition
                         edgeIsPotentialRoute = (targetRoad.isRoadNotShip())
