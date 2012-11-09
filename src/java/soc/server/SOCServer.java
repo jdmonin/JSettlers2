@@ -631,7 +631,7 @@ public class SOCServer extends Server
          * Ignore net errors if we're running a DB setup script and then exiting.
          */
         if ((error != null)
-            && (null == props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP)))
+            && ((props == null) || (null == props.getProperty(SOCDBHelper.PROP_JSETTLERS_DB_SCRIPT_SETUP))))
         {
             final String errMsg = "* Exiting due to network setup problem: " + error.toString();
             throw new SocketException(errMsg);
