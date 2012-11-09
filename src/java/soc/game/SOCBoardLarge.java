@@ -125,7 +125,8 @@ import java.util.Vector;
  *      {@link #getHexLayout()} <br>
  *      {@link #getLandHexLayout()} <br>
  *      {@link #getLandHexCoords()} <br>
- *      {@link #getLandHexCoordsSet()}
+ *      {@link #getLandHexCoordsSet()} <br>
+ *      {@link #isHexInLandAreas(int, int[])}
  *    </td>
  *    <td><!-- edge -->
  *      {@link #isEdgeInBounds(int)} <br>
@@ -138,6 +139,8 @@ import java.util.Vector;
  *      {@link #isNodeOnLand(int)} <br>
  *      {@link #settlementAtNode(int)} <br>
  *      {@link #getPortTypeFromNodeCoord(int)} <br>
+ *      {@link #getNodeLandArea(int)} <br>
+ *      {@link #isNodeInLandAreas(int, int[])} <br>
  *      {@link #getLandAreasLegalNodes()}
  *    </td>
  *</TR>
@@ -1432,12 +1435,79 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Is this hex's land area in this list of land areas?
+     * @param hexCoord  The hex coordinate, within the board's bounds
+     * @param las  List of land area numbers, or null for an empty list
+     * @return  True if any landarea in <tt>las[i]</tt> contains <tt>hexCoord</tt> 
+     */
+    public boolean isHexInLandAreas(final int hexCoord, final int[] las)
+    {
+        if (las == null)
+            return false;
+
+        // Because of how landareas are transmitted to the client,
+        // we don't have a list of land area hexes, only land area nodes.
+        // To contain a hex, the land area must contain all 6 of its corner nodes.
+
+        final int[] hnodes = getAdjacentNodesToHex(hexCoord);
+        final Integer hnode0 = Integer.valueOf(hnodes[0]);
+        for (int a : las)
+        {
+            if (a >= landAreasLegalNodes.length)
+                continue;  // bad argument
+
+            if (! landAreasLegalNodes[a].contains(hnode0))
+                continue;  // missing at least 1 corner
+
+            // check the other 5 hex corners
+            boolean all = true;
+            for (int i = 1; i < hnodes.length; ++i)
+            {
+                if (! landAreasLegalNodes[a].contains(Integer.valueOf(hnodes[i])))
+                {
+                    all = false;
+                    break;
+                }
+            }
+
+            if (all)
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Is this node's land area in this list of land areas?
+     * @param nodeCoord  The node's coordinate
+     * @param las  List of land area numbers, or null for an empty list
+     * @return  True if <tt>las</tt> contains {@link #getNodeLandArea(int) getNodeLandArea(nodeCoord)}
+     */
+    public boolean isNodeInLandAreas(final int nodeCoord, final int[] las)
+    {
+        if (las == null)
+            return false;
+
+        final Integer ncInt = Integer.valueOf(nodeCoord);
+        for (int a : las)
+        {
+            if (a >= landAreasLegalNodes.length)
+                continue;  // bad argument
+
+            if (landAreasLegalNodes[a].contains(ncInt))
+                return true;
+        }
+        return false;
+    }
+
+    /**
      * Get a node's Land Area number, if applicable.
      * @param nodeCoord  the node's coordinate
      * @return  The node's land area, if any, or 0 if not found or if in water.
      *     If {@link #getLandAreasLegalNodes()} is <tt>null</tt>,
      *     always returns 1 if {@link #isNodeOnLand(int) isNodeOnLand(nodeCoord)}.
      * @see #getLandAreasLegalNodes()
+     * @see #isNodeInLandAreas(int, int[])
      */
     public int getNodeLandArea(final int nodeCoord)
     {
