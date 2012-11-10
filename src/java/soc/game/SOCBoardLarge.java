@@ -1438,11 +1438,13 @@ public class SOCBoardLarge extends SOCBoard
      * Is this hex's land area in this list of land areas?
      * @param hexCoord  The hex coordinate, within the board's bounds
      * @param las  List of land area numbers, or null for an empty list
-     * @return  True if any landarea in <tt>las[i]</tt> contains <tt>hexCoord</tt> 
+     * @return  True if any landarea in <tt>las[i]</tt> contains <tt>hexCoord</tt>;
+     *    false otherwise, or if {@link #getLandAreasLegalNodes()} is <tt>null</tt>
+     * @see #isHexOnLand(int)
      */
     public boolean isHexInLandAreas(final int hexCoord, final int[] las)
     {
-        if (las == null)
+        if ((las == null) || (landAreasLegalNodes == null))
             return false;
 
         // Because of how landareas are transmitted to the client,
@@ -1456,14 +1458,18 @@ public class SOCBoardLarge extends SOCBoard
             if (a >= landAreasLegalNodes.length)
                 continue;  // bad argument
 
-            if (! landAreasLegalNodes[a].contains(hnode0))
+            final HashSet<Integer> lan = landAreasLegalNodes[a];
+            if (lan == null)
+                continue;  // index 0 is unused
+
+            if (! lan.contains(hnode0))
                 continue;  // missing at least 1 corner
 
             // check the other 5 hex corners
             boolean all = true;
             for (int i = 1; i < hnodes.length; ++i)
             {
-                if (! landAreasLegalNodes[a].contains(Integer.valueOf(hnodes[i])))
+                if (! lan.contains(Integer.valueOf(hnodes[i])))
                 {
                     all = false;
                     break;
@@ -1481,11 +1487,12 @@ public class SOCBoardLarge extends SOCBoard
      * Is this node's land area in this list of land areas?
      * @param nodeCoord  The node's coordinate
      * @param las  List of land area numbers, or null for an empty list
-     * @return  True if <tt>las</tt> contains {@link #getNodeLandArea(int) getNodeLandArea(nodeCoord)}
+     * @return  True if <tt>las</tt> contains {@link #getNodeLandArea(int) getNodeLandArea(nodeCoord)};
+     *    false otherwise, or if {@link #getLandAreasLegalNodes()} is <tt>null</tt>
      */
     public boolean isNodeInLandAreas(final int nodeCoord, final int[] las)
     {
-        if (las == null)
+        if ((las == null) || (landAreasLegalNodes == null))
             return false;
 
         final Integer ncInt = Integer.valueOf(nodeCoord);
@@ -1494,7 +1501,11 @@ public class SOCBoardLarge extends SOCBoard
             if (a >= landAreasLegalNodes.length)
                 continue;  // bad argument
 
-            if (landAreasLegalNodes[a].contains(ncInt))
+            final HashSet<Integer> lan = landAreasLegalNodes[a];
+            if (lan == null)
+                continue;  // index 0 is unused
+
+            if (lan.contains(ncInt))
                 return true;
         }
         return false;
