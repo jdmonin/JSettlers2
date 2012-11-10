@@ -6008,6 +6008,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     hoverMode = PLACE_ROBBER;  // const used for hovering-at-hex
                 hoverPiece = null;
                 hoverID = id;
+
                 {
                     StringBuffer sb = new StringBuffer();
                     final int htype = board.getHexTypeFromCoord(id);
@@ -6084,7 +6085,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                     else if (isLargeBoard)
                     {
-                        if (((SOCBoardLarge) board).getPirateHex() == id)
+                        final SOCBoardLarge bl = (SOCBoardLarge) board;
+                        if (bl.getPirateHex() == id)
                         {
                             if (dicenum > 0)
                             {
@@ -6093,7 +6095,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             }
                             sb.append(" (PIRATE SHIP)");
                         }
-                        else if (((SOCBoardLarge) board).getPreviousPirateHex() == id)
+                        else if (bl.getPreviousPirateHex() == id)
                         {
                             if (dicenum > 0)
                             {
@@ -6101,6 +6103,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 sb.append(dicenum);
                             }
                             sb.append(" (pirate was here)");
+                        }
+                        else if (bl.isHexInLandAreas(id, bl.getPlayerExcludedLandAreas()))
+                        {
+                            // Give the player an early warning, even if roads/ships aren't near this hex
+                            sb.append(" (cannot settle here)");
                         }
                     }
                     setHoverText(sb.toString());
