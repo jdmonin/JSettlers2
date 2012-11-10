@@ -354,7 +354,7 @@ public class SOCBoardLarge extends SOCBoard
      * this array holds each land area's nodes for settlements/cities.
      * <tt>null</tt> otherwise.
      * Each index holds the nodes for that land area number.
-     * Index 0 is unused.
+     * Index 0 is unused (<tt>null</tt>).
      *<P>
      * The multiple land areas are used to restrict initial placement,
      * or for other purposes during the game.
@@ -3043,7 +3043,12 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * My sample board layout: All the outlying islands' land hex coordinates.
+     *<P>
+     * The first outlying island (land area 2) is upper-right on board.
+     * Second island (landarea 3) is lower-right.
+     * Third island (landarea 4) is lower-left.
      * @see #LANDHEX_COORD_ISLANDS_EACH
+     * @see #LANDHEX_LANDAREA_RANGES_ISLANDS
      */
     private static final int LANDHEX_COORD_ISLANDS_ALL[] =
     {
