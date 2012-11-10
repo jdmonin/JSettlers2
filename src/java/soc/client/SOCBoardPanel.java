@@ -4352,7 +4352,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (! canMove)
                 {
-                    hexNum = 0;
+                    // Not a hex, or can't move to this hex (water, etc)
+                    if (hexNum != 0)
+                    {
+                        if ((board instanceof SOCBoardLarge)
+                            && ((SOCBoardLarge) board).isHexInLandAreas
+                                (hexNum, ((SOCBoardLarge) board).getRobberExcludedLandAreas()))
+                        {
+                            hoverTip.setHoverText("Cannot move the robber here.");
+                        } else {
+                            hoverTip.setHoverText(null);  // clear any previous
+                        }
+                        
+                        hexNum = 0;
+                    }
                 }
 
                 if (hilight != hexNum)
@@ -5817,12 +5830,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         // Nothing currently here.
                         hoverCityID = 0;
                         if (modeAllowsHoverPieces
-                            && player.canPlaceSettlement(id)
                             && (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
                             && (debugPP || player.getResources().contains(SOCGame.SETTLEMENT_SET)))
-                            hoverSettlementID = id;
-                        else
+                        {
+                            if (player.canPlaceSettlement(id))
+                            {
+                                hoverSettlementID = id;
+                            }
+                            else if (player.isPotentialSettlement(id))
+                            {
+                                setHoverText("Not allowed to settle here");
+                                hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
+                                hoverID = id;
+                                hoverIsPort = false;
+                                hoverTextSet = true;
+                                hoverSettlementID = 0;
+                            }
+                        } else {
                             hoverSettlementID = 0;
+                        }
                     }
 
                     // Initial Placement on large board: Check for
