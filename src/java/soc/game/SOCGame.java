@@ -158,7 +158,7 @@ public class SOCGame implements Serializable, Cloneable
      * Players place second settlement.  Proceed in reverse order for each player;
      * next state is {@link #START2B} to place 2nd road.
      * If the settlement is placed on a Gold Hex, the next state
-     * is {@link #START2A_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * is {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      */
     public static final int START2A = 10; // Players place 2nd stlmt
 
@@ -170,7 +170,7 @@ public class SOCGame implements Serializable, Cloneable
      * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX}.
      * @since 2.0.00
      */
-    public static final int START2A_WAITING_FOR_PICK_GOLD_RESOURCE = 14;
+    public static final int STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14;
 
     /**
      * Players place second road.  Next state is {@link #START2A} to place previous
@@ -1625,14 +1625,14 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Are we in the Initial Placement part of the game?
      * Includes game states {@link #START1A} - {@link #START2B}
-     * and {@link #START2A_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * and {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      *
      * @return true if in Initial Placement
      * @since 1.1.12
      */
     public final boolean isInitialPlacement()
     {
-        return (gameState >= START1A) && (gameState <= START2A_WAITING_FOR_PICK_GOLD_RESOURCE);
+        return (gameState >= START1A) && (gameState <= STARTS_WAITING_FOR_PICK_GOLD_RESOURCE);
     }
 
     /**
@@ -2382,7 +2382,7 @@ public class SOCGame implements Serializable, Cloneable
 
         case START2A:
             if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
-                gameState = START2A_WAITING_FOR_PICK_GOLD_RESOURCE;
+                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
             else
                 gameState = START2B;
 
@@ -3274,7 +3274,7 @@ public class SOCGame implements Serializable, Cloneable
             discardOrGainPickRandom(hand, hand.getTotal() / 2, true, picks, rand);
             discard(pn, picks);  // Checks for other discarders, sets gameState
         } else {
-            // TODO for init place (START2A_WAITING_FOR_PICK_GOLD_RESOURCE):
+            // TODO for init place (STARTS_WAITING_FOR_PICK_GOLD_RESOURCE):
             //    even more randomly pick one, then set state START2A or START2B;
             //    then call forceEnd again; maybe not here but after here
             discardOrGainPickRandom(hand, players[pn].getNeedToPickGoldHexResources(), false, picks, rand);
@@ -3741,7 +3741,7 @@ public class SOCGame implements Serializable, Cloneable
      * <tt>rs.</tt>{@link SOCResourceSet#getTotal() getTotal()}
      * must == {@link SOCPlayer#getNeedToPickGoldHexResources()}.
      * Game state must be {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
-     * or {@link #START2A_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * or {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      *
      * @param pn  the number of the player that is picking
      * @param rs  the resources that the player is picking
@@ -3752,7 +3752,7 @@ public class SOCGame implements Serializable, Cloneable
     public boolean canPickGoldHexResources(final int pn, final SOCResourceSet rs)
     {
         if ((gameState != WAITING_FOR_PICK_GOLD_RESOURCE)
-            && (gameState != START2A_WAITING_FOR_PICK_GOLD_RESOURCE))
+            && (gameState != STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
         {
             return false;
         }
@@ -3783,7 +3783,7 @@ public class SOCGame implements Serializable, Cloneable
         players[pn].setNeedToPickGoldHexResources(0);
 
         // initial placement?
-        if (gameState == START2A_WAITING_FOR_PICK_GOLD_RESOURCE)
+        if (gameState == STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
         {
             gameState = START2B;
             return;

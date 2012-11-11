@@ -213,7 +213,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * after a dice roll or placing their 2nd initial settlement.
      *<P>
      * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}
-     * or {@link SOCGame#START2A_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * or {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      * @see #needToDiscard
      * @since 2.0.00
      */

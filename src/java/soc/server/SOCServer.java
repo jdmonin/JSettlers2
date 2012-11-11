@@ -5389,7 +5389,7 @@ public class SOCServer extends Server
                             broadcastGameStats(ga);
 
                             // Check and send new game state
-                            if (ga.hasSeaBoard && (ga.getGameState() == SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE))
+                            if (ga.hasSeaBoard && (ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 final int numGoldRes = player.getNeedToPickGoldHexResources();
                                 if (numGoldRes > 0)
@@ -8730,7 +8730,7 @@ public class SOCServer extends Server
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
      *<P>
-     * State {@link SOCGame#START2A_WAITING_FOR_PICK_GOLD_RESOURCE}:
+     * State {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
      * Announces the player must pick resources to gain from the gold hex
      * initial placement (in a GAMETEXTMSG).
      *<P>
@@ -8817,7 +8817,7 @@ public class SOCServer extends Server
             messageToGame(gname, message);
             break;
 
-        case SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE:
+        case SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE:
             sendGameState_sendGoldPickAnnounceText(ga, gname);
             break;
 
@@ -8919,7 +8919,7 @@ public class SOCServer extends Server
     /**
      * Send a game text message "x, y, and z need to pick resources from the gold hex."
      * and, for each picking player, a {@link SOCPlayerElement}({@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES NUM_PICK_GOLD_HEX_RESOURCES}).
-     * Used in game state {@link SOCGame#START2A_WAITING_FOR_PICK_GOLD_RESOURCE}
+     * Used in game state {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}
      * and {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}.
      * @param ga  Game object
      * @param gname  Game name

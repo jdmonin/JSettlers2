@@ -1715,7 +1715,7 @@ public class SOCPlayerInterface extends Frame
             // show balloons on-screen. (hands[i].setDiscardOrPickMsg)
             discardOrPickTimerSet(true);
         } else if ((gs == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                   || (gs == SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE))
+                   || (gs == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
         {
             // Set timer.  If still waiting for resource picks after 2 seconds,
             // show balloons on-screen. (hands[i].setDiscardOrPickMsg)
@@ -2856,7 +2856,7 @@ public class SOCPlayerInterface extends Frame
             if (isDiscard)
                 needState = SOCGame.WAITING_FOR_DISCARDS;
             else if (pi.game.isInitialPlacement())
-                needState = SOCGame.START2A_WAITING_FOR_PICK_GOLD_RESOURCE;
+                needState = SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
             else
                 needState = SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE;
 
