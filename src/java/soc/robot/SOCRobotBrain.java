@@ -30,6 +30,7 @@ import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -299,6 +300,18 @@ public class SOCRobotBrain extends Thread
     protected boolean expectSTART2B;
 
     /**
+     * true if we're expecting the {@link SOCGame#START3A START3A} state.
+     * @since 2.0.00
+     */
+    protected boolean expectSTART3A;
+
+    /**
+     * true if we're expecting the {@link SOCGame#START3B START3B} state.
+     * @since 2.0.00
+     */
+    protected boolean expectSTART3B;
+
+    /**
      * true if we're expecting the PLAY state
      */
     protected boolean expectPLAY;
@@ -367,6 +380,20 @@ public class SOCRobotBrain extends Thread
      * a START1A game state
      */
     protected boolean expectPUTPIECE_FROM_START2B;
+
+    /**
+     * true if were expecting a PUTPIECE message after
+     * a {@link SOCGame#START3A START3A} game state.
+     * @since 2.0.00
+     */
+    protected boolean expectPUTPIECE_FROM_START3A;
+
+    /**
+     * true if were expecting a PUTPIECE message after
+     * a {@link SOCGame#START3B START3B} game state.
+     * @since 2.0.00
+     */
+    protected boolean expectPUTPIECE_FROM_START3B;
 
     /**
      * true if we're expecting a DICERESULT message
@@ -799,19 +826,21 @@ public class SOCRobotBrain extends Thread
         final String[] s = {
             "ourTurn", "doneTrading",
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard", "waitingForTradeResponse",
-            "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B",
+            "moveRobberOnSeven", "expectSTART1A", "expectSTART1B", "expectSTART2A", "expectSTART2B", "expectSTART3A", "expectSTART3B",
             "expectPLAY", "expectPLAY1", "expectPLACING_ROAD", "expectPLACING_SETTLEMENT", "expectPLACING_CITY", "expectPLACING_SHIP",
             "expectPLACING_ROBBER", "expectPLACING_FREE_ROAD1", "expectPLACING_FREE_ROAD2",
             "expectPUTPIECE_FROM_START1A", "expectPUTPIECE_FROM_START1B", "expectPUTPIECE_FROM_START2A", "expectPUTPIECE_FROM_START2B",
+            "expectPUTPIECE_FROM_START3A", "expectPUTPIECE_FROM_START3B",
             "expectDICERESULT", "expectDISCARD", "expectMOVEROBBER", "expectWAITING_FOR_DISCOVERY", "expectWAITING_FOR_MONOPOLY"
         };
         final boolean[] b = {
             ourTurn, doneTrading,
             waitingForGameState, waitingForOurTurn, waitingForTradeMsg, waitingForDevCard, waitingForTradeResponse,
-            moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B,
+            moveRobberOnSeven, expectSTART1A, expectSTART1B, expectSTART2A, expectSTART2B, expectSTART3A, expectSTART3B,
             expectPLAY, expectPLAY1, expectPLACING_ROAD, expectPLACING_SETTLEMENT, expectPLACING_CITY, expectPLACING_SHIP,
             expectPLACING_ROBBER, expectPLACING_FREE_ROAD1, expectPLACING_FREE_ROAD2,
             expectPUTPIECE_FROM_START1A, expectPUTPIECE_FROM_START1B, expectPUTPIECE_FROM_START2A, expectPUTPIECE_FROM_START2B,
+            expectPUTPIECE_FROM_START3A, expectPUTPIECE_FROM_START3B,
             expectDICERESULT, expectDISCARD, expectMOVEROBBER, expectWAITING_FOR_DISCOVERY, expectWAITING_FOR_MONOPOLY
         };
         if (s.length != b.length)
@@ -1582,13 +1611,19 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.PICKRESOURCESREQUEST:
+                        // gold hex
                         counter = 0;
                         pickFreeResources( ((SOCPickResourcesRequest) mes).getParam() );
                         waitingForGameState = true;
                         if (game.isInitialPlacement())
-                            expectSTART2B = true;
-                        else
+                        {
+                            if (game.isGameOptionSet(SOCGameOption.K_SC_3IP))
+                                expectSTART3B = true;
+                            else
+                                expectSTART2B = true;
+                        } else {
                             expectPLAY1 = true;
+                        }
                         break;
 
                     case SOCMessage.DISCARDREQUEST:
@@ -1751,7 +1786,7 @@ public class SOCRobotBrain extends Thread
      *<P>
      * Looks for one of these game states:
      *<UL>
-     * <LI> {@link SOCGame#START1A} - {@link SOCGame#START2B}
+     * <LI> {@link SOCGame#START1A} - {@link SOCGame#START3B}
      * <LI> {@link SOCGame#PLACING_SETTLEMENT}
      * <LI> {@link SOCGame#PLACING_ROAD}
      * <LI> {@link SOCGame#PLACING_CITY}
@@ -1915,7 +1950,7 @@ public class SOCRobotBrain extends Thread
                     counter = 0;
                     waitingForGameState = true;
                     final int secondSettleNode = openingBuildStrategy.planSecondSettlement();
-                    placeSecondSettlement(secondSettleNode);
+                    placeInitSettlement(secondSettleNode);
                 }
             }
             break;
@@ -1927,6 +1962,36 @@ public class SOCRobotBrain extends Thread
                 if ((!waitingForOurTurn) && (ourTurn) && (!(expectPUTPIECE_FROM_START2B && (counter < 4000))))
                 {
                     expectPUTPIECE_FROM_START2B = true;
+                    counter = 0;
+                    waitingForGameState = true;
+                    pause(1500);
+                    planAndPlaceInitRoad();
+                }
+            }
+            break;
+
+            case SOCGame.START3A:
+            {
+                expectSTART3A = false;
+
+                if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START3A && (counter < 4000))))
+                {
+                    expectPUTPIECE_FROM_START3A = true;
+                    counter = 0;
+                    waitingForGameState = true;
+                    final int secondSettleNode = openingBuildStrategy.planSecondSettlement();  // TODO planThirdSettlement
+                    placeInitSettlement(secondSettleNode);
+                }
+            }
+            break;
+
+            case SOCGame.START3B:
+            {
+                expectSTART3B = false;
+
+                if ((! waitingForOurTurn) && ourTurn && (! (expectPUTPIECE_FROM_START3B && (counter < 4000))))
+                {
+                    expectPUTPIECE_FROM_START3B = true;
                     counter = 0;
                     waitingForGameState = true;
                     pause(1500);
@@ -2196,7 +2261,7 @@ public class SOCRobotBrain extends Thread
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
 
-            if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
+            if (game.isInitialPlacement())  // START1B, START2B, START3B
             {
                 //
                 // Before processing this road/ship, track the settlement that goes with it.
@@ -2254,6 +2319,7 @@ public class SOCRobotBrain extends Thread
         {
         case SOCGame.START1A:
         case SOCGame.START2A:
+        case SOCGame.START3A:
             if (ourTurn)
             {
                 cancelWrongPiecePlacement(mes);
@@ -2262,6 +2328,7 @@ public class SOCRobotBrain extends Thread
 
         case SOCGame.START1B:
         case SOCGame.START2B:
+        case SOCGame.START3B:
             if (ourTurn)
             {
                 cancelWrongPiecePlacement(mes);
@@ -2599,10 +2666,12 @@ public class SOCRobotBrain extends Thread
 
             SOCPlayer newSettlementPl = game.getPlayer(pn);
             SOCSettlement newSettlement = new SOCSettlement(newSettlementPl, coord, null);
-            if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B))
+            if ((game.getGameState() == SOCGame.START1B) || (game.getGameState() == SOCGame.START2B)
+                || (game.getGameState() == SOCGame.START3B))
             {
-                // Track it after the road is placed
+                // Track it soon, after the road is placed
                 // (in handlePUTPIECE_updateGameData)
+                // but not yet, in case player cancels placement.
                 SOCPlayerTracker tr = playerTrackers.get(Integer.valueOf(newSettlementPl.getPlayerNumber()));
                 tr.setPendingInitSettlement(newSettlement);
             }
@@ -2665,6 +2734,25 @@ public class SOCRobotBrain extends Thread
             && (coord == ourPlayerData.getLastRoadCoord()))
         {
             expectPUTPIECE_FROM_START2B = false;
+            if (! game.isGameOptionSet(SOCGameOption.K_SC_3IP))
+                expectPLAY = true;    // wait for regular game play to start; other players might still place first
+            else
+                expectSTART3A = true;
+        }
+
+        if (expectPUTPIECE_FROM_START3A
+            && (pieceType == SOCPlayingPiece.SETTLEMENT)
+            && (coord == ourPlayerData.getLastSettlementCoord()))
+        {
+            expectPUTPIECE_FROM_START3A = false;
+            expectSTART3B = true;
+        }
+
+        if (expectPUTPIECE_FROM_START3B
+            && ((pieceType == SOCPlayingPiece.ROAD) || (pieceType == SOCPlayingPiece.SHIP))
+            && (coord == ourPlayerData.getLastRoadCoord()))
+        {
+            expectPUTPIECE_FROM_START3B = false;
             expectPLAY = true;
         }
 
@@ -3378,6 +3466,8 @@ public class SOCRobotBrain extends Thread
             case SOCGame.START1B:
             case SOCGame.START2A:
             case SOCGame.START2B:
+            case SOCGame.START3A:
+            case SOCGame.START3B:
                 coord = lastStartingPieceCoord;
                 break;
 
@@ -3457,7 +3547,7 @@ public class SOCRobotBrain extends Thread
                 client.cancelBuildRequest(game, mes.getPieceType());
             }
         }
-        else if (gameState <= SOCGame.START2B)
+        else if (gameState <= SOCGame.START3B)
         {
             switch (gameState)
             {
@@ -3479,6 +3569,16 @@ public class SOCRobotBrain extends Thread
             case SOCGame.START2B:
                 expectPUTPIECE_FROM_START2B = false;
                 expectSTART2B = true;
+                break;
+
+            case SOCGame.START3A:
+                expectPUTPIECE_FROM_START3A = false;
+                expectSTART3A = true;
+                break;
+
+            case SOCGame.START3B:
+                expectPUTPIECE_FROM_START3B = false;
+                expectSTART3B = true;
                 break;
             }
             waitingForGameState = false;
@@ -3521,7 +3621,7 @@ public class SOCRobotBrain extends Thread
                     ourPlayerData.clearPotentialRoad(coord);
                 else
                     ourPlayerData.clearPotentialShip(coord);
-                if (game.getGameState() <= SOCGame.START2B)
+                if (game.getGameState() <= SOCGame.START3B)
                 {
                     // needed for placeInitRoad() calculations
                     ourPlayerData.clearPotentialSettlement(lastStartingRoadTowardsNode);
@@ -3583,6 +3683,7 @@ public class SOCRobotBrain extends Thread
     /**
      * place planned first settlement
      * @param firstSettlement  First settlement's node coordinate
+     * @see #placeInitSettlement(int)
      */
     protected void placeFirstSettlement(final int firstSettlement)
     {
@@ -3594,19 +3695,21 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * place planned second settlement
-     * @param secondSettlement  Second settlement's node coordinate,
-     *   from {@link OpeningBuildStrategy#planSecondSettlement()};
+     * Place planned initial settlement after first one.
+     * @param initSettlement  Second or third settlement's node coordinate,
+     *   from {@link OpeningBuildStrategy#planSecondSettlement()} or
+     *   from {@link OpeningBuildStrategy#planThirdSettlement()};
      *   should not be -1
+     * @see #placeFirstSettlement(int)
      */
-    protected void placeSecondSettlement(final int secondSettlement)
+    protected void placeInitSettlement(final int initSettlement)
     {
-        if (secondSettlement == -1)
+        if (initSettlement == -1)
         {
             // This could mean that the server (incorrectly) asked us to
             // place another second settlement, after we've cleared the
             // potentialSettlements contents.
-            System.err.println("robot assert failed: secondSettlement -1, " + ourPlayerData.getName() + " leaving game " + game.getName());
+            System.err.println("robot assert failed: initSettlement -1, " + ourPlayerData.getName() + " leaving game " + game.getName());
             failedBuildingAttempts = 2 + (2 * MAX_DENIED_BUILDING_PER_TURN);
             waitingForGameState = false;
             return;
@@ -3614,14 +3717,14 @@ public class SOCRobotBrain extends Thread
 
         //D.ebugPrintln("BUILD REQUEST FOR SETTLEMENT AT "+Integer.toHexString(secondSettlement));
         pause(500);
-        lastStartingPieceCoord = secondSettlement;
-        client.putPiece(game, new SOCSettlement(ourPlayerData, secondSettlement, null));
+        lastStartingPieceCoord = initSettlement;
+        client.putPiece(game, new SOCSettlement(ourPlayerData, initSettlement, null));
         pause(1000);
     }
 
     /**
      * Plan and place a road attached to our most recently placed initial settlement,
-     * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}.
+     * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}, {@link SOCGame#START3B START3B}.
      * Calls {@link OpeningBuildStrategy#planInitRoad()}.
      *<P>
      * Road choice is based on the best nearby potential settlements, and doesn't

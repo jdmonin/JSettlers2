@@ -1529,7 +1529,7 @@ public class SOCHandPanel extends Panel implements ActionListener
                 }
             }
             rollBut.setVisible(true);
-            doneButIsRestart = ((game.getGameState() <= SOCGame.START2B)
+            doneButIsRestart = ((game.getGameState() <= SOCGame.START3B)
                  || (game.getGameState() == SOCGame.OVER));
             if (doneButIsRestart)
                 doneBut.setLabel(DONE_RESTART);
@@ -2364,7 +2364,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         final int gs = game.getGameState();
         rollBut.setEnabled(gs == SOCGame.PLAY);
         doneBut.setEnabled((gs == SOCGame.PLAY1) || (gs == SOCGame.SPECIAL_BUILDING)
-            || (gs <= SOCGame.START2B) || doneButIsRestart);
+            || (gs <= SOCGame.START3B) || doneButIsRestart);
         bankBut.setEnabled(gs == SOCGame.PLAY1);
     }
 

@@ -3792,14 +3792,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                 case SOCGame.START1A:
                 case SOCGame.START2A:
+                case SOCGame.START3A:
                     mode = PLACE_INIT_SETTLEMENT;
-
                     break;
 
                 case SOCGame.START1B:
                 case SOCGame.START2B:
+                case SOCGame.START3B:
                     mode = PLACE_INIT_ROAD;
-
                     break;
 
                 case SOCGame.PLACING_ROAD:
@@ -3816,12 +3816,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 case SOCGame.PLACING_SETTLEMENT:
                     mode = PLACE_SETTLEMENT;
-
                     break;
 
                 case SOCGame.PLACING_CITY:
                     mode = PLACE_CITY;
-
                     break;
 
                 case SOCGame.PLACING_SHIP:
@@ -3839,12 +3837,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 case SOCGame.NEW:
                 case SOCGame.READY:
                     mode = GAME_FORMING;
-
                     break;
 
                 case SOCGame.OVER:
                     mode = GAME_OVER;
-
                     break;
 
                 case SOCGame.PLAY:
@@ -6439,6 +6435,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               {
               case SOCGame.START1A:
               case SOCGame.START2A:
+              case SOCGame.START3A:
                   isInitialPlacement = true;  // Settlement
                   buildRoadItem.setEnabled(false);
                   buildSettleItem.setEnabled(hSe != 0);
@@ -6449,6 +6446,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
               case SOCGame.START1B:
               case SOCGame.START2B:
+              case SOCGame.START3B:
                   isInitialPlacement = true;  // Road
                   buildRoadItem.setEnabled(hR != 0);
                   buildSettleItem.setEnabled(false);

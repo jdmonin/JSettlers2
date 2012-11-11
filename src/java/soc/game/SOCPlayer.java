@@ -53,7 +53,7 @@ import java.util.Vector;
  * "Potential" locations are where pieces can be placed <em>soon</em>, based on the
  * current state of the game board.  For example, every legal settlement location is
  * also a potential settlement during initial placement (game state {@link SOCGame#START1A START1A}
- * through {@link SOCGame#START2A START2A}.  Once the player's second settlement is placed,
+ * through {@link SOCGame#START3A START3A}.  Once the player's final initial settlement is placed,
  * all potential settlement locations are cleared.  Only when they build 2 connected road
  * segments, will another potential settlement location be set.
  *<P>
@@ -592,7 +592,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Set all nodes to not be potential settlements.
      * Called by {@link SOCGame#putPiece(SOCPlayingPiece)}
-     * in state {@link SOCGame#START2A} after 2nd settlement placement.
+     * in state {@link SOCGame#START2A} or {@link SOCGame#START3A} after final initial settlement placement.
      * After they have placed another road, that road's
      * {@link #putPiece(SOCPlayingPiece, boolean)} call will call
      * {@link #updatePotentials(SOCPlayingPiece)}, which
@@ -2176,7 +2176,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 undoPutPieceAuxSettlement(adjNode);
             }
 
-            if (ours && (game.getGameState() == SOCGame.START2B))
+            if (ours &&
+                ((game.getGameState() == SOCGame.START2B) || (game.getGameState() == SOCGame.START3B)))
             {
                 resources.clear();
                 // resourceStats[] is 0 already, because nothing's been rolled yet
@@ -3205,8 +3206,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (game.getGameState() > SOCGame.START3B)
             throw new IllegalStateException();
 
+        final int pieceCountMax = game.isGameOptionSet(SOCGameOption.K_SC_3IP) ? 6 : 4;
         final int pieceCount = pieces.size();
-        if (pieceCount >= 4)
+        if (pieceCount >= pieceCountMax)
             return true;
 
         final boolean pieceCountOdd = ((pieceCount % 2) == 1);

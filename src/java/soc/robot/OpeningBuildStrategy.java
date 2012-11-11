@@ -35,6 +35,7 @@ import soc.disableDebug.D;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayerNumbers;
 import soc.game.SOCResourceConstants;
@@ -591,7 +592,7 @@ public class OpeningBuildStrategy {
 
     /**
      * Plan and place a road attached to our most recently placed initial settlement,
-     * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}.
+     * in game states {@link SOCGame#START1B START1B}, {@link SOCGame#START2B START2B}, {@link SOCGame#START3B START3B}.
      * Also sets {@link #getPlannedInitRoadDestinationNode()}.
      *<P>
      * Road choice is based on the best nearby potential settlements, and doesn't
@@ -641,7 +642,8 @@ public class OpeningBuildStrategy {
          */
         SOCPlayer dummy = new SOCPlayer(ourPlayerData.getPlayerNumber(), game);
 
-        if (game.getGameState() == SOCGame.START1B)
+        if ((game.getGameState() == SOCGame.START1B)
+            || (game.isGameOptionSet(SOCGameOption.K_SC_3IP) && (game.getGameState() == SOCGame.START2B)))
         {
             /**
              * do a look ahead so we don't build toward a place

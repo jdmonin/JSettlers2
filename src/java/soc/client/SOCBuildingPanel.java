@@ -677,7 +677,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
             if (isCurrent &&
                 ((gstate == SOCGame.PLACING_SETTLEMENT) || (gstate == SOCGame.START1B)
-                 || (gstate == SOCGame.START2B)))
+                 || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B)) )
             {
                 settlementBut.setEnabled(true);
                 settlementBut.setLabel("Cancel");

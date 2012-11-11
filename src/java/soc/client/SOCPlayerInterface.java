@@ -320,7 +320,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Flag to ensure interface is updated, when the first actual
-     * turn begins (state changes from {@link SOCGame#START2B}
+     * turn begins (state changes from {@link SOCGame#START2B} or {@link SOCGame#START3B}
      * to {@link SOCGame#PLAY}).
      * Initially set in {@link #startGame()}.
      * Checked/cleared in {@link #updateAtGameState()};
@@ -1721,7 +1721,7 @@ public class SOCPlayerInterface extends Frame
             // show balloons on-screen. (hands[i].setDiscardOrPickMsg)
             discardOrPickTimerSet(false);
         } else if (showingPlayerDiscardOrPick &&
-                   ((gs == SOCGame.PLAY1) || (gs == SOCGame.START2B)))
+                   ((gs == SOCGame.PLAY1) || (gs == SOCGame.START2B) || (gs == SOCGame.START3B)))
         {
             // If not all players' discard status balloons were cleared by
             // PLAYERELEMENT messages, clean up now.

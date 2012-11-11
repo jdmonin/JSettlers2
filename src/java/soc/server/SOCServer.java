@@ -1304,7 +1304,7 @@ public class SOCServer extends Server
                  */
                 if (ga.getResetVoteActive())
                 {
-                    if (gameState <= SOCGame.START2B)
+                    if (gameState <= SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
                         gameVotingActiveDuringStart = true;
 
                     if (ga.getResetPlayerVote(playerNumber) == SOCGame.VOTE_NONE)
@@ -1621,7 +1621,7 @@ public class SOCServer extends Server
 
         if (ga.getResetVoteActive())
         {
-            if (gameState <= SOCGame.START2B)
+            if (gameState <= SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
                 gameVotingActiveDuringStart = true;
 
             if ((! ga.isSeatVacant(plNumber))
@@ -1646,10 +1646,10 @@ public class SOCServer extends Server
              * this game before calling endGameTurn.
              */
 
-            if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B))
+            if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B))
             {
                 /**
-                 * Leaving during 1st or 2nd initial road placement.
+                 * Leaving during initial road placement.
                  * Cancel the settlement they just placed,
                  * and send that cancel to the other players.
                  * Don't change gameState yet.
@@ -5315,7 +5315,8 @@ public class SOCServer extends Server
 
                     SOCRoad rd = new SOCRoad(player, coord, null);
 
-                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.PLACING_ROAD) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
+                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
+                        || (gameState == SOCGame.PLACING_ROAD) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
                         if (player.isPotentialRoad(coord))
                         {
@@ -5377,7 +5378,8 @@ public class SOCServer extends Server
 
                     SOCSettlement se = new SOCSettlement(player, coord, null);
 
-                    if ((gameState == SOCGame.START1A) || (gameState == SOCGame.START2A) || (gameState == SOCGame.PLACING_SETTLEMENT))
+                    if ((gameState == SOCGame.START1A) || (gameState == SOCGame.START2A)
+                        || (gameState == SOCGame.START3A) || (gameState == SOCGame.PLACING_SETTLEMENT))
                     {
                         if (player.canPlaceSettlement(coord))
                         {
@@ -5458,7 +5460,8 @@ public class SOCServer extends Server
 
                     SOCShip sh = new SOCShip(player, coord, null);
 
-                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.PLACING_SHIP) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
+                    if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
+                        || (gameState == SOCGame.PLACING_SHIP) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
                         if (ga.canPlaceShip(player, coord))  // checks potentials and pirate ship location
                         {
@@ -7114,7 +7117,7 @@ public class SOCServer extends Server
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                     }
-                    else if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B))
+                    else if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B) || (ga.getGameState() == SOCGame.START3B))
                     {
                         SOCSettlement pp = new SOCSettlement(player, player.getLastSettlementCoord(), null);
                         ga.undoPutInitSettlement(pp);
@@ -8780,12 +8783,26 @@ public class SOCServer extends Server
         {
         case SOCGame.START1A:
         case SOCGame.START2A:
+        case SOCGame.START3A:
             messageToGame(gname, "It's " + player.getName() + "'s turn to build a settlement.");
-
+            if ((ga.getGameState() >= SOCGame.START2A)
+                && ga.isGameOptionSet(SOCGameOption.K_SC_3IP))
+            {
+                // reminder to player before their 2nd, 3rd settlements
+                StringConnection con = getConnection(player.getName());
+                if (con != null)
+                {
+                    con.put(SOCGameTextMsg.toCmd
+                        (gname, SERVERNAME, "This game gives you 3 initial settlements and roads."));
+                    con.put(SOCGameTextMsg.toCmd
+                        (gname, SERVERNAME, "Your free resources will be from the third settlement."));
+                }
+            }
             break;
 
         case SOCGame.START1B:
         case SOCGame.START2B:
+        case SOCGame.START3B:
             messageToGame(gname, "It's " + player.getName()
                 + ((ga.hasSeaBoard) ? "'s turn to build a road or ship.": "'s turn to build a road."));
 

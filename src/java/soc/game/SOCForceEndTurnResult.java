@@ -77,7 +77,7 @@ public class SOCForceEndTurnResult
     public static final int FORCE_ENDTURN_NONE              = 1;
 
     /**
-     * Skip an initial road or settlement; current player has advanced forward, state changes to {@link SOCGame#START1A}.
+     * Skip an initial road or settlement; current player has advanced forward, state changes to {@link SOCGame#START1A} or {@link SOCGame#START3A}.
      * May have changed game's firstPlayer or lastPlayer; check {@link #didUpdateFP()} and {@link #didUpdateLP()}.
      */
     public static final int FORCE_ENDTURN_SKIP_START_ADV    = 2;

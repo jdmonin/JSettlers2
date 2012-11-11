@@ -1400,8 +1400,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (ga == null)
             return;
 
-        int sta = ga.getGameState();
-        if ((sta != SOCGame.START1B) && (sta != SOCGame.START2B))
+        final int sta = ga.getGameState();
+        if ((sta != SOCGame.START1B) && (sta != SOCGame.START2B) && (sta != SOCGame.START3B))
         {
             // The human player gets a text message from the server informing
             // about the bad piece placement.  So, we can ignore this message type.

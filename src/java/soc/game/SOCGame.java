@@ -2044,8 +2044,8 @@ public class SOCGame implements Serializable, Cloneable
      * May change current player and gamestate.
      * Calls {@link #checkForWinner()}; gamestate may become {@link #OVER}.
      *<P>
-     * For example, if game state when called is {@link #START2A},
-     * this is their second initial settlement, so give
+     * For example, if game state when called is {@link #START2A} (or {@link #START3A} in
+     * some scenarios), this is their final initial settlement, so give
      * the player some resources, and call their {@link SOCPlayer#clearPotentialSettlements()}.
      * If {@link #hasSeaBoard}, you should check {@link SOCPlayer#getNeedToPickGoldHexResources()} != 0
      * after calling, to see if they placed next to a gold hex.
@@ -2152,73 +2152,77 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         /**
-         * if this their second initial settlement, give the
-         * player some resources.
+         * if this their final initial settlement, give the player some resources.
          * (skip for temporary pieces)
          */
         if ((! isTempPiece)
             && (pieceType == SOCPlayingPiece.SETTLEMENT)
-            && ((gameState == START2A)
-                || (debugFreePlacementStartPlaced
-                    && (ppPlayer.getPieces().size() == 3))))
+            && ((gameState == START2A) || (gameState == START3A)))
         {
-            SOCResourceSet resources = new SOCResourceSet();
-            Vector<Integer> hexes = board.getAdjacentHexesToNode(coord);
-            int goldHexAdjacent = 0;
-
-            for (Integer hex : hexes)
+            final boolean init3 = isGameOptionDefined(SOCGameOption.K_SC_3IP);
+            final int lastInitSettle = init3 ? START3A : START2A;
+            if ( (gameState == lastInitSettle)
+                 || (debugFreePlacementStartPlaced
+                     && (ppPlayer.getPieces().size() == (init3 ? 5 : 3))) )
             {
-                final int hexCoord = hex.intValue();
+                SOCResourceSet resources = new SOCResourceSet();
+                Vector<Integer> hexes = board.getAdjacentHexesToNode(coord);
+                int goldHexAdjacent = 0;
 
-                switch (board.getHexTypeFromCoord(hexCoord))
+                for (Integer hex : hexes)
                 {
-                case SOCBoard.CLAY_HEX:
-                    resources.add(1, SOCResourceConstants.CLAY);
+                    final int hexCoord = hex.intValue();
 
-                    break;
-
-                case SOCBoard.ORE_HEX:
-                    resources.add(1, SOCResourceConstants.ORE);
-
-                    break;
-
-                case SOCBoard.SHEEP_HEX:
-                    resources.add(1, SOCResourceConstants.SHEEP);
-
-                    break;
-
-                case SOCBoard.WHEAT_HEX:
-                    resources.add(1, SOCResourceConstants.WHEAT);
-
-                    break;
-
-                case SOCBoard.WOOD_HEX:
-                    resources.add(1, SOCResourceConstants.WOOD);
-
-                    break;
-
-                case SOCBoardLarge.GOLD_HEX:
-                    if (hasSeaBoard)
-                        ++goldHexAdjacent;
+                    switch (board.getHexTypeFromCoord(hexCoord))
+                    {
+                    case SOCBoard.CLAY_HEX:
+                        resources.add(1, SOCResourceConstants.CLAY);
+                        break;
+    
+                    case SOCBoard.ORE_HEX:
+                        resources.add(1, SOCResourceConstants.ORE);
+                        break;
+    
+                    case SOCBoard.SHEEP_HEX:
+                        resources.add(1, SOCResourceConstants.SHEEP);
+                        break;
+    
+                    case SOCBoard.WHEAT_HEX:
+                        resources.add(1, SOCResourceConstants.WHEAT);
+                        break;
+    
+                    case SOCBoard.WOOD_HEX:
+                        resources.add(1, SOCResourceConstants.WOOD);
+                        break;
+    
+                    case SOCBoardLarge.GOLD_HEX:
+                        if (hasSeaBoard)
+                            ++goldHexAdjacent;
+                    }
                 }
-            }
 
-            ppPlayer.getResources().add(resources);
-            if (goldHexAdjacent > 0)
-                ppPlayer.setNeedToPickGoldHexResources(goldHexAdjacent);
+                ppPlayer.getResources().add(resources);
+                if (goldHexAdjacent > 0)
+                    ppPlayer.setNeedToPickGoldHexResources(goldHexAdjacent);
+            }
         }
 
         /**
-         * if this their second initial road or ship, clear potentialSettlements.
+         * if this their final initial road or ship, clear potentialSettlements.
          * (skip for temporary pieces)
          */
         if ((! isTempPiece)
             && (pp instanceof SOCRoad)
-            && ((gameState == START2B)
-                || (debugFreePlacementStartPlaced
-                    && (ppPlayer.getPieces().size() == 4))))
+            && ((gameState == START2B) || (gameState == START3B)))
         {
-            ppPlayer.clearPotentialSettlements();
+            final boolean init3 = isGameOptionDefined(SOCGameOption.K_SC_3IP);
+            final int lastInitState = init3 ? START3B : START2B;
+            if ((gameState == lastInitState)
+                || (debugFreePlacementStartPlaced
+                    && (ppPlayer.getPieces().size() == (init3 ? 6 : 4))))
+            {
+                ppPlayer.clearPotentialSettlements();
+            }
         }
 
         /**
@@ -2359,7 +2363,7 @@ public class SOCGame implements Serializable, Cloneable
      * after a cancelled piece placement in {@link #START1A}..{@link #START3B} .
      * If the current player number changes here, {@link #isForcingEndTurn()} is cleared.
      *<P>
-     * In {@link #START2B}, calls {@link #updateAtTurn()} after last initial road placement.
+     * In {@link #START2B} or {@link #START3B}, calls {@link #updateAtTurn()} after last initial road placement.
      *
      * @return true if the turn advances, false if all players have left and
      *          the gamestate has been changed here to {@link #OVER}.
@@ -2377,7 +2381,6 @@ public class SOCGame implements Serializable, Cloneable
         case START1B:
             {
                 int tmpCPN = currentPlayerNumber + 1;
-    
                 if (tmpCPN >= maxPlayers)
                 {
                     tmpCPN = 0;
@@ -2408,7 +2411,6 @@ public class SOCGame implements Serializable, Cloneable
                         gameState = START1A;
                 }
             }
-    
             break;
 
         case START2A:
@@ -2416,7 +2418,6 @@ public class SOCGame implements Serializable, Cloneable
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
             else
                 gameState = START2B;
-
             break;
 
         case START2B:
@@ -2445,6 +2446,57 @@ public class SOCGame implements Serializable, Cloneable
                 if (tmpCPN == lastPlayerNumber)
                 {
                     // All have placed their second settlement/road.
+                    if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
+                    {
+                        // Begin play.
+                        // Player number is unchanged; "virtual" endTurn here.
+                        // Don't clear forcingEndTurn flag, if it's set.
+                        gameState = PLAY;
+                        updateAtTurn();
+                    } else {
+                        // Begin third placement.
+                        gameState = START3A;
+                    }
+                }
+                else
+                {
+                    if (advanceTurnBackwards())
+                        gameState = START2A;
+                }
+            }
+            break;
+
+        case START3A:
+            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
+            else
+                gameState = START3B;
+            break;
+
+        case START3B:
+            {
+                int tmpCPN = currentPlayerNumber + 1;
+                if (tmpCPN >= maxPlayers)
+                {
+                    tmpCPN = 0;
+                }
+                while (isSeatVacant (tmpCPN))
+                {
+                    ++tmpCPN;
+                    if (tmpCPN >= maxPlayers)
+                    {
+                        tmpCPN = 0;
+                    }
+                    if (tmpCPN == currentPlayerNumber)
+                    {
+                        gameState = OVER;  // Looped around, no one is here
+                        return false;
+                    }
+                }
+    
+                if (tmpCPN == firstPlayerNumber)
+                {
+                    // All have placed their third settlement/road.
                     // Begin play.
                     // Player number is unchanged; "virtual" endTurn here.
                     // Don't clear forcingEndTurn flag, if it's set.
@@ -2453,11 +2505,10 @@ public class SOCGame implements Serializable, Cloneable
                 }
                 else
                 {
-                    if (advanceTurnBackwards())
-                        gameState = START2A;
+                    if (advanceTurn())
+                        gameState = START3A;
                 }
             }
-
             break;
 
         case PLACING_ROAD:
@@ -2645,6 +2696,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * undo the putting of a temporary or initial piece
      * or a ship being moved.
+     * If state is STATE2B or STATE3B and resources were given, they will be returned.
      *
      * @param pp  the piece to remove from the board
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
@@ -2661,7 +2713,7 @@ public class SOCGame implements Serializable, Cloneable
         //
         for (int i = 0; i < maxPlayers; i++)
         {
-            players[i].undoPutPiece(pp);   // If state START2B, will also zero resources
+            players[i].undoPutPiece(pp);   // If state START2B or START3B, will also zero resources
         }
 
         //
@@ -2701,15 +2753,15 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * undo the putting of an initial settlement.
-     * If state is STATE2B, resources will be returned.
-     * Player is unchanged; state will become STATE1A or STATE2A.
+     * If state is STATE2B or STATE3B and resources were given, they will be returned.
+     * Player is unchanged; state will become STATE1A or STATE2A or STATE3A.
      * Not for use with temporary pieces (use {@link #undoPutTempPiece(SOCPlayingPiece)} instead).
      *
      * @param pp the piece to remove from the board
      */
     public void undoPutInitSettlement(SOCPlayingPiece pp)
     {
-        if ((gameState != START1B) && (gameState != START2B))
+        if ((gameState != START1B) && (gameState != START2B) && (gameState != START3B))
             throw new IllegalStateException("Cannot remove at this game state: " + gameState);
         if (pp.getType() != SOCPlayingPiece.SETTLEMENT)
             throw new IllegalArgumentException("Not a settlement: type " + pp.getType());
@@ -2720,8 +2772,10 @@ public class SOCGame implements Serializable, Cloneable
 
         if (gameState == START1B)
             gameState = START1A;
-        else // gameState == START2B
+        else if (gameState == START2B)
             gameState = START2A;
+        else // gameState == START3B
+            gameState = START3A;
     }
 
     /**
@@ -3104,6 +3158,8 @@ public class SOCGame implements Serializable, Cloneable
         {
         case START1A:
         case START1B:
+        case START3A:
+        case START3B:
             return forceEndTurnStartState(true);
                 // FORCE_ENDTURN_UNPLACE_START_ADV
                 // or FORCE_ENDTURN_UNPLACE_START_ADVBACK
@@ -3223,7 +3279,7 @@ public class SOCGame implements Serializable, Cloneable
      *         {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_ADVBACK},
      *         or {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_TURN}.
      */
-    private SOCForceEndTurnResult forceEndTurnStartState(boolean advTurnForward)
+    private SOCForceEndTurnResult forceEndTurnStartState(final boolean advTurnForward)
     {
         final int cpn = currentPlayerNumber;
         int cancelResType;  // Turn result type
@@ -3238,7 +3294,10 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (advTurnForward)
         {
-            gameState = START1B;
+            if (gameState >= START3A)
+                gameState = START3B;  // third init placement
+            else
+                gameState = START1B;  // first init placement
         } else {
             gameState = START2B;
         }
@@ -3258,10 +3317,18 @@ public class SOCGame implements Serializable, Cloneable
                 advanceTurnBackwards();
                 cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
             } else {
-                // Was second placement; begin normal gameplay.
-                // Set resType to tell caller to call endTurn().
-                gameState = PLAY1;
-                cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
+                // Was second placement; begin normal gameplay?
+                if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
+                {
+                    // Set resType to tell caller to call endTurn().
+                    gameState = PLAY1;
+                    cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
+                } else {
+                    // Begin third settlement.  This player won't get one.
+                    gameState = START3A;
+                    advanceTurn();
+                    cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADV;
+                }
             }
         } else {
             // OK, player has changed.  This means advanceTurnStateAfterPutPiece()
@@ -3796,7 +3863,7 @@ public class SOCGame implements Serializable, Cloneable
      * Gain them, check if other players must still pick, and set
      * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
      * or {@link #PLAY1} accordingly.
-     * (Or, during initial placement, set it to {@link #START2B}}.)
+     * (Or, during initial placement, set it to {@link #START2B} or {@link #START3B}.)
      *<P>
      * Assumes {@link #canPickGoldHexResources(int, SOCResourceSet)} already called to validate.
      *<P>
@@ -3816,7 +3883,10 @@ public class SOCGame implements Serializable, Cloneable
         // initial placement?
         if (gameState == STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
         {
-            gameState = START2B;
+            if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
+                gameState = START2B;
+            else
+                gameState = START3B;
             return;
         }
 
@@ -5701,7 +5771,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param debugOn  Should the mode be on?
      * @throws IllegalStateException  if turning on when gameState is not {@link #PLAY1}
-     *    or an initial placement state ({@link #START1A} - {@link #START2B}),
+     *    or an initial placement state ({@link #START1A} - {@link #START3B}),
      *    or turning off during initial placement with an unequal number of pieces placed.
      * @since 1.1.12
      */
@@ -5722,6 +5792,8 @@ public class SOCGame implements Serializable, Cloneable
             // Special handling: When exiting this mode during
             // initial placement, all players must have the same
             // number of settlements and roads.
+            final boolean has3rdInitPlace = isGameOptionSet(SOCGameOption.K_SC_3IP);
+            final int npieceMax = has3rdInitPlace ? 6 : 4;
             int npiece = -1;
             boolean ok = true;
             for (int i = 0; i < maxPlayers; ++i)
@@ -5729,9 +5801,9 @@ public class SOCGame implements Serializable, Cloneable
                 if (isSeatVacant(i))
                     continue;
                 int n = players[i].getPieces().size();
-                if (n > 4)
-                    n = 4;
-                else if ((n == 1) || (n == 3))
+                if (n > npieceMax)
+                    n = npieceMax;
+                else if ((n == 1) || (n == 3) || (n == 5))
                     ok = false;
                 if (npiece == -1)
                     npiece = n;
@@ -5746,6 +5818,18 @@ public class SOCGame implements Serializable, Cloneable
                 gameState = START2A;
             }
             else if (npiece == 4)
+            {
+                currentPlayerNumber = firstPlayerNumber;
+                if (! has3rdInitPlace)
+                {
+                    gameState = PLAY;
+                    updateAtTurn();  // "virtual" endTurn here,
+                      // just like advanceTurnStateAfterPutPiece().
+                } else {
+                    gameState = START3A;
+                }
+            }
+            else if (npiece == 6)
             {
                 currentPlayerNumber = firstPlayerNumber;
                 gameState = PLAY;
