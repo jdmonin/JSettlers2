@@ -132,10 +132,14 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *
      * <h3>Current Game Scenario options:</h3>
      *<UL>
-     *<LI> _SC_SANY  SVP to settle in any new land area: {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
-     *<LI> _SC_SEAC  2 SVP each time settle in another new land area: {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
-     *<LI> _SC_FOG   A hex has been revealed from behind fog: {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
-     *<LI> _SC_0RVP  No VP for longest road / longest trade route
+     *<LI> {@link #K_SC_SANY _SC_SANY}  SVP to settle in any new land area:
+     *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     *<LI> {@link #K_SC_SEAC _SC_SEAC}  2 SVP each time settle in another new land area:
+     *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
+     *<LI> {@link #K_SC_FOG  _SC_FOG}   A hex has been revealed from behind fog:
+     *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
+     *<LI> {@link #K_SC_0RVP _SC_0RVP}  No VP for longest road / longest trade route
+     *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road placement
      *</UL>
      *
      * <h3>If you want to add a game option:</h3>
@@ -280,6 +284,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 (K_SC_FOG, 2000, 2000, false, true, "Scenarios: Some land hexes initially hidden by fog"));
         opt.put(K_SC_0RVP, new SOCGameOption
                 (K_SC_0RVP, 2000, 2000, false, true, "Scenarios: No longest trade route VP (no Longest Road)"));
+        opt.put(K_SC_3IP, new SOCGameOption
+                (K_SC_3IP, 2000, 2000, false, true, "Scenarios: Third initial settlement"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -437,6 +443,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public static final int VERSION_FOR_LONGER_OPTNAMES = 2000;
 
     // Game option keynames for scenario flags.
+    // Not all scenario keynames have scenario events, some are just properties of the game.
 
     /**
      * Scenario key <tt>_SC_SANY</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
@@ -461,6 +468,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @since 2.0.00
      */
     public static final String K_SC_0RVP = "_SC_0RVP";
+
+    /**
+     * Scenario key <tt>_SC_3IP</tt>: Third initial placement of settlement and road.
+     * Initial resources are given for this one, not the second settlement.
+     * @since 2.0.00
+     */
+    public static final String K_SC_3IP = "_SC_3IP";
 
     // If you create a new option type,
     // please update parseOptionsToHash(), packOptionsToString(),
