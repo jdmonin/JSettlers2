@@ -84,7 +84,7 @@ public class SOCGame implements Serializable, Cloneable
      * General assumptions for states and their numeric values:
      * <UL>
      * <LI> Active game states are >= {@link #START1A} and < {@link #OVER}
-     * <LI> Initial placement ends after {@link #START2B}, going directly to {@link #PLAY}
+     * <LI> Initial placement ends after {@link #START2B} or {@link #START3B}, going directly to {@link #PLAY}
      * <LI> A Normal turn's "main phase" is {@link #PLAY1}, after dice-roll/card-play in {@link #PLAY}
      * <LI> When the game is waiting for a player to react to something,
      *      state is > {@link #PLAY1}, < {@link #OVER}; state name starts with
@@ -159,15 +159,22 @@ public class SOCGame implements Serializable, Cloneable
      * next state is {@link #START2B} to place 2nd road.
      * If the settlement is placed on a Gold Hex, the next state
      * is {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     *<P>
+     * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set, then instead of
+     * this second settlement giving resources, a third round of placement will do that;
+     * next game state after START2A remains {@link #START2B}.
      */
     public static final int START2A = 10; // Players place 2nd stlmt
 
     /**
-     * Just placed the second settlement, waiting for current
+     * Just placed the second or third settlement, waiting for current
      * player to choose which Gold Hex resources to receive.
      * Next game state is {@link #START2B} to place 2nd road.
+     * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set,
+     * next game state is {@link #START3B}.
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX}.
+     * @see #WAITING_FOR_PICK_GOLD_RESOURCE
      * @since 2.0.00
      */
     public static final int STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14;
@@ -176,8 +183,31 @@ public class SOCGame implements Serializable, Cloneable
      * Players place second road.  Next state is {@link #START2A} to place previous
      * player's 2nd settlement (player changes in reverse order), or if all have placed
      * settlements, {@link #PLAY} to begin first player's turn.
+     *<P>
+     * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set, then instead of
+     * starting normal play, a third settlement and road are placed by each player,
+     * with game state {@link #START3A}.
      */
     public static final int START2B = 11; // Players place 2nd road
+
+    /**
+     * (Game scenarios) Players place third settlement.  Proceed in normal order
+     * for each player; next state is {@link #START3B} to place 3rd road.
+     * If the settlement is placed on a Gold Hex, the next state
+     * is {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     *<P>
+     * Valid only when game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set.
+     */
+    public static final int START3A = 12;
+
+    /**
+     * Players place third road.  Next state is {@link #START3A} to place previous
+     * player's 3rd settlement (player changes in normal order), or if all have placed
+     * settlements, {@link #PLAY} to begin first player's turn.
+     *<P>
+     * Valid only when game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set.
+     */
+    public static final int START3B = 13;
 
     /**
      * Start of a normal turn.  Time to roll or play a card.
@@ -285,6 +315,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlements or cities
      * adjacent to {@link SOCBoardLarge#GOLD_HEX}.
+     * @see #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
      * @since 2.0.00
      */
     public static final int WAITING_FOR_PICK_GOLD_RESOURCE = 55;
@@ -1624,7 +1655,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Are we in the Initial Placement part of the game?
-     * Includes game states {@link #START1A} - {@link #START2B}
+     * Includes game states {@link #START1A} - {@link #START3B}
      * and {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      *
      * @return true if in Initial Placement
@@ -2100,7 +2131,7 @@ public class SOCGame implements Serializable, Cloneable
 
         board.putPiece(pp);
 
-        if ((! isTempPiece) && debugFreePlacement && (gameState <= START2B))
+        if ((! isTempPiece) && debugFreePlacement && (gameState <= START3B))
             debugFreePlacementStartPlaced = true;
 
         /**
@@ -2325,7 +2356,7 @@ public class SOCGame implements Serializable, Cloneable
      * the game, and possibly current player, for play to continue.
      *<P>
      * Also used in {@link #forceEndTurn()} to continue the game
-     * after a cancelled piece placement in {@link #START1A}..{@link #START2B} .
+     * after a cancelled piece placement in {@link #START1A}..{@link #START3B} .
      * If the current player number changes here, {@link #isForcingEndTurn()} is cleared.
      *<P>
      * In {@link #START2B}, calls {@link #updateAtTurn()} after last initial road placement.

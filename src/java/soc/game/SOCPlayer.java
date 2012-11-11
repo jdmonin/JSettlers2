@@ -3197,12 +3197,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param pieceType  Piece type, such as {@link SOCPlayingPiece#SETTLEMENT}
      * @since 1.1.12
      * @return true if this piece type is the next to be placed
-     * @throws IllegalStateException if gameState is past initial placement (> {@link #START2B})
+     * @throws IllegalStateException if gameState is past initial placement (> {@link #START3B})
      */
     public boolean canBuildInitialPieceType(final int pieceType)
         throws IllegalStateException
     {
-        if (game.getGameState() > SOCGame.START2B)
+        if (game.getGameState() > SOCGame.START3B)
             throw new IllegalStateException();
 
         final int pieceCount = pieces.size();
