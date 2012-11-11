@@ -5617,7 +5617,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *
          * @param t Hover text contents, or null to clear that text (but
          *          not hovering pieces) and repaint.  Do nothing if text is
-         *          already equal to <tt>t</tt>, or if both are null,
+         *          already equal to <tt>t</tt>, or if both are null.
          * @see #hideHoverAndPieces()
          */
         public void setHoverText(final String t)

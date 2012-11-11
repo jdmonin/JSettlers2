@@ -273,6 +273,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * Treat the incoming messages.
      * Messages of unknown type are ignored (mes will be null from {@link SOCMessage#toMsg(String)}).
+     *<P>
+     *<B>Note:</B> Currently, <tt>SOCRobotClient.treat(mes)</tt> does not call this method.
+     * New messages should be added in both places if both displayless and robot should handle them.
      *
      * @param mes    the message
      */

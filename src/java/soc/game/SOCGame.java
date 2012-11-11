@@ -2696,7 +2696,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * undo the putting of a temporary or initial piece
      * or a ship being moved.
-     * If state is STATE2B or STATE3B and resources were given, they will be returned.
+     * If state is START2B or START3B and resources were given, they will be returned.
      *
      * @param pp  the piece to remove from the board
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
@@ -2753,8 +2753,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * undo the putting of an initial settlement.
-     * If state is STATE2B or STATE3B and resources were given, they will be returned.
-     * Player is unchanged; state will become STATE1A or STATE2A or STATE3A.
+     * If state is START2B or START3B and resources were given, they will be returned.
+     * Player is unchanged; state will become START1A or START2A or START3A.
      * Not for use with temporary pieces (use {@link #undoPutTempPiece(SOCPlayingPiece)} instead).
      *
      * @param pp the piece to remove from the board
