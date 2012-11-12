@@ -793,6 +793,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return true if this player needs to discard
+     * @see #getNeedToPickGoldHexResources()
      */
     public boolean getNeedToDiscard()
     {
@@ -824,6 +825,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Once the player has picked their resources, returns to 0.
      *
      * @return  number of resources to pick
+     * @see #getNeedToDiscard()
      * @since 2.0.00
      */
     public int getNeedToPickGoldHexResources()

@@ -6253,16 +6253,7 @@ public class SOCServer extends Server
                 /**
                  * tell everyone what the player gained
                  */
-                StringBuffer gainsText = new StringBuffer();
-                gainsText.append(player.getName());
-                gainsText.append(" gets ");
-                // Send SOCPlayerElement messages,
-                // build resource-text in gainsText.
-                reportRsrcGainLoss(gn, rsrcs, false, pn, -1, gainsText, null);
-                gainsText.append(" from the gold hex.");
-                messageToGame(gn, gainsText.toString());
-                messageToGame(gn, new SOCPlayerElement
-                    (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
+                reportRsrcGainGold(gn, player, pn, rsrcs);
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
@@ -6472,6 +6463,7 @@ public class SOCServer extends Server
     {
         final String gaName = ga.getName();
         final int cpn = ga.getCurrentPlayerNumber();
+        final int endFromGameState = ga.getGameState();
 
         SOCPlayer cp = ga.getPlayer(cpn);
         if (cp.hasAskedSpecialBuild())
@@ -6493,14 +6485,22 @@ public class SOCServer extends Server
         if (resGainLoss != null)
         {
             /**
-             * If returning resources to player (not discarding), report actual types/amounts.
+             * If gold hex or returning resources to player (not discarding), report actual types/amounts.
              * For discard, tell the discarding player's client that they discarded the resources,
              * tell everyone else that the player discarded unknown resources.
              */
             if (! res.isLoss())
-                reportRsrcGainLoss(gaName, resGainLoss, false, cpn, -1, null, null);
-            else
             {
+                if ((endFromGameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                    || (endFromGameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
+                {
+                    // Send SOCPlayerElement messages, "gains" text
+                    reportRsrcGainGold(gaName, cp, cpn, resGainLoss);
+                } else {
+                    // Send SOCPlayerElement messages
+                    reportRsrcGainLoss(gaName, resGainLoss, false, cpn, -1, null, null);
+                }
+            } else {
                 StringConnection c = getConnection(plName);
                 if ((c != null) && c.isConnected())
                     reportRsrcGainLoss(gaName, resGainLoss, true, cpn, -1, null, c);
@@ -9371,6 +9371,32 @@ public class SOCServer extends Server
         }
 
         gameList.releaseMonitorForGame(gaName);
+    }
+
+    /**
+     * Report to game members what a player picked from the gold hex.
+     * Sends {@link SOCPlayerElement} for resources and to reset the
+     * {@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES} counter.
+     * Sends text "playername gets ___ from the gold hex.".
+     * @param gn      Game name
+     * @param player  Player gaining
+     * @param pn      <tt>player</tt>{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()}
+     * @param rsrcs   Resources picked
+     * @since 2.0.00
+     */
+    private void reportRsrcGainGold
+        (final String gn, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs)
+    {
+        StringBuffer gainsText = new StringBuffer();
+        gainsText.append(player.getName());
+        gainsText.append(" gets ");
+        // Send SOCPlayerElement messages,
+        // build resource-text in gainsText.
+        reportRsrcGainLoss(gn, rsrcs, false, pn, -1, gainsText, null);
+        gainsText.append(" from the gold hex.");
+        messageToGame(gn, gainsText.toString());
+        messageToGame(gn, new SOCPlayerElement
+            (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
     }
 
     /**

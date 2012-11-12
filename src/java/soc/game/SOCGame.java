@@ -3360,11 +3360,12 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * Randomly discard from this player's hand, by calling {@link #discard(int, SOCResourceSet)}.
-     * Then look at other players' hand size. If no one else must discard,
+     * Randomly discard from this player's hand by calling {@link #discard(int, SOCResourceSet)},
+     * or gain random resources by calling {@link #pickGoldHexResources(int, SOCResourceSet)}.
+     * Then look at other players' hand size. If no one else must discard or pick,
      * ready to end turn, set state {@link #PLAY1}.
      * Otherwise, must wait for them; if so,
-     * set game state to {@link #WAITING_FOR_DISCARDS}.
+     * set game state ({@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_PICK_GOLD_RESOURCE}).
      * When called, assumes {@link #isForcingEndTurn()} flag is already set.
      *
      * @param pn Player number to force to randomly discard or gain
@@ -3393,14 +3394,15 @@ public class SOCGame implements Serializable, Cloneable
             // TODO return type; ones below are for discards
         }
 
-        if (gameState == WAITING_FOR_DISCARDS)
+        if ((gameState == WAITING_FOR_DISCARDS) || (gameState == WAITING_FOR_PICK_GOLD_RESOURCE))
         {
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD_WAIT, picks, true);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD_WAIT, picks, isDiscard);
         } else {
             // gameState == PLAY1 - was set in discard()
+            // or is START2B/START3B from pickGoldHexResources() if STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
             return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD, picks, true);
+                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_DISCARD, picks, isDiscard);
         }
     }
 
@@ -3515,16 +3517,19 @@ public class SOCGame implements Serializable, Cloneable
      * On return, gameState will be:
      *<UL>
      * <LI> {@link #WAITING_FOR_DISCARDS} if other players still must discard
+     * <LI> {@link #WAITING_FOR_PICK_GOLD_RESOURCE} if other players stll must pick their resources
      * <LI> {@link #PLAY1} if everyone has discarded, and {@link #isForcingEndTurn()} is set
      * <LI> {@link #PLACING_ROBBER} if everyone has discarded, and {@link #isForcingEndTurn()} is not set
      *</UL>
      *
      * @param pn Player number to discard; player must must need to discard,
      *           must not be current player (use {@link #forceEndTurn()} for that)
-     * @param isDiscard  True to discard resources, false to gain
+     * @param isDiscard  True to discard resources, false to gain (pick from gold hex)
      * @return   Set of resource cards which were discarded or gained
-     * @throws IllegalStateException If the gameState isn't {@link #WAITING_FOR_DISCARDS},
-     *                               or if pn's {@link SOCPlayer#getNeedToDiscard()} is false,
+     * @throws IllegalStateException If the gameState isn't {@link #WAITING_FOR_DISCARDS}
+     *                               or {@link #WAITING_FOR_PICK_GOLD_RESOURCE},
+     *                               or if pn's {@link SOCPlayer#getNeedToDiscard()} is false
+     *                                  and their {@link SOCPlayer#getNeedToPickGoldHexResources()} == 0,
      *                               or if pn == currentPlayer.
      */
     public SOCResourceSet playerDiscardRandom(final int pn, final boolean isDiscard)
@@ -3532,10 +3537,10 @@ public class SOCGame implements Serializable, Cloneable
     {
         if (pn == currentPlayerNumber)
             throw new IllegalStateException("Cannot call for current player, use forceEndTurn instead");
-        if (gameState != WAITING_FOR_DISCARDS)
+        if ((gameState != WAITING_FOR_DISCARDS) && (gameState != WAITING_FOR_PICK_GOLD_RESOURCE))
             throw new IllegalStateException("gameState not WAITING_FOR_DISCARDS: " + gameState);
-        if (! (players[pn].getNeedToDiscard()))
-            throw new IllegalStateException("Player " + pn + " does not need to discard");
+        if ((players[pn].getNeedToPickGoldHexResources() == 0) && ! (players[pn].getNeedToDiscard()))
+            throw new IllegalStateException("Player " + pn + " does not need to discard or pick");
 
         // Since doesn't change current player number, this is safe to call
         SOCForceEndTurnResult rs = forceEndTurnChkDiscardOrGain(pn, isDiscard);
