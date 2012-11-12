@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008,2010 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008,2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -91,16 +91,20 @@ public class SOCForceEndTurnResult
     /** Skip an initial road or settlement; state changes to {@link SOCGame#PLAY1}, and {@link SOCGame#endTurn()} should be called. */
     public static final int FORCE_ENDTURN_SKIP_START_TURN   = 4;
 
-    /** Sent both for placement of bought pieces, and for "free" pieces from road-building cards */
+    /** Sent both for placement of bought pieces, and for "free" pieces from road-building cards.
+     *  Resources for the bought piece are gained (given back to the player).
+     */
     public static final int FORCE_ENDTURN_RSRC_RET_UNPLACE  = 5;
 
     /** Robber movement has been cancelled. */
     public static final int FORCE_ENDTURN_UNPLACE_ROBBER    = 6;
 
-    /** Resources have been randomly discarded. Ready to end turn. */
+    /** Resources have been randomly discarded (or gained from {@link SOCBoardLarge#GOLD_HEX}). Ready to end turn. */
     public static final int FORCE_ENDTURN_RSRC_DISCARD      = 7;
 
-    /** Resources have been randomly discarded. Cannot end turn yet; other players must discard. {@link SOCGame#isForcingEndTurn()} is set. */
+    /** Resources have been randomly discarded (or gained from {@link SOCBoardLarge#GOLD_HEX}).
+     *  Cannot end turn yet; other players must discard or gain. {@link SOCGame#isForcingEndTurn()} is set.
+     */
     public static final int FORCE_ENDTURN_RSRC_DISCARD_WAIT = 8;
 
     /** Choice lost; a development card may be returned to hand, see {@link #getDevCardType()}. */
@@ -160,6 +164,7 @@ public class SOCForceEndTurnResult
 
     /**
      * Creates a new SOCForceEndTurnResult object, with resources gained.
+     * This can occur when placing a piece is canceled.
      *
      * @param res Result type, from constants in this class
      *            ({@link #FORCE_ENDTURN_UNPLACE_ROBBER}, etc.)
@@ -175,6 +180,7 @@ public class SOCForceEndTurnResult
 
     /**
      * Creates a new SOCForceEndTurnResult object, with resources gained/lost.
+     * This can occur from the robber or knight, the gold hex, or when placing a piece is canceled.
      *
      * @param res Result type, from constants in this class
      *            ({@link #FORCE_ENDTURN_UNPLACE_ROBBER}, etc.)

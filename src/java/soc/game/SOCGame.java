@@ -3112,8 +3112,8 @@ public class SOCGame implements Serializable, Cloneable
      *         as yet unchanged.
      * <LI> {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_ADV}
      *       - During initial placement, have skipped placement of
-     *         a player's first settlement or road.
-     *         gameState is {@link #START1A}, current player has changed.
+     *         a player's first or third settlement or road.  gameState is
+     *         {@link #START1A} or {@link #START3A}, current player has changed.
      *         Game's first or last player may have changed.
      * <LI> {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_ADVBACK}
      *       - During initial placement, have skipped placement of
@@ -3128,6 +3128,8 @@ public class SOCGame implements Serializable, Cloneable
      *       to change the current player.  This is indicated by
      *       {@link SOCForceEndTurnResult#FORCE_ENDTURN_SKIP_START_TURN}.
      * </UL>
+     *<P>
+     * See also <tt>SOCServer.forceEndGameTurn, SOCServer.endGameTurnOrForce</tt>.
      *
      * @return Type of action performed, one of these values:
      *     <UL>
@@ -3240,6 +3242,7 @@ public class SOCGame implements Serializable, Cloneable
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
                  SOCDevCardConstants.MONO);
 
+        // TODO STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
         case WAITING_FOR_PICK_GOLD_RESOURCE:
             return forceEndTurnChkDiscardOrGain(currentPlayerNumber, false);  // sets gameState, picks randomly
 
@@ -3289,7 +3292,7 @@ public class SOCGame implements Serializable, Cloneable
 
         /**
          * Set the state we're advancing "from";
-         * this is needed because {@link #START1A}, {@link #START2A}
+         * this is needed because {@link #START1A}, {@link #START2A}, {@link #START3A}
          * don't change player number after placing their piece.
          */
         if (advTurnForward)
@@ -3311,11 +3314,19 @@ public class SOCGame implements Serializable, Cloneable
             // turn, and give another player a chance.
             if (advTurnForward)
             {
-                // Was first placement; allow other players to begin second placement.
-                // This player won't get a second placement either.
-                gameState = START2A;
-                advanceTurnBackwards();
-                cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
+                if (gameState == START1B)
+                {
+                    // Was first placement; allow other players to begin second placement.
+                    // This player won't get a second placement either.
+                    gameState = START2A;
+                    advanceTurnBackwards();
+                    cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
+                } else {
+                    // Was third placement.  Begin normal gameplay.
+                    // Set resType to tell caller to call endTurn().
+                    gameState = PLAY1;
+                    cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
+                }
             } else {
                 // Was second placement; begin normal gameplay?
                 if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
@@ -3373,7 +3384,7 @@ public class SOCGame implements Serializable, Cloneable
             discard(pn, picks);  // Checks for other discarders, sets gameState
         } else {
             // TODO for init place (STARTS_WAITING_FOR_PICK_GOLD_RESOURCE):
-            //    even more randomly pick one, then set state START2A or START2B;
+            //    even more randomly pick one, then set state START2A or START2B or START3A or START3B;
             //    then call forceEnd again; maybe not here but after here
             discardOrGainPickRandom(hand, players[pn].getNeedToPickGoldHexResources(), false, picks, rand);
             pickGoldHexResources(pn, picks);  // Checks for other players, sets gameState

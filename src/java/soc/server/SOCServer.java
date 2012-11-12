@@ -1577,10 +1577,14 @@ public class SOCServer extends Server
     }
 
     /**
+     * A bot is unresponsive, or a human player has left the game.
      * End this player's turn cleanly, or force-end if needed.
      *<P>
      * Can be called for a player still in the game, or for a player
      * who has left ({@link SOCGame#removePlayer(String)} has been called).
+     *<P>
+     * If they were placing an initial road, also cancels that road's
+     * initial settlement.
      *<P>
      * <b>Locks:</b> Must not have ga.takeMonitor() when calling this method.
      * May or may not have <tt>gameList.takeMonitorForGame(ga)</tt>;
@@ -1637,6 +1641,7 @@ public class SOCServer extends Server
 
         /**
          * Now end their turn, or handle any needed responses if not current player.
+         * Don't call forceEndGameTurn()/ga.forceEndTurn() unless we need to.
          */
         if (plNumber == cpn)
         {
@@ -1653,8 +1658,8 @@ public class SOCServer extends Server
                  * Cancel the settlement they just placed,
                  * and send that cancel to the other players.
                  * Don't change gameState yet.
-                 * Note that their 2nd settlement is removed in START2B,
-                 * but not their 1st settlement. (This would impact the robots much more.)
+                 * Note that their most recent init settlement is removed here,
+                 * but not earlier settlement(s). (That would impact the robots much more.)
                  */
                 SOCPlayer pl = ga.getPlayer(plNumber);
                 SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
@@ -6477,7 +6482,7 @@ public class SOCServer extends Server
 
         final SOCForceEndTurnResult res = ga.forceEndTurn();
             // State now hopefully PLAY1, or SPECIAL_BUILDING;
-            // also could be initial placement (START1A or START2A).
+            // also could be initial placement (START1A or START2A or START3A).
         if (SOCGame.OVER == ga.getGameState())
             return false;  // <--- Early return: All players have left ---
 
