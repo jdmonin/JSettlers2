@@ -4101,6 +4101,12 @@ public class SOCServer extends Server
         // prevVers is ignored unless already sent game list.
         sendGameList(c, prevVers);
 
+        // Warn if debug commands are allowed.
+        // This will be displayed in the client's status line.
+        if (allowDebugUser)
+            c.put(SOCStatusMessage.toCmd
+                    (SOCStatusMessage.SV_OK, "Debugging is On.  Welcome to Java Settlers of Catan!"));            
+
         // This client version is OK to connect
         return true;
     }

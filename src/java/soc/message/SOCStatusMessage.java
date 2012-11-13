@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -35,6 +35,11 @@ package soc.message;
  * as a parameter, if it is 0.  (In JSettlers older than 1.1.06, it
  * is always 0.)  Earlier versions simply printed the entire message as text,
  * without trying to parse anything.
+ *<P>
+ * In version 1.1.17 and newer, a server with debug commands enabled will send
+ * a STATUSMESSAGE right after sending its {@link SOCVersion VERSION}, which will include text
+ * such as "debug is on" or "debugging on".  It won't send a status value, because
+ * older client versions might treat it as generic failure and disconnect. 
  *
  * @author Robert S. Thomas
  */
