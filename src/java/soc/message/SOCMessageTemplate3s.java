@@ -26,13 +26,16 @@ package soc.message;
 /**
  * Template for per-game message types with 3 string parameters.
  * The second and third parameters can be optional.
+ * Your class javadoc should explain the meaning of param1, param2, and param3,
+ * so that you won't need to write getters for those.
+ *<P>
  * You will have to write parseDataStr, because of its return
  * type and because it's static.
  *<P>
  * Sample implementation:
- *<code>
+ *<code><pre>
  *   // format of s: REJECTCARDID sep game sep2 cardid sep2 cardname sep2 cardname2
- *   public static SOCRejectCardID parseDataStr(String s)
+ *   public static SOCRejectCardID parseDataStr(final String s)
  *   {
  *       String ga; // the game name
  *       String cid; // the card id
@@ -55,7 +58,7 @@ package soc.message;
  *
  *        return new SOCRejectCardID(ga, cid, cname, cname2);
  *   }
- *</code>
+ *</pre></code>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
@@ -167,7 +170,7 @@ public abstract class SOCMessageTemplate3s extends SOCMessage
      *
      * @param s   the String to parse
      * @return    a RejectCardID message, or null if parsing errors
-    public static SOCRejectCardID parseDataStr(String s)
+    public static SOCRejectCardID parseDataStr(final String s)
     {
         String ga; // the game name
         String cid; // the card id

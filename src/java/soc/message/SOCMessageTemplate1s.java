@@ -25,12 +25,15 @@ package soc.message;
 
 /**
  * Template for per-game message types with 1 string parameter.
+ * Your class javadoc should explain the meaning of param1,
+ * so that you won't need to write a getter for it.
+ *<P>
  * You will have to write parseDataStr, because of its return
  * type and because it's static.
  *<P>
  * Sample implementation:
- *<code>
- *   public static SOCSitDown parseDataStr(String s)
+ *<code><pre>
+ *   public static SOCSitDown parseDataStr(final String s)
  *   {
  *       String ga; // the game name
  *       String pna; // the player name
@@ -47,9 +50,9 @@ package soc.message;
  *           return null;
  *       }
  *
- *        return new SOCSitDown(ga, pn);
+ *        return new SOCSitDown(ga, pna);
  *   }
- *</code>
+ *</pre></code>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
@@ -126,7 +129,7 @@ public abstract class SOCMessageTemplate1s extends SOCMessage
      *
      * @param s   the String to parse
      * @return    a SitDown message, or null if parsing errors
-    public static SOCSitDown parseDataStr(String s)
+    public static SOCSitDown parseDataStr(final String s)
     {
         String ga; // the game name
         String pna; // the player name

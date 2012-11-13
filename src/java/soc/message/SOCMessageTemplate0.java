@@ -27,12 +27,12 @@ package soc.message;
  * type and because it's static.
  *<P>
  * Sample implementation:
- *<code>
- *   public static SOCAdminPing parseDataStr(String s)
+ *<code><pre>
+ *   public static SOCAdminPing parseDataStr(final String s)
  *   {
  *       return new SOCAdminPing(s);
  *   }
- *</code>
+ *</pre></code>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
@@ -95,9 +95,9 @@ public abstract class SOCMessageTemplate0 extends SOCMessage
      *
      * @param s   the String to parse
      * @return    an AdminPing message
-    public static SOCAdminPing parseDataStr(String s)
+    public static SOCAdminPing parseDataStr(final String s)
     {
-        return new SOCAdminPing(Integer.parseInt(s));
+        return new SOCAdminPing(s);
     }
      */
 

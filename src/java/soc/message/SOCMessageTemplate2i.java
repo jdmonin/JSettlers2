@@ -25,13 +25,16 @@ package soc.message;
 
 /**
  * Template for per-game message types with 2 integer parameters.
+ * Your class javadoc should explain the meaning of param1 and param2,
+ * so that you won't need to write getters for those.
+ *<P>
  * You will have to write parseDataStr, because of its return
  * type and because it's static.
  *<P>
  * Sample implementation:
- *<code>
+ *<code><pre>
  *   // format of s: LONGESTROAD sep game sep2 seatnumber sep2 coordinates
- *   public static SOCLongestRoad parseDataStr(String s)
+ *   public static SOCLongestRoad parseDataStr(final String s)
  *   {
  *       String ga; // the game name
  *       int pn; // the seat number
@@ -52,7 +55,7 @@ package soc.message;
  *
  *        return new SOCMoveRobber(ga, pn, co);
  *   }
- *</code>
+ *</pre></code>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  */
@@ -145,7 +148,7 @@ public abstract class SOCMessageTemplate2i extends SOCMessage
      *
      * @param s   the String to parse
      * @return    a MoveRobber message, or null if parsing errors
-    public static SOCMoveRobber parseDataStr(String s)
+    public static SOCMoveRobber parseDataStr(final String s)
     {
         String ga; // the game name
         int pn; // the seat number
@@ -155,7 +158,7 @@ public abstract class SOCMessageTemplate2i extends SOCMessage
 
         try
         {
-            na = st.nextToken();
+            ga = st.nextToken();
             pn = Integer.parseInt(st.nextToken());
             co = Integer.parseInt(st.nextToken());
         }
@@ -164,7 +167,7 @@ public abstract class SOCMessageTemplate2i extends SOCMessage
             return null;
         }
 
-        return new SOCMoveRobber(na, pn, co);
+        return new SOCMoveRobber(ga, pn, co);
     }
      */
 

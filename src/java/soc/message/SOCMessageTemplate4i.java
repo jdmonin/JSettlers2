@@ -24,13 +24,16 @@ package soc.message;
 
 /**
  * Template for per-game message types with 4 integer parameters.
+ * Your class javadoc should explain the meaning of param1, param2, param3, and param4,
+ * so that you won't need to write getters for those.
+ *<P>
  * You will have to write parseDataStr, because of its return
  * type and because it's static.
  *<P>
  * Sample implementation:
- *<pre>
+ *<code><pre>
  *   // format of s: MOVEPIECE sep game sep2 playerNumber sep2 pieceType sep2 coordFrom sep2 coordTo
- *   public static SOCMovePiece parseDataStr(String s)
+ *   public static SOCMovePiece parseDataStr(final String s)
  *   {
  *       String ga; // the game name
  *       int pn; // the player number
@@ -55,7 +58,7 @@ package soc.message;
  *
  *        return new SOCMovePiece(ga, pn, pt, cf, ct);
  *   }
- *</pre>
+ *</pre></code>
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 2.0.00
@@ -182,7 +185,7 @@ public abstract class SOCMessageTemplate4i extends SOCMessage
      *            Format of s: MOVEPIECE sep game sep2 playerNumber sep2 pType sep2 coordFrom sep2 coordTo
      * @return    a MovePiece message, or null if parsing errors
      *
-    public static SOCMovePiece parseDataStr(String s)
+    public static SOCMovePiece parseDataStr(final String s)
     {
         String ga; // the game name
         int pn; // the player number

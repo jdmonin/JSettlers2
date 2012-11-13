@@ -31,7 +31,7 @@ package soc.message;
  * type and because it's static.
  *<P>
  * Sample implementation:
- *<pre>
+ *<code><pre>
  *   // format of s: game sep2 hexcoord sep2 hextype sep2 dicenum
  *   public static SOCRevealFogHex parseDataStr(final String s)
  *   {
@@ -56,7 +56,7 @@ package soc.message;
  *
  *        return new SOCRevealFogHex(ga, hc, ht, dn);
  *   }
- *</pre>
+ *</pre></code>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -167,7 +167,7 @@ public abstract class SOCMessageTemplate3i extends SOCMessage
      *
      * @param s   the String to parse; format: game sep2 hexcoord sep2 hextype sep2 dicenum
      * @return    a SOCRevealFogHex message, or null if parsing errors
-    public static SOCRevealFogHex parseDataStr(String s)
+    public static SOCRevealFogHex parseDataStr(final String s)
     {
         String ga; // the game name
         int hc; // the hex coordinate
