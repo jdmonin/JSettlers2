@@ -140,6 +140,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
      *<LI> {@link #K_SC_0RVP _SC_0RVP}  No VP for longest road / longest trade route
      *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road placement
+     *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *</UL>
      *
      * <h3>If you want to add a game option:</h3>
@@ -286,6 +287,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 (K_SC_0RVP, 2000, 2000, false, true, "Scenarios: No longest trade route VP (no Longest Road)"));
         opt.put(K_SC_3IP, new SOCGameOption
                 (K_SC_3IP, 2000, 2000, false, true, "Scenarios: Third initial settlement"));
+        opt.put(K_SC_CLVI, new SOCGameOption
+                (K_SC_CLVI, 2000, 2000, false, true, "Scenarios: Cloth Trade with neutral villages"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -475,6 +478,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @since 2.0.00
      */
     public static final String K_SC_3IP = "_SC_3IP";
+
+    /**
+     * Scenario key <tt>_SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
+     * Cloth Trade with neutral {@link SOCVillage villages}.
+     * @since 2.0.00
+     */
+    public static final String K_SC_CLVI = "_SC_CLVI";
 
     // If you create a new option type,
     // please update parseOptionsToHash(), packOptionsToString(),

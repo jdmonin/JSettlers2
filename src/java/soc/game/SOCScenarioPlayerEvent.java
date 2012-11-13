@@ -42,7 +42,15 @@ public enum SOCScenarioPlayerEvent
      * Once per area per player per game.
      * Game option {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
      */
-    SVP_SETTLED_EACH_NEW_LANDAREA(0x02);
+    SVP_SETTLED_EACH_NEW_LANDAREA(0x02),
+
+    /**
+     * Cloth trade route established with a neutral {@link SOCVillage village}.
+     * (Player cannot move the Pirate before Cloth Trade is established.)
+     * Once per player per game, although the player is free to make routes to other villages.
+     * Game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     */
+    CLOTH_TRADE_ESTABLISHED_VILLAGE(0x04);
 
     /**
      * Value for sending event codes over a network.
