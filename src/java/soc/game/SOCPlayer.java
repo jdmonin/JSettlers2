@@ -381,6 +381,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board},
      * true if the player has been given a Special Victory Point for placing
      * a settlement in a new land area.
+     * @see SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA
      * @since 2.0.00
      */
     private boolean scenario_svpFromNewLandArea;
@@ -390,9 +391,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * bitmask: true if the player has been given a Special Victory Point for placing
      * a settlement in a given new land area.
      * The bit value is (1 &lt;&lt; (landAreaNumber - 1)).
+     * @see SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA
      * @since 2.0.00
      */
     private int scenario_svpFromEachLandArea_bitmask;
+
+    /**
+     * Used for some scenarios on the {@link SOCGame#hasSeaBoard large sea board};
+     * true if the player has established a Cloth Trade route with a {@link SOCVillage}.
+     * Villages are in a game only if option {@link SOCGameOption#K_SC_CLVI} is set.
+     * @see SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE
+     * @since 2.0.00
+     */
+    private boolean scenario_clothTradeEstablished;
 
     /**
      * this is true if this player is a robot
@@ -496,6 +507,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
 
         scenario_svpFromNewLandArea = player.scenario_svpFromNewLandArea;
+        scenario_svpFromEachLandArea_bitmask = player.scenario_svpFromEachLandArea_bitmask;
+        scenario_clothTradeEstablished = player.scenario_clothTradeEstablished;
     }
 
     /**
@@ -1083,8 +1096,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * assume that the other end of <tt>newShipEdge</tt>
      * has a settlement, or that it branches from an already-closed trade route.
      *<P>
-     * The route and its segments may end at a settlement/city, a branch where 3 ships
+     * The route and its segments may end at a settlement/city/village, a branch where 3 ships
      * meet at a node (and 2 of the 3 ships are closed), or may end "open" with no further pieces.
+     *<P>
+     * Settlements and cities owned by other players won't close the trade route.
+     * {@link SOCVillage Villages} are present only with scenario game option {@link SOCGameOption#K_SC_CLVI}.
+     * If this route becomes closed and is the player's first Cloth Trade route with a village
+     * ({@link #scenario_clothTradeEstablished} flag), this method fires
+     * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *<P>
      * Valid only when {@link SOCGame#hasSeaBoard}.
      *
@@ -1115,6 +1134,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         // of that node's directions.
         // Note that if it becomes closed, segment will contain newShipEdge.
 
+        isTradeRouteFarEndClosed_foundVillage = false;
         Vector<SOCShip> segment = isTradeRouteFarEndClosed
             (newShipEdge, edgeFarNode, alreadyVisited, encounteredSelf);
 
@@ -1123,6 +1143,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         for (SOCShip sh : segment)
             sh.setClosed();
+
+        if (isTradeRouteFarEndClosed_foundVillage && ! scenario_clothTradeEstablished)
+        {
+            scenario_clothTradeEstablished = true;
+
+            if (game.scenarioEventListener != null)
+                game.scenarioEventListener.playerEvent
+                    (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+        }
 
         // Now that those ships are closed, re-check the segments
         // where we might have found a loop, and see if those are
@@ -1144,6 +1173,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 HashSet<Integer> reAlready = new HashSet<Integer>();
 
                 // check again to see if it should be closed now
+                isTradeRouteFarEndClosed_foundVillage = false;
                 if (self.size() == 2)
                 {
                     // just 1 ship along that segment
@@ -1166,6 +1196,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 segment.addAll(recheck);
                 for (SOCShip sh : recheck)
                     sh.setClosed();
+
+                if (isTradeRouteFarEndClosed_foundVillage && ! scenario_clothTradeEstablished)
+                {
+                    scenario_clothTradeEstablished = true;
+
+                    if (game.scenarioEventListener != null)
+                        game.scenarioEventListener.playerEvent
+                            (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                }
             }
         }
 
@@ -1173,11 +1212,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Recursive call for {@link #isTradeRouteFarEndClosed(int, int)}.
-     * Check one segment of the trade route going from a branch.
-     * The segment may end at a settlement/city, another branch, or end with no further pieces.
-     * Valid only when {@link SOCGame#hasSeaBoard}.
+     * Flag set by {@link #isTradeRouteFarEndClosed(SOCShip, int, HashSet, List)}
+     * if it finds a village at any far end.
+     * Not set unless {@link SOCGame#hasSeaBoard} and {@link SOCGameOption#K_SC_CLVI} are set.
+     * @since 2.0.00
+     */
+    private boolean isTradeRouteFarEndClosed_foundVillage;
+
+    /**
+     * Recursive call for {@link #checkTradeRouteFarEndClosed(SOCShip, int)}.
      * See that method for more information.
+     * This method checks one segment of the trade route going from a branch.
+     * The segment may end at a settlement/city/village, another branch, or end with no further pieces.
+     *<P>
+     * If recursion ends at a {@link SOCVillage}, the {@link #isTradeRouteFarEndClosed_foundVillage}
+     * flag will be set.  If you're looking for villages, clear that flag before calling this method.
+     *<P>
+     * Valid only when {@link SOCGame#hasSeaBoard}.
      *
      * @param edgeFirstShip  First edge along the segment; an open ship required here.
      *                  All edges, including this first edge, are checked against <tt>encounteredSelf</tt>.
@@ -1213,6 +1264,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (edgeFirstShip.isClosed())
             throw new IllegalArgumentException();
         final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
+        final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
         Vector<SOCShip> segment = new Vector<SOCShip>();
 
         SOCShip edgeShip = edgeFirstShip;
@@ -1221,6 +1273,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         int node = edgeFarNode;
 
         boolean foundClosedEnd = false;
+        SOCPlayingPiece pp = null;
         while ((edge != 0) && ! foundClosedEnd)
         {
             // Loop invariant:
@@ -1246,14 +1299,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             alreadyVisited.add(edgeInt);
 
             // check the node
-            SOCPlayingPiece pp = board.settlementAtNode(node);
+            pp = board.settlementAtNode(node);
             if (pp != null)
             {
                 if (pp.getPlayerNumber() == playerNumber)
                     foundClosedEnd = true;
 
-                break;  // won't continue past here
+                break;  // segment doesn't continue past a settlement or city
+            }
+            else if (boardHasVillages)
+            {
+                pp = board.getVillageAtNode(node);
+                if (pp != null)
+                {
+                    foundClosedEnd = true;
 
+                    break;  // segment doesn't continue past a village
+                }
             }
             
             // check node's other 2 adjacent edges
@@ -1295,7 +1357,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 if (nextShip2.isClosed())
                 {
-                    // If one ship is already closed, they both are.
+                    // If one ship is already closed, they both are, because they're connected.
                     // Stop here.
                     foundClosedEnd = true;
                     break;
@@ -1350,6 +1412,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         if (! foundClosedEnd)
             return null;
+
+        if ((pp != null) && (pp instanceof SOCVillage))
+            isTradeRouteFarEndClosed_foundVillage = true;
 
         return segment;
     }
@@ -1904,8 +1969,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Check this new ship for adjacent settlements/cities, to see if its trade route
+     * Check this new ship for adjacent settlements/cities/villages, to see if its trade route
      * will be closed.  Close it if so.
+     *<P>
+     * If the route becomes closed and is the player's first Cloth Trade route with a {@link SOCVillage}
+     * ({@link #scenario_clothTradeEstablished} flag), this method fires
+     * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roads}
      * @param board  game board
@@ -1914,22 +1984,42 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private void putPiece_roadOrShip_checkNewShipTradeRoute
         (SOCShip newShip, SOCBoard board)
     {
+        final boolean boardHasVillages = game.isGameOptionSet(SOCGameOption.K_SC_CLVI);
         final int[] edgeNodes = board.getAdjacentNodesToEdge_arr
             (newShip.getCoordinates());
 
         for (int i = 0; i < 2; ++i)
         {
             SOCPlayingPiece pp = board.settlementAtNode(edgeNodes[i]);
-            if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
-                pp = null;
+            if (pp != null)
+            {
+                if (pp.getPlayerNumber() != playerNumber)
+                    pp = null;  // other players' pieces won't close a route
+            }
+            else if (boardHasVillages)
+            {
+                pp = ((SOCBoardLarge) board).getVillageAtNode(edgeNodes[i]);
+            }
+
             if (pp == null)
-                continue;
+                continue;  // nothing adjacent
 
             // if pp is at edgeNodes[1], check from edgeNodes[0], or vice versa
             final int edgeFarNode = 1 - i;
             final Vector<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
             if (closedRoute != null)
+            {
+                if ((pp instanceof SOCVillage) && ! scenario_clothTradeEstablished)
+                {
+                    scenario_clothTradeEstablished = true;
+
+                    if (game.scenarioEventListener != null)
+                        game.scenarioEventListener.playerEvent
+                            (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                }
+
                 break;
+            }
         }
     }
 

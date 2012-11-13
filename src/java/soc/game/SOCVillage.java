@@ -22,6 +22,7 @@ package soc.game;
 
 /**
  * A village playing piece, used on the large sea board ({@link SOCBoardLarge}) with some scenarios.
+ * Villages are in a game only if scenario option {@link SOCGameOption#K_SC_CLVI} is set.
  *<P>
  * Villages belong to the game board, not to any player, and new villages cannot be built after the game starts.
  * Trying to call {@link SOCPlayingPiece#getPlayer() village.getPlayer()} will throw an exception.
