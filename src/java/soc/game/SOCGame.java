@@ -2475,6 +2475,7 @@ public class SOCGame implements Serializable, Cloneable
 
         case START3B:
             {
+                // who places next? same algorithm as advanceTurn.
                 int tmpCPN = currentPlayerNumber + 1;
                 if (tmpCPN >= maxPlayers)
                 {
@@ -2497,9 +2498,10 @@ public class SOCGame implements Serializable, Cloneable
                 if (tmpCPN == firstPlayerNumber)
                 {
                     // All have placed their third settlement/road.
-                    // Begin play.
-                    // Player number is unchanged; "virtual" endTurn here.
+                    // Begin play.  The first player to roll is firstPlayerNumber.
+                    // "virtual" endTurn here.
                     // Don't clear forcingEndTurn flag, if it's set.
+                    currentPlayerNumber = firstPlayerNumber;
                     gameState = PLAY;
                     updateAtTurn();
                 }
