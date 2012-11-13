@@ -48,7 +48,7 @@ public enum SOCScenarioPlayerEvent
      * Cloth trade route established with a neutral {@link SOCVillage village}.
      * (Player cannot move the Pirate before Cloth Trade is established.)
      * Once per player per game, although the player is free to make routes to other villages.
-     * Game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     * Villages are in a game only if option {@link SOCGameOption#K_SC_CLVI} is set.
      */
     CLOTH_TRADE_ESTABLISHED_VILLAGE(0x04);
 

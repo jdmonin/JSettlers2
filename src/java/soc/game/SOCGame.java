@@ -2073,7 +2073,7 @@ public class SOCGame implements Serializable, Cloneable
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board}, placing
      * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
      * This method will increment {@link #specialVP}
-     * and set the {@link #scenario_svpFromNewLandArea} flag.
+     * and set the player's {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.

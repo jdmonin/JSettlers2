@@ -378,32 +378,32 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private boolean hasSpecialBuiltThisTurn;
 
     /**
-     * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board},
-     * true if the player has been given a Special Victory Point for placing
-     * a settlement in a new land area.
-     * @see SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA
+     * Track one-time player events for scenarios on the {@link SOCGame#hasSeaBoard large sea board}.
+     * As events occur during a game, each one's {@link SOCScenarioPlayerEvent#flagValue} bit is set here.
+     *<P>
+     * Example events: {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA},
+     * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     *<P>
+     * Bits are kept here, not in separate boolean fields, to keep them together and send over the network.
+     * Not all player events are here; some can't be represented in a single flag bit,
+     * such as {@link #scenario_svpFromEachLandArea_bitmask}.
+     *
+     * @see #getScenarioPlayerEvents()
      * @since 2.0.00
      */
-    private boolean scenario_svpFromNewLandArea;
+    private int scenario_playerEvents_bitmask;
 
     /**
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board},
      * bitmask: true if the player has been given a Special Victory Point for placing
      * a settlement in a given new land area.
      * The bit value is (1 &lt;&lt; (landAreaNumber - 1)).
+     *
      * @see SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA
+     * @see #scenario_playerEvents_bitmask
      * @since 2.0.00
      */
     private int scenario_svpFromEachLandArea_bitmask;
-
-    /**
-     * Used for some scenarios on the {@link SOCGame#hasSeaBoard large sea board};
-     * true if the player has established a Cloth Trade route with a {@link SOCVillage}.
-     * Villages are in a game only if option {@link SOCGameOption#K_SC_CLVI} is set.
-     * @see SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE
-     * @since 2.0.00
-     */
-    private boolean scenario_clothTradeEstablished;
 
     /**
      * this is true if this player is a robot
@@ -506,9 +506,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             currentOffer = null;
         }
 
-        scenario_svpFromNewLandArea = player.scenario_svpFromNewLandArea;
+        scenario_playerEvents_bitmask = player.scenario_playerEvents_bitmask;
         scenario_svpFromEachLandArea_bitmask = player.scenario_svpFromEachLandArea_bitmask;
-        scenario_clothTradeEstablished = player.scenario_clothTradeEstablished;
     }
 
     /**
@@ -1101,8 +1100,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Settlements and cities owned by other players won't close the trade route.
      * {@link SOCVillage Villages} are present only with scenario game option {@link SOCGameOption#K_SC_CLVI}.
-     * If this route becomes closed and is the player's first Cloth Trade route with a village
-     * ({@link #scenario_clothTradeEstablished} flag), this method fires
+     * If this route becomes closed and is the player's first Cloth Trade route with a village,
+     * this method sets that player event flag and fires
      * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *<P>
      * Valid only when {@link SOCGame#hasSeaBoard}.
@@ -1144,9 +1143,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         for (SOCShip sh : segment)
             sh.setClosed();
 
-        if (isTradeRouteFarEndClosed_foundVillage && ! scenario_clothTradeEstablished)
+        if (isTradeRouteFarEndClosed_foundVillage
+            && ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
         {
-            scenario_clothTradeEstablished = true;
+            setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
             if (game.scenarioEventListener != null)
                 game.scenarioEventListener.playerEvent
@@ -1197,9 +1197,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 for (SOCShip sh : recheck)
                     sh.setClosed();
 
-                if (isTradeRouteFarEndClosed_foundVillage && ! scenario_clothTradeEstablished)
+                if (isTradeRouteFarEndClosed_foundVillage
+                    && ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
                 {
-                    scenario_clothTradeEstablished = true;
+                    setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
                     if (game.scenarioEventListener != null)
                         game.scenarioEventListener.playerEvent
@@ -1699,6 +1700,63 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Gets one-time player events for scenarios on the {@link SOCGame#hasSeaBoard large sea board}.
+     * As events occur during a game, each one's {@link SOCScenarioPlayerEvent#flagValue} bit is set.
+     *<P>
+     * Example events: {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA},
+     * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * Not all player events are returned here; some can't be represented in a single flag bit.
+     * 
+     * @return Player events which have occurred so far this game
+     * @see #hasScenarioPlayerEvent(int)
+     * @since 2.0.00
+     */
+    public int getScenarioPlayerEvents()
+    {
+        return scenario_playerEvents_bitmask;
+    }
+
+    /**
+     * Does this player have a certain scenario player event flag?
+     * Flag bits are set as per-player events occur during a game.
+     * @param spe  Player event, such as {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     * @return  True if event flag is set for this player
+     * @see #getScenarioPlayerEvents()
+     * @since 2.0.00
+     */
+    public final boolean hasScenarioPlayerEvent(final SOCScenarioPlayerEvent spe)
+    {
+        return (0 != (scenario_playerEvents_bitmask & spe.flagValue));
+    }
+
+    /**
+     * Set a certain scenario player event flag.
+     * Can be set once per game.
+     * @param spe  Player event, such as {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     * @throws IllegalStateException if currently set
+     * @see #clearScenarioPlayerEvent(SOCScenarioPlayerEvent)
+     * @since 2.0.00
+     */
+    private final void setScenarioPlayerEvent(final SOCScenarioPlayerEvent spe)
+        throws IllegalStateException
+    {
+        final int bit = spe.flagValue;
+        if (0 != (scenario_playerEvents_bitmask & bit))
+            throw new IllegalStateException("Already set: 0x" + Integer.toHexString(bit));
+        scenario_playerEvents_bitmask |= bit;
+    }
+
+    /**
+     * Clear a certain scenario player event flag.
+     * @param spe  Player event, such as {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
+     * @see #setScenarioPlayerEvent(SOCScenarioPlayerEvent)
+     * @since 2.0.00
+     */
+    private final void clearScenarioPlayerEvent(final SOCScenarioPlayerEvent spe)
+    {
+        scenario_playerEvents_bitmask &= (~ spe.flagValue);
+    }
+    /**
      * @return the list of nodes that touch the roads/ships in play
      */
     public Vector<Integer> getRoadNodes()
@@ -1761,7 +1819,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * For some scenarios on the {@link SOCGame#hasSeaBoard large sea board}, placing
      * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
      * This method will increment {@link #specialVP}
-     * and set the {@link #scenario_svpFromNewLandArea} flag.
+     * and set the {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
      *
      * @param piece        The piece to be put into play; coordinates are not checked for validity.
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
@@ -1972,9 +2030,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Check this new ship for adjacent settlements/cities/villages, to see if its trade route
      * will be closed.  Close it if so.
      *<P>
-     * If the route becomes closed and is the player's first Cloth Trade route with a {@link SOCVillage}
-     * ({@link #scenario_clothTradeEstablished} flag), this method fires
-     * {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
+     * If the route becomes closed and is the player's first Cloth Trade route with a {@link SOCVillage},
+     * this method sets that player flag and fires {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      *
      * @param newShip  Our new ship being placed in {@link #putPiece(SOCPlayingPiece, boolean)};
      *                 should not yet be added to {@link #roads}
@@ -2009,9 +2066,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final Vector<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
             if (closedRoute != null)
             {
-                if ((pp instanceof SOCVillage) && ! scenario_clothTradeEstablished)
+                if ((pp instanceof SOCVillage)
+                    && ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
                 {
-                    scenario_clothTradeEstablished = true;
+                    setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
                     if (game.scenarioEventListener != null)
                         game.scenarioEventListener.playerEvent
@@ -2069,9 +2127,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private final void putPiece_settlement_checkScenarioSVPs
         (final SOCSettlement newSettle, final int newSettleArea, final boolean isTempPiece)
     {
-        if ((! scenario_svpFromNewLandArea) && game.isGameOptionSet(SOCGameOption.K_SC_SANY))
+        if ((! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA))
+             && game.isGameOptionSet(SOCGameOption.K_SC_SANY))
         {
-            scenario_svpFromNewLandArea = true;
+            setScenarioPlayerEvent(SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
             ++specialVP;
             newSettle.specialVP = 1;
             newSettle.specialVPEvent = SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA;
@@ -2703,7 +2762,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         switch (p.specialVPEvent)
         {
         case SVP_SETTLED_ANY_NEW_LANDAREA:
-            scenario_svpFromNewLandArea = false;
+            clearScenarioPlayerEvent(p.specialVPEvent);
             break;
         }
     }
