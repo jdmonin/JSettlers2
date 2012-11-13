@@ -28,6 +28,7 @@ import java.util.Vector;
 /**
  * Playing pieces for Settlers of Catan.
  * For the resources needed to build a piece type, see {@link #getResourcesToBuild(int)}.
+ * See also soc.robot.SOCPossiblePiece.
  */
 public abstract class SOCPlayingPiece implements Serializable, Cloneable
 {
@@ -59,6 +60,16 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     public static final int SHIP = 3;
 
     /**
+     * Types of playing pieces: {@link SOCVillage Village}.
+     * Used only when {@link SOCGame#hasSeaBoard}.
+     * Requires client and server verson 2.0.00 or newer.
+     * Villages belong to the game board, not to any player,
+     * and new villages cannot be built after the game starts.
+     * @since 2.0.00
+     */
+    public static final int VILLAGE = 4;
+
+    /**
      * Minimum type number of playing piece (currently Road).
      */
     public static final int MIN = 0;
@@ -66,9 +77,9 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * One past the maximum type number of playing piece.
      * MAXPLUSONE == 3 up through all 1.1.xx versions.
-     * MAXPLUSONE == 4 in v2.0.00.
+     * MAXPLUSONE == 5 in v2.0.00.
      */
-    public static final int MAXPLUSONE = 4;
+    public static final int MAXPLUSONE = 5;
 
     /**
      * The type of this playing piece, within range {@link #MIN} to ({@link #MAXPLUSONE} - 1)
@@ -76,12 +87,14 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     protected int pieceType;
 
     /**
-     * The player who owns this piece
+     * The player who owns this piece, if any. Will be null for certain piece types
+     * such as {@link SOCVillage} which belong to the board and not to players.
+     * Player is from same game as {@link #board}.
      */
     protected SOCPlayer player;
 
     /**
-     * Where this piece is on the board
+     * Coordinates on the board for this piece. An edge or a node, depending on piece type.
      */
     protected int coord;
 
@@ -116,7 +129,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     SOCScenarioPlayerEvent specialVPEvent;
 
     /**
-     * Make a new piece.
+     * Make a new piece, which is owned by a player.
      *
      * @param ptype  the type of piece, such as {@link #SETTLEMENT}
      * @param pl  player who owns the piece
@@ -124,6 +137,7 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * @param pboard  board if known; otherwise will extract from <tt>pl</tt>.
      *               Board should be from same game as <tt>pl</tt>.
      * @throws IllegalArgumentException  if <tt>pl</tt> null, or board null and <tt>pl.board</tt> also null
+     * @see #SOCPlayingPiece(int, int, SOCBoard)
      * @since 1.1.08
      */
     protected SOCPlayingPiece(final int ptype, SOCPlayer pl, final int co, SOCBoard pboard)
@@ -140,6 +154,23 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
             if (pboard == null)
                 throw new IllegalArgumentException("player has null board");
         }
+        board = pboard;
+    }
+
+    /**
+     * Make a new piece, which belongs to the board and never to players.
+     * @throws IllegalArgumentException  if <tt>board</tt> null
+     * @see #SOCPlayingPiece(int, SOCPlayer, int, SOCBoard)
+     * @since 2.0.00
+     */
+    protected SOCPlayingPiece(final int ptype, final int co, SOCBoard pboard)
+        throws IllegalArgumentException
+    {
+        if (pboard == null)
+            throw new IllegalArgumentException("board null");
+        pieceType = ptype;
+        player = null;
+        coord = co;
         board = pboard;
     }
 
@@ -162,22 +193,36 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     }
 
     /**
+     * Get the player who owns this piece, if any.
+     * Certain piece types such as {@link SOCVillage} belong to the board and not to players.
      * @return the owner of the piece
      * @see #getPlayerNumber()
+     * @throws UnsupportedOperationException  if this piece type has no player and is owned by the board
      */
     public SOCPlayer getPlayer()
+        throws UnsupportedOperationException
     {
-        return player;
+        if (player != null)
+            return player;
+        else
+            throw new UnsupportedOperationException
+                ("No player for piece type " + pieceType + " at 0x" + Integer.toHexString(coord));
     }
 
     /**
      * Get the owner's player number.
      * @return {@link #getPlayer()}.{@link SOCPlayer#getPlayerNumber() getPlayerNumber()}
+     * @throws UnsupportedOperationException  if this piece type has no player and is owned by the board
      * @since 2.0.00
      */
     public int getPlayerNumber()
+        throws UnsupportedOperationException
     {
-        return player.getPlayerNumber();
+        if (player != null)
+            return player.getPlayerNumber();
+        else
+            throw new UnsupportedOperationException
+                ("No player for piece type " + pieceType + " at 0x" + Integer.toHexString(coord));
     }
 
     /**
@@ -228,9 +273,9 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
      * the set of resources a player needs to build a playing piece.
      * @param pieceType The type of this playing piece, in range {@link #MIN} to ({@link #MAXPLUSONE} - 1).
      *           {@link #ROAD}, {@link #CITY}, etc.
-     *           Can also pass -2 or {@link #MAXPLUSONE} for {@link SOCGame#CARD_SET}.
+     *           For convenience, can also pass -2 or {@link #MAXPLUSONE} for {@link SOCGame#CARD_SET}.
      * @return the set, such as {@link SOCGame#SETTLEMENT_SET}
-     * @throws IllegalArgumentException if <tt>pieceType</tt> is out of range
+     * @throws IllegalArgumentException if <tt>pieceType</tt> is out of range, or can never be built by players
      * @since 1.1.08
      */
     public static SOCResourceSet getResourcesToBuild(final int pieceType)

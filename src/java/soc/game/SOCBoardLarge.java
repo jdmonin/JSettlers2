@@ -423,6 +423,11 @@ public class SOCBoardLarge extends SOCBoard
     private HashMap<Integer, Integer> fogHiddenHexes;
 
     /**
+     * For some scenarios, villages on the board. Null otherwise.
+     */
+    protected HashMap<Integer, SOCVillage> villages;
+
+    /**
      * Land area numbers from which the player is excluded and cannot place settlements, or null.
      * Used in some game scenarios.
      */
@@ -1341,6 +1346,21 @@ public class SOCBoardLarge extends SOCBoard
             return -1;  // not a valid hex coordinate
 
         return hexLayoutLg[r][c];
+    }
+
+    /**
+     * If there's a village placed at this node during board setup, find it.
+     * Only some scenarios use villages.
+     *
+     * @param nodeCoord  Node coordinate 
+     * @return village, or null.
+     */
+    public SOCVillage getVillageAtNode(final int nodeCoord)
+    {
+        if ((villages == null) || villages.isEmpty())
+            return null;
+
+        return villages.get(Integer.valueOf(nodeCoord));
     }
 
     /**
