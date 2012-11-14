@@ -47,8 +47,10 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -8297,6 +8299,26 @@ public class SOCServer extends Server
         }
 
         /**
+         * send the non-player-owned villages, if any.
+         * Note that if the game state is new, and SOCBoardLarge.makeNewBoard not called yet,
+         * this will be null.  Must send them again in SOCServer.startGame().
+         */
+        if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        {
+            final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
+            HashMap<Integer, SOCVillage> villages = bl.getVillages();
+            if (villages != null)
+            {
+                Iterator<SOCVillage> villIter = villages.values().iterator();
+                while (villIter.hasNext())
+                {
+                    final SOCVillage v = villIter.next();
+                    c.put(SOCPutPiece.toCmd(gameName, -1, SOCPlayingPiece.VILLAGE, v.getCoordinates()));
+                }
+            }
+        }
+
+        /**
          * send the per-player information
          */
         for (int i = 0; i < gameData.maxPlayers; i++)
@@ -9439,7 +9461,11 @@ public class SOCServer extends Server
     }
 
     /**
-     * do the stuff you need to do to start a game
+     * Do the stuff you need to do to start a game and send its data to the client.
+     *<P>
+     * If {@link SOCGame#hasSeaBoard}: Once the board is made, send the updated
+     * {@link SOCPotentialSettlements potential settlements}, and if the scenario
+     * uses villages, send each {@link SOCPutPiece PUTPIECE(VILLAGE)}.
      *
      * @param ga  the game
      */
@@ -9467,10 +9493,11 @@ public class SOCServer extends Server
         }
         if (ga.hasSeaBoard)
         {
+            // See also joinGame which has very similar code.
+
             // Send the updated Potential/Legal Settlement node list
             // Note: Assumes all players have same potential settlements
             //    (sends with playerNumber -1 == all)
-            // See also joinGame which has very similar code.
             final HashSet<Integer> psList = ga.getPlayer(0).getPotentialSettlements();
 
             // Some boards may have multiple land areas.
@@ -9500,6 +9527,24 @@ public class SOCServer extends Server
 
             if (addedPsList)
                 lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
+
+            /**
+             * send the non-player-owned villages, if any.
+             */
+            if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+            {
+                final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
+                HashMap<Integer, SOCVillage> villages = bl.getVillages();
+                if (villages != null)
+                {
+                    Iterator<SOCVillage> villIter = villages.values().iterator();
+                    while (villIter.hasNext())
+                    {
+                        final SOCVillage v = villIter.next();
+                        messageToGameWithMon(gaName, new SOCPutPiece(gaName, -1, SOCPlayingPiece.VILLAGE, v.getCoordinates()));
+                    }
+                }
+            }
         }
 
         /**

@@ -24,6 +24,7 @@ package soc.client;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
+import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -34,6 +35,7 @@ import soc.game.SOCScenarioGameEvent;
 import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCVillage;
 import soc.message.SOCPlayerElement;
 
 import java.awt.Color;
@@ -1772,9 +1774,9 @@ public class SOCPlayerInterface extends Frame
     {
         // TODO consider more effic way for flushBoardLayoutAndRepaint, without the =null
 
-        final SOCPlayer pl = game.getPlayer(mesPn);
+        final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE) ? game.getPlayer(mesPn) : null;
         final SOCPlayer oldLongestRoadPlayer = game.getPlayerWithLongestRoad();
-        final SOCHandPanel mesHp = getPlayerHandPanel(mesPn);
+        final SOCHandPanel mesHp = (pieceType != SOCPlayingPiece.VILLAGE) ? getPlayerHandPanel(mesPn) : null;
         final boolean[] debugShowPotentials = boardPanel.debugShowPotentials;
         final SOCPlayingPiece pp;
 
@@ -1840,6 +1842,13 @@ public class SOCPlayerInterface extends Frame
                 boardPanel.flushBoardLayoutAndRepaint();
 
             break;
+
+        case SOCPlayingPiece.VILLAGE:
+            // no need to refresh boardPanel after receiving each village
+            pp = new SOCVillage(coord, game.getBoard());
+            game.putPiece(pp);
+
+            return; // <--- Early return: Piece is part of board initial layout, not player info ---
 
         default:
             chatPrintDebug("* Unknown piece type " + pieceType + " at coord 0x" + coord);

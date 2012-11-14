@@ -37,6 +37,7 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
+import soc.game.SOCVillage;
 
 import soc.message.*;
 import soc.robot.SOCRobotClient;
@@ -1350,22 +1351,26 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
                 SOCRoad rd = new SOCRoad(pl, mes.getCoordinates(), null);
                 ga.putPiece(rd);
-
                 break;
 
             case SOCPlayingPiece.SETTLEMENT:
 
                 SOCSettlement se = new SOCSettlement(pl, mes.getCoordinates(), null);
                 ga.putPiece(se);
-
                 break;
 
             case SOCPlayingPiece.CITY:
 
                 SOCCity ci = new SOCCity(pl, mes.getCoordinates(), null);
                 ga.putPiece(ci);
-
                 break;
+
+            case SOCPlayingPiece.VILLAGE:
+
+                SOCVillage vi = new SOCVillage(mes.getCoordinates(), ga.getBoard());
+                ga.putPiece(vi);
+                break;
+
             }
         }
     }

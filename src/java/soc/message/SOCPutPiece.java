@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,14 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
 import java.util.StringTokenizer;
 
 /**
- * This message means that a player is asking to place, or has placed, a piece on the board
+ * This message means that a player is asking to place, or has placed, a piece on the board.
+ * Also used when joining a new game or a game in progress, to send the game state so far.
+ * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
+ * their {@link #getPlayerNumber()} is -1 in this message.
  *
  * @author Robert S Thomas
  */
@@ -41,7 +44,7 @@ public class SOCPutPiece extends SOCMessage
     private int pieceType;
 
     /**
-     * the player number of who played the piece
+     * the player number of who played the piece, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
      */
     private int playerNumber;
 
@@ -55,7 +58,7 @@ public class SOCPutPiece extends SOCMessage
      *
      * @param na  name of the game
      * @param pt  type of playing piece, such as {@link soc.game.SOCPlayingPiece#CITY}
-     * @param pn  player number
+     * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
      * @param co  coordinates
      */
     public SOCPutPiece(String na, int pn, int pt, int co)
@@ -118,7 +121,7 @@ public class SOCPutPiece extends SOCMessage
      *
      * @param na  the name of the game
      * @param pt  type of playing piece
-     * @param pn  player number
+     * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
      * @param co  coordinates
      * @return the command string
      */
@@ -131,7 +134,7 @@ public class SOCPutPiece extends SOCMessage
      * parse the command string into a PutPiece message
      *
      * @param s   the String to parse
-     * @return    a TextMsg message, or null of the data is garbled
+     * @return    a PUTPIECE message, or null of the data is garbled
      */
     public static SOCPutPiece parseDataStr(String s)
     {

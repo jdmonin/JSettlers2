@@ -39,6 +39,7 @@ import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCTradeOffer;
+import soc.game.SOCVillage;
 
 import soc.message.SOCAcceptOffer;
 import soc.message.SOCCancelBuildRequest;
@@ -2253,10 +2254,13 @@ public class SOCRobotBrain extends Thread
      */
     private void handlePUTPIECE_updateGameData(SOCPutPiece mes)
     {
-        final SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
         final int coord = mes.getCoordinates();
+        final int pieceType = mes.getPieceType();
+        final SOCPlayer pl = (pieceType != SOCPlayingPiece.VILLAGE)
+            ? game.getPlayer(mes.getPlayerNumber())
+            : null;
 
-        switch (mes.getPieceType())
+        switch (pieceType)
         {
         case SOCPlayingPiece.SHIP:  // fall through to ROAD
         case SOCPlayingPiece.ROAD:
@@ -2274,7 +2278,7 @@ public class SOCRobotBrain extends Thread
                     trackNewSettlement(se, false);
             }
             SOCRoad rd;
-            if (mes.getPieceType() == SOCPlayingPiece.ROAD)
+            if (pieceType == SOCPlayingPiece.ROAD)
                 rd = new SOCRoad(pl, coord, null);
             else
                 rd = new SOCShip(pl, coord, null);
@@ -2293,6 +2297,11 @@ public class SOCRobotBrain extends Thread
             game.putPiece(ci);
             break;
 
+        case SOCPlayingPiece.VILLAGE:
+
+            SOCVillage vi = new SOCVillage(coord, game.getBoard());
+            game.putPiece(vi);
+            break;
         }
     }
 
@@ -2693,6 +2702,10 @@ public class SOCRobotBrain extends Thread
             SOCShip newShip = new SOCShip(game.getPlayer(pn), coord, null);
             trackNewRoadOrShip(newShip, false);
             break;
+
+        case SOCPlayingPiece.VILLAGE:
+            return;  // <--- Early return: Piece is part of board initial layout, not tracked player info ---
+
         }
 
         if (D.ebugOn)
