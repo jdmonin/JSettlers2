@@ -30,6 +30,7 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
+import soc.game.SOCVillage;
 
 import java.awt.Canvas;
 import java.awt.Color;
@@ -49,6 +50,8 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Timer;
 
@@ -247,6 +250,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                vertShipY =
         { 22, 23, 28, 32, 37, 37, 42, 42, 37, 37, 34, 30, 25, 22 };
 
+    /*** village polygon. X is -13 to +13; Y is -9 to +9. @since 2.0.00 */
+    private static final int[] villageX = {  0, 13, 0, -13,  0 };
+    private static final int[] villageY = { -9,  0, 9,   0, -9 };
+        // TODO just a first draft; village graphic needs adjustment
+
     /** robber polygon. X is -4 to +4; Y is -8 to +8. */
     private static final int[] robberX =
     {
@@ -256,6 +264,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         -2, -4, -6, -8, -8, -6, -4, -2, 0, 8, 8, 0, -2, -2
     };
+
+    // The pirate ship uses vertShipX, vertShipY.
 
     /**
      * Arrow, left-pointing.
@@ -702,8 +712,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /*** ship ***/
     private int[] scaledVertShipX, scaledVertShipY;
 
+    /*** village ***/
+    private int[] scaledVillageX, scaledVillageY;  // @since 2.0.00
+
     /***  robber  ***/
     private int[] scaledRobberX, scaledRobberY;
+
+    // The pirate ship uses scaledVertShipX, scaledVertShipY.
 
     /**
      * arrow, left-pointing and right-pointing.
@@ -1884,6 +1899,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledSettlementX = settlementX; scaledSettlementY = settlementY;
             scaledCityX     = cityX;         scaledCityY     = cityY;
             scaledVertShipX = vertShipX;     scaledVertShipY = vertShipY;
+            scaledVillageX  = villageX;      scaledVillageY  = villageY;
             scaledRobberX   = robberX;       scaledRobberY   = robberY;
             scaledArrowXL   = arrowXL;       scaledArrowY    = arrowY;
             if (arrowXR == null)
@@ -1930,6 +1946,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledCityY     = scaleCopyToActualY(cityY);
             scaledVertShipX = scaleCopyToActualX(vertShipX);
             scaledVertShipY = scaleCopyToActualY(vertShipY);
+            scaledVillageX  = scaleCopyToActualX(villageX);
+            scaledVillageY  = scaleCopyToActualY(villageY);
             scaledRobberX   = scaleCopyToActualX(robberX);
             scaledRobberY   = scaleCopyToActualY(robberY);
             scaledArrowXL   = scaleCopyToActualX(arrowXL);
@@ -2789,6 +2807,54 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * Draw a cloth trade village (used in some scenarios in the large sea board).
+     * Same logic for determining (x,y) from nodeNum as {@link #drawSettlementOrCity(Graphics, int, int, boolean, boolean)}.
+     * @param v  Village
+     * @since 2.0.00
+     */
+    private void drawVillage(Graphics g, final SOCVillage v)
+    {
+        final int nodeNum = v.getCoordinates();
+
+        // assume isLargeBoard
+
+        final int r = (nodeNum >> 8),
+                  c = (nodeNum & 0xFF);
+        int hx = halfdeltaX * c;
+        int hy = halfdeltaY * (r+1);
+
+        // If the node isn't at the top center of a hex,
+        // it will need to move up or down a bit vertically.
+        //
+        // 'Y' nodes vertical offset: move down
+        final int s = r / 2;
+        if ((s % 2) != (c % 2))
+            hy += HEXY_OFF_SLOPE_HEIGHT;
+
+        if (isRotated)
+        {
+            // (cw):  P'=(panelMinBH-y, x)
+            int hy1 = hx;
+            hx = panelMinBH - hy;
+            hy = hy1;
+        }
+        if (isScaled)
+        {
+            hx = scaleToActualX(hx);
+            hy = scaleToActualY(hy);
+        }
+
+        g.translate(hx, hy);
+        g.setColor(Color.YELLOW);
+        g.fillPolygon(scaledVillageX, scaledVillageY, 4);
+        g.setColor(Color.black);
+        g.drawPolygon(scaledVillageX, scaledVillageY, 5);
+        g.translate(-hx, -hy);
+
+        // TODO dice # for village
+    }
+
+    /**
      * draw the arrow that shows whose turn it is.
      *
      * @param g Graphics
@@ -3108,6 +3174,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hex > 0)
             {
                 drawRoadOrShip(g, hex, -3, (gameState == SOCGame.PLACING_PIRATE), false);
+            }
+
+            HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
+            if (villages != null)
+            {
+                Iterator<SOCVillage> villIter = villages.values().iterator();
+                while (villIter.hasNext())
+                    drawVillage(g, villIter.next());
             }
         }
 
