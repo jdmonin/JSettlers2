@@ -25,6 +25,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
@@ -5921,10 +5922,29 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                     hoverSettlementID = 0;
                 }
-                else {
-                    if (playerIsCurrent)
+                else
+                {
+                    // Nothing currently here.
+
+                    // Villages for Cloth trade scenario
+                    if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
                     {
-                        // Nothing currently here.
+                        SOCVillage vi = ((SOCBoardLarge) board).getVillageAtNode(id);
+                        if (vi != null)
+                        {
+                            hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
+                            hoverID = id;
+                            hoverIsPort = false;
+                            hoverTextSet = true;
+                            hoverSettlementID = 0;
+                            hoverCityID = 0;
+                            setHoverText("Village for cloth trade");
+                        }
+                    }
+
+                    if (playerIsCurrent && ! hoverTextSet)
+                    {
+                        // Can we place here?
                         hoverCityID = 0;
                         if (modeAllowsHoverPieces
                             && (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
