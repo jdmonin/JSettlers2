@@ -1809,6 +1809,15 @@ public class SOCServer extends Server
             }
             break;
 
+        case CLOTH_TRADE_ESTABLISHED_VILLAGE:
+            {
+                StringConnection c = getConnection(pl.getName());
+                if (c != null)
+                    c.put(SOCGameTextMsg.toCmd
+                        (ga.getName(), SERVERNAME, "Trade route established with village. You are no longer prevented from moving the pirate ship."));
+            }
+            break;
+
         }
     }
 
