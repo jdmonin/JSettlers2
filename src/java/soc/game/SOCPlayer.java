@@ -2062,7 +2062,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 continue;  // nothing adjacent
 
             // if pp is at edgeNodes[1], check from edgeNodes[0], or vice versa
-            final int edgeFarNode = 1 - i;
+            final int edgeFarNode = edgeNodes[1 - i];
             final Vector<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
             if (closedRoute != null)
             {
