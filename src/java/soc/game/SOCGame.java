@@ -2105,7 +2105,7 @@ public class SOCGame implements Serializable, Cloneable
          * placing a road or ship touching the fog hex's corner.
          * During initial placement, a settlement could reveal up to 3.
          */
-        if (hasSeaBoard && isAtServer)
+        if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage))
         {
             if (pp instanceof SOCRoad)
             {
@@ -2128,12 +2128,18 @@ public class SOCGame implements Serializable, Cloneable
          * call putPiece() on every player so that each
          * player's updatePotentials() function gets called
          */
-        for (int i = 0; i < maxPlayers; i++)
+        if (! (pp instanceof SOCVillage))
         {
-            players[i].putPiece(pp, isTempPiece);
+            for (int i = 0; i < maxPlayers; i++)
+                players[i].putPiece(pp, isTempPiece);
         }
 
         board.putPiece(pp);
+
+        if (pp instanceof SOCVillage)
+        {
+            return;  // <--- Early return: Piece is part of board initial layout, not player info ---
+        }
 
         if ((! isTempPiece) && debugFreePlacement && (gameState <= START3B))
             debugFreePlacementStartPlaced = true;

@@ -527,7 +527,7 @@ public class SOCBoardLarge extends SOCBoard
     @Override
     public void makeNewBoard(Hashtable<String, SOCGameOption> opts)
     {
-        SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
+        final SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
 
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
@@ -560,11 +560,14 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         // Hide some land hexes behind fog, if the scenario does that
-        {
-            final SOCGameOption opt_scenFog = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
-            if ((opt_scenFog != null) && opt_scenFog.getBoolValue())
-                makeNewBoard_hideHexesInFog(LANDHEX_COORD_MAINLAND_FOG);
-        }
+        SOCGameOption opt = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
+        if ((opt != null) && opt.getBoolValue())
+            makeNewBoard_hideHexesInFog(LANDHEX_COORD_MAINLAND_FOG);
+
+        // Add villages, if the scenario does that
+        opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
+        if ((opt != null) && opt.getBoolValue())
+            makeNewBoard_placeClothVillages(SCEN_CLOTH_VILLAGE_NODES);
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
@@ -998,6 +1001,20 @@ public class SOCBoardLarge extends SOCBoard
     }  // makeNewBoard_makeLegalShipEdges
 
     /**
+     * For {@link #makeNewBoard(Hashtable)}, with the {@link SOCGameOption#K_SC_CLVI Cloth Village} scenario,
+     * create {@link SOCVillage}s at these node locations.  Adds to {@link #villages}.
+     * @param villageNodes  Node coordinates of each village
+     */
+    private void makeNewBoard_placeClothVillages(final int[] villageNodes)
+    {
+        if (villages == null)
+            villages = new HashMap<Integer, SOCVillage>();
+
+        for (final int node : villageNodes)
+            villages.put(Integer.valueOf(node), new SOCVillage(node, this));        
+    }
+
+    /**
      * For {@link #makeNewBoard(Hashtable)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
      * The hexes will be stored in {@link #fogHiddenHexes}; their {@link #hexLayoutLg} and {@link #numberLayoutLg}
      * elements will be set to {@link #FOG_HEX} and -1.
@@ -1354,6 +1371,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param nodeCoord  Node coordinate 
      * @return village, or null.
+     * @see #getVillages()
      */
     public SOCVillage getVillageAtNode(final int nodeCoord)
     {
@@ -1426,6 +1444,42 @@ public class SOCBoardLarge extends SOCBoard
 
         cachedGetLandHexCoords = hexCoords;
         return hexCoords;
+    }
+
+    /**
+     * Put a piece on the board.
+     *<P>
+     * Except for {@link SOCVillage}, call
+     * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) pl.putPiece(pp)}
+     * for each player before calling this method.
+     *
+     * @param pp  Piece to place on the board; coordinates are not checked for validity
+     */
+    @Override
+    public void putPiece(SOCPlayingPiece pp)
+    {
+        switch (pp.getType())
+        {
+        case SOCPlayingPiece.VILLAGE:
+            if (villages == null)
+                villages = new HashMap<Integer, SOCVillage>();
+            villages.put(pp.getCoordinates(), (SOCVillage) pp);
+            break;
+
+        default:
+            super.putPiece(pp);
+        }
+    }
+
+    /**
+     * Get the {@link SOCVillage}s on the board, for scenario game option {@link SOCGameOption#K_SC_CLVI}.
+     * Treat the returned data as read-only.
+     * @return  villages, or null
+     * @see #getVillageAtNode(int)
+     */
+    public HashMap<Integer, SOCVillage> getVillages()
+    {
+        return villages;
     }
 
     /**
@@ -3059,6 +3113,19 @@ public class SOCBoardLarge extends SOCBoard
                 0x0504, 0x0506, // middle row 2nd,3rd
                 0x0705  // 4th row 2nd
         // 5th row ok
+    };
+
+    /**
+     * My sample board layout: Outlying islands' cloth village node locations.
+     * For testing only: An actual cloth village scenario would have a better layout.
+     * @see SOCGameOption#K_SC_CLVI
+     */
+    private static final int SCEN_CLOTH_VILLAGE_NODES[] =
+    {
+        0x610,  // SE point of NE island
+        0xA0D,  // N point of SE island
+        0xE0B,  // SW point of SE island
+        0xE05   // midpoint of SW island
     };
 
     /**
