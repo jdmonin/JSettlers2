@@ -186,6 +186,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * The number of Special Victory Points (SVPs), which are awarded in certain game scenarios on the large sea board.
+     * Does not include VPs from {@link #numCloth}, cloth is part of {@link #getTotalVP()}.
      *<P>
      * When updating this value, if the SVP came from a piece, also set or check {@link SOCPlayingPiece#specialVP}
      * and {@link SOCPlayingPiece#specialVPEvent}.
@@ -200,6 +201,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @see #forceFinalVP(int)
      */
     private int finalTotalVP;
+
+    /**
+     * For some game scenarios, how many cloth does this player have?
+     * Every 2 pieces of cloth is worth 1 VP.
+     * @see #specialVP
+     * @since 2.0.00
+     */
+    private int numCloth;
 
     /**
      * this flag is true if the player needs to discard
@@ -982,6 +991,28 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * For some game scenarios, get how many cloth this player currently has.
+     * Every 2 pieces of cloth is worth 1 VP.
+     * @since 2.0.00
+     */
+    public int getCloth()
+    {
+        return numCloth;
+    }
+
+    /**
+     * Set how many cloth this player currently has.
+     * More cloth gives the player more VPs, see {@link #getPublicVP()}.
+     * For use at client based on messages from server.
+     * @param numCloth  Number of cloth
+     * @since 2.0.00
+     */
+    public void setCloth(final int numCloth)
+    {
+        this.numCloth = numCloth;
+    }
+
+    /**
      * Can we move this ship, based on our trade routes
      * and settlements/cities near its current location?
      *<P>
@@ -1635,6 +1666,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Public victory points exclude VP development cards, except at
      * end of game, when they've been announced by server.
      * Special Victory Points (SVPs) are included, if the game scenario awards them.
+     * Also includes any VP from {@link #getCloth() cloth}.
      *  
      * @return the number of publicly known victory points
      * @see #getTotalVP()
@@ -1646,7 +1678,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (finalTotalVP > 0)
             return finalTotalVP;
         
-        int vp = buildingVP + specialVP;
+        int vp = buildingVP + specialVP + (numCloth / 2);
 
         /**
          * if we have longest road, then add 2 VP
