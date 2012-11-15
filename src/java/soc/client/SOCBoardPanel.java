@@ -583,13 +583,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     boolean[] debugShowPotentials;
 
     /**
-     * Font of dice-number circles appearing on hexes.
+     * Font of dice-number circles appearing on hexes, and dice numbers on cloth villages.
      * @since 1.1.08
      */
     private Font diceNumberCircleFont;
 
     /**
      * FontMetrics of {@link #diceNumberCircleFont}.
+     * Used in hex and village dice numbers.
      * @since 1.1.08
      */
     private FontMetrics diceNumberCircleFM;
@@ -2850,10 +2851,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.fillPolygon(scaledVillageX, scaledVillageY, 4);
         g.setColor(Color.black);
         g.drawPolygon(scaledVillageX, scaledVillageY, 5);
-        g.translate(-hx, -hy);
+ 
+        // dice # for village
+        final String numstr = Integer.toString(v.diceNum);
+        int x = -diceNumberCircleFM.stringWidth(numstr) / 2;
+        int y = (diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
+        g.setFont(diceNumberCircleFont);
+        g.drawString(numstr, x, y);
 
-        // TODO dice # for village
-    }
+        g.translate(-hx, -hy);
+   }
 
     /**
      * draw the arrow that shows whose turn it is.
@@ -5938,7 +5945,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hoverTextSet = true;
                             hoverSettlementID = 0;
                             hoverCityID = 0;
-                            setHoverText("Village for cloth trade");
+                            setHoverText("Village for cloth trade (" + vi.getCloth() + " cloth)");
                         }
                     }
 
