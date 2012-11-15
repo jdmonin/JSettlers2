@@ -410,6 +410,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @see SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA
      * @see #scenario_playerEvents_bitmask
+     * @see #getScenarioSVPLandAreas()
      * @since 2.0.00
      */
     private int scenario_svpFromEachLandArea_bitmask;
@@ -1788,6 +1789,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         scenario_playerEvents_bitmask &= (~ spe.flagValue);
     }
+
+    /**
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board}, get
+     * this player's bitmask of land areas for tracking Special Victory Points (SVP).
+     * Used with scenario game option {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
+     * @return land areas bitmask, or 0
+     * @since 2.0.00
+     */
+    public int getScenarioSVPLandAreas()
+    {
+        return scenario_svpFromEachLandArea_bitmask;
+    }
+
     /**
      * @return the list of nodes that touch the roads/ships in play
      */
@@ -2150,6 +2164,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * Does the player get a Special Victory Point (SVP) for reaching a new land area?
      * Call when a settlement has been placed in a land area different from {@link SOCBoardLarge#getStartingLandArea()}.
+     * Used with game options {@link SOCGameOption#K_SC_SANY _SC_SANY} and {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
      * @param piece  Newly placed settlement
      * @param newSettleArea  Land area number of new settlement's location
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the

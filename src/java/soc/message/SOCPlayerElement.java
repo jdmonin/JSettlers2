@@ -81,6 +81,33 @@ public class SOCPlayerElement extends SOCMessage
     public static final int NUM_PICK_GOLD_HEX_RESOURCES = 17;
 
     /**
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * bitmask of flags related to scenario player events.
+     * This element is {@link #SET} to 0, or to the player's flags
+     * from {@link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
+     * @since 2.0.00
+     */
+    public static final int SCENARIO_PLAYEREVENTS_BITMASK = 18;
+
+    /**
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * bitmask of land areas for tracking Special Victory Points (SVP).
+     * This element is {@link #SET} to 0, or to the player's land areas
+     * from {@link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
+     * @since 2.0.00
+     */
+    public static final int SCENARIO_SVP_LANDAREAS_BITMASK = 19;
+
+    /**
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * the number of cloth held by this player.
+     * This element is {@link #SET} to 0, or to the player's cloth count
+     * from {@link soc.game.SOCPlayer#getCloth()}.
+     * @since 2.0.00
+     */
+    public static final int SCENARIO_CLOTH_COUNT = 20;
+
+    /**
      * player element actions
      */
     public static final int SET = 100;
