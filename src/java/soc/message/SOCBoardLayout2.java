@@ -48,13 +48,14 @@ import soc.game.SOCBoardLarge;  // for javadocs
  *         areas are sent to the client via {@link SOCPotentialSettlements}.
  *<LI> PX: Players are excluded from settling these land area numbers (usually none)
  *<LI> RX: Robber is excluded from these land area numbers (usually none)
+ *<LI> CV: Cloth Village layout (usually none), from {@link SOCBoardLarge#getVillageAndClothLayout()}
  *</UL>
  * Board layout parts by board encoding version:
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
  *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL.
- *         Sometimes PX and/or RX (for game scenarios).
+ *         Sometimes (for game scenarios) one ore more of: PX, RX, CV.
  *         LH is null before makeNewBoard is called.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
@@ -173,8 +174,9 @@ public class SOCBoardLayout2 extends SOCMessage
      * @param ph   the pirate hex, or 0
      * @param px   the player exclusion land areas, or null, from {@link SOCBoardLarge#getPlayerExcludedLandAreas()}
      * @param rx   the robber exclusion land areas, or null, from {@link SOCBoardLarge#getRobberExcludedLandAreas()}
+     * @param cv   the cloth villages, or null, from {@link SOCBoardLarge#getVillageAndClothLayout()}
      */
-    public SOCBoardLayout2(String ga, final int bef, int[] lh, int[] pl, int rh, int ph, int[] px, int[] rx)
+    public SOCBoardLayout2(String ga, final int bef, int[] lh, int[] pl, int rh, int ph, int[] px, int[] rx, int[] cv)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -192,6 +194,8 @@ public class SOCBoardLayout2 extends SOCMessage
             layoutParts.put("PX", px);
         if (rx != null)
             layoutParts.put("RX", rx);
+        if (cv != null)
+            layoutParts.put("CV", cv);
     }
 
     /**

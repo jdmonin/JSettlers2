@@ -8299,26 +8299,6 @@ public class SOCServer extends Server
         }
 
         /**
-         * send the non-player-owned villages, if any.
-         * Note that if the game state is new, and SOCBoardLarge.makeNewBoard not called yet,
-         * this will be null.  Must send them again in SOCServer.startGame().
-         */
-        if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
-        {
-            final SOCBoardLarge bl = (SOCBoardLarge) gameData.getBoard();
-            HashMap<Integer, SOCVillage> villages = bl.getVillages();
-            if (villages != null)
-            {
-                Iterator<SOCVillage> villIter = villages.values().iterator();
-                while (villIter.hasNext())
-                {
-                    final SOCVillage v = villIter.next();
-                    c.put(SOCPutPiece.toCmd(gameName, -1, SOCPlayingPiece.VILLAGE, v.getCoordinates()));
-                }
-            }
-        }
-
-        /**
          * send the per-player information
          */
         for (int i = 0; i < gameData.maxPlayers; i++)
@@ -9464,8 +9444,7 @@ public class SOCServer extends Server
      * Do the stuff you need to do to start a game and send its data to the client.
      *<P>
      * If {@link SOCGame#hasSeaBoard}: Once the board is made, send the updated
-     * {@link SOCPotentialSettlements potential settlements}, and if the scenario
-     * uses villages, send each {@link SOCPutPiece PUTPIECE(VILLAGE)}.
+     * {@link SOCPotentialSettlements potential settlements}.
      *
      * @param ga  the game
      */
@@ -9527,24 +9506,6 @@ public class SOCServer extends Server
 
             if (addedPsList)
                 lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
-
-            /**
-             * send the non-player-owned villages, if any.
-             */
-            if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
-            {
-                final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
-                HashMap<Integer, SOCVillage> villages = bl.getVillages();
-                if (villages != null)
-                {
-                    Iterator<SOCVillage> villIter = villages.values().iterator();
-                    while (villIter.hasNext())
-                    {
-                        final SOCVillage v = villIter.next();
-                        messageToGameWithMon(gaName, new SOCPutPiece(gaName, -1, SOCPlayingPiece.VILLAGE, v.getCoordinates()));
-                    }
-                }
-            }
         }
 
         /**
@@ -9828,7 +9789,8 @@ public class SOCServer extends Server
             final SOCBoardLarge bl = (SOCBoardLarge) board;
             return new SOCBoardLayout2
                 (ga.getName(), bef, bl.getLandHexLayout(), board.getPortsLayout(),
-                 robber, bl.getPirateHex(), bl.getPlayerExcludedLandAreas(), bl.getRobberExcludedLandAreas());
+                 robber, bl.getPirateHex(), bl.getPlayerExcludedLandAreas(), bl.getRobberExcludedLandAreas(),
+                 bl.getVillageAndClothLayout());
 
         default:
             throw new IllegalArgumentException("unknown board encoding v" + bef);

@@ -2597,6 +2597,9 @@ public class SOCPlayerClient extends Panel
             x = mes.getIntArrayPart("RX");
             if (x != null)
                 ((SOCBoardLarge) bd).setRobberExcludedLandAreas(x);
+            x = mes.getIntArrayPart("CV");
+            if (x != null)
+                ((SOCBoardLarge) bd).setVillageAndClothLayout(x);
         }
         else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
         {
