@@ -27,7 +27,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
+
+import soc.message.SOCPutPiece;
 
 /**
  * A representation of a larger (up to 127 x 127 hexes) JSettlers board,
@@ -577,10 +580,8 @@ public class SOCBoardLarge extends SOCBoard
         // Add villages, if the scenario does that
         opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
         if ((opt != null) && opt.getBoolValue())
-        {
-            makeNewBoard_placeClothVillages(SCEN_CLOTH_VILLAGE_NODES_DICE, SOCVillage.STARTING_CLOTH);
-            setCloth(10);  // board's "general supply"
-        }
+            setVillageAndClothLayout(SCEN_CLOTH_VILLAGE_NODES_DICE);
+                // also sets board's "general supply"
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
@@ -1014,24 +1015,6 @@ public class SOCBoardLarge extends SOCBoard
     }  // makeNewBoard_makeLegalShipEdges
 
     /**
-     * For {@link #makeNewBoard(Hashtable)}, with the {@link SOCGameOption#K_SC_CLVI Cloth Village} scenario,
-     * create {@link SOCVillage}s at these node locations.  Adds to {@link #villages}.
-     * @param cloth Each village starts with this many pieces of cloth, such as {@link SOCVillage#STARTING_CLOTH}.
-     * @param villageNodesAndDice  Each village's node coordinate and dice number, grouped in pairs.
-     */
-    private void makeNewBoard_placeClothVillages(final int[] villageNodesAndDice, final int startingCloth)
-    {
-        if (villages == null)
-            villages = new HashMap<Integer, SOCVillage>();
-
-        for (int i = 0; i < villageNodesAndDice.length; i += 2)
-        {
-            final int node = villageNodesAndDice[i];
-            villages.put(Integer.valueOf(node), new SOCVillage(node, villageNodesAndDice[i+1], startingCloth, this));
-        }
-    }
-
-    /**
      * For {@link #makeNewBoard(Hashtable)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
      * The hexes will be stored in {@link #fogHiddenHexes}; their {@link #hexLayoutLg} and {@link #numberLayoutLg}
      * elements will be set to {@link #FOG_HEX} and -1.
@@ -1429,7 +1412,6 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * The hex coordinates of all land hexes.  Please treat as read-only.
-     * If you add land hexes, call {@link #getLandHexCoords()} to recalculate this set.
      * @return land hex coordinates, as a set of {@link Integer}s
      * @since 2.0.00
      */
@@ -1444,6 +1426,7 @@ public class SOCBoardLarge extends SOCBoard
      * Before v2.0.00, this was <tt>getHexLandCoords()</tt>.
      *
      * @return land hex coordinates, in no particular order, or null if none (all water).
+     * @see #getLandHexCoordsSet()
      * @since 1.1.08
      */
     @Override
@@ -1490,10 +1473,72 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Get the village and cloth layout, for sending from server to client
+     * for scenario game option {@link SOCGameOption#K_SC_CLVI}.
+     *<P>
+     * Index 0 is the board's "general supply" cloth count {@link #getCloth()}.
+     * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
+     * Then, 2 int elements per village: Coordinate, Dice Number.
+     * If any village has a different amount of cloth, server should follow with
+     * messages to set those villages' cloth counts.
+     * @return the layout, or null if no villages.
+     * @see #setVillageAndClothLayout(int[])
+     * @see #getVillages()
+     */
+    public int[] getVillageAndClothLayout()
+    {
+        if ((villages == null) || villages.isEmpty())
+            return null;
+
+        int[] vcl = new int[ (2 * villages.size()) + 2 ];
+        vcl[0] = numCloth;
+        vcl[1] = SOCVillage.STARTING_CLOTH;  // in case it changes in a later version
+        int i=2;
+        Iterator<SOCVillage> villIter = villages.values().iterator();
+        while (villIter.hasNext())
+        {
+            final SOCVillage v = villIter.next();
+            vcl[i++] = v.getCoordinates();
+            vcl[i++] = v.diceNum;
+        }
+
+        return vcl;
+    }
+
+    /**
+     * For {@link #makeNewBoard(Hashtable)}, with the {@link SOCGameOption#K_SC_CLVI Cloth Village} scenario,
+     * create {@link SOCVillage}s at these node locations.  Adds to {@link #villages}.
+     * Also set the board's "general supply" of cloth ({@link #setCloth(int)}).
+     * @param villageNodesAndDice  Starting cloth count and each village's node coordinate and dice number,
+     *        grouped in pairs, from {@link #getVillageAndClothLayout()}.
+     * @throws NullPointerException  if array null
+     * @throws IllegalArgumentException  if array length odd or &lt; 4
+     */
+    public void setVillageAndClothLayout(final int[] villageNodesAndDice)
+        throws NullPointerException, IllegalArgumentException
+    {
+        final int L = villageNodesAndDice.length;
+        if ((L < 4) || (L % 2 != 0))
+            throw new IllegalArgumentException("bad length: " + L);
+
+        if (villages == null)
+            villages = new HashMap<Integer, SOCVillage>();
+
+        setCloth(villageNodesAndDice[0]);
+        final int startingCloth = villageNodesAndDice[1];
+        for (int i = 2; i < L; i += 2)
+        {
+            final int node = villageNodesAndDice[i];
+            villages.put(Integer.valueOf(node), new SOCVillage(node, villageNodesAndDice[i+1], startingCloth, this));
+        }
+    }
+
+    /**
      * Get the {@link SOCVillage}s on the board, for scenario game option {@link SOCGameOption#K_SC_CLVI}.
      * Treat the returned data as read-only.
      * @return  villages, or null
      * @see #getVillageAtNode(int)
+     * @see #getVillageAndClothLayout()
      */
     public HashMap<Integer, SOCVillage> getVillages()
     {
@@ -3175,13 +3220,18 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * My sample board layout: Outlying islands' cloth village node locations and dice numbers.
+     * Index 0 is the board's "general supply" cloth count.
+     * Index 1 is each village's starting cloth count, from {@link SOCVillage#STARTING_CLOTH}.
+     * Further indexes are the locations and dice.
      * Paired for each village: [i] = node, [i+1] = dice number.
      * For testing only: An actual cloth village scenario would have a better layout.
      * @see SOCGameOption#K_SC_CLVI
-     * @see #makeNewBoard_placeClothVillages(int[], int)
+     * @see #setVillageAndClothLayout(int[])
      */
     private static final int SCEN_CLOTH_VILLAGE_NODES_DICE[] =
     {
+        10,        // Board's "general supply" cloth count
+        SOCVillage.STARTING_CLOTH,
         0x610, 6,  // SE point of NE island
         0xA0D, 5,  // N point of SE island
         0xE0B, 9,  // SW point of SE island
