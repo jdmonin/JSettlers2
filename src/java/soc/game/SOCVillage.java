@@ -34,35 +34,42 @@ public class SOCVillage extends SOCPlayingPiece
     private static final long serialVersionUID = 2000L;
 
     /**
+     * Default starting amount of cloth for a village (5).
+     */
+    public static final int STARTING_CLOTH = 5;
+
+    /**
+     * Village's dice number, for giving cloth to players
+     * who've established a trade route to here.
+     */
+    public final int diceNum;
+
+    /**
      * How many cloth does this village have?
      */
     private int numCloth;
 
-    /**
-     * Make a new village, which has 0 cloth.
-     *
-     * @param node  node coordinate of village
-     * @param board  board
-     * @throws IllegalArgumentException  if board null
-     */
+    // Temporary with defaults until dice, cloth sent to client
     public SOCVillage(final int node, SOCBoard board)
         throws IllegalArgumentException
     {
-        this(node, 0, board);
+        this(node, 0, STARTING_CLOTH, board);
     }
 
     /**
      * Make a new village, which has a certain amount of cloth.
      *
      * @param node  node coordinate of village
-     * @param cloth  number of pieces of cloth
+     * @param dice  dice number for giving cloth to players
+     * @param cloth  number of pieces of cloth, such as {@link #STARTING_CLOTH}
      * @param board  board
      * @throws IllegalArgumentException  if board null
      */
-    public SOCVillage(final int node, final int cloth, SOCBoard board)
+    public SOCVillage(final int node, final int dice, final int cloth, SOCBoard board)
         throws IllegalArgumentException
     {
         super(SOCPlayingPiece.VILLAGE, node, board);
+        diceNum = dice;
         numCloth = cloth;
     }
 

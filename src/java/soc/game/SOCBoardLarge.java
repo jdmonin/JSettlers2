@@ -408,6 +408,8 @@ public class SOCBoardLarge extends SOCBoard
      * Desert and fog hexes are -1, although {@link #getNumberOnHexFromNumber(int)} returns 0 for them.
      * Hex dice numbers obscured by {@link #FOG_HEX}, if any, are stored in {@link #fogHiddenHexes} (server only).
      * Because of bit shifts there, <tt>numberLayoutLg</tt> values must stay within the range -1 to 254.
+     *<P>
+     * If {@link #villages} are used, each village's dice number is stored in the {@link SOCVillage}.
      */
     private int[][] numberLayoutLg;
 
@@ -424,6 +426,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * For some scenarios, villages on the board. Null otherwise.
+     * Each village has a {@link SOCVillage#diceNum dice number} and a {@link SOCVillage#getCloth() cloth count}.
      */
     protected HashMap<Integer, SOCVillage> villages;
 
@@ -575,7 +578,7 @@ public class SOCBoardLarge extends SOCBoard
         opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
         if ((opt != null) && opt.getBoolValue())
         {
-            makeNewBoard_placeClothVillages(SCEN_CLOTH_VILLAGE_NODES);
+            makeNewBoard_placeClothVillages(SCEN_CLOTH_VILLAGE_NODES_DICE, SOCVillage.STARTING_CLOTH);
             setCloth(10);  // board's "general supply"
         }
 
@@ -1013,16 +1016,19 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * For {@link #makeNewBoard(Hashtable)}, with the {@link SOCGameOption#K_SC_CLVI Cloth Village} scenario,
      * create {@link SOCVillage}s at these node locations.  Adds to {@link #villages}.
-     * Each village starts with 5 pieces of cloth.
-     * @param villageNodes  Node coordinates of each village
+     * @param cloth Each village starts with this many pieces of cloth, such as {@link SOCVillage#STARTING_CLOTH}.
+     * @param villageNodesAndDice  Each village's node coordinate and dice number, grouped in pairs.
      */
-    private void makeNewBoard_placeClothVillages(final int[] villageNodes)
+    private void makeNewBoard_placeClothVillages(final int[] villageNodesAndDice, final int startingCloth)
     {
         if (villages == null)
             villages = new HashMap<Integer, SOCVillage>();
 
-        for (final int node : villageNodes)
-            villages.put(Integer.valueOf(node), new SOCVillage(node, 5, this));        
+        for (int i = 0; i < villageNodesAndDice.length; i += 2)
+        {
+            final int node = villageNodesAndDice[i];
+            villages.put(Integer.valueOf(node), new SOCVillage(node, villageNodesAndDice[i+1], startingCloth, this));
+        }
     }
 
     /**
@@ -1113,6 +1119,7 @@ public class SOCBoardLarge extends SOCBoard
      * Valid only for the v1 and v2 board encoding, not v3.
      * Always throws IllegalStateException for SOCBoardLarge.
      * Call {@link #getLandHexCoords()} instead.
+     * For sending a <tt>SOCBoardLayout2</tt> message, call {@link #getLandHexLayout()} instead.
      * @throws IllegalStateException since the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#getHexLayout()
@@ -3167,16 +3174,18 @@ public class SOCBoardLarge extends SOCBoard
     };
 
     /**
-     * My sample board layout: Outlying islands' cloth village node locations.
+     * My sample board layout: Outlying islands' cloth village node locations and dice numbers.
+     * Paired for each village: [i] = node, [i+1] = dice number.
      * For testing only: An actual cloth village scenario would have a better layout.
      * @see SOCGameOption#K_SC_CLVI
+     * @see #makeNewBoard_placeClothVillages(int[], int)
      */
-    private static final int SCEN_CLOTH_VILLAGE_NODES[] =
+    private static final int SCEN_CLOTH_VILLAGE_NODES_DICE[] =
     {
-        0x610,  // SE point of NE island
-        0xA0D,  // N point of SE island
-        0xE0B,  // SW point of SE island
-        0xE05   // midpoint of SW island
+        0x610, 6,  // SE point of NE island
+        0xA0D, 5,  // N point of SE island
+        0xE0B, 9,  // SW point of SE island
+        0xE05, 4   // midpoint of SW island
     };
 
     /**
