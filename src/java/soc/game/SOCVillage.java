@@ -34,7 +34,12 @@ public class SOCVillage extends SOCPlayingPiece
     private static final long serialVersionUID = 2000L;
 
     /**
-     * Make a new village.
+     * How many cloth does this village have?
+     */
+    private int numCloth;
+
+    /**
+     * Make a new village, which has 0 cloth.
      *
      * @param node  node coordinate of village
      * @param board  board
@@ -43,7 +48,63 @@ public class SOCVillage extends SOCPlayingPiece
     public SOCVillage(final int node, SOCBoard board)
         throws IllegalArgumentException
     {
+        this(node, 0, board);
+    }
+
+    /**
+     * Make a new village, which has a certain amount of cloth.
+     *
+     * @param node  node coordinate of village
+     * @param cloth  number of pieces of cloth
+     * @param board  board
+     * @throws IllegalArgumentException  if board null
+     */
+    public SOCVillage(final int node, final int cloth, SOCBoard board)
+        throws IllegalArgumentException
+    {
         super(SOCPlayingPiece.VILLAGE, node, board);
+        numCloth = cloth;
+    }
+
+    /**
+     * Get how many cloth this village currently has.
+     * @see #takeCloth(int)
+     */
+    public int getCloth()
+    {
+        return numCloth;
+    }
+
+    /**
+     * Set how many cloth this village currently has.
+     * For use at client based on messages from server.
+     * @param numCloth  Number of cloth
+     */
+    public void setCloth(final int numCloth)
+    {
+        this.numCloth = numCloth;
+    }
+
+    /**
+     * Take this many cloth, if available, from this village.
+     * Cloth should be given to players, and is worth 1 VP for every 2 cloth they have.
+     * @param numTake  Number of cloth to try and take
+     * @return  Number of cloth actually taken, a number from 0 to <tt>numTake</tt>.
+     *          If &gt; 0 but &lt; <tt>numTake</tt>, the rest should be taken from the
+     *          board's "general supply" of cloth.
+     * @see #getCloth()
+     * @see SOCBoardLarge#takeCloth(int)
+     */
+    public int takeCloth(int numTake)
+    {
+        if (numTake > numCloth)
+        {
+            numTake = numCloth;
+            numCloth = 0;
+        } else {
+            numCloth -= numTake;
+        }
+        return numTake;
     }
 
 }

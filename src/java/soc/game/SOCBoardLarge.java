@@ -428,6 +428,13 @@ public class SOCBoardLarge extends SOCBoard
     protected HashMap<Integer, SOCVillage> villages;
 
     /**
+     * For some scenarios, how many cloth does the board have in its "general supply"?
+     * This supply is used if a village's {@link SOCVillage#takeCloth(int)}
+     * returns less than the amount needed.
+     */
+    private int numCloth;
+
+    /**
      * Land area numbers from which the player is excluded and cannot place settlements, or null.
      * Used in some game scenarios.
      */
@@ -567,7 +574,10 @@ public class SOCBoardLarge extends SOCBoard
         // Add villages, if the scenario does that
         opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
         if ((opt != null) && opt.getBoolValue())
+        {
             makeNewBoard_placeClothVillages(SCEN_CLOTH_VILLAGE_NODES);
+            setCloth(10);  // board's "general supply"
+        }
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPE_V1.length],
@@ -1003,6 +1013,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * For {@link #makeNewBoard(Hashtable)}, with the {@link SOCGameOption#K_SC_CLVI Cloth Village} scenario,
      * create {@link SOCVillage}s at these node locations.  Adds to {@link #villages}.
+     * Each village starts with 5 pieces of cloth.
      * @param villageNodes  Node coordinates of each village
      */
     private void makeNewBoard_placeClothVillages(final int[] villageNodes)
@@ -1011,7 +1022,7 @@ public class SOCBoardLarge extends SOCBoard
             villages = new HashMap<Integer, SOCVillage>();
 
         for (final int node : villageNodes)
-            villages.put(Integer.valueOf(node), new SOCVillage(node, this));        
+            villages.put(Integer.valueOf(node), new SOCVillage(node, 5, this));        
     }
 
     /**
@@ -1480,6 +1491,46 @@ public class SOCBoardLarge extends SOCBoard
     public HashMap<Integer, SOCVillage> getVillages()
     {
         return villages;
+    }
+
+    /**
+     * Get how many cloth does the board have in its "general supply" (used in some scenarios).
+     * This supply is used if a village's {@link SOCVillage#takeCloth(int)}
+     * returns less than the amount needed.
+     * @see #takeCloth(int)
+     */
+    public int getCloth()
+    {
+        return numCloth;
+    }
+
+    /**
+     * Set how many cloth the board currently has in its "general supply".
+     * For use at client based on messages from server.
+     * @param numCloth  Number of cloth
+     */
+    public void setCloth(final int numCloth)
+    {
+        this.numCloth = numCloth;
+    }
+
+    /**
+     * Take this many cloth, if available, from the board's "general supply".
+     * @param numTake  Number of cloth to try and take
+     * @return  Number of cloth actually taken, a number from 0 to <tt>numTake</tt>.
+     * @see #getCloth()
+     * @see SOCVillage#takeCloth(int)
+     */
+    public int takeCloth(int numTake)
+    {
+        if (numTake > numCloth)
+        {
+            numTake = numCloth;
+            numCloth = 0;
+        } else {
+            numCloth -= numTake;
+        }
+        return numTake;
     }
 
     /**
