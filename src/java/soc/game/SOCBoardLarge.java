@@ -1537,6 +1537,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return  villages, or null
      * @see #getVillageAtNode(int)
      * @see #getVillageAndClothLayout()
+     * @see #getCloth()
      */
     public HashMap<Integer, SOCVillage> getVillages()
     {
@@ -1549,6 +1550,7 @@ public class SOCBoardLarge extends SOCBoard
      * returns less than the amount needed.
      * @see #takeCloth(int)
      * @see #distributeClothFromRoll(SOCGame, int)
+     * @see #getVillageAtNode(int)
      */
     public int getCloth()
     {

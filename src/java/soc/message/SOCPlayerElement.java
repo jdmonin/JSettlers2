@@ -112,6 +112,7 @@ public class SOCPlayerElement extends SOCMessage
      * the number of cloth held by this player.
      * This element is {@link #SET} to 0, or to the player's cloth count
      * from {@link soc.game.SOCPlayer#getCloth()}.
+     * After giving cloth to a player, check their total VP; 2 cloth = 1 Victory Point.
      *<P>
      * The board's "general supply" is updated with this element type
      * with {@link #getPlayerNumber()} == -1.

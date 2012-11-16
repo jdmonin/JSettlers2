@@ -708,6 +708,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 handleREVEALFOGHEX((SOCRevealFogHex) mes);
                 break;
 
+            /**
+             * update a village piece's value on the board (cloth remaining).
+             * Added 2012-11-16 for v2.0.00.
+             */
+            case SOCMessage.PIECEVALUE:
+                handlePIECEVALUE((SOCPieceValue) mes);
+                break;
+
             }
         }
         catch (Exception e)
@@ -1795,6 +1803,23 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         ((SOCBoardLarge) (ga.getBoard())).revealFogHiddenHex
             (mes.getParam1(), mes.getParam2(), mes.getParam3());
+    }
+
+    /**
+     * Update a village piece's value on the board (cloth remaining).
+     * @since 2.0.00
+     */
+    protected void handlePIECEVALUE(final SOCPieceValue mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+        if (! ga.hasSeaBoard)
+            return;  // should not happen
+
+        SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(mes.getParam1());
+        vi.setCloth(mes.getParam2());
     }
 
     /**

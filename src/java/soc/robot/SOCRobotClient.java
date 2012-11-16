@@ -731,6 +731,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 super.handleREVEALFOGHEX((SOCRevealFogHex) mes);
                 break;
 
+            /**
+             * update a village piece's value on the board (cloth remaining).
+             * Added 2012-11-16 for v2.0.00.
+             */
+            case SOCMessage.PIECEVALUE:
+                super.handlePIECEVALUE((SOCPieceValue) mes);
+                break;
+
             }
         }
         catch (Throwable e)

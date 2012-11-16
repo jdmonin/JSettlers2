@@ -77,6 +77,7 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCSettlement;
 import soc.game.SOCTradeOffer;
+import soc.game.SOCVillage;
 
 import soc.message.*;
 
@@ -1903,6 +1904,14 @@ public class SOCPlayerClient extends Panel
                 handleREVEALFOGHEX((SOCRevealFogHex) mes);
                 break;
 
+            /**
+             * update a village piece's value on the board (cloth remaining).
+             * Added 2012-11-16 for v2.0.00.
+             */
+            case SOCMessage.PIECEVALUE:
+                handlePIECEVALUE((SOCPieceValue) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -3685,6 +3694,23 @@ public class SOCPlayerClient extends Panel
         if (pi == null)
             return;  // Not one of our games
         pi.getBoardPanel().flushBoardLayoutAndRepaint();
+    }
+
+    /**
+     * Update a village piece's value on the board (cloth remaining).
+     * @since 2.0.00
+     */
+    protected void handlePIECEVALUE(final SOCPieceValue mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+        if (! ga.hasSeaBoard)
+            return;  // should not happen
+
+        SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(mes.getParam1());
+        vi.setCloth(mes.getParam2());
     }
 
     }  // nested class MessageTreater
