@@ -3004,6 +3004,10 @@ public class SOCRobotBrain extends Thread
             pl.setNeedToPickGoldHexResources(mes.getValue());
             break;
 
+        case SOCPlayerElement.SCENARIO_SVP:
+            pl.setSpecialVP(mes.getValue());
+            break;
+
         case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
             pl.setScenarioPlayerEvents(mes.getValue());
             break;

@@ -1911,6 +1911,7 @@ public class SOCPlayerInterface extends Frame
             // assumes will never be reduced to 0 again
             mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
             mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
+            // (This code also appears in SOCPlayerClient.handlePLAYERELEMENT)
         }
     }
 

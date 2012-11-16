@@ -82,12 +82,21 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * the player's number of Special Victory Points (SVP).
+     * This element is {@link #SET} to 0, or to the player's
+     * {@link soc.game.SOCPlayer#getSpecialVP()}.
+     * @since 2.0.00
+     */
+    public static final int SCENARIO_SVP = 18;
+
+    /**
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * bitmask of flags related to scenario player events.
      * This element is {@link #SET} to 0, or to the player's flags
      * from {@link soc.game.SOCPlayer#getScenarioPlayerEvents()}.
      * @since 2.0.00
      */
-    public static final int SCENARIO_PLAYEREVENTS_BITMASK = 18;
+    public static final int SCENARIO_PLAYEREVENTS_BITMASK = 19;
 
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
@@ -96,7 +105,7 @@ public class SOCPlayerElement extends SOCMessage
      * from {@link soc.game.SOCPlayer#getScenarioSVPLandAreas()}.
      * @since 2.0.00
      */
-    public static final int SCENARIO_SVP_LANDAREAS_BITMASK = 19;
+    public static final int SCENARIO_SVP_LANDAREAS_BITMASK = 20;
 
     /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
@@ -105,7 +114,7 @@ public class SOCPlayerElement extends SOCMessage
      * from {@link soc.game.SOCPlayer#getCloth()}.
      * @since 2.0.00
      */
-    public static final int SCENARIO_CLOTH_COUNT = 20;
+    public static final int SCENARIO_CLOTH_COUNT = 21;
 
     /**
      * player element actions

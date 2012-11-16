@@ -2822,6 +2822,17 @@ public class SOCPlayerClient extends Panel
                 hpan.updateValue(etype);
                 break;
 
+            case SOCPlayerElement.SCENARIO_SVP:
+                pl.setSpecialVP(mes.getValue());
+                if (pl.getSpecialVP() != 0)
+                {
+                    // assumes will never be reduced to 0 again
+                    hpan.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
+                    hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
+                    // (This code also appears in SOCPlayerInterface.playerEvent)
+                }
+                break;
+
             case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
                 pl.setScenarioPlayerEvents(mes.getValue());
                 break;

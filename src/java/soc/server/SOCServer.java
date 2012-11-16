@@ -1800,6 +1800,7 @@ public class SOCServer extends Server
                      plName = pl.getName();
         final int pn = pl.getPlayerNumber();
 
+        boolean sendSVP = true;
         boolean sendPlayerEventsBitmask = true;
 
         switch (evt)
@@ -1828,6 +1829,7 @@ public class SOCServer extends Server
 
         case CLOTH_TRADE_ESTABLISHED_VILLAGE:
             {
+                sendSVP = false;
                 StringConnection c = getConnection(plName);
                 if (c != null)
                     c.put(SOCGameTextMsg.toCmd
@@ -1837,6 +1839,10 @@ public class SOCServer extends Server
 
         }
 
+        if (sendSVP)
+            ga.pendingMessagesOut.add(new SOCPlayerElement
+                (gaName, pn, SOCPlayerElement.SET,
+                 SOCPlayerElement.SCENARIO_SVP, pl.getSpecialVP()));
         if (sendPlayerEventsBitmask)
             ga.pendingMessagesOut.add(new SOCPlayerElement
                 (gaName, pn, SOCPlayerElement.SET,
@@ -8688,7 +8694,12 @@ public class SOCServer extends Server
         /**
          * send scenario info
          */
-        int itm = pl.getScenarioPlayerEvents();
+        int itm = pl.getSpecialVP();
+        if (itm != 0)
+            messageToPlayer(c, new SOCPlayerElement
+                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
+
+        itm = pl.getScenarioPlayerEvents();
         if (itm != 0)
             messageToPlayer(c, new SOCPlayerElement
                     (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, itm));

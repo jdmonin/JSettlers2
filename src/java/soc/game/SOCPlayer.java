@@ -1663,6 +1663,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Set the number of Special Victory Points (SVPs) awarded to this player.
+     * For use at client based on messages from server. 
+     * @param svp the number of SVPs, or 0
+     * @since 2.0.00
+     */
+    public void setSpecialVP(int svp)
+    {
+        specialVP = svp;
+    }
+
+    /**
      * This player's number of publicly known victory points.
      * Public victory points exclude VP development cards, except at
      * end of game, when they've been announced by server.
