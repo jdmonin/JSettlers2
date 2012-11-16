@@ -1750,6 +1750,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * At client, set the player's {@link #getScenarioPlayerEvents()} based on a server message.
+     * @param events  Player event flags to set; all others will be cleared.
+     * @since 2.0.00
+     */
+    public void setScenarioPlayerEvents(final int events)
+    {
+        scenario_playerEvents_bitmask = events;
+    }
+
+    /**
      * Does this player have a certain scenario player event flag?
      * Flag bits are set as per-player events occur during a game.
      * @param spe  Player event, such as {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
@@ -1800,6 +1810,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public int getScenarioSVPLandAreas()
     {
         return scenario_svpFromEachLandArea_bitmask;
+    }
+
+    /**
+     * At client, set the player's {@link #getScenarioPlayerEvents()} based on a server message.
+     * @param las  Land areas to set in player's bitmask; all others will be cleared.
+     * @since 2.0.00
+     */
+    public void setScenarioSVPLandAreas(final int las)
+    {
+        scenario_svpFromEachLandArea_bitmask = las;
     }
 
     /**
