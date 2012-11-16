@@ -21,6 +21,7 @@
 package soc.game;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -140,4 +141,55 @@ public class SOCVillage extends SOCPlayingPiece
         traders.add(pl);
     }
 
+    /**
+     * Game action: Distribute cloth to players from this village.
+     * Each player from {@link #addTradingPlayer(SOCPlayer)} gets at most 1 cloth.
+     * If the village has no cloth remaining, does nothing (returns null).
+     * Calls {@link #takeCloth(int)}, {@link SOCBoardLarge#takeCloth(int)}, {@link SOCPlayer#setCloth(int)}, etc.
+     * @param game  Game with this village
+     * @return  null, or results as an array:
+     *   [ Cloth amount taken from general supply, Matching village node coordinate,
+     *     Cloth amount given to player 0, to player 1, ... to player n ].
+     */
+    public int[] distributeCloth(SOCGame game)
+    {
+        if ((numCloth == 0) || (traders == null) || traders.isEmpty())
+            return null;
+
+        int[] results = new int[game.maxPlayers + 2];
+        results[1] = coord;
+
+        final int n = traders.size();
+        final int nFromHere = takeCloth(n);
+        final int nFromGeneral;
+        if (nFromHere < n)
+        {
+            nFromGeneral = ((SOCBoardLarge) board).takeCloth(n - nFromHere);
+            results[0] = nFromGeneral;
+        } else {
+            nFromGeneral = 0;
+        }
+
+        // Mark the established trading players
+        for (final SOCPlayer pl : traders)
+            results[2 + pl.getPlayerNumber()] = 1;
+
+        if (nFromHere + nFromGeneral < n)
+        {
+            // TODO if not enough to distribute, keep only some per-player results:
+            // Track amount remaining in "distribute" for-loop, start that loop @ current player. 
+        }
+
+        // Distribute
+        for (int pn = 0; pn < game.maxPlayers; ++pn)
+        {
+            if (results[2 + pn] != 0)
+            {
+                SOCPlayer pl = game.getPlayer(pn);
+                pl.setCloth(1 + pl.getCloth());
+            }
+        }
+
+        return results;
+    }
 }

@@ -3603,7 +3603,11 @@ public class SOCGame implements Serializable, Cloneable
      * move robber or to wait for players to discard.
      * gameState becomes either {@link #WAITING_FOR_DISCARDS},
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or {@link #PLACING_ROBBER}.
+     *<br>
      * Checks game option N7: Roll no 7s during first # rounds
+     *<br>
+     * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
+     * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}.
      *<P>
      * Called at server only.
      */
@@ -3678,6 +3682,18 @@ public class SOCGame implements Serializable, Cloneable
                 }
             }
 
+            /**
+             * distribute cloth from villages
+             */
+            if (hasSeaBoard && isGameOptionSet(SOCGameOption.K_SC_CLVI))
+            {
+                final int[] cdist = ((SOCBoardLarge) board).distributeClothFromRoll(this, currentDice);
+                // TODO how to get this result back to the server
+            }
+
+            /**
+             * done, next game state
+             */
             if (! anyGoldHex)
                 gameState = PLAY1;
             else
