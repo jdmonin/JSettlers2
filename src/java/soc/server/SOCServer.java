@@ -5981,7 +5981,7 @@ public class SOCServer extends Server
                 /**
                  * Roll dice, distribute resources in game
                  */
-                IntPair dice = ga.rollDice();
+                SOCGame.RollResult roll = ga.rollDice();
 
                 /**
                  * Send roll results and then text to client.
@@ -5994,7 +5994,7 @@ public class SOCServer extends Server
                  * must pick resources to gain (in a GAMETEXTMSG).
                  */
                 messageToGame(gn, new SOCDiceResult(gn, ga.getCurrentDice()));
-                messageToGame(gn, plName + " rolled a " + dice.getA() + " and a " + dice.getB() + ".");
+                messageToGame(gn, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + ".");
                 sendGameState(ga);  // For 7, give visual feedback before sending discard request
 
                 /**

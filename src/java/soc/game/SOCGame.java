@@ -679,8 +679,18 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * the current dice result. -1 at start of game, 0 during player's turn before roll (state {@link #PLAY}).
+     * @see #currentRoll
      */
     private int currentDice;
+
+    /**
+     * The current dice result, including any scenario items such as
+     * {@link SOCVillage#distributeCloth(SOCGame)} results.
+     * This is the object returned from {@link #rollDice()} each turn.
+     * @since 2.0.00
+     * @see #currentDice
+     */
+    private RollResult currentRoll;
 
     /**
      * the current game state
@@ -975,6 +985,7 @@ public class SOCGame implements Serializable, Cloneable
         currentPlayerNumber = -1;
         firstPlayerNumber = -1;
         currentDice = -1;
+        currentRoll = new RollResult();
         playerWithLargestArmy = -1;
         playerWithLongestRoad = -1;
         boardResetVoteRequester = -1;
@@ -3610,8 +3621,12 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}.
      *<P>
      * Called at server only.
+     * @return The roll results: Dice numbers, and any scenario-specific results
+     *         such as {@link RollResult#cloth}.  The game reuses the same instance
+     *         each turn, so its field contents will change when <tt>rollDice()</tt>
+     *         is called again.
      */
-    public IntPair rollDice()
+    public RollResult rollDice()
     {
         // N7: Roll no 7s during first # rounds.
         //     Use > not >= because roundCount includes current round
@@ -3663,6 +3678,8 @@ public class SOCGame implements Serializable, Cloneable
                 else
                     gameState = PLACING_ROBBER;
             }
+
+            currentRoll.cloth = null;
         }
         else
         {
@@ -3687,8 +3704,8 @@ public class SOCGame implements Serializable, Cloneable
              */
             if (hasSeaBoard && isGameOptionSet(SOCGameOption.K_SC_CLVI))
             {
-                final int[] cdist = ((SOCBoardLarge) board).distributeClothFromRoll(this, currentDice);
-                // TODO how to get this result back to the server
+                // distribute will usually return null
+                currentRoll.cloth = ((SOCBoardLarge) board).distributeClothFromRoll(this, currentDice);
             }
 
             /**
@@ -3700,7 +3717,9 @@ public class SOCGame implements Serializable, Cloneable
                 gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
         }
 
-        return new IntPair(die1, die2);
+        currentRoll.diceA = die1;
+        currentRoll.diceB = die2;
+        return currentRoll;
     }
 
     /**
@@ -5915,5 +5934,33 @@ public class SOCGame implements Serializable, Cloneable
     {
         return "SOCGame{" + name + "}";
     }
+
+    /**
+     * Dice roll result, for reporting from {@link SOCGame#rollDice()}.
+     * Each game has 1 instance of this object, which is updated each turn.
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    public static class RollResult
+    {
+        /**
+         * The dice numbers rolled, each 1 to 6.
+         */
+        public int diceA, diceB;
+
+        /**
+         * Null, or distributed cloth (for that game scenario), in the same
+         * format as {@link SOCVillage#distributeCloth(SOCGame)}.
+         */
+        public int[] cloth;
+
+        /** Convenience: Set diceA and dice, clear {@link #cloth}. */
+        public void update (final int dA, int dB)
+        {
+            diceA = dA;
+            diceB = dB;
+        }
+
+    }  // nested class RollResult
 
 }
