@@ -1776,7 +1776,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set a certain scenario player event flag.
      * Can be set once per game.
      * @param spe  Player event, such as {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
-     * @throws IllegalStateException if currently set
+     * @throws IllegalStateException if this flag is already set.
+     *             This is checked at server, not client, due to message timing:
+     *             Game events happen at the server before they happen at the client.
      * @see #clearScenarioPlayerEvent(SOCScenarioPlayerEvent)
      * @since 2.0.00
      */
@@ -1784,7 +1786,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         throws IllegalStateException
     {
         final int bit = spe.flagValue;
-        if (0 != (scenario_playerEvents_bitmask & bit))
+        if (game.isAtServer && (0 != (scenario_playerEvents_bitmask & bit)))
             throw new IllegalStateException("Already set: 0x" + Integer.toHexString(bit));
         scenario_playerEvents_bitmask |= bit;
     }
