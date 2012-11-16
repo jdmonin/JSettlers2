@@ -112,6 +112,10 @@ public class SOCPlayerElement extends SOCMessage
      * the number of cloth held by this player.
      * This element is {@link #SET} to 0, or to the player's cloth count
      * from {@link soc.game.SOCPlayer#getCloth()}.
+     *<P>
+     * The board's "general supply" is updated with this element type
+     * with {@link #getPlayerNumber()} == -1.
+     * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
      * @since 2.0.00
      */
     public static final int SCENARIO_CLOTH_COUNT = 21;

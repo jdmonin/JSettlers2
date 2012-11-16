@@ -27,6 +27,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -261,6 +262,7 @@ public class SOCHandPanel extends Panel implements ActionListener
     /** Development card count */
     protected ColorSquare developmentSq;
     protected Label developmentLab;
+    /** Soldier/Knight count */
     protected ColorSquare knightsSq;
     protected Label knightsLab;
     /** Player's development cards */
@@ -268,6 +270,9 @@ public class SOCHandPanel extends Panel implements ActionListener
     protected Button playCardBut;
     /** Trade offer resource squares; visible only for client's own player */
     protected SquaresPanel sqPanel;
+    /** Cloth count, for scenario _SC_CLVI; null otherwise. @since 2.0.00 */
+    protected ColorSquare clothSq;
+    protected Label clothLab;
 
     // Trading interface
 
@@ -628,8 +633,18 @@ public class SOCHandPanel extends Panel implements ActionListener
             shipLab = new Label("Ships:");
             add(shipLab);
         } else {
-            shipSq = null;
-            shipLab = null;
+            // shipSq, shipLab already null
+        }
+
+        if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        {
+            clothLab = new Label("Cloth:");  // No trailing space (room for wider colorsquares at left)
+            add(clothLab);
+            clothSq = new ColorSquare(ColorSquare.GREY, 0);
+            add(clothSq);
+            clothSq.setTooltipText("Amount of cloth traded from villages");
+        } else {
+            // clothSq, clothLab already null
         }
 
         knightsLab = new Label("Soldiers:");  // No trailing space (room for wider colorsquares at left)
@@ -720,9 +735,7 @@ public class SOCHandPanel extends Panel implements ActionListener
 
         if (playerTradingDisabled)
         {
-            playerSend = null;
-            playerSendMap = null;
-            playerSendForPrevTrade = null;
+            // playerSend, playerSendMap, playerSendForPrevTrade already null
         } else {
             playerSend = new ColorSquare[game.maxPlayers-1];
             playerSendMap = new int[game.maxPlayers-1];
@@ -1283,6 +1296,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
         knightsSq.setVisible(false);
         knightsLab.setVisible(false);
+        if (clothSq != null)
+        {
+            clothLab.setVisible(false);
+            clothSq.setVisible(false);            
+        }
 
         offer.setVisible(false);
 
@@ -1433,6 +1451,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         }
         knightsLab.setVisible(true);
         knightsSq.setVisible(true);
+        if (clothSq != null)
+        {
+            clothLab.setVisible(true);
+            clothSq.setVisible(true);            
+        }
 
         resourceLab.setVisible(true);
         resourceSq.setVisible(true);
@@ -2132,6 +2155,11 @@ public class SOCHandPanel extends Panel implements ActionListener
         {
             knightsLab.setVisible(hideTradeMsg);
             knightsSq.setVisible(hideTradeMsg);
+            if (clothSq != null)
+            {
+                clothLab.setVisible(hideTradeMsg);
+                clothSq.setVisible(hideTradeMsg);            
+            }
             resourceLab.setVisible(hideTradeMsg);
             resourceSq.setVisible(hideTradeMsg);
             developmentLab.setVisible(hideTradeMsg);
@@ -2597,6 +2625,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                 // by setting a timer: SOCPlayerInterface.discardOrPickTimerSet(false)
             }
 
+        case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
+            if (clothSq != null)
+                clothSq.setIntValue(player.getCloth());
+            break;
+
         }
 
         if (updateTotalResCount)
@@ -2922,6 +2955,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                 }
 
                 // Various item counts, to the right of give/get/offer/trade area
+                if (clothSq != null)
+                {
+                    clothLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY - (lineH + space), knightsW, lineH);
+                    clothSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY - (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                }
                 knightsLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY, knightsW, lineH);
                 knightsSq.setBounds(dim.width - inset - ColorSquare.WIDTH, tradeY, ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 roadLab.setBounds(dim.width - inset - knightsW - ColorSquare.WIDTH - space, tradeY + lineH + space, knightsW, lineH);
@@ -3043,13 +3081,18 @@ public class SOCHandPanel extends Panel implements ActionListener
                 offer.doLayout();
 
                 // Lower-left: Column of item counts:
-                // Soldiers, Resources, Dev Cards
+                // Cloth, Soldiers, Resources, Dev Cards
                 resourceLab.setBounds(inset, inset + balloonH + (2 * (lineH + space)), dcardsW, lineH);
                 resourceSq.setBounds(inset + dcardsW + space, inset + balloonH + (2 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 developmentLab.setBounds(inset, inset + balloonH + (3 * (lineH + space)), dcardsW, lineH);
                 developmentSq.setBounds(inset + dcardsW + space, inset + balloonH + (3 * (lineH + space)), ColorSquare.WIDTH, ColorSquare.HEIGHT);
                 knightsLab.setBounds(inset, inset + balloonH + (lineH + space), dcardsW, lineH);
                 knightsSq.setBounds(inset + dcardsW + space, inset + balloonH + (lineH + space), ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                if (clothSq != null)
+                {
+                    clothLab.setBounds(inset, inset + balloonH, dcardsW, lineH);
+                    clothSq.setBounds(inset + dcardsW + space, inset + balloonH, ColorSquare.WIDTH, ColorSquare.HEIGHT);
+                }
 
                 // Lower-right: Column of piece counts:
                 // Ships, Roads, Settlements, Cities

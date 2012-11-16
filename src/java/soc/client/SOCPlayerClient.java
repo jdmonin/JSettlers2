@@ -2843,6 +2843,7 @@ public class SOCPlayerClient extends Panel
 
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
                 pl.setCloth(mes.getValue());
+                hpan.updateValue(etype);
                 break;
 
             }

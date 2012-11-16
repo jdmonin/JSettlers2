@@ -23,6 +23,7 @@ import java.util.StringTokenizer;
 
 /**
  * This message from server updates the value(s) of a piece on the board.
+ * Example: Cloth count for a village in the cloth trade scenario.
  *<P>
  * Param 1: Coordinate of the piece to be updated <br>
  * Param 2: New value for the piece <br>
