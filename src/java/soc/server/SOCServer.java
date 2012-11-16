@@ -47,10 +47,8 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -1794,6 +1792,12 @@ public class SOCServer extends Server
      */
     public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt)
     {
+        // Note: Some SOCServer code assumes that player events are fired only during handlePUTPIECE.
+        // If a new player event breaks this assumption, adjust SOCServer.playerEvent(...) and related code;
+        // search where SOCGame.pendingMessagesOut is used.
+
+        boolean sendPlayerEventsBitmask = true;
+
         switch (evt)
         {
         case SVP_SETTLED_ANY_NEW_LANDAREA:
@@ -1808,6 +1812,13 @@ public class SOCServer extends Server
             {
                 messageToGame
                     (ga.getName(), pl.getName() + " gets 2 Special Victory Points for settling a new island.");
+
+                sendPlayerEventsBitmask = false;
+                final int las = pl.getScenarioSVPLandAreas();
+                if (las != 0)
+                    ga.pendingMessagesOut.add(new SOCPlayerElement
+                        (ga.getName(), pl.getPlayerNumber(), SOCPlayerElement.SET,
+                         SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, las));
             }
             break;
 
@@ -1821,6 +1832,11 @@ public class SOCServer extends Server
             break;
 
         }
+
+        if (sendPlayerEventsBitmask)
+            ga.pendingMessagesOut.add(new SOCPlayerElement
+                (ga.getName(), pl.getPlayerNumber(), SOCPlayerElement.SET,
+                 SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, pl.getScenarioPlayerEvents()));
     }
 
     /**
@@ -5363,7 +5379,14 @@ public class SOCServer extends Server
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a road."));
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
+                            if (! ga.pendingMessagesOut.isEmpty())
+                            {
+                                for (final Object msg : ga.pendingMessagesOut)
+                                    messageToGameWithMon(gaName, (SOCMessage) msg);
+                                ga.pendingMessagesOut.clear();
+                            }
                             gameList.releaseMonitorForGame(gaName);
+
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);
 
@@ -5409,6 +5432,12 @@ public class SOCServer extends Server
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a settlement."));
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
+                            if (! ga.pendingMessagesOut.isEmpty())
+                            {
+                                for (final Object msg : ga.pendingMessagesOut)
+                                    messageToGameWithMon(gaName, (SOCMessage) msg);
+                                ga.pendingMessagesOut.clear();
+                            }
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
 
@@ -5454,6 +5483,12 @@ public class SOCServer extends Server
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a city."));
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
+                            if (! ga.pendingMessagesOut.isEmpty())
+                            {
+                                for (final Object msg : ga.pendingMessagesOut)
+                                    messageToGameWithMon(gaName, (SOCMessage) msg);
+                                ga.pendingMessagesOut.clear();
+                            }
                             gameList.releaseMonitorForGame(gaName);
                             broadcastGameStats(ga);
                             sendGameState(ga);
@@ -5492,6 +5527,12 @@ public class SOCServer extends Server
                             gameList.takeMonitorForGame(gaName);
                             messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a ship."));
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
+                            if (! ga.pendingMessagesOut.isEmpty())
+                            {
+                                for (final Object msg : ga.pendingMessagesOut)
+                                    messageToGameWithMon(gaName, (SOCMessage) msg);
+                                ga.pendingMessagesOut.clear();
+                            }
                             gameList.releaseMonitorForGame(gaName);
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);

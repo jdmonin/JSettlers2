@@ -30,6 +30,10 @@ package soc.game;
  */
 public enum SOCScenarioPlayerEvent
 {
+    // Note: Some SOCServer code assumes that player events are fired only during handlePUTPIECE.
+    // If a new player event breaks this assumption, adjust SOCServer.playerEvent(...) and related code;
+    // search where SOCGame.pendingMessagesOut is used.
+
     /**
      * Special victory point awarded for first settlement in any land area past the starting land area.
      * Once per player per game (not once per player in each other land area).
@@ -41,6 +45,10 @@ public enum SOCScenarioPlayerEvent
      * 2 SVP awarded each time player settles in another new land area past the starting land area.
      * Once per area per player per game.
      * Game option {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
+     *<P>
+     * Because there can be many land areas, this event flag isn't part of
+     * {@link SOCPlayer#getScenarioPlayerEvents()}; instead see
+     * {@link SOCPlayer#getScenarioSVPLandAreas()}.
      */
     SVP_SETTLED_EACH_NEW_LANDAREA(0x02),
 
