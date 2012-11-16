@@ -1165,7 +1165,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         // of that node's directions.
         // Note that if it becomes closed, segment will contain newShipEdge.
 
-        isTradeRouteFarEndClosed_foundVillage = false;
+        isTradeRouteFarEndClosed_foundVillage = null;
         Vector<SOCShip> segment = isTradeRouteFarEndClosed
             (newShipEdge, edgeFarNode, alreadyVisited, encounteredSelf);
 
@@ -1175,14 +1175,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         for (SOCShip sh : segment)
             sh.setClosed();
 
-        if (isTradeRouteFarEndClosed_foundVillage
-            && ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+        if (isTradeRouteFarEndClosed_foundVillage != null)
         {
-            setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+            isTradeRouteFarEndClosed_foundVillage.addTradingPlayer(this);
 
-            if (game.scenarioEventListener != null)
-                game.scenarioEventListener.playerEvent
-                    (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+            if (! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+            {
+                setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+    
+                if (game.scenarioEventListener != null)
+                    game.scenarioEventListener.playerEvent
+                        (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+            }
         }
 
         // Now that those ships are closed, re-check the segments
@@ -1205,7 +1209,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 HashSet<Integer> reAlready = new HashSet<Integer>();
 
                 // check again to see if it should be closed now
-                isTradeRouteFarEndClosed_foundVillage = false;
+                isTradeRouteFarEndClosed_foundVillage = null;
                 if (self.size() == 2)
                 {
                     // just 1 ship along that segment
@@ -1229,14 +1233,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 for (SOCShip sh : recheck)
                     sh.setClosed();
 
-                if (isTradeRouteFarEndClosed_foundVillage
-                    && ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+                if (isTradeRouteFarEndClosed_foundVillage != null)
                 {
-                    setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                    isTradeRouteFarEndClosed_foundVillage.addTradingPlayer(this);
 
-                    if (game.scenarioEventListener != null)
-                        game.scenarioEventListener.playerEvent
-                            (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                    if (! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+                    {
+                        setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+    
+                        if (game.scenarioEventListener != null)
+                            game.scenarioEventListener.playerEvent
+                                (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                    }
                 }
             }
         }
@@ -1245,12 +1253,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Flag set by {@link #isTradeRouteFarEndClosed(SOCShip, int, HashSet, List)}
+     * Set by {@link #isTradeRouteFarEndClosed(SOCShip, int, HashSet, List)}
      * if it finds a village at any far end.
      * Not set unless {@link SOCGame#hasSeaBoard} and {@link SOCGameOption#K_SC_CLVI} are set.
      * @since 2.0.00
      */
-    private boolean isTradeRouteFarEndClosed_foundVillage;
+    private SOCVillage isTradeRouteFarEndClosed_foundVillage;
 
     /**
      * Recursive call for {@link #checkTradeRouteFarEndClosed(SOCShip, int)}.
@@ -1258,8 +1266,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * This method checks one segment of the trade route going from a branch.
      * The segment may end at a settlement/city/village, another branch, or end with no further pieces.
      *<P>
-     * If recursion ends at a {@link SOCVillage}, the {@link #isTradeRouteFarEndClosed_foundVillage}
-     * flag will be set.  If you're looking for villages, clear that flag before calling this method.
+     * If recursion ends at a {@link SOCVillage}, {@link #isTradeRouteFarEndClosed_foundVillage}
+     * will be set to it.  If you're looking for villages, clear that field before calling this method.
      *<P>
      * Valid only when {@link SOCGame#hasSeaBoard}.
      *
@@ -1447,7 +1455,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             return null;
 
         if ((pp != null) && (pp instanceof SOCVillage))
-            isTradeRouteFarEndClosed_foundVillage = true;
+            isTradeRouteFarEndClosed_foundVillage = (SOCVillage) pp;
 
         return segment;
     }
@@ -2145,14 +2153,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             final Vector<SOCShip> closedRoute = checkTradeRouteFarEndClosed(newShip, edgeFarNode);
             if (closedRoute != null)
             {
-                if ((pp instanceof SOCVillage)
-                    && ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+                if (pp instanceof SOCVillage)
                 {
-                    setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                    ((SOCVillage) pp).addTradingPlayer(this);
 
-                    if (game.scenarioEventListener != null)
-                        game.scenarioEventListener.playerEvent
-                            (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                    if (! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+                    {
+                        setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+    
+                        if (game.scenarioEventListener != null)
+                            game.scenarioEventListener.playerEvent
+                                (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                    }
                 }
 
                 break;

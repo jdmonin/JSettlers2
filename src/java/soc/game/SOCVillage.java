@@ -20,6 +20,9 @@
 
 package soc.game;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A village playing piece, used on the large sea board ({@link SOCBoardLarge}) with some scenarios.
  * Villages are in a game only if scenario option {@link SOCGameOption#K_SC_CLVI} is set.
@@ -41,6 +44,8 @@ public class SOCVillage extends SOCPlayingPiece
     /**
      * Village's dice number, for giving cloth to players
      * who've established a trade route to here.
+     * To simplify cloth distribution when remaining cloth
+     * is low, no other village should share the same dice number.
      */
     public final int diceNum;
 
@@ -48,6 +53,11 @@ public class SOCVillage extends SOCPlayingPiece
      * How many cloth does this village have?
      */
     private int numCloth;
+
+    /**
+     * Players who have established trade with this village.
+     */
+    private List<SOCPlayer> traders;
 
     // Temporary with defaults until dice, cloth sent to client
     public SOCVillage(final int node, SOCBoard board)
@@ -60,7 +70,9 @@ public class SOCVillage extends SOCPlayingPiece
      * Make a new village, which has a certain amount of cloth.
      *
      * @param node  node coordinate of village
-     * @param dice  dice number for giving cloth to players
+     * @param dice  dice number for giving cloth to players.
+     *              To simplify cloth distribution when remaining cloth
+     *              is low, no other village should share the same dice number.
      * @param cloth  number of pieces of cloth, such as {@link #STARTING_CLOTH}
      * @param board  board
      * @throws IllegalArgumentException  if board null
@@ -112,6 +124,20 @@ public class SOCVillage extends SOCPlayingPiece
             numCloth -= numTake;
         }
         return numTake;
+    }
+
+    /**
+     * Add this player to the list of trading players.
+     * @param pl  Player who's just established trade with this village
+     */
+    public void addTradingPlayer(SOCPlayer pl)
+    {
+        if (traders == null)
+            traders = new ArrayList<SOCPlayer>();
+        else if (traders.contains(pl))
+            return;
+
+        traders.add(pl);
     }
 
 }
