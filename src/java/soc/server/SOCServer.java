@@ -6069,6 +6069,44 @@ public class SOCServer extends Server
                     }
                     messageToGame(gn, message);
 
+                    if (roll.cloth != null)
+                    {
+                        // Send village cloth trade distribution
+
+                        final int coord = roll.cloth[1];
+                        final SOCBoardLarge board = (SOCBoardLarge) (ga.getBoard()); 
+                        SOCVillage vi = board.getVillageAtNode(coord);
+                        if (vi != null)
+                            messageToGame(gn, new SOCPieceValue(gn, coord, vi.getCloth(), 0));
+
+                        if (roll.cloth[0] > 0)
+                            // some taken from board general supply
+                            messageToGame(gn, new SOCPlayerElement
+                                (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, board.getCloth()));
+
+                        StringBuilder sb = null;
+                        for (int i = 2; i < roll.cloth.length; ++i)
+                        {
+                            if (roll.cloth[i] == 0)
+                                continue;  // this player didn't receive cloth
+
+                            final int pn = i - 2;
+                            final SOCPlayer clpl = ga.getPlayer(pn);
+                            messageToGame(gn, new SOCPlayerElement
+                                (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, clpl.getCloth()));
+
+                            if (sb == null)
+                            {
+                                sb = new StringBuilder(clpl.getName());
+                            } else {
+                                sb.append(", ");
+                                sb.append(clpl.getName());
+                            }                            
+                        }
+                        sb.append(" received 1 cloth from a village.");
+                        messageToGame(gn, sb.toString());
+                    }
+
                     if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
                         sendGameState_sendGoldPickAnnounceText(ga, gn);
 

@@ -2844,9 +2844,12 @@ public class SOCPlayerClient extends Panel
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
                 pl.setCloth(mes.getValue());
                 if (pn != -1)
+                {
                     hpan.updateValue(etype);
-                else
+                    hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // 2 cloth = 1 VP
+                } else {
                     pi.getBuildingPanel().updateClothCount();
+                }
                 break;
 
             }
