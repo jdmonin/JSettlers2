@@ -22,7 +22,9 @@
 package soc.client;
 
 import soc.client.stats.GameStatisticsFrame;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 
@@ -84,6 +86,13 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     ColorSquare cardCount;
     private ColorSquare vpToWin;  // null unless hasSeaBoard or vp != 10; @since 1.1.14
 
+    /** For game scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the
+     *  amount of cloth left in the board's "general supply". Null otherwise.
+     *  @since 2.0.00
+     */
+    private ColorSquare cloth;
+    private Label clothLab;
+
     // Large Sea Board Ship button; @since 2.0.00
     private Label shipT;  // text
     private Label shipC;  // cost
@@ -91,7 +100,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     private ColorSquare shipSheep;
 
     /**
-     * For large sea board ({@link SOCGame#hasSeaBoard}, button to buy a ship.
+     * For large sea board ({@link SOCGame#hasSeaBoard}), button to buy a ship.
      * Null if this game doesn't have that board.
      * @since 2.0.00
      */
@@ -242,8 +251,20 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             add(shipBut);
             shipBut.setActionCommand(SHIP);
             shipBut.addActionListener(this);
+
+            if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+            {
+                final String TTIP_CLOTH_TEXT = "General Supply of cloth remaining";
+
+                clothLab = new Label("Cloth:");
+                add(clothLab);
+                new AWTToolTip(TTIP_CLOTH_TEXT, clothLab);
+                cloth = new ColorSquare(ColorSquare.GREY, 0);
+                add(cloth);
+                cloth.setTooltipText(TTIP_CLOTH_TEXT);
+            }
         } else {
-            shipBut = null;
+            // shipBut, cloth already null
         }
 
         if (ga.hasSeaBoard || (ga.vp_winner != 10))
@@ -345,6 +366,17 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             curX += (ColorSquare.WIDTH + 3);
             shipSheep.setSize(ColorSquare.WIDTH, ColorSquare.HEIGHT);
             shipSheep.setLocation(curX, curY);
+        }
+
+        if (cloth != null)
+        {
+            // Cloth General Supply count is top-right of panel
+            //    TODO: position for 6-player (vs Special Building Phase button, etc)
+            final int clothTW = fm.stringWidth(clothLab.getText());
+            curX = dim.width - (3 * margin) - clothTW - ColorSquare.WIDTH;
+            clothLab.setLocation(curX, curY);
+            curX += clothTW + (2 * margin);
+            cloth.setLocation(curX, curY);
         }
 
         curY += (rowSpaceH + lineH);
@@ -765,6 +797,18 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     {
         int newCount = pi.getGame().getNumDevCards();
         cardCount.setIntValue(newCount);
+    }
+
+    /**
+     * The board's general supply of cloth remaining has changed.
+     * Update the display.  Used for scenario {@link SOCGameOption#K_SC_CLVI}.
+     * @since 2.0.00 
+     */
+    public void updateClothCount()
+    {
+        if (cloth == null)
+            return;
+        cloth.setIntValue( ((SOCBoardLarge) pi.getGame().getBoard()).getCloth() );
     }
 
     /**

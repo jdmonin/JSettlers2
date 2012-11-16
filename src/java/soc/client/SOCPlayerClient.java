@@ -2716,7 +2716,7 @@ public class SOCPlayerClient extends Panel
             final int pn = mes.getPlayerNumber();
             final SOCPlayer pl = ga.getPlayer(pn);
             final SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-            final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);
+            final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);  // null if pn == -1
             final int etype = mes.getElementType();
             int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
 
@@ -2843,7 +2843,10 @@ public class SOCPlayerClient extends Panel
 
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
                 pl.setCloth(mes.getValue());
-                hpan.updateValue(etype);
+                if (pn != -1)
+                    hpan.updateValue(etype);
+                else
+                    pi.getBuildingPanel().updateClothCount();
                 break;
 
             }
