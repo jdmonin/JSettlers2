@@ -8207,6 +8207,8 @@ public class SOCServer extends Server
      *<P>
      * Among other messages, player names are sent via SITDOWN, and pieces on board
      * sent by PUTPIECE.  See comments here for further details.
+     * If <tt>isTakingOver</tt>, some details are sent by calling
+     * {@link #sitDown_sendPrivateInfo(SOCGame, StringConnection, int, String)}.
      * The group of messages sent here ends with GAMEMEMBERS, SETTURN and GAMESTATE.
      *<P>
      * @param gameData Game to join
@@ -8584,15 +8586,17 @@ public class SOCServer extends Server
      */
     private void sitDown_sendPrivateInfo(SOCGame ga, StringConnection c, int pn, final String gaName)
     {
+        final SOCPlayer pl = ga.getPlayer(pn);
+
         /**
          * send all the private information
          */
-        SOCResourceSet resources = ga.getPlayer(pn).getResources();
+        SOCResourceSet resources = pl.getResources();
         // CLAY, ORE, SHEEP, WHEAT, WOOD, UNKNOWN
         for (int res = SOCPlayerElement.CLAY; res <= SOCPlayerElement.UNKNOWN; ++res)
             messageToPlayer(c, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, res, resources.getAmount(res)));
 
-        SOCDevCardSet devCards = ga.getPlayer(pn).getDevCards();
+        SOCDevCardSet devCards = pl.getDevCards();
 
         final boolean cliVersionNew = (c.getVersion() >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES);
 
@@ -8637,17 +8641,35 @@ public class SOCServer extends Server
         }  // for (dcAge)
 
         /**
+         * send scenario info
+         */
+        int itm = pl.getScenarioPlayerEvents();
+        if (itm != 0)
+            messageToPlayer(c, new SOCPlayerElement
+                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, itm));
+
+        itm = pl.getScenarioSVPLandAreas();
+        if (itm != 0)
+            messageToPlayer(c, new SOCPlayerElement
+                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, itm));
+
+        itm = pl.getCloth();
+        if (itm != 0)
+            messageToPlayer(c, new SOCPlayerElement
+                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, itm));
+
+        /**
          * send game state info such as requests for discards
          */
         sendGameState(ga);
 
-        if ((ga.getCurrentDice() == 7) && ga.getPlayer(pn).getNeedToDiscard())
+        if ((ga.getCurrentDice() == 7) && pl.getNeedToDiscard())
         {
-            messageToPlayer(c, new SOCDiscardRequest(gaName, ga.getPlayer(pn).getResources().getTotal() / 2));
+            messageToPlayer(c, new SOCDiscardRequest(gaName, pl.getResources().getTotal() / 2));
         }
         else if (ga.hasSeaBoard)
         {
-            final int numGoldRes = ga.getPlayer(pn).getNeedToPickGoldHexResources();
+            final int numGoldRes = pl.getNeedToPickGoldHexResources();
             if (numGoldRes > 0)
                 messageToPlayer(c, new SOCPickResourcesRequest(gaName, numGoldRes));
         }
@@ -8655,7 +8677,7 @@ public class SOCServer extends Server
         /**
          * send what face this player is using
          */
-        messageToGame(gaName, new SOCChangeFace(gaName, pn, ga.getPlayer(pn).getFaceId()));
+        messageToGame(gaName, new SOCChangeFace(gaName, pn, pl.getFaceId()));
     }
 
     /**
