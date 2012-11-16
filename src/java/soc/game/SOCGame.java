@@ -30,11 +30,13 @@ import soc.util.SOCGameBoardReset;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.Stack;
 import java.util.Vector;
@@ -481,6 +483,20 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.17
      */
     boolean isAtServer;
+
+    /**
+     * For games at server, a convenient place to hold outbound messages during game actions.
+     * Public access for use by SOCServer.  The server will handle a game action as usual
+     * (for example, {@link #putPiece(SOCPlayingPiece)}), create pending PLAYERELEMENT messages from
+     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent)},
+     * send the usual messages related to that action, then check this list and send out
+     * the pending PLAYERELEMENT message so that the game's clients will update that player's
+     * {@link SOCPlayer#setScenarioPlayerEvents(int)} or other related fields.
+     *<P>
+     * Because this is server-only, it's null until {@link #startGame()}.
+     * @since 2.0.00
+     */
+    public transient List<Object> pendingMessagesOut;
 
     /**
      * For games at the server, the owner (creator) of the game.
@@ -2802,6 +2818,8 @@ public class SOCGame implements Serializable, Cloneable
     public void startGame()
     {
         isAtServer = true;
+        pendingMessagesOut = new ArrayList<Object>();
+
         board.makeNewBoard(opts);
         if (hasSeaBoard)
         {
@@ -5376,6 +5394,7 @@ public class SOCGame implements Serializable, Cloneable
         players = null;
         board = null;
         rand = null;
+        pendingMessagesOut = null;
     }
 
     /**
