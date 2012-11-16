@@ -232,6 +232,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int REVEALFOGHEX = 1093;  // fog hexes, 20121108, v2.0.00
 
+    /** Update the value(s) of a piece on the board.
+     *  @since 2.0.00 */
+    public static final int PIECEVALUE = 1094;  // cloth villages scenario, 20121115, v2.0.00
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -796,6 +800,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case REVEALFOGHEX:      // fog hexes, 20121108, v2.0.00
                 return SOCRevealFogHex.parseDataStr(data);
+
+            case PIECEVALUE:        // cloth villages scenario, 20121115, v2.0.00
+                return SOCPieceValue.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
