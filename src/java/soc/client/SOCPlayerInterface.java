@@ -781,14 +781,17 @@ public class SOCPlayerInterface extends Frame
     }
     
     /**
-     * @return a player's hand panel
+     * @return a player's hand panel, or null if <tt>pn</tt> &lt; 0
      *
      * @param pn  the player's seat number
      * 
      * @see #getClientHand()
      */
-    public SOCHandPanel getPlayerHandPanel(int pn)
+    public SOCHandPanel getPlayerHandPanel(final int pn)
     {
+        if (pn < 0)
+            return null;
+
         return hands[pn];
     }
 
