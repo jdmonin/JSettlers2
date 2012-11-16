@@ -1796,6 +1796,10 @@ public class SOCServer extends Server
         // If a new player event breaks this assumption, adjust SOCServer.playerEvent(...) and related code;
         // search where SOCGame.pendingMessagesOut is used.
 
+        final String gaName = ga.getName(),
+                     plName = pl.getName();
+        final int pn = pl.getPlayerNumber();
+
         boolean sendPlayerEventsBitmask = true;
 
         switch (evt)
@@ -1803,7 +1807,7 @@ public class SOCServer extends Server
         case SVP_SETTLED_ANY_NEW_LANDAREA:
             {
                 messageToGame
-                    (ga.getName(), pl.getName() + " gets a Special Victory Point for growing past the main island.");
+                    (gaName, plName + " gets a Special Victory Point for growing past the main island.");
                 // TODO adjust wording
             }
             break;
@@ -1811,23 +1815,23 @@ public class SOCServer extends Server
         case SVP_SETTLED_EACH_NEW_LANDAREA:
             {
                 messageToGame
-                    (ga.getName(), pl.getName() + " gets 2 Special Victory Points for settling a new island.");
+                    (gaName, plName + " gets 2 Special Victory Points for settling a new island.");
 
                 sendPlayerEventsBitmask = false;
                 final int las = pl.getScenarioSVPLandAreas();
                 if (las != 0)
                     ga.pendingMessagesOut.add(new SOCPlayerElement
-                        (ga.getName(), pl.getPlayerNumber(), SOCPlayerElement.SET,
+                        (gaName, pn, SOCPlayerElement.SET,
                          SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, las));
             }
             break;
 
         case CLOTH_TRADE_ESTABLISHED_VILLAGE:
             {
-                StringConnection c = getConnection(pl.getName());
+                StringConnection c = getConnection(plName);
                 if (c != null)
                     c.put(SOCGameTextMsg.toCmd
-                        (ga.getName(), SERVERNAME, "Trade route established with village. You are no longer prevented from moving the pirate ship."));
+                        (gaName, SERVERNAME, "Trade route established with village. You are no longer prevented from moving the pirate ship."));
             }
             break;
 
@@ -1835,7 +1839,7 @@ public class SOCServer extends Server
 
         if (sendPlayerEventsBitmask)
             ga.pendingMessagesOut.add(new SOCPlayerElement
-                (ga.getName(), pl.getPlayerNumber(), SOCPlayerElement.SET,
+                (gaName, pn, SOCPlayerElement.SET,
                  SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, pl.getScenarioPlayerEvents()));
     }
 
