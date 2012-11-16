@@ -3183,14 +3183,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             {
                 drawRoadOrShip(g, hex, -3, (gameState == SOCGame.PLACING_PIRATE), false);
             }
-
-            HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
-            if (villages != null)
-            {
-                Iterator<SOCVillage> villIter = villages.values().iterator();
-                while (villIter.hasNext())
-                    drawVillage(g, villIter.next());
-            }
         }
 
         if (gameState != SOCGame.NEW)
@@ -3401,6 +3393,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
 
             drawPorts_LargeBoard(g);
+
+            HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
+            if (villages != null)
+            {
+                Iterator<SOCVillage> villIter = villages.values().iterator();
+                while (villIter.hasNext())
+                    drawVillage(g, villIter.next());
+            }
 
             // check debugShowPotentials[0 - 9]
             drawBoardEmpty_drawDebugShowPotentials(g);
