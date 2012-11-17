@@ -34,6 +34,7 @@ import java.util.StringTokenizer;
  *     it says whether the player wants to move the robber
  *     or the pirate ship. (v2.0.00+)
  *</UL>
+ * {@link #getChoice()} gets the client's choice.
  *
  * @author Robert S. Thomas &lt;thomas@infolab.northwestern.edu&gt;
  */

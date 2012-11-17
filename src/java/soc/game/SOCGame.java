@@ -247,6 +247,7 @@ public class SOCGame implements Serializable, Cloneable
      * Player is placing the pirate ship on a new water hex,
      * in a game which {@link #hasSeaBoard}.
      * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
+     * Next game state may be {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
      * @see #PLACING_ROBBER
      * @see #canMovePirate(int, int)
      * @see #movePirate(int, int)
@@ -284,10 +285,12 @@ public class SOCGame implements Serializable, Cloneable
      * Waiting for player to choose a player to rob,
      * with the robber or pirate ship, after rolling 7 or
      * playing a Knight/Soldier card.
-     * Next game state is {@link #PLAY1}.
+     * Next game state is {@link #PLAY1} or {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
      * To see whether we're moving the robber or the pirate, use {@link #getRobberyPirateFlag()}.
+     * To choose the player, call {@link #choosePlayerForRobbery(int)}.
      * @see #playKnight()
      * @see #canChoosePlayer(int)
+     * @see #canChooseRobClothOrResource(int)
      * @see #stealFromPlayer(int)
      */
     public static final int WAITING_FOR_CHOICE = 51;
@@ -314,6 +317,15 @@ public class SOCGame implements Serializable, Cloneable
     public static final int WAITING_FOR_ROBBER_OR_PIRATE = 54;
 
     /**
+     * Waiting for player to choose whether to rob cloth or rob a resource.
+     * Previous game state is {@link #PLACING_PIRATE}.
+     * @see #movePirate(int, int)
+     * @see #canChooseRobClothOrResource(int)
+     * @since 2.0.00
+     */
+    public static final int WAITING_FOR_ROB_CLOTH_OR_RESOURCE = 55;
+
+    /**
      * Waiting for player(s) to choose which Gold Hex resources to receive.
      * Next game state is {@link #PLAY1}.
      *<P>
@@ -322,7 +334,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
      * @since 2.0.00
      */
-    public static final int WAITING_FOR_PICK_GOLD_RESOURCE = 55;
+    public static final int WAITING_FOR_PICK_GOLD_RESOURCE = 56;
 
     /**
      * Waiting for player to choose a settlement to destroy, or
@@ -330,7 +342,7 @@ public class SOCGame implements Serializable, Cloneable
      * Used with game option <tt>"DH"</tt>.
      * @since 2.0.00
      */
-    public static final int WAITING_FOR_DESTROY = 56;
+    public static final int WAITING_FOR_DESTROY = 57;
 
     /**
      * Waiting for player to choose a settlement or city to swap
@@ -338,7 +350,7 @@ public class SOCGame implements Serializable, Cloneable
      * Used with game option <tt>"DH"</tt>.
      * @since 2.0.00
      */
-    public static final int WAITING_FOR_SWAP = 57;
+    public static final int WAITING_FOR_SWAP = 58;
 
     /**
      * The 6-player board's Special Building Phase.
@@ -4188,8 +4200,14 @@ public class SOCGame implements Serializable, Cloneable
      * move the pirate ship.
      *<P>
      * If no victims (players to possibly steal from): State becomes oldGameState.
-     * If just one victim: call stealFromPlayer, State becomes oldGameState.
+     *<br>
      * If multiple possible victims: Player must choose a victim; State becomes {@link #WAITING_FOR_CHOICE}.
+     *    Once chosen, call {@link #choosePlayerForRobbery(int)} to choose a victim.
+     *<br>
+     * If just one victim: call stealFromPlayer, State becomes oldGameState.
+     *    Or: If just one victim but {@link #canChooseRobClothOrResource(int)},
+     *    state becomes {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
+     *    Once chosen, call {@link #stealFromPlayer(int)}.
      *<P>
      * Assumes {@link #canMovePirate(int, int)} has been called already to validate the move.
      * Assumes gameState {@link #PLACING_PIRATE}.
@@ -4225,13 +4243,23 @@ public class SOCGame implements Serializable, Cloneable
         else if (victims.size() == 1)
         {
             SOCPlayer victim = victims.firstElement();
-            int loot = stealFromPlayer(victim.getPlayerNumber());
-            result.setLoot(loot);
+            if (! canChooseRobClothOrResource(victim.getPlayerNumber()))
+            {
+                int loot = stealFromPlayer(victim.getPlayerNumber());
+                result.setLoot(loot);
+            } else {
+                /**
+                 * the current player needs to make a choice
+                 * of whether to steal cloth or a resource
+                 */
+                gameState = WAITING_FOR_ROB_CLOTH_OR_RESOURCE;
+            }
         }
         else
         {
             /**
              * the current player needs to make a choice
+             * of which player to steal from
              */
             gameState = WAITING_FOR_CHOICE;
         }
@@ -4244,12 +4272,14 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * When moving the robber or pirate, can this player be chosen to be robbed?
      * Game state must be {@link #WAITING_FOR_CHOICE}.
+     * To choose the player and rob, call {@link #choosePlayerForRobbery(int)}.
      *
      * @return true if the current player can choose this player to rob
      * @param pn  the number of the player to rob
      *
      * @see #getRobberyPirateFlag()
      * @see #getPossibleVictims()
+     * @see #canChooseRobClothOrResource(int)
      * @see #stealFromPlayer(int)
      */
     public boolean canChoosePlayer(int pn)
@@ -4268,6 +4298,53 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         return false;
+    }
+
+    /**
+     * The current player has choosen a victim to rob.
+     * Do that, unless they must choose whether to rob cloth or a resource.
+     * Calls {@link #canChooseRobClothOrResource(int)} to check that.
+     *<P>
+     * Calls {@link #stealFromPlayer(int)} to perform the robbery and set gameState back to oldGameState.
+     * If they must choose, instead sets gameState to {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
+     * Once chosen, call {@link #stealFromPlayer(int)}.
+     *<P>
+     * Does not validate <tt>pn</tt>; assumes {@link #canChoosePlayer(int)} has been called already.
+     *
+     * @param pn  the number of the player being robbed
+     * @return the type of resource that was stolen, as in {@link SOCResourceConstants}, or 0
+     *     if must choose first (state {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}).
+     * @since 2.0.00
+     */
+    public int choosePlayerForRobbery(final int pn)
+    {
+        if (! canChooseRobClothOrResource(pn))
+        {
+            return stealFromPlayer(pn);
+        } else {
+            gameState = WAITING_FOR_ROB_CLOTH_OR_RESOURCE;
+            return 0;
+        }
+    }
+
+    /**
+     * Can this player be robbed of either cloth or resources?
+     * True only if {@link #hasSeaBoard} and when robbing with the pirate
+     * ({@link #getRobberyPirateFlag()}.  True only if the player has
+     * both cloth and resources.
+     *<P>
+     * Used with scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     *
+     * @param pn  Player number to check
+     * @return true  only if current player can choose to rob either cloth or resources from <tt>pn</tt>.
+     * @since 2.0.00
+     */
+    public boolean canChooseRobClothOrResource(final int pn)
+    {
+        if (! (hasSeaBoard && robberyWithPirateNotRobber))
+            return false;
+        final SOCPlayer pl = players[pn];
+        return (pl.getCloth() > 0) && (pl.getResources().getTotal() > 0);
     }
 
     /**
@@ -4379,8 +4456,12 @@ public class SOCGame implements Serializable, Cloneable
      * Given the robber or pirate's current position on the board,
      * and {@link #getRobberyPirateFlag()},
      * get the list of victims with adjacent settlements/cities or ships.
+     * Victims are players with resources; for scenario option
+     * {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, also players with cloth
+     * when robbing with the pirate.
      * @return a list of possible players to rob, or an empty Vector
      * @see #canChoosePlayer(int)
+     * @see #choosePlayerForRobbery(int)
      */
     public Vector<SOCPlayer> getPossibleVictims()
     {
@@ -4397,7 +4478,8 @@ public class SOCGame implements Serializable, Cloneable
         {
             int pn = pl.getPlayerNumber();
 
-            if ((pn != currentPlayerNumber) && (! isSeatVacant(pn)) && (pl.getResources().getTotal() > 0))
+            if ((pn != currentPlayerNumber) && (! isSeatVacant(pn))
+                && ( (pl.getResources().getTotal() > 0) || (robberyWithPirateNotRobber && (pl.getCloth() > 0)) ))
             {
                 victims.addElement(pl);
             }
@@ -4411,7 +4493,7 @@ public class SOCGame implements Serializable, Cloneable
      * perform the robbery.  Set gameState back to oldGameState.
      *<P>
      * Does not validate <tt>pn</tt>; assumes {@link #canChoosePlayer(int)}
-     * has been called already.
+     * and {@link #choosePlayerForRobbery(int)} have been called already.
      *
      * @param pn  the number of the player being robbed
      * @return the type of resource that was stolen, as in {@link SOCResourceConstants}

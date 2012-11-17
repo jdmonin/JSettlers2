@@ -5620,7 +5620,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * handle "move robber" message
+     * handle "move robber" message (move the robber or the pirate).
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -5668,7 +5668,7 @@ public class SOCServer extends Server
                 Vector<SOCPlayer> victims = result.getVictims();
 
                 /** only one possible victim */
-                if (victims.size() == 1)
+                if ((victims.size() == 1) && (ga.getGameState() != SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE))
                 {
                     /**
                      * report what was stolen
@@ -5693,6 +5693,13 @@ public class SOCServer extends Server
                          * just say it was moved; nothing is stolen
                          */
                         msgtext.append(".");
+                    }
+                    else if (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
+                    {
+                        /**
+                         * only one possible victim, they have both clay and resources
+                         */
+                        msgtext.append(", must choose to steal cloth or steal resources.");
                     }
                     else
                     {
@@ -6726,9 +6733,17 @@ public class SOCServer extends Server
                 case SOCGame.WAITING_FOR_CHOICE:
                     if (ga.canChoosePlayer(choice))
                     {
-                        final int rsrc = ga.stealFromPlayer(choice);
-                        reportRobbery
-                            (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(choice), rsrc);
+                        final int rsrc = ga.choosePlayerForRobbery(choice);
+                        if (ga.getGameState() != SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
+                        {
+                            reportRobbery
+                                (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(choice), rsrc);
+                        } else {
+                            messageToGame(ga.getName(),
+                                ((String) c.getData()) + " moved the pirate, must choose to steal cloth or steal resources from "
+                                + ga.getPlayer(choice).getName() + ".");
+                            // TODO msg to ask player
+                        }
                         sendGameState(ga);
                         break;
                     }
