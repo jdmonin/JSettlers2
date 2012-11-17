@@ -5713,6 +5713,15 @@ public class SOCServer extends Server
                 }
 
                 sendGameState(ga);
+                    // For WAITING_FOR_CHOICE, sendGameState also sends messages
+                    // with victim info to prompt the client to choose.
+                    // For WAITING_FOR_ROB_CLOTH_OR_RESOURCE, no need to recalculate
+                    // victims there, just send the prompt from here:
+                if (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
+                {
+                    final int vpn = victims.firstElement().getPlayerNumber();
+                    messageToPlayer(c, new SOCChoosePlayer(gaName, vpn));
+                }
             }
             else
             {
@@ -6734,21 +6743,48 @@ public class SOCServer extends Server
                     if (ga.canChoosePlayer(choice))
                     {
                         final int rsrc = ga.choosePlayerForRobbery(choice);
-                        if (ga.getGameState() != SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE)
+                        final boolean waitingClothOrRsrc = (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE);
+                        if (! waitingClothOrRsrc)
                         {
                             reportRobbery
                                 (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(choice), rsrc);
                         } else {
                             messageToGame(ga.getName(),
-                                ((String) c.getData()) + " moved the pirate, must choose to steal cloth or steal resources from "
+                                ((String) c.getData())
+                                + " moved the pirate, must choose to steal cloth or steal resources from "
                                 + ga.getPlayer(choice).getName() + ".");
-                            // TODO msg to ask player
                         }
                         sendGameState(ga);
-                        break;
+                        if (waitingClothOrRsrc)
+                            messageToPlayer(c, new SOCChoosePlayer(ga.getName(), choice));
+                    } else {
+                        messageToPlayer(c, ga.getName(), "You can't steal from that player.");
                     }
-                    // else, fall through and send "can't steal" message
+                    break;
 
+                case SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE:
+                    {
+                        final boolean stealCloth;
+                        final int pn;
+                        if (choice < 0)
+                        {
+                            stealCloth = true;
+                            pn = (-choice) - 1;
+                        } else {
+                            stealCloth = false;
+                            pn = choice;
+                        }
+                        if (ga.canChoosePlayer(pn) && ga.canChooseRobClothOrResource(pn))
+                        {
+                            final int rsrc = ga.stealFromPlayer(pn);
+                            reportRobbery
+                                (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(pn), rsrc);
+                            sendGameState(ga);
+                            break;
+                        }
+                        // else, fall through and send "can't steal" message
+                    }
+                    
                 default:
                     messageToPlayer(c, ga.getName(), "You can't steal from that player.");
                 }

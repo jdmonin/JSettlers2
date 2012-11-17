@@ -4271,7 +4271,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * When moving the robber or pirate, can this player be chosen to be robbed?
-     * Game state must be {@link #WAITING_FOR_CHOICE}.
+     * Game state must be {@link #WAITING_FOR_CHOICE} or {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      * To choose the player and rob, call {@link #choosePlayerForRobbery(int)}.
      *
      * @return true if the current player can choose this player to rob
@@ -4284,7 +4284,7 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canChoosePlayer(int pn)
     {
-        if (gameState != WAITING_FOR_CHOICE)
+        if ((gameState != WAITING_FOR_CHOICE) && (gameState != WAITING_FOR_ROB_CLOTH_OR_RESOURCE))
         {
             return false;
         }
@@ -4332,6 +4332,8 @@ public class SOCGame implements Serializable, Cloneable
      * True only if {@link #hasSeaBoard} and when robbing with the pirate
      * ({@link #getRobberyPirateFlag()}.  True only if the player has
      * both cloth and resources.
+     *<P>
+     * Assumes {@link #canChoosePlayer(int)} has been called already.
      *<P>
      * Used with scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
      *

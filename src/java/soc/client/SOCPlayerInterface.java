@@ -1658,6 +1658,16 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Show the {@link ChooseRobClothOrResourceDialog} to choose what to rob from a player.
+     * @param vpn  Victim player number
+     * @since 2.0.00
+     */
+    public void showChooseRobClothOrResourceDialog(final int vpn)
+    {
+        new ChooseRobClothOrResourceDialog(vpn).showInNewThread();
+    }
+
+    /**
      * show the Discovery dialog box
      */
     public void showDiscoveryDialog()
@@ -2707,6 +2717,109 @@ public class SOCPlayerInterface extends Frame
         }
 
     }  // nested class ChooseMoveRobberOrPirateDialog
+
+    /**
+     * Modal dialog to ask whether to rob cloth or a resource from the victim.
+     * Start a new thread to show, so message treating can continue while the dialog is showing.
+     * When the choice is made, calls {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)}.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    private class ChooseRobClothOrResourceDialog extends AskDialog implements Runnable
+    {
+        private static final long serialVersionUID = 2000L;
+
+        /** Runs in own thread, to not tie up client's message-treater thread. */
+        private Thread rdt;
+
+        /** victim player number */
+        private final int vpn;
+
+        /**
+         * Creates a new ChooseRobClothOrResourceDialog.
+         * To display the dialog, call {@link #showInNewThread()}.
+         * @param vpn  Victim player number
+         */
+        protected ChooseRobClothOrResourceDialog(final int vpn)
+        {
+            super(getClient(), SOCPlayerInterface.this,
+                "Rob cloth or resource?",
+                "Do you want to steal cloth or a resource from this player?",
+                "Steal Cloth",
+                "Steal Resource",
+                null, 1);
+            rdt = null;
+            this.vpn = vpn;
+        }
+
+        /**
+         * React to the Steal Cloth button.
+         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(-(vpn + 1))}.
+         */
+        @Override
+        public void button1Chosen()
+        {
+            pcli.getGameManager().choosePlayer(game, -(vpn + 1));
+        }
+
+        /**
+         * React to the Steal Resource button.
+         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(vpn)}.
+         */
+        @Override
+        public void button2Chosen()
+        {
+            pcli.getGameManager().choosePlayer(game, vpn);
+        }
+
+        /**
+         * React to the dialog window closed by user. (Default is steal resource)
+         */
+        @Override
+        public void windowCloseChosen() { button2Chosen(); }
+
+        /**
+         * Make a new thread and show() in that thread.
+         * Keep track of the thread, in case we need to dispose of it.
+         */
+        public void showInNewThread()
+        {
+            rdt = new Thread(this);
+            rdt.setDaemon(true);
+            rdt.setName("ChooseRobClothOrResourceDialog");
+            rdt.start();  // run method will show the dialog
+        }
+
+        @Override
+        public void dispose()
+        {
+            if (rdt != null)
+            {
+                //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
+                rdt.stop();
+                rdt = null;
+            }
+            super.dispose();
+        }
+
+        /**
+         * In new thread, show ourselves. Do not call
+         * directly; call {@link #showInNewThread()}.
+         */
+        public void run()
+        {
+            try
+            {
+                setVisible(true);
+            }
+            catch (ThreadDeath e) {}
+            catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+
+    }  // nested class ChooseRobClothOrResourceDialog
 
     /**
      * React to window closing or losing focus (deactivation).

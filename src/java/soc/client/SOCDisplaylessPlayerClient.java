@@ -2016,16 +2016,20 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * The user chose a player to steal from,
      * or (game state {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE})
-     * chose whether to move the robber or the pirate.
+     * chose whether to move the robber or the pirate,
+     * or (game state {@link SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE})
+     * chose whether to steal a resource or cloth.
      *
      * @param ga  the game
-     * @param pn  the player id,
+     * @param ch  the player number,
      *   or -1 to move the robber
-     *   or -2 to move the pirate ship
+     *   or -2 to move the pirate ship.
+     *   See {@link SOCChoosePlayer#SOCChoosePlayer(String, int)} for meaning
+     *   of <tt>ch</tt> for game state <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>.
      */
-    public void choosePlayer(SOCGame ga, int pn)
+    public void choosePlayer(SOCGame ga, final int ch)
     {
-        put(SOCChoosePlayer.toCmd(ga.getName(), pn));
+        put(SOCChoosePlayer.toCmd(ga.getName(), ch));
     }
 
     /**

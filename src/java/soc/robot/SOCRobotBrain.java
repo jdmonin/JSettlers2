@@ -43,6 +43,7 @@ import soc.game.SOCVillage;
 
 import soc.message.SOCAcceptOffer;
 import soc.message.SOCCancelBuildRequest;
+import soc.message.SOCChoosePlayer;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
 import soc.message.SOCDevCard;
@@ -1246,6 +1247,7 @@ public class SOCRobotBrain extends Thread
                     {
                         // TODO handle moving the pirate too
                         // For now, always decide to move the robber.
+                        // Once we move the robber, will also need to deal with state WAITING_FOR_ROB_CLOTH_OR_RESOURCE.
                         expectPLACING_ROBBER = true;
                         waitingForGameState = true;
                         counter = 0;
@@ -1658,6 +1660,15 @@ public class SOCRobotBrain extends Thread
                             final int choicePl = RobberStrategy.chooseRobberVictim
                                 (((SOCChoosePlayerRequest) mes).getChoices(), game, playerTrackers);
                             client.choosePlayer(game, choicePl);
+                        }
+                        break;
+
+                    case SOCMessage.CHOOSEPLAYER:
+                        {
+                            final int vpn = ((SOCChoosePlayer) mes).getChoice();
+                            // Cloth is more valuable.
+                            // TODO decide when we should choose resources instead
+                            client.choosePlayer(game, -(vpn + 1));
                         }
                         break;
 

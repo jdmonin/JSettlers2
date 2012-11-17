@@ -1702,6 +1702,14 @@ public class SOCPlayerClient extends Panel
                 break;
 
             /**
+             * The server wants this player to choose to rob cloth or rob resources.
+             * Added 2012-11-17 for v2.0.00.
+             */
+            case SOCMessage.CHOOSEPLAYER:
+                handleCHOOSEPLAYER((SOCChoosePlayer) mes);
+                break;
+
+            /**
              * a player has made an offer
              */
             case SOCMessage.MAKEOFFER:
@@ -3081,6 +3089,16 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
+     * The server wants this player to choose to rob cloth or rob resources,
+     * after moving the pirate ship.  Added 2012-11-17 for v2.0.00.
+     */
+    protected void handleCHOOSEPLAYER(SOCChoosePlayer mes)
+    {
+        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
+        pi.showChooseRobClothOrResourceDialog(mes.getChoice());
+    }
+
+    /**
      * handle the "make offer" message
      * @param mes  the message
      */
@@ -4221,12 +4239,16 @@ public class SOCPlayerClient extends Panel
     /**
      * The user chose a player to steal from,
      * or (game state {@link SOCGame#WAITING_FOR_ROBBER_OR_PIRATE})
-     * chose whether to move the robber or the pirate.
+     * chose whether to move the robber or the pirate,
+     * or (game state {@link SOCGame#WAITING_FOR_ROB_CLOTH_OR_RESOURCE})
+     * chose whether to steal a resource or cloth.
      *
      * @param ga  the game
      * @param ch  the player number,
      *   or -1 to move the robber
      *   or -2 to move the pirate ship.
+     *   See {@link SOCChoosePlayer#SOCChoosePlayer(String, int)} for meaning
+     *   of <tt>ch</tt> for game state <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>.
      */
     public void choosePlayer(SOCGame ga, final int ch)
     {

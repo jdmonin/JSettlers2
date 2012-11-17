@@ -22,6 +22,7 @@
 package soc.robot;
 
 import soc.client.SOCDisplaylessPlayerClient;
+import soc.client.SOCPlayerInterface;
 
 import soc.disableDebug.D;
 
@@ -608,6 +609,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 handlePutBrainQ((SOCChoosePlayerRequest) mes);
 
                 break;
+
+            /**
+             * The server wants this player to choose to rob cloth or rob resources,
+             * after moving the pirate ship.  Added 2012-11-17 for v2.0.00.
+             */
+            case SOCMessage.CHOOSEPLAYER:
+                handlePutBrainQ((SOCChoosePlayer) mes);
 
             /**
              * a player has made an offer

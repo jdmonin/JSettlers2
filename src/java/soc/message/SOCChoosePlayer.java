@@ -24,17 +24,22 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message from client to server has 2 purposes:
+ * This message from client to server has a few purposes, all related to robbing:
  *<UL>
  *<LI> After a server's {@link SOCChoosePlayerRequest}, 
  *     it says which player the current player wants to
  *     steal from.
  *<LI> After a server's {@link SOCGameState}
- *     ({@link soc.game.SOCGame#WAITING_FOR_ROBBER_OR_PIRATE}),
+ *     ({@link soc.game.SOCGame#WAITING_FOR_ROBBER_OR_PIRATE WAITING_FOR_ROBBER_OR_PIRATE}) message,
  *     it says whether the player wants to move the robber
  *     or the pirate ship. (v2.0.00+)
+ *<LI> After a server's {@link SOCChoosePlayer} message, it says whether the player wants to
+ *     rob cloth or rob a resource from the victim. (v2.0.00+)
  *</UL>
  * {@link #getChoice()} gets the client's choice.
+ *<P>
+ * Also sent from server to client (v2.0.00+) to prompt the client to choose to rob
+ * cloth or rob a resource from the victim; {@link #getChoice()} is the victim player number.
  *
  * @author Robert S. Thomas &lt;thomas@infolab.northwestern.edu&gt;
  */
@@ -60,6 +65,9 @@ public class SOCChoosePlayer extends SOCMessage
      * @param ch  the number of the chosen player,
      *   or -1 to move the robber
      *   or -2 to move the pirate ship.
+     *<br>
+     * For <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>, use <tt>ch</tt> = playerNumber
+     * to rob a resource; to rob cloth, use <tt>ch</tt> = -(playerNumber + 1).
      */
     public SOCChoosePlayer(String ga, int ch)
     {
@@ -80,6 +88,11 @@ public class SOCChoosePlayer extends SOCMessage
      * @return the number of the chosen player,
      *   or -1 to move the robber
      *   or -2 to move the pirate ship.
+     *<br>
+     * For <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>, <tt>getChoice()</tt> &gt;= 0
+     * means rob a resource from that player number, and <tt>getChoice()</tt> &lt; 0
+     * means rob cloth from player number (<tt>-getChoice()</tt>) - 1.
+     * 
      */
     public int getChoice()
     {
@@ -100,7 +113,8 @@ public class SOCChoosePlayer extends SOCMessage
      * CHOOSEPLAYER sep game sep2 choice
      *
      * @param ga  the name of the game
-     * @param ch  the number of the chosen player
+     * @param ch  the number of the chosen player;
+     *            see {@link #SOCChoosePlayer(String, int)} for meaning
      * @return the command string
      */
     public static String toCmd(String ga, int ch)
