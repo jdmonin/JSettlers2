@@ -236,6 +236,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Player is placing the robber on a new land hex.
+     * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE} if the game {@link #hasSeaBoard}.
      * @see #PLACING_PIRATE
      * @see #canMoveRobber(int, int)
      * @see #moveRobber(int, int)
@@ -245,6 +246,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Player is placing the pirate ship on a new water hex,
      * in a game which {@link #hasSeaBoard}.
+     * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
      * @see #PLACING_ROBBER
      * @see #canMovePirate(int, int)
      * @see #movePirate(int, int)
@@ -3990,6 +3992,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Based on game options, can the pirate ship be moved instead of the robber?
      * True only if {@link #hasSeaBoard}.
+     * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
+     * must have {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      * @return  true if the pirate ship can be moved
      * @see #WAITING_FOR_ROBBER_OR_PIRATE
      * @see #chooseMovePirate(boolean)
@@ -3997,7 +4001,14 @@ public class SOCGame implements Serializable, Cloneable
      */
     public boolean canChooseMovePirate()
     {
-        return hasSeaBoard;
+        if (! hasSeaBoard)
+            return false;
+        if (isGameOptionSet(SOCGameOption.K_SC_CLVI)
+            && ! players[currentPlayerNumber].hasScenarioPlayerEvent
+                 (SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+            return false;
+
+        return true;
     }
 
     /**
@@ -4034,6 +4045,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player that is moving the robber
      * @param co  the new robber hex coordinates; not validated
      * @see #moveRobber(int, int)
+     * @see #canMovePirate(int, int)
      */
     public boolean canMoveRobber(int pn, int co)
     {
@@ -4144,12 +4156,15 @@ public class SOCGame implements Serializable, Cloneable
      * Must be different from current pirate coordinates.
      * Game must have {@link #hasSeaBoard}.
      * Must be current player.  Game state must be {@link #PLACING_PIRATE}.
+     * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
+     * must have {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      * 
      * @return true if this player can move the pirate ship to this hex coordinate
      *
      * @param pn  the number of the player that is moving the pirate
      * @param hco  the new pirate hex coordinates; will check for a water hex
      * @see #movePirate(int, int)
+     * @see #canMoveRobber(int, int)
      * @since 2.0.00
      */
     public boolean canMovePirate(final int pn, final int hco)
@@ -4162,6 +4177,10 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         if (((SOCBoardLarge) board).getPirateHex() == hco)
             return false;
+        if (isGameOptionSet(SOCGameOption.K_SC_CLVI)
+            && ! players[pn].hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
+            return false;
+
         return (board.isHexOnWater(hco));
     }
 
