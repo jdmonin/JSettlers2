@@ -1643,12 +1643,15 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * show the choose player dialog box
+     * show the {@link SOCChoosePlayerDialog} to choose a player for robbery.
+     *<P>
+     * Before v2.0.00, this was <tt>choosePlayer</tt>.
      *
      * @param count   the number of players to choose from
      * @param pnums   the player ids of those players
+     * @see #sendChoosePlayer(int)
      */
-    public void choosePlayer(int count, int[] pnums)
+    public void showChoosePlayerDialog(int count, int[] pnums)
     {
         choosePlayerDialog = new SOCChoosePlayerDialog(this, count, pnums);
         choosePlayerDialog.setVisible(true);
@@ -2609,7 +2612,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Modal dialog to ask whether to move the robber or the pirate ship.
      * Start a new thread to show, so message treating can continue while the dialog is showing.
-     * When the choice is made, calls {@link SOCPlayerClient#choosePlayer(SOCGame, int)}
+     * When the choice is made, calls {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)}
      * with -1 or -2.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -2639,7 +2642,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Move Robber button.
-         * Call {@link SOCPlayerClient#choosePlayer(SOCGame, int) pcli.choosePlayer(-1)}.
+         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(-1)}.
          */
         @Override
         public void button1Chosen()
@@ -2649,7 +2652,7 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Move Pirate button.
-         * Call {@link SOCPlayerClient#choosePlayer(SOCGame, int) pcli.choosePlayer(-2)}.
+         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(-2)}.
          */
         @Override
         public void button2Chosen()

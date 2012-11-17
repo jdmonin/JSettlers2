@@ -3077,7 +3077,7 @@ public class SOCPlayerClient extends Panel
             }
         }
 
-        pi.choosePlayer(count, choices);
+        pi.showChoosePlayerDialog(count, choices);
     }
 
     /**
@@ -4224,13 +4224,13 @@ public class SOCPlayerClient extends Panel
      * chose whether to move the robber or the pirate.
      *
      * @param ga  the game
-     * @param pn  the player id,
+     * @param ch  the player number,
      *   or -1 to move the robber
-     *   or -2 to move the pirate ship
+     *   or -2 to move the pirate ship.
      */
-    public void choosePlayer(SOCGame ga, int pn)
+    public void choosePlayer(SOCGame ga, final int ch)
     {
-        put(SOCChoosePlayer.toCmd(ga.getName(), pn), ga.isPractice);
+        put(SOCChoosePlayer.toCmd(ga.getName(), ch), ga.isPractice);
     }
 
     /**
