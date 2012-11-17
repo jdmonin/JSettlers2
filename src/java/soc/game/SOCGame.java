@@ -488,7 +488,7 @@ public class SOCGame implements Serializable, Cloneable
      * For games at server, a convenient place to hold outbound messages during game actions.
      * Public access for use by SOCServer.  The server will handle a game action as usual
      * (for example, {@link #putPiece(SOCPlayingPiece)}), create pending PLAYERELEMENT messages from
-     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent)},
+     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object) SOCScenarioEventListener.playerEvent(...)},
      * send the usual messages related to that action, then check this list and send out
      * the pending PLAYERELEMENT message so that the game's clients will update that player's
      * {@link SOCPlayer#setScenarioPlayerEvents(int)} or other related fields.

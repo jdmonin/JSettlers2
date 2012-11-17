@@ -1754,7 +1754,7 @@ public class SOCServer extends Server
      * @param ga  Game
      * @param evt  Event code
      * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>  
-     * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent)
+     * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)
      * @since 2.0.00
      */
     public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail)
@@ -1788,9 +1788,15 @@ public class SOCServer extends Server
      * @param pl  Player
      * @param evt  Event code
      * @see #gameEvent(SOCGame, SOCScenarioGameEvent, Object)
+     * @param flagsChanged  True if this event changed {@link SOCPlayer#getScenarioPlayerEvents()},
+     *             {@link SOCPlayer#getSpecialVP()}, or another flag documented for <tt>evt</tt> in
+     *             {@link SOCScenarioPlayerEvent}
+     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCScenarioPlayerEvent}.
+     *             Example: The {@link SOCVillage} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      * @since 2.0.00
      */
-    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt)
+    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt,
+        final boolean flagsChanged, final Object obj)
     {
         // Note: Some SOCServer code assumes that player events are fired only during handlePUTPIECE.
         // If a new player event breaks this assumption, adjust SOCServer.playerEvent(...) and related code;
@@ -1830,13 +1836,20 @@ public class SOCServer extends Server
         case CLOTH_TRADE_ESTABLISHED_VILLAGE:
             {
                 sendSVP = false;
+                if (! flagsChanged)
+                    sendPlayerEventsBitmask = false;
                 StringConnection c = getConnection(plName);
                 if (c != null)
-                    c.put(SOCGameTextMsg.toCmd
-                        (gaName, SERVERNAME, "Trade route established with village. You are no longer prevented from moving the pirate ship."));
+                {
+                    String txt = (flagsChanged)
+                        ? "Trade route established with village. You are no longer prevented from moving the pirate ship."
+                        : "Trade route established with village.";
+                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, txt));
+                }
 
                 // Player gets 1 cloth for establishing trade
-                // TODO message to update village cloth count
+                SOCVillage vi = (SOCVillage) obj;
+                messageToGame(gaName, new SOCPieceValue(gaName, vi.getCoordinates(), vi.getCloth(), 0));
                 messageToGame(gaName, new SOCPlayerElement
                     (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, pl.getCloth()));
             }

@@ -1177,15 +1177,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         if (isTradeRouteFarEndClosed_foundVillage != null)
         {
-            isTradeRouteFarEndClosed_foundVillage.addTradingPlayer(this);
+            final boolean gotCloth = isTradeRouteFarEndClosed_foundVillage.addTradingPlayer(this);
+            final boolean flagNew =
+                ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
-            if (! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
-            {
+            if (flagNew)
                 setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
-    
+            if (flagNew || gotCloth)
+            {
                 if (game.scenarioEventListener != null)
                     game.scenarioEventListener.playerEvent
-                        (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                        (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE,
+                         flagNew, isTradeRouteFarEndClosed_foundVillage);
             }
         }
 
@@ -1235,15 +1238,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 if (isTradeRouteFarEndClosed_foundVillage != null)
                 {
-                    isTradeRouteFarEndClosed_foundVillage.addTradingPlayer(this);
+                    final boolean gotCloth = isTradeRouteFarEndClosed_foundVillage.addTradingPlayer(this);
+                    final boolean flagNew =
+                        ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
-                    if (! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
-                    {
+                    if (flagNew)
                         setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
-    
+                    if (flagNew || gotCloth)
+                    {
                         if (game.scenarioEventListener != null)
                             game.scenarioEventListener.playerEvent
-                                (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                                (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE,
+                                 flagNew, isTradeRouteFarEndClosed_foundVillage);
                     }
                 }
             }
@@ -2155,15 +2161,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 if (pp instanceof SOCVillage)
                 {
-                    ((SOCVillage) pp).addTradingPlayer(this);
+                    final boolean gotCloth = ((SOCVillage) pp).addTradingPlayer(this);
+                    final boolean flagNew =
+                        ! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
 
-                    if (! hasScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE))
-                    {
+                    if (flagNew)
                         setScenarioPlayerEvent(SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
-    
+                    if (flagNew || gotCloth)
+                    {
                         if (game.scenarioEventListener != null)
                             game.scenarioEventListener.playerEvent
-                                (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE);
+                                (game, this, SOCScenarioPlayerEvent.CLOTH_TRADE_ESTABLISHED_VILLAGE, flagNew, pp);
                     }
                 }
 
@@ -2231,7 +2239,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 // Notify (server or GUI)
                 game.scenarioEventListener.playerEvent
-                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA);
+                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, null);
             }
         }
 
@@ -2247,7 +2255,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 // Notify (server or GUI)
                 game.scenarioEventListener.playerEvent
-                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA);
+                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, null);
             }
         }
     }

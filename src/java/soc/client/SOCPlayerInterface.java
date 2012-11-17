@@ -1886,7 +1886,7 @@ public class SOCPlayerInterface extends Frame
      * @param ga  Game
      * @param evt Event code
      * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>  
-     * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent)
+     * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)
      * @since 2.0.00
      */
     public void gameEvent(final SOCGame ga, final SOCScenarioGameEvent evt, final Object detail)
@@ -1900,16 +1900,22 @@ public class SOCPlayerInterface extends Frame
      * @param ga  Game
      * @param pl  Player
      * @param evt  Event code
+     * @param flagsChanged  True if this event changed {@link SOCPlayer#getScenarioPlayerEvents()},
+     *             {@link SOCPlayer#getSpecialVP()}, or another flag documented for <tt>evt</tt> in
+     *             {@link SOCScenarioPlayerEvent}
+     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCScenarioPlayerEvent}.
+     *             Example: The {@link SOCVillage} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      * @see #gameEvent(SOCGame, SOCScenarioGameEvent, Object)
      * @since 2.0.00
      */
-    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt)
+    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt,
+        final boolean flagsChanged, final Object obj)
     {
         final SOCHandPanel mesHp = getPlayerHandPanel(pl.getPlayerNumber());
         if (mesHp == null)
             return;
 
-        if (pl.getSpecialVP() != 0)
+        if (flagsChanged && (pl.getSpecialVP() != 0))
         {
             // assumes will never be reduced to 0 again
             mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);

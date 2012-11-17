@@ -48,7 +48,13 @@ public interface SOCScenarioEventListener
      * @param ga  Game
      * @param pl  Player
      * @param evt  Event code
+     * @param flagsChanged  True if this event changed {@link SOCPlayer#getScenarioPlayerEvents()},
+     *             {@link SOCPlayer#getSpecialVP()}, or another flag documented for <tt>evt</tt> in
+     *             {@link SOCScenarioPlayerEvent}
+     * @param obj  Object related to the event, or null; documented for <tt>evt</tt> in {@link SOCScenarioPlayerEvent}.
+     *             Example: The {@link SOCVillage} for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
      */
-    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt);
+    public void playerEvent(final SOCGame ga, final SOCPlayer pl, final SOCScenarioPlayerEvent evt,
+        final boolean flagsChanged, final Object obj);
 
 }
