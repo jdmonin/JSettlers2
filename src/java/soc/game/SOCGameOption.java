@@ -1924,6 +1924,44 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
+     * Within a set of options, include an int or intbool option and set its value.
+     * If the option object doesn't exist in <tt>newOpts</tt>, it will be cloned from
+     * the set of known options.
+     * @param newOpts Options to set <tt>ioKey</tt> within
+     * @param ioKey   Key name for int option to set
+     * @param ivalue  Set option to this int value
+     * @param bvalue  Set option to this boolean value (ignored if option type not intbool)
+     * @throws NullPointerException  if <tt>ioKey</tt> isn't in <tt>newOpts</tt>
+     *   and doesn't exist in the set of known options
+     * @since 1.1.17
+     */
+    public static void setIntOption
+        (Hashtable<String, SOCGameOption> newOpts, final String ioKey, final int ivalue, final boolean bvalue)
+        throws NullPointerException
+    {
+        SOCGameOption opt = newOpts.get(ioKey);
+        if (opt == null)
+        {
+            try
+            {
+                opt = (SOCGameOption) (allOptions.get(ioKey).clone());
+            }
+            catch (CloneNotSupportedException e)
+            {
+                // required stub; is Cloneable, so won't be thrown
+            }
+            opt.intValue = ivalue;
+            opt.boolValue = bvalue;
+            newOpts.put(ioKey, opt);
+        }
+        else
+        {
+            opt.intValue = ivalue;
+            opt.boolValue = bvalue;
+        }
+    }
+
+    /**
      * For user output, the string name of the option type's constant.
      * The prefix "OTYPE_" is omitted.
      * @param optType An option's {@link #optType} value
