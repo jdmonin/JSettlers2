@@ -1786,6 +1786,15 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             if ((opt != null) && opt.getBoolValue())
                 setBoolOption(newOpts, K_SC_SANY);
 
+            // If _SC_CLVI is set, VP should be >= 14
+            opt = newOpts.get(K_SC_CLVI);
+            if ((opt != null) && opt.getBoolValue())
+            {
+                opt = newOpts.get("VP");
+                if ((opt == null) || (opt.getIntValue() < 14))
+                    setIntOption(newOpts, "VP", 14, true);
+            }
+
         }  // if(doServerPreadjust)
 
         // OTYPE_* - adj javadoc above (re dropIfUnused) if a string-type or bool-type is added.
