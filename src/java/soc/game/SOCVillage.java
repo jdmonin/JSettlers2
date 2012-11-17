@@ -129,16 +129,27 @@ public class SOCVillage extends SOCPlayingPiece
 
     /**
      * Add this player to the list of trading players.
+     * If the village has some {@link #getCloth()} remaining,
+     * gives <tt>pl</tt> 1 cloth now (at server only).
      * @param pl  Player who's just established trade with this village
+     * @return   True if <tt>pl</tt> received 1 cloth
      */
-    public void addTradingPlayer(SOCPlayer pl)
+    public boolean addTradingPlayer(SOCPlayer pl)
     {
         if (traders == null)
             traders = new ArrayList<SOCPlayer>();
         else if (traders.contains(pl))
-            return;
+            return false;
 
         traders.add(pl);
+        if ((numCloth > 0) && pl.getGame().isAtServer)
+        {
+            --numCloth;
+            pl.setCloth(1 + pl.getCloth());
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

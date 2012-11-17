@@ -1834,6 +1834,11 @@ public class SOCServer extends Server
                 if (c != null)
                     c.put(SOCGameTextMsg.toCmd
                         (gaName, SERVERNAME, "Trade route established with village. You are no longer prevented from moving the pirate ship."));
+
+                // Player gets 1 cloth for establishing trade
+                // TODO message to update village cloth count
+                messageToGame(gaName, new SOCPlayerElement
+                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, pl.getCloth()));
             }
             break;
 
