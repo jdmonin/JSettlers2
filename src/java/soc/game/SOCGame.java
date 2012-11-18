@@ -848,8 +848,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Is the current robbery using the pirate ship, not the robber?
      * If true, victims will be based on adjacent ships, not settlements/cities.
-     * Set in {@link #chooseMovePirate(boolean)},
-     * {@link #movePirate(int, int)} and {@link #moveRobber(int, int)}.
+     * Set in {@link #chooseMovePirate(boolean)}, {@link #movePirate(int, int)}, {@link #moveRobber(int, int)},
+     * and other places that set gameState to {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
      * @see #getRobberyPirateFlag()
      * @since 2.0.00
      */
@@ -3689,9 +3689,12 @@ public class SOCGame implements Serializable, Cloneable
                 placingRobberForKnightCard = false;
                 oldGameState = PLAY1;
                 if (canChooseMovePirate())
+                {
                     gameState = WAITING_FOR_ROBBER_OR_PIRATE;
-                else
+                } else {
+                    robberyWithPirateNotRobber = false;
                     gameState = PLACING_ROBBER;
+                }
             }
 
             currentRoll.cloth = null;
@@ -3921,9 +3924,12 @@ public class SOCGame implements Serializable, Cloneable
             if (! forcingEndTurn)
             {
                 if (canChooseMovePirate())
+                {
                     gameState = WAITING_FOR_ROBBER_OR_PIRATE;
-                else
+                } else {
+                    robberyWithPirateNotRobber = false;
                     gameState = PLACING_ROBBER;
+                }
             } else {
                 gameState = PLAY1;
             }
@@ -5238,9 +5244,12 @@ public class SOCGame implements Serializable, Cloneable
         placingRobberForKnightCard = true;
         oldGameState = gameState;
         if (canChooseMovePirate())
+        {
             gameState = WAITING_FOR_ROBBER_OR_PIRATE;
-        else
+        } else {
+            robberyWithPirateNotRobber = false;
             gameState = PLACING_ROBBER;
+        }
     }
 
     /**
