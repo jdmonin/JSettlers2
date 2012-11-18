@@ -2951,7 +2951,11 @@ public class SOCPlayerClient extends Panel
 
             // only notify about valid rolls
             if (roll >= 2 && roll <= 12)
-                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, ga.getPlayer(ga.getCurrentPlayerNumber())));
+            {
+                final int cpn = ga.getCurrentPlayerNumber();
+                if (cpn >= 0)
+                    pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, ga.getPlayer(cpn)));
+            }
         }
     }
 
