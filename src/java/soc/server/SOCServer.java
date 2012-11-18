@@ -8471,6 +8471,14 @@ public class SOCServer extends Server
         }
 
         /**
+         * Send the current player number.
+         * Before v2.0.00, this wasn't sent so early; was sent
+         * just before SOCGameState and the "joined the game" text.
+         * This earlier send has been tested against 1.1.07 (released 2009-10-31).
+         */
+        c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
+
+        /**
          * send the per-player information
          */
         for (int i = 0; i < gameData.maxPlayers; i++)
@@ -8642,7 +8650,8 @@ public class SOCServer extends Server
 
         gameList.releaseMonitorForGame(gameName);
         c.put(membersCommand);
-        c.put(SOCSetTurn.toCmd(gameName, gameData.getCurrentPlayerNumber()));
+        // before v2.0.00, current player number (SETTURN) was sent here,
+        // between membersCommand and GAMESTATE.
         c.put(SOCGameState.toCmd(gameName, gameData.getGameState()));
         D.ebugPrintln("*** " + c.getData() + " joined the game " + gameName + " from " + c.host());
 
