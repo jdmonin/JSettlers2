@@ -5951,7 +5951,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hoverTextSet = true;
                             hoverSettlementID = 0;
                             hoverCityID = 0;
-                            setHoverText("Village for cloth trade (" + vi.getCloth() + " cloth)");
+                            setHoverText("Village for cloth trade on " + vi.diceNum + " (" + vi.getCloth() + " cloth)");
                         }
                     }
 
