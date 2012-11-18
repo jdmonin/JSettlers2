@@ -2560,7 +2560,7 @@ public class SOCPlayerClient extends Panel
             bd.setRobberHex(mes.getRobberHex(), false);
 
             SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-            pi.getBoardPanel().flushBoardLayoutAndRepaint();
+            pi.updateAtNewBoard();
         }
     }
 
@@ -2635,8 +2635,9 @@ public class SOCPlayerClient extends Panel
                 ("Cannot recognize game encoding v" + bef + " for game " + ga.getName());
             return;
         }
+
         SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.getBoardPanel().flushBoardLayoutAndRepaint();
+        pi.updateAtNewBoard();
     }
 
     /**

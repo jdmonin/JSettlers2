@@ -1730,6 +1730,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Clear the board layout (as rendered in the
      * empty-board buffer) and trigger a repaint.
      * @since 1.1.08
+     * @see SOCPlayerInterface#updateAtNewBoard()
      */
     public void flushBoardLayoutAndRepaint()
     {
@@ -3323,10 +3324,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Draw the whole board (water, hexes, ports, numbers) but no placed pieces.
      * This is drawn once, then stored.
-     * If the board layout changes (at start of game, for example),
+     * If the board layout changes (at start of game or
+     * {@link SOCBoardLarge#FOG_HEX fog hex} reveal, for example),
      * call {@link #flushBoardLayoutAndRepaint()} to clear the buffered copy.
+     *<P>
+     * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI},
+     * <tt>drawBoardEmpty</tt> draws the board's {@link SOCVillage}s.
      * @param g Graphics, typically from {@link #emptyBoardBuffer}
      * @since 1.1.08
+     * @see SOCPlayerInterface#updateAtNewBoard()
      */
     private void drawBoardEmpty(Graphics g)
     {

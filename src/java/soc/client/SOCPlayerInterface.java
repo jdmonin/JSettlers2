@@ -27,6 +27,7 @@ import soc.debug.D;  // JM
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCRoad;
@@ -1683,6 +1684,21 @@ public class SOCPlayerInterface extends Frame
     {
         monopolyDialog = new SOCMonopolyDialog(this);
         monopolyDialog.setVisible(true);
+    }
+
+    /**
+     * Update interface after the server sends us a new board layout.
+     * Call after setting game data and board data.
+     * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}.
+     * Updates display of board-related counters, such as {@link SOCBoardLarge#getCloth()}.
+     * Not needed if calling {@link #resetBoard(SOCGame, int, int)}.
+     * @since 2.0.00
+     */
+    public void updateAtNewBoard()
+    {
+        boardPanel.flushBoardLayoutAndRepaint();
+        if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+            buildingPanel.updateClothCount();
     }
 
     /**
