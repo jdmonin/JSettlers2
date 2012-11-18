@@ -3262,7 +3262,7 @@ public class SOCBoardLarge extends SOCBoard
      */
     private static final int SCEN_CLOTH_VILLAGE_NODES_DICE[] =
     {
-        10,        // Board's "general supply" cloth count
+        SOCVillage.STARTING_GENERAL_CLOTH,  // Board's "general supply" cloth count
         SOCVillage.STARTING_CLOTH,
         0x610, 6,  // SE point of NE island
         0xA0D, 5,  // N point of SE island

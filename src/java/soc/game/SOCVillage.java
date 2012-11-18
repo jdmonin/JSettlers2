@@ -38,7 +38,14 @@ public class SOCVillage extends SOCPlayingPiece
     private static final long serialVersionUID = 2000L;
 
     /**
+     * Default starting amount of cloth for the board general supply (10).
+     * @see #STARTING_CLOTH
+     */
+    public static final int STARTING_GENERAL_CLOTH = 10;
+
+    /**
      * Default starting amount of cloth for a village (5).
+     * @see #STARTING_GENERAL_CLOTH
      */
     public static final int STARTING_CLOTH = 5;
 
