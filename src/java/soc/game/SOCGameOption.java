@@ -482,7 +482,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Scenario key <tt>_SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
-     * Villages are in a game only if this option is set.
+     * Villages and cloth are in a game only if this option is set.
      * @since 2.0.00
      */
     public static final String K_SC_CLVI = "_SC_CLVI";

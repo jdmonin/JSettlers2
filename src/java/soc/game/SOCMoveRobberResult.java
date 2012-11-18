@@ -71,7 +71,8 @@ public class SOCMoveRobberResult
      * Set the type of resource stolen from the victim
      *
      * @param l type of resource stolen, as in {@link SOCResourceConstants},
-     *          or -1 if nothing stolen
+     *          or -1 if nothing stolen,
+     *          or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth.
      */
     public void setLoot(int l)
     {
@@ -83,7 +84,8 @@ public class SOCMoveRobberResult
      * undefined unless {@link #getVictims()}.size() == 1.
      *
      * @return type of resource stolen, as in {@link SOCResourceConstants},
-     *         or -1 if nothing stolen
+     *         or -1 if nothing stolen,
+     *         or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth.
      */
     public int getLoot()
     {

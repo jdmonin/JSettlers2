@@ -6776,7 +6776,7 @@ public class SOCServer extends Server
                         }
                         if (ga.canChoosePlayer(pn) && ga.canChooseRobClothOrResource(pn))
                         {
-                            final int rsrc = ga.stealFromPlayer(pn);
+                            final int rsrc = ga.stealFromPlayer(pn, stealCloth);
                             reportRobbery
                                 (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(pn), rsrc);
                             sendGameState(ga);
@@ -8850,9 +8850,11 @@ public class SOCServer extends Server
      * @param ga  the game
      * @param pe  the perpetrator
      * @param vi  the the victim
-     * @param rsrc  type of resource stolen, as in {@link SOCResourceConstants#SHEEP}
+     * @param rsrc  type of resource stolen, as in {@link SOCResourceConstants#SHEEP},
+     *              or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth
+     *              (scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}).
      */
-    protected void reportRobbery(SOCGame ga, SOCPlayer pe, SOCPlayer vi, int rsrc)
+    protected void reportRobbery(SOCGame ga, SOCPlayer pe, SOCPlayer vi, final int rsrc)
     {
         if (ga == null)
             return;
@@ -8862,6 +8864,19 @@ public class SOCServer extends Server
         final String viName = vi.getName();
         final int pePN = pe.getPlayerNumber();
         final int viPN = vi.getPlayerNumber();
+        if (rsrc == SOCResourceConstants.CLOTH_STOLEN_LOCAL)
+        {
+            messageToGame(gaName,
+                new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET,
+                    SOCPlayerElement.SCENARIO_CLOTH_COUNT, vi.getCloth()));
+            messageToGame(gaName,
+                new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET,
+                    SOCPlayerElement.SCENARIO_CLOTH_COUNT, pe.getCloth()));
+            messageToGame(gaName, peName + " stole a cloth from " + viName);
+
+            return;  // <--- early return: cloth is announced to entire game ---
+        }
+
         StringBuffer mes = new StringBuffer(" stole ");  // " stole a sheep resource from "
         SOCPlayerElement gainRsrc = null;
         SOCPlayerElement loseRsrc = null;
