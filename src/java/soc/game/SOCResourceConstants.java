@@ -77,6 +77,19 @@ public class SOCResourceConstants
      */
     public static final int GOLD_LOCAL = 6;
 
+    /**
+     * Some code, internal to the <tt>soc.game</tt> or <tt>soc.server</tt> packages,
+     * uses this value (7) to represent stolen cloth ({@link SOCPlayer#getCloth()})
+     * for scenario game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     *<P>
+     * Cloth is not a resource, and <tt>CLOTH_STOLEN_LOCAL</tt> should not be sent
+     * over the network or used for anything except internally reporting stolen cloth.
+     * So, this value can be changed between versions.
+     * Numerically higher than {@link #GOLD_LOCAL}.
+     * @since 2.0.00
+     */
+    public static final int CLOTH_STOLEN_LOCAL = 7;
+
     /** Minimum value (1 == {@link #CLAY}) */
     public static final int MIN = 1;
 
