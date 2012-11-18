@@ -6094,7 +6094,10 @@ public class SOCServer extends Server
                     String message;
                     if (noPlayersGained)
                     {
-                        message = "No player gets anything.";
+                        if (roll.cloth == null)
+                            message = "No player gets anything.";
+                        else
+                            message = "No player gets resources.";
                         // debug_printPieceDiceNumbers(ga, message);
                     }
                     else
@@ -6119,6 +6122,7 @@ public class SOCServer extends Server
                                 (gn, -1, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, board.getCloth()));
 
                         StringBuilder sb = null;
+                        int nPl = 0;
                         for (int i = 2; i < roll.cloth.length; ++i)
                         {
                             if (roll.cloth[i] == 0)
@@ -6135,8 +6139,11 @@ public class SOCServer extends Server
                             } else {
                                 sb.append(", ");
                                 sb.append(clpl.getName());
-                            }                            
+                            }
+                            ++nPl;
                         }
+                        if (nPl > 1)
+                            sb.append(" each");
                         sb.append(" received 1 cloth from a village.");
                         messageToGame(gn, sb.toString());
                     }
