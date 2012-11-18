@@ -1079,7 +1079,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         if (ga != null)
         {
-            final SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
+            final int pn = mes.getPlayerNumber();
+            final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
 
             switch (mes.getElementType())
             {
@@ -1147,7 +1148,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 if (0 != mes.getValue())
                 {
                     try {
-                        ga.askSpecialBuild(pl.getPlayerNumber(), false);  // set per-player, per-game flags
+                        ga.askSpecialBuild(pn, false);  // set per-player, per-game flags
                     }
                     catch (RuntimeException e) {}
                 } else {
@@ -1172,7 +1173,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
-                pl.setCloth(mes.getValue());
+                if (pn != -1)
+                    pl.setCloth(mes.getValue());
+                else
+                    ((SOCBoardLarge) (ga.getBoard())).setCloth(mes.getValue());
                 break;
 
             }

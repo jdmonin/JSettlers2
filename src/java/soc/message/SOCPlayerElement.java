@@ -157,7 +157,9 @@ public class SOCPlayerElement extends SOCMessage
      * Create a PlayerElement message.
      *
      * @param ga  name of the game
-     * @param pn  the player number
+     * @param pn  the player number; v2.0.00+ allows -1 for some elements (applies to board or to all players).
+     *            Earlier client versions will throw an exception accessing player -1.
+     *            If the element allows -1, its constant's javadoc will mention that.
      * @param ac  the type of action: {@link #SET}, {@link #GAIN}, or {@link #LOSE}
      * @param et  the type of element, such as {@link #SETTLEMENTS}
      * @param va  the value of the element
@@ -181,6 +183,10 @@ public class SOCPlayerElement extends SOCMessage
     }
 
     /**
+     * Get this element's player number.
+     * v2.0.00+ allows -1 for some elements (applies to board or to all players).
+     * Earlier client versions will throw an exception accessing player -1.
+     * If the element allows -1, its constant's javadoc will mention that.
      * @return the player number
      */
     public int getPlayerNumber()
@@ -229,7 +235,9 @@ public class SOCPlayerElement extends SOCMessage
      * PLAYERELEMENT sep game sep2 playerNumber sep2 actionType sep2 elementType sep2 value
      *
      * @param ga  the game name
-     * @param pn  the player number
+     * @param pn  the player number; v2.0.00+ allows -1 for some elements (applies to board or to all players).
+     *            Earlier client versions will throw an exception accessing player -1.
+     *            If the element allows -1, its constant's javadoc will mention that.
      * @param ac  the type of action
      * @param et  the type of element
      * @param va  the value of the element

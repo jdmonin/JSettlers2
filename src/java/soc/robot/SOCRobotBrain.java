@@ -2924,7 +2924,8 @@ public class SOCRobotBrain extends Thread
      */
     private void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
-        SOCPlayer pl = game.getPlayer(mes.getPlayerNumber());
+        final int pn = mes.getPlayerNumber();
+        SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
 
         switch (mes.getElementType())
         {
@@ -3003,7 +3004,7 @@ public class SOCRobotBrain extends Thread
             if (0 != mes.getValue())
             {
                 try {
-                    game.askSpecialBuild(pl.getPlayerNumber(), false);  // set per-player, per-game flags
+                    game.askSpecialBuild(pn, false);  // set per-player, per-game flags
                 }
                 catch (RuntimeException e) {}
             } else {
@@ -3028,7 +3029,10 @@ public class SOCRobotBrain extends Thread
             break;
 
         case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
-            pl.setCloth(mes.getValue());
+            if (pn != -1)
+                pl.setCloth(mes.getValue());
+            else
+                ((SOCBoardLarge) (game.getBoard())).setCloth(mes.getValue());
             break;
 
         }

@@ -2543,7 +2543,8 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * handle the "board layout" message
+     * Handle the old "board layout" message (original 4-player board, no options).
+     * Most game boards will call {@link #handleBOARDLAYOUT2(SOCBoardLayout2)} instead.
      * @param mes  the message
      */
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
@@ -2581,7 +2582,8 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * handle the "board layout" message, new format
+     * Handle the "board layout" message, in its usual format.
+     * (Some simple games can use the old {@link #handleBOARDLAYOUT(SOCBoardLayout)} instead.)
      * @param mes  the message
      * @since 1.1.08
      */
@@ -2731,7 +2733,7 @@ public class SOCPlayerClient extends Panel
         if (ga != null)
         {
             final int pn = mes.getPlayerNumber();
-            final SOCPlayer pl = ga.getPlayer(pn);
+            final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
             final SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
             final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);  // null if pn == -1
             final int etype = mes.getElementType();
@@ -2859,17 +2861,21 @@ public class SOCPlayerClient extends Panel
                 break;
 
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
-                pl.setCloth(mes.getValue());
                 if (pn != -1)
                 {
+                    pl.setCloth(mes.getValue());
                     hpan.updateValue(etype);
                     hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // 2 cloth = 1 VP
                 } else {
+                    ((SOCBoardLarge) (ga.getBoard())).setCloth(mes.getValue());
                     pi.getBuildingPanel().updateClothCount();
                 }
                 break;
 
             }
+
+            if (hpan == null)
+                return;  // <--- early return: not a per-player element ---
 
             if (hpanUpdateRsrcType != 0)
             {
