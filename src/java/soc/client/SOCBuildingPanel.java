@@ -223,6 +223,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         add(cardBut);
         cardBut.setActionCommand(CARD);
         cardBut.addActionListener(this);
+        // Development Card count. Initial amount will be sent from server soon.
         cardCountLab = new Label("available");
         cardCountLab.setAlignment(Label.LEFT);
         add(cardCountLab);
@@ -254,6 +255,8 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
             if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
             {
+                // General Supply cloth count. Initial amount will be sent from server soon.
+                // (joingame if already started, or startgame as part of board layout)
                 final String TTIP_CLOTH_TEXT = "General Supply of cloth remaining";
 
                 clothLab = new Label("Cloth:");

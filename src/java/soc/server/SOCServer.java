@@ -8456,6 +8456,11 @@ public class SOCServer extends Server
 
             if (addedPsList)
                 lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
+
+            if (gameData.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+                c.put(SOCPlayerElement.toCmd
+                    (gameName, -1, SOCPlayerElement.SET,
+                     SOCPlayerElement.SCENARIO_CLOTH_COUNT, ((SOCBoardLarge) (gameData.getBoard())).getCloth()));
         }
 
         /**
@@ -8548,13 +8553,22 @@ public class SOCServer extends Server
                 c.put(cardUnknownCmd);
             }
 
-            c.put(SOCFirstPlayer.toCmd(gameName, gameData.getFirstPlayer()));
+            if (i == 0)
+            {
+                // per-game data, send once
+                c.put(SOCFirstPlayer.toCmd(gameName, gameData.getFirstPlayer()));
 
-            c.put(SOCDevCardCount.toCmd(gameName, gameData.getNumDevCards()));
+                c.put(SOCDevCardCount.toCmd(gameName, gameData.getNumDevCards()));
+            }
 
             c.put(SOCChangeFace.toCmd(gameName, i, pl.getFaceId()));
 
-            c.put(SOCDiceResult.toCmd(gameName, gameData.getCurrentDice()));
+            if (i == 0)
+            {
+                // per-game data, send once
+
+                c.put(SOCDiceResult.toCmd(gameName, gameData.getCurrentDice()));
+            }
         }
 
         ///
@@ -9665,6 +9679,8 @@ public class SOCServer extends Server
         try
         {
             messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
+                // For scenario option _SC_CLVI, the board layout message
+                // includes villages and the general supply cloth count.
         } catch (IllegalArgumentException e) {
             gameList.releaseMonitorForGame(gaName);
             System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
