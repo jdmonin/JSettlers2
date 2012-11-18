@@ -3040,7 +3040,11 @@ public class SOCHandPanel extends Panel implements ActionListener
                     if (game.getPlayer(client.getNickname()) == null)
                     {
                         // If client not seated at this game, show "Take Over" button
-                        takeOverBut.setBounds(10, (inset + balloonH) - 10, dim.width - 20, 20);
+                        // just above the lower-left, lower-right columns of item counts
+                        int yb = (inset + balloonH) - 10;
+                        if (game.hasSeaBoard)
+                            yb -= (lineH + space);
+                        takeOverBut.setBounds(10, yb, dim.width - 20, 20);
                     }
                     else if (sittingRobotLockBut.isVisible())
                     {
