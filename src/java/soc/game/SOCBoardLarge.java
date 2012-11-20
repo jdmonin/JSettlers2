@@ -221,7 +221,7 @@ public class SOCBoardLarge extends SOCBoard
     public static final int GOLD_HEX = 7;
 
     /**
-     * Hex type for the Fog Hex, with actual land type revealed when roads are placed.
+     * Hex type for the Fog Hex, with actual type revealed when roads or ships are placed.
      * Used with some scenarios (see {@link SOCGameOption#K_SC_FOG}).
      * Bots should treat this as {@link SOCBoard#DESERT_HEX DESERT_HEX} until revealed.
      *<P>
@@ -415,7 +415,7 @@ public class SOCBoardLarge extends SOCBoard
     private int[][] numberLayoutLg;
 
     /**
-     * Actual land hex types and dice numbers hidden under {@link #FOG_HEX}.
+     * Actual hex types and dice numbers hidden under {@link #FOG_HEX}.
      * Key is the hex coordinate; value is
      * <tt>({@link #hexLayoutLg}[coord] &lt;&lt; 8) | ({@link #numberLayoutLg}[coord] & 0xFF)</tt>.
      *<P>
@@ -1020,7 +1020,7 @@ public class SOCBoardLarge extends SOCBoard
      * To simplify the bot, client, and network, hexes can be hidden only during makeNewBoard,
      * before the board layout is made and sent to the client.
      * 
-     * @param hexCoords  Coordinates of each land hex to hide in the fog
+     * @param hexCoords  Coordinates of each hex to hide in the fog
      * @throws IllegalStateException  if any hexCoord is already {@link #FOG_HEX} within {@link #hexLayoutLg}
      * @see #revealFogHiddenHex(int)
      */
@@ -1043,9 +1043,9 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Reveal one land hex hidden by fog (server-side call).
+     * Reveal one land or water hex hidden by fog (server-side call).
      * Gets the hidden hex type and dice number, calls {@link #revealFogHiddenHex(int, int, int)}.
-     * @param hexCoord  Coordinate of the land hex to reveal
+     * @param hexCoord  Coordinate of the hex to reveal
      * @return The revealed hex type, same value as {@link #getHexTypeFromCoord(int) getHexTypeFromCoord(hexCoord)}
      * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}  
      */
@@ -1066,8 +1066,8 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Reveal one land hex hidden by fog (client-side call).
-     * @param hexCoord  Coordinate of the land hex to reveal
+     * Reveal one land or water hex hidden by fog (client-side call).
+     * @param hexCoord  Coordinate of the hex to reveal
      * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
      * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
      * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}

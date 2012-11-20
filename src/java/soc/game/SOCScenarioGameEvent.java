@@ -31,9 +31,9 @@ package soc.game;
 public enum SOCScenarioGameEvent
 {
     /**
-     * A hex hidden by fog has been revealed by road placement.
+     * A hex hidden by fog has been revealed by road or ship placement.
      * Game option {@link SOCGameOption#K_SC_FOG _SC_FOG}.
-     * Revealing a land hex (clay, ore, sheep, wheat, wood)
+     * Revealing a normal land hex (clay, ore, sheep, wheat, wood)
      * gives the player 1 of that resource immediately.
      *<P>
      * This event fires only at the server.

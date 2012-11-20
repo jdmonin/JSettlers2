@@ -2383,7 +2383,7 @@ public class SOCGame implements Serializable, Cloneable
      * The server should send the clients messages to reveal the hex
      * and give the resource to that player.
      *<P>
-     * During initial placement, placing a settlement could reveal up to 3.
+     * During initial placement, placing a settlement could reveal up to 3 hexes.
      * Called only at server.
      *
      * @param hexCoords  Hex coordinates to check type for {@link SOCBoardLarge#FOG_HEX}
