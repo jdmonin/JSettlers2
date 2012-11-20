@@ -540,6 +540,9 @@ public class SOCBoardLarge extends SOCBoard
     {
         final SOCGameOption opt_breakClumps = (opts != null ? opts.get("BC") : null);
 
+        SOCGameOption opt = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
+        final boolean hasScenarioFog = (opt != null) && opt.getBoolValue();
+
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
         // Adds to landHexLayout and nodesOnLand.
@@ -549,12 +552,39 @@ public class SOCBoardLarge extends SOCBoard
         landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
             // TODO revisit, un-hardcode, when we have multiple scenarios
 
-        // - Mainland:
-        makeNewBoard_placeHexes
-            (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, 1, opt_breakClumps);
-        // - Outlying islands:
-        makeNewBoard_placeHexes
-            (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, LANDHEX_LANDAREA_RANGES_ISLANDS, null);
+        final int PORTS_TYPES_MAINLAND[], PORTS_TYPES_ISLANDS[];  // port types
+        final int PORT_LOC_FACING_MAINLAND[], PORT_LOC_FACING_ISLANDS[];  // port edge locations and facings
+
+        if (! hasScenarioFog)
+        {
+            // - Mainland:
+            makeNewBoard_placeHexes
+                (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, 1, opt_breakClumps);
+
+            // - Outlying islands:
+            makeNewBoard_placeHexes
+                (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, LANDHEX_LANDAREA_RANGES_ISLANDS, null);
+
+            PORTS_TYPES_MAINLAND = PORTS_TYPE_V1;
+            PORTS_TYPES_ISLANDS = PORT_TYPE_ISLANDS;
+            PORT_LOC_FACING_MAINLAND = PORT_EDGE_FACING_MAINLAND;
+            PORT_LOC_FACING_ISLANDS = PORT_EDGE_FACING_ISLANDS;
+
+        } else {
+            // - East and West islands:
+            makeNewBoard_placeHexes
+                (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, 1, opt_breakClumps);
+
+            // - "Fog Island" in the middle:
+            makeNewBoard_placeHexes
+                (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, LANDHEX_LANDAREA_RANGES_ISLANDS, null);            
+
+            PORTS_TYPES_MAINLAND = PORTS_TYPE_V1;
+            PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
+            PORT_LOC_FACING_MAINLAND = PORT_EDGE_FACING_MAINLAND;
+            PORT_LOC_FACING_ISLANDS = null;
+        }
+
         // - Players must start on mainland
         startingLandArea = 1;
 
@@ -571,8 +601,7 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         // Hide some land hexes behind fog, if the scenario does that
-        SOCGameOption opt = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
-        if ((opt != null) && opt.getBoolValue())
+        if (hasScenarioFog)
             makeNewBoard_hideHexesInFog(LANDHEX_COORD_MAINLAND_FOG);
 
         // Add villages, if the scenario does that
@@ -582,23 +611,29 @@ public class SOCBoardLarge extends SOCBoard
                 // also sets board's "general supply"
 
         // copy and shuffle the ports, and check vs game option BC
-        int[] portTypes_main = new int[PORTS_TYPE_V1.length],
-              portTypes_islands = new int[PORT_TYPE_ISLANDS.length];
-        System.arraycopy(PORTS_TYPE_V1, 0, portTypes_main, 0, portTypes_main.length);
-        System.arraycopy(PORT_TYPE_ISLANDS, 0, portTypes_islands, 0, portTypes_islands.length);
-        makeNewBoard_shufflePorts
-            (portTypes_main, opt_breakClumps);
-        makeNewBoard_shufflePorts
-            (portTypes_islands, null);
+        int[] portTypes_main = new int[PORTS_TYPES_MAINLAND.length];
+        int[] portTypes_islands;
+        System.arraycopy(PORTS_TYPES_MAINLAND, 0, portTypes_main, 0, portTypes_main.length);
+        makeNewBoard_shufflePorts(portTypes_main, opt_breakClumps);
+        if (PORTS_TYPES_ISLANDS != null)
+        {
+            portTypes_islands = new int[PORTS_TYPES_ISLANDS.length];
+            System.arraycopy(PORTS_TYPES_ISLANDS, 0, portTypes_islands, 0, portTypes_islands.length);
+            makeNewBoard_shufflePorts(portTypes_islands, null);
+        } else {
+            portTypes_islands = null;
+        }
 
         // copy port types to beginning of portsLayout[]
-        portsCount = PORTS_TYPE_V1.length + PORT_TYPE_ISLANDS.length;
+        portsCount = PORTS_TYPES_MAINLAND.length;
+        if (PORTS_TYPES_ISLANDS != null)
+            portsCount += PORTS_TYPES_ISLANDS.length;
         if ((portsLayout == null) || (portsLayout.length != (3 * portsCount)))
             portsLayout = new int[3 * portsCount];
-        System.arraycopy(portTypes_main, 0,
-            portsLayout, 0, portTypes_main.length);
-        System.arraycopy(portTypes_islands, 0,
-            portsLayout, portTypes_main.length, portTypes_islands.length);
+        System.arraycopy(portTypes_main, 0, portsLayout, 0, portTypes_main.length);
+        if (PORTS_TYPES_ISLANDS != null)
+            System.arraycopy(portTypes_islands, 0,
+                portsLayout, portTypes_main.length, portTypes_islands.length);
 
         // place the ports (hex numbers and facing) within portsLayout[] and nodeIDtoPortType.
         // fill out the ports[] vectors with node coordinates where a trade port can be placed.
@@ -611,9 +646,9 @@ public class SOCBoardLarge extends SOCBoard
         for (int i = 0, j = 0; i < L; ++i)
         {
             final int ptype = portTypes_main[i];  // also == portsLayout[i]
-            final int edge = PORT_EDGE_FACING_MAINLAND[j];
+            final int edge = PORT_LOC_FACING_MAINLAND[j];
             ++j;
-            final int facing = PORT_EDGE_FACING_MAINLAND[j];
+            final int facing = PORT_LOC_FACING_MAINLAND[j];
             ++j;
             final int[] nodes = getAdjacentNodesToEdge_arr(edge);
             placePort(ptype, -1, facing, nodes[0], nodes[1]);
@@ -625,18 +660,21 @@ public class SOCBoardLarge extends SOCBoard
         // - outlying islands:
         // i == port type array index
         // j == port edge & facing array index
-        for (int i = 0, j = 0; i < PORT_TYPE_ISLANDS.length; ++i)
+        if (PORTS_TYPES_ISLANDS != null)
         {
-            final int ptype = portTypes_islands[i];  // also == portsLayout[i+L]
-            final int edge = PORT_EDGE_FACING_ISLANDS[j];
-            ++j;
-            final int facing = PORT_EDGE_FACING_ISLANDS[j];
-            ++j;
-            final int[] nodes = getAdjacentNodesToEdge_arr(edge);
-            placePort(ptype, -1, facing, nodes[0], nodes[1]);
-            // portsLayout[L+i] is set already, from portTypes_islands[i]
-            portsLayout[L + i + portsCount] = edge;
-            portsLayout[L + i + (2 * portsCount)] = facing;
+            for (int i = 0, j = 0; i < PORTS_TYPES_ISLANDS.length; ++i)
+            {
+                final int ptype = portTypes_islands[i];  // also == portsLayout[i+L]
+                final int edge = PORT_LOC_FACING_ISLANDS[j];
+                ++j;
+                final int facing = PORT_LOC_FACING_ISLANDS[j];
+                ++j;
+                final int[] nodes = getAdjacentNodesToEdge_arr(edge);
+                placePort(ptype, -1, facing, nodes[0], nodes[1]);
+                // portsLayout[L+i] is set already, from portTypes_islands[i]
+                portsLayout[L + i + portsCount] = edge;
+                portsLayout[L + i + (2 * portsCount)] = facing;
+            }
         }
     }
 
