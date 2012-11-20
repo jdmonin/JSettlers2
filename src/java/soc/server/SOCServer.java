@@ -1770,6 +1770,20 @@ public class SOCServer extends Server
                 final String gaName = ga.getName();
                 messageToGame
                     (gaName, new SOCRevealFogHex(gaName, hexCoord, hexType, diceNum));
+
+                final int cpn = ga.getCurrentPlayerNumber();
+                if (cpn != -1)
+                {
+                    final int res = board.getHexTypeFromNumber(hexCoord);
+                    if ((res >= SOCResourceConstants.CLAY) && (res <= SOCResourceConstants.WOOD))
+                    {
+                        messageToGame
+                            (gaName, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1));
+                        messageToGame
+                            (gaName, ga.getPlayer(ga.getCurrentPlayerNumber()).getName() + " gets 1 "
+                             + SOCResourceConstants.resName(res) + " by revealing the fog hex.");
+                    }
+                }
             }
             break;
 

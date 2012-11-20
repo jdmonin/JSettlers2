@@ -2378,6 +2378,10 @@ public class SOCGame implements Serializable, Cloneable
      * Reveal it before placing the new piece, so it's easier for
      * players and bots to updatePotentials (their data about the
      * board reachable through their roads/ships).
+     * Each revealed fog hex triggers {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
+     * and gives the current player that resource (if not desert or water or gold).
+     * The server should send the clients messages to reveal the hex
+     * and give the resource to that player.
      *<P>
      * During initial placement, placing a settlement could reveal up to 3.
      * Called only at server.
@@ -2395,6 +2399,13 @@ public class SOCGame implements Serializable, Cloneable
             if ((hexCoord != 0) && (board.getHexTypeFromCoord(hexCoord) == SOCBoardLarge.FOG_HEX))
             {
                 ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord);
+                if (currentPlayerNumber != -1)
+                {
+                    final int res = board.getHexTypeFromNumber(hexCoord);
+                    if ((res >= SOCResourceConstants.CLAY) && (res <= SOCResourceConstants.WOOD))
+                        players[currentPlayerNumber].getResources().add(1, res);
+                }
+
                 if (scenarioEventListener != null)
                     scenarioEventListener.gameEvent
                         (this, SOCScenarioGameEvent.SGE_FOG_HEX_REVEALED, new Integer(hexCoord));

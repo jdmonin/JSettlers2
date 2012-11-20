@@ -33,7 +33,13 @@ public enum SOCScenarioGameEvent
     /**
      * A hex hidden by fog has been revealed by road placement.
      * Game option {@link SOCGameOption#K_SC_FOG _SC_FOG}.
+     * Revealing a land hex (clay, ore, sheep, wheat, wood)
+     * gives the player 1 of that resource immediately.
+     *<P>
      * This event fires only at the server.
+     * During initial placement, placing a settlement at a node
+     * next to fog could reveal up to 3 hexes.  This event
+     * fires once for each hex revealed.
      *<P>
      * In {@link SOCScenarioEventListener#gameEvent(SOCGame, SOCScenarioGameEvent, Object)},
      * <tt>detail</tt> is the revealed hex's coordinate as an Integer.
