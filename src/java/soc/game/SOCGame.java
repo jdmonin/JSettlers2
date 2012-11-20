@@ -3753,8 +3753,9 @@ public class SOCGame implements Serializable, Cloneable
             if (hasSeaBoard && isGameOptionSet(SOCGameOption.K_SC_CLVI))
             {
                 // distribute will usually return null
-                currentRoll.cloth = ((SOCBoardLarge) board).distributeClothFromRoll(this, currentDice);
-                if (currentRoll.cloth != null)
+                final int[] rollCloth = ((SOCBoardLarge) board).distributeClothFromRoll(this, currentDice);
+                currentRoll.cloth = rollCloth;
+                if (rollCloth != null)
                     checkForWinner();
             }
 
@@ -4247,6 +4248,8 @@ public class SOCGame implements Serializable, Cloneable
      *    Once chosen, call {@link #choosePlayerForRobbery(int)} to choose a victim.
      *<br>
      * If just one victim: call stealFromPlayer, State becomes oldGameState.
+     * If cloth robbery gives player enough VP to win, sets gameState to {@link #OVER}.
+     *<br>
      *    Or: If just one victim but {@link #canChooseRobClothOrResource(int)},
      *    state becomes {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
      *    Once chosen, call {@link #stealFromPlayer(int, boolean)}.
@@ -4287,6 +4290,7 @@ public class SOCGame implements Serializable, Cloneable
             SOCPlayer victim = victims.firstElement();
             if (! canChooseRobClothOrResource(victim.getPlayerNumber()))
             {
+                // steal item, also sets gameState
                 final int loot = stealFromPlayer(victim.getPlayerNumber(), false);
                 result.setLoot(loot);
             } else {
@@ -4348,7 +4352,9 @@ public class SOCGame implements Serializable, Cloneable
      * Calls {@link #canChooseRobClothOrResource(int)} to check that.
      *<P>
      * Calls {@link #stealFromPlayer(int, boolean)} to perform the robbery and set gameState back to oldGameState.
-     * If they must choose, instead sets gameState to {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
+     * If cloth robbery gives player enough VP to win, sets gameState to {@link #OVER}.
+     *<P>
+     * If they must choose what to steal, instead sets gameState to {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
      * Once chosen, call {@link #stealFromPlayer(int, boolean)}.
      *<P>
      * Does not validate <tt>pn</tt>; assumes {@link #canChoosePlayer(int)} has been called already.
@@ -4537,6 +4543,9 @@ public class SOCGame implements Serializable, Cloneable
      * the current player has choosen a victim to rob.
      * perform the robbery.  Set gameState back to oldGameState.
      *<P>
+     * For the cloth game scenario, can steal cloth, and can gain victory points from having
+     * cloth. If cloth robbery gives player enough VP to win, sets gameState to {@link #OVER}.
+     *<P>
      * Does not validate <tt>pn</tt>; assumes {@link #canChoosePlayer(int)}
      * and {@link #choosePlayerForRobbery(int)} have been called already.
      *
@@ -4562,6 +4571,7 @@ public class SOCGame implements Serializable, Cloneable
             rpick = SOCResourceConstants.CLOTH_STOLEN_LOCAL;
             victim.setCloth(victim.getCloth() - 1);
             players[currentPlayerNumber].setCloth(players[currentPlayerNumber].getCloth() + 1);
+            checkForWinner();  // cloth are worth VP
         }
         else
         {
@@ -4593,8 +4603,10 @@ public class SOCGame implements Serializable, Cloneable
 
         /**
          * restore the game state to what it was before the robber or pirate moved
+         * unless player just won from cloth VP
          */
-        gameState = oldGameState;
+        if (gameState != OVER)
+            gameState = oldGameState;
 
         return rpick;
     }

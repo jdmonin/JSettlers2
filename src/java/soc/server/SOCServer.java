@@ -8910,6 +8910,10 @@ public class SOCServer extends Server
         final int viPN = vi.getPlayerNumber();
         if (rsrc == SOCResourceConstants.CLOTH_STOLEN_LOCAL)
         {
+            // Send players' cloth counts and text.
+            // Client's game will recalculate players' VP based on
+            // the cloth counts, so we don't need to also send VP.
+
             messageToGame(gaName,
                 new SOCPlayerElement(gaName, viPN, SOCPlayerElement.SET,
                     SOCPlayerElement.SCENARIO_CLOTH_COUNT, vi.getCloth()));
