@@ -1316,11 +1316,17 @@ public class SOCBoard implements Serializable, Cloneable
      * Once we've visited each hex, check if any clump subset's
      * size is larger than the allowed size.
      *<P>
+     * For the Fog Island (scenario option _SC_FOG on {@link SOCBoardLarge}),
+     * one land area contains some water.  So, <tt>unvisited</tt> may contain
+     * a few water hexes.  For performance, in general you should omit water
+     * hex locations from <tt>unvisited</tt>.
+     *<P>
      * Called from {@link #makeNewBoard_placeHexes(int[], int[], int[], SOCGameOption)}.
      * Before v2.0.00, this was part of makeNewBoard_placeHexes.
      * 
      * @param unvisited  Contains each land hex's coordinate as an Integer;
-     *          <b>Note:</b> This vector will be modified by the method.
+     *          <b>Note:</b> This vector will be modified by the method. <br>
+     *          See note above about occasional water hex coordinates in <tt>univisited</tt>.
      * @param clumpSize  Clumps of this size or more are too large.
      *          Minimum value is 3, smaller values will always return false.
      * @return  true if large clumps found, false if okay
@@ -1353,6 +1359,7 @@ public class SOCBoard implements Serializable, Cloneable
         // - unvisited-set := new set (vector) of all land hexes
         // - iterate through unvisited-set; for each hex:
         //     - remove this from unvisited-set
+        //     - if hex is water, done looking at this hex
         //     - look at its adjacent hexes of same type
         //          assertion: they are all unvisited, because this hex was unvisited
         //                     and this is the top-level loop
@@ -1398,6 +1405,10 @@ public class SOCBoard implements Serializable, Cloneable
             final int hexCoord = hexCoordObj.intValue();
             final int resource = getHexTypeFromCoord(hexCoord);
             unvisited.removeElementAt(0);
+
+            //     - skip water hexes; water is never a clump
+            if (resource == SOCBoard.WATER_HEX)
+                continue;
 
             //     - look at its adjacent hexes of same type
             //          assertion: they are all unvisited, because this hex was unvisited

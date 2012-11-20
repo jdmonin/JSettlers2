@@ -329,6 +329,7 @@ public class SOCBoardLarge extends SOCBoard
        7 : gold    {@link #GOLD_HEX} (see its javadoc for rule)
        8 : fog     {@link #FOG_HEX}  (see its javadoc for rule)  also: {@link #MAX_LAND_HEX_LG}
        </pre>
+     * Unless a hex's type here is {@link #WATER_HEX}, it's a land hex.
      *<P>
      * @see SOCBoard#portsLayout
      */
@@ -747,12 +748,14 @@ public class SOCBoardLarge extends SOCBoard
      * @param landHexType  Resource type to place into {@link #hexLayoutLg} for each land hex; will be shuffled.
      *                    Values are {@link #CLAY_HEX}, {@link #DESERT_HEX}, etc.
      *                    There should be no {@link #FOG_HEX} in here; land hexes are hidden by fog later.
+     *                    For the Fog Island (scenario option {@link SOCGameOption#K_SC_FOG _SC_FOG}),
+     *                    one land area contains some water.  So, <tt>landHexType[]</tt> may contain {@link #WATER_HEX}.
      * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
      *                    same array length as <tt>landHexType[]</tt>.
      *                    <BR> <tt>landAreaPathRanges[]</tt> tells how to split this array of land hex coordindates
      *                    into multiple Land Areas.
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
-     *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
+     *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert or water in <tt>landHexType[]</tt>
      * @param landAreaPathRanges  <tt>numPath[]</tt>'s Land Area Numbers, and the size of each land area.
      *                    Array length is 2 x the count of land areas included.
      *                    Index 0 is the first landAreaNumber, index 1 is the length of that land area (number of hexes).
@@ -841,6 +844,10 @@ public class SOCBoardLarge extends SOCBoard
                     numberLayoutLg[r][c] = -1;
                     // TODO do we want to not set robberHex? or a specific point?
                 }
+                else if (landHexType[i] == WATER_HEX)
+                {
+                    numberLayoutLg[r][c] = 0;  // Fog Island's landarea has some water shuffled in
+                }
                 else if (landHexType[i] == FOG_HEX)
                 {
                     throw new IllegalArgumentException("landHexType can't contain FOG_HEX");
@@ -903,6 +910,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param landHexCoords  Coordinates of a contiguous group of land hexes.
      *                    If <tt>startIdx</tt> and <tt>pastEndIdx</tt> partially use this array,
      *                    only that part needs to be contiguous, the rest of <tt>landHexCoords</tt> is ignored.
+     *                    Any hex coordinates here which are {@link #WATER_HEX} are ignored.
      * @param startIdx    First index to use within <tt>landHexCoords[]</tt>; 0 if using the entire array
      * @param pastEndIdx  Just past the last index to use within <tt>landHexCoords[]</tt>;
      *                    If this call uses landHexCoords up through its end, this is <tt>landHexCoords.length</tt>
@@ -930,7 +938,10 @@ public class SOCBoardLarge extends SOCBoard
 
         for (int i = startIdx; i < pastEndIdx; ++i)
         {
-            final int[] nodes = getAdjacentNodesToHex(landHexCoords[i]);
+            final int hex = landHexCoords[i];
+            if (getHexTypeFromCoord(hex) == WATER_HEX)
+                continue;
+            final int[] nodes = getAdjacentNodesToHex(hex);
             for (int j = 0; j < 6; ++j)
             {
                 final Integer ni = new Integer(nodes[j]);
