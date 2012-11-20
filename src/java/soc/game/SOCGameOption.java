@@ -1780,16 +1780,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             if ((opt != null) && (opt.getIntValue() > 4))
                 setBoolOption(newOpts, "PLB");
 
-            // If PLL is set, set game scenario option _SC_SANY
-            //  (This code will change once we've implemented multiple scenarios)
-            opt = newOpts.get("PLL");
-            if ((opt != null) && opt.getBoolValue())
-                setBoolOption(newOpts, K_SC_SANY);
-
-            // If _SC_CLVI is set, VP should be >= 14
+            // If _SC_CLVI is set, VP should be >= 14, and no longest trade route bonus
             opt = newOpts.get(K_SC_CLVI);
             if ((opt != null) && opt.getBoolValue())
             {
+                setBoolOption(newOpts, K_SC_0RVP);
                 opt = newOpts.get("VP");
                 if ((opt == null) || (opt.getIntValue() < 14))
                     setIntOption(newOpts, "VP", 14, true);
