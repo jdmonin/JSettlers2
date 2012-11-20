@@ -32,6 +32,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -5562,6 +5563,7 @@ public class SOCGame implements Serializable, Cloneable
      *<LI> Scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI} will end the game if
      *     less than half the {@link SOCVillage}s have cloth remaining.  The player
      *     with the most VP wins; if tied, the tied player with the most cloth wins.
+     *     The winner is not necessarily the current player.
      *</UL>
      *
      * @see #getGameState()
@@ -5589,8 +5591,96 @@ public class SOCGame implements Serializable, Cloneable
         if (isGameOptionSet(SOCGameOption.K_SC_CLVI))
         {
             // Check if less than half the villages have cloth remaining
-            
+            checkForWinner_SC_CLVI();
+            if (gameState == OVER)
+                currentPlayerNumber = playerWithWin;  // don't call setCurrentPlayerNumber, would recurse here
         }
+
+    }
+
+    /**
+     * Check if less than half the villages have cloth remaining.
+     * If so, end the game; see {@link #checkForWinner()} for details.
+     * @since 2.0.00
+     */
+    private final void checkForWinner_SC_CLVI()
+    {
+        int nv = 0;
+        final HashMap<Integer, SOCVillage> allv = ((SOCBoardLarge) board).getVillages();
+        for (SOCVillage v : allv.values())
+            if (v.getCloth() > 0)
+                ++nv;
+        if (nv >= (allv.size()+1) / 2)
+            return;  // at least half the villages have cloth; +1 is for odd # of villages (int 7 / 2 = 3)
+
+        gameState = OVER;
+
+        // find player with most VP, or most cloth
+        int p = -1;
+        int numWithMax = 0;
+        int maxVP = 0;
+        for (int pn = 0; pn < maxPlayers; ++pn)
+        {
+            if (isSeatVacant(pn))
+                continue;
+            final int vp = players[pn].getTotalVP();
+            if (vp > maxVP)
+            {
+                maxVP = vp;
+                numWithMax = 1;
+                p = pn;
+            }
+            else if (vp == maxVP)
+            {
+                ++numWithMax;  // tie
+            }
+        }
+
+        if (numWithMax == 1)
+        {
+            playerWithWin = p;
+            return;
+        }
+
+        // VP tied: Check cloth
+        p = -1;
+        numWithMax = 0;
+        int maxCl = 0;
+        for (int pn = 0; pn < maxPlayers; ++pn)
+        {
+            if (isSeatVacant(pn) || (players[pn].getTotalVP() < maxVP))
+                continue;
+            final int cl = players[pn].getCloth();
+            if (cl > maxCl)
+            {
+                maxCl = cl;
+                numWithMax = 1;
+                p = pn;
+            }
+            else if (cl == maxCl)
+            {
+                ++numWithMax;
+            }
+        }
+
+        if (numWithMax == 1)
+        {
+            playerWithWin = p;
+            return;
+        }
+
+        // Cloth amount also tied:
+        // Give current player the win if possible.
+        // Otherwise, find the next tied player in order.
+        do
+        {
+            if ((players[currentPlayerNumber].getTotalVP() == maxVP)
+                && (players[currentPlayerNumber].getCloth() == maxCl))
+            {
+                playerWithWin = p;
+                return;
+            }
+        } while (advanceTurn());
     }
 
     /**
