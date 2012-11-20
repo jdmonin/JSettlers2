@@ -3662,6 +3662,8 @@ public class SOCGame implements Serializable, Cloneable
      *<br>
      * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
      * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}.
+     * Cloth are worth VP, so check for game state {@link #OVER}
+     * if results include {@link RollResult#cloth}.
      *<P>
      * Called at server only.
      * @return The roll results: Dice numbers, and any scenario-specific results
@@ -3752,15 +3754,20 @@ public class SOCGame implements Serializable, Cloneable
             {
                 // distribute will usually return null
                 currentRoll.cloth = ((SOCBoardLarge) board).distributeClothFromRoll(this, currentDice);
+                if (currentRoll.cloth != null)
+                    checkForWinner();
             }
 
             /**
              * done, next game state
              */
-            if (! anyGoldHex)
-                gameState = PLAY1;
-            else
-                gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+            if (gameState != OVER)
+            {
+                if (! anyGoldHex)
+                    gameState = PLAY1;
+                else
+                    gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+            }
         }
 
         currentRoll.diceA = die1;
