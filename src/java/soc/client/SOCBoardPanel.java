@@ -51,6 +51,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -2078,7 +2079,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             ibuf = this.createImage(scaledPanelX, scaledPanelY);
             buffer = ibuf;
         }
-        drawBoard(ibuf.getGraphics());  // Do the actual drawing
+
+        // Because of message timing during placement, watch for
+        // the board's lists of roads, settlements, ships, etc
+        // being modified as we're drawing them.
+        // Happens with java 5 foreach loop iteration; wasn't
+        // previously an issue with java 1.4 piece enumerations.
+        try
+        {
+            drawBoard(ibuf.getGraphics());  // Do the actual drawing
+        } catch (ConcurrentModificationException cme) {
+            repaint();  // try again soon
+            return;
+        }
+
         if (hoverTip.isVisible())
             hoverTip.paint(ibuf.getGraphics());
         ibuf.flush();
