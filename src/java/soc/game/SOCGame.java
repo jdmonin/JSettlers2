@@ -25,7 +25,6 @@ package soc.game;
 import soc.disableDebug.D;
 
 import soc.message.SOCMessage;
-import soc.util.IntPair;
 import soc.util.SOCGameBoardReset;
 
 import java.io.Serializable;
@@ -67,7 +66,7 @@ import java.util.Vector;
  * {@link #updateAtTurn()}, <tt>putPiece</tt> and some other game-action methods update {@link #lastActionTime}.
  *<P>
  * The winner is the player who has {@link #vp_winner} or more victory points (typically 10)
- * on their own turn.
+ * on their own turn.  Some optional game scenarios have special win conditions, see {@link #checkForWinner()}.
  *<P>
  * The {@link SOCGame#hasSeaBoard large sea board} features scenario events.
  * To listen for these, call {@link #setScenarioEventListener(SOCScenarioEventListener)}.
@@ -530,9 +529,24 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Number of victory points needed to win this game (default {@link #VP_WINNER_STANDARD} == 10).
+     * After game events such as playing a piece or moving the robber, check if current player's
+     * VP &gt;= {@link #vp_winner} and call {@link #checkForWinner()} if so.
+     * @see #hasScenarioWinCondition
      * @since 1.1.14
      */
     public final int vp_winner;
+
+    /**
+     * Does this game's scenario have a special win condition besides {@link #vp_winner}?
+     * For example, scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI} will end the game if
+     * less than half the {@link SOCVillage}s have cloth remaining.  See {@link #checkForWinner()}
+     * for a full list and more details.
+     *<P>
+     * When set, methods that check current player's VP &gt;= {@link #vp_winner} will
+     * also call {@link #checkForWinner()}.
+     * @since 2.0.00
+     */
+    public final boolean hasScenarioWinCondition;
 
     /**
      * true if the game's network is local for practice.  Used by
@@ -979,10 +993,12 @@ public class SOCGame implements Serializable, Cloneable
             else
                 maxPlayers = 4;
             vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
+            hasScenarioWinCondition = isGameOptionSet(op, SOCGameOption.K_SC_CLVI);
         } else {
             maxPlayers = 4;
             hasSeaBoard = false;
             vp_winner = VP_WINNER_STANDARD;
+            hasScenarioWinCondition = false;
         }
         board = SOCBoard.createBoard(op, hasSeaBoard, maxPlayers);
         players = new SOCPlayer[maxPlayers];
@@ -1608,7 +1624,7 @@ public class SOCGame implements Serializable, Cloneable
         if ((pn >= -1) && (pn < players.length))
         {
             currentPlayerNumber = pn;
-            if ((pn >= 0) && (players[pn].getTotalVP() >= vp_winner))
+            if ((pn >= 0) && ((players[pn].getTotalVP() >= vp_winner) || hasScenarioWinCondition))
                 checkForWinner();
         }
     }
@@ -3077,7 +3093,7 @@ public class SOCGame implements Serializable, Cloneable
         updateAtTurn();
         players[currentPlayerNumber].setPlayedDevCard(false);  // client calls this in handleSETPLAYEDDEVCARD
 
-        if (players[currentPlayerNumber].getTotalVP() >= vp_winner)
+        if ((players[currentPlayerNumber].getTotalVP() >= vp_winner) || hasScenarioWinCondition)
             checkForWinner();  // Will do nothing during Special Building Phase
     }
 
@@ -5540,6 +5556,13 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * The win is determined not by who has the highest point total, but
      * solely by reaching enough victory points ({@link #vp_winner}) during your own turn.
+     *<P>
+     * Some game scenarios have other special win conditions ({@link #hasScenarioWinCondition}):
+     *<UL>
+     *<LI> Scenario {@link SOCGameOption#K_SC_CLVI _SC_CLVI} will end the game if
+     *     less than half the {@link SOCVillage}s have cloth remaining.  The player
+     *     with the most VP wins; if tied, the tied player with the most cloth wins.
+     *</UL>
      *
      * @see #getGameState()
      * @see #getPlayerWithWin()
@@ -5549,12 +5572,24 @@ public class SOCGame implements Serializable, Cloneable
         if (gameState == SPECIAL_BUILDING)
             return;  // Can't win in this state, it's not really anyone's turn
 
-        int pn = currentPlayerNumber;
-        if ((pn >= 0) && (pn < maxPlayers)
-            && (players[pn].getTotalVP() >= vp_winner))
+        final int pn = currentPlayerNumber;
+        if ((pn < 0) || (pn >= maxPlayers))
+            return;
+
+        if ((players[pn].getTotalVP() >= vp_winner))
         {
             gameState = OVER;
             playerWithWin = pn;
+            return;
+        }
+
+        if (! hasScenarioWinCondition)
+            return;
+
+        if (isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        {
+            // Check if less than half the villages have cloth remaining
+            
         }
     }
 
