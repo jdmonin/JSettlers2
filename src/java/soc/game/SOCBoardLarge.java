@@ -399,6 +399,7 @@ public class SOCBoardLarge extends SOCBoard
      * after {@link #hexLayoutLg} is filled by
      * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
      * Used by {@link #initPlayerLegalShips()}.
+     * Updated in {@link #revealFogHiddenHex(int, int, int)} for {@link SOCBoard#WATER_HEX WATER_HEX}.
      */
     private HashSet<Integer> legalShipEdges;
 
@@ -1160,6 +1161,15 @@ public class SOCBoardLarge extends SOCBoard
 
         hexLayoutLg[r][c] = hexType;
         numberLayoutLg[r][c] = diceNum;
+
+        if (hexType == WATER_HEX)
+        {
+            // Previously not a legal ship edge, because
+            // we didn't know if the fog hid land or water
+            final int[] sides = getAdjacentEdgesToHex(hexCoord);
+            for (int i = 0; i < 6; ++i)
+                legalShipEdges.add(new Integer(sides[i]));
+        }
     }
 
 
