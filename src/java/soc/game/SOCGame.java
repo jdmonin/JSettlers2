@@ -4139,10 +4139,12 @@ public class SOCGame implements Serializable, Cloneable
             return true;
 
         case SOCBoardLarge.GOLD_HEX:
-        case SOCBoardLarge.FOG_HEX:
             // Must check these because the original board has port types (water hexes)
             // with the same numeric values as GOLD_HEX and FOG_HEX.
             return (board instanceof SOCBoardLarge);
+
+        // case SOCBoardLarge.FOG_HEX:
+            // Fall through to default, can't place on fog. Might be water.
 
         default:
             return false;  // Land hexes only (Could check board.max_robber_hex, if we didn't special-case desert,gold,fog)
