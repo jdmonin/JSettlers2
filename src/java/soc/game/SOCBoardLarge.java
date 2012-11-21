@@ -112,6 +112,7 @@ import java.util.Vector;
  *<TR><td>Other methods:</td> <td> Hex </td><td> Edge </td><td> Node </td></TR>
  *<TR valign=top><td>&nbsp;</td>
  *    <td><!-- hex -->
+ *      {@link #isHexInBounds(int, int)} <br>
  *      {@link #isHexOnLand(int)} <br>
  *      {@link #isHexOnWater(int)} <br>
  *      {@link #getNumberOnHexFromCoord(int)} <br>
@@ -130,13 +131,13 @@ import java.util.Vector;
  *      {@link #isHexInLandAreas(int, int[])}
  *    </td>
  *    <td><!-- edge -->
- *      {@link #isEdgeInBounds(int)} <br>
+ *      {@link #isEdgeInBounds(int, int)} <br>
  *      {@link #isEdgeCoastline(int)} <br>
  *      {@link #roadAtEdge(int)} <br>
  *      {@link #getPortsEdges()}
  *    </td>
  *    <td><!-- node -->
- *      {@link #isNodeInBounds(int)} <br>
+ *      {@link #isNodeInBounds(int, int)} <br>
  *      {@link #isNodeOnLand(int)} <br>
  *      {@link #settlementAtNode(int)} <br>
  *      {@link #getPortTypeFromNodeCoord(int)} <br>
@@ -244,6 +245,28 @@ public class SOCBoardLarge extends SOCBoard
     private static final int MAX_LAND_HEX_LG = FOG_HEX;
 
     private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
+
+    /**
+     * For {@link #getAdjacentHexesToHex(int, boolean)}, the offsets to add to the hex
+     * row and column to get all adjacent hex coords, starting at
+     * index 0 at the northeastern edge of the hex and going clockwise.
+     *<P>
+     * Coordinate offsets - adjacent hexes to hex:<PRE>
+     *   (-2,-1) (-2,+1)
+     *
+     * (0,-2)   x   (0,+2)
+     *
+     *   (+2,-1) (+2,+1)  </PRE>
+     *<P>
+     * For each direction, array of delta to the row & column. (Not to the encoded coordinate.)
+     * Indexed by the facing direction - 1: {@link SOCBoard#FACING_NE FACING_NE} is 1,
+     * {@link SOCBoard#FACING_E FACING_E} is 2, etc; {@link SOCBoard#FACING_NW FACING_NW} is 6.
+     * Index here for {@link SOCBoard#FACING_NE FACING_NE} is 0, {@link SOCBoard#FACING_N FACING_NW} is 5.
+     */
+    private final static int[][] A_HEX2HEX = {
+        { -2, +1 }, { 0, +2 }, { +2, +1 },  // NE, E, SE
+        { +2, -1 }, { 0, -2 }, { -2, -1 }   // SW, W, NW
+    };
 
     /**
      * For {@link #getAdjacentNodeToHex(int, int)}, the offset to add to the hex
@@ -2125,6 +2148,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param includeWater  Should water hexes be returned (not only land ones)?
      * @return the hexes that touch this hex, as a Vector of Integer coordinates,
      *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
+     * @see #isHexInBounds(int, int)
      */
     @Override
     public Vector<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
@@ -2134,12 +2158,8 @@ public class SOCBoardLarge extends SOCBoard
         final int r = hexCoord >> 8,
                   c = hexCoord & 0xFF;
 
-        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r - 2, c - 1);  // NW (northwest)
-        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r - 2, c + 1);  // NE
-        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r,     c - 2);  // W
-        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r,     c + 2);  // E
-        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r + 2, c - 1);  // SW
-        getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r + 2, c + 1);  // SE
+        for (int dir = 0; dir < 6; ++dir)
+            getAdjacentHexes2Hex_AddIfOK(hexes, includeWater, r + A_HEX2HEX[dir][0], c + A_HEX2HEX[dir][1]);
 
         if (hexes.size() > 0)
             return hexes;
@@ -2157,10 +2177,8 @@ public class SOCBoardLarge extends SOCBoard
     private final void getAdjacentHexes2Hex_AddIfOK
         (Vector<Integer> addTo, final boolean includeWater, final int r, final int c)
     {
-        if ((r <= 0) || (c <= 0) || (r >= boardHeight) || (c >= boardWidth))
-            return;  // not within the board's valid hex boundaries
-        if ((r % 2) == 0)
-            return;  // not a valid hex row
+        if (! isHexInBounds(r, c))  // also checks that it's a valid hex row
+            return;
 
         if (includeWater
             || ((hexLayoutLg[r][c] <= MAX_LAND_HEX_LG)
@@ -3104,6 +3122,20 @@ public class SOCBoardLarge extends SOCBoard
     // Check coordinates for validity.
     //
 
+    /**
+     * Is this hex coordinate within the board's boundaries,
+     * not off the side of the board?
+     * @param r  Hex coordinate's row; bounds-checked and validity-checked (only odd rows are hex coordinate rows)
+     * @param c  Hex coordinate's column; bounds-checked but not validity-checked (could be a column betwen two hexes)
+     * @see #getAdjacentHexesToHex(int, boolean)
+     */
+    public final boolean isHexInBounds(final int r, final int c)
+    {
+        if ((r <= 0) || (c <= 0) || (r >= boardHeight) || (c >= boardWidth))
+            return false;  // not within the board's valid hex boundaries
+
+        return ((r % 2) == 1);  // valid hex row number?
+    }
 
     /**
      * Is this an edge coordinate within the board's boundaries,
@@ -3112,6 +3144,7 @@ public class SOCBoardLarge extends SOCBoard
      * but doesn't check for "misalignment" in the middle of the board.
      * @param r  Node coordinate's row
      * @param c  Node coordinate's column
+     * @see #isHexInBounds(int, int)
      * @see #isEdgeInBounds(int, int)
      * @see #isNodeOnLand(int)
      */
@@ -3162,6 +3195,7 @@ public class SOCBoardLarge extends SOCBoard
      * but doesn't check for "misalignment" in the middle of the board.
      * @param r  Edge coordinate's row
      * @param c  Edge coordinate's column
+     * @see #isHexInBounds(int, int)
      * @see #isNodeInBounds(int, int)
      */
     public final boolean isEdgeInBounds(final int r, final int c)
