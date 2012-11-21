@@ -3716,7 +3716,7 @@ public class SOCPlayerClient extends Panel
         if (! ga.hasSeaBoard)
             return;  // should not happen
 
-        ((SOCBoardLarge) (ga.getBoard())).revealFogHiddenHex
+        ga.revealFogHiddenHex
             (mes.getParam1(), mes.getParam2(), mes.getParam3());
 
         SOCPlayerInterface pi = playerInterfaces.get(gaName);

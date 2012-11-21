@@ -293,6 +293,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * If the game doesn't use the large sea board (<tt>! {@link SOCGame#hasSeaBoard}</tt>),
      * this set is empty but non-null.
+     *<P>
+     * May be updated during game play by {@link #updateLegalShipsAddHex(int)}.
      * @since 2.0.00
      */
     private HashSet<Integer> legalShips;
@@ -2865,6 +2867,31 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             clearScenarioPlayerEvent(p.specialVPEvent);
             break;
         }
+    }
+
+    /**
+     * When a {@link SOCBoardLarge#FOG_HEX} is revealed to be water,
+     * update the set of edges used by {@link #isLegalShip(int)}.
+     * The revealed hex's edges previously weren't part of the set,
+     * because we didn't know if the fog hid land or water.
+     *<P>
+     * Called by {@link SOCGame#revealFogHiddenHex(int, int, int)}.
+     * If the hex type isn't {@link SOCBoard#WATER_HEX}, does nothing.
+     * Call only if {@link SOCGame#hasSeaBoard}.
+     * @param hexCoord  Coordinate of hex to add if water
+     * @since 2.0.00
+     */
+    void updateLegalShipsAddHex(final int hexCoord)
+    {
+        final SOCBoard board = game.getBoard();
+        if (board.getHexTypeFromCoord(hexCoord) != SOCBoard.WATER_HEX)
+            return;
+
+        // Previously not a legal ship edge, because
+        // we didn't know if the fog hid land or water
+        final int[] sides = ((SOCBoardLarge) board).getAdjacentEdgesToHex(hexCoord);
+        for (int i = 0; i < 6; ++i)
+            legalShips.add(new Integer(sides[i]));
     }
 
     /**

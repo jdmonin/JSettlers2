@@ -231,7 +231,8 @@ public class SOCBoardLarge extends SOCBoard
      * as long as callers of {@link #getHexTypeFromCoord(int)}
      * check the board encoding format.
      *
-     * @see #revealFogHiddenHex(int)
+     * @see #revealFogHiddenHexPrep(int)
+     * @see #revealFogHiddenHex(int, int, int)
      */
     public static final int FOG_HEX = 8;
 
@@ -423,7 +424,8 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Filled at server only; the client doesn't know what's under the fog until hexes are revealed.
      * @see #makeNewBoard_hideHexesInFog(int[])
-     * @see #revealFogHiddenHex(int)
+     * @see #revealFogHiddenHexPrep(int)
+     * @see #revealFogHiddenHex(int, int, int)
      */
     private HashMap<Integer, Integer> fogHiddenHexes;
 
@@ -1097,7 +1099,7 @@ public class SOCBoardLarge extends SOCBoard
      *
      * @param hexCoords  Coordinates of each hex to hide in the fog
      * @throws IllegalStateException  if any hexCoord is already {@link #FOG_HEX} within {@link #hexLayoutLg}
-     * @see #revealFogHiddenHex(int)
+     * @see #revealFogHiddenHexPrep(int)
      */
     protected void makeNewBoard_hideHexesInFog(final int[] hexCoords)
         throws IllegalStateException
@@ -1118,37 +1120,49 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Reveal one land or water hex hidden by fog (server-side call).
-     * Gets the hidden hex type and dice number, calls {@link #revealFogHiddenHex(int, int, int)}.
+     * Prepare to reveal one land or water hex hidden by {@link #FOG_HEX fog} (server-side call).
+     * Gets the hidden hex type and dice number, removes this hex's info from the set of hidden hexes.
+     *<P>
+     * This method <b>does not reveal the hex</b>:
+     * Game should call {@link #revealFogHiddenHex(int, int, int)}
+     * and update any player or piece info affected.
      * @param hexCoord  Coordinate of the hex to reveal
-     * @return The revealed hex type, same value as {@link #getHexTypeFromCoord(int) getHexTypeFromCoord(hexCoord)}
+     * @return The revealed hex type and dice number, encoded as an int.
+     *  Decode this way:
+     *        <PRE>
+        final int hexType = encodedHexInfo >> 8;
+        int diceNum = encodedHexInfo & 0xFF;
+        if (diceNum == 0xFF)
+            diceNum = 0;  </PRE>
+     * <tt>hexType</tt> is the same type of value as {@link #getHexTypeFromCoord(int)}.
+     *
      * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
+     * @see SOCGame#revealFogHiddenHex(int, int, int)
      */
-    public int revealFogHiddenHex(final int hexCoord)
+    public int revealFogHiddenHexPrep(final int hexCoord)
         throws IllegalArgumentException
     {
         final Integer encoded = fogHiddenHexes.remove(Integer.valueOf(hexCoord));
-        if (encoded == null)
+        if ((encoded == null) || (getHexTypeFromCoord(hexCoord) != FOG_HEX))
             throw new IllegalArgumentException("Not fog: 0x" + Integer.toHexString(hexCoord));
 
-        final int hex = encoded >> 8;
-        int diceNum = encoded & 0xFF;
-        if (diceNum == 0xFF)
-            diceNum = -1;
+        return encoded;
 
-        revealFogHiddenHex(hexCoord, hex, diceNum);
-        return hex;
+        // The note about 0xFF -> 0 is because DESERT_HEX and FOG_HEX store their
+        // dice numbers as -1, but getNumberOnHexFromCoord(hexCoord) returns 0.
     }
 
     /**
-     * Reveal one land or water hex hidden by fog (client-side call).
+     * Reveal one land or water hex hidden by fog (call from SOCGame).
+     * Called by {@link SOCGame#revealFogHiddenHex(int, int, int)}
+     * before updating player legal ship edges.
      * @param hexCoord  Coordinate of the hex to reveal
      * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
      * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
      * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
-     * @see #revealFogHiddenHex(int)
+     * @see #revealFogHiddenHexPrep(int)
      */
-    public void revealFogHiddenHex(final int hexCoord, final int hexType, int diceNum)
+    void revealFogHiddenHex(final int hexCoord, final int hexType, int diceNum)
         throws IllegalArgumentException
     {
         final int r = hexCoord >> 8,

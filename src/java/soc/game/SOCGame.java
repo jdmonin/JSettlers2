@@ -2076,6 +2076,36 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Reveal one land or water hex hidden by {@link SOCBoardLarge#FOG_HEX fog}.
+     * Updates board.
+     * If a {@link SOCBoard#WATER_HEX} is revealed, updates players' legal ship edges.
+     *
+     * @param hexCoord  Coordinate of the hex to reveal
+     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
+     * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
+     * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
+     * @throws IllegalStateException if <tt>! game.{@link #hasSeaBoard}</tt>
+     * @since 2.0.00
+     */
+    public void revealFogHiddenHex(final int hexCoord, final int hexType, int diceNum)
+        throws IllegalArgumentException, IllegalStateException
+    {
+        if (! hasSeaBoard)
+            throw new IllegalStateException();
+
+        ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord, hexType, diceNum);
+            // throws IllegalArgumentException if any problem noted above
+
+        if (hexType == SOCBoard.WATER_HEX)
+        {
+            // Previously not a legal ship edge, because
+            // we didn't know if the fog hid land or water
+            for (SOCPlayer pl : players)
+                pl.updateLegalShipsAddHex(hexCoord);
+        }
+    }
+
+    /**
      * Can this player place a ship on this edge?
      * The edge must return {@link SOCPlayer#isPotentialShip(int)}
      * and must not be adjacent to {@link SOCBoardLarge#getPirateHex()}.
@@ -2168,6 +2198,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             if (pp instanceof SOCRoad)
             {
+                // roads, ships
                 final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(coord);
                 putPieceCommon_checkFogHexes(endHexes, false);
             }
@@ -2179,7 +2210,7 @@ public class SOCGame implements Serializable, Cloneable
                 Iterator<Integer> hi;
                 for (i = 0, hi = hexColl.iterator(); hi.hasNext(); ++i)
                     seHexes[i] = hi.next();
-                putPieceCommon_checkFogHexes(seHexes, true);                
+                putPieceCommon_checkFogHexes(seHexes, true);
             }
         }
 
@@ -2401,7 +2432,7 @@ public class SOCGame implements Serializable, Cloneable
      * and give the resource to that player.
      *<P>
      * During initial placement, placing a settlement could reveal up to 3 hexes.
-     * Called only at server.
+     * Called only at server, only when {@link #hasSeaBoard}.
      *
      * @param hexCoords  Hex coordinates to check type for {@link SOCBoardLarge#FOG_HEX}
      * @param initialSettlement  Are we checking for initial settlement placement?
@@ -2415,12 +2446,18 @@ public class SOCGame implements Serializable, Cloneable
             final int hexCoord = hexCoords[i];
             if ((hexCoord != 0) && (board.getHexTypeFromCoord(hexCoord) == SOCBoardLarge.FOG_HEX))
             {
-                ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord);
+                final int encodedHexInfo =
+                    ((SOCBoardLarge) board).revealFogHiddenHexPrep(hexCoord);
+                final int hexType = encodedHexInfo >> 8;
+                int diceNum = encodedHexInfo & 0xFF;
+                if (diceNum == 0xFF)
+                    diceNum = 0;
+
+                revealFogHiddenHex(hexCoord, hexType, diceNum);
                 if (currentPlayerNumber != -1)
                 {
-                    final int res = board.getHexTypeFromNumber(hexCoord);
-                    if ((res >= SOCResourceConstants.CLAY) && (res <= SOCResourceConstants.WOOD))
-                        players[currentPlayerNumber].getResources().add(1, res);
+                    if ((hexType >= SOCResourceConstants.CLAY) && (hexType <= SOCResourceConstants.WOOD))
+                        players[currentPlayerNumber].getResources().add(1, hexType);
                 }
 
                 if (scenarioEventListener != null)
