@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 
 
@@ -290,7 +290,7 @@ public class SOCBoardLarge extends SOCBoard
      * (r,c) Offsets from a node to another node 2 away,
      * Indexed by the facing directions: {@link #FACING_NE} is 1,
      * {@link #FACING_E} is 2, etc; {@link #FACING_NW} is 6.
-     * Used by {@link #getAdjacentNodeToNode2Away(int, int)}. 
+     * Used by {@link #getAdjacentNodeToNode2Away(int, int)}.
      * The array contains 2 elements per facing.
      */
     private final static int[] NODE_TO_NODE_2_AWAY = {
@@ -580,25 +580,25 @@ public class SOCBoardLarge extends SOCBoard
 
             if (wants3pl)
             {
-            // - East and West islands:
-            makeNewBoard_placeHexes
-                (FOG_ISL_LANDHEX_TYPE_MAIN_3PL, FOG_ISL_LANDHEX_COORD_MAIN_3PL, FOG_ISL_DICENUM_MAIN_3PL, 1, opt_breakClumps);
+                // - East and West islands:
+                makeNewBoard_placeHexes
+                    (FOG_ISL_LANDHEX_TYPE_MAIN_3PL, FOG_ISL_LANDHEX_COORD_MAIN_3PL, FOG_ISL_DICENUM_MAIN_3PL, 1, opt_breakClumps);
 
-            // - "Fog Island" in the middle:
-            makeNewBoard_placeHexes
-                (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_3PL, FOG_ISL_DICENUM_FOG_3PL, 2, null);            
+                // - "Fog Island" in the middle:
+                makeNewBoard_placeHexes
+                    (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_3PL, FOG_ISL_DICENUM_FOG_3PL, 2, null);
 
-            PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_3PL;
-            PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_3PL;
+                PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_3PL;
+                PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_3PL;
             } else {
                 // - East and West islands:
                 makeNewBoard_placeHexes
                     (FOG_ISL_LANDHEX_TYPE_MAIN_4PL, FOG_ISL_LANDHEX_COORD_MAIN_4PL, FOG_ISL_DICENUM_MAIN_4PL, 1, opt_breakClumps);
-    
+
                 // - "Fog Island" in the middle:
                 makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_4PL, FOG_ISL_DICENUM_FOG_4PL, 2, null);            
-    
+                    (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_4PL, FOG_ISL_DICENUM_FOG_4PL, 2, null);
+
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_4PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_4PL;
             }
@@ -1093,7 +1093,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * To simplify the bot, client, and network, hexes can be hidden only during makeNewBoard,
      * before the board layout is made and sent to the client.
-     * 
+     *
      * @param hexCoords  Coordinates of each hex to hide in the fog
      * @throws IllegalStateException  if any hexCoord is already {@link #FOG_HEX} within {@link #hexLayoutLg}
      * @see #revealFogHiddenHex(int)
@@ -1121,7 +1121,7 @@ public class SOCBoardLarge extends SOCBoard
      * Gets the hidden hex type and dice number, calls {@link #revealFogHiddenHex(int, int, int)}.
      * @param hexCoord  Coordinate of the hex to reveal
      * @return The revealed hex type, same value as {@link #getHexTypeFromCoord(int) getHexTypeFromCoord(hexCoord)}
-     * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}  
+     * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
      */
     public int revealFogHiddenHex(final int hexCoord)
         throws IllegalArgumentException
@@ -1442,7 +1442,7 @@ public class SOCBoardLarge extends SOCBoard
      * If there's a village placed at this node during board setup, find it.
      * Only some scenarios use villages.
      *
-     * @param nodeCoord  Node coordinate 
+     * @param nodeCoord  Node coordinate
      * @return village, or null.
      * @see #getVillages()
      */
@@ -1458,7 +1458,7 @@ public class SOCBoardLarge extends SOCBoard
      * Is this edge along the coastline (land/water border)?
      * @param edge  Edge coordinate, not checked for validity
      * @return  true if this edge's hexes are land and water,
-     *           or a land hex at the edge of the board 
+     *           or a land hex at the edge of the board
      */
     public final boolean isEdgeCoastline(final int edge)
     {
@@ -1692,7 +1692,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Is this the coordinate of a land hex (not water)? 
+     * Is this the coordinate of a land hex (not water)?
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if land, false if water or not a valid hex coordinate
      * @see #isHexOnWater(int)
@@ -1705,7 +1705,7 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Is this the coordinate of a water hex (not land)? 
+     * Is this the coordinate of a water hex (not land)?
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if water, false if land or not a valid hex coordinate
      * @see #isHexOnLand(int)
@@ -1863,7 +1863,7 @@ public class SOCBoardLarge extends SOCBoard
         legalRoadEdges.clear();
         cachedGetLandHexCoords = null;
         for (int r = 0; r <= boardHeight; ++r)
-        {            
+        {
             Arrays.fill(hexLayoutLg[r], WATER_HEX);
             Arrays.fill(numberLayoutLg[r], 0);
         }
@@ -1988,7 +1988,7 @@ public class SOCBoardLarge extends SOCBoard
         }
         else
         {
-            landAreasLegalNodes = lan; 
+            landAreasLegalNodes = lan;
             startingLandArea = sla;
 
             nodesOnLand.clear();
@@ -2606,7 +2606,7 @@ public class SOCBoardLarge extends SOCBoard
 	// 'Y' node, south and NE edges;
 	// also 'A' node, north and SE edges:
 
-	case 0x0100:  
+	case 0x0100:
 	    if (((edgeB >> 8) % 2) == 1)
 		node = edgeA;  // 'Y', edgeA is NE, edgeB is south (r+1, c)
 	    else
@@ -3508,7 +3508,7 @@ public class SOCBoardLarge extends SOCBoard
         // the main part of the fog island is a diagonal line
         // of hexes from (1, 4) to (D, A).
         0x0104, 0x0106, 0x0303,
-        0x0305, 0x0506, 0x0707, 0x0908, 0x0B09, 0x0D0A, 
+        0x0305, 0x0506, 0x0707, 0x0908, 0x0B09, 0x0D0A,
         0x0B0B, 0x0B0D, 0x0D0C
     };
 
@@ -3602,7 +3602,7 @@ public class SOCBoardLarge extends SOCBoard
         // the main part of the fog island is a diagonal line
         // of hexes from (1, 6) to (D, C).
         0x0104, 0x0305, 0x0506, 0x0707,
-        0x0106, 0x0307, 0x0508, 0x0709, 0x090A, 0x0B0B, 0x0D0C, 
+        0x0106, 0x0307, 0x0508, 0x0709, 0x090A, 0x0B0B, 0x0D0C,
         0x0B0D
     };
 
