@@ -371,6 +371,13 @@ public class SOCBoardLarge extends SOCBoard
     private HashSet<Integer>[] landAreasLegalNodes;
 
     /**
+     * Maximum players (4 or 6).
+     * Some scenarios are laid out differently for 6 players.
+     * Some are laid out differently for 3 players, so also check SOCGameOption "PL".
+     */
+    private final int maxPlayers;
+
+    /**
      * When players must start the game in a certain land area,
      * the starting land area number; also its index in
      * {@link #landAreasLegalNodes}, because that set of
@@ -485,6 +492,7 @@ public class SOCBoardLarge extends SOCBoard
         super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
+        this.maxPlayers = maxPlayers;
         // TODO maxPlayers 6 not yet supported in our board layout for "PLL"
 
         setBoardBounds(BOARDWIDTH_LARGE, BOARDHEIGHT_LARGE);
@@ -547,9 +555,21 @@ public class SOCBoardLarge extends SOCBoard
         SOCGameOption opt = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
         final boolean hasScenarioFog = (opt != null) && opt.getBoolValue();
 
-        // For scenario boards, use 3-player or 4-player layout?
-        opt = (opts != null ? opts.get("PL") : null);
-        final boolean wants3pl = (opt != null) && (opt.getIntValue() < 4);
+        // For scenario boards, use 3-player or 4-player or 6-player layout?
+        // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
+        final int maxPl;
+        if (maxPlayers == 6)
+        {
+            maxPl = 6;
+        } else {
+            opt = (opts != null ? opts.get("PL") : null);
+            if (opt == null)
+                maxPl = 4;
+            else if (opt.getIntValue() > 4)
+                maxPl = 6;
+            else
+                maxPl = opt.getIntValue();
+        }
 
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
@@ -581,7 +601,7 @@ public class SOCBoardLarge extends SOCBoard
         } else {
             landAreasLegalNodes = new HashSet[3];
 
-            if (wants3pl)
+            if (maxPl < 4)
             {
                 // - East and West islands:
                 makeNewBoard_placeHexes
@@ -628,7 +648,7 @@ public class SOCBoardLarge extends SOCBoard
         // Hide some land hexes behind fog, if the scenario does that
         if (hasScenarioFog)
         {
-            final int[] FOGHEXES = (wants3pl) ? FOG_ISL_LANDHEX_COORD_FOG_3PL : FOG_ISL_LANDHEX_COORD_FOG_4PL;
+            final int[] FOGHEXES = (maxPl < 4) ? FOG_ISL_LANDHEX_COORD_FOG_3PL : FOG_ISL_LANDHEX_COORD_FOG_4PL;
             makeNewBoard_hideHexesInFog(FOGHEXES);
         }
 
