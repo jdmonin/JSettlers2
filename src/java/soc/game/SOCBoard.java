@@ -1245,9 +1245,12 @@ public class SOCBoard implements Serializable, Cloneable
      * @param number   Numbers to place into {@link #numberLayout} for each land hex;
      *                    array length is <tt>landHex[].length</tt> minus 1 for each desert in <tt>landHex[]</tt>
      * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
+     * @throws IllegalArgumentException if {@link #makeNewBoard_checkLandHexResourceClumps(Vector, int)}
+     *                 finds an invalid or uninitialized hex coordinate (hex type -1)
      */
     private final void makeNewBoard_placeHexes
         (int[] landHex, final int[] numPath, final int[] number, SOCGameOption optBC)
+        throws IllegalArgumentException
     {
         final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
         final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
@@ -1330,9 +1333,11 @@ public class SOCBoard implements Serializable, Cloneable
      * @param clumpSize  Clumps of this size or more are too large.
      *          Minimum value is 3, smaller values will always return false.
      * @return  true if large clumps found, false if okay
+     * @throws IllegalArgumentException if a hex type is -1 (uninitialized or not a valid hex coordinate)
      * @since 2.0.00
      */
     protected boolean makeNewBoard_checkLandHexResourceClumps(Vector<Integer> unvisited, final int clumpSize)
+        throws IllegalArgumentException
     {
         if (clumpSize < 3)
             return false;
@@ -1405,6 +1410,8 @@ public class SOCBoard implements Serializable, Cloneable
             final int hexCoord = hexCoordObj.intValue();
             final int resource = getHexTypeFromCoord(hexCoord);
             unvisited.removeElementAt(0);
+            if (resource == -1)
+                throw new IllegalArgumentException("hex type -1 at coord 0x" + Integer.toHexString(hexCoord));
 
             //     - skip water hexes; water is never a clump
             if (resource == SOCBoard.WATER_HEX)
