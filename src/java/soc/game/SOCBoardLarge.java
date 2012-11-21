@@ -544,6 +544,10 @@ public class SOCBoardLarge extends SOCBoard
         SOCGameOption opt = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
         final boolean hasScenarioFog = (opt != null) && opt.getBoolValue();
 
+        // For scenario boards, use 3-player or 4-player layout?
+        opt = (opts != null ? opts.get("PL") : null);
+        final boolean wants3pl = (opt != null) && (opt.getIntValue() < 4);
+
         // shuffle and place the land hexes, numbers, and robber:
         // sets robberHex, contents of hexLayout[] and numberLayout[].
         // Adds to landHexLayout and nodesOnLand.
@@ -574,6 +578,8 @@ public class SOCBoardLarge extends SOCBoard
         } else {
             landAreasLegalNodes = new HashSet[3];
 
+            if (wants3pl)
+            {
             // - East and West islands:
             makeNewBoard_placeHexes
                 (FOG_ISL_LANDHEX_TYPE_MAIN_3PL, FOG_ISL_LANDHEX_COORD_MAIN_3PL, FOG_ISL_DICENUM_MAIN_3PL, 1, opt_breakClumps);
@@ -583,8 +589,20 @@ public class SOCBoardLarge extends SOCBoard
                 (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_3PL, FOG_ISL_DICENUM_FOG_3PL, 2, null);            
 
             PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_3PL;
-            PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
             PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_3PL;
+            } else {
+                // - East and West islands:
+                makeNewBoard_placeHexes
+                    (FOG_ISL_LANDHEX_TYPE_MAIN_4PL, FOG_ISL_LANDHEX_COORD_MAIN_4PL, FOG_ISL_DICENUM_MAIN_4PL, 1, opt_breakClumps);
+    
+                // - "Fog Island" in the middle:
+                makeNewBoard_placeHexes
+                    (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_4PL, FOG_ISL_DICENUM_FOG_4PL, 2, null);            
+    
+                PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_4PL;
+                PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_4PL;
+            }
+            PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
             PORT_LOC_FACING_ISLANDS = null;
         }
 
@@ -606,7 +624,10 @@ public class SOCBoardLarge extends SOCBoard
 
         // Hide some land hexes behind fog, if the scenario does that
         if (hasScenarioFog)
-            makeNewBoard_hideHexesInFog(FOG_ISL_LANDHEX_COORD_FOG_3PL);
+        {
+            final int[] FOGHEXES = (wants3pl) ? FOG_ISL_LANDHEX_COORD_FOG_3PL : FOG_ISL_LANDHEX_COORD_FOG_4PL;
+            makeNewBoard_hideHexesInFog(FOGHEXES);
+        }
 
         // Add villages, if the scenario does that
         opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
@@ -3391,8 +3412,13 @@ public class SOCBoardLarge extends SOCBoard
     ////////////////////////////////////////////
     //
     // Fog Island scenario Layout
+    //   Has 3-player, 4-player versions;
+    //   FOG_ISL_LANDHEX_TYPE_FOG[] is shared.
     //
 
+    //
+    // 3-player
+    //
 
     /**
      * Fog Island: Land hex types for the large southwest and northeast islands.
@@ -3428,9 +3454,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Fog Island: Port edges and facings on the large southwest and northeast islands.
-     * Each port has 2 elements.
-     * First: Coordinate, in hex: 0xRRCC.
-     * Second: Facing.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
      *<P>
      * Port Facing is the direction from the port edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
@@ -3450,7 +3474,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Fog Island: Port types on the large southwest and northeast islands.
-     * These won't be shuffled, so they will line up with {@link #FOG_ISL_PORT_EDGE_FACING_3PL}.
+     * Since these won't be shuffled, they will line up with {@link #FOG_ISL_PORT_EDGE_FACING_3PL}.
      */
     private static final int FOG_ISL_PORT_TYPE_3PL[] =
     {
@@ -3476,6 +3500,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Fog Island: Land and water hex coordinates for the fog island.
+     * Hex types for the fog island are {@link #FOG_ISL_LANDHEX_TYPE_FOG}.
      */
     private static final int FOG_ISL_LANDHEX_COORD_FOG_3PL[] =
     {
@@ -3495,6 +3520,100 @@ public class SOCBoardLarge extends SOCBoard
     {
         // 10 numbered hexes (excludes 2 water)
         3, 3, 4, 5, 6, 8, 9, 10, 11, 12
+    };
+
+    //
+    // 4-player
+    //
+
+    /**
+     * Fog Island: Land hex types for the large southwest and northeast islands.
+     */
+    private static final int FOG_ISL_LANDHEX_TYPE_MAIN_4PL[] =
+    {
+        // 17 hexes total for southwest, northeast islands
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    };
+
+    /**
+     * Fog Island: Land hex coordinates for the large southwest and northeast islands.
+     */
+    private static final int FOG_ISL_LANDHEX_COORD_MAIN_4PL[] =
+    {
+        // Southwest island: 10 hexes centered on rows 5-d, columns 2-8
+        0x0502, 0x0703, 0x0902, 0x0904, 0x0B03, 0x0B05, 0x0B07, 0x0D04, 0x0D06,0x0D08,
+
+        // Northeast island: 7 hexes centered on rows 1-7, columns a-e
+        0x010A, 0x010C, 0x030B, 0x030D, 0x050C, 0x050E, 0x070D
+    };
+
+    /**
+     * Fog Island: Dice numbers for hexes on the large southwest and northeast islands.
+     * No defined NumPath; as long as 6 and 8 aren't adjacent, all is OK.
+     */
+    private static final int FOG_ISL_DICENUM_MAIN_4PL[] =
+    {
+        2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 12
+    };
+
+    /**
+     * Fog Island: Port edges and facings on the large southwest and northeast islands.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Each port's type will be {@link #FOG_ISL_PORT_TYPE_4PL}.
+     */
+    private static final int FOG_ISL_PORT_EDGE_FACING_4PL[] =
+    {
+        // Southwest island: 5 ports; placing counterclockwise from northern end
+        0x0601, FACING_NE,  0x0A01, FACING_NE,  0x0D03, FACING_E,
+        0x0E04, FACING_NW,  0x0E07, FACING_NE,
+
+        // Northeast island: 4 ports; placing counterclockwise from southeast end
+        0x070E, FACING_W,   0x040E, FACING_SW,
+        0x010D, FACING_W,   0x000B, FACING_SE
+    };
+
+    /**
+     * Fog Island: Port types on the large southwest and northeast islands.
+     * Since these won't be shuffled, they will line up with {@link #FOG_ISL_PORT_EDGE_FACING_4PL}.
+     */
+    private static final int FOG_ISL_PORT_TYPE_4PL[] =
+    {
+        // Southwest island: 5 ports; placing counterclockwise from northern end
+        MISC_PORT, CLAY_PORT, MISC_PORT, WHEAT_PORT, SHEEP_PORT,
+
+        // Northeast island: 4 ports; placing counterclockwise from southeast end
+        WOOD_PORT, ORE_PORT, MISC_PORT, MISC_PORT
+    };
+
+    /**
+     * Fog Island: Land and water hex coordinates for the fog island.
+     * Hex types for the fog island are {@link #FOG_ISL_LANDHEX_TYPE_FOG}.
+     */
+    private static final int FOG_ISL_LANDHEX_COORD_FOG_4PL[] =
+    {
+        // Fog island: 12 hexes, from northwest to southeast;
+        // the main part of the fog island is a diagonal line
+        // of hexes from (1, 6) to (D, C).
+        0x0104, 0x0305, 0x0506, 0x0707,
+        0x0106, 0x0307, 0x0508, 0x0709, 0x090A, 0x0B0B, 0x0D0C, 
+        0x0B0D
+    };
+
+    /**
+     * Fog Island: Dice numbers for hexes on the fog island.
+     * No defined NumPath; as long as 6 and 8 aren't adjacent, all is OK.
+     */
+    private static final int FOG_ISL_DICENUM_FOG_4PL[] =
+    {
+        // 10 numbered hexes (excludes 2 water)
+        3, 4, 5, 6, 8, 9, 10, 11, 11, 12
     };
 
 }
