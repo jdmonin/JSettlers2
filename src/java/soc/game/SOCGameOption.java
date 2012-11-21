@@ -1772,13 +1772,22 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         if (doServerPreadjust)
         {
             // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
-            //   code here. Set or change options if it makes sense; if a user has deliberately
+            //    here. Set or change options if it makes sense; if a user has deliberately
             //    set a boolean option, think carefully before un-setting it and surprising them.
 
             // Set PLB if PL>4
             SOCGameOption opt = newOpts.get("PL");
             if ((opt != null) && (opt.getIntValue() > 4))
                 setBoolOption(newOpts, "PLB");
+
+            // If _SC_FOG is set, VP should be >= 12
+            opt = newOpts.get(K_SC_FOG);
+            if ((opt != null) && opt.getBoolValue())
+            {
+                opt = newOpts.get("VP");
+                if ((opt == null) || (opt.getIntValue() < 12))
+                    setIntOption(newOpts, "VP", 12, true);
+            }
 
             // If _SC_CLVI is set, VP should be >= 14, and no longest trade route bonus
             opt = newOpts.get(K_SC_CLVI);
