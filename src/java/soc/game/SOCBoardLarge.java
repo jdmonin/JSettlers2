@@ -2495,7 +2495,7 @@ public class SOCBoardLarge extends SOCBoard
         {
             final int er = r + offs[i];  ++i;
             final int ec = c + offs[i];  ++i;
-            if (isEdgeInBounds(r,c))
+            if (isEdgeInBounds(er, ec))
                 edge.addElement(new Integer( (er << 8) | ec ));
         }
         return edge;
