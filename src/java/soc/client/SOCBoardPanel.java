@@ -6186,9 +6186,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         if (isLargeBoard)
                         {
                             if (game.isInitialPlacement())
-                                sb.append("Fog (place roads or settlements to reveal)");
+                                sb.append("Fog (place ships or settlements to reveal)");
                             else
-                                sb.append("Fog (place roads to reveal)");
+                                sb.append("Fog (place ships or roads to reveal)");
                         } else {
                             // FOG_HEX is also CLAY_PORT_HEX
                             sb.append(portDescForType(SOCBoard.CLAY_PORT));
