@@ -2096,7 +2096,7 @@ public class SOCGame implements Serializable, Cloneable
         ((SOCBoardLarge) board).revealFogHiddenHex(hexCoord, hexType, diceNum);
             // throws IllegalArgumentException if any problem noted above
 
-        if (hexType == SOCBoard.WATER_HEX)
+        if ((hexType == SOCBoard.WATER_HEX) || ((SOCBoardLarge) board).isHexAtBoardMargin(hexCoord))
         {
             // Previously not a legal ship edge, because
             // we didn't know if the fog hid land or water

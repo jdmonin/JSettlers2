@@ -1547,6 +1547,8 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Is this edge along the coastline (land/water border)?
+     * Off the edge of the board is considered water.
+     * {@link #FOG_HEX} is considered land here.
      * @param edge  Edge coordinate, not checked for validity
      * @return  true if this edge's hexes are land and water,
      *           or a land hex at the edge of the board

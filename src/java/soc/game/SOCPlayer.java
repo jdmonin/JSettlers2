@@ -2871,27 +2871,35 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * When a {@link SOCBoardLarge#FOG_HEX} is revealed to be water,
+     * or a land hex at the board's {@link SOCBoardLarge#isHexAtBoardMargin(int) margin},
      * update the set of edges used by {@link #isLegalShip(int)}.
      * The revealed hex's edges previously weren't part of the set,
      * because we didn't know if the fog hid land or water.
      *<P>
      * Called by {@link SOCGame#revealFogHiddenHex(int, int, int)}.
-     * If the hex type isn't {@link SOCBoard#WATER_HEX}, does nothing.
+     * If the hex type isn't {@link SOCBoard#WATER_HEX}
+     * and ! {@link SOCBoardLarge#isHexAtBoardMargin(int) board.isHexAtBoardMargin(hexCoord)},
+     * does nothing.
      * Call only if {@link SOCGame#hasSeaBoard}.
      * @param hexCoord  Coordinate of hex to add if water
      * @since 2.0.00
      */
     void updateLegalShipsAddHex(final int hexCoord)
     {
-        final SOCBoard board = game.getBoard();
-        if (board.getHexTypeFromCoord(hexCoord) != SOCBoard.WATER_HEX)
+        final SOCBoardLarge board = (SOCBoardLarge) game.getBoard();
+        final int htype = board.getHexTypeFromCoord(hexCoord);
+        if ((htype != SOCBoard.WATER_HEX) && ! board.isHexAtBoardMargin(hexCoord))
             return;
 
         // Previously not a legal ship edge, because
         // we didn't know if the fog hid land or water
-        final int[] sides = ((SOCBoardLarge) board).getAdjacentEdgesToHex(hexCoord);
+        final int[] sides = board.getAdjacentEdgesToHex(hexCoord);
         for (int i = 0; i < 6; ++i)
-            legalShips.add(new Integer(sides[i]));
+        {
+            final int edge = sides[i];
+            if ((htype == SOCBoard.WATER_HEX) || board.isEdgeCoastline(edge))
+                legalShips.add(new Integer(edge));
+        }
     }
 
     /**
