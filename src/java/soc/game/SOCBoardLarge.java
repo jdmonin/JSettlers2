@@ -618,7 +618,8 @@ public class SOCBoardLarge extends SOCBoard
         int[] portTypes_main = new int[PORTS_TYPES_MAINLAND.length];
         int[] portTypes_islands;
         System.arraycopy(PORTS_TYPES_MAINLAND, 0, portTypes_main, 0, portTypes_main.length);
-        makeNewBoard_shufflePorts(portTypes_main, opt_breakClumps);
+        if (! hasScenarioFog)
+            makeNewBoard_shufflePorts(portTypes_main, opt_breakClumps);
         if (PORTS_TYPES_ISLANDS != null)
         {
             portTypes_islands = new int[PORTS_TYPES_ISLANDS.length];
