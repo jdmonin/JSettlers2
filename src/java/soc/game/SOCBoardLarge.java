@@ -667,7 +667,6 @@ public class SOCBoardLarge extends SOCBoard
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_6PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_6PL;
-                
             }
             PORTS_TYPES_ISLANDS = null;  // no ports inside fog island's random layout
             PORT_LOC_FACING_ISLANDS = null;
@@ -2406,7 +2405,7 @@ public class SOCBoardLarge extends SOCBoard
         else if ((c % 2) != ((r/2) % 2))
         {
             // FACING_NW: (r-1, c)
-            if (r > 1)
+            if ((r > 1) && (c > 0))
                 hexes[0] = edgeCoord - 0x100;
 
             // FACING_SE: (r+1, c+1)
@@ -2422,7 +2421,7 @@ public class SOCBoardLarge extends SOCBoard
                 hexes[0] = edgeCoord - 0x100 + 0x01;
 
             // FACING_SW: (r+1, c)
-            if (r < (boardHeight-1))
+            if ((r < (boardHeight-1)) && (c > 0))
                 hexes[1] = edgeCoord + 0x100;
         }
 
