@@ -128,6 +128,7 @@ import java.util.Vector;
  *      {@link #getLandHexLayout()} <br>
  *      {@link #getLandHexCoords()} <br>
  *      {@link #getLandHexCoordsSet()} <br>
+ *      {@link #isHexAtBoardMargin(int)} <br>
  *      {@link #isHexInLandAreas(int, int[])}
  *    </td>
  *    <td><!-- edge -->
@@ -1127,9 +1128,9 @@ public class SOCBoardLarge extends SOCBoard
             int c;
             if (((r/2) % 2) == 1)
             {
-                c = 1;  // odd hex rows start at 1
+                c = 1;  // odd hex row hexes start at 1
             } else {
-                c = 2;  // top row, even rows start at 2
+                c = 2;  // top row, even row hexes start at 2
             }
             for (; c < boardWidth; c += 2)
             {
@@ -1140,7 +1141,7 @@ public class SOCBoardLarge extends SOCBoard
                         legalShipEdges.add(new Integer(sides[i]));
                 } else {
                     // Land hex; check if it's at the
-                    // edge of the board
+                    // edge of the board; this check is also isHexAtBoardMargin(hc)
                     if ((r == 1) || (r == (boardHeight-1))
                         || (c <= 2) || (c >= (boardWidth-2)))
                     {
@@ -3126,8 +3127,10 @@ public class SOCBoardLarge extends SOCBoard
      * Is this hex coordinate within the board's boundaries,
      * not off the side of the board?
      * @param r  Hex coordinate's row; bounds-checked and validity-checked (only odd rows are hex coordinate rows)
-     * @param c  Hex coordinate's column; bounds-checked but not validity-checked (could be a column betwen two hexes)
+     * @param c  Hex coordinate's column; bounds-checked but not validity-checked (could be a column betwen two hexes,
+     *            or could be c == 1 although half the hex rows start at 2)
      * @see #getAdjacentHexesToHex(int, boolean)
+     * @see #isHexAtBoardMargin(int)
      */
     public final boolean isHexInBounds(final int r, final int c)
     {
@@ -3135,6 +3138,22 @@ public class SOCBoardLarge extends SOCBoard
             return false;  // not within the board's valid hex boundaries
 
         return ((r % 2) == 1);  // valid hex row number?
+    }
+
+    /**
+     * Is this hex coordinate at the board's boundaries,
+     * with one or more adjacent hexes off the side of the board?
+     * @param hexCoord  Hex coordinate; not validity-checked
+     * @see #isHexInBounds(int, int)
+     */
+    public final boolean isHexAtBoardMargin(final int hexCoord)
+    {
+        final int r = hexCoord >> 8,
+                  c = hexCoord & 0xFF;
+
+        return (r == 1) || (r == (boardHeight-1))
+               || (c <= 2) || (c >= (boardWidth-2));
+
     }
 
     /**
