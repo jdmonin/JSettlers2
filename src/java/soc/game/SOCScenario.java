@@ -129,19 +129,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *   (For example, "N7" for "roll no 7s early in the game" is strictly server-side.)
      *<LI> Create the option by calling opt.put here in initAllScenarios.
      *   Use the current version for the "last modified" field.
-     *<LI> If only <em>some values</em> of the option will require client changes,
-     *   also update {@link #getMinVersion()}.  (For example, if "PL"'s value is 5 or 6,
-     *   a new client would be needed to display that many players at once, but 2 - 4
-     *   can use any client version.) <BR>
-     *   If this is the case and your option type
-     *   is {@link #OTYPE_ENUM} or {@link #OTYPE_ENUMBOOL}, also update
-     *   {@link #getMaxEnumValueForVersion(String, int)}.
-     *   Otherwise, update {@link #getMaxIntValueForVersion(String, int)}.
-     *<LI> If the new option can be used by old clients by changing the values of
-     *   <em>other</em> related options when game options are sent to those versions,
-     *   add code to {@link #getMinVersion(Hashtable)}. <BR>
-     *   For example, the boolean "PLB" can force use of the 6-player board in
-     *   versions 1.1.08 - 1.1.12 by changing "PL"'s value to 5 or 6.
      *<LI> Within {@link SOCGame}, don't add any object fields due to the new option;
      *   instead call {@link SOCGame#isGameOptionDefined(String)},
      *   {@link SOCGame#getGameOptionIntValue(String)}, etc.
@@ -173,50 +160,34 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *
      * <h3>If you want to change a game option (in a later version):</h3>
      *
-     *   Typical changes to a game option would be:
+     *   Typical changes to a game scenario would be:
      *<UL>
-     *<LI> Add new values to an {@link #OTYPE_ENUM enumerated} option;
-     *   they must be added to the end of the list
-     *<LI> Change the maximum or minimum permitted values for an
-     *   {@link #OTYPE_INT integer} option
-     *<LI> Change the default value, although this can also be done
-     *   at runtime on the command line
-     *<LI> Change the value at the server based on other options' values
+     *<LI> Change the {@link #scDesc description}
+     *<LI> Change the {@link #scOpts options}
      *</UL>
      *   Things you can't change about a scenario, because inconsistencies would occur:
      *<UL>
      *<LI> {@link #scKey name key}
-     *<LI> {@link #optType}
      *<LI> {@link #minVersion}
-     *<LI> {@link #dropIfUnused} flag
-     *<LI> For {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL}, you can't remove options or change
-     *     the meaning of current ones, because this would mean that the option's intValue (sent over
-     *     the network) would mean different things to different-versioned clients in the game.
      *</UL>
      *
      *   <b>To make the change:</b>
      *<UL>
      *<LI> Change the option here in initAllScenarios; change the "last modified" field to
      *   the current game version. Otherwise the server can't tell the client what has
-     *   changed about the option.
-     *<LI> If new values require a newer minimum client version, add code to {@link #getMinVersion(Hashtable)}.
-     *<LI> If adding a new enum value for {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL},
-     *   add code to {@link #getMaxEnumValueForVersion(String, int)}.
-     *<LI> If increasing the maximum value of an int-valued parameter, and the new maximum
-     *   requires a certain version, add code to {@link #getMaxIntValueForVersion(String, int)}.
-     *   For example, versions below 1.1.08 limit "max players" to 4.
+     *   changed about the scenario.
      *<LI> Search the entire source tree for its key name, to find places which may need an update.
      *<LI> Consider if any other places listed above (for add) need adjustment.
      *</UL>
      *
-     * <h3>If you want to remove or obsolete a game option (in a later version):</h3>
+     * <h3>If you want to remove or obsolete a game scenario (in a later version):</h3>
      *
      * Please think twice beforehand; breaking compatibility with older clients shouldn't
-     * be done without a very good reason.  That said, the server is authoritative on options.
-     * If an option isn't in its known list ({@link #initAllScenarios()}), the client won't be
-     * allowed to ask for it.  Any obsolete options should be kept around as commented-out code.
+     * be done without a very good reason.  That said, the server is authoritative on scenarios.
+     * If a scenario isn't in its known list ({@link #initAllScenarios()}), the client won't be
+     * allowed to ask for it.  Any obsolete scenario should be kept around as commented-out code.
      *
-     * @return a fresh copy of the "known" options, with their hardcoded default values
+     * @return a fresh copy of the "known" scenarios, with their hardcoded default values
      */
     public static Map<String, SOCScenario> initAllScenarios()
     {
@@ -224,11 +195,11 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
         // Game scenario options (rules and events)
         allSc.put(K_SC_FOG, new SOCScenario
-            (K_SC_FOG, 2000, 2000, false, true,
+            (K_SC_FOG, 2000, 2000, true,
              "Some land hexes initially hidden by fog",
              "_SC_FOG=t,PLL=t,VP=12"));
         allSc.put(K_SC_CLVI, new SOCScenario
-            (K_SC_CLVI, 2000, 2000, false, true,
+            (K_SC_CLVI, 2000, 2000, true,
              "Cloth Trade with neutral villages",
              "_SC_CLVI=t,PLL=t,VP=14,_SC_3IP=t,_SC_0RVP=t"));
 
@@ -250,33 +221,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     /** Option type: boolean  */
     public static final int OTYPE_BOOL = 1;
 
-    /** Option type: integer  */
-    public static final int OTYPE_INT = 2;
-
-    /** Option type: integer + boolean.  Both {@link #boolValue} and {@link #intValue} fields are used. */
-    public static final int OTYPE_INTBOOL = 3;
-
-    /** Option type: enumeration (1 of several possible choices, described with text strings,
-     *  stored here as intVal).  Choices' strings are stored in {@link #enumVals}.
-     */
-    public static final int OTYPE_ENUM = 4;
-
-    /** Option type: enumeration + boolean; see {@link #OTYPE_ENUM}.
-     *  Like {@link #OTYPE_INTBOOL}, both {@link #boolValue} and {@link #intValue} fields are used.
-     */
-    public static final int OTYPE_ENUMBOOL = 5;
-
-    /** Option type: text string (max string length is {@link #maxIntValue}, default value is "") */
-    public static final int OTYPE_STR = 6;
-
-    /** Option type: text string (like {@link #OTYPE_STR}) but hidden from view; is NOT encrypted,
-     *  but contents show up as "*" when typed into a text field.
-     */
-    public static final int OTYPE_STRHIDE = 7;
-
-    /** Highest OTYPE value known at this version */
-    public static final int OTYPE_MAX = OTYPE_STRHIDE;  // OTYPE_* - adj OTYPE_MAX if adding new type
-
     // Game scenario keynames.
 
     /**
@@ -292,25 +236,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      */
     public static final String K_SC_CLVI = "SC_CLVI";
 
-    // If you create a new option type,
-    // please update parseOptionsToHash(), packOptionsToString(),
-    // adjustOptionsToKnown(), and soc.message.SOCGameOptionGetInfo,
-    // and other places.
-    // (Search *.java for "// OTYPE_*" to find all locations)
-
-    /** Option type.
-     *<UL>
-     * <LI> {@link #OTYPE_BOOL} Boolean
-     * <LI> {@link #OTYPE_INT}  Integer, with min/max value
-     * <LI> {@link #OTYPE_INTBOOL} Int plus bool (Ex. [x] no robber rolls in first _5_ turns)
-     * <LI> {@link #OTYPE_ENUM} Enumerated-choice (Ex. Standard vs Seafarers):
-     *        Stored like integer {@link #OTYPE_INT} in range 1-n, described to user with text strings.
-     * <LI> {@link #OTYPE_ENUMBOOL} Enum plus bool; stored like {@link #OTYPE_INTBOOL}.
-     * <LI> {@link #OTYPE_STR} short text string: max string length is {@link #maxIntValue}; default value is the empty string.
-     * <LI> {@link #OTYPE_STRHIDE} text string (like {@link #OTYPE_STR}) but hidden from view; is NOT encrypted.
-     *</UL>
-     */
-    public final int optType;  // OTYPE_* - if a new type is added, update this field's javadoc.
+    public final int optType;    // TODO remove
 
     /**
      * Scenario key/technical name: Short alphanumeric name (8 characters, uppercase, starting with a letter)
@@ -330,46 +256,15 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
     /**
      * Most recent game version in which this option changed, or if not modified, the version which added it.
-     * changes would include different min/max values, new choices for an {@link #OTYPE_ENUM}, etc.
+     * changes would include different {@link #scOpts}, description, etc.
      * Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      */
     public final int lastModVersion;
 
     /**
-     * Should the server drop this option from game options, and not send over
-     * the network (to reduce overhead), if the value is un-set or blank?
-     * (Meaning not set (false) for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
-     * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE})
-     *<P>
-     * Only recommended for seldom-used options.
-     * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)}.
-     * Once this flag is set for an option, it should not be un-set if the
-     * option is changed in a later version.
-     *<P>
-     * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
-     * boolean values are checked against defaults.
-     *<P>
-     * This flag is ignored at the client when asking to create a new game:
-     * <tt>NewGameOptionsFrame</tt> sends all options it has displayed, even those
-     * which would be dropped because they're unused and they have this flag.
-     */
-    public final boolean dropIfUnused;  // OTYPE_* - mention in javadoc if this applies to the new type.
-
-    /**
      * Default value for boolean part of this option, if any
      */
     public final boolean defaultBoolValue;
-
-    /**
-     * Default value for integer part of this option, if any
-     */
-    public final int defaultIntValue;
-
-    /**
-     * Minumum and maximum permitted values for integer part of this option, if any,
-     * or maximum length of a string value. (There is no minimum length)
-     */
-    public final int minIntValue, maxIntValue;
 
     /**
      * Scenario's {@link SOCGameOption}s, as a formatted string
@@ -378,17 +273,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     public String scOpts;
 
     /**
-     * Descriptive text for the option. Must not contain the network delimiter
+     * Descriptive text for the scenario. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
-     * If option type is integer-valued ({@link #OTYPE_ENUM}, {@link #OTYPE_INTBOOL}, etc),
-     * may contain a placeholder '#' where the value is typed onscreen.
-     * For {@link #OTYPE_UNKNOWN}, an empty string.
      */
     public String scDesc;
 
     private boolean boolValue;
-    private int     intValue;
-    private String  strValue;  // no default value: is "", stored as null
 
     /**
      * Create a new game option of unknown type ({@link #OTYPE_UNKNOWN}).
@@ -402,7 +292,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     public SOCScenario(String key)
         throws IllegalArgumentException
     {
-        this(OTYPE_UNKNOWN, key, Integer.MAX_VALUE, Integer.MAX_VALUE, false, 0, 0, 0, false, null, key);
+        this(OTYPE_UNKNOWN, key, 0, 0, false, "", "");
     }
 
     /**
@@ -425,16 +315,14 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCScenario(String key, int minVers, int lastModVers,
-        boolean defaultValue, boolean dropIfUnused, String opts, String desc)
+        boolean defaultValue, String opts, String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, dropIfUnused, null, desc);
+	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, null, desc);
     }
 
     /**
      * Create a new game scenario - common constructor.
-     * @param otype   Option type; use caution, as this is unvalidated against
-     *                {@link #OTYPE_MIN} or {@link #OTYPE_MAX}.
      * @param key     Alphanumeric uppercase code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      *                Keys can be up to 8 characters long.
@@ -442,13 +330,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *                If not -1, <tt>minVers</tt> must be at least 2000.
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultBoolValue Default value (true if set, false if not set)
-     * @param defaultIntValue Default int value, to use if option is set
-     * @param minValue Minimum permissible value
-     * @param maxValue Maximum permissible value; the width of the options-dialog
-     *                 value field is based on the number of digits in maxValue.
-     * @param dropIfUnused If this option's value is blank or unset, should
-     *                 server not add it to game options?
-     *                 See {@link #dropIfUnused} javadoc for more details.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @param desc Descriptive brief text, to appear in the options dialog; should
@@ -463,8 +344,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     protected SOCScenario(int otype, String key, int minVers, int lastModVers,
-        boolean defaultBoolValue, int defaultIntValue,
-        int minValue, int maxValue, boolean dropIfUnused,
+        boolean defaultBoolValue,
         String opts, String desc)
         throws IllegalArgumentException
     {
@@ -492,19 +372,11 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 	minVersion = minVers;
 	lastModVersion = lastModVers;
 	this.defaultBoolValue = defaultBoolValue;
-	this.defaultIntValue = defaultIntValue;
-	minIntValue = minValue;
-	maxIntValue = maxValue;
-	this.dropIfUnused = dropIfUnused;
         scOpts = opts;
 	scDesc = desc;
 
 	// starting values (= defaults)
 	boolValue = defaultBoolValue;
-	intValue = defaultIntValue;
-	strValue = null;
-	if ((intValue < minIntValue) || (intValue > maxIntValue))
-	    throw new IllegalArgumentException("defaultIntValue");
     }
 
     /**
@@ -521,9 +393,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * The current value of an option can change its minimum version.
      * For example, a 5- or 6-player game will need a newer client than 4 players,
      * but option "PL"'s {@link #minVersion} is -1, to allow 2- or 3-player games with any client.
-     * For boolean-valued option types ({@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL} and
-     * {@link #OTYPE_INTBOOL}), the minimum
-     * value is -1 unless {@link #getBoolValue()} is true (that is, unless the option is set).
+     * The minimum value is -1 unless {@link #getBoolValue()} is true (that is, unless the option is set).
      *<P>
      * Occasionally, an older client version supports a new option, but only by changing
      * the value of some other options it recognizes.
@@ -537,8 +407,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @return minimum version, or -1;
      *     same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      * @see #optionsMinimumVersion(Map)
-     * @see #getMaxEnumValueForVersion(String, int)
-     * @see #getMaxIntValueForVersion(String, int)
      */
     public int getMinVersion()
     {
@@ -556,60 +424,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     }
 
     /**
-     * For use at server, for enum options where some values require a newer client version.
-     * Given the option's keyname and a version, what is the maximum permitted enum value?
-     * The server, when giving option info to a connecting client, can remove the too-new values,
-     * and send only the permitted values to an older client.
-     *
-     * @param optKey Option's keyname
-     * @param vers   Version of client, same format as {@link SOCVersion#getVersionNumber()}
-     * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
-     *          if this option has no restriction.
-     *          Enum values range from 1 to n, not from 0 to n-1.
-     */
-    public static final int getMaxEnumValueForVersion(final String optKey, final int vers)
-    {
-        // SAMPLE CODE:
-        /*
-        if (optKey.equals("DEBUGENUMBOOL"))
-        {
-            if (vers >= 1108)
-                return 4;
-            else
-                return 2;
-        }
-        */
-        // END OF SAMPLE CODE.
-
-        return Integer.MAX_VALUE;
-    }
-
-    /**
-     * For use at server, for int options where some values require a newer client version.
-     * For example, versions below 1.1.08 limit "max players" to 4.
-     * Given the option's keyname and a version, what is the maximum permitted int value?
-     * The server, when giving option info to a connecting client, can remove the too-new values.
-     *
-     * @param optKey Option's keyname
-     * @param vers   Version of client, same format as {@link SOCVersion#getVersionNumber()}
-     * @return  Maximum permitted value for this version, or {@link Integer#MAX_VALUE}
-     *          if this option has no restriction.
-     * @since 1.1.08
-     */
-    public static final int getMaxIntValueForVersion(final String optKey, final int vers)
-    {
-        if (optKey.equals("PL"))  // Max players
-        {
-            if (vers >= 1108)
-                return Integer.MAX_VALUE;
-            else
-                return 4;
-        }
-
-        return Integer.MAX_VALUE;
-    }
-
-    /**
      * @return a deep copy of all known option objects
      * @see #addKnownOption(SOCScenario)
      */
@@ -622,7 +436,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Add a new known option (presumably received from a server of newer or older version),
      * or update the option's information.
      * @param onew New option, or a changed version of an option we already know.
-     *             If onew.optType == {@link #OTYPE_UNKNOWN}, will remove from the known table.
      * @return true if it's new, false if we already had that key and it was updated
      * @see #getAllKnownOptions()
      */
@@ -632,34 +445,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 	final boolean hadIt = allScenarios.containsKey(oKey);
 	if (hadIt)
 	    allScenarios.remove(oKey);
-	if (onew.optType != OTYPE_UNKNOWN)
-	    allScenarios.put(oKey, onew);
+	allScenarios.put(oKey, onew);
 	return ! hadIt;
-    }
-
-    /**
-     * Set the current value of a known option, based on the current value of
-     * another object with the same {@link #scKey}.
-     * If there is no known option with oCurr.{@link #scKey}, it is ignored and nothing is set.
-     * @param scCurr Option with the requested current value
-     * @throws  IllegalArgumentException if value is not permitted; note that
-     *            intValues outside of range are silently clipped, and will not
-     *            throw this exception.
-     */
-    public static void setKnownOptionCurrentValue(SOCScenario scCurr)
-        throws IllegalArgumentException
-    {
-        final String scKey = scCurr.scKey;
-        SOCScenario scKnown = allScenarios.get(scKey);
-        if (scKnown == null)
-            return;
-        switch (scKnown.optType)  // OTYPE_*
-        {
-        case OTYPE_BOOL:
-            scKnown.boolValue = scCurr.boolValue;
-            break;
-
-        }
     }
 
     /**
@@ -689,30 +476,9 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     /**
      * @return information about a known option, or null if none with that key
      */
-    public static SOCScenario getOption(String key)
+    public static SOCScenario getScenario(String key)
     {
         return allScenarios.get(key);  // null is ok
-    }
-
-    /**
-     * Search these options and find any unknown ones (type {@link #OTYPE_UNKNOWN})
-     * @param opts map of SOCScenarios
-     * @return List(SOCScenario) of unknown options, or null if all are known
-     */
-    public static ArrayList<String> findUnknowns(Map<String, SOCScenario> opts)
-    {
-        ArrayList<String> unknowns = null;
-        for (Map.Entry<String, SOCScenario> e : opts.entrySet())
-        {
-            SOCScenario sc = e.getValue();
-            if (sc.optType == SOCScenario.OTYPE_UNKNOWN)
-            {
-                if (unknowns == null)
-                    unknowns = new ArrayList<String>();
-                unknowns.add(sc.scKey);
-            }
-        }
-        return unknowns;
     }
 
     /**
@@ -736,21 +502,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @param ohash Hashtable of SOCGameOptions, or null
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
-     * @return string of name-value pairs, or "-" for an empty or null ohash;
-     *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
-     *         part of the string. Format: k1=t,k2=f,k3=10,k4=t7,k5=f7.
-     * The format for each value depends on its type:
-     *<UL>
-     *<LI>OTYPE_BOOL: t or f
-     *<LI>OTYPE_ENUM: int in range 1-n
-     *<LI>OTYPE_INTBOOL: t or f followed immediately by int value, as in: t7 or f9
-     *<LI>All other optTypes: int value or string value, as appropriate
-     *</UL>
+     * @return string of name-value pairs, or "-" for an empty or null ohash.
+     *         Format: k1=t,k2=f,k3=t
      *
      * @throws ClassCastException if hashtable contains anything other
      *         than SOCGameOptions
      * @see #parseOptionNameValue(String, boolean)
-     * @see #packValue(StringBuffer)
      */
     public static String packOptionsToString
         (Map<String, SOCScenario> ohash)
@@ -786,9 +543,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     	boolean hadAny = false;
     	for (SOCScenario sc : scMap.values())
     	{
-    	    if (sc.optType == OTYPE_UNKNOWN)
-    	        continue;  // <-- Skip this one --
-    
     	    if (hadAny)
     		sb.append(SOCMessage.sep2_char);
     	    else
@@ -798,47 +552,9 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     
     	    boolean wroteValueAlready = false;
     	    if (! wroteValueAlready)
-    	        sc.packValue(sb);
+    	        sb.append(sc.boolValue ? 't' : 'f');
     	}
     	return sb.toString();
-    }
-
-    /**
-     * Pack current value of this option into a string.
-     * This is used in {@link #packOptionsToString(Hashtable, boolean)} and
-     * read in {@link #parseOptionNameValue(String, boolean)} and {@link #parseOptionsToHash(String)}.
-     * See {@link #packOptionsToString(Hashtable, boolean)} for the string's format.
-     *
-     * @param sb Pack into (append to) this buffer
-     */
-    public void packValue(StringBuffer sb)
-    {
-        switch (optType)  // OTYPE_* - update this switch, and javadoc of packOptionsToString and of parseOptionNameValue.
-        {                 //           The format produced must match that expected in parseOptionNameValue.
-        case OTYPE_BOOL:
-            sb.append(boolValue ? 't' : 'f');
-            break;
-
-        case OTYPE_INT:
-        case OTYPE_ENUM:
-            sb.append(intValue);
-            break;
-
-        case OTYPE_INTBOOL:
-        case OTYPE_ENUMBOOL:
-            sb.append(boolValue ? 't' : 'f');
-            sb.append(intValue);
-            break;
-
-        case OTYPE_STR:
-        case OTYPE_STRHIDE:
-            if (strValue != null)
-                sb.append(strValue);  // value is checked in setter vs SEP, SEP2
-            break;
-
-        default:
-            sb.append ('?');  // Shouldn't happen
-        }
     }
 
     /**
@@ -889,7 +605,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @return Parsed option, or null if parse error;
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @see #parseOptionsToHash(String)
-     * @see #packValue(StringBuffer)
      */
     public static SOCScenario parseOptionNameValue(final String nvpair, final boolean forceNameUpcase)
     {
@@ -1000,16 +715,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Compare a set of options with known-good values.
      * If any are above/below maximum/minimum, clip to the max/min value in knownOpts.
      * If any are unknown, return a description. Will still check (and clip) the known ones.
-     * If any boolean or string-valued options are default, and unset/blank, and
-     * their {@link #dropIfUnused} flag is set, remove them from newOpts.
-     * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
-     * boolean values are checked against defaults.
-     *<P>
-     * If <tt>doServerPreadjust</tt> is true, then the server might also change some
-     * option values before creating the game, for overall consistency of the set of options.
-     * This is a server-side equivalent to the client-side {@link ChangeListener}s.
-     * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
-     * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
      *
      * @param newOpts Set of SOCGameOptions to check against knownOpts;
      *            an option's current value will be changed if it's outside of
@@ -1054,7 +759,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
                 scProblems.append(sc.scKey);
                 scProblems.append(": unknown. ");
 	    } else {
-	        // Clip int values, check default values, check dropIfUnused
+	        // Clip int values, check default values
 
 		if (knownSc.lastModVersion != sc.lastModVersion)
 		{
@@ -1067,16 +772,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
                     scProblems.append("). ");
 		}
 
-		switch (sc.optType)  // OTYPE_*
-		{
-		case OTYPE_BOOL:
-                    if (knownSc.dropIfUnused && ! sc.boolValue)
-                        ikv.remove();
-		    break;
-
-                // no default: all types should be handled above.
-
-		}  // endsw
 	    }
 	}
 
@@ -1119,43 +814,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
         }
     }
 
-    /**
-     * Within a set of options, include an int or intbool option and set its value.
-     * If the option object doesn't exist in <tt>newOpts</tt>, it will be cloned from
-     * the set of known options.
-     * @param newOpts Options to set <tt>ioKey</tt> within
-     * @param ioKey   Key name for int option to set
-     * @param ivalue  Set option to this int value
-     * @param bvalue  Set option to this boolean value (ignored if option type not intbool)
-     * @throws NullPointerException  if <tt>ioKey</tt> isn't in <tt>newOpts</tt>
-     *   and doesn't exist in the set of known options
-     * @since 1.1.17
-     */
-    public static void setIntOption
-        (Hashtable<String, SOCScenario> newOpts, final String ioKey, final int ivalue, final boolean bvalue)
-        throws NullPointerException
-    {
-        SOCScenario opt = newOpts.get(ioKey);
-        if (opt == null)
-        {
-            try
-            {
-                opt = (SOCScenario) (allScenarios.get(ioKey).clone());
-            }
-            catch (CloneNotSupportedException e)
-            {
-                // required stub; is Cloneable, so won't be thrown
-            }
-            opt.intValue = ivalue;
-            opt.boolValue = bvalue;
-            newOpts.put(ioKey, opt);
-        }
-        else
-        {
-            opt.intValue = ivalue;
-            opt.boolValue = bvalue;
-        }
-    }
 
     /**
      * Test whether a string's characters are all within the strict
@@ -1196,7 +854,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     {
         StringBuffer sb = new StringBuffer(scKey);
         sb.append('=');
-        packValue(sb);
+        sb.append(boolValue ? 't' : 'f');
         return sb.toString();
     }
 
