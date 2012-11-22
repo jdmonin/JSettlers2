@@ -36,6 +36,7 @@ import soc.message.SOCMessage;
  * <LI> Static dictionary of known options;
  *    see {@link #initAllOptions()} for the current list.
  *</UL>
+ * To get the list of known options, use {@link #getAllKnownOptions()}.
  *<P>
  * For information about adding or changing game options in a
  * later version of JSettlers, please see {@link #initAllOptions()}.
@@ -152,6 +153,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *   game option settings; only a very few places use SOCGameOption
      *   objects, and you won't need to adjust those places.
      *   The list of already-used key names is here within initAllOptions.
+     *   <P>
+     *   If your option supports a {@link SOCScenario}, its name should
+     *   start with "_SC_" and it should have a constant name field here
+     *   (like {@link #K_SC_3IP}) with a short descriptive javadoc.
      *<LI> Decide which {@link #optType option type} your option will be
      *   (boolean, enumerated, int+bool, etc.), and its default value.
      *   Typically the default will let the game behave as it did before
