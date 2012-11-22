@@ -529,6 +529,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * because the current value of an option can change its minimum version.
      * For example, a 5- or 6-player game will need a newer client than 4 players,
      * but option "PL"'s minVersion is -1, to allow 2- or 3-player games with any client.
+     * @see #lastModVersion
      */
     public final int minVersion;  // or -1
 
@@ -536,6 +537,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Most recent game version in which this option changed, or if not modified, the version which added it.
      * changes would include different min/max values, new choices for an {@link #OTYPE_ENUM}, etc.
      * Same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
+     * @see #minVersion
      */
     public final int lastModVersion;
 
@@ -2034,6 +2036,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<P>
      * Version 2.0.00 and newer allow '_'; please check {@link #minVersion},
      * name keys with '_' can't be sent to older clients.
+     *<P>
+     * This method is also used by {@link SOCScenario}, whose {@link SOCScenario#scKey} keys
+     * must also follow the same restricted format.
      *
      * @param s string to test
      * @return true if all characters are OK, false otherwise

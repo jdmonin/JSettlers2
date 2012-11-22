@@ -46,7 +46,7 @@ import soc.message.SOCMessage;
  * Scenario name keys must start with a letter and contain only ASCII uppercase
  * letters ('A' through 'Z'), underscore ('_'), and digits ('0' through '9'), in order to normalize
  * handling and network message formats.  This is enforced in constructors via
- * {@link #isAlphanumericUpcaseAscii(String)}.
+ * {@link SOCGameOption#isAlphanumericUpcaseAscii(String)}.
  *<P>
  * For the same reason, descriptions must not contain
  * certain characters or span more than 1 line; this is checked by calling
@@ -181,7 +181,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     public final boolean isUnknown;
 
     /**
-     * Scenario key/technical name: Short alphanumeric name (8 characters, uppercase, starting with a letter)
+     * Scenario key/technical name: Short alphanumeric name (max 8 characters, uppercase, starting with a letter).
      */
     public final String scKey;
 
@@ -219,7 +219,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Minimum version will be {@link Integer#MAX_VALUE}.
      * scDesc and scOpts will be an empty string.
      * @param key   Alphanumeric key name for this option;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if minVers or lastModVers is under 2000 but not -1
      */
@@ -233,7 +233,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Create a new known game scenario.
      *
      * @param key     Alphanumeric key name for this scenario;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version supporting this scenario, or -1.
      *                If not -1, <tt>minVers</tt> must be at least 2000.
      * @param lastModVers Last-modified version for this scenario, or version which added it
@@ -256,7 +256,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Create a new game scenario - common constructor.
      * @param unknown True if scenario is unknown here ({@link #isUnknown})
      * @param key     Alphanumeric uppercase code for this scenario;
-     *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
+     *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
      *                Keys can be up to 8 characters long.
      * @param minVers Minimum client version supporting this scenario, or -1.
      *                If not -1, <tt>minVers</tt> must be at least 2000.
@@ -281,7 +281,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
         if (key.length() > 8)
             throw new IllegalArgumentException("Key length > 8: " + key);
-        if (! (isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
+        if (! (SOCGameOption.isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
             throw new IllegalArgumentException("Key not alphanumeric: " + key);
         if ((minVers < 2000) && (minVers != -1))
             throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
@@ -607,36 +607,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
         {
             // required stub; is Cloneable, so won't be thrown
         }
-    }
-
-    /**
-     * Test whether a string's characters are all within the strict
-     * ranges 0-9, A-Z. The first character must be A-Z. Scenario name keys
-     * must start with a letter and contain only ASCII uppercase letters
-     * ('A' through 'Z') underscores '_' and digits ('0' through '9'),
-     * in order to normalize handling and network message formats.
-     *
-     * @param s string to test
-     * @return true if all characters are OK, false otherwise
-     */
-    public static final boolean isAlphanumericUpcaseAscii(String s)
-    {
-        for (int i = s.length()-1; i>=0; --i)
-        {
-            final char c = s.charAt(i);
-            if (((c < '0') || (c > '9'))
-                && ((c < 'A') || (c > 'Z'))
-                && (c != '_'))
-                return false;
-            if ((i == 0) && (c < 'A'))
-                return false;
-
-            // We use range checks, and not methods such as
-            // Character.isLetterOrDigit(ch), because those
-            // methods also permit unicode characters beyond
-            // what we'd like to accept here.
-        }
-        return true;
     }
 
     /**
