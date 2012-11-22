@@ -611,11 +611,11 @@ public class SOCBoardLarge extends SOCBoard
 
             // - Mainland:
             makeNewBoard_placeHexes
-                (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, 1, opt_breakClumps);
+                (makeNewBoard_landHexTypes_v1, LANDHEX_DICEPATH_MAINLAND, makeNewBoard_diceNums_v1, false, 1, opt_breakClumps);
 
             // - Outlying islands:
             makeNewBoard_placeHexes
-                (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, LANDHEX_LANDAREA_RANGES_ISLANDS, null);
+                (LANDHEX_TYPE_ISLANDS, LANDHEX_COORD_ISLANDS_ALL, LANDHEX_DICENUM_ISLANDS, true, LANDHEX_LANDAREA_RANGES_ISLANDS, null);
 
             PORTS_TYPES_MAINLAND = PORTS_TYPE_V1;
             PORTS_TYPES_ISLANDS = PORT_TYPE_ISLANDS;
@@ -629,11 +629,11 @@ public class SOCBoardLarge extends SOCBoard
             {
                 // - East and West islands:
                 makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_MAIN_3PL, FOG_ISL_LANDHEX_COORD_MAIN_3PL, FOG_ISL_DICENUM_MAIN_3PL, 1, opt_breakClumps);
+                    (FOG_ISL_LANDHEX_TYPE_MAIN_3PL, FOG_ISL_LANDHEX_COORD_MAIN_3PL, FOG_ISL_DICENUM_MAIN_3PL, true, 1, opt_breakClumps);
 
                 // - "Fog Island" in the middle:
                 makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_3PL, FOG_ISL_DICENUM_FOG_3PL, 2, null);
+                    (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_3PL, FOG_ISL_DICENUM_FOG_3PL, true, 2, null);
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_3PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_3PL;
@@ -642,11 +642,11 @@ public class SOCBoardLarge extends SOCBoard
             {
                 // - East and West islands:
                 makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_MAIN_4PL, FOG_ISL_LANDHEX_COORD_MAIN_4PL, FOG_ISL_DICENUM_MAIN_4PL, 1, opt_breakClumps);
+                    (FOG_ISL_LANDHEX_TYPE_MAIN_4PL, FOG_ISL_LANDHEX_COORD_MAIN_4PL, FOG_ISL_DICENUM_MAIN_4PL, true, 1, opt_breakClumps);
 
                 // - "Fog Island" in the middle:
                 makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_4PL, FOG_ISL_DICENUM_FOG_4PL, 2, null);
+                    (FOG_ISL_LANDHEX_TYPE_FOG, FOG_ISL_LANDHEX_COORD_FOG_4PL, FOG_ISL_DICENUM_FOG_4PL, true, 2, null);
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_4PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_4PL;
@@ -655,15 +655,15 @@ public class SOCBoardLarge extends SOCBoard
             {
                 // - Northern main island:
                 makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_MAIN_6PL, FOG_ISL_LANDHEX_COORD_MAIN_6PL, FOG_ISL_DICENUM_MAIN_6PL, 1, opt_breakClumps);
+                    (FOG_ISL_LANDHEX_TYPE_MAIN_6PL, FOG_ISL_LANDHEX_COORD_MAIN_6PL, FOG_ISL_DICENUM_MAIN_6PL, true, 1, opt_breakClumps);
 
                 // - "Fog Island" in an arc from southwest to southeast:
                 makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_FOG_6PL, FOG_ISL_LANDHEX_COORD_FOG_6PL, FOG_ISL_DICENUM_FOG_6PL, 2, opt_breakClumps);
+                    (FOG_ISL_LANDHEX_TYPE_FOG_6PL, FOG_ISL_LANDHEX_COORD_FOG_6PL, FOG_ISL_DICENUM_FOG_6PL, true, 2, opt_breakClumps);
 
                 // - Gold Corners in southwest, southeast
                 makeNewBoard_placeHexes
-                    (FOG_ISL_LANDHEX_TYPE_GC, FOG_ISL_LANDHEX_COORD_GC, FOG_ISL_DICENUM_GC, 3, null);
+                    (FOG_ISL_LANDHEX_TYPE_GC, FOG_ISL_LANDHEX_COORD_GC, FOG_ISL_DICENUM_GC, false, 3, null);
 
                 PORTS_TYPES_MAINLAND = FOG_ISL_PORT_TYPE_6PL;
                 PORT_LOC_FACING_MAINLAND = FOG_ISL_PORT_EDGE_FACING_6PL;
@@ -795,6 +795,7 @@ public class SOCBoardLarge extends SOCBoard
      *                    same array length as <tt>landHexType[]</tt>
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
      *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
+     * @param shuffleDiceNumbers  If true, shuffle the dice <tt>number</tt>s before placing along <tt>numPath</tt>.
      * @param landAreaNumber  0 unless there will be more than 1 Land Area (group of islands).
      *                    If != 0, updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
      *                    with the same nodes added to {@link SOCBoard#nodesOnLand}.
@@ -807,12 +808,13 @@ public class SOCBoardLarge extends SOCBoard
      * @see #makeNewBoard_placeHexes(int[], int[], int[], int[], SOCGameOption)
      */
     private final void makeNewBoard_placeHexes
-        (int[] landHexType, final int[] numPath, final int[] number, final int landAreaNumber, SOCGameOption optBC)
+        (int[] landHexType, final int[] numPath, final int[] number, final boolean shuffleDiceNumbers,
+         final int landAreaNumber, SOCGameOption optBC)
         throws IllegalStateException, IllegalArgumentException
     {
         final int[] pathRanges = { landAreaNumber, numPath.length };  // 1 range, uses all of numPath
         makeNewBoard_placeHexes
-            (landHexType, numPath, number, pathRanges, optBC);
+            (landHexType, numPath, number, shuffleDiceNumbers, pathRanges, optBC);
     }
 
     /**
@@ -849,6 +851,7 @@ public class SOCBoardLarge extends SOCBoard
      *                    into multiple Land Areas.
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
      *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert or water in <tt>landHexType[]</tt>
+     * @param shuffleDiceNumbers  If true, shuffle the dice <tt>number</tt>s before placing along <tt>numPath</tt>.
      * @param landAreaPathRanges  <tt>numPath[]</tt>'s Land Area Numbers, and the size of each land area.
      *                    Array length is 2 x the count of land areas included.
      *                    Index 0 is the first landAreaNumber, index 1 is the length of that land area (number of hexes).
@@ -867,7 +870,8 @@ public class SOCBoardLarge extends SOCBoard
      * @see #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)
      */
     private final void makeNewBoard_placeHexes
-        (int[] landHexType, final int[] numPath, final int[] number, final int[] landAreaPathRanges, SOCGameOption optBC)
+        (int[] landHexType, final int[] numPath, int[] number, final boolean shuffleDiceNumbers,
+         final int[] landAreaPathRanges, SOCGameOption optBC)
         throws IllegalStateException, IllegalArgumentException
     {
         final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
@@ -923,6 +927,24 @@ public class SOCBoardLarge extends SOCBoard
                 }
             }
 
+            if (shuffleDiceNumbers)
+            {
+                // shuffle the dice #s 10x
+                for (int j = 0; j < 10; j++)
+                {
+                    int idx, tmp;
+                    for (int i = 0; i < number.length; i++)
+                    {
+                        idx = Math.abs(rand.nextInt() % (number.length - i));
+                        if (idx == i)
+                            continue;
+                        tmp = number[idx];
+                        number[idx] = number[i];
+                        number[i] = tmp;
+                    }
+                }
+            }
+
             int cnt = 0;
             for (int i = 0; i < landHexType.length; i++)
             {
@@ -954,6 +976,12 @@ public class SOCBoardLarge extends SOCBoard
                     cnt++;
                 }
             }  // for (i in landHex)
+
+            if (shuffleDiceNumbers)
+            {
+                // TODO: Separate adjacent "red numbers" (6s, 8s)
+                //   and make sure gold hex dice aren't too frequent
+            }
 
             if (checkClumps)
             {
