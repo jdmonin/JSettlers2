@@ -41,12 +41,9 @@ import soc.message.SOCMessage;
  * For information about adding or changing game scenarios in a
  * later version of JSettlers, please see {@link #initAllScenarios()}.
  *<P>
- * All in-game code uses the 2-letter or 3-letter key strings to query and change
- * game option settings; only a very few places use SOCGameOption
- * objects.  To search the code for uses of a game option, search for
- * its capitalized key string.
- * You will see calls to {@link SOCGame#isGameOptionDefined(String)},
- * {@link SOCGame#getGameOptionIntValue(Hashtable, String, int, boolean)}, etc.
+ * Scenarios use {@link SOCGameOption}s to change the game to the scenario's concept.
+ * Each scenario's {@link #scOpts} field gives the scenario's option names and values.
+ * The game also knows its scenario by setting {@link SOCGameOption} "SC" = {@link #scKey}.
  *<P>
  * Most option name keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
  * The maximum key length is now 8, but older clients will reject keys longer than 3.
@@ -75,12 +72,12 @@ import soc.message.SOCMessage;
  * If you create a ChangeListener, consider adding equivalent code to
  * {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)} for the server side.
  *<P>
- * <B>Sea Board Scenarios:</B><br>
+ * <B>Sea Board Scenario game options:</B><br>
  * Game scenarios were introduced with the large sea board in 2.0.00.
  * Game options are used to indicate which {@link SOCScenarioPlayerEvent scenario events}
  * and rules are possible in the current game.
  * These all start with <tt>"_SC_"</tt> and have a static key string;
- * an example is {@link #K_SC_SANY} for scenario game option <tt>"_SC_SANY"</tt>.
+ * an example is {@link SOCGameOption#K_SC_3IP} for scenario game option <tt>"_SC_3IP"</tt>.
  *<P>
  * <B>Version negotiation:</B><br>
  * Game options were introduced in 1.1.07; check server, client versions against
@@ -106,34 +103,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
     /**
      * Create a set of the known options.
-     * This method creates and returns a Hashtable, but does not set the static {@link #allScenarios} field.
+     * This method creates and returns a Map, but does not set the static {@link #allScenarios} field.
      *
-     * <h3>Current known options:</h3>
+     * <h3>Current Game Scenarios:</h3>
      *<UL>
-     *<LI> PL  Maximum # players (2-6)
-     *<LI> PLB Use 6-player board*
-     *<LI> PLL Use large board* (experimental; name may change)
-     *<LI> RD  Robber can't return to the desert
-     *<LI> N7  Roll no 7s during first # rounds
-     *<LI> BC  Break up clumps of # or more same-type ports/hexes
-     *<LI> NT  No trading allowed
-     *<LI> VP  Victory points (10-15)
-     *<LI> DH  Dev Cards for house rules (swap/destroy)
-     *</UL>
-     *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
-     *    existing option.  So in NewGameOptionsFrame, it appears on the line following
-     *    the PL option in client version 1.1.13 and above.
-     *
-     * <h3>Current Game Scenario options:</h3>
-     *<UL>
-     *<LI> {@link #K_SC_SANY _SC_SANY}  SVP to settle in any new land area:
-     *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}
-     *<LI> {@link #K_SC_SEAC _SC_SEAC}  2 SVP each time settle in another new land area:
-     *                                  {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}
      *<LI> {@link #K_SC_FOG  _SC_FOG}   A hex has been revealed from behind fog:
      *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
-     *<LI> {@link #K_SC_0RVP _SC_0RVP}  No VP for longest road / longest trade route
-     *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road placement
      *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *</UL>
      *
@@ -245,40 +220,24 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      */
     public static Map<String, SOCScenario> initAllScenarios()
     {
-        Map<String, SOCScenario> opt = new HashMap<String, SOCScenario>();
-
-        final SOCScenario plb = new SOCScenario
-                ("PLB", 1108, 1113, false, true, "Use 6-player board");
-        opt.put("PLB", plb);
-        // TODO PLL for SOCBoardLarge: Decide final name
-        opt.put("PLL", new SOCScenario
-                ("PLL", 2000, 2000, false, true, "Experimental: Use large board"));
-        opt.put("RD", new SOCScenario
-                ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
-        opt.put("DH", new SOCScenario
-                ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
-                // TODO no robot players for DH
+        Map<String, SOCScenario> allSc = new HashMap<String, SOCScenario>();
 
         // Game scenario options (rules and events)
-        opt.put(K_SC_SANY, new SOCScenario
-                (K_SC_SANY, 2000, 2000, false, true, "Scenarios: SVP for your first settlement on any island"));
-        opt.put(K_SC_SEAC, new SOCScenario
-                (K_SC_SEAC, 2000, 2000, false, true, "Scenarios: 2 SVP for your first settlement on each island"));
-        opt.put(K_SC_FOG, new SOCScenario
-                (K_SC_FOG, 2000, 2000, false, true, "Scenarios: Some land hexes initially hidden by fog"));
-        opt.put(K_SC_0RVP, new SOCScenario
-                (K_SC_0RVP, 2000, 2000, false, true, "Scenarios: No longest trade route VP (no Longest Road)"));
-        opt.put(K_SC_3IP, new SOCScenario
-                (K_SC_3IP, 2000, 2000, false, true, "Scenarios: Third initial settlement"));
-        opt.put(K_SC_CLVI, new SOCScenario
-                (K_SC_CLVI, 2000, 2000, false, true, "Scenarios: Cloth Trade with neutral villages"));
+        allSc.put(K_SC_FOG, new SOCScenario
+            (K_SC_FOG, 2000, 2000, false, true,
+             "Some land hexes initially hidden by fog",
+             "_SC_FOG=t,PLL=t,VP=12"));
+        allSc.put(K_SC_CLVI, new SOCScenario
+            (K_SC_CLVI, 2000, 2000, false, true,
+             "Cloth Trade with neutral villages",
+             "_SC_CLVI=t,PLL=t,VP=14,_SC_3IP=t,_SC_0RVP=t"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
 
-        return opt;
+        return allSc;
 
-        // OBSOLETE OPTIONS, REMOVED OPTIONS - Move its opt.put down here, commented out,
+        // OBSOLETE SCENARIOS, REMOVED SCENARIOS - Move its allSc.put down here, commented out,
         //       including the version, date, and reason of the removal.
     }
 
@@ -318,47 +277,20 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     /** Highest OTYPE value known at this version */
     public static final int OTYPE_MAX = OTYPE_STRHIDE;  // OTYPE_* - adj OTYPE_MAX if adding new type
 
-    // Game option keynames for scenario flags.
-    // Not all scenario keynames have scenario events, some are just properties of the game.
+    // Game scenario keynames.
 
     /**
-     * Scenario key <tt>_SC_SANY</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA}.
-     * @since 2.0.00
+     * Scenario key <tt>SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
+     * Main option is {@link SOCGameOption#K_SC_FOG}.
      */
-    public static final String K_SC_SANY = "_SC_SANY";
+    public static final String K_SC_FOG = "SC_FOG";
 
     /**
-     * Scenario key <tt>_SC_SEAC</tt> for {@link SOCScenarioPlayerEvent#SVP_SETTLED_EACH_NEW_LANDAREA}.
-     * @since 2.0.00
-     */
-    public static final String K_SC_SEAC = "_SC_SEAC";
-
-    /**
-     * Scenario key <tt>_SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
-     * @since 2.0.00
-     */
-    public static final String K_SC_FOG = "_SC_FOG";
-
-    /**
-     * Scenario key <tt>_SC_0RVP</tt>: No "longest trade route" VP / Longest Road.
-     * @since 2.0.00
-     */
-    public static final String K_SC_0RVP = "_SC_0RVP";
-
-    /**
-     * Scenario key <tt>_SC_3IP</tt>: Third initial placement of settlement and road.
-     * Initial resources are given for this one, not the second settlement.
-     * @since 2.0.00
-     */
-    public static final String K_SC_3IP = "_SC_3IP";
-
-    /**
-     * Scenario key <tt>_SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
+     * Scenario key <tt>SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:
      * Cloth Trade with neutral {@link SOCVillage villages}.
-     * Villages and cloth are in a game only if this option is set.
-     * @since 2.0.00
+     * Main option is {@link SOCGameOption#K_SC_CLVI}.
      */
-    public static final String K_SC_CLVI = "_SC_CLVI";
+    public static final String K_SC_CLVI = "SC_CLVI";
 
     // If you create a new option type,
     // please update parseOptionsToHash(), packOptionsToString(),
@@ -440,22 +372,19 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     public final int minIntValue, maxIntValue;
 
     /**
+     * Scenario's {@link SOCGameOption}s, as a formatted string
+     * from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
+     */
+    public String scOpts;
+
+    /**
      * Descriptive text for the option. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
      * If option type is integer-valued ({@link #OTYPE_ENUM}, {@link #OTYPE_INTBOOL}, etc),
      * may contain a placeholder '#' where the value is typed onscreen.
      * For {@link #OTYPE_UNKNOWN}, an empty string.
      */
-    public final String scDesc;
-
-    /**
-     * For type {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL}, descriptive text for each possible value;
-     * null for other types.  If a value is added or changed in a later version, the option's
-     * {@link #lastModVersion} field must be updated, so server/client will know
-     * to ask for the proper version with all available options.
-     * Although the option's intVals are in the range 1 to n, this array is indexed 0 to n-1.
-     */
-    public final String[] enumVals;
+    public String scDesc;
 
     private boolean boolValue;
     private int     intValue;
@@ -488,13 +417,15 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *           or send over the network (to reduce overhead)?
      *           Only recommended if game behavior without the option is well-established
      *           (for example, trading is allowed unless option NT is present).
+     * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
+     *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @param desc    Descriptive brief text, to appear in the options dialog
      * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCScenario(String key, int minVers, int lastModVers,
-        boolean defaultValue, boolean dropIfUnused, String desc)
+        boolean defaultValue, boolean dropIfUnused, String opts, String desc)
         throws IllegalArgumentException
     {
 	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, dropIfUnused, null, desc);
@@ -518,8 +449,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @param dropIfUnused If this option's value is blank or unset, should
      *                 server not add it to game options?
      *                 See {@link #dropIfUnused} javadoc for more details.
-     * @param enumVals Possible choice texts for {@link #OTYPE_ENUM} or {@link #OTYPE_ENUMBOOL}, or null;
-     *                 value(s) must pass same checks as desc.
+     * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
+     *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
@@ -528,12 +459,13 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *        or if key is not alphanumeric or length is > 8,
      *        or if key length > 3 and minVers &lt; 2000,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
+     *        or if opts is null,
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     protected SOCScenario(int otype, String key, int minVers, int lastModVers,
         boolean defaultBoolValue, int defaultIntValue,
         int minValue, int maxValue, boolean dropIfUnused,
-        String[] enumVals, String desc)
+        String opts, String desc)
         throws IllegalArgumentException
     {
 	// validate & set option properties:
@@ -552,6 +484,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
             throw new IllegalArgumentException("lastModVers " + lastModVers + " for key " + key);
         if (! SOCMessage.isSingleLineAndSafe(desc))
             throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
+        if (opts == null)
+            throw new IllegalArgumentException("opts null");
 
 	scKey = key;
 	optType = otype;
@@ -562,7 +496,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 	minIntValue = minValue;
 	maxIntValue = maxValue;
 	this.dropIfUnused = dropIfUnused;
-        this.enumVals = enumVals;
+        scOpts = opts;
 	scDesc = desc;
 
 	// starting values (= defaults)
@@ -571,48 +505,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 	strValue = null;
 	if ((intValue < minIntValue) || (intValue > maxIntValue))
 	    throw new IllegalArgumentException("defaultIntValue");
-    }
-
-    /**
-     * Copy constructor for enum-valued types ({@link #OTYPE_ENUM}, {@link #OTYPE_ENUMBOOL}),
-     * for restricting (trimming) values for a certain client version.
-     * @param enumOpt  Option object to copy.  If its <tt>defaultIntValue</tt> is greater than
-     *                 <tt>keptEnumVals.length</tt>, the default will be reduced to that.
-     * @param keptEnumVals  Enum values to keep; should be a subset of enumOpt.{@link #enumVals}
-     *                 containing the first n values of that list.
-     * @see #getMaxEnumValueForVersion(String, int)
-     * @see #scenariosNewerThanVersion(int, Map)
-     * @throws NullPointerException  if keptEnumVals is null
-     */
-    protected SOCScenario(SOCScenario enumOpt, String[] keptEnumVals)
-        throws NullPointerException
-    {
-        // OTYPE_* - If enum-valued, add to javadoc.
-        this(enumOpt.optType, enumOpt.scKey, enumOpt.minVersion, enumOpt.lastModVersion,
-             enumOpt.defaultBoolValue,
-             enumOpt.defaultIntValue <= keptEnumVals.length ? enumOpt.defaultIntValue : keptEnumVals.length,
-             1, keptEnumVals.length, enumOpt.dropIfUnused,
-             keptEnumVals, enumOpt.scDesc);
-    }
-
-    /**
-     * Copy constructor for int-valued types ({@link #OTYPE_INT}, {@link #OTYPE_INTBOOL}),
-     * for restricting (trimming) max value for a certain client version.
-     * @param intOpt  Option object to copy.  If its <tt>defaultIntValue</tt> is greater than
-     *                <tt>maxIntValue</tt>, the default will be reduced to that.
-     * @param maxIntValue  Maximum value to keep, in the copy
-     * @see #getMaxIntValueForVersion(String, int)
-     * @see #scenariosNewerThanVersion(int, Map)
-     * @since 1.1.08
-     */
-    protected SOCScenario(SOCScenario intOpt, final int maxIntValue)
-    {
-        // OTYPE_* - If int-valued, add to javadoc.
-        this(intOpt.optType, intOpt.scKey, intOpt.minVersion, intOpt.lastModVersion,
-             intOpt.defaultBoolValue,
-             intOpt.defaultIntValue <= maxIntValue ? intOpt.defaultIntValue : maxIntValue,
-             intOpt.minIntValue, maxIntValue, intOpt.dropIfUnused,
-             null, intOpt.scDesc);
     }
 
     /**
@@ -1102,26 +994,6 @@ public class SOCScenario implements Cloneable, Comparable<Object>
         }
 
         return uSc;
-    }
-
-    /**
-     * Copy this option and restrict its enumerated values (type {@link #OTYPE_ENUM} or similar)
-     * by trimming {@link #enumVals} shorter.
-     * Assumes {@link #getMaxEnumValueForVersion(String, int)} indicates this is needed.
-     * @param opt Option to restrict
-     * @param vers Version to restrict to
-     * @return   A copy of the option, containing only the enum
-     *       values permitted at <tt>vers</tt>.
-     *       If no restriction is needed, return <tt>opt</tt>.
-     */
-    public static SOCScenario trimEnumForVersion(SOCScenario opt, final int vers)
-    {
-        final int ev = getMaxEnumValueForVersion(opt.scKey, vers);
-        if ((ev == Integer.MAX_VALUE) || (ev == opt.enumVals.length))
-            return opt;
-        String[] evkeep = new String[ev];
-        System.arraycopy(opt.enumVals, 0, evkeep, 0, ev);
-        return new SOCScenario(opt, evkeep);  // Copy option and restrict enum values
     }
 
     /**

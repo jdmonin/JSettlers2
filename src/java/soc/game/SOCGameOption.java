@@ -46,6 +46,8 @@ import soc.message.SOCMessage;
  * its capitalized key string.
  * You will see calls to {@link SOCGame#isGameOptionDefined(String)},
  * {@link SOCGame#getGameOptionIntValue(Hashtable, String, int, boolean)}, etc.
+ * Also search {@link SOCScenario} for the option as part of a string,
+ * such as <tt>"PLL=t,VP=12"</tt>.
  *<P>
  * Most option name keys are 2 or 3 characters; before 2.0.00, the maximum length was 3.
  * The maximum key length is now 8, but older clients will reject keys longer than 3.
@@ -139,7 +141,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> {@link #K_SC_FOG  _SC_FOG}   A hex has been revealed from behind fog:
      *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
      *<LI> {@link #K_SC_0RVP _SC_0RVP}  No VP for longest road / longest trade route
-     *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road placement
+     *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road/ship placement
      *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *</UL>
      *
@@ -462,6 +464,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Scenario key <tt>_SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
+     * @see SOCScenario#K_SC_FOG
      * @since 2.0.00
      */
     public static final String K_SC_FOG = "_SC_FOG";
@@ -473,7 +476,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public static final String K_SC_0RVP = "_SC_0RVP";
 
     /**
-     * Scenario key <tt>_SC_3IP</tt>: Third initial placement of settlement and road.
+     * Scenario key <tt>_SC_3IP</tt>: Third initial placement of settlement and road or ship.
      * Initial resources are given for this one, not the second settlement.
      * @since 2.0.00
      */
@@ -484,6 +487,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Cloth Trade with neutral {@link SOCVillage villages}.
      * Villages and cloth are in a game only if this option is set.
      * @since 2.0.00
+     * @see SOCScenario#K_SC_CLVI
      */
     public static final String K_SC_CLVI = "_SC_CLVI";
 
