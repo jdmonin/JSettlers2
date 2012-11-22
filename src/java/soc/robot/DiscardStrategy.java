@@ -36,11 +36,24 @@ import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.util.SOCRobotParameters;
 
+/**
+ * Strategy when we need to discard.
+ * For details see javadoc for
+ * {@link #discard(int, Stack, Random, SOCPlayer, SOCRobotParameters, SOCRobotDM, SOCRobotNegotiator)}.
+ */
 public class DiscardStrategy {
 
 	/** debug logging */
     // private transient Logger log = Logger.getLogger(this.getClass().getName());
 
+    /**
+     * When we have to discard, try to keep the resources needed for our building plan.
+     * If we don't have a plan, make one by calling {@link SOCRobotDM#planStuff(int)}.
+     * Otherwise, discard at random.
+     * Calls {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
+     * to remember the piece we want to build,
+     * in case we'll need to trade for its lost resources.
+     */
     public static SOCResourceSet discard
         (final int numDiscards, Stack<SOCPossiblePiece> buildingPlan, Random rand,
          SOCPlayer ourPlayerData, SOCRobotParameters robotParameters, SOCRobotDM decisionMaker, SOCRobotNegotiator negotiator)

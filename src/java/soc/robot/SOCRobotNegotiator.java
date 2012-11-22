@@ -40,6 +40,8 @@ import java.util.Vector;
 
 
 /**
+ * Make and consider resource trade offers with other players.
+ *<P>
  * Moved the routines that make and
  * consider offers out of the robot
  * brain.

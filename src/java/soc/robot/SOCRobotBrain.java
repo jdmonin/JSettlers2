@@ -64,6 +64,7 @@ import soc.message.SOCRejectOffer;
 import soc.message.SOCResourceCount;
 import soc.message.SOCSetPlayedDevCard;
 import soc.message.SOCSetTurn;
+import soc.message.SOCSitDown;  // for javadoc
 import soc.message.SOCTurn;
 
 import soc.server.SOCServer;
@@ -87,14 +88,25 @@ import java.util.Vector;
  * Represents a robot player within 1 game.
  * The bot is a separate thread, so everything happens in {@link #run()} or a method called from there.
  *<P>
+ * Some robot behaviors are altered by the {@link SOCRobotParameters} passed into our constructor.
  * Some decision-making code is in the {@link OpeningBuildStrategy},
  * {@link RobberStrategy}, {@link MonopolyStrategy}, etc classes.
+ * Data and predictions about the other players in the game is in
+ * {@link SOCPlayerTracker}.  If we're trading with other players for
+ * resources, some details of that are in {@link SOCRobotNegotiator}.
+ * All these, and data on the game and players, are initialized in
+ * {@link #setOurPlayerData()}.
  *<P>
  * At the start of each player's turn, {@link #buildingPlan} and most other state fields are cleared
  * (search {@link #run()} for <tt>mesType == SOCMessage.TURN</tt>).
  * The plan for what to build next is decided in {@link SOCRobotDM#planStuff(int)}
  * (called from {@link #planBuilding()} and some other places) which updates {@link #buildingPlan}.
  * That plan is executed in {@link #buildOrGetResourceByTradeOrCard()}.
+ *<P>
+ * Current status and the next expected action are tracked by the "waitingFor" and "expect" flag fields.
+ * If we've sent the server an action and we're waiting for the result, {@link #waitingForGameState} is true
+ * along with one other "expect" flag, such as {@link #expectPLACING_ROBBER}.
+ * All these fields can be output for inspection by calling {@link #debugPrintBrainStatus()}.
  *
  * @author Robert S Thomas
  */
@@ -275,6 +287,10 @@ public class SOCRobotBrain extends Thread
      * The data and code that determines how we negotiate.
      * {@link SOCRobotNegotiator#setTargetPiece(int, SOCPossiblePiece)}
      * is set when {@link #buildingPlan} is updated.
+     * @see #tradeToTarget2(SOCResourceSet)
+     * @see #makeOffer(SOCPossiblePiece)
+     * @see #considerOffer(SOCTradeOffer)
+     * @see #tradeStopWaitingClearOffer()
      */
     protected SOCRobotNegotiator negotiator;
 
@@ -759,7 +775,13 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Find our player data using our nickname
+     * When we join a game and sit down to begin play,
+     * find our player data using our nickname.
+     * Called from {@link SOCRobotClient} when the
+     * server sends a {@link SOCSitDown} message.
+     * Initializes our game and player data,
+     * {@link SOCRobotDM}, {@link SOCRobotNegotiator},
+     * strategy fields, {@link SOCPlayerTracker}s, etc.
      */
     public void setOurPlayerData()
     {
@@ -908,7 +930,8 @@ public class SOCRobotBrain extends Thread
      * time for other players before it decides whether to do something.
      *<P>
      * Nearly all bot actions start in this method; the overview of bot structures
-     * is in the class javadoc for prominence.  See comments within <tt>run()</tt> for minor details.
+     * is in the {@link SOCRobotBrain class javadoc} for prominence.
+     * See comments within <tt>run()</tt> for minor details.
      */
     @Override
     public void run()
@@ -2069,6 +2092,13 @@ public class SOCRobotBrain extends Thread
     /**
      * Either ask to build a planned piece, or use trading or development cards to get resources to build it.
      * Examines {@link #buildingPlan} for the next piece wanted.
+     *<P>
+     * If we need resources and we can't get them through the robber,
+     * the {@link SOCDevCardConstants#ROADS Road Building} or
+     * {@link SOCDevCardConstants#MONO Monopoly} or
+     * {@link SOCDevCardConstants#DISC Discovery} development cards,
+     * then trades with the bank ({@link #tradeToTarget2(SOCResourceSet)})
+     * or with other players ({@link #makeOffer(SOCPossiblePiece)}).
      *<P>
      * Call when these conditions are all true:
      * <UL>
@@ -3860,7 +3890,9 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * do some trading
+     * do some trading -- this method is obsolete and not called.
+     * Instead see {@link #makeOffer(SOCPossiblePiece)}, {@link #considerOffer(SOCTradeOffer)},
+     * etc, and the javadoc for {@link #negotiator}.
      */
     protected void tradeStuff()
     {
@@ -4107,10 +4139,12 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * make trades to get the target resources
+     * Make bank trades or port trades to get the target resources, if possible.
      *
      * @param targetResources  the resources that we want
-     * @return true if we sent a request to trade
+     * @return true if we sent a request to trade, false if
+     *     we already have the resources or if we don't have
+     *     enough to trade in for <tt>targetResources</tt>.
      */
     protected boolean tradeToTarget2(SOCResourceSet targetResources)
     {
@@ -4133,11 +4167,12 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * consider an offer made by another player
+     * Consider a trade offer made by another player.
      *
      * @param offer  the offer to consider
-     * @return a code that represents how we want to respond
-     * note: a negative result means we do nothing
+     * @return a code that represents how we want to respond.
+     *      Note: a negative result means we do nothing
+     * @see #makeCounterOffer(SOCTradeOffer)
      */
     protected int considerOffer(SOCTradeOffer offer)
     {
@@ -4159,7 +4194,7 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * make an offer to another player, or decide to make no offer.
+     * Make a trade offer to another player, or decide to make no offer.
      * Calls {@link SOCRobotNegotiator#makeOffer(SOCPossiblePiece)}.
      * Will set either {@link #waitingForTradeResponse} or {@link #doneTrading},
      * and update {@link #ourPlayerData}.{@link SOCPlayer#setCurrentOffer(SOCTradeOffer) setCurrentOffer()},

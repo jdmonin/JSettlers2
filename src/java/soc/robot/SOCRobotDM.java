@@ -115,7 +115,6 @@ public class SOCRobotDM
    * {@link #ourPlayerData}'s building plan; a stack of {@link SOCPossiblePiece}.
    * Same Stack as {@link SOCRobotBrain#getBuildingPlan()}.
    * May include {@link SOCPossibleCard} to be bought.
-   * 
    */
   protected Stack<SOCPossiblePiece> buildingPlan;
 
