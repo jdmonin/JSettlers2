@@ -728,7 +728,23 @@ public class SOCGame implements Serializable, Cloneable
     private int gameState;
 
     /**
-     * the old game state
+     * The saved game state; used in only a few places, where a state can happen from different start states.
+     * Not set every time the game state changes.
+     * oldGameState is read in these states:
+     *<UL>
+     *<LI> {@link #PLACING_FREE_ROAD1}, {@link #PLACING_FREE_ROAD2}
+     *        in {@link #playRoadBuilding()}, {@link #advanceTurnStateAfterPutPiece()}
+     *<LI> {@link #PLACING_ROAD}, {@link #PLACING_SETTLEMENT}, {@link #PLACING_CITY}, {@link #PLACING_SHIP}:
+     *        Unless <tt>oldGameState</tt> is {@link #SPECIAL_BUILDING},
+     *        {@link #advanceTurnStateAfterPutPiece()} will set the state to {@link #PLAY1}.
+     *        So will {@link #cancelBuildRoad(int)}, {@link #cancelBuildSettlement(int)}, etc.
+     *<LI> {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}:
+     *        <tt>oldGameState</tt> = {@link #PLAY1}
+     *<LI> {@link #WAITING_FOR_CHOICE}, {@link #PLACING_PIRATE}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
+     *<LI> {@link #WAITING_FOR_DISCOVERY} in {@link #playDiscovery()}, {@link #doDiscoveryAction(SOCResourceSet)}
+     *<LI> {@link #WAITING_FOR_MONOPOLY} in {@link #playMonopoly()}, {@link #doMonopolyAction(int)}
+     *</UL>
+     * Also used if the game board was reset, {@link #getResetOldGameState()} holds the state before the reset.
      */
     private int oldGameState;
 
