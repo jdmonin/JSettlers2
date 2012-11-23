@@ -743,6 +743,9 @@ public class SOCGame implements Serializable, Cloneable
      *<LI> {@link #WAITING_FOR_CHOICE}, {@link #PLACING_PIRATE}, {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}
      *<LI> {@link #WAITING_FOR_DISCOVERY} in {@link #playDiscovery()}, {@link #doDiscoveryAction(SOCResourceSet)}
      *<LI> {@link #WAITING_FOR_MONOPOLY} in {@link #playMonopoly()}, {@link #doMonopolyAction(int)}
+     *<LI> {@link #WAITING_FOR_PICK_GOLD_RESOURCE}:
+     *        oldGameState holds the state to go to when all players are done picking resources.
+     *        After picking gold from a dice roll, this will be {@link #PLAY1}.
      *</UL>
      * Also used if the game board was reset, {@link #getResetOldGameState()} holds the state before the reset.
      */
@@ -3818,9 +3821,12 @@ public class SOCGame implements Serializable, Cloneable
             if (gameState != OVER)
             {
                 if (! anyGoldHex)
+                {
                     gameState = PLAY1;
-                else
+                } else {
+                    oldGameState = PLAY1;
                     gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+                }
             }
         }
 
@@ -4053,7 +4059,7 @@ public class SOCGame implements Serializable, Cloneable
      * A player is picking which resources to gain from the gold hex.
      * Gain them, check if other players must still pick, and set
      * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
-     * or {@link #PLAY1} accordingly.
+     * or oldGameState (usually {@link #PLAY1}) accordingly.
      * (Or, during initial placement, set it to {@link #START2B} or {@link #START3B}.)
      *<P>
      * Assumes {@link #canPickGoldHexResources(int, SOCResourceSet)} already called to validate.
@@ -4084,7 +4090,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * check if we're still waiting for players to pick
          */
-        gameState = PLAY1;
+        gameState = oldGameState;
 
         for (int i = 0; i < maxPlayers; i++)
         {
