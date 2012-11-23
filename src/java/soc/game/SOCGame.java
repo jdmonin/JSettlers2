@@ -732,8 +732,6 @@ public class SOCGame implements Serializable, Cloneable
      * Not set every time the game state changes.
      * oldGameState is read in these states:
      *<UL>
-     *<LI> {@link #PLACING_FREE_ROAD1}, {@link #PLACING_FREE_ROAD2}
-     *        in {@link #playRoadBuilding()}, {@link #advanceTurnStateAfterPutPiece()}
      *<LI> {@link #PLACING_ROAD}, {@link #PLACING_SETTLEMENT}, {@link #PLACING_CITY}, {@link #PLACING_SHIP}:
      *        Unless <tt>oldGameState</tt> is {@link #SPECIAL_BUILDING},
      *        {@link #advanceTurnStateAfterPutPiece()} will set the state to {@link #PLAY1}.
@@ -2670,9 +2668,12 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case PLACING_FREE_ROAD2:
-            gameState = oldGameState;
-
+            if (currentDice != 0)
+                gameState = PLAY1;
+            else
+                gameState = PLAY;  // played dev card before roll
             break;
+
         }
 
         //D.ebugPrintln("  TO "+gameState);
@@ -5368,7 +5369,10 @@ public class SOCGame implements Serializable, Cloneable
      * If they have 2 or more roads or ships, may place 2; gameState becomes PLACING_FREE_ROAD1.
      * If they have just 1 road/ship, may place that; gameState becomes PLACING_FREE_ROAD2.
      * If they have 0 roads, cannot play the card.
+     *<P>
      * Assumes {@link #canPlayRoadBuilding(int)} has already been called, and move is valid.
+     * The card can be played before or after rolling the dice.
+     * Doesn't set <tt>oldGameState</tt>, because after placing the road, we might need that field.
      */
     public void playRoadBuilding()
     {
@@ -5377,7 +5381,6 @@ public class SOCGame implements Serializable, Cloneable
         final SOCPlayer player = players[currentPlayerNumber];
         player.setPlayedDevCard(true);
         player.getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
-        oldGameState = gameState;
 
         final int roadShipCount = player.getNumPieces(SOCPlayingPiece.ROAD)
             + player.getNumPieces(SOCPlayingPiece.SHIP);
