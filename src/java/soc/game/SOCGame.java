@@ -169,14 +169,23 @@ public class SOCGame implements Serializable, Cloneable
     public static final int START2A = 10; // Players place 2nd stlmt
 
     /**
-     * Just placed the second or third settlement, waiting for current
+     * Just placed an initial piece, waiting for current
      * player to choose which Gold Hex resources to receive.
+     * This can happen after the second or third initial settlement,
+     * or (with the fog scenario {@link SOCGameOption#K_SC_FOG _SC_FOG})
+     * when any initial road, settlement, or ship reveals a gold hex.
+     *<P>
+     * The next game state will be based on <tt>oldGameState</tt>,
+     * which is the state whose placement led to {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * For settlements not revealed from fog:
      * Next game state is {@link #START2B} to place 2nd road.
      * If game scenario option {@link SOCGameOption#K_SC_3IP _SC_3IP} is set,
      * next game state is {@link #START3B}.
      *<P>
-     * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX}.
+     * Valid only when {@link #hasSeaBoard}, settlement adjacent to {@link SOCBoardLarge#GOLD_HEX},
+     * or gold revealed from {@link SOCBoardLarge#FOG_HEX} by a placed road, ship, or settlement.
      * @see #WAITING_FOR_PICK_GOLD_RESOURCE
+     * @see #pickGoldHexResources(int, SOCResourceSet)
      * @since 2.0.00
      */
     public static final int STARTS_WAITING_FOR_PICK_GOLD_RESOURCE = 14;
@@ -328,11 +337,13 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Waiting for player(s) to choose which Gold Hex resources to receive.
-     * Next game state is {@link #PLAY1}.
+     * Next game state is usually {@link #PLAY1}, sometimes
+     * {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlements or cities
      * adjacent to {@link SOCBoardLarge#GOLD_HEX}.
      * @see #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
+     * @see #pickGoldHexResources(int, SOCResourceSet)
      * @since 2.0.00
      */
     public static final int WAITING_FOR_PICK_GOLD_RESOURCE = 56;
@@ -732,6 +743,9 @@ public class SOCGame implements Serializable, Cloneable
      * Not set every time the game state changes.
      * oldGameState is read in these states:
      *<UL>
+     *<LI> {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
+     *        After the resource is picked, oldGameState will be the starting state for
+     *        {@link #advanceTurnStateAfterPutPiece()}.
      *<LI> {@link #PLACING_ROAD}, {@link #PLACING_SETTLEMENT}, {@link #PLACING_CITY}, {@link #PLACING_SHIP}:
      *        Unless <tt>oldGameState</tt> is {@link #SPECIAL_BUILDING},
      *        {@link #advanceTurnStateAfterPutPiece()} will set the state to {@link #PLAY1}.
@@ -2233,6 +2247,7 @@ public class SOCGame implements Serializable, Cloneable
             }
             else if (isInitialPlacement())
             {
+                // settlements
                 final Collection<Integer> hexColl = board.getAdjacentHexesToNode(coord);
                 int[] seHexes = new int[hexColl.size()];
                 int i;
@@ -2506,7 +2521,7 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
-        if ((goldHexes > 0) && (! isInitialPlacement()) && (currentPlayerNumber != -1))
+        if ((goldHexes > 0) && (! initialSettlement) && (currentPlayerNumber != -1))
         {
             // ask player to pick a resource from the revealed gold hex
             players[currentPlayerNumber].setNeedToPickGoldHexResources(goldHexes);
@@ -2532,12 +2547,21 @@ public class SOCGame implements Serializable, Cloneable
         switch (gameState)
         {
         case START1A:
-            gameState = START1B;
-
+            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            {
+                oldGameState = START1A;
+                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE; 
+            } else {
+                gameState = START1B;
+            }
             break;
 
         case START1B:
+            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
             {
+                oldGameState = START1B;
+                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE; 
+            } else  {
                 int tmpCPN = currentPlayerNumber + 1;
                 if (tmpCPN >= maxPlayers)
                 {
@@ -2573,13 +2597,20 @@ public class SOCGame implements Serializable, Cloneable
 
         case START2A:
             if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            {
+                oldGameState = START2A;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
-            else
+            } else {
                 gameState = START2B;
+            }
             break;
 
         case START2B:
+            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
             {
+                oldGameState = START2B;
+                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
+            } else {
                 int tmpCPN = currentPlayerNumber - 1;
 
                 // who places next? same algorithm as advanceTurnBackwards.
@@ -2626,13 +2657,20 @@ public class SOCGame implements Serializable, Cloneable
 
         case START3A:
             if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            {
+                oldGameState = START3A;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
-            else
+            } else {
                 gameState = START3B;
+            }
             break;
 
         case START3B:
+            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
             {
+                oldGameState = START3B;
+                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
+            } else  {
                 // who places next? same algorithm as advanceTurn.
                 int tmpCPN = currentPlayerNumber + 1;
                 if (tmpCPN >= maxPlayers)
@@ -4106,10 +4144,15 @@ public class SOCGame implements Serializable, Cloneable
      * Gain them, check if other players must still pick, and set
      * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
      * or oldGameState (usually {@link #PLAY1}) accordingly.
-     * (Or, during initial placement, set it to {@link #START2B} or {@link #START3B}.)
+     * (Or, during initial placement, usually {@link #START2B} or {@link #START3B}, after initial settlement at gold.)
      * During normal play, the oldGameState might sometimes be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *<P>
      * Assumes {@link #canPickGoldHexResources(int, SOCResourceSet)} already called to validate.
+     *<P>
+     * During initial placement from {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE},
+     * the current player won't change if the gold pick was for the player's final initial settlement.
+     * If the gold pick was for placing a road or ship that revealed a gold hex from {@link SOCBoardLarge#FOG_HEX fog},
+     * the player will probably change here, since the player changes after most inital roads or ships.
      *<P>
      * Called at server only; clients will instead get <tt>SOCPlayerElement</tt> messages
      * for the resources picked and the "need to pick" flag, and will call
@@ -4127,10 +4170,8 @@ public class SOCGame implements Serializable, Cloneable
         // initial placement?
         if (gameState == STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
         {
-            if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
-                gameState = START2B;
-            else
-                gameState = START3B;
+            gameState = oldGameState;  // usually START2A or START3A, for initial settlement at gold without fog
+            advanceTurnStateAfterPutPiece();  // player may change if was START1B, START2B, START3B
             return;
         }
 

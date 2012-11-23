@@ -5431,7 +5431,8 @@ public class SOCServer extends Server
 
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);
-                            if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                            if ((ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
+                                || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
@@ -5582,7 +5583,8 @@ public class SOCServer extends Server
 
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);
-                            if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                            if ((ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
+                                || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
                                 sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
@@ -6418,6 +6420,8 @@ public class SOCServer extends Server
             final SOCResourceSet rsrcs = mes.getResources();
             if (ga.canPickGoldHexResources(pn, rsrcs))
             {
+                final boolean fromInitPlace = ga.isInitialPlacement();
+
                 ga.pickGoldHexResources(pn, rsrcs);
 
                 /**
@@ -6427,11 +6431,51 @@ public class SOCServer extends Server
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
+                 * -- for gold during initial placement, current player might also change.
                  */
-                if ((ga.getGameState() != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
+                final int gstate = ga.getGameState();
+                if ((gstate != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
-                    sendGameState(ga);
+                    if (! fromInitPlace)
+                    {
+                        sendGameState(ga);
+                    } else {
+                        // send state, and current player if changed
+
+                        switch (gstate)
+                        {
+                        case SOCGame.START1B:
+                        case SOCGame.START2B:
+                        case SOCGame.START3B:
+                            // pl not changed: previously placed settlement, now placing road or ship
+                            sendGameState(ga);
+                            break;
+
+                        case SOCGame.START1A:
+                        case SOCGame.START2A:
+                        case SOCGame.START3A:
+                            // Player probably changed, announce new player if so
+                            sendGameState(ga, false);
+                            if (! checkTurn(c, ga))
+                                sendTurn(ga, true);
+                            break;
+
+                        case SOCGame.PLAY:
+                            // The last initial road was placed
+                            final boolean toldRoll = sendGameState(ga, false);
+                            if (! checkTurn(c, ga))
+                                // Announce new player (after START3A)
+                                sendTurn(ga, true);
+                            else if (toldRoll)
+                                // When play starts, or after placing 2nd free road,
+                                // announce even though player unchanged,
+                                // to trigger auto-roll for the player.
+                                messageToGame(gn, new SOCRollDicePrompt(gn, ga.getCurrentPlayerNumber()));
+                            break;
+                        }
+                    }
                 } else {
+                    // force-end game turn
                     endGameTurn(ga, player);  // already did ga.takeMonitor()
                 }
             }
