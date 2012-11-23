@@ -349,6 +349,10 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
      *<P>
      * If not isDiscard, will not subtract change the "keep" colorsquare resource counts.
      *<P>
+     * If we only need 1 total, and we've picked one and
+     * now pick a different one, zero the previous pick
+     * and change our choice to the new one.
+     *<P>
      * Clear/Discard button clicks are handled in {@link #actionPerformed(ActionEvent)}.
      */
     public void mousePressed(MouseEvent e)
@@ -379,6 +383,27 @@ class SOCDiscardOrGainResDialog extends Dialog implements ActionListener, MouseL
             }
             else if ((target == pick[i]) && ((keep[i].getIntValue() > 0) || ! isDiscard))
             {
+                if ((numPickNeeded == 1) && (numChosen == 1))
+                {
+                    // We only need 1 total, change our previous choice to the new one
+
+                    if (pick[i].getIntValue() == 1)
+                        return;  // <--- early return: already set to 1 ---
+                    else
+                        // clear all to 0
+                        for (int j = 0; j < 5; ++j)
+                        {
+                            final int n = pick[j].getIntValue();
+                            if (n == 0)
+                                continue;
+                            if (isDiscard)
+                                keep[j].addValue(n);
+                            pick[j].subtractValue(n);
+                        }
+
+                    numChosen = 0;
+                }
+
                 if (isDiscard)
                     keep[i].subtractValue(1);
                 pick[i].addValue(1);
