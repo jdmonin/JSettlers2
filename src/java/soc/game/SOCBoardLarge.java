@@ -36,6 +36,10 @@ import java.util.Vector;
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
  * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
  *<P>
+ * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
+ * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
+ * Calling board methods won't change the game state.
+ *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.

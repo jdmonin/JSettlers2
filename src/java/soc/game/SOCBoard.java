@@ -38,6 +38,10 @@ import java.util.Vector;
  * you may need a subclass of SOCBoard: Use {@link #createBoard(Hashtable, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
+ * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
+ * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
+ * Calling board methods won't change the game state.
+ *<P>
  * To identify nearby nodes, edges, hexes, etc, use the methods
  * with names such as {@link #getAdjacentHexesToNode(int)}.
  *<P>
@@ -163,9 +167,6 @@ import java.util.Vector;
  *</UL>
  * On the large sea board, there can optionally be multiple "land areas"
  * (groups of islands), if {@link SOCBoardLarge#getLandAreasLegalNodes()} != null.
- *<P>
- * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
- * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  *
  * @author Robert S Thomas
  * @see SOCBoardLarge
