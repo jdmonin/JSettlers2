@@ -2255,6 +2255,10 @@ public class SOCGame implements Serializable, Cloneable
                 for (i = 0, hi = hexColl.iterator(); hi.hasNext(); ++i)
                     seHexes[i] = hi.next();
                 putPieceCommon_checkFogHexes(seHexes, true);
+                // Any settlement might reveal 1-3 fog hexes.
+                // So, the player's revealed getNeedToPickGoldHexResources might be 0 to 3.
+                // For the final initial settlement, this is recalculated below
+                // to also include adjacent gold hexes that weren't revealed from fog.
             }
         }
 
@@ -2474,8 +2478,8 @@ public class SOCGame implements Serializable, Cloneable
      * and gives the current player that resource (if not desert or water or gold).
      * The server should send the clients messages to reveal the hex
      * and give the resource to that player.
-     * If gold is revealed and not initial placement, calls
-     * {@link SOCPlayer#setNeedToPickGoldHexResources(int) currentPlayer.setNeedToPickGoldHexResources(1)}.
+     * If gold is revealed, calls
+     * {@link SOCPlayer#setNeedToPickGoldHexResources(int) currentPlayer.setNeedToPickGoldHexResources(numGoldHexes)}.
      *<P>
      * Called only at server, only when {@link #hasSeaBoard}.
      * During initial placement, placing a settlement could reveal up to 3 hexes.
@@ -2521,9 +2525,10 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
-        if ((goldHexes > 0) && (! initialSettlement) && (currentPlayerNumber != -1))
+        if ((goldHexes > 0) && (currentPlayerNumber != -1))
         {
             // ask player to pick a resource from the revealed gold hex
+            // in advanceTurnStateAfterPutPiece()
             players[currentPlayerNumber].setNeedToPickGoldHexResources(goldHexes);
         }
     }
