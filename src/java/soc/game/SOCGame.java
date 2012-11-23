@@ -742,8 +742,9 @@ public class SOCGame implements Serializable, Cloneable
      *<LI> {@link #WAITING_FOR_DISCOVERY} in {@link #playDiscovery()}, {@link #doDiscoveryAction(SOCResourceSet)}
      *<LI> {@link #WAITING_FOR_MONOPOLY} in {@link #playMonopoly()}, {@link #doMonopolyAction(int)}
      *<LI> {@link #WAITING_FOR_PICK_GOLD_RESOURCE}:
-     *        oldGameState holds the state to go to when all players are done picking resources.
-     *        After picking gold from a dice roll, this will be {@link #PLAY1}.
+     *        oldGameState holds the <B>next</B> state to go to when all players are done picking resources.
+     *        After picking gold from a dice roll, this will usually be {@link #PLAY1}.
+     *        Sometimes will be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *</UL>
      * Also used if the game board was reset, {@link #getResetOldGameState()} holds the state before the reset.
      */
@@ -2157,17 +2158,27 @@ public class SOCGame implements Serializable, Cloneable
      * For example, if game state when called is {@link #START2A} (or {@link #START3A} in
      * some scenarios), this is their final initial settlement, so give
      * the player some resources, and call their {@link SOCPlayer#clearPotentialSettlements()}.
-     * If {@link #hasSeaBoard}, you should check {@link SOCPlayer#getNeedToPickGoldHexResources()} != 0
-     * after calling, to see if they placed next to a gold hex.
+     *<P>
+     * If {@link #hasSeaBoard} and {@link SOCGameOption#K_SC_FOG _SC_FOG},
+     * you should check for gamestate {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
+     * after calling, to see if they placed next to a gold hex revealed from fog
+     * (see paragraph below).
      *<P>
      * Calls {@link SOCBoard#putPiece(SOCPlayingPiece)} and each player's
      * {@link SOCPlayer#putPiece(SOCPlayingPiece, boolean) SOCPlayer.putPiece(pp, false)}.
      * Updates longest road if necessary.
      * Calls {@link #advanceTurnStateAfterPutPiece()}.
      * (player.putPiece may also score Special Victory Point(s), see below.)
-     * If placing this piece reveals any {@link SOCBoardLarge#FOG_HEX fog hex}, does that first of all.
      *<P>
      * If the piece is a city, putPiece removes the settlement there.
+     *<P>
+     * If placing this piece reveals any {@link SOCBoardLarge#FOG_HEX fog hex}, that happens first of all.
+     * Hex is revealed (at server only) via {@link #putPieceCommon_checkFogHexes(int[], boolean)}.
+     * Current player gets a resource from each revealed hex, and a scenario player event is fired.
+     * See that method's javadoc for details.
+     * putPiece's caller should check {@link SOCPlayer#getNeedToPickGoldHexResources()} != 0.
+     * Revealing a gold hex from fog will set that player field and also
+     * sets gamestate to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      *<P>
      *<b>Note:</b> Because <tt>pp</tt> is not checked for validity, please call
      * methods such as {@link SOCPlayer#canPlaceSettlement(int)}
@@ -2193,7 +2204,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Put a piece or temporary piece on the board, and update all related game state.
-     * Update player potentials, longest road, etc.
+     * Update player potentials, longest road, reveal fog hexes at server, etc.
      * Common to {@link #putPiece(SOCPlayingPiece)} and {@link #putTempPiece(SOCPlayingPiece)}.
      * See {@link #putPiece(SOCPlayingPiece)} javadoc for more information on what putPieceCommon does.
      *
@@ -2210,6 +2221,7 @@ public class SOCGame implements Serializable, Cloneable
          * on large board, look for fog and reveal its hex if we're
          * placing a road or ship touching the fog hex's corner.
          * During initial placement, a settlement could reveal up to 3.
+         * Current player gets a resource from each revealed hex.
          */
         if (hasSeaBoard && isAtServer && ! (pp instanceof SOCVillage))
         {
@@ -2447,9 +2459,11 @@ public class SOCGame implements Serializable, Cloneable
      * and gives the current player that resource (if not desert or water or gold).
      * The server should send the clients messages to reveal the hex
      * and give the resource to that player.
+     * If gold is revealed and not initial placement, calls
+     * {@link SOCPlayer#setNeedToPickGoldHexResources(int) currentPlayer.setNeedToPickGoldHexResources(1)}.
      *<P>
-     * During initial placement, placing a settlement could reveal up to 3 hexes.
      * Called only at server, only when {@link #hasSeaBoard}.
+     * During initial placement, placing a settlement could reveal up to 3 hexes.
      *
      * @param hexCoords  Hex coordinates to check type for {@link SOCBoardLarge#FOG_HEX}
      * @param initialSettlement  Are we checking for initial settlement placement?
@@ -2458,6 +2472,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     private final void putPieceCommon_checkFogHexes(final int[] hexCoords, final boolean initialSettlement)
     {
+        int goldHexes = 0;
+
         for (int i = 0; i < hexCoords.length; ++i)
         {
             final int hexCoord = hexCoords[i];
@@ -2475,6 +2491,8 @@ public class SOCGame implements Serializable, Cloneable
                 {
                     if ((hexType >= SOCResourceConstants.CLAY) && (hexType <= SOCResourceConstants.WOOD))
                         players[currentPlayerNumber].getResources().add(1, hexType);
+                    else if (hexType == SOCBoardLarge.GOLD_HEX)
+                        ++goldHexes;
                 }
 
                 if (scenarioEventListener != null)
@@ -2486,6 +2504,12 @@ public class SOCGame implements Serializable, Cloneable
                     // No need to keep looking, because only one end of the road or ship's
                     // edge is new; player was already at the other end, so it can't be fog.
             }
+        }
+
+        if ((goldHexes > 0) && (! isInitialPlacement()) && (currentPlayerNumber != -1))
+        {
+            // ask player to pick a resource from the revealed gold hex
+            players[currentPlayerNumber].setNeedToPickGoldHexResources(goldHexes);
         }
     }
 
@@ -2651,7 +2675,13 @@ public class SOCGame implements Serializable, Cloneable
         case PLACING_SETTLEMENT:
         case PLACING_CITY:
         case PLACING_SHIP:
-            if (oldGameState != SPECIAL_BUILDING)
+            if (players[currentPlayerNumber].getNeedToPickGoldHexResources() != 0)
+            {
+                if (oldGameState != SPECIAL_BUILDING)
+                    oldGameState = PLAY1;
+                gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+            }
+            else if (oldGameState != SPECIAL_BUILDING)
             {
                 gameState = PLAY1;
             }
@@ -2659,19 +2689,34 @@ public class SOCGame implements Serializable, Cloneable
             {
                 gameState = SPECIAL_BUILDING;
             }
-
             break;
 
         case PLACING_FREE_ROAD1:
-            gameState = PLACING_FREE_ROAD2;
-
+            if (players[currentPlayerNumber].getNeedToPickGoldHexResources() != 0)
+            {
+                oldGameState = PLACING_FREE_ROAD2;
+                gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+            } else {
+                gameState = PLACING_FREE_ROAD2;
+            }
             break;
 
         case PLACING_FREE_ROAD2:
-            if (currentDice != 0)
-                gameState = PLAY1;
-            else
-                gameState = PLAY;  // played dev card before roll
+            {
+                final int nextState;
+                if (currentDice != 0)
+                    nextState = PLAY1;
+                else
+                    nextState = PLAY;  // played dev card before roll
+
+                if (players[currentPlayerNumber].getNeedToPickGoldHexResources() != 0)
+                {
+                    oldGameState = nextState;
+                    gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+                } else {
+                    gameState = nextState;
+                }
+            }
             break;
 
         }
@@ -4062,6 +4107,7 @@ public class SOCGame implements Serializable, Cloneable
      * gameState to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}
      * or oldGameState (usually {@link #PLAY1}) accordingly.
      * (Or, during initial placement, set it to {@link #START2B} or {@link #START3B}.)
+     * During normal play, the oldGameState might sometimes be {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
      *<P>
      * Assumes {@link #canPickGoldHexResources(int, SOCResourceSet)} already called to validate.
      *<P>
@@ -4091,7 +4137,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * check if we're still waiting for players to pick
          */
-        gameState = oldGameState;
+        gameState = oldGameState;  // nearly always PLAY1, after a roll
 
         for (int i = 0; i < maxPlayers; i++)
         {

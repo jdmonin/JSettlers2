@@ -5431,6 +5431,11 @@ public class SOCServer extends Server
 
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);
+                            if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                            {
+                                // gold hex revealed from fog (scenario SC_FOG)
+                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
+                            }
 
                             if (!checkTurn(c, ga))
                             {
@@ -5574,8 +5579,14 @@ public class SOCServer extends Server
                                 ga.pendingMessagesOut.clear();
                             }
                             gameList.releaseMonitorForGame(gaName);
+
                             boolean toldRoll = sendGameState(ga, false);
                             broadcastGameStats(ga);
+                            if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                            {
+                                // gold hex revealed from fog (scenario SC_FOG)
+                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
+                            }
 
                             if (!checkTurn(c, ga))
                             {
