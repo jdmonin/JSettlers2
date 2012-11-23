@@ -2258,7 +2258,7 @@ public class SOCGame implements Serializable, Cloneable
                 // Any settlement might reveal 1-3 fog hexes.
                 // So, the player's revealed getNeedToPickGoldHexResources might be 0 to 3.
                 // For the final initial settlement, this is recalculated below
-                // to also include adjacent gold hexes that weren't revealed from fog.
+                // to also include adjacent gold hexes that weren't hidden by fog.
             }
         }
 
@@ -2549,10 +2549,14 @@ public class SOCGame implements Serializable, Cloneable
     private boolean advanceTurnStateAfterPutPiece()
     {
         //D.ebugPrintln("CHANGING GAME STATE FROM "+gameState);
+
+        final boolean needToPickFromGold
+            = hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() != 0);
+
         switch (gameState)
         {
         case START1A:
-            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            if (needToPickFromGold)
             {
                 oldGameState = START1A;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE; 
@@ -2562,7 +2566,7 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case START1B:
-            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            if (needToPickFromGold)
             {
                 oldGameState = START1B;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE; 
@@ -2601,7 +2605,7 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case START2A:
-            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            if (needToPickFromGold)
             {
                 oldGameState = START2A;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
@@ -2611,7 +2615,7 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case START2B:
-            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            if (needToPickFromGold)
             {
                 oldGameState = START2B;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
@@ -2661,7 +2665,7 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case START3A:
-            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            if (needToPickFromGold)
             {
                 oldGameState = START3A;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
@@ -2671,7 +2675,7 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case START3B:
-            if (hasSeaBoard && (players[currentPlayerNumber].getNeedToPickGoldHexResources() > 0))
+            if (needToPickFromGold)
             {
                 oldGameState = START3B;
                 gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
@@ -2718,7 +2722,7 @@ public class SOCGame implements Serializable, Cloneable
         case PLACING_SETTLEMENT:
         case PLACING_CITY:
         case PLACING_SHIP:
-            if (players[currentPlayerNumber].getNeedToPickGoldHexResources() != 0)
+            if (needToPickFromGold)
             {
                 if (oldGameState != SPECIAL_BUILDING)
                     oldGameState = PLAY1;
@@ -2735,7 +2739,7 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case PLACING_FREE_ROAD1:
-            if (players[currentPlayerNumber].getNeedToPickGoldHexResources() != 0)
+            if (needToPickFromGold)
             {
                 oldGameState = PLACING_FREE_ROAD2;
                 gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
@@ -2752,7 +2756,7 @@ public class SOCGame implements Serializable, Cloneable
                 else
                     nextState = PLAY;  // played dev card before roll
 
-                if (players[currentPlayerNumber].getNeedToPickGoldHexResources() != 0)
+                if (needToPickFromGold)
                 {
                     oldGameState = nextState;
                     gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
