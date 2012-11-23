@@ -219,7 +219,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * If nonzero, waiting for player to pick this many gold-hex resources,
-     * after a dice roll or placing their 2nd initial settlement.
+     * after a dice roll or placing their final initial settlement.
      *<P>
      * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}
      * or {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.

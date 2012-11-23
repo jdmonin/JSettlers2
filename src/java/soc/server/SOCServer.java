@@ -10370,7 +10370,7 @@ public class SOCServer extends Server
                     continue;  // not started yet
                 SOCPlayer pl = ga.getPlayer(cpn);
                 if (! pl.isRobot())
-                    continue;
+                    continue;  // not the robot's turn
 
                 final int gameState = ga.getGameState();
                 if ((gameState == SOCGame.WAITING_FOR_DISCARDS) || (gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
