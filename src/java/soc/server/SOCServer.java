@@ -5398,7 +5398,7 @@ public class SOCServer extends Server
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
                         || (gameState == SOCGame.PLACING_ROAD) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
-                        if (player.isPotentialRoad(coord))
+                        if (player.isPotentialRoad(coord) && (player.getNumPieces(SOCPlayingPiece.ROAD) >= 1))
                         {
                             ga.putPiece(rd);  // Changes state and sometimes player (initial placement)
 
@@ -5474,7 +5474,7 @@ public class SOCServer extends Server
                     if ((gameState == SOCGame.START1A) || (gameState == SOCGame.START2A)
                         || (gameState == SOCGame.START3A) || (gameState == SOCGame.PLACING_SETTLEMENT))
                     {
-                        if (player.canPlaceSettlement(coord))
+                        if (player.canPlaceSettlement(coord) && (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) >= 1))
                         {
                             ga.putPiece(se);   // Changes game state and (if game start) player
                             gameList.takeMonitorForGame(gaName);
@@ -5523,7 +5523,7 @@ public class SOCServer extends Server
 
                     if (gameState == SOCGame.PLACING_CITY)
                     {
-                        if (player.isPotentialCity(coord))
+                        if (player.isPotentialCity(coord) && (player.getNumPieces(SOCPlayingPiece.CITY) >= 1))
                         {
                             ga.putPiece(ci);  // changes game state and maybe player
                             gameList.takeMonitorForGame(gaName);
@@ -5566,7 +5566,8 @@ public class SOCServer extends Server
                     if ((gameState == SOCGame.START1B) || (gameState == SOCGame.START2B) || (gameState == SOCGame.START3B)
                         || (gameState == SOCGame.PLACING_SHIP) || (gameState == SOCGame.PLACING_FREE_ROAD1) || (gameState == SOCGame.PLACING_FREE_ROAD2))
                     {
-                        if (ga.canPlaceShip(player, coord))  // checks potentials and pirate ship location
+                        // Place it if we can; canPlaceShip checks potentials and pirate ship location
+                        if (ga.canPlaceShip(player, coord) && (player.getNumPieces(SOCPlayingPiece.SHIP) >= 1))
                         {
                             ga.putPiece(sh);  // Changes state and sometimes player (during initial placement)
 
