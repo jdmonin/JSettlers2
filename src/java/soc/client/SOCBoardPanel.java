@@ -4295,14 +4295,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ptrOldX = x;
                 ptrOldY = y;
                 edgeNum = findEdge(xb, yb, true);
+                final boolean hasShips = (player != null) && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0);
                 final boolean canPlaceShip =
-                    (player != null) ? game.canPlaceShip(player, edgeNum) : false;
+                    (hasShips) ? game.canPlaceShip(player, edgeNum) : false;
                 boolean isShip;
                 if (edgeNum < 0)
                 {
                     edgeNum = -edgeNum;
                     isShip = canPlaceShip
-                        || ((mode == PLACE_FREE_ROAD_OR_SHIP) && player.isPotentialShip(edgeNum));
+                        || ((mode == PLACE_FREE_ROAD_OR_SHIP) && hasShips && player.isPotentialShip(edgeNum));
                 } else {
                     isShip = false;
                 }
@@ -4322,11 +4323,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             edgeNum = 0;
                     }
                     else {
-                        if ( ! (player.isPotentialRoad(edgeNum)
-                                || ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip)))
+                        if ((player.isPotentialRoad(edgeNum) && (player.getNumPieces(SOCPlayingPiece.ROAD) > 0))
+                            || ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip))
                         {
-                            edgeNum = 0;
-                        } else {
                             // edgeNum is OK.
 
                             if (! isShip)
@@ -4335,6 +4334,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 isShip = (player != null) && canPlaceShip
                                     && ! player.isPotentialRoad(edgeNum);
                             }
+                        } else {
+                            edgeNum = 0;
                         }
                     }
                 }
@@ -4421,7 +4422,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (edgeNum != 0)
                 {
-                    if ((player == null) || ! game.canPlaceShip(player, edgeNum))
+                    if ((player == null) || (player.getNumPieces(SOCPlayingPiece.SHIP) < 1)
+                        || ! game.canPlaceShip(player, edgeNum))
                         edgeNum = 0;
                 }
 
