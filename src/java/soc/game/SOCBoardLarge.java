@@ -119,6 +119,7 @@ import java.util.Vector;
  *      {@link #isHexInBounds(int, int)} <br>
  *      {@link #isHexOnLand(int)} <br>
  *      {@link #isHexOnWater(int)} <br>
+ *      {@link #isHexCoastline(int)} <br>
  *      {@link #getNumberOnHexFromCoord(int)} <br>
  *      {@link #getNumberOnHexFromNumber(int)} <br>
  *      {@link #getHexTypeFromCoord(int)} <br>
@@ -1584,6 +1585,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param edge  Edge coordinate, not checked for validity
      * @return  true if this edge's hexes are land and water,
      *           or a land hex at the edge of the board
+     * @see #isHexCoastline(int)
      */
     public final boolean isEdgeCoastline(final int edge)
     {
@@ -1821,6 +1823,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if land, false if water or not a valid hex coordinate
      * @see #isHexOnWater(int)
+     * @see #isHexCoastline(int)
      */
     @Override
     public boolean isHexOnLand(final int hexCoord)
@@ -1834,12 +1837,37 @@ public class SOCBoardLarge extends SOCBoard
      * @param hexCoord  Hex coordinate, within the board's bounds
      * @return  True if water, false if land or not a valid hex coordinate
      * @see #isHexOnLand(int)
+     * @see #isHexCoastline(int)
      * @since 2.0.00
      */
     @Override
     public boolean isHexOnWater(final int hexCoord)
     {
         return (getHexTypeFromCoord(hexCoord) == WATER_HEX);
+    }
+
+    /**
+     * Is this land hex along the coastline (land/water border)?
+     * Off the edge of the board is considered water.
+     * {@link #FOG_HEX} is considered land here.
+     * @param hexCoord  Hex coordinate, within the board's bounds
+     * @return  true if this hex is adjacent to water, or at the edge of the board
+     * @see #isEdgeCoastline(int)
+     * @throws IllegalArgumentException  if hexCoord is water or not a valid hex coordinate
+     */
+    public boolean isHexCoastline(final int hexCoord)
+        throws IllegalArgumentException
+    {
+        final int htype = getHexTypeFromCoord(hexCoord);
+        if ((htype <= WATER_HEX) || (htype > MAX_LAND_HEX_LG))
+            throw new IllegalArgumentException("Not land (" + htype + "): 0x" + Integer.toHexString(hexCoord));
+
+        // How many land hexes are adjacent?
+        // Water, or off the board, aren't included.
+        // So if there are 6, hex isn't coastal.
+
+        final Vector<Integer> adjac = getAdjacentHexesToHex(hexCoord, false);
+        return (adjac == null) || (adjac.size() < 6);
     }
 
     /**
@@ -2183,6 +2211,7 @@ public class SOCBoardLarge extends SOCBoard
      * @return the hexes that touch this hex, as a Vector of Integer coordinates,
      *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
      * @see #isHexInBounds(int, int)
+     * @see #isHexCoastline(int)
      */
     @Override
     public Vector<Integer> getAdjacentHexesToHex(final int hexCoord, final boolean includeWater)
