@@ -2147,6 +2147,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return true if this player's ship could be placed there
      * @since 2.0.00
      * @see #canMoveShip(int, int, int)
+     * @see SOCPlayer#getNumPieces(int)
      */
     public boolean canPlaceShip(SOCPlayer pl, final int shipEdge)
     {
@@ -5352,6 +5353,7 @@ public class SOCGame implements Serializable, Cloneable
      * @return true if the player can play a Road Building card.
      *
      * @param pn  the number of the player
+     * @see #playRoadBuilding()
      */
     public boolean canPlayRoadBuilding(int pn)
     {
@@ -5461,9 +5463,9 @@ public class SOCGame implements Serializable, Cloneable
      * The current player plays a Road Building card.
      * This card directs the player to place 2 roads or ships,
      * or 1 road and 1 ship.
-     * Checks of game rules online show "MAY" or "CAN", not "MUST" place 2.
      * If they have 2 or more roads or ships, may place 2; gameState becomes PLACING_FREE_ROAD1.
      * If they have just 1 road/ship, may place that; gameState becomes PLACING_FREE_ROAD2.
+     * (Checks of game rules online show "MAY" or "CAN", not "MUST" place 2.)
      * If they have 0 roads, cannot play the card.
      *<P>
      * Assumes {@link #canPlayRoadBuilding(int)} has already been called, and move is valid.
