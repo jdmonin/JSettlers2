@@ -16,6 +16,7 @@ new features, until 2.0.00 is ready.
 - Large board (sea board) support
 - "House rules" dev card types (New game option "DH")
 - Game options dialog: Set maxplayers to 6 when Use Large Board is set, unless user changed max pl manually
+- New Game options: Popup if old versions can't play: Default to Create, not Change Options
 - More efficient game-setup messages over network
 - Applet class is now soc.client.SOCPlayerClient.SOCApplet
 - Game option key names can now be longer (8 characters)
