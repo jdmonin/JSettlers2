@@ -4185,6 +4185,16 @@ public class SOCGame implements Serializable, Cloneable
             return;
         }
 
+        if ((oldGameState == PLAY1) || (oldGameState == SPECIAL_BUILDING) || (oldGameState == PLACING_FREE_ROAD2))
+        {
+            // Update player's Rolled Resource stats
+            //     Note: PLAY1 is also the case for building a road/ship
+            //     that revealed gold from a fog hex
+            int[] resourceStats = players[pn].getResourceRollStats();
+            for (int rtype = SOCResourceConstants.CLAY; rtype < resourceStats.length; ++rtype)
+                resourceStats[rtype] += rs.getAmount(rtype);
+        }
+
         /**
          * check if we're still waiting for players to pick
          */

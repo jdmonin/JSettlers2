@@ -1548,6 +1548,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * On server, get the current totals of resources received by dice rolls by this player.
+     * Includes resources picked from a rolled {@link SOCBoardLarge#GOLD_HEX}.
+     * For the {@link SOCScenario#K_SC_FOG Fog Scenario}, includes resources picked when building
+     * a road or ship revealed gold from a {@link SOCBoardLarge#FOG_HEX}.
+     *<P>
      * Please treat this as read-only.
      *<P>
      * Not currently tracked at client.
@@ -1568,7 +1572,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * If {@link #hasSeaBoard}, treat {@link SOCResourceConstants#GOLD_LOCAL}
      * as the gold-hex resources they must pick, and set
      * {@link #getNeedToPickGoldHexResources()} to that amount.
-     * Otherwise ignore rolled {@link SOCResourceConstants#UNKNOWN} resources.
+     * Once the resources from gold from a dice roll are picked, the
+     * game should update this player's {@link #getResourceRollStats()}.
+     *<P>
+     * Otherwise ignores rolled {@link SOCResourceConstants#UNKNOWN} resources.
      *
      * @param rolled The resources gained by this roll, as determined
      *     by {@link SOCGame#rollDice()}

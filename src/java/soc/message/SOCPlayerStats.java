@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,6 +40,10 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
     public static final int STYPE_MIN = 1;
 
     /** Stats type 1: Resource roll stats.
+     *  Includes resources picked from a rolled <tt>GOLD_HEX</tt>.
+     *  For the Fog Scenario, includes resources picked when building
+     *  a road or ship revealed gold from a fog hex.
+     *<P>
      *  Check client version against {@link #VERSION_FOR_RES_ROLL}
      *  before sending this message.
      */
@@ -70,7 +74,8 @@ public class SOCPlayerStats extends SOCMessageTemplateMi
         if ((stype < STYPE_MIN) || (stype > STYPE_MAX))
             throw new IllegalArgumentException("stype out of range: " + stype);
 
-        pa[0] = stype;        
+        pa[0] = stype;
+        // Right now, only STYPE_RES_ROLL is defined
         final int[] rstats = pl.getResourceRollStats();  // rstats[0] is unused
         for (int i = 1; i <= 5; ++i)
             pa[i] = rstats[i];
