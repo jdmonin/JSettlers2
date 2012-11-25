@@ -1,6 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,14 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.util;
 
 /**
- * DOCUMENT ME!
- *
- * @author $author$
+ * An ordered pair of 2 ints.
+ * @see IntTriple
  */
 public class IntPair
 {
@@ -32,21 +32,21 @@ public class IntPair
     /**
      * Creates a new IntPair object.
      *
-     * @param i DOCUMENT ME!
-     * @param j DOCUMENT ME!
+     * @param a  First int
+     * @param b  Second int
      */
-    public IntPair(int i, int j)
+    public IntPair(int a, int b)
     {
-        a = i;
-        b = j;
+        this.a = a;
+        this.b = b;
     }
 
     /**
-     * DOCUMENT ME!
+     * Are these IntPairs' integers equal (unordered comparison)?
      *
-     * @param ip DOCUMENT ME!
+     * @param ip  Another IntPair
      *
-     * @return DOCUMENT ME!
+     * @return True if pairs' contents are (I,J) and (I,J), or (I,J) and (J,I)
      */
     public boolean equals(IntPair ip)
     {
@@ -61,9 +61,9 @@ public class IntPair
     }
 
     /**
-     * DOCUMENT ME!
+     * Get the first int of this pair.
      *
-     * @return DOCUMENT ME!
+     * @return Current value of {@link #a}
      */
     public int getA()
     {
@@ -71,9 +71,9 @@ public class IntPair
     }
 
     /**
-     * DOCUMENT ME!
+     * Get the second int of this pair.
      *
-     * @return DOCUMENT ME!
+     * @return Current value of {@link #b}
      */
     public int getB()
     {
@@ -81,9 +81,9 @@ public class IntPair
     }
 
     /**
-     * DOCUMENT ME!
+     * Set the first int of this pair.
      *
-     * @param val DOCUMENT ME!
+     * @param val New value for {@link #a}
      */
     public void setA(int val)
     {
@@ -91,9 +91,9 @@ public class IntPair
     }
 
     /**
-     * DOCUMENT ME!
+     * Set the second int of this pair.
      *
-     * @param val DOCUMENT ME!
+     * @param val New value for {@link #b}
      */
     public void setB(int val)
     {
@@ -101,12 +101,13 @@ public class IntPair
     }
 
     /**
-     * DOCUMENT ME!
+     * Get a string with the hex contents of this pair.
      *
-     * @return DOCUMENT ME!
+     * @return A string of format "a:##, b:##", where ## are the values in hexadecimal
      */
     public String toString()
     {
         return "a:" + Integer.toHexString(a) + ", b:" + Integer.toHexString(b);
     }
+
 }
