@@ -31,7 +31,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
-import soc.util.IntPair;
+import soc.util.IntTriple;
 
 /**
  * A representation of a larger (up to 127 x 127 hexes) JSettlers board,
@@ -1035,19 +1035,24 @@ public class SOCBoardLarge extends SOCBoard
      * separate adjacent "red numbers" (6s, 8s)
      * and make sure gold hex dice aren't too frequent.
      * For algorithm details, see comments in this method.
-     * @param numPath   Coordinates for each land hex being placed
-     * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers
+     *<P>
+     * If using {@link #FOG_HEX}, no fog should be on the
+     * board when calling this method: Don't call after
+     * {@link #makeNewBoard_hideHexesInFog(int[])}.
+     *
+     * @param numPath   Coordinates for each hex being placed; may contain water
+     * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers (6s, 8s)
      * @return  true if able to move all adjacent frequent numbers, false if some are still adjacent.
+     * @throws IllegalStateException if a {@link #FOG_HEX} is found
      */
     private final boolean makeNewBoard_placeHexes_moveFrequentNumbers
         (final int[] numPath, ArrayList<Integer> redHexes)
+        throws IllegalStateException
     {
         if (redHexes.isEmpty())
             return true;
 
         // TODO Before anything else, check for frequent gold hexes and swap their numbers with random other hexes.
-
-        // TODO Implement this plan:
 
         // Overall plan:
 
@@ -1062,6 +1067,7 @@ public class SOCBoardLarge extends SOCBoard
         //   which have fewer adjacent land hexes, and thus less chance of
         //   taking up the last available un-adjacent places
         // Loop through redHexes for 3 or more adjacents in a row
+        //   but not in a clump (so, middle one has 2 adjacent reds that aren't next to each other)
         // - If the middle one is moved, the other 2 might have no other adjacents
         //   and not need to move anymore; they could then be removed from redHexes
         // - So, do the Swapping Algorithm on that middle one
@@ -1072,6 +1078,9 @@ public class SOCBoardLarge extends SOCBoard
         //   Return true.
         // Otherwise, loop through redHexes for each remaining hex
         // - If it has no adjacent reds, remove it from redHexes and loop to next
+        // - If it has 1 adjacent red, should swap that adjacent instead;
+        //   the algorithm will also remove this one from redHexes
+        //   because it wil have 0 adjacents after the swap
         // - Do the Swapping Algorithm on it
         //   (updates redHexes, otherCoastalHexes, otherHexes; see below)
         // - If no swap was available, we should undo all and retry.
@@ -1080,11 +1089,12 @@ public class SOCBoardLarge extends SOCBoard
         //   Return true.
         //
         // If we need to undo all and retry:
-        // - Go backwards through the list of swappedNums, reversing each swap
         // - ++numRetries
         // - If numRetries > 5, we've tried enough.
+        //   Either the swaps we've done will have to do, or caller will make a new board.
         //   Return false.
         // - Otherwise, restore redHexes from the backup we made
+        // - Go backwards through the list of swappedNums, reversing each swap
         // - Jump back to "Make sets otherCoastalHexes, otherHexes"
 
         // Swapping Algorithm:
@@ -1103,7 +1113,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // Implementation:
 
-        ArrayList<IntPair> swappedNums = null;
+        ArrayList<IntTriple> swappedNums = null;
         ArrayList<Integer> redHexesBk = null;
         int numRetries = 0;
         boolean retry = false;
@@ -1111,32 +1121,322 @@ public class SOCBoardLarge extends SOCBoard
         {
             HashSet<Integer> otherCoastalHexes = null, otherHexes = null;
 
+            // Loop through redHexes for 3 or more adjacents in a row
+            //   but not in a clump (so, middle one has 2 adjacent reds that aren't next to each other)
+            // - If the middle one is moved, the other 2 might have no other adjacents
+            //   and not need to move anymore; they could then be removed from redHexes
+            // - So, do the Swapping Algorithm on that middle one
+
+            for (int i = 0; i < redHexes.size(); )
+            {
+                final int h0 = redHexes.get(i);
+
+                Vector<Integer> ahex = getAdjacentHexesToHex(h0, false);
+                if (ahex == null)
+                {
+                    redHexes.remove(i);
+                    continue;  // <--- No adjacent hexes at all: remove ---
+                }
+
+                // count and find red adjacent hexes, remove non-reds from ahex
+                int adjacRed = 0, hAdjac1 = 0, hAdjacNext = 0;
+                for (Iterator<Integer> ahi = ahex.iterator(); ahi.hasNext(); )
+                {
+                    final int h = ahi.next();
+                    final int dnum = getNumberOnHexFromCoord(h);
+                    if ((dnum == 6) || (dnum == 8))
+                    {
+                        ++adjacRed;
+                        if (adjacRed == 1)
+                            hAdjac1 = h;
+                        else
+                            hAdjacNext = h;
+                    } else {
+                        ahi.remove();  // remove from ahex
+                    }
+                }
+
+                if (adjacRed == 0)
+                {
+                    redHexes.remove(i);
+                    continue;  // <--- No adjacent red hexes: remove ---
+                }
+                else if (adjacRed == 1)
+                {
+                    ++i;
+                    continue;  // <--- Not in the middle: skip ---
+                }
+
+                // Looking for 3 in a row but not in a clump
+                // (so, middle one has 2 adjacent reds that aren't next to each other).
+                // If the 2+ adjacent reds are next to each other,
+                // swapping one will still leave adjacency.
+
+                if ((adjacRed > 3) || isHexAdjacentToHex(hAdjac1, hAdjacNext))
+                {
+                    ++i;
+                    continue;  // <--- Clump, not 3 in a row: skip ---
+                }
+                else if (adjacRed == 3)
+                {
+                    // h0 is that middle one only if the 3 adjacent reds
+                    // are not adjacent to each other.
+                    // We already checked that hAdjac1 and hAdjacNext aren't adjacent,
+                    // so check the final one.
+                    boolean clump = false;
+                    for (int h : ahex)  // ahex.size() == 3
+                    {
+                        if ((h == hAdjac1) || (h == hAdjacNext))
+                            continue;
+                        clump = isHexAdjacentToHex(h, hAdjac1) || isHexAdjacentToHex(h, hAdjacNext);
+                    }
+                    if (clump)
+                    {
+                        ++i;
+                        continue;  // <--- Clump, not 3 in a row: skip ---
+                    }
+                }
+
+                // h0 is the middle hex.
+
+                // Before swapping, build arrays if we need to.
+                if (redHexesBk == null)
+                    redHexesBk = new ArrayList<Integer>(redHexes);
+                if (otherCoastalHexes == null)
+                {
+                    otherCoastalHexes = new HashSet<Integer>();
+                    otherHexes = new HashSet<Integer>();
+                    makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
+                        (numPath, redHexes, otherCoastalHexes, otherHexes);
+                }
+
+                // Now, swap.
+                IntTriple midSwap = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
+                    (h0, i, redHexes, otherCoastalHexes, otherHexes);
+                if (midSwap == null)
+                {
+                    retry = true;
+                    break;
+                } else {
+                    if (swappedNums == null)
+                        swappedNums = new ArrayList<IntTriple>();
+                    swappedNums.add(midSwap);
+                    if (midSwap.c != 0)
+                    {
+                        // other hexes were removed from redHexes.
+                        // Update our index position with the delta
+                        i += midSwap.c;  // c is always negative
+                    }
+                }
+
+            }  // for (each h0 in redHexes)
+
+            // If redHexes is empty, we're done.
+            if (redHexes.isEmpty())
+                return true;
+
+            if (! retry)
+            {
+                // Otherwise, loop through redHexes for each remaining hex
+                // - If it has no adjacent reds, remove it from redHexes and loop to next
+                // - If it has 1 adjacent red, should swap that adjacent instead;
+                //   the algorithm will also remove this one from redHexes
+                //   because it wil have 0 adjacents after the swap
+                // - Do the Swapping Algorithm on it
+                //   (updates redHexes, otherCoastalHexes, otherHexes)
+                // - If no swap was available, we should undo all and retry.
+
+                while (! redHexes.isEmpty())
+                {
+                    final int h0 = redHexes.get(0);
+
+                    Vector<Integer> ahex = getAdjacentHexesToHex(h0, false);
+                    if (ahex == null)
+                    {
+                        redHexes.remove(0);
+                        continue;  // <--- No adjacent hexes at all: remove ---
+                    }
+
+                    // count and find red adjacent hexes
+                    int adjacRed = 0, hAdjac1 = 0;
+                    for ( final int h : ahex )
+                    {
+                        final int dnum = getNumberOnHexFromCoord(h);
+                        if ((dnum == 6) || (dnum == 8))
+                        {
+                            ++adjacRed;
+                            if (adjacRed == 1)
+                                hAdjac1 = h;
+                        }
+                    }
+
+                    if (adjacRed == 0)
+                    {
+                        redHexes.remove(0);
+                        continue;  // <--- No adjacent red hexes: remove ---
+                    }
+
+                    // We'll either swap h0, or its single adjacent red hex hAdjac1.
+
+                    // Before swapping, build arrays if we need to.
+                    if (redHexesBk == null)
+                        redHexesBk = new ArrayList<Integer>(redHexes);
+                    if (otherCoastalHexes == null)
+                    {
+                        otherCoastalHexes = new HashSet<Integer>();
+                        otherHexes = new HashSet<Integer>();
+                        makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
+                            (numPath, redHexes, otherCoastalHexes, otherHexes);
+                    }
+
+                    // Now, swap.
+                    IntTriple hexnumSwap;
+                    if (adjacRed > 1)
+                    {
+                        hexnumSwap = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
+                            (h0, 0, redHexes, otherCoastalHexes, otherHexes);
+                    } else {
+                        // swap the adjacent instead; the algorithm will also remove this one from redHexes
+                        // because it wil have 0 adjacents after the swap
+                        final int iAdjac1 = redHexes.indexOf(Integer.valueOf(hAdjac1));
+                        hexnumSwap = makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
+                            (hAdjac1, iAdjac1, redHexes, otherCoastalHexes, otherHexes);
+                    }
+
+                    if (hexnumSwap == null)
+                    {
+                        retry = true;
+                        break;
+                    } else {
+                        if (swappedNums == null)
+                            swappedNums = new ArrayList<IntTriple>();
+                        swappedNums.add(hexnumSwap);
+                    }
+
+                }  // while (redHexes not empty)
+            }
+
             if (retry)
             {
                 // undo all and retry:
+                // - ++numRetries
+                // - If numRetries > 5, we've tried enough.
+                //   Either the swaps we've done will have to do, or caller will make a new board.
+                //   Return false.
+                // - Otherwise, restore redHexes from the backup we made
+                // - Go backwards through the list of swappedNums, reversing each swap
 
                 ++numRetries;
                 if (numRetries > 5)
                     return false;
+
+                redHexes = new ArrayList<Integer>(redHexesBk);
+                final int L = (swappedNums != null) ? swappedNums.size() : 0;
+                for (int i = L - 1; i >= 0; --i)
+                {
+                    final IntTriple swap = swappedNums.get(i);
+                    final int rs = swap.b >> 8,
+                              cs = swap.b & 0xFF,
+                              ro = swap.a >> 8,
+                              co = swap.a & 0xFF,
+                              ntmp = numberLayoutLg[ro][co];
+                    numberLayoutLg[ro][co] = numberLayoutLg[rs][cs];
+                    numberLayoutLg[rs][cs] = ntmp;
+                }
             }
+
         } while (retry);
 
         return true;
     }
 
     /**
+     * Build sets used for {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList)}.
+     * Together, otherCoastalHexes and otherHexes are all land hexes in numPath not adjacent to redHexes.
+     * otherCoastalHexes holds ones at the edge of the board,
+     * which have fewer adjacent land hexes, and thus less chance of
+     * taking up the last available un-adjacent places.
+     * @param numPath   Coordinates for each hex being placed; may contain water
+     * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers (6s, 8s)
+     * @param otherCoastalHexes  Empty set to build here
+     * @param otherHexes         Empty set to build here
+     * @throws IllegalStateException if a {@link #FOG_HEX} is found
+     */
+    private final void makeNewBoard_placeHexes_moveFrequentNumbers_buildArrays
+        (final int[] numPath, final ArrayList<Integer> redHexes,
+         HashSet<Integer> otherCoastalHexes, HashSet<Integer> otherHexes)
+        throws IllegalStateException
+    {
+        for (int h : numPath)
+        {
+            // Don't consider water, desert, gold
+            {
+                final int htype = getHexTypeFromCoord(h);
+                if ((htype == WATER_HEX) || (htype == DESERT_HEX) || (htype == GOLD_HEX))
+                    continue;
+                if (htype == FOG_HEX)
+                    // FOG_HEX shouldn't be on the board yet
+                    throw new IllegalStateException("Don't call this after placing fog");
+            }
+
+            // Don't consider unnumbered or 6s or 8s
+            // (some may have already been removed from redHexes)
+            {
+                final int dnum = getNumberOnHexFromCoord(h);
+                if ((dnum <= 0) || (dnum == 6) || (dnum == 8))
+                    continue;
+            }
+
+            final Vector<Integer> ahex = getAdjacentHexesToHex(h, false);
+            boolean hasAdjacentRed = false;
+            if (ahex != null)
+            {
+                for (int ah : ahex)
+                {
+                    final int dnum = getNumberOnHexFromCoord(ah);
+                    if ((dnum == 6) || (dnum == 8))
+                    {
+                        hasAdjacentRed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (! hasAdjacentRed)
+            {
+                final Integer hInt = Integer.valueOf(h);
+
+                if (isHexCoastline(h))
+                    otherCoastalHexes.add(hInt);
+                else
+                    otherHexes.add(hInt);
+            }
+        }
+    }
+
+    /**
      * The swapping algorithm for {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList)}.
+     * If we can, pick a hex in otherCoastalHexes or otherHexes, swap and remove <tt>swaphex</tt>
+     * from redHexes, then remove/add hexes from/to otherCoastalHexes, otherHexes, redHexes.
+     * See comments for details.
      * @param swaphex  Hex coordinate with a frequent number that needs to be swapped
+     * @param swapi    Index of <tt>swaphex</tt> within <tt>redHexes</tt>;
+     *                 this is for convenience because the caller is iterating through <tt>redHexes</tt>,
+     *                 and this method might remove elements below <tt>swapi</tt>.
+     *                 See return value "index delta".
      * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers
      * @param otherCoastalHexes  Land hexes not adjacent to "red" numbers, at the edge of the island,
      *          for swapping dice numbers.  Coastal hexes have fewer adjacent land hexes, and
      *          thus less chance of taking up the last available un-adjacent places when swapped.
      * @param otherHexes   Land hexes not adjacent to "red" numbers, not at the edge of the island.
-     * @return The old frequent-number hex location, and its swapped location,
-     *         or null if nothing was available to swap
+     * @return The old frequent-number hex coordinate, its swapped coordinate, and the "index delta",
+     *         or null if nothing was available to swap.
+     *         If the "index delta" != 0, a hex at <tt>redHexes[j]</tt> was removed
+     *         for at least one <tt>j &lt; swapi</tt>, and the caller's loop iterating over <tt>redHexes[]</tt>
+     *         should adjust its index (<tt>swapi</tt>) so no elements are skipped; the delta is always negative.
      */
-    private final IntPair makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
-        (final int swaphex, ArrayList<Integer> redHexes,
+    private final IntTriple makeNewBoard_placeHexes_moveFrequentNumbers_swapOne
+        (final int swaphex, int swapi, ArrayList<Integer> redHexes,
          HashSet<Integer> otherCoastalHexes, HashSet<Integer> otherHexes)
     {
         // - If otherCoastalHexes and otherHexes are empty:
@@ -1149,7 +1449,7 @@ public class SOCBoardLarge extends SOCBoard
         final int ohex;
         {
             final int olen = others.size();
-            final int oi = (olen == 1) ? 0 : rand.nextInt() % olen;
+            final int oi = (olen == 1) ? 0 : rand.nextInt(olen);
 
             // Although this is a linear search,
             // we chose to optimize the sets for
@@ -1168,7 +1468,7 @@ public class SOCBoardLarge extends SOCBoard
         }
 
         // - Swap the numbers and build the pair to return
-        IntPair pair = new IntPair(swaphex, ohex);
+        IntTriple triple = new IntTriple(swaphex, ohex, 0);
         {
             final int rs = swaphex >> 8,
                       cs = swaphex & 0xFF,
@@ -1202,9 +1502,11 @@ public class SOCBoardLarge extends SOCBoard
         ahex = getAdjacentHexesToHex(swaphex, false);
         if (ahex != null)
         {
+            int idelta = 0;
+
             for (int h : ahex)
             {
-                final int dnum = getHexNumFromCoord(h);
+                final int dnum = getNumberOnHexFromCoord(h);
                 final boolean hexIsRed = (dnum == 6) || (dnum == 8);
                 boolean hasAdjacentRed = false;
                 Vector<Integer> aahex = getAdjacentHexesToHex(h, false);
@@ -1213,7 +1515,7 @@ public class SOCBoardLarge extends SOCBoard
                     // adjacents to swaphex's adjacent
                     for (int aah : aahex)
                     {
-                        final int aanum = getHexNumFromCoord(aah);
+                        final int aanum = getNumberOnHexFromCoord(aah);
                         if ((aanum == 6) || (aanum == 8))
                         {
                             hasAdjacentRed = true;
@@ -1224,24 +1526,40 @@ public class SOCBoardLarge extends SOCBoard
 
                 if (! hasAdjacentRed)
                 {
+                    final Integer hInt = Integer.valueOf(h);
+
                     if (hexIsRed)
                     {
                         // no longer has any adjacent reds; we won't need to move it
-                        if (redHexes.contains(h))
-                            redHexes.remove(Integer.valueOf(h));
+                        // Remove from redHexes
+                        int j = redHexes.indexOf(hInt);
+                        if (j != -1)  // if redHexes.contains(h)
+                        {
+                            redHexes.remove(j);
+                            if (j < swapi)
+                            {
+                                --idelta;
+                                --swapi;
+                                triple.c = idelta;
+                            }
+                        }
                     } else {
                         // no longer has any adjacent reds; can add to otherCoastalHexes or otherHexes
                         if (isHexCoastline(h))
-                            otherCoastalHexes.add(h);
-                        else
-                            otherHexes.add(h);
+                        {
+                            if (! otherCoastalHexes.contains(hInt))
+                                otherCoastalHexes.add(hInt);
+                        } else{
+                            if (! otherHexes.contains(hInt))
+                                otherHexes.add(hInt);
+                        }
                     }
                 }
             }
         }
 
-        // - Return the pair.
-        return pair;
+        // - Return the dice-number swap info.
+        return triple;
     }
 
     /**
@@ -1518,7 +1836,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the hex layout -- Not valid for this encoding.
      * Valid only for the v1 and v2 board encoding, not v3.
-     * Always throws IllegalStateException for SOCBoardLarge.
+     * Always throws UnsupportedOperationException for SOCBoardLarge.
      * Call {@link #getLandHexCoords()} instead.
      * For sending a <tt>SOCBoardLayout2</tt> message, call {@link #getLandHexLayout()} instead.
      * @throws UnsupportedOperationException since the board encoding doesn't support this method;
@@ -1536,7 +1854,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Set the hexLayout -- Not valid for this encoding.
      * Valid only for the v1 and v2 board encoding, not v3.
-     * Always throws IllegalStateException for SOCBoardLarge.
+     * Always throws UnsupportedOperationException for SOCBoardLarge.
      * Call {@link #setLandHexLayout(int[])} instead.
      * @param hl  the hex layout
      * @throws UnsupportedOperationException since the board encoding doesn't support this method;
@@ -1719,7 +2037,7 @@ public class SOCBoardLarge extends SOCBoard
      * To get the dice number on a hex, call {@link #getNumberOnHexFromCoord(int)}.
      *<P>
      * Valid only for the v1 and v2 board encoding, not v3.
-     * Always throws IllegalStateException for SOCBoardLarge.
+     * Always throws UnsupportedOperationException for SOCBoardLarge.
      * Hex numbers (indexes within an array of land hexes) aren't used in this encoding,
      * hex coordinates are used instead.
      * @see #getHexTypeFromCoord(int)
