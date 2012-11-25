@@ -1039,6 +1039,7 @@ public class SOCBoardLarge extends SOCBoard
      * land hexes and dice numbers into {@link #hexLayoutLg},
      * separate adjacent "red numbers" (6s, 8s)
      * and make sure gold hex dice aren't too frequent.
+     * For algorithm details, see comments in this method.
      * @param numPath   Coordinates for each land hex being placed
      * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers
      * @return  true if able to move all adjacent frequent numbers, false if some are still adjacent.
@@ -1059,6 +1060,7 @@ public class SOCBoardLarge extends SOCBoard
         // Duplicate redHexes in case we need to undo all swaps and retry
         //   (This can be deferred until adjacent redHexes are found)
         // numRetries = 0
+        // Top of retry loop:
         // Make sets otherCoastalHexes, otherHexes: all land hexes in numPath not adjacent to redHexes
         //   (This can be deferred until adjacent redHexes are found)
         //   otherCoastalHexes holds ones at the edge of the board,
@@ -1074,7 +1076,8 @@ public class SOCBoardLarge extends SOCBoard
         // If redHexes is empty, we're done.
         //   Return true.
         // Otherwise, loop through redHexes for each remaining hex
-        // - Do the Swapping Algorithm it
+        // - If it has no adjacent reds, remove it from redHexes and loop to next
+        // - Do the Swapping Algorithm on it
         //   (updates redHexes, otherCoastalHexes, otherHexes; see below)
         // - If no swap was available, we should undo all and retry.
         //   (see below)
@@ -1103,9 +1106,27 @@ public class SOCBoardLarge extends SOCBoard
         //     If so, we won't need to move it: remove from redHexes
         // - Return the pair.
 
-        ArrayList<IntPair> swappedNums = null;
+        // Implementation:
 
-        return false;
+        ArrayList<IntPair> swappedNums = null;
+        ArrayList<Integer> redHexesBk = null;
+        int numRetries = 0;
+        boolean retry = false;
+        do
+        {
+            HashSet<Integer> otherCoastalHexes = null, otherHexes = null;
+
+            if (retry)
+            {
+                // undo all and retry:
+
+                ++numRetries;
+                if (numRetries > 5)
+                    return false;
+            }
+        } while (retry);
+
+        return true;
     }
 
     /**
@@ -1153,6 +1174,15 @@ public class SOCBoardLarge extends SOCBoard
 
         // - Swap the numbers and build the pair to return
         IntPair pair = new IntPair(swaphex, ohex);
+        {
+            final int rs = swaphex >> 8,
+                      cs = swaphex & 0xFF,
+                      ro = ohex >> 8,
+                      co = ohex & 0xFF,
+                      ntmp = numberLayoutLg[ro][co];
+            numberLayoutLg[ro][co] = numberLayoutLg[rs][cs];
+            numberLayoutLg[rs][cs] = ntmp;
+        }
 
         // - Remove new location and its adjacents from otherCoastalHexes or otherHexes
         others.remove(ohex);
