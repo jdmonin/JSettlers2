@@ -67,7 +67,8 @@ import soc.util.IntPair;
  *<TR><td>Get the:</td> <td> Hex </td><td> Edge </td><td> Node </td></TR>
  *<TR><td> Hex </td>
  *    <td><!-- Hex adjac to hex -->
- *      {@link #getAdjacentHexesToHex(int, boolean)}
+ *      {@link #getAdjacentHexesToHex(int, boolean)} <br>
+ *      {@link #isHexAdjacentToHex(int, int)}
  *    </td>
  *    <td><!-- Hex adjac to edge -->
  *      {@link #getAdjacentHexToEdge(int, int)} <br>
@@ -2437,6 +2438,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param includeWater  Should water hexes be returned (not only land ones)?
      * @return the hexes that touch this hex, as a Vector of Integer coordinates,
      *         or null if none are adjacent (will <b>not</b> return a 0-length vector)
+     * @see #isHexAdjacentToHex(int, int)
      * @see #isHexInBounds(int, int)
      * @see #isHexCoastline(int)
      */
@@ -2476,6 +2478,23 @@ public class SOCBoardLarge extends SOCBoard
         {
             addTo.addElement(new Integer((r << 8) | c));
         }
+    }
+
+    /**
+     * Are these hexes adjacent?
+     * @param hex1Coord  First hex coordinate; not checked for validity
+     * @param hex2Coord  Second hex coordinate; not checked for validity
+     * @return  true if adjacent
+     * @see #getAdjacentHexesToHex(int, boolean)
+     */
+    public boolean isHexAdjacentToHex(final int hex1Coord, final int hex2Coord)
+    {
+        for (int dir = 0; dir < 6; ++dir)
+        {
+            if (hex2Coord == (hex1Coord + (A_HEX2HEX[dir][0] * 0x100) + A_HEX2HEX[dir][1]))
+                return true;
+        }
+        return false;
     }
 
     /**
