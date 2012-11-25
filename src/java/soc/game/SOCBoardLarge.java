@@ -128,12 +128,10 @@ import soc.util.IntPair;
  *      {@link #getNumberOnHexFromNumber(int)} <br>
  *      {@link #getHexTypeFromCoord(int)} <br>
  *      {@link #getHexTypeFromNumber(int)} <br>
- *      {@link #getHexNumFromCoord(int)} <br>
  *      {@link #getRobberHex()} <br>
  *      {@link #getPirateHex()} <br>
  *      {@link #getPreviousRobberHex()} <br>
  *      {@link #getPreviousPirateHex()} <br>
- *      {@link #getHexLayout()} <br>
  *      {@link #getLandHexLayout()} <br>
  *      {@link #getLandHexCoords()} <br>
  *      {@link #getLandHexCoordsSet()} <br>
@@ -555,10 +553,6 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
-
-    // Not valid if arrays are 2D:
-    //   getHexLayout(), getNumberLayout(), setHexLayout(), setNumberLayout()
-    //   Consider get/set layouts as a 1D array: r, c, contents. Only include odd-numbered rows.
 
     // TODO unlike roads, is there ever a time when sea edges are _not_ legal?
     //  (assuming water hexes on one or both sides of the edge)
@@ -1527,15 +1521,16 @@ public class SOCBoardLarge extends SOCBoard
      * Always throws IllegalStateException for SOCBoardLarge.
      * Call {@link #getLandHexCoords()} instead.
      * For sending a <tt>SOCBoardLayout2</tt> message, call {@link #getLandHexLayout()} instead.
-     * @throws IllegalStateException since the board encoding doesn't support this method;
+     * @throws UnsupportedOperationException since the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#getHexLayout()
      */
     @Override
+    @Deprecated
     public int[] getHexLayout()
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
-        throw new IllegalStateException();
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -1544,29 +1539,31 @@ public class SOCBoardLarge extends SOCBoard
      * Always throws IllegalStateException for SOCBoardLarge.
      * Call {@link #setLandHexLayout(int[])} instead.
      * @param hl  the hex layout
-     * @throws IllegalStateException since the board encoding doesn't support this method;
+     * @throws UnsupportedOperationException since the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#setHexLayout(int[])
      */
     @Override
+    @Deprecated
     public void setHexLayout(final int[] hl)
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
-        throw new IllegalStateException();
+        throw new UnsupportedOperationException();
     }
 
     /**
      * Get the dice-number layout of dice rolls at each hex number -- Not valid for this encoding.
      * Call {@link #getLandHexCoords()} and {@link #getNumberOnHexFromCoord(int)} instead.
-     * @throws IllegalStateException since the board encoding doesn't support this method;
+     * @throws UnsupportedOperationException since the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#getNumberLayout()
      */
     @Override
+    @Deprecated
     public int[] getNumberLayout()
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
-        throw new IllegalStateException();
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -1574,15 +1571,16 @@ public class SOCBoardLarge extends SOCBoard
      * Call {@link SOCBoardLarge#setLandHexLayout(int[])} instead.
      *
      * @param nl  the number layout, from {@link #getNumberLayout()}
-     * @throws IllegalStateException since the board encoding doesn't support this method;
+     * @throws UnsupportedOperationException since the board encoding doesn't support this method;
      *     the v1 and v2 encodings do, but v3 ({@link #BOARD_ENCODING_LARGE}) does not.
      * @see SOCBoard#setNumberLayout(int[])
      */
     @Override
+    @Deprecated
     public void setNumberLayout(int[] nl)
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
-        throw new IllegalStateException();
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -1716,19 +1714,23 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Given a hex coordinate, return the hex number (index) -- Not valid for this encoding.
+     * Given a hex coordinate, return the hex number (index) -- <b>Not valid for this encoding</b>.
+     *<P>
+     * To get the dice number on a hex, call {@link #getNumberOnHexFromCoord(int)}.
+     *<P>
      * Valid only for the v1 and v2 board encoding, not v3.
      * Always throws IllegalStateException for SOCBoardLarge.
      * Hex numbers (indexes within an array of land hexes) aren't used in this encoding,
      * hex coordinates are used instead.
      * @see #getHexTypeFromCoord(int)
-     * @throws IllegalStateException since the board encoding doesn't support this method
+     * @throws UnsupportedOperationException since the board encoding doesn't support this method
      */
     @Override
+    @Deprecated
     public int getHexNumFromCoord(final int hexCoord)
-        throws IllegalStateException
+        throws UnsupportedOperationException
     {
-        throw new IllegalStateException();
+        throw new UnsupportedOperationException("Not valid for SOCBoardLarge; try getNumberOnHexFromCoord");
     }
 
     /**
