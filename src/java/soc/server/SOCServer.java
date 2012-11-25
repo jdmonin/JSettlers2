@@ -5308,7 +5308,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintStackTrace(e, "Exception in handleSITDOWN");
+            D.ebugPrintStackTrace(e, "Exception caught at handleSITDOWN");
         }
 
         ga.releaseMonitor();
@@ -6221,11 +6221,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            if (D.ebugIsEnabled())
-            {
-                D.ebugPrintln("Exception in handleROLLDICE - " + e);
-                e.printStackTrace(System.out);
-            }
+            D.ebugPrintStackTrace(e, "Exception caught at handleROLLDICE" + e);
         }
 
         ga.releaseMonitor();
@@ -6378,8 +6374,7 @@ public class SOCServer extends Server
         }
         catch (Throwable e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -6488,8 +6483,7 @@ public class SOCServer extends Server
         }
         catch (Throwable e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -6557,7 +6551,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintStackTrace(e, "Exception caught");
+            D.ebugPrintStackTrace(e, "Exception caught at handleENDTURN");
         }
 
         ga.releaseMonitor();
@@ -6871,8 +6865,7 @@ public class SOCServer extends Server
         }
         catch (Throwable e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -6953,8 +6946,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -6999,8 +6991,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -7096,8 +7087,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -7148,8 +7138,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -7309,8 +7298,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught at handleBUILDREQUEST");
         }
 
         ga.releaseMonitor();
@@ -7431,8 +7419,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -7543,8 +7530,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -7703,8 +7689,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -7757,8 +7742,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -7846,8 +7830,7 @@ public class SOCServer extends Server
         }
         catch (Exception e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught");
         }
 
         ga.releaseMonitor();
@@ -8821,8 +8804,7 @@ public class SOCServer extends Server
         }
         catch (Throwable e)
         {
-            D.ebugPrintln("Exception caught - " + e);
-            e.printStackTrace();
+            D.ebugPrintStackTrace(e, "Exception caught at sitDown");
         }
 
         ga.releaseMonitor();
