@@ -26,7 +26,10 @@ package soc.util;
  */
 public class IntPair
 {
+    /** The first int of the ordered pair */
     public int a;
+
+    /** The second int of the ordered pair */
     public int b;
 
     /**

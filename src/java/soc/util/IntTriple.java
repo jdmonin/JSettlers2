@@ -26,8 +26,13 @@ package soc.util;
  */
 public class IntTriple
 {
+    /** The first int of the ordered triple */
     public int a;
+
+    /** The second int of the ordered triple */
     public int b;
+
+    /** The third int of the ordered triple */
     public int c;
 
     /**
