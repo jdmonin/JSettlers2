@@ -147,12 +147,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
         allSc.put(K_SC_FOG, new SOCScenario
             (K_SC_FOG, 2000, 2000,
              "Some land hexes initially hidden by fog",
-             "_SC_FOG=t,PLL=t,VP=12"));
+             "_SC_FOG=t,PLL=t,VP=t12"));
 
         allSc.put(K_SC_CLVI, new SOCScenario
             (K_SC_CLVI, 2000, 2000,
              "Cloth Trade with neutral villages",
-             "_SC_CLVI=t,PLL=t,VP=14,_SC_3IP=t,_SC_0RVP=t"));
+             "_SC_CLVI=t,PLL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
         return allSc;
 
@@ -237,19 +237,19 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @param minVers Minimum client version supporting this scenario, or -1.
      *                If not -1, <tt>minVers</tt> must be at least 2000.
      * @param lastModVers Last-modified version for this scenario, or version which added it
-     * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
-     *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @param desc    Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
+     *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 2000 but not -1
      */
-    public SOCScenario(String key, int minVers, int lastModVers, final String opts, final String desc)
+    public SOCScenario(String key, int minVers, int lastModVers, final String desc, final String opts)
         throws IllegalArgumentException
     {
-	this(false, key, minVers, lastModVers, opts, desc);
+	this(false, key, minVers, lastModVers, desc, opts);
     }
 
     /**
@@ -261,11 +261,11 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @param minVers Minimum client version supporting this scenario, or -1.
      *                If not -1, <tt>minVers</tt> must be at least 2000.
      * @param lastModVers Last-modified version for this scenario, or version which added it
-     * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
-     *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @param desc Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
+     *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @throws IllegalArgumentException
      *        or if key is not alphanumeric or length is > 8,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
@@ -274,7 +274,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      */
     protected SOCScenario
         (final boolean unknown, final String key, final int minVers, final int lastModVers,
-         final String opts, final String desc)
+         final String desc, final String opts)
         throws IllegalArgumentException
     {
 	// validate & set scenario properties:
