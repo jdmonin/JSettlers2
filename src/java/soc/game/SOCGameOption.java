@@ -1812,8 +1812,19 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                     } else {
                         // include this scenario's opts,
                         // overwriting any values for those
-                        // opts if already in newOpts
+                        // opts if already in newOpts, except
+                        // keep VP if higher would be overwrote by lower.
+                        opt = newOpts.get("VP");
+                        final int prevVP = ((opt != null) && opt.boolValue)
+                            ? opt.intValue
+                            : SOCGame.VP_WINNER_STANDARD;
+
                         final Hashtable<String, SOCGameOption> scOpts = parseOptionsToHash(sc.scOpts);
+
+                        opt = scOpts.get("VP");
+                        if ((opt != null) && ((opt.intValue < prevVP) || ! opt.boolValue))
+                            scOpts.remove("VP");
+
                         newOpts.putAll(scOpts);
                     }
                 }
