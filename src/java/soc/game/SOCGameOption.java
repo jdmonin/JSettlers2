@@ -127,6 +127,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> BC  Break up clumps of # or more same-type ports/hexes
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
+     *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
      *<LI> DH  Dev Cards for house rules (swap/destroy)
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
@@ -279,6 +280,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
                 ("VP", -1, 1114, false, 10, 10, 15, true, "Victory points to win: #"));
+        opt.put("SC", new SOCGameOption
+                ("SC", 2000, 2000, 8, false, true, "Game Scenario keyname"));
         opt.put("DH", new SOCGameOption
                 ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
                 // TODO no robot players for DH
