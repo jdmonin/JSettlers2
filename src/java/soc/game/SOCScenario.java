@@ -72,6 +72,12 @@ import soc.message.SOCMessage;
 public class SOCScenario implements Cloneable, Comparable<Object>
 {
     /**
+     * Version 2.0.00 (2000) introduced game scenarios.
+     * @since 2.0.00
+     */
+    public static final int VERSION_FOR_SCENARIOS = 2000;
+
+    /**
      * Set of "known scenarios".
      * allScenarios must never be null, because other places assume it is filled.
      */
@@ -189,7 +195,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Minimum game version supporting this scenario, or -1 for all;
      * same format as {@link soc.util.Version#versionNumber() Version.versionNumber()}.
      * To get the minimum version of a set of scenarios, use {@link #scenariosMinimumVersion(Map)}.
-     * If this isn't -1, it's &gt;= 2000 (the version that introduced scenarios).
+     * If this isn't -1, it's &gt;= 2000 (the version that introduced scenarios, {@link #VERSION_FOR_SCENARIOS}).
      * @see #lastModVersion
      */
     public final int minVersion;  // or -1
@@ -220,8 +226,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * scDesc and scOpts will be an empty string.
      * @param key   Alphanumeric key name for this option;
      *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
-     * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
-     *        or if minVers or lastModVers is under 2000 but not -1
+     * @throws IllegalArgumentException if key length is > 8 or not alphanumeric
      */
     public SOCScenario(String key)
         throws IllegalArgumentException
@@ -235,7 +240,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @param key     Alphanumeric key name for this scenario;
      *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version supporting this scenario, or -1.
-     *                If not -1, <tt>minVers</tt> must be at least 2000.
+     *                If not -1, <tt>minVers</tt> must be at least 2000
+     *                ({@link #VERSION_FOR_SCENARIOS}).
      * @param lastModVers Last-modified version for this scenario, or version which added it
      * @param desc    Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
@@ -259,7 +265,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *                see {@link SOCGameOption#isAlphanumericUpcaseAscii(String)} for format.
      *                Keys can be up to 8 characters long.
      * @param minVers Minimum client version supporting this scenario, or -1.
-     *                If not -1, <tt>minVers</tt> must be at least 2000.
+     *                If not -1, <tt>minVers</tt> must be at least 2000
+     *                ({@link #VERSION_FOR_SCENARIOS}).
      * @param lastModVers Last-modified version for this scenario, or version which added it
      * @param desc Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
@@ -283,9 +290,9 @@ public class SOCScenario implements Cloneable, Comparable<Object>
             throw new IllegalArgumentException("Key length > 8: " + key);
         if (! (SOCGameOption.isAlphanumericUpcaseAscii(key) || key.equals("-")))  // "-" is for server/network use
             throw new IllegalArgumentException("Key not alphanumeric: " + key);
-        if ((minVers < 2000) && (minVers != -1))
+        if ((minVers < VERSION_FOR_SCENARIOS) && (minVers != -1))
             throw new IllegalArgumentException("minVers " + minVers + " for key " + key);
-        if ((lastModVers < 2000) && (lastModVers != -1))
+        if ((lastModVers < VERSION_FOR_SCENARIOS) && (lastModVers != -1))
             throw new IllegalArgumentException("lastModVers " + lastModVers + " for key " + key);
         if (! SOCMessage.isSingleLineAndSafe(desc))
             throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
@@ -394,7 +401,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * See {@link #packScenariosToString(Map)} javadoc for details.
      * 
      * @param scMap Map of SOCScenarios, or null
-     * @param cliVers  Client version; assumed >= 2000.
+     * @param cliVers  Client version; assumed >= 2000 ({@link #VERSION_FOR_SCENARIOS}).
      *            If any game's scenarios can't be sent to an older client, skip them.
      * @return string of scenario key names, or "-" for an empty or null scMap;
      *         see {@link #packScenariosToString(Map)} javadoc for details.
