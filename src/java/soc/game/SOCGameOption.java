@@ -1762,6 +1762,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * This is a server-side equivalent to the client-side {@link ChangeListener}s.
      * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
      * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
+     *<P>
+     * Before any other adjustments when <tt>doServerPreadjust</tt>, will check for
+     * the game scenario option <tt>"SC"</tt>. If that option is set, call
+     * {@link SOCScenario#getScenario(String)}; the scenario name must be known.
+     * Then, add that scenario's {@link SOCScenario#scOpts .scOpts} into <tt>newOpts</tt>.
      *
      * @param newOpts Set of SOCGameOptions to check against knownOpts;
      *            an option's current value will be changed if it's outside of
@@ -1789,25 +1794,39 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         if (knownOpts == null)
             knownOpts = allOptions;
 
+        String unknownScenario = null;
+
         if (doServerPreadjust)
         {
+            // Apply scenario options, if any
+            SOCGameOption opt = newOpts.get("SC");
+            if (opt != null)
+            {
+                final String scKey = opt.getStringValue();
+                if (scKey.length() > 0)
+                {
+                    SOCScenario sc = SOCScenario.getScenario(scKey);
+                    if (sc == null)
+                    {
+                        unknownScenario = scKey;
+                    } else {
+                        // include this scenario's opts,
+                        // overwriting any values for those
+                        // opts if already in newOpts
+                        final Hashtable<String, SOCGameOption> scOpts = parseOptionsToHash(sc.scOpts);
+                        newOpts.putAll(scOpts);
+                    }
+                }
+            }
+
             // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
             //    here. Set or change options if it makes sense; if a user has deliberately
             //    set a boolean option, think carefully before un-setting it and surprising them.
 
             // Set PLB if PL>4
-            SOCGameOption opt = newOpts.get("PL");
+            opt = newOpts.get("PL");
             if ((opt != null) && (opt.getIntValue() > 4))
                 setBoolOption(newOpts, "PLB");
-
-            // If _SC_FOG is set, VP should be >= 12
-            opt = newOpts.get(K_SC_FOG);
-            if ((opt != null) && opt.getBoolValue())
-            {
-                opt = newOpts.get("VP");
-                if ((opt == null) || (opt.getIntValue() < 12))
-                    setIntOption(newOpts, "VP", 12, true);
-            }
 
             // If _SC_CLVI is set, VP should be >= 14, and no longest trade route bonus
             opt = newOpts.get(K_SC_CLVI);
@@ -1825,9 +1844,20 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
         StringBuffer optProblems = new StringBuffer();
 
+        boolean allKnown;
+
+        if (unknownScenario == null)
+        {
+            allKnown = true;  // might be set false in loop below
+        } else {
+            allKnown = false;
+            optProblems.append("SC: unknown scenario ");
+            optProblems.append(unknownScenario);
+            optProblems.append(". ");
+        }
+
         // use Iterator in loop, so we can remove from the hash if needed
-        boolean allKnown = true;
-	for (Iterator<Map.Entry<String, SOCGameOption>> ikv = newOpts.entrySet().iterator();
+        for (Iterator<Map.Entry<String, SOCGameOption>> ikv = newOpts.entrySet().iterator();
 	     ikv.hasNext(); )
 	{
 	    Map.Entry<String, SOCGameOption> okv = ikv.next();

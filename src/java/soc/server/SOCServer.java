@@ -4980,6 +4980,7 @@ public class SOCServer extends Server
         /**
          * If we have game options, we're being asked to create a new game.
          * Validate them and ensure the game doesn't already exist.
+         * For SOCScenarios, adjustOptionsToKnown will recognize game opt "SC".
          */
         if (gameOpts != null)
         {
@@ -4993,6 +4994,8 @@ public class SOCServer extends Server
                 return;  // <---- Early return ----
             }
 
+            // Make sure all options are known.  If has game opt "SC" for scenarios,
+            // also adds that scenario's options into gameOpts.
             final StringBuffer optProblems = SOCGameOption.adjustOptionsToKnown(gameOpts, null, true);
             if (optProblems != null)
             {
