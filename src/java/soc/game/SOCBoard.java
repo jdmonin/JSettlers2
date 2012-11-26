@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,6 +32,9 @@ import java.util.Vector;
  * This is a representation of the board in Settlers of Catan.
  * Board initialization is done in {@link #makeNewBoard(Hashtable)}; that method
  * has some internal comments on structures, coordinates, layout and values.
+ *<P>
+ * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
+ * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  *<P>
  * Because some game variants may need different board layouts or features,
  * you may need a subclass of SOCBoard: Use {@link #createBoard(Hashtable, int)}
