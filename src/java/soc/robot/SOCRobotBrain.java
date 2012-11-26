@@ -80,6 +80,16 @@ import java.util.Vector;
 /**
  * AI for playing Settlers of Catan.
  * Represents a robot player within 1 game.
+ * The bot is a separate thread, so everything happens in {@link #run()} or a method called from there.
+ *<P>
+ * Some decision-making code is in the {@link OpeningBuildStrategy},
+ * {@link RobberStrategy}, {@link MonopolyStrategy}, etc classes.
+ *<P>
+ * At the start of each player's turn, {@link #buildingPlan} and most other state fields are cleared
+ * (search {@link #run()} for <tt>mesType == SOCMessage.TURN</tt>).
+ * The plan for what to build next is decided in {@link SOCRobotDM#planStuff(int)}
+ * (called from {@link #planBuilding()} and some other places) which updates {@link #buildingPlan}.
+ * That plan is executed in {@link #buildOrGetResourceByTradeOrCard()}.
  *
  * @author Robert S Thomas
  */
@@ -154,13 +164,16 @@ public class SOCRobotBrain extends Thread
     protected CappedQueue gameEventQ;
 
     /**
-     * The game messages received this turn / previous turn; contents are {@link SOCMessage}.
+     * The game messages received this turn / previous turn, for debugging; contents are {@link SOCMessage}.
      * @since 1.1.13
      */
     private Vector turnEventsCurrent, turnEventsPrev;
 
     /**
-     * A counter used to measure passage of time
+     * A counter used to measure passage of time.
+     * Incremented each second, when the server sends {@link SOCMessage#TIMINGPING}.
+     * When we decide to take an action, resets to 0.
+     * If counter gets too high, we assume a bug and leave the game (<tt>{@link #alive} = false</tt>).
      */
     protected int counter;
 
@@ -186,6 +199,13 @@ public class SOCRobotBrain extends Thread
 
     /**
      * This is our current building plan, a stack of {@link SOCPossiblePiece}.
+     *<P>
+     * Cleared at the start of each player's turn, and a few other places
+     * if certain conditions arise.  Set in {@link #planBuilding()}.
+     * When making a {@link #buildingPlan}, be sure to also set
+     * {@link #negotiator}'s target piece.
+     *<P>
+     * {@link SOCRobotDM#buildingPlan} is the same Stack.
      */
     protected Stack buildingPlan;
 
@@ -827,8 +847,13 @@ public class SOCRobotBrain extends Thread
 
     /**
      * Here is the run method.  Just keep receiving game events
-     * and deal with each one.
-     * Remember that we're sent a {@link SOCTimingPing} once per second.
+     * through {@link #gameEventQ} and deal with each one.
+     * Remember that we're sent a {@link SOCGameTextMsg} timing ping once per second,
+     * incrementing {@link #counter}.  That allows the bot to wait a certain
+     * time for other players before it decides whether to do something.
+     *<P>
+     * Nearly all bot actions start in this method; the overview of bot structures
+     * is in the class javadoc for prominence.  See comments within <tt>run()</tt> for minor details.
      */
     public void run()
     {
@@ -921,6 +946,9 @@ public class SOCRobotBrain extends Thread
 
                     else if (mesType == SOCMessage.TURN)
                     {
+                        // Start of a new player's turn.
+                        // Update game and reset most of our state fields.
+
                         game.setCurrentPlayerNumber(((SOCTurn) mes).getPlayerNumber());
                         game.updateAtTurn();
 
@@ -1536,7 +1564,7 @@ public class SOCRobotBrain extends Thread
 
                     if (counter > 15000)
                     {
-                        // We've been waiting too long, commit suicide.
+                        // We've been waiting too long, must be a bug: Leave the game.
                         client.leaveGame(game, "counter 15000", false);
                         alive = false;
                     }
@@ -2536,9 +2564,11 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Have the client ask to build this piece, unless we've already
-     * been told by the server to not build it.
-     * Calls {@link #buildingPlan}.pop().
+     * Have the client ask to build our top planned piece
+     * {@link #buildingPlan}{@link Stack#pop() .pop()},
+     * unless we've already been told by the server to not build it.
+     * Called from {@link #buildOrGetResourceByTradeOrCard()}.
+     *<P>
      * Checks against {@link #whatWeFailedToBuild} to see if server has rejected this already.
      * Calls <tt>client.buyDevCard()</tt> or <tt>client.buildRequest()</tt>.
      * Sets {@link #waitingForDevCard}, or {@link #waitingForGameState} and

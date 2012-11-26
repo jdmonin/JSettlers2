@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,11 +46,15 @@ import soc.util.Queue;
 import soc.util.SOCRobotParameters;
 
 /**
- * Moved the routines that pick what to build
+ * Moved the routines that pick what to build or buy
  * next out of SOCRobotBrain.  Didn't want
  * to call this SOCRobotPlanner because it
  * doesn't really plan, but you could think
  * of it that way.  DM = Decision Maker
+ *<P>
+ * Uses the info in the {@link SOCPlayerTracker}s.
+ * One important method here is {@link #planStuff(int)},
+ * which updates {@link #buildingPlan} and related fields.
  *
  * @author Robert S. Thomas
  */
@@ -97,14 +101,27 @@ public class SOCRobotDM {
   protected HashMap playerTrackers;
   protected SOCPlayerTracker ourPlayerTracker;
   protected SOCPlayer ourPlayerData;
+
+  /**
+   * {@link #ourPlayerData}'s building plan; a stack of {@link SOCPossiblePiece}.
+   * Same Stack as {@link SOCRobotBrain#getBuildingPlan()}.
+   * May include {@link SOCPossibleCard} to be bought.
+   */
   protected Stack buildingPlan;
+
   protected SOCGame game;
   protected Vector threatenedRoads;
   protected Vector goodRoads;
   protected SOCPossibleRoad favoriteRoad;
   protected Vector threatenedSettlements;
   protected Vector goodSettlements;
-  protected SOCPossibleSettlement favoriteSettlement;    
+
+  /**
+   * A settlement to build, chosen from {@link #goodSettlements} or {@link #threatenedSettlements}.
+   * If we want to build this soon, it will be added to {@link #buildingPlan}.
+   */
+  protected SOCPossibleSettlement favoriteSettlement;
+
   protected SOCPossibleCity favoriteCity;
   protected SOCPossibleCard possibleCard;
 
