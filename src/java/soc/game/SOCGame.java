@@ -310,6 +310,13 @@ public class SOCGame implements Serializable, Cloneable
     private String name;
 
     /**
+     * Is this the server's complete copy of the game, not the client's (with some details unknown)?
+     * Set during {@link #startGame()}.
+     * @since 1.1.17
+     */
+    boolean isAtServer;
+
+    /**
      * For games at the server, the owner (creator) of the game.
      * Will be the name of a player / server connection.
      * Currently, if the game is reset, {@link #resetAsCopy()} copies ownerName,
@@ -2230,6 +2237,8 @@ public class SOCGame implements Serializable, Cloneable
      */
     public void startGame()
     {
+        isAtServer = true;
+
         board.makeNewBoard(opts);
 
         /**
@@ -4309,6 +4318,7 @@ public class SOCGame implements Serializable, Cloneable
         gameState = RESET_OLD;
 
         // Most fields are NOT copied since this is a "reset", not an identical-state game.
+        cp.isAtServer = isAtServer;
         cp.isPractice = isPractice;
         cp.ownerName = ownerName;
 
