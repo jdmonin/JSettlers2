@@ -488,7 +488,21 @@ public class SOCGame implements Serializable, Cloneable
     private int gameState;
 
     /**
-     * the old game state
+     * The saved game state; used in only a few places, where a state can happen from different start states.
+     * Not set every time the game state changes.
+     * oldGameState is read in these states:
+     *<UL>
+     *<LI> {@link #PLACING_ROAD}, {@link #PLACING_SETTLEMENT}, {@link #PLACING_CITY}:
+     *        Unless <tt>oldGameState</tt> is {@link #SPECIAL_BUILDING},
+     *        {@link #advanceTurnStateAfterPutPiece()} will set the state to {@link #PLAY1}.
+     *        So will {@link #cancelBuildRoad(int)}, {@link #cancelBuildSettlement(int)}, etc.
+     *<LI> {@link #PLACING_ROBBER}:
+     *        <tt>oldGameState</tt> = {@link #PLAY1}
+     *<LI> {@link #WAITING_FOR_CHOICE}
+     *<LI> {@link #WAITING_FOR_DISCOVERY} in {@link #playDiscovery()}, {@link #doDiscoveryAction(SOCResourceSet)}
+     *<LI> {@link #WAITING_FOR_MONOPOLY} in {@link #playMonopoly()}, {@link #doMonopolyAction(int)}
+     *</UL>
+     * Also used if the game board was reset, {@link #getResetOldGameState()} holds the state before the reset.
      */
     private int oldGameState;
 
@@ -2126,9 +2140,12 @@ public class SOCGame implements Serializable, Cloneable
             break;
 
         case PLACING_FREE_ROAD2:
-            gameState = oldGameState;
-
+            if (currentDice != 0)
+                gameState = PLAY1;
+            else
+                gameState = PLAY;  // played dev card before roll
             break;
+
         }
 
         //D.ebugPrintln("  TO "+gameState);
@@ -3967,7 +3984,10 @@ public class SOCGame implements Serializable, Cloneable
      * If they have 2 or more roads, may place 2; gameState becomes PLACING_FREE_ROAD1.
      * If they have just 1 road, may place that; gameState becomes PLACING_FREE_ROAD2.
      * If they have 0 roads, cannot play the card.
+     *<P>
      * Assumes {@link #canPlayRoadBuilding(int)} has already been called, and move is valid.
+     * The card can be played before or after rolling the dice.
+     * Doesn't set <tt>oldGameState</tt>, because after placing the road, we might need that field.
      */
     public void playRoadBuilding()
     {
@@ -3975,7 +3995,6 @@ public class SOCGame implements Serializable, Cloneable
         lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.ROADS);
-        oldGameState = gameState;
         if (players[currentPlayerNumber].getNumPieces(SOCPlayingPiece.ROAD) > 1)
         {
             gameState = PLACING_FREE_ROAD1;  // First of 2 free roads
