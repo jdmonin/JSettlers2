@@ -738,9 +738,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param ptype the type of piece; matches SOCPlayingPiece constants,
      *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
-
+     * @see #getPieces()
+     * @throws ArrayIndexOutOfBoundsException if piece type is invalid
      */
     public int getNumPieces(int ptype)
+        throws ArrayIndexOutOfBoundsException
     {
         return numPieces[ptype];
     }
@@ -760,6 +762,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * @return the list of pieces in play
+     * @see #getNumPieces(int)
      */
     public Vector getPieces()
     {
@@ -1914,6 +1917,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this node a potential settlement?
+     * True if the location is legal, currently not occupied,
+     * no settlement is currently on an adjacent node,
+     * and we have an adjacent road.
+     * Does not check {@link #getNumPieces(int) getNumPieces(SETTLEMENT)}.
      * @return true if this node is a potential settlement
      * @param node        the coordinates of a node on the board
      */
@@ -1936,6 +1944,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this node a potential city?
+     * True if we currently have a settlement there.
+     * Does not check {@link #getNumPieces(int) getNumPieces(CITY)}.
      * @return true if this node is a potential city
      * @param node        the coordinates of a node on the board
      */
@@ -1958,6 +1969,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Is this edge a potential road?
+     * True if the location is legal, currently not occupied,
+     * and we have an adjacent road, settlement, or city.
+     * Does not check {@link #getNumPieces(int) getNumPieces(ROAD)}.
      * @return true if this edge is a potential road
      * @param edge        the coordinates of an edge on the board. Accepts -1 for edge 0x00.
      */
