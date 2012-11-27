@@ -1327,7 +1327,7 @@ public class SOCServer extends Server
             }
         }
 
-        SOCLeaveGame leaveMessage = new SOCLeaveGame(plName, c.host(), gm);
+        SOCLeaveGame leaveMessage = new SOCLeaveGame(plName, "-", gm);
         messageToGameWithMon(gm, leaveMessage);
         recordGameEvent(gm, leaveMessage.toCmd());
 
