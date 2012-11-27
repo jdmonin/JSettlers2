@@ -1610,7 +1610,7 @@ public class SOCGameOption implements Cloneable, Comparable
         if (doServerPreadjust)
         {
             // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
-            //   code here. Set or change options if it makes sense; if a user has deliberately
+            //    here. Set or change options if it makes sense; if a user has deliberately
             //    set a boolean option, think carefully before un-setting it and surprising them.
 
             // Set PLB if PL>4
@@ -1730,6 +1730,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param boKey   Key name for boolean option to set
      * @throws NullPointerException  if <tt>boKey</tt> isn't in <tt>newOpts</tt>
      *   and doesn't exist in the set of known options
+     * @see #setIntOption(Hashtable, String, int, boolean)
      * @since 1.1.17
      */
     public static void setBoolOption(Hashtable newOpts, final String boKey)
@@ -1752,6 +1753,45 @@ public class SOCGameOption implements Cloneable, Comparable
         else if (! opt.boolValue)
         {
             opt.boolValue = true;
+        }
+    }
+
+    /**
+     * Within a set of options, include an int or intbool option and set its value.
+     * If the option object doesn't exist in <tt>newOpts</tt>, it will be cloned from
+     * the set of known options.
+     * @param newOpts Options to set <tt>ioKey</tt> within
+     * @param ioKey   Key name for int option to set
+     * @param ivalue  Set option to this int value
+     * @param bvalue  Set option to this boolean value (ignored if option type not intbool)
+     * @throws NullPointerException  if <tt>ioKey</tt> isn't in <tt>newOpts</tt>
+     *   and doesn't exist in the set of known options
+     * @see #setBoolOption(Hashtable, String)
+     * @since 1.1.17
+     */
+    public static void setIntOption
+        (Hashtable newOpts, final String ioKey, final int ivalue, final boolean bvalue)
+        throws NullPointerException
+    {
+        SOCGameOption opt = (SOCGameOption) newOpts.get(ioKey);
+        if (opt == null)
+        {
+            try
+            {
+                opt = (SOCGameOption) (((SOCGameOption) allOptions.get(ioKey)).clone());
+            }
+            catch (CloneNotSupportedException e)
+            {
+                // required stub; is Cloneable, so won't be thrown
+            }
+            opt.intValue = ivalue;
+            opt.boolValue = bvalue;
+            newOpts.put(ioKey, opt);
+        }
+        else
+        {
+            opt.intValue = ivalue;
+            opt.boolValue = bvalue;
         }
     }
 
