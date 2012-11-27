@@ -1588,8 +1588,10 @@ public class SOCGame implements Serializable, Cloneable
      * advance the turn to the previous player,
      * used during initial placement. Does not change any other game state,
      * unless all players have left the game.
+     * Clears the {@link #forcingEndTurn} flag.
      * @return true if the turn advances, false if all players have left and
      *          the gamestate has been changed here to {@link #OVER}.
+     * @see #advanceTurn()
      */
     protected boolean advanceTurnBackwards()
     {
@@ -1623,8 +1625,10 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * advance the turn to the next player. Does not change any other game state,
      * unless all players have left the game.
+     * Clears the {@link #forcingEndTurn} flag.
      * @return true if the turn advances, false if all players have left and
      *          the gamestate has been changed here to {@link #OVER}.
+     * @see #advanceTurnBackwards()
      */
     protected boolean advanceTurn()
     {
