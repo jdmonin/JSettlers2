@@ -2142,7 +2142,8 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * undo the putting of a temporary or initial piece
+     * undo the putting of a temporary or initial piece.
+     * If state is STATE2B and resources were given, they will be returned.
      *
      * @param pp  the piece to remove from the board
      */
