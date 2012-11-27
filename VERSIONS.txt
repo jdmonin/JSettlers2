@@ -30,7 +30,9 @@ new features, until 2.0.00 is ready.
     > 1.1.17 (build OV20121xxx)
 - If jar client can't connect to server, returns to first panel, with buttons to connect or practice
 - If try to start server in JSettlers.jar, but port already in use, show message instead of exiting immediately
+- Get Practice Game options from practice server, not from most recently started game
 - When player leaves game, don't send hostname to all players
+- Server DB setup script: Ignore net errors when running script and exiting
 - Server constructors: throw exceptions instead of System.exit
 
     > 1.1.16 (build OV20121027)
