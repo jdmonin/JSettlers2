@@ -980,9 +980,11 @@ public class SOCBoard implements Serializable, Cloneable
      * @param number   Numbers to place into {@link #numberLayout} for each land hex;
      *                    array length is <tt>landHex[].length</tt> minus 1 for each desert in <tt>landHex[]</tt>
      * @param optBC  The game options for this board; only option "BC" is checked for.
+     * @throws IllegalArgumentException if checking clumps (option "BC") finds a land hex type is {@link #WATER_HEX}
      */
     private final void makeNewBoard_placeHexes
         (int[] landHex, final int[] numPath, final int[] number, SOCGameOption optBC)
+        throws IllegalArgumentException
     {
         final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
         final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
@@ -1098,6 +1100,8 @@ public class SOCBoard implements Serializable, Cloneable
                     int hexIdx = hexIdxObj.intValue();
                     int resource = hexLayout[hexIdx];
                     unvisited.removeElementAt(0);
+                    if (resource == WATER_HEX)  // would cause inf loop, water "clump" can't be broken up
+                        throw new IllegalArgumentException("land hex is water at hexLayout[" + hexIdx + "]");
 
                     //     - look at its adjacent hexes of same type
                     //          assertion: they are all unvisited, because this hex was unvisited
