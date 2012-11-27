@@ -8860,8 +8860,10 @@ public class SOCServer extends Server
         int bef = board.getBoardEncodingFormat();
         if ((bef == 1) && (ga.getClientVersionMinRequired() < SOCBoardLayout2.VERSION_FOR_BOARDLAYOUT2))
         {
+            // SOCBoard.BOARD_ENCODING_ORIGINAL: v1
             return new SOCBoardLayout(ga.getName(), hexes, numbers, robber);
         } else {
+            // SOCBoard.BOARD_ENCODING_6PLAYER: v2
             return new SOCBoardLayout2(ga.getName(), bef, hexes, numbers, board.getPortsLayout(), robber);
         }
     }
@@ -9192,7 +9194,7 @@ public class SOCServer extends Server
                     continue;  // not started yet
                 SOCPlayer pl = ga.getPlayer(cpn);
                 if (! pl.isRobot())
-                    continue;
+                    continue;  // not the robot's turn
 
                 final int gameState = ga.getGameState();
                 if (gameState == SOCGame.WAITING_FOR_DISCARDS)
