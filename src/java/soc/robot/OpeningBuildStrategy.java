@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
- * Portions of this file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -165,6 +165,11 @@ public class OpeningBuildStrategy {
                 //
                 // end test
                 //
+
+                //
+                // calculate pairs of first and second settlement together
+                //
+
                 for (int secondNode = firstNode + 1; secondNode <= SOCBoard.MAXNODE;
                         secondNode++)
                 {
@@ -949,10 +954,17 @@ public class OpeningBuildStrategy {
     }
     
     /**
-     * estimate the rarity of each resource
+     * Estimate the rarity of each resource, given this board's resource locations vs dice numbers.
+     * Useful for initial settlement placement and free-resource choice (when no other info available).
+     * This is based on the board and doesn't change when pieces are placed.
+     * Cached after the first call, as {@link #resourceEstimates}.
+     *<P>
+     * Calls each hex's {@link SOCBoard#getHexTypeFromCoord(int)}, ignores all hex types besides
+     * the usual {@link SOCBoard#CLAY_HEX} through {@link SOCBoard#WOOD_HEX}.
      *
-     * @return an array of rarity numbers where
-     *         estimates[SOCBoard.CLAY_HEX] == the clay rarity
+     * @return an array of rarity numbers, where
+     *         estimates[SOCBoard.CLAY_HEX] == the clay rarity,
+     *         as an integer percentage 0-100 of dice rolls.
      */
     protected int[] estimateResourceRarity(SOCGame game)
     {

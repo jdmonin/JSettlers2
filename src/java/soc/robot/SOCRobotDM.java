@@ -222,6 +222,7 @@ public class SOCRobotDM {
 
   /**
    * make some building plans.
+   * Sets {@link #buildingPlan}, {@link #favoriteSettlement}, etc.
    * Calls either {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}.
    * Both of these will check whether this is our normal turn, or if
    * it's the 6-player board's {@link SOCGame#SPECIAL_BUILDING Special Building Phase}.

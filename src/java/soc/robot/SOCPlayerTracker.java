@@ -3608,7 +3608,9 @@ public class SOCPlayerTracker
     }
 
     /**
-     * update winGameETAs for player trackers
+     * Update winGameETAs for player trackers.
+     * For each tracker, call {@link #recalcLongestRoadETA()},
+     * {@link #recalcLargestArmyETA()}, {@link #recalcWinGameETA()}.
      *
      * @param playerTrackers  the player trackers
      */
