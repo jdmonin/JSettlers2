@@ -504,7 +504,7 @@ public class SOCGame implements Serializable, Cloneable
     private String name;
 
     /**
-     * Is this the server's complete copy of the game, not the client's?
+     * Is this the server's complete copy of the game, not the client's (with some details unknown)?
      * Set during {@link #startGame()}.
      * @since 1.1.17
      */
@@ -3980,10 +3980,10 @@ public class SOCGame implements Serializable, Cloneable
      * @param roll     the total number rolled on the dice
      * @param resources  Add new resources to this set
      * @param robberHex  Robber's position, from {@link SOCBoard#getRobberHex()}
-     * @param sEnum  Enumeration of the player's {@link SOCPlayingPiece}s;
+     * @param sEnum  Enumeration of a type of the player's {@link SOCPlayingPiece}s;
      *             should be either {@link SOCSettlement}s or {@link SOCCity}s
      * @param incr   Add this many resources (1 or 2) per playing piece
-     * @since 2.0.00
+     * @since 1.1.17
      */
     private final void getResourcesGainedFromRollPieces
         (int roll, SOCResourceSet resources, SOCResourceSet missedResources,

@@ -55,7 +55,7 @@ import soc.util.SOCRobotParameters;
  * doesn't really plan, but you could think
  * of it that way.  DM = Decision Maker
  *<P>
- * Uses the info in the {@link SOCPlayerTrackers}s.
+ * Uses the info in the {@link SOCPlayerTracker}s.
  * One important method here is {@link #planStuff(int)},
  * which updates {@link #buildingPlan} and related fields.
  *

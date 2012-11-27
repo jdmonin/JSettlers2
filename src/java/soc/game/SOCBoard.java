@@ -1411,7 +1411,7 @@ public class SOCBoard implements Serializable, Cloneable
             final int hexCoord = hexCoordObj.intValue();
             final int resource = getHexTypeFromCoord(hexCoord);
             unvisited.removeElementAt(0);
-            if (resource == -1)
+            if (resource == -1)  // would cause inf loop, this "clump" can't be broken up
                 throw new IllegalArgumentException("hex type -1 at coord 0x" + Integer.toHexString(hexCoord));
 
             //     - skip water hexes; water is never a clump
