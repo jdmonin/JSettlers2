@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.game;
 
@@ -43,15 +43,28 @@ public class SOCResourceConstants
     /**
      * Warning: Don't mess with these constants, other pieces
      *          of code depend on these numbers staying like this.
-     *          Clay is first (1), Wood is last (5), Unknown is after wood.
+     *          {@link #CLAY} is first (1), {@link #WOOD} is last (5), {@link #UNKNOWN} is after wood.
+     * @see #MIN
      */
     public static final int CLAY = 1;
     public static final int ORE = 2;
     public static final int SHEEP = 3;
     public static final int WHEAT = 4;
     public static final int WOOD = 5;
+
+    /**
+     * Unknown resource type (6).  Occurs after {@link #WOOD} (5).
+     * Sometimes also used as a "MAX+1" for array sizing
+     * for per-resource-type arrays that contain {@link #CLAY} through {@link #WOOD}
+     * but don't contain <tt>UNKNOWN</tt>.
+     * @see #MAXPLUSONE
+     */
     public static final int UNKNOWN = 6;
+
+    /** Minimum value (1 == {@link #CLAY}) */
     public static final int MIN = 1;
+
+    /** One past maximum value (6 == {@link #UNKNOWN}) */
     public static final int MAXPLUSONE = 7;
 
     /**
