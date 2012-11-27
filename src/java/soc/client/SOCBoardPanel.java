@@ -3139,7 +3139,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         else if ((mode == PLACE_INIT_SETTLEMENT) || (mode == PLACE_INIT_ROAD))
             hoverTip.setOffsetX(HOVER_OFFSET_X_FOR_INIT_PLACE);
         else
+        {
+            hoverTip.setHoverText_modeChangedOrMouseMoved = true;
             hoverTip.setHoverText(null);
+        }
     }
 
     /**
@@ -4314,6 +4317,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /** Mouse position */
         private int mouseX, mouseY;
 
+        /**
+         * Flag to tell {@link #setHoverText(String)} to repaint, even if text hasn't changed.
+         * @since 1.1.17
+         */
+        private boolean setHoverText_modeChangedOrMouseMoved;
+
         /** Our position (upper-left of tooltip box) */
         private int boxX, boxY;
 
@@ -4367,7 +4376,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @param y y-coordinate of mouse, actual screen pixels (not unscaled internal)
          * @see #setHoverText(String)
          */
-        public void positionToMouse(int x, int y)
+        public void positionToMouse(final int x, final int y)
         {
             mouseX = x;
             mouseY = y;
@@ -4393,6 +4402,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             // if we're near the bottom or right edge.
 
             bpanel.repaint();
+            setHoverText_modeChangedOrMouseMoved = false;
             // JM TODO consider repaint(boundingbox).
         }
         
@@ -4408,20 +4418,30 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * Calls {@link #positionToMouse(int, int) positionToMouse(mouseX,mouseY)}.
          *
          * @param t Hover text contents, or null to clear that text (but
-         *          not hovering pieces) and repaint
+         *          not hovering pieces) and repaint.  Do nothing if text is
+         *          already equal to <tt>t</tt>, or if both are null.
          * @see #hideHoverAndPieces()
          */
-        public void setHoverText(String t)
+        public void setHoverText(final String t)
         {
+            // If text unchanged, and mouse hasn't moved, do nothing:
+            if ( (t == hoverText)  // (also covers both == null)
+                 || ((t != null) && t.equals(hoverText)) )
+            {
+                if (! setHoverText_modeChangedOrMouseMoved)
+                    return;
+            }
+
             hoverText = t;
             if (t == null)
             {
                 bpanel.repaint();
+                setHoverText_modeChangedOrMouseMoved = false;
                 return;
             }
 
             boxW = 0;  // Paint method will calculate it
-            positionToMouse(mouseX, mouseY);  // Also calls repaint
+            positionToMouse(mouseX, mouseY);  // Also calls repaint, clears setHoverText_modeChangedOrMouseMoved
         }
         
         /** Clear hover text, and cancel any hovering roads/settlements/cities */
@@ -4431,7 +4451,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hoverSettlementID = 0;
             hoverCityID = 0;
             hoverIsPort = false;
-            setHoverText(null);
+            hoverText = null;
+            setHoverText_modeChangedOrMouseMoved = false;
+            bpanel.repaint();
         }
         
         /** Draw; Graphics should be the boardpanel's gc, as seen in its paint method. */
@@ -4499,10 +4521,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @param x Cursor x, from upper-left of board: actual coordinates, not board-internal coordinates
          * @param y Cursor y, from upper-left of board: actual coordinates, not board-internal coordinates
          */
-        private void handleHover(int x, int y)
+        private void handleHover(final int x, final int y)
         {
-            mouseX = x;
-            mouseY = y;
+            if ((x != mouseX) || (y != mouseY))
+            {
+                mouseX = x;
+                mouseY = y;
+                setHoverText_modeChangedOrMouseMoved = true;
+            }
+
             int xb = x, yb = y;  // internal board coordinates
             if (isScaledOrRotated)
             {
@@ -4773,7 +4800,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
 
             // If no hex, nothing.
-            hoverMode = NONE;
+            if (hoverMode != NONE)
+            {
+                setHoverText_modeChangedOrMouseMoved = true;
+                hoverMode = NONE;
+            }
             setHoverText(null);
         }
 
