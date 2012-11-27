@@ -333,6 +333,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Number of victory points needed to win this game (default {@link #VP_WINNER_STANDARD} == 10).
+     * After game events such as playing a piece or moving the robber, check if current player's
+     * VP &gt;= {@link #vp_winner} and call {@link #checkForWinner()} if so.
      *<P>
      * Backported to 1.1.14 from 2.0.00.
      * @since 1.1.14
@@ -4234,9 +4236,11 @@ public class SOCGame implements Serializable, Cloneable
         if (gameState == SPECIAL_BUILDING)
             return;  // Can't win in this state, it's not really anyone's turn
 
-        int pn = currentPlayerNumber;
-        if ((pn >= 0) && (pn < maxPlayers)
-            && (players[pn].getTotalVP() >= vp_winner))
+        final int pn = currentPlayerNumber;
+        if ((pn < 0) || (pn >= maxPlayers))
+            return;
+
+        if (players[pn].getTotalVP() >= vp_winner)
         {
             gameState = OVER;
             playerWithWin = pn;
