@@ -2950,58 +2950,36 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * check the hexes touching settlements
          */
-        Enumeration sEnum = player.getSettlements().elements();
-
-        while (sEnum.hasMoreElements())
-        {
-            SOCSettlement se = (SOCSettlement) sEnum.nextElement();
-            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(se.getCoordinates()).elements();
-
-            while (hexes.hasMoreElements())
-            {
-                final int hexCoord = ((Integer) hexes.nextElement()).intValue();
-                if ((board.getNumberOnHexFromCoord(hexCoord) == roll) && (hexCoord != robberHex))
-                {
-                    switch (board.getHexTypeFromCoord(hexCoord))
-                    {
-                    case SOCBoard.CLAY_HEX:
-                        resources.add(1, SOCResourceConstants.CLAY);
-
-                        break;
-
-                    case SOCBoard.ORE_HEX:
-                        resources.add(1, SOCResourceConstants.ORE);
-
-                        break;
-
-                    case SOCBoard.SHEEP_HEX:
-                        resources.add(1, SOCResourceConstants.SHEEP);
-
-                        break;
-
-                    case SOCBoard.WHEAT_HEX:
-                        resources.add(1, SOCResourceConstants.WHEAT);
-
-                        break;
-
-                    case SOCBoard.WOOD_HEX:
-                        resources.add(1, SOCResourceConstants.WOOD);
-
-                        break;
-                    }
-                }
-            }
-        }
+        getResourcesGainedFromRollPieces(roll, resources, robberHex, player.getSettlements().elements(), 1);
 
         /**
-         * check the settlements touching cities
+         * check the hexes touching cities
          */
-        Enumeration cEnum = player.getCities().elements();
+        getResourcesGainedFromRollPieces(roll, resources, robberHex, player.getCities().elements(), 2);
 
-        while (cEnum.hasMoreElements())
+        return resources;
+    }
+
+    /**
+     * Figure out what resources these piece positions would get on a given roll,
+     * based on the hexes adjacent to the pieces' node coordinates.
+     * Used in {@link #getResourcesGainedFromRoll(SOCPlayer, int)}.
+     *
+     * @param roll       the total number rolled on the dice
+     * @param resources  Add new resources to this set
+     * @param robberHex  Robber's position, from {@link SOCBoard#getRobberHex()}
+     * @param sEnum      Enumeration of a type of the player's {@link SOCPlayingPiece}s;
+     *                   should be either {@link SOCSettlement}s or {@link SOCCity}s
+     * @param incr       Add this many resources (1 or 2) per playing piece
+     * @since 1.1.17
+     */
+    private final void getResourcesGainedFromRollPieces
+        (final int roll, SOCResourceSet resources, final int robberHex, Enumeration sEnum, final int incr)
+    {
+        while (sEnum.hasMoreElements())
         {
-            SOCCity ci = (SOCCity) cEnum.nextElement();
-            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(ci.getCoordinates()).elements();
+            final SOCPlayingPiece sc = (SOCPlayingPiece) sEnum.nextElement();
+            Enumeration hexes = SOCBoard.getAdjacentHexesToNode(sc.getCoordinates()).elements();
 
             while (hexes.hasMoreElements())
             {
@@ -3012,35 +2990,28 @@ public class SOCGame implements Serializable, Cloneable
                     switch (board.getHexTypeFromCoord(hexCoord))
                     {
                     case SOCBoard.CLAY_HEX:
-                        resources.add(2, SOCResourceConstants.CLAY);
-
+                        resources.add(incr, SOCResourceConstants.CLAY);
                         break;
 
                     case SOCBoard.ORE_HEX:
-                        resources.add(2, SOCResourceConstants.ORE);
-
+                        resources.add(incr, SOCResourceConstants.ORE);
                         break;
 
                     case SOCBoard.SHEEP_HEX:
-                        resources.add(2, SOCResourceConstants.SHEEP);
-
+                        resources.add(incr, SOCResourceConstants.SHEEP);
                         break;
 
                     case SOCBoard.WHEAT_HEX:
-                        resources.add(2, SOCResourceConstants.WHEAT);
-
+                        resources.add(incr, SOCResourceConstants.WHEAT);
                         break;
 
                     case SOCBoard.WOOD_HEX:
-                        resources.add(2, SOCResourceConstants.WOOD);
-
+                        resources.add(incr, SOCResourceConstants.WOOD);
                         break;
                     }
                 }
             }
         }
-
-        return resources;
     }
 
     /**
