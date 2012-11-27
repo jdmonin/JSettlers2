@@ -898,6 +898,12 @@ public class SOCGameOption implements Cloneable, Comparable
                 return -1;  // Option not set: any client version is OK
         }
 
+        if ((optType == OTYPE_STR) || (optType == OTYPE_STRHIDE))
+        {
+            if (dropIfUnused && ((strValue == null) || (strValue.length() == 0)))
+                return -1;  // Option not set: any client version is OK
+        }
+
         // NEW_OPTION:
         // Any option value checking for minVers is done here.
         // None of the current options change minVers based on their value.
