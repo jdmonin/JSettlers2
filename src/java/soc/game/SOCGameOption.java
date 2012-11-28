@@ -281,7 +281,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         opt.put("VP", new SOCGameOption
                 ("VP", -1, 1114, false, 10, 10, 15, true, "Victory points to win: #"));
         opt.put("SC", new SOCGameOption
-                ("SC", 2000, 2000, 8, false, true, "Game Scenario keyname"));
+                ("SC", 2000, 2000, 8, false, true, "Game Scenario: #"));
         opt.put("DH", new SOCGameOption
                 ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
                 // TODO no robot players for DH
@@ -1972,6 +1972,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param boKey   Key name for boolean option to set
      * @throws NullPointerException  if <tt>boKey</tt> isn't in <tt>newOpts</tt>
      *   and doesn't exist in the set of known options
+     * @see #setIntOption(Hashtable, String, int, boolean)
      * @since 1.1.17
      */
     public static void setBoolOption(Hashtable<String, SOCGameOption> newOpts, final String boKey)
@@ -2007,6 +2008,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param bvalue  Set option to this boolean value (ignored if option type not intbool)
      * @throws NullPointerException  if <tt>ioKey</tt> isn't in <tt>newOpts</tt>
      *   and doesn't exist in the set of known options
+     * @see #setBoolOption(Hashtable, String)
      * @since 1.1.17
      */
     public static void setIntOption

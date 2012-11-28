@@ -47,10 +47,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.TreeSet;
 import java.util.Vector;
 
 import soc.game.SOCGameOption;
+import soc.game.SOCScenario;
 import soc.message.SOCMessage;
 import soc.message.SOCStatusMessage;
 import soc.util.Version;
@@ -60,6 +62,9 @@ import soc.util.Version;
  * Prompt for name and options.
  *<P>
  * Also used for showing a game's options (read-only) during game play.
+ *<P>
+ * Game option "SC" (Scenarios) gets special rendering. Internally it's {@link SOCGameOption#OTYPE_STR},
+ * but it's presented as a checkbox and {@link Choice}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
@@ -408,6 +413,35 @@ public class NewGameOptionsFrame extends Frame
      */
     private void initInterface_OptLine(SOCGameOption op, Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
+        if (op.optKey.equals("SC"))
+        {
+            // special handling: Scenario
+            // TODO server negotiation
+            Map<String, SOCScenario> allSc = SOCScenario.getAllKnownScenarios();
+            if ((allSc == null) || allSc.isEmpty())
+                return;
+
+            int i = 0, sel = 0;
+            Choice ch = new Choice();
+            ch.add("(none)");
+            for (final SOCScenario sc : allSc.values())
+            {
+                ++i;
+                ch.add(sc.scKey + ": " + sc.scDesc);
+                if (sc.scKey.equals(op.getStringValue()))
+                    sel = i;
+            }
+            if (sel != 0)
+            {
+                ch.select(sel);
+                op.setBoolValue(true);
+            }
+
+            initInterface_Opt1(op, ch, true, true, bp, gbl, gbc);
+                // adds ch, and a checkbox which will toggle this OTYPE_STR's op.boolValue
+            return;
+        }
+
         switch (op.optType)  // OTYPE_*
         {
         case SOCGameOption.OTYPE_BOOL:
@@ -472,8 +506,10 @@ public class NewGameOptionsFrame extends Frame
      * @param oc  Component with option choices (popup menu, textfield, etc).
      *            If oc is a {@link TextField} or {@link Choice}, and hasCB,
      *            changing the component's value will set the checkbox.
+     *            <tt>oc</tt> will be added to {@link #optsControls} and {@link #controlsOpts}.
      * @param hasCB  Add a checkbox?  If oc is {@link Checkbox}, set this true;
      *            it won't add a second checkbox.
+     *            The checkbox will be added to {@link #boolOptCheckboxes} and {@link #controlsOpts}.
      * @param allowPH  Allow the "#" placeholder within option desc?
      * @param bp  Add to this panel
      * @param gbl Use this layout
@@ -785,6 +821,14 @@ public class NewGameOptionsFrame extends Frame
                 continue;
             SOCGameOption op = controlsOpts.get(ctrl);
 
+            if (op.optKey.equals("SC"))
+            {
+                // Special case: AWT event listeners have already set its value from controls
+                if (! op.getBoolValue())
+                    op.setStringValue("");
+                continue;
+            }
+
             // OTYPE_* - new option types may have new AWT control objects, or
             //           may use the same controls with different contents as these.
 
@@ -1011,11 +1055,31 @@ public class NewGameOptionsFrame extends Frame
             return;
 
         Checkbox cb = boolOptCheckboxes.get(opt.optKey);
-        if ((cb != null) && (cb != ctrl) && ! cb.getState())
+        if ((cb != null) && (cb != ctrl))
         {
             // If the user picked a choice, also set the checkbox
-            cb.setState(true);
-            choiceSetCB = true;
+            boolean wantsSet;
+
+            if (! (opt.optKey.equals("SC") && (ctrl instanceof Choice)))
+            {
+                wantsSet = true;  // any item sets it
+            } else {
+                // Special case for "SC", an OTYPE_STR with a Choice and Checkbox
+                Choice ch = (Choice) ctrl;
+                wantsSet = (ch.getSelectedIndex() != 0);  // Special case, first item clears it
+                opt.setBoolValue(wantsSet);
+                if (wantsSet)
+                {
+                    final String chText = ch.getSelectedItem();
+                    opt.setStringValue(chText.substring(0, chText.indexOf(':')));
+                }
+            }
+
+            if (wantsSet != cb.getState())
+            {
+                cb.setState(wantsSet);
+                choiceSetCB = true;
+            }
         }
 
         if (! opt.userChanged)
