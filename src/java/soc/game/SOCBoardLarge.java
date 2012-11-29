@@ -422,7 +422,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * The legal set of land edge coordinates to build roads,
      * based on {@link #nodesOnLand}.
-     * Calculated in {@link #makeNewBoard_makeLegalRoadsFromLandNodes()},
+     * Calculated in {@link #initLegalRoadsFromLandNodes()},
      * after {@link #nodesOnLand} is filled by
      * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
      * Used by {@link #initPlayerLegalRoads()}.
@@ -432,7 +432,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * The legal set of water/coastline edge coordinates to build ships,
      * based on {@link #hexLayoutLg}.
-     * Calculated in {@link #makeNewBoard_makeLegalShipEdges()},
+     * Calculated in {@link #initLegalShipEdges()},
      * after {@link #hexLayoutLg} is filled by
      * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
      * Used by {@link #initPlayerLegalShips()}.
@@ -576,16 +576,16 @@ public class SOCBoardLarge extends SOCBoard
         throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
     }
 
-
-
     /**
      * Once the legal settlement/city nodes ({@link #nodesOnLand})
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.
      * Call this only after the very last call to
      * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
+     *<P>
+     * Called at server and at client.
      */
-    private void makeNewBoard_makeLegalRoadsFromLandNodes()
+    protected void initLegalRoadsFromLandNodes()
     {
         // About corners/concave parts:
         //   Set of the valid nodes will contain both ends of the edge;
@@ -641,8 +641,10 @@ public class SOCBoardLarge extends SOCBoard
      * Not iterative; clears all previous legal ship edges.
      * Call this only after the very last call to
      * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
+     *<P>
+     * Called at server and at client.
      */
-    private void makeNewBoard_makeLegalShipEdges()
+    protected void initLegalShipEdges()
     {
         // All 6 edges of each water hex.
         // All coastal edges of each land hex at the edges of the board.
@@ -683,7 +685,7 @@ public class SOCBoardLarge extends SOCBoard
             }
         }
 
-    }  // makeNewBoard_makeLegalShipEdges
+    }  // initLegalShipEdges
 
     /**
      * Prepare to reveal one land or water hex hidden by {@link #FOG_HEX fog} (server-side call).
@@ -1623,8 +1625,8 @@ public class SOCBoardLarge extends SOCBoard
                 nodesOnLand.addAll(lan[i]);
         }
 
-        makeNewBoard_makeLegalRoadsFromLandNodes();
-        makeNewBoard_makeLegalShipEdges();
+        initLegalRoadsFromLandNodes();
+        initLegalShipEdges();
     }
 
     /**

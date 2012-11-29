@@ -200,8 +200,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         startingLandArea = 1;
 
         // Set up legalRoadEdges:
-        makeNewBoard_makeLegalRoadsFromLandNodes();
-        makeNewBoard_makeLegalShipEdges();
+        initLegalRoadsFromLandNodes();
+        initLegalShipEdges();
 
         // consistency-check land areas
         if (landAreasLegalNodes != null)
@@ -1105,8 +1105,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param landAreaNumber  0 unless there will be more than 1 Land Area (groups of islands).
      *                    If != 0, updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
      *                    with the same nodes added to {@link SOCBoard#nodesOnLand}.
-     * @see #makeNewBoard_makeLegalRoadsFromLandNodes()
-     * @see #makeNewBoard_makeLegalShipEdges()
+     * @see SOCBoardLarge#initLegalRoadsFromLandNodes()
+     * @see SOCBoardLarge#initLegalShipEdges()
      * @throws IllegalStateException  if <tt>landAreaNumber</tt> != 0 and either
      *             {@link #landAreasLegalNodes} == null, or not long enough, or
      *             {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt> != null
@@ -1141,113 +1141,6 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         }
 
     }  // makeNewBoard_makeLegalNodesFromHexes
-
-    /**
-     * Once the legal settlement/city nodes ({@link #nodesOnLand})
-     * are established from land hexes, fill {@link #legalRoadEdges}.
-     * Not iterative; clears all previous legal roads.
-     * Call this only after the very last call to
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
-     */
-    private void makeNewBoard_makeLegalRoadsFromLandNodes()
-    {
-        // About corners/concave parts:
-        //   Set of the valid nodes will contain both ends of the edge;
-        //   anything concave across a sea would be missing at least 1 node, in the water along the way.
-
-        // Go from nodesOnLand, iterate all nodes:
-
-        legalRoadEdges.clear();
-
-        for (Integer nodeVal : nodesOnLand)
-        {
-            final int node = nodeVal.intValue();
-            for (int dir = 0; dir < 3; ++dir)
-            {
-                int nodeAdjac = getAdjacentNodeToNode(node, dir);
-                if (nodesOnLand.contains(new Integer(nodeAdjac)))
-                {
-                    final int edge = getAdjacentEdgeToNode(node, dir);
-
-                    // Ensure it doesn't cross water
-                    // by requiring land on at least one side of the edge
-                    boolean hasLand = false;
-                    final int[] hexes = getAdjacentHexesToEdge_arr(edge);
-                    for (int i = 0; i <= 1; ++i)
-                    {
-                        if (hexes[i] != 0)
-                        {
-                            final int htype = getHexTypeFromCoord(hexes[i]);
-                            if ((htype != WATER_HEX) && (htype <= MAX_LAND_HEX_LG))
-                            {
-                                hasLand = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    // OK to add
-                    if (hasLand)
-                        legalRoadEdges.add(new Integer(edge));
-                        // it's ok to add if this set already contains an Integer equal to that edge.
-                }
-            }
-        }
-
-    }  // makeNewBoard_makeLegalRoadsFromNodes
-
-    /**
-     * Once the legal settlement/city nodes ({@link #nodesOnLand})
-     * are established from land hexes, fill {@link #legalShipEdges}.
-     * Contains all 6 edges of each water hex.
-     * Contains all coastal edges of each land hex at the edges of the board.
-     *<P>
-     * Not iterative; clears all previous legal ship edges.
-     * Call this only after the very last call to
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
-     */
-    private void makeNewBoard_makeLegalShipEdges()
-    {
-        // All 6 edges of each water hex.
-        // All coastal edges of each land hex at the edges of the board.
-        // (Needed because there's no water hex next to it)
-
-        legalShipEdges.clear();
-
-        for (int r = 1; r < boardHeight; r += 2)
-        {
-            final int rshift = (r << 8);
-            int c;
-            if (((r/2) % 2) == 1)
-            {
-                c = 1;  // odd hex row hexes start at 1
-            } else {
-                c = 2;  // top row, even row hexes start at 2
-            }
-            for (; c < boardWidth; c += 2)
-            {
-                if (hexLayoutLg[r][c] == WATER_HEX)
-                {
-                    final int[] sides = getAdjacentEdgesToHex(rshift | c);
-                    for (int i = 0; i < 6; ++i)
-                        legalShipEdges.add(new Integer(sides[i]));
-                } else {
-                    // Land hex; check if it's at the
-                    // edge of the board; this check is also isHexAtBoardMargin(hc)
-                    if ((r == 1) || (r == (boardHeight-1))
-                        || (c <= 2) || (c >= (boardWidth-2)))
-                    {
-                        final int[] sides = getAdjacentEdgesToHex(rshift | c);
-                        for (int i = 0; i < 6; ++i)
-                            if (isEdgeCoastline(sides[i]))
-                                legalShipEdges.add(new Integer(sides[i]));
-                    }
-                }
-
-            }
-        }
-
-    }  // makeNewBoard_makeLegalShipEdges
 
     /**
      * For {@link #makeNewBoard(Hashtable)}, hide these hexes under {@link #FOG_HEX} to be revealed later.
