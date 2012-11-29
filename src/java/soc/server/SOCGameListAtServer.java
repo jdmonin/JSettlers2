@@ -260,6 +260,10 @@ public class SOCGameListAtServer extends SOCGameList
         if (isGame(gaName))
             return null;
 
+        // Make sure server games have SOCBoardLargeAtServer, for makeNewBoard
+        if (SOCGame.boardFactory == null)
+            SOCGame.boardFactory = new SOCBoardLargeAtServer.BoardFactoryAtServer();
+
         Vector<StringConnection> members = new Vector<StringConnection>();
         gameMembers.put(gaName, members);
 

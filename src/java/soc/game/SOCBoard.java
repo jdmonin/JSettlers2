@@ -3536,6 +3536,25 @@ public class SOCBoard implements Serializable, Cloneable
     {
         /**
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
+         * Static for fallback access from other factory implementations.
+         *
+         * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
+         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+         */
+        public static SOCBoard staticCreateBoard
+            (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            throws IllegalArgumentException
+        {
+            if (! largeBoard)
+                return new SOCBoard(gameOpts, maxPlayers);
+            else
+                return new SOCBoardLarge(gameOpts, maxPlayers);
+        }
+
+        /**
+         * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
          *<P>
          * From v1.1.11 through 1.1.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
@@ -3548,10 +3567,7 @@ public class SOCBoard implements Serializable, Cloneable
             (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
             throws IllegalArgumentException
         {
-            if (! largeBoard)
-                return new SOCBoard(gameOpts, maxPlayers);
-            else
-                return new SOCBoardLarge(gameOpts, maxPlayers);
+            return staticCreateBoard(gameOpts, largeBoard, maxPlayers);
         }
 
     }  // nested class DefaultBoardFactory

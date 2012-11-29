@@ -22,17 +22,18 @@
 package soc.server;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
+import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCVillage;
+import soc.game.SOCBoard.BoardFactory;
 import soc.util.IntTriple;
 
 /**
@@ -1790,5 +1791,42 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     {
         4, 10
     };
+
+
+    ////////////////////////////////////////////
+    //
+    // Nested class for board factory
+    //
+
+
+    /**
+     * Server-side implementation of {@link BoardFactory} to create {@link SOCBoardLargeAtServer}s.
+     * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
+     * @author Jeremy D Monin
+     * @since 2.0.00
+     */
+    public static class BoardFactoryAtServer implements BoardFactory
+    {
+        /**
+         * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
+         *<P>
+         * From v1.1.11 through 1.1.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
+         *
+         * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
+         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+         */
+        public SOCBoard createBoard
+            (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            throws IllegalArgumentException
+        {
+            if (! largeBoard)
+                return SOCBoard.DefaultBoardFactory.staticCreateBoard(gameOpts, false, maxPlayers);
+            else
+                return new SOCBoardLargeAtServer(gameOpts, maxPlayers);
+        }
+
+    }  // nested class BoardFactoryAtServer
 
 }
