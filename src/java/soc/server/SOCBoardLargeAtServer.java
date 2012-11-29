@@ -40,6 +40,7 @@ import soc.util.IntTriple;
  * A subclass of {@link SOCBoardLarge} for the server, to isolate
  * {@link #makeNewBoard(Hashtable)} to simplify that parent class.
  * See SOCBoardLarge for more details.
+ * For the board layout geometry, see that class javadoc's "Coordinate System" section.
  *<P>
  * A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
@@ -304,6 +305,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * (for land hex resource types).
      * If <tt>landAreaNumber</tt> != 0, also adds to {@link #landAreasLegalNodes}.
      * Called from {@link #makeNewBoard(Hashtable)} at server only; client has its board layout sent from the server.
+     *<P>
+     * For the board layout geometry, see the {@link SOCBoardLarge} class javadoc's "Coordinate System" section.
      *<P>
      * This method does not clear out {@link #hexLayoutLg} or {@link #numberLayoutLg}
      * before it starts placement.  You can call it multiple times to set up multiple

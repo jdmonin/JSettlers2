@@ -42,6 +42,7 @@ import soc.util.Version;
  * In 1.1.07, parent class SOCGameList was refactored, with
  * some methods moved to this new subclass, such as {@link #createGame(String, String, Hashtable) createGame}.
  *
+ * @see SOCBoardLargeAtServer
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.07
  */

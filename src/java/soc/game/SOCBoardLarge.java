@@ -34,6 +34,7 @@ import java.util.Vector;
  * with an arbitrary mix of land and water tiles.
  * Implements {@link SOCBoard#BOARD_ENCODING_LARGE}.
  * Activated with {@link SOCGameOption} <tt>"PLL"</tt>.
+ * For the board layout geometry, see the "Coordinate System" section here.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
