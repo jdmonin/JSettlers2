@@ -19,7 +19,6 @@
  * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 
-
 package soc.game;
 
 import java.util.ArrayList;
@@ -42,6 +41,8 @@ import soc.util.IntTriple;
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
  * and keep the board logic simple.  Game rules should be enforced at the game, not the board.
  * Calling board methods won't change the game state.
+ *<P>
+ * To create a new board, use subclass <tt>soc.server.SOCBoardLargeAtServer</tt>.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
@@ -250,7 +251,7 @@ public class SOCBoardLarge extends SOCBoard
      * If you add a hex type, search for this and for FOG_HEX for likely changes.
      * Be sure to also update the client's SOCBoardPanel.loadImages.
      */
-    private static final int MAX_LAND_HEX_LG = FOG_HEX;
+    protected static final int MAX_LAND_HEX_LG = FOG_HEX;
 
     private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
 
@@ -365,7 +366,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * @see SOCBoard#portsLayout
      */
-    private int[][] hexLayoutLg;
+    protected int[][] hexLayoutLg;
 
     /**
      * The set of land hex coordinates within {@link #hexLayoutLg},
@@ -374,14 +375,14 @@ public class SOCBoardLarge extends SOCBoard
      * layout changes, this field again becomes <tt>null</tt> until the
      * next call to {@link #getLandHexCoords()}.
      */
-    private int[] cachedGetLandHexCoords;
+    protected int[] cachedGetLandHexCoords;
 
     /**
      * The set of land hex coordinates within {@link #hexLayoutLg}.
      * Sent from server to client, along with the land hex types / dice numbers,
      * via {@link #getLandHexLayout()} / {@link #setLandHexLayout(int[])}.
      */
-    private HashSet<Integer> landHexLayout;
+    protected HashSet<Integer> landHexLayout;
 
     /**
      * When the board has multiple "land areas" (groups of islands),
@@ -399,14 +400,14 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * The set {@link SOCBoard#nodesOnLand} contains all nodes of all land areas.
      */
-    private HashSet<Integer>[] landAreasLegalNodes;
+    protected HashSet<Integer>[] landAreasLegalNodes;
 
     /**
      * Maximum players (4 or 6).
      * Some scenarios are laid out differently for 6 players.
      * Some are laid out differently for 3 players, so also check SOCGameOption "PL".
      */
-    private final int maxPlayers;
+    protected final int maxPlayers;
 
     /**
      * When players must start the game in a certain land area,
@@ -419,7 +420,7 @@ public class SOCBoardLarge extends SOCBoard
      * The startingLandArea and {@link #landAreasLegalNodes} are sent
      * from the server to client as part of a <tt>POTENTIALSETTLEMENTS</tt> message.
      */
-    private int startingLandArea;
+    protected int startingLandArea;
 
     /**
      * The legal set of land edge coordinates to build roads,
@@ -429,7 +430,7 @@ public class SOCBoardLarge extends SOCBoard
      * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
      * Used by {@link #initPlayerLegalRoads()}.
      */
-    private HashSet<Integer> legalRoadEdges;
+    protected HashSet<Integer> legalRoadEdges;
 
     /**
      * The legal set of water/coastline edge coordinates to build ships,
@@ -440,7 +441,7 @@ public class SOCBoardLarge extends SOCBoard
      * Used by {@link #initPlayerLegalShips()}.
      * Updated in {@link #revealFogHiddenHex(int, int, int)} for {@link SOCBoard#WATER_HEX WATER_HEX}.
      */
-    private HashSet<Integer> legalShipEdges;
+    protected HashSet<Integer> legalShipEdges;
 
     /**
      * Dice number from hex coordinate.
@@ -453,7 +454,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * If {@link #villages} are used, each village's dice number is stored in the {@link SOCVillage}.
      */
-    private int[][] numberLayoutLg;
+    protected int[][] numberLayoutLg;
 
     /**
      * Actual hex types and dice numbers hidden under {@link #FOG_HEX}.
@@ -465,7 +466,7 @@ public class SOCBoardLarge extends SOCBoard
      * @see #revealFogHiddenHexPrep(int)
      * @see #revealFogHiddenHex(int, int, int)
      */
-    private HashMap<Integer, Integer> fogHiddenHexes;
+    protected HashMap<Integer, Integer> fogHiddenHexes;
 
     /**
      * For some scenarios, villages on the board. Null otherwise.
@@ -497,7 +498,7 @@ public class SOCBoardLarge extends SOCBoard
      * 0 if {@link #makeNewBoard(Hashtable)} hasn't been called yet.
      * Port types, edges and facings are all stored in {@link SOCBoard#portsLayout}.
      */
-    private int portsCount;
+    protected int portsCount;
 
     /**
      * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Hashtable)}.
