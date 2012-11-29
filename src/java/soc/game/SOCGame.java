@@ -494,6 +494,14 @@ public class SOCGame implements Serializable, Cloneable
     public static final SOCResourceSet CARD_SET = new SOCResourceSet(0, 1, 1, 1, 0, 0);
 
     /**
+     * The {@link SOCBoard.BoardFactory} for creating new boards in the SOCGame constructors.
+     * Differs at client and at server.
+     * If null, SOCGame constructor sets to {@link SOCBoard.DefaultBoardFactory}.
+     * @since 2.0.00
+     */
+    public static SOCBoard.BoardFactory boardFactory;
+
+    /**
      * monitor for synchronization
      */
     boolean inUse;
@@ -1033,7 +1041,9 @@ public class SOCGame implements Serializable, Cloneable
             vp_winner = VP_WINNER_STANDARD;
             hasScenarioWinCondition = false;
         }
-        board = SOCBoard.createBoard(op, hasSeaBoard, maxPlayers);
+        if (boardFactory == null)
+            boardFactory = new SOCBoard.DefaultBoardFactory();
+        board = boardFactory.createBoard(op, hasSeaBoard, maxPlayers);
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
         seatLocks = new boolean[maxPlayers];

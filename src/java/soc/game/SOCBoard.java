@@ -35,7 +35,8 @@ import java.util.Vector;
  * has some internal comments on structures, coordinates, layout and values.
  *<P>
  * Because some game variants may need different board layouts or features,
- * you may need a subclass of SOCBoard: Use {@link #createBoard(Hashtable, int)}
+ * you may need a subclass of SOCBoard: Use
+ * {@link SOCBoard.BoardFactory#createBoard(Hashtable, boolean, int)}
  * whenever you need to construct a new SOCBoard.
  *<P>
  * A {@link SOCGame} uses this board; the board is not given a reference to the game, to enforce layering
@@ -835,25 +836,6 @@ public class SOCBoard implements Serializable, Cloneable
      * In that case, <tt>nodesOnLand</tt> contains all nodes of all land areas.
      */
     protected HashSet<Integer> nodesOnLand;
-
-    /**
-     * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
-     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
-     * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding);
-     *              TODO largeBoard/gameopt "PLL" does not yet support maxPlayers==6.
-     * @param maxPlayers Maximum players; must be 4 or 6.
-     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
-     * @since 1.1.11
-     */
-    public static SOCBoard createBoard
-        (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
-        throws IllegalArgumentException
-    {
-        if (! largeBoard)
-            return new SOCBoard(gameOpts, maxPlayers);
-        else
-            return new SOCBoardLarge(gameOpts, maxPlayers);
-    }
 
     /**
      * Minimal super constructor for subclasses.
@@ -3514,5 +3496,64 @@ public class SOCBoard implements Serializable, Cloneable
 
         return str;
     }
+
+    //
+    // Nested classes for board factory
+    //
+
+    /**
+     * Board Factory for creating new boards for games at the client or server.
+     * (The server's version of {@link SOCBoardLarge} isolates makeNewBoard methods.)
+     * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
+     *<P>
+     * The default factory is {@link SOCBoard.DefaultBoardFactory}.
+     * For a server-side board factory, see <tt>soc.server.SOCBoardLargeAtServer.ServerBoardFactory</tt>.
+     * @author Jeremy D Monin
+     * @since 2.0.00
+     */
+    public static interface BoardFactory
+    {
+        /**
+         * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
+         * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
+         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+         */
+        public SOCBoard createBoard
+            (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            throws IllegalArgumentException;
+
+    }  // nested class BoardFactory
+
+    /**
+     * Default implementation of {@link BoardFactory}.
+     * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
+     * @author Jeremy D Monin
+     * @since 2.0.00
+     */
+    public static class DefaultBoardFactory implements BoardFactory
+    {
+        /**
+         * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
+         *<P>
+         * From v1.1.11 through 1.1.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
+         *
+         * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+         * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
+         * @param maxPlayers Maximum players; must be 4 or 6.
+         * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+         */
+        public SOCBoard createBoard
+            (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
+            throws IllegalArgumentException
+        {
+            if (! largeBoard)
+                return new SOCBoard(gameOpts, maxPlayers);
+            else
+                return new SOCBoardLarge(gameOpts, maxPlayers);
+        }
+
+    }  // nested class DefaultBoardFactory
 
 }
