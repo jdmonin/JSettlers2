@@ -53,21 +53,31 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * Types of playing pieces: Ship.
      * Used only when {@link SOCGame#hasSeaBoard}.
-     * Requires client and server verson 2.0.00 or newer.
+     * Requires client and server version 2.0.00 or newer.
      * @see #getResourcesToBuild(int)
      * @since 2.0.00
      */
     public static final int SHIP = 3;
 
     /**
+     * Types of playing pieces: {@link SOCFortress Fortress}.
+     * Used only when {@link SOCGame#hasSeaBoard} and scenario
+     * option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * Requires client and server version 2.0.00 or newer.
+     * New fortresses cannot be built after the game starts.
+     * @since 2.0.00
+     */
+    public static final int FORTRESS = 4;
+
+    /**
      * Types of playing pieces: {@link SOCVillage Village}.
      * Used only when {@link SOCGame#hasSeaBoard}.
-     * Requires client and server verson 2.0.00 or newer.
+     * Requires client and server version 2.0.00 or newer.
      * Villages belong to the game board, not to any player,
      * and new villages cannot be built after the game starts.
      * @since 2.0.00
      */
-    public static final int VILLAGE = 4;
+    public static final int VILLAGE = 5;
 
     /**
      * Minimum type number of playing piece (currently Road).
@@ -77,9 +87,9 @@ public abstract class SOCPlayingPiece implements Serializable, Cloneable
     /**
      * One past the maximum type number of playing piece.
      * MAXPLUSONE == 3 up through all 1.1.xx versions.
-     * MAXPLUSONE == 5 in v2.0.00.
+     * MAXPLUSONE == 6 in v2.0.00.
      */
-    public static final int MAXPLUSONE = 5;
+    public static final int MAXPLUSONE = 6;
 
     /**
      * The type of this playing piece, within range {@link #MIN} to ({@link #MAXPLUSONE} - 1)
