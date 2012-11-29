@@ -150,6 +150,11 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
         // Game scenarios, and their SOCGameOptions (rules and events)
 
+        allSc.put(K_SC_4ISL, new SOCScenario
+            (K_SC_4ISL, 2000, 2000,
+             "The Four Islands",
+             "_SC_SEAC=t,PLL=t,VP=t12"));
+
         allSc.put(K_SC_FOG, new SOCScenario
             (K_SC_FOG, 2000, 2000,
              "Some land hexes initially hidden by fog",
@@ -167,6 +172,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     }
 
     // Game scenario keynames.
+
+    /**
+     * Scenario key <tt>SC_4ISL</tt> for The Four Islands.
+     * No main option or special rules.
+     */
+    public static final String K_SC_4ISL = "SC_4ISL";
 
     /**
      * Scenario key <tt>SC_FOG</tt> for {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}.
