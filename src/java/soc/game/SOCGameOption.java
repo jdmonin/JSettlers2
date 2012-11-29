@@ -145,6 +145,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> {@link #K_SC_0RVP _SC_0RVP}  No VP for longest road / longest trade route
      *<LI> {@link #K_SC_3IP  _SC_3IP}   Third initial settlement and road/ship placement
      *<LI> {@link #K_SC_CLVI _SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
+     *<LI> {@link #K_SC_PIRI _SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
      *</UL>
      *
      * <h3>If you want to add a game option:</h3>
@@ -299,6 +300,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 (K_SC_3IP, 2000, 2000, false, true, "Scenarios: Third initial settlement"));
         opt.put(K_SC_CLVI, new SOCGameOption
                 (K_SC_CLVI, 2000, 2000, false, true, "Scenarios: Cloth Trade with neutral villages"));
+        opt.put(K_SC_PIRI, new SOCGameOption
+                (K_SC_PIRI, 2000, 2000, false, true, "Scenarios: Pirate Islands and fortresses"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -498,6 +501,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @see SOCScenario#K_SC_CLVI
      */
     public static final String K_SC_CLVI = "_SC_CLVI";
+
+    /**
+     * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
+     * Fortresses are in a game only if this option is set.
+     * @since 2.0.00
+     */
+    public static final String K_SC_PIRI = "_SC_PIRI";
 
     // If you create a new option type,
     // please update parseOptionsToHash(), packOptionsToString(),
