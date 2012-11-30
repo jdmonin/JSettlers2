@@ -143,12 +143,14 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                      FOUR_ISL_LANDHEX_LANDAREA_RANGES_3PL, opt_breakClumps);
                 PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_3PL;
                 PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_3PL;
+                pirateHex = FOUR_ISL_PIRATE_HEX[0];
             } else {
                 makeNewBoard_placeHexes
                     (FOUR_ISL_LANDHEX_TYPE_4PL, FOUR_ISL_LANDHEX_COORD_4PL, FOUR_ISL_DICENUM_4PL, true,
                      FOUR_ISL_LANDHEX_LANDAREA_RANGES_4PL, opt_breakClumps);
                 PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_4PL;
                 PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_4PL;
+                pirateHex = FOUR_ISL_PIRATE_HEX[1];
             }
             PORT_LOC_FACING_ISLANDS = null;
             PORTS_TYPES_ISLANDS = null;
@@ -1721,6 +1723,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // The 4 Islands scenario Layout (SC_4ISL)
     //   Has 3-player, 4-player, 6-player versions
     //
+
+    /** Four Islands: Pirate ship's starting hex coordinate for 3,4,6 players */
+    private static final int FOUR_ISL_PIRATE_HEX[] =
+    {
+        0x0707, 0x070D, 0x0701
+    };
 
     //
     // 3-player
