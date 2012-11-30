@@ -32,6 +32,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCScenario;
 import soc.game.SOCVillage;
 import soc.game.SOCBoard.BoardFactory;
 import soc.util.IntTriple;
@@ -103,6 +104,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         SOCGameOption opt = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
         final boolean hasScenarioFog = (opt != null) && opt.getBoolValue();
 
+        opt = (opts != null ? opts.get("SC") : null);
+        final boolean hasScenario4ISL = (opt != null) && opt.getStringValue().equals(SOCScenario.K_SC_4ISL);
+
         // For scenario boards, use 3-player or 4-player or 6-player layout?
         // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
         final int maxPl;
@@ -128,7 +132,28 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         final int PORTS_TYPES_MAINLAND[], PORTS_TYPES_ISLANDS[];  // port types
         final int PORT_LOC_FACING_MAINLAND[], PORT_LOC_FACING_ISLANDS[];  // port edge locations and facings
 
-        if (! hasScenarioFog)
+        if (hasScenario4ISL)
+        {
+            // Four Islands (SC_4ISL)
+            landAreasLegalNodes = new HashSet[5];
+            if (maxPl < 4)
+            {
+                makeNewBoard_placeHexes
+                    (FOUR_ISL_LANDHEX_TYPE_3PL, FOUR_ISL_LANDHEX_COORD_3PL, FOUR_ISL_DICENUM_3PL, true,
+                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_3PL, opt_breakClumps);
+                PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_3PL;
+                PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_3PL;
+            } else {
+                makeNewBoard_placeHexes
+                    (FOUR_ISL_LANDHEX_TYPE_4PL, FOUR_ISL_LANDHEX_COORD_4PL, FOUR_ISL_DICENUM_4PL, true,
+                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_4PL, opt_breakClumps);
+                PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_4PL;
+                PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_4PL;
+            }
+            PORT_LOC_FACING_ISLANDS = null;
+            PORTS_TYPES_ISLANDS = null;
+        }
+        else if (! hasScenarioFog)
         {
             landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
             // TODO revisit, un-hardcode, when we have multiple scenarios
@@ -147,6 +172,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORT_LOC_FACING_ISLANDS = PORT_EDGE_FACING_ISLANDS;
 
         } else {
+            // hasScenarioFog
             landAreasLegalNodes = new HashSet[( (maxPl == 6) ? 4 : 3 )];
 
             if (maxPl < 4)
@@ -198,7 +224,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         // - Players must start on mainland
         //   (for fog, the two large islands)
-        startingLandArea = 1;
+        if (! hasScenario4ISL)  // hasScenario4ISL doesn't require startingLandArea, it remains 0
+            startingLandArea = 1;
 
         // Set up legalRoadEdges:
         initLegalRoadsFromLandNodes();
@@ -1687,6 +1714,185 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     {
         4, 10
     };
+
+
+    ////////////////////////////////////////////
+    //
+    // The 4 Islands scenario Layout (SC_4ISL)
+    //   Has 3-player, 4-player, 6-player versions
+    //
+
+    //
+    // 3-player
+    //
+
+    /**
+     * Four Islands: Land hex types for all 4 islands.
+     */
+    private static final int FOUR_ISL_LANDHEX_TYPE_3PL[] =
+    {
+        // 20 hexes total: 4 each of 5 resources
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    };
+
+    /**
+     * Four Islands: Land hex coordinates for all 4 islands.
+     * The 4 island land areas are given by {@link #FOUR_ISL_LANDHEX_LANDAREA_RANGES_3PL}.
+     */
+    private static final int FOUR_ISL_LANDHEX_COORD_3PL[] =
+    {
+        // Northwest island: 4 hexes centered on rows 3,5, columns 2-5
+        0x0303, 0x0305, 0x0502, 0x0504,
+
+        // Southwest island: 6 hexes centered on rows 9,b,d, columns 2-6
+        0x0902, 0x0904, 0x0906, 0x0B03, 0x0B05, 0x0D04,
+
+        // Northeast island: 6 hexes centered on rows 1,3,5, columns 8-b
+        0x0108, 0x010A, 0x0309, 0x030B, 0x0508, 0x050A,
+
+        // Southeast island: 4 hexes centered on rows 9,b, columns 9-c
+        0x090A, 0x090C, 0x0B09, 0x0B0B
+    };
+
+    /**
+     * Four Islands: Dice numbers for all 4 islands.
+     * No defined NumPath; as long as 6 and 8 aren't adjacent, all is OK.
+     */
+    private static final int FOUR_ISL_DICENUM_3PL[] =
+    {
+        // 20 hexes total, no deserts
+        2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 8, 8, 9, 9, 9, 10, 10, 11, 11, 12
+    };
+
+    /**
+     * Four Islands: Island hex counts and land area numbers within {@link #FOUR_ISL_LANDHEX_COORD_3PL}.
+     * Allows them to be defined, shuffled, and placed together.
+     */
+    private static final int FOUR_ISL_LANDHEX_LANDAREA_RANGES_3PL[] =
+    {
+            1, 4,  // landarea 1 is the northwest island with 4 hexes
+            2, 6,  // landarea 2 SW
+            3, 6,  // landarea 3 NE
+            4, 4   // landarea 4 SE
+    };
+
+    /**
+     * Four Islands: Port edges and facings on all 4 islands.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Each port's type will be from {@link #FOUR_ISL_PORT_TYPE_3PL}.
+     */
+    private static final int FOUR_ISL_PORT_EDGE_FACING_3PL[] =
+    {
+        0x0401, FACING_SE,  0x0405, FACING_NW, // Northwest island
+        0x0802, FACING_SW,  0x0A01, FACING_NE,  0x0C05, FACING_NW,  // SW island
+        0x020B, FACING_SW,  0x0609, FACING_NE, // NE island
+        0x0A08, FACING_SE,  0x0A0C, FACING_NW  // SE island
+    };
+
+    /**
+     * Four Islands: Port types on all 4 islands.  OK to shuffle.
+     */
+    private static final int FOUR_ISL_PORT_TYPE_3PL[] =
+    {
+        MISC_PORT, ORE_PORT,
+        WOOD_PORT, MISC_PORT, SHEEP_PORT,
+        MISC_PORT, CLAY_PORT,
+        MISC_PORT, WHEAT_PORT
+    };
+
+    //
+    // 4-player
+    //
+
+    /**
+     * Four Islands: Land hex types for all 4 islands.
+     */
+    private static final int FOUR_ISL_LANDHEX_TYPE_4PL[] =
+    {
+        // 23 hexes total: 4 or 5 each of 5 resources
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    };
+
+    /**
+     * Four Islands: Land hex coordinates for all 4 islands.
+     */
+    private static final int FOUR_ISL_LANDHEX_COORD_4PL[] =
+    {
+        // Northwest island: 4 hexes centered on rows 1,3,5, columns 2-4
+        0x0104, 0x0303, 0x0502, 0x0504,
+
+        // Southwest island: 7 hexes centered on rows 9,b,d, columns 2-7
+        0x0902, 0x0904, 0x0B03, 0x0B05, 0x0B07, 0x0D04, 0x0D06,
+
+        // Northeast island: 8 hexes centered on rows 1,3,5, columns 7-b, outlier at (7,7)
+        0x0108, 0x010A, 0x0307, 0x0309, 0x030B, 0x0508, 0x050A, 0x0707,
+
+        // Southeast island: 4 hexes centered on rows 9,b,d, columns a-c
+        0x090A, 0x090C, 0x0B0B, 0x0D0A
+    };
+
+    /**
+     * Four Islands: Dice numbers for hexes on all 4 islands.
+     * No defined NumPath; as long as 6 and 8 aren't adjacent, all is OK.
+     */
+    private static final int FOUR_ISL_DICENUM_4PL[] =
+    {
+        // 23 hexes total, no deserts
+        2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 12
+    };
+
+    /**
+     * Four Islands: Island hex counts and land area numbers within {@link #FOUR_ISL_LANDHEX_COORD_4PL}.
+     * Allows them to be defined, shuffled, and placed together.
+     */
+    private static final int FOUR_ISL_LANDHEX_LANDAREA_RANGES_4PL[] =
+    {
+            1, 4,  // landarea 1 is the northwest island with 4 hexes
+            2, 7,  // landarea 2 SW
+            3, 8,  // landarea 3 NE
+            4, 4   // landarea 4 SE
+    };
+
+    /**
+     * Four Islands: Port edges and facings on all 4 islands.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Each port's type will be from {@link #FOUR_ISL_PORT_TYPE_4PL}.
+     */
+    private static final int FOUR_ISL_PORT_EDGE_FACING_4PL[] =
+    {
+        0x0302, FACING_E,   0x0602, FACING_NW,
+        0x0A01, FACING_NE,  0x0A05, FACING_SW,  0x0D03, FACING_E,
+        0x0606, FACING_SE,  0x040B, FACING_NW,
+        0x080B, FACING_SE,  0x0A0C, FACING_NW
+    };
+
+    /**
+     * Four Islands: Port types on all 4 islands.  OK to shuffle.
+     */
+    private static final int FOUR_ISL_PORT_TYPE_4PL[] =
+    {
+        WHEAT_PORT, MISC_PORT,
+        CLAY_PORT, MISC_PORT, SHEEP_PORT,
+        MISC_PORT, WOOD_PORT,
+        ORE_PORT, MISC_PORT
+    };
+
+    //
+    // TODO 6-player
+    //
 
 
     ////////////////////////////////////////////
