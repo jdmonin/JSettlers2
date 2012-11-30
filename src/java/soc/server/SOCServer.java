@@ -7331,12 +7331,13 @@ public class SOCServer extends Server
             {
                 final SOCPlayer player = ga.getPlayer((String) c.getData());
                 final int pn = player.getPlayerNumber();
+                final int gstate = ga.getGameState();
 
                 switch (mes.getPieceType())
                 {
                 case SOCPlayingPiece.ROAD:
 
-                    if (ga.getGameState() == SOCGame.PLACING_ROAD)
+                    if (gstate == SOCGame.PLACING_ROAD)
                     {
                         ga.cancelBuildRoad(pn);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
@@ -7352,7 +7353,7 @@ public class SOCServer extends Server
 
                 case SOCPlayingPiece.SETTLEMENT:
 
-                    if (ga.getGameState() == SOCGame.PLACING_SETTLEMENT)
+                    if (gstate == SOCGame.PLACING_SETTLEMENT)
                     {
                         ga.cancelBuildSettlement(pn);
                         gameList.takeMonitorForGame(gaName);
@@ -7363,7 +7364,7 @@ public class SOCServer extends Server
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                     }
-                    else if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B) || (ga.getGameState() == SOCGame.START3B))
+                    else if ((gstate == SOCGame.START1B) || (gstate == SOCGame.START2B) || (gstate == SOCGame.START3B))
                     {
                         SOCSettlement pp = new SOCSettlement(player, player.getLastSettlementCoord(), null);
                         ga.undoPutInitSettlement(pp);
@@ -7381,7 +7382,7 @@ public class SOCServer extends Server
 
                 case SOCPlayingPiece.CITY:
 
-                    if (ga.getGameState() == SOCGame.PLACING_CITY)
+                    if (gstate == SOCGame.PLACING_CITY)
                     {
                         ga.cancelBuildCity(pn);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
@@ -7397,7 +7398,7 @@ public class SOCServer extends Server
 
                 case SOCPlayingPiece.SHIP:
 
-                    if (ga.getGameState() == SOCGame.PLACING_SHIP)
+                    if (gstate == SOCGame.PLACING_SHIP)
                     {
                         ga.cancelBuildShip(pn);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
