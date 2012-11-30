@@ -5240,11 +5240,20 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * a player is UNbuying a road; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
+     *<P>
+     * Can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
+     * sets gameState to PLAY or PLAY1 as if the free road was placed.
      *
      * @param pn  the number of the player
      */
     public void cancelBuildRoad(int pn)
     {
+        if (gameState == PLACING_FREE_ROAD2)
+        {
+            advanceTurnStateAfterPutPiece();
+            return;  // <--- Special case: Not returning resources ---
+        }
+
         SOCResourceSet resources = players[pn].getResources();
         resources.add(1, SOCResourceConstants.CLAY);
         resources.add(1, SOCResourceConstants.WOOD);
@@ -5293,12 +5302,21 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * a player is UNbuying a ship; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
+     *<P>
+     * Can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
+     * sets gameState to PLAY or PLAY1 as if the free road was placed.
      *
      * @param pn  the number of the player
      * @since 2.0.00
      */
     public void cancelBuildShip(int pn)
     {
+        if (gameState == PLACING_FREE_ROAD2)
+        {
+            advanceTurnStateAfterPutPiece();
+            return;  // <--- Special case: Not returning resources ---
+        }
+
         SOCResourceSet resources = players[pn].getResources();
         resources.add(1, SOCResourceConstants.SHEEP);
         resources.add(1, SOCResourceConstants.WOOD);

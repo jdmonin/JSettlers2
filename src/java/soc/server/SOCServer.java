@@ -7337,11 +7337,14 @@ public class SOCServer extends Server
                 {
                 case SOCPlayingPiece.ROAD:
 
-                    if (gstate == SOCGame.PLACING_ROAD)
+                    if ((gstate == SOCGame.PLACING_ROAD) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                     {
                         ga.cancelBuildRoad(pn);
-                        messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
-                        messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        if (gstate == SOCGame.PLACING_ROAD)
+                        {
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        }
                         sendGameState(ga);
                     }
                     else
@@ -7398,11 +7401,14 @@ public class SOCServer extends Server
 
                 case SOCPlayingPiece.SHIP:
 
-                    if (gstate == SOCGame.PLACING_SHIP)
+                    if ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                     {
                         ga.cancelBuildShip(pn);
-                        messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
-                        messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        if (gstate == SOCGame.PLACING_SHIP)
+                        {
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
+                            messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        }
                         sendGameState(ga);
                     }
                     else
