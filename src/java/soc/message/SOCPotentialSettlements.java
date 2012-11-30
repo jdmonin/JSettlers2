@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2010-2012 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
-
 
 /**
  * This message contains a list of potential settlements.
@@ -80,6 +79,7 @@ public class SOCPotentialSettlements extends SOCMessage
     /**
      * Which land area number is {@link #psList} within {@link #landAreasLegalNodes}?
      * 0 if none, because the game has started.
+     * 0 if none when game starting and players can place anywhere.
      *<P>
      * Not used if {@link #areaCount} == 1.
      * @since 2.0.00
@@ -127,8 +127,12 @@ public class SOCPotentialSettlements extends SOCMessage
      * @param pn  the player number, or -1 for all players
      * @param pan  Potential settlements' land area number, or 0 if the
      *             game has started, so none of the land areas equals the
-     *             list of potential settlements.  In that case use <tt>ln[0]</tt>
+     *             list of potential settlements.  In that case use <tt>lan[0]</tt>
      *             to hold the potential settlements node list.
+     *             <P>
+     *             If the game is just starting and the player can start
+     *             anywhere (<tt>pan == 0</tt>),
+     *             then <tt>lan[0]</tt> should be <tt>null</tt>.
      * @param lan  Each land area's legal node lists.
      *             List number <tt>pan</tt> will be sent as the list of
      *             potential settlements.
@@ -136,6 +140,11 @@ public class SOCPotentialSettlements extends SOCMessage
      *            settlements, because the game has started,
      *            use index 0 for that potentials list.
      *            Otherwise index 0 is unused (<tt>null</tt>).
+     *            <P>
+     *            If the game is just starting and the player can start anywhere
+     *            (<tt>pan == 0</tt>), then <tt>lan[0]</tt> should be <tt>null</tt>,
+     *            and the {@link #getPotentialSettlements()} list will be formed by
+     *            combining <tt>lan[1] .. lan[n-1]</tt>.
      * @throws IllegalArgumentException  if <tt>ln[pan] == null</tt>,
      *            or if <tt>ln[<i>i</i>]</tt> == <tt>null</tt> for any <i>i</i> &gt; 0
      */
@@ -145,15 +154,29 @@ public class SOCPotentialSettlements extends SOCMessage
         messageType = POTENTIALSETTLEMENTS;
         game = ga;
         playerNumber = pn;
-        psList = new Vector<Integer>(lan[pan]);
+        final boolean psListFromAll = (pan == 0) && ((lan[0] == null) || lan[0].isEmpty());
+        if (! psListFromAll)
+        {
+            if (lan[pan] == null)
+                throw new IllegalArgumentException();
+            psList = new Vector<Integer>(lan[pan]);
+        } else {
+            psList = new Vector<Integer>();
+        }
         areaCount = lan.length - 1;
         landAreasLegalNodes = lan;
         startingLandArea = pan;
 
         // consistency-check land areas
+        // and (only if psListFromAll)
+        // add all nodes to psList
         for (int i = 1; i < lan.length; ++i)
+        {
             if (lan[i] == null)
                 throw new IllegalArgumentException();
+            if (psListFromAll)
+                psList.addAll(lan[i]);
+        }
         if (psList == null)
             throw new IllegalArgumentException();
     }
@@ -251,12 +274,15 @@ public class SOCPotentialSettlements extends SOCMessage
     {
         StringBuffer cmd = new StringBuffer(POTENTIALSETTLEMENTS + sep + ga + sep2 + pn);
 
-        Iterator<Integer> siter = lan[pan].iterator();
-        while (siter.hasNext())
+        if ((lan[pan] != null) && ! lan[pan].isEmpty())
         {
-            int number = siter.next().intValue();
-            cmd.append(sep2);
-            cmd.append(number);
+            Iterator<Integer> siter = lan[pan].iterator();
+            while (siter.hasNext())
+            {
+                int number = siter.next().intValue();
+                cmd.append(sep2);
+                cmd.append(number);
+            }
         }
 
         cmd.append(sep2);
