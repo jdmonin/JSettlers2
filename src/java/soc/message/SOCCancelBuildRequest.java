@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007,2010,2011 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007,2010-2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,18 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
 import java.util.StringTokenizer;
 
 /**
- *  This message type has three meanings, depending on game state and direction of send. 
+ *  This message type has four meanings, depending on game state and direction of send. 
  *<P>
  * - When sent from client to server, CANCELBUILDREQUEST means the player has changed
  *   their mind about spending resources to build a piece.  Only allowed during normal
  *   game play (PLACING_ROAD, PLACING_SETTLEMENT, or PLACING_CITY).
+ *<P>
+ * - While placing the second free road or ship {PLACING_FREE_ROAD2), means
+ *      the player has decided to skip placing the second free road or ship,
+ *      to use just one road or ship piece.
+ *      (This was added in v1.1.17)
  *<P>
  *  When sent from server to client:
  *<P>

@@ -7344,6 +7344,8 @@ public class SOCServer extends Server
                         {
                             messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
                             messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        } else {
+                            messageToGame(gaName, player.getName() + " skipped placing the second road.");
                         }
                         sendGameState(ga);
                     }
@@ -7408,6 +7410,8 @@ public class SOCServer extends Server
                         {
                             messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
                             messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                        } else {
+                            messageToGame(gaName, player.getName() + " skipped placing the second ship.");
                         }
                         sendGameState(ga);
                     }

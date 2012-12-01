@@ -28,6 +28,7 @@ new features, until 2.0.00 is ready.
 
 
     > 1.1.17 (build OV20121xxx)
+- Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece
 - If jar client can't connect to server, returns to first panel, with buttons to connect or practice
 - If try to start server in JSettlers.jar, but port already in use, show message instead of exiting immediately
 - Get Practice Game options from practice server, not from most recently started game

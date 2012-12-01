@@ -456,6 +456,14 @@ public class SOCGame implements Serializable, Cloneable
     private static final int NUM_DEVCARDS_6PLAYER = 9 + NUM_DEVCARDS_STANDARD;
 
     /**
+     * Minimum version (1.1.17) that supports canceling the second free road or ship placement.
+     * @see #cancelBuildRoad(int)
+     * @see #cancelBuildShip(int)
+     * @since 1.1.17
+     */
+    public static final int VERSION_FOR_CANCEL_FREE_ROAD2 = 1117;
+
+    /**
      * an empty set of resources.
      * @see #SETTLEMENT_SET
      */
@@ -3000,6 +3008,7 @@ public class SOCGame implements Serializable, Cloneable
      * Not for use with temporary pieces (use {@link #undoPutTempPiece(SOCPlayingPiece)} instead).
      *
      * @param pp the piece to remove from the board
+     * @see #canCancelBuildPiece(int)
      */
     public void undoPutInitSettlement(SOCPlayingPiece pp)
     {
@@ -5238,10 +5247,44 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can the current player cancel building a piece in this game state?
+     * True for each piece's normal placing state ({@link #PLACING_ROAD}, etc),
+     * and for initial settlement placement.
+     * In v1.1.17+, also true in {@link #PLACING_FREE_ROAD2} to skip the second placement.
+     *
+     * @param buildType  Piece type ({@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#CITY CITY}, etc)
+     * @return  true if current game state allows it
+     * @see #cancelBuildRoad(int)
+     * @since 1.1.17
+     */
+    public boolean canCancelBuildPiece(final int buildType)
+    {
+        switch (buildType)
+        {
+        case SOCPlayingPiece.SETTLEMENT:
+            return (gameState == PLACING_SETTLEMENT) || (gameState == START1B)
+                || (gameState == START2B) || (gameState == START3B);
+
+        case SOCPlayingPiece.ROAD:
+            return (gameState == PLACING_ROAD) || (gameState == PLACING_FREE_ROAD2);
+
+        case SOCPlayingPiece.CITY:
+            return (gameState == PLACING_CITY);
+
+        case SOCPlayingPiece.SHIP:
+            return (gameState == PLACING_SHIP) || (gameState == PLACING_FREE_ROAD2);
+
+        default:
+            return false;
+        }
+    }
+
+    /**
      * a player is UNbuying a road; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
      *<P>
-     * Can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
+     * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
+     * can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
      * sets gameState to PLAY or PLAY1 as if the free road was placed.
      *
      * @param pn  the number of the player
@@ -5266,6 +5309,8 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * a player is UNbuying a settlement; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
+     *<P>
+     * To cancel an initial settlement, call {@link #undoPutInitSettlement(SOCPlayingPiece)} instead.
      *
      * @param pn  the number of the player
      */
@@ -5303,8 +5348,9 @@ public class SOCGame implements Serializable, Cloneable
      * a player is UNbuying a ship; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
      *<P>
-     * Can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
-     * sets gameState to PLAY or PLAY1 as if the free road was placed.
+     * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
+     * can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2};
+     * sets gameState to PLAY or PLAY1 as if the free ship was placed.
      *
      * @param pn  the number of the player
      * @since 2.0.00

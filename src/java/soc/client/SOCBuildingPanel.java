@@ -694,7 +694,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             boolean currentCanBuy = (! isDebugFreePlacement)
                 && game.canBuyOrAskSpecialBuild(pnum);
 
-            if (isCurrent && (gstate == SOCGame.PLACING_ROAD))
+            if (isCurrent && ((gstate == SOCGame.PLACING_ROAD)
+                    || ((gstate == SOCGame.PLACING_FREE_ROAD2)
+                        && (game.isPractice
+                            || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
             {
                 roadBut.setEnabled(true);
                 roadBut.setLabel("Cancel");
@@ -757,10 +760,11 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
             if (shipBut != null)
             {
-                if (isCurrent && (gstate == SOCGame.PLACING_SHIP))
+                if (isCurrent && ((gstate == SOCGame.PLACING_SHIP) || (gstate == SOCGame.PLACING_FREE_ROAD2)))
                 {
                     shipBut.setEnabled(true);
                     shipBut.setLabel("Cancel");
+                    // ships were added after VERSION_FOR_CANCEL_FREE_ROAD2, so no need to check server version
                 }
                 else if (game.couldBuildShip(pnum))
                 {

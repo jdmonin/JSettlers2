@@ -6469,7 +6469,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               buildShipItem.setEnabled(false);
               buildShipItem.setLabel("Build Ship");
           }
-          cancelBuildItem.setEnabled(menuPlayerIsCurrent);
+          cancelBuildItem.setEnabled(menuPlayerIsCurrent && game.canCancelBuildPiece(buildType));
 
           // Check for initial placement (for different cancel message)
           isInitialPlacement = game.isInitialPlacement();
@@ -6588,7 +6588,23 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                       cancelBuildType = SOCPlayingPiece.SETTLEMENT;
                   }
                   break;
-              
+
+              case SOCGame.PLACING_FREE_ROAD2:
+                  if (game.isPractice || (playerInterface.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))
+                  {
+                      cancelBuildItem.setEnabled(true);
+                      cancelBuildItem.setLabel("Skip road or ship");
+                  }
+                  // Fall through to enable/disable building menu items
+
+              case SOCGame.PLACING_FREE_ROAD1:
+                  buildRoadItem.setEnabled(hR != 0);
+                  buildSettleItem.setEnabled(false);
+                  upgradeCityItem.setEnabled(false);
+                  if (buildShipItem != null)
+                      buildShipItem.setEnabled(hSh != 0);
+                  break;
+
               default:
                   if (gs < SOCGame.PLAY1)
                       menuPlayerIsCurrent = false;  // Not in a state to place items
