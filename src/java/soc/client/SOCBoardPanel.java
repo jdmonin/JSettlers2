@@ -6352,6 +6352,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * This class creates a popup menu on the board,
      * to trade or build or cancel building.
+     *<P>
+     * {@link BoardPopupMenu#actionPerformed(ActionEvent)} usually calls
+     * {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)}
+     * to send messages to the server.
      */
     private class BoardPopupMenu extends PopupMenu
         implements java.awt.event.ActionListener
@@ -6370,6 +6374,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       /**
        * Menu item to cancel a build as we're placing it,
        * or to cancel moving a ship.
+       * Piece type to cancel is {@link #cancelBuildType}.
        */
       MenuItem cancelBuildItem;
 
@@ -6385,6 +6390,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       /** determined at menu-show time */
       private boolean wantsCancel;
 
+      /** If allow cancel, type of building piece ({@link SOCPlayingPiece#ROAD}, SETTLEMENT, ...) to cancel */
       private int cancelBuildType;
 
       /** hover road edge ID, or 0, at menu-show time */

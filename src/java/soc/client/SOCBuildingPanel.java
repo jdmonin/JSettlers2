@@ -569,6 +569,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
     /** Handle a click (Buy or Cancel) on a building-panel button.
      * Assumes client is currently allowed to build, and sends request to server.
+     * {@link SOCBoardPanel.BoardPopupMenu} also calls this method.
      *
      * @param game   The game, for status
      * @param target Button clicked, as returned by ActionEvent.getActionCommand
