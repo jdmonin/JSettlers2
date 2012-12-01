@@ -36,6 +36,7 @@ new features, until 2.0.00 is ready.
 - When player leaves game, don't send hostname to all players
 - Server DB setup script: Ignore net errors when running script and exiting
 - If server DB is empty, use default parameters for all bots
+- Debug commands: dev cards: Send card type numbers with help message
 - Server constructors: throw exceptions instead of System.exit
 
     > 1.1.16 (build OV20121027)
