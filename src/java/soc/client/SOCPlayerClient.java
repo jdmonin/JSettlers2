@@ -734,6 +734,8 @@ public class SOCPlayerClient extends Panel
      */
     public void connect(String chost, int cport, String cuser, String cpass)
     {
+        nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
+        pass.setEditable(true);
         nick.setText(cuser);
         pass.setText(cpass);
         cardLayout.show(this, MESSAGE_PANEL);
