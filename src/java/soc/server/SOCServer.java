@@ -7710,6 +7710,8 @@ public class SOCServer extends Server
 
                 default:
                     D.ebugPrintln("* SOCServer.handlePLAYDEVCARDREQUEST: asked to play unhandled type " + mes.getDevCard());
+                    // debug prints dev card type from client, not ctype,
+                    // in case ctype was changed here from message value.
 
                 }
             }

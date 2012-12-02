@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -25,6 +25,10 @@ import java.util.StringTokenizer;
 
 /**
  * This message means that a player wants to play a development card
+ *<P>
+ * Note that in v2.0.00, the {@link #getDevCard()} value for <tt>SOCDevCardConstants.KNIGHT</tt>
+ * was changed.  This class doesn't handle the translation from old clients
+ * (<tt>SOCDevCardConstants.KNIGHT_FOR_VERS_1_X</tt>), the caller must do so.
  *
  * @author Robert S. Thomas
  */
@@ -63,7 +67,10 @@ public class SOCPlayDevCardRequest extends SOCMessage
     }
 
     /**
-     * @return the type of dev card
+     * @return the type of dev card <BR>
+     * Note that in v2.0.00, the value for <tt>SOCDevCardConstants.KNIGHT</tt>
+     * was changed.  This class doesn't handle the translation from old clients
+     * (<tt>SOCDevCardConstants.KNIGHT_FOR_VERS_1_X</tt>), the caller must do so.
      */
     public int getDevCard()
     {
