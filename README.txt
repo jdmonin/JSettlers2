@@ -12,8 +12,8 @@ The client may be run as a Java application, or as an applet when
 accessed from a web site which also hosts a JSettlers server.
 
 The server may be configured to use a database to store account
-information (details below).  A client applet to create user accounts
-is also provided.
+information and game stats (details below).  A client applet to
+create user accounts is also provided.
 
 JSettlers is an open-source project licensed under the GPL. The
 project is hosted at http://sourceforge.net/projects/jsettlers2
@@ -113,6 +113,9 @@ This will start 6 robots on the server.
 The started robots count against your max connections (15 in this example).
 If the robots leave less than 6 player connections available, or if they take
 more than half the max connections, a warning message is printed at startup.
+
+To have all games' results stored in the database, use this option:
+  -Djsettlers.db.save.games=Y
 
 To see a list of all jsettlers options (use them with -D), run:
   java -jar JSettlersServer.jar --help
