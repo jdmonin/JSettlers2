@@ -27,7 +27,10 @@ import soc.game.SOCDevCardConstants;  // for javadoc's use
 /**
  * This message from the server means that a player is
  * {@link #DRAW drawing} or {@link #PLAY playing}
- * a development card
+ * a development card; response to {@link SOCPlayDevCardRequest}.
+ *<P>
+ * If a robot asks to play a dev card that they can't right now,
+ * the server sends that bot DEVCARD(-1, {@link #CANNOT_PLAY}, cardtype).
  *
  * @author Robert S Thomas
  */
@@ -42,6 +45,13 @@ public class SOCDevCard extends SOCMessage
     public static final int ADDNEW = 2;
     /** dev card action ADDOLD: Add as old to player's hand */
     public static final int ADDOLD = 3;
+
+    /**
+     * dev card action CANNOT_PLAY: The bot can't play the requested card at this time.
+     * This is sent only to the requesting robot, so playerNumber is always -1 in this message.
+     * @since 1.1.17
+     */
+    public static final int CANNOT_PLAY = 4;
 
     /**
      * Name of game
@@ -67,7 +77,7 @@ public class SOCDevCard extends SOCMessage
      * Create a DevCard message.
      *
      * @param ga  name of the game
-     * @param pn  the player number
+     * @param pn  the player number, or -1 for {@link #CANNOT_PLAY}
      * @param ac  the type of action
      * @param ct  the type of card, like {@link SOCDevCardConstants#ROADS}
      */
@@ -89,7 +99,7 @@ public class SOCDevCard extends SOCMessage
     }
 
     /**
-     * @return the player number
+     * @return the player number, or -1 for action type {@link #CANNOT_PLAY}
      */
     public int getPlayerNumber()
     {

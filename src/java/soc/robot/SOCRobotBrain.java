@@ -445,6 +445,10 @@ public class SOCRobotBrain extends Thread
      * true if we're waiting for a GAMESTATE message from the server.
      * This is set after a robot action or requested action is sent to server,
      * or just before ending our turn (which also sets {@link #waitingForOurTurn} == true).
+     *<P>
+     * For example, when playing a {@link SOCDevCard}, set true and also set
+     * an "expect" flag ({@link #expectPLACING_ROBBER}, {@link #expectWAITING_FOR_DISCOVERY}, etc).
+     * @see #rejectedPlayDevCardType
      */
     protected boolean waitingForGameState;
 
@@ -486,6 +490,15 @@ public class SOCRobotBrain extends Thread
      * true if the player with that player number has rejected our offer
      */
     protected boolean[] offerRejections;
+
+    /**
+     * If set, the server rejected our play of this dev card type this turn
+     * (such as {@link SOCDevCardConstants#KNIGHT}) because of a bug in our
+     * robot; should not attempt to play the same type again this turn.
+     * Otherwise -1.
+     * @since 1.1.17
+     */
+    private int rejectedPlayDevCardType;
 
     /**
      * the game state before the current one
@@ -847,6 +860,8 @@ public class SOCRobotBrain extends Thread
                 + ": gs=" + game.getGameState());
         if (game.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
             System.err.println("  bot card count = " + ourPlayerData.getResources().getTotal());
+        if (rejectedPlayDevCardType != -1)
+            System.err.println("  rejectedPlayDevCardType = " + rejectedPlayDevCardType);
         final String[] s = {
             "ourTurn", "doneTrading",
             "waitingForGameState", "waitingForOurTurn", "waitingForTradeMsg", "waitingForDevCard", "waitingForTradeResponse",
@@ -1117,6 +1132,7 @@ public class SOCRobotBrain extends Thread
                         // For others, find the code which calls game.updateAtTurn().
                         whatWeFailedToBuild = null;
                         failedBuildingAttempts = 0;
+                        rejectedPlayDevCardType = -1;
                     }
 
                     /**
@@ -1242,7 +1258,21 @@ public class SOCRobotBrain extends Thread
                         break;
 
                     case SOCMessage.DEVCARD:
-                        handleDEVCARD((SOCDevCard) mes);
+                        {
+                            SOCDevCard dcMes = (SOCDevCard) mes;
+                            if (dcMes.getAction() != SOCDevCard.CANNOT_PLAY)
+                            {
+                                handleDEVCARD(dcMes);
+                            } else {
+                                // rejected by server, can't play our requested card
+                                rejectedPlayDevCardType = mes.getType();
+                                waitingForGameState = false;
+                                expectPLACING_FREE_ROAD1 = false;
+                                expectWAITING_FOR_DISCOVERY = false;
+                                expectWAITING_FOR_MONOPOLY = false;
+                                expectPLACING_ROBBER = false;
+                            }
+                        }
                         break;
 
                     case SOCMessage.SETPLAYEDDEVCARD:
@@ -1469,7 +1499,12 @@ public class SOCRobotBrain extends Thread
                                             larmySize = laPlayer.getNumKnights() + 1;
                                         }
 
-                                        if (((ourPlayerData.getNumKnights() + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT) + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT)) >= larmySize) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0))
+                                        if ( ((ourPlayerData.getNumKnights()
+                                              + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
+                                              + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
+                                              >= larmySize)
+                                            && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0)
+                                            && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
                                         {
                                             /**
                                              * play a knight card
@@ -2062,6 +2097,7 @@ public class SOCRobotBrain extends Thread
                  * is on one of our numbers, play the knight card
                  */
                 if ((ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0)
+                    && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT)
                     && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
                 {
                     expectPLACING_ROBBER = true;
@@ -2142,7 +2178,9 @@ public class SOCRobotBrain extends Thread
 
         if (gameStatePLAY1
             && (! ourPlayerData.hasPlayedDevCard())
-            && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0))
+            && (ourPlayerData.getNumPieces(SOCPlayingPiece.ROAD) >= 2)
+            && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.ROADS) > 0)
+            && (rejectedPlayDevCardType != SOCDevCardConstants.ROADS))
         {
             //D.ebugPrintln("** Checking for Road Building Plan **");
             SOCPossiblePiece topPiece = buildingPlan.pop();
@@ -2207,7 +2245,10 @@ public class SOCRobotBrain extends Thread
             /// if we have a 2 free resources card and we need
             /// at least 2 resources, play the card
             ///
-            if (gameStatePLAY1 && (! ourPlayerData.hasPlayedDevCard()) && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) > 0))
+            if (gameStatePLAY1
+                && (! ourPlayerData.hasPlayedDevCard())
+                && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.DISC) > 0)
+                && (rejectedPlayDevCardType != SOCDevCardConstants.DISC))
             {
                 if (chooseFreeResourcesIfNeeded(targetResources, 2, false))
                 {
@@ -2231,6 +2272,7 @@ public class SOCRobotBrain extends Thread
                 if (gameStatePLAY1
                     && (! ourPlayerData.hasPlayedDevCard())
                     && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.MONO) > 0)
+                    && (rejectedPlayDevCardType != SOCDevCardConstants.MONO)
                     && monopolyStrategy.decidePlayMonopoly())
                 {
                     ///
