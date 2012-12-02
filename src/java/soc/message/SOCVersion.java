@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2008-2009 Jeremy D. Monin <jeremy@nand.net>
+ * This file Copyright (C) 2008-2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 /**
  * This message sends the server's or client's version to the other side of the
  * connection.  VERSION is the first message sent from client to server.
+ * The server also sends its version to the client early, not in response to client's VERSION message.
  * Version numbers are read via {@link soc.util.Version}.
  *<P>
  * Before 1.1.06, in SOCPlayerClient, was sent first from server to client, then client responds.
