@@ -6770,6 +6770,8 @@ public class SOCServer extends Server
                 try
                 {
                     final String gaName = ga.getName();
+                    String denyText = null;  // if player can't play right now, send this
+
                     if (checkTurn(c, ga))
                     {
                         SOCPlayer player = ga.getPlayer((String) c.getData());
@@ -6792,7 +6794,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                messageToPlayer(c, gaName, "You can't play a Soldier card now.");
+                                denyText = "You can't play a Soldier card now.";
                             }
 
                             break;
@@ -6819,7 +6821,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                messageToPlayer(c, gaName, "You can't play a Road Building card now.");
+                                denyText = "You can't play a Road Building card now.";
                             }
 
                             break;
@@ -6838,7 +6840,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                messageToPlayer(c, gaName, "You can't play a Year of Plenty card now.");
+                                denyText = "You can't play a Year of Plenty card now.";
                             }
 
                             break;
@@ -6857,7 +6859,7 @@ public class SOCServer extends Server
                             }
                             else
                             {
-                                messageToPlayer(c, gaName, "You can't play a Monopoly card now.");
+                                denyText = "You can't play a Monopoly card now.";
                             }
 
                             break;
@@ -6870,13 +6872,23 @@ public class SOCServer extends Server
                         //  break;
 
                         default:
+                            denyText = "That card type is unknown.";
                             D.ebugPrintln("* SOCServer.handlePLAYDEVCARDREQUEST: asked to play unhandled type " + mes.getDevCard());
 
                         }
                     }
                     else
                     {
-                        messageToPlayer(c, gaName, "It's not your turn.");
+                        denyText = "It's not your turn.";
+                    }
+
+                    if (denyText != null)
+                    {
+                        final SOCClientData scd = (SOCClientData) c.getAppData();
+                        if ((scd == null) || ! scd.isRobot)
+                            messageToPlayer(c, gaName, denyText);
+                        else
+                            messageToPlayer(c, new SOCDevCard(gaName, -1, SOCDevCard.CANNOT_PLAY, mes.getDevCard()));
                     }
                 }
                 catch (Exception e)
