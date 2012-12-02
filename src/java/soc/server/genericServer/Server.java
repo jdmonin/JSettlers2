@@ -116,12 +116,12 @@ public abstract class Server extends Thread implements Serializable, Cloneable
     /** the named connections */
     protected Hashtable<Object, StringConnection> conns = new Hashtable<Object, StringConnection>();
 
-    /** the newly connected, unnamed connections.
+    /** the newly connected, unnamed client connections;
      *  Adding/removing/naming/versioning of connections synchronizes on this Vector.
      */
     protected Vector<StringConnection> unnamedConns = new Vector<StringConnection>();
 
-    /** clients in process of connecting */
+    /** command messages from clients for {@link #treat(String, StringConnection)} */
     public Vector<Command> inQueue = new Vector<Command>();
 
     /**
@@ -1080,8 +1080,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                     if (inQueue.size() > 0)
                     {
                         //D.ebugPrintln("treater getting command");
-                        c = inQueue.elementAt(0);
-                        inQueue.removeElementAt(0);
+                        c = inQueue.remove(0);
                     }
                 }
 
@@ -1110,7 +1109,7 @@ public abstract class Server extends Thread implements Serializable, Cloneable
                         }
                         catch (Exception ex)
                         {
-                            ;
+                            ;   // catch InterruptedException from inQueue.notify() in treat(...)
                         }
                     }
                 }

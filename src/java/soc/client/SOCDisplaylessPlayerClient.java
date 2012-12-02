@@ -251,9 +251,12 @@ public class SOCDisplaylessPlayerClient implements Runnable
         try
         {
             if (sLocal == null)
+            {
                 out.writeUTF(s);
-            else
+                out.flush();
+            } else {
                 sLocal.put(s);
+            }
         }
         catch (InterruptedIOException x)
         {

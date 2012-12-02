@@ -1313,6 +1313,7 @@ public class SOCPlayerClient extends Panel
                 : SOCJoinGame.toCmd(nickname, password, net.getHost(), gmName);
             System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
             net.putNet(askMsg);
+            System.out.flush();  // for debug print output (temporary)
             status.setText("Talking to server...");
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         }
@@ -5375,6 +5376,7 @@ public class SOCPlayerClient extends Panel
             try
             {
                 out.writeUTF(s);
+                out.flush();
             }
             catch (IOException e)
             {
