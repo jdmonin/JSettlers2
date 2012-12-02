@@ -398,6 +398,13 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
+             * server's version message
+             */
+            case SOCMessage.VERSION:
+                super.treat(mes);
+                break;
+
+            /**
              * server ping
              */
             case SOCMessage.SERVERPING:
