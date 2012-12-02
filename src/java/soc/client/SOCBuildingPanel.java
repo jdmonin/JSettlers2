@@ -399,6 +399,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     
     /** Handle a click (Buy or Cancel) on a building-panel button.
      * Assumes client is currently allowed to build, and sends request to server.
+     * {@link SOCBoardPanel.BoardPopupMenu} also calls this method.
      *
      * @param game   The game, for status
      * @param client The client, for sending build or cancel request
@@ -509,7 +510,10 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             boolean currentCanBuy = (! isDebugFreePlacement)
                 && game.canBuyOrAskSpecialBuild(pnum);
 
-            if (isCurrent && (gstate == SOCGame.PLACING_ROAD))
+            if (isCurrent && ((gstate == SOCGame.PLACING_ROAD)
+                    || ((gstate == SOCGame.PLACING_FREE_ROAD2)
+                        && (game.isPractice
+                            || pi.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))))
             {
                 roadBut.setEnabled(true);
                 roadBut.setLabel("Cancel");

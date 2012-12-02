@@ -6560,11 +6560,16 @@ public class SOCServer extends Server
                         {
                         case SOCPlayingPiece.ROAD:
 
-                            if (gstate == SOCGame.PLACING_ROAD)
+                            if ((gstate == SOCGame.PLACING_ROAD) || (gstate == SOCGame.PLACING_FREE_ROAD2))
                             {
                                 ga.cancelBuildRoad(pn);
-                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
-                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                if (gstate == SOCGame.PLACING_ROAD)
+                                {
+                                    messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                                    messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                } else {
+                                    messageToGame(gaName, player.getName() + " skipped placing the second road.");
+                                }
                                 sendGameState(ga);
                             }
                             else

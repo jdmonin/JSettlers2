@@ -4877,6 +4877,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * This class creates a popup menu on the board,
      * to trade or build or cancel building.
+     *<P>
+     * {@link BoardPopupMenu#actionPerformed(ActionEvent)} usually calls
+     * {@link SOCBuildingPanel#clickBuildingButton(SOCGame, SOCPlayerClient, String, boolean)}
+     * to send messages to the server.
      */
     private class BoardPopupMenu extends PopupMenu
         implements java.awt.event.ActionListener
@@ -4885,6 +4889,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       SOCBoardPanel bp;
 
       MenuItem buildRoadItem, buildSettleItem, upgradeCityItem;
+
+      /**
+       * Menu item to cancel a build as we're placing it,
+       * or to cancel moving a ship.
+       * Piece type to cancel is {@link #cancelBuildType}.
+       */
       MenuItem cancelBuildItem;
 
       /** determined at menu-show time, only over a useable port. Added then, and removed at next menu-show */
@@ -4899,6 +4909,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       /** determined at menu-show time */
       private boolean wantsCancel;
 
+      /** If allow cancel, type of building piece ({@link SOCPlayingPiece#ROAD}, SETTLEMENT, ...) to cancel */
       private int cancelBuildType;
 
       /** hover road ID, or 0, at menu-show time */
@@ -4956,7 +4967,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           buildRoadItem.setEnabled(false);
           buildSettleItem.setEnabled(false);
           upgradeCityItem.setEnabled(false);
-          cancelBuildItem.setEnabled(menuPlayerIsCurrent);
+          cancelBuildItem.setEnabled(menuPlayerIsCurrent && game.canCancelBuildPiece(buildType));
 
           // Check for initial placement (for different cancel message)
           isInitialPlacement = game.isInitialPlacement();
@@ -5057,7 +5068,21 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                       cancelBuildType = SOCPlayingPiece.SETTLEMENT;
                   }
                   break;
-              
+
+              case SOCGame.PLACING_FREE_ROAD2:
+                  if (game.isPractice || (playerInterface.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))
+                  {
+                      cancelBuildItem.setEnabled(true);
+                      cancelBuildItem.setLabel("Skip road or ship");
+                  }
+                  // Fall through to enable/disable building menu items
+
+              case SOCGame.PLACING_FREE_ROAD1:
+                  buildRoadItem.setEnabled(hR != 0);
+                  buildSettleItem.setEnabled(false);
+                  upgradeCityItem.setEnabled(false);
+                  break;
+
               default:
                   if (gs < SOCGame.PLAY1)
                       menuPlayerIsCurrent = false;  // Not in a state to place items
