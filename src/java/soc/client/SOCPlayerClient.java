@@ -1316,6 +1316,8 @@ public class SOCPlayerClient extends Panel
             System.out.flush();  // for debug print output (temporary)
             status.setText("Talking to server...");
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            System.err.println("L1320 askStartGameWithOptions done at " + System.currentTimeMillis());
+            System.err.println("      sent: " + net.lastMessage_N);
         }
     }
 

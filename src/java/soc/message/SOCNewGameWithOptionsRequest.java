@@ -165,6 +165,8 @@ public class SOCNewGameWithOptionsRequest extends SOCMessageTemplateJoinGame
         }
         catch (Exception e)
         {
+            System.err.println("L168 NGWOR.parseDataStr failed for \"" + s + "\": " + e);
+            e.printStackTrace();
             return null;
         }
 
