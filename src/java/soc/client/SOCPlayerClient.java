@@ -1311,6 +1311,7 @@ public class SOCPlayerClient extends Panel
                 (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
                 ? SOCNewGameWithOptionsRequest.toCmd(nickname, password, net.getHost(), gmName, opts)
                 : SOCJoinGame.toCmd(nickname, password, net.getHost(), gmName);
+            System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
             net.putNet(askMsg);
             status.setText("Talking to server...");
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -2041,6 +2042,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isPractice)
     {
+        System.err.println("L2045 statusmsg at " + System.currentTimeMillis());
         final String statusText = mes.getStatus();
         status.setText(statusText);
 
@@ -2286,6 +2288,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
     {
+        System.err.println("L2299 joingameauth at " + System.currentTimeMillis());
         nick.setEditable(false);
         pass.setEditable(false);
         pass.setText("");
@@ -2314,16 +2317,20 @@ public class SOCPlayerClient extends Panel
             else
                 gameOpts = null;
         }
+        System.err.println("L2318 past opts at " + System.currentTimeMillis());
 
         SOCGame ga = new SOCGame(gaName, gameOpts);
         if (ga != null)
         {
             ga.isPractice = isPractice;
             SOCPlayerInterface pi = new SOCPlayerInterface(gaName, SOCPlayerClient.this, ga);
+            System.err.println("L2325 new pi at " + System.currentTimeMillis());
             pi.setVisible(true);
+            System.err.println("L2328 visible at " + System.currentTimeMillis());
             playerInterfaces.put(gaName, pi);
             games.put(gaName, ga);
         }
+        System.err.println("L2332 handlejoin done at " + System.currentTimeMillis());
     }
 
     /**
@@ -2551,6 +2558,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleBOARDLAYOUT(SOCBoardLayout mes)
     {
+        System.err.println("L2561 boardlayout at " + System.currentTimeMillis());
         SOCGame ga = games.get(mes.getGame());
 
         if (ga != null)
@@ -2591,6 +2599,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleBOARDLAYOUT2(SOCBoardLayout2 mes)
     {
+        System.err.println("L2602 boardlayout2 at " + System.currentTimeMillis());
         SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
@@ -3282,6 +3291,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handlePOTENTIALSETTLEMENTS(SOCPotentialSettlements mes)
     {
+        System.err.println("L3292 potentialsettles at " + System.currentTimeMillis());
         SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, games);
 
         SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
@@ -3597,6 +3607,7 @@ public class SOCPlayerClient extends Panel
      */
     private void handleNEWGAMEWITHOPTIONS(SOCNewGameWithOptions mes, final boolean isPractice)
     {
+        System.err.println("L3609 newgamewithopts at " + System.currentTimeMillis());
         String gname = mes.getGame();
         String opts = mes.getOptionsString();
         boolean canJoin = (mes.getMinVersion() <= Version.versionNumber());

@@ -4882,6 +4882,7 @@ public class SOCServer extends Server
         (StringConnection c, final String msgUser, String msgPass,
          final String gameName, Hashtable<String, SOCGameOption> gameOpts)
     {
+        System.err.println("L4885 createOrJoinGameIfUserOK at " + System.currentTimeMillis());
         if (msgPass != null)
             msgPass = msgPass.trim();
 
@@ -4905,6 +4906,7 @@ public class SOCServer extends Server
              * whether a new replacement connection can "take over" the existing one.
              */
             final int nameTimeout = checkNickname(msgUser, c, (msgPass != null) && (msgPass.trim().length() > 0));
+            System.err.println("L4910 past checkNickname at " + System.currentTimeMillis());
 
             if (nameTimeout == -1)
             {
@@ -4959,6 +4961,7 @@ public class SOCServer extends Server
 
             return;  // <---- Early return ----
         }
+        System.err.println("L4965 past user,pw check at " + System.currentTimeMillis());
 
         /**
          * Now that everything's validated, name this connection/user/player.
@@ -4991,6 +4994,7 @@ public class SOCServer extends Server
          * Validate them and ensure the game doesn't already exist.
          * For SOCScenarios, adjustOptionsToKnown will recognize game opt "SC".
          */
+        System.err.println("L4965 game opts check at " + System.currentTimeMillis());
         if (gameOpts != null)
         {
             if (gameList.isGame(gameName))
@@ -5026,6 +5030,7 @@ public class SOCServer extends Server
          *<P>
          * If rejoining after a lost connection, first rejoin all their other games.
          */
+        System.err.println("L5034 ready connectToGame at " + System.currentTimeMillis());
         try
         {
             if (isTakingOver)
@@ -5056,12 +5061,14 @@ public class SOCServer extends Server
                  * send the entire state of the game to client,
                  * send client join event to other players of game
                  */
+                System.err.println("L5065 past connectToGame at " + System.currentTimeMillis());
                 SOCGame gameData = gameList.getGameData(gameName);
 
                 if (gameData != null)
                 {
                     joinGame(gameData, c, false, false);
                 }
+                System.err.println("L5072 past joinGame at " + System.currentTimeMillis());
             }
         } catch (SOCGameOptionVersionException e)
         {
@@ -5088,6 +5095,7 @@ public class SOCServer extends Server
                     + ": " + gameName));
             }
         }
+        System.err.println("L5099 done createOrJoinGameIfUserOK at " + System.currentTimeMillis());
 
     }  //  createOrJoinGameIfUserOK
 
