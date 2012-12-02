@@ -770,7 +770,6 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
     /**
      * Handle the "version" message, server's version report.
-     * Reply with client's version.
      *<P>
      * Because SOCDisplaylessPlayerClient is used only for the
      * robot, and the robot should always be the same version as
@@ -793,8 +792,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         // TODO check for minimum,maximum
 
-        // Reply with our own version.
-        put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+        // Clients v1.1.07 and later send SOCVersion right away at connect,
+        // so no need to reply here with our client version.
 
         // Don't check for game options different at version, unlike SOCPlayerClient.handleVERSION.
     }
