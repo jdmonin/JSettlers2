@@ -877,13 +877,13 @@ public class SOCDBHelper
     }
 
     /**
-     * DOCUMENT ME!
+     * Get this robot's specialized parameters from the database, if it has an entry there.
      *
-     * @param robotName DOCUMENT ME!
+     * @param robotName Name of robot for db lookup
      *
-     * @return null if robotName not in database
+     * @return null if robotName not in database, or if db is empty and robotparams table doesn't exist
      *
-     * @throws SQLException DOCUMENT ME!
+     * @throws SQLException if unexpected problem retrieving the params
      */
     public static SOCRobotParameters retrieveRobotParams(String robotName) throws SQLException
     {
@@ -892,6 +892,9 @@ public class SOCDBHelper
         // ensure that the JDBC connection is still valid
         if (checkConnection())
         {
+            if (robotParamsQuery == null)
+                return null;  // <--- Early return: Table not found in db, is probably empty ---
+
             try
             {
                 // fill in the data values to the Prepared statement
