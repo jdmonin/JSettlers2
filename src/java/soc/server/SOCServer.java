@@ -6552,17 +6552,19 @@ public class SOCServer extends Server
                     final String gaName = ga.getName();
                     if (checkTurn(c, ga))
                     {
-                        SOCPlayer player = ga.getPlayer((String) c.getData());
+                        final SOCPlayer player = ga.getPlayer((String) c.getData());
+                        final int pn = player.getPlayerNumber();
+                        final int gstate = ga.getGameState();
 
                         switch (mes.getPieceType())
                         {
                         case SOCPlayingPiece.ROAD:
 
-                            if (ga.getGameState() == SOCGame.PLACING_ROAD)
+                            if (gstate == SOCGame.PLACING_ROAD)
                             {
-                                ga.cancelBuildRoad(player.getPlayerNumber());
-                                messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
-                                messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                ga.cancelBuildRoad(pn);
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                                 sendGameState(ga);
                             }
                             else
@@ -6574,18 +6576,18 @@ public class SOCServer extends Server
 
                         case SOCPlayingPiece.SETTLEMENT:
 
-                            if (ga.getGameState() == SOCGame.PLACING_SETTLEMENT)
+                            if (gstate == SOCGame.PLACING_SETTLEMENT)
                             {
-                                ga.cancelBuildSettlement(player.getPlayerNumber());
+                                ga.cancelBuildSettlement(pn);
                                 gameList.takeMonitorForGame(gaName);
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1));
-                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 1));
+                                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                                 gameList.releaseMonitorForGame(gaName);
                                 sendGameState(ga);
                             }
-                            else if ((ga.getGameState() == SOCGame.START1B) || (ga.getGameState() == SOCGame.START2B))
+                            else if ((gstate == SOCGame.START1B) || (gstate == SOCGame.START2B))
                             {
                                 SOCSettlement pp = new SOCSettlement(player, player.getLastSettlementCoord(), null);
                                 ga.undoPutInitSettlement(pp);
@@ -6603,11 +6605,11 @@ public class SOCServer extends Server
 
                         case SOCPlayingPiece.CITY:
 
-                            if (ga.getGameState() == SOCGame.PLACING_CITY)
+                            if (gstate == SOCGame.PLACING_CITY)
                             {
-                                ga.cancelBuildCity(player.getPlayerNumber());
-                                messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
-                                messageToGame(gaName, new SOCPlayerElement(gaName, player.getPlayerNumber(), SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
+                                ga.cancelBuildCity(pn);
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.ORE, 3));
+                                messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WHEAT, 2));
                                 sendGameState(ga);
                             }
                             else
