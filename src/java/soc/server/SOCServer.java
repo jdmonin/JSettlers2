@@ -3495,6 +3495,7 @@ public class SOCServer extends Server
      * Used by {@link #processDebugCommand(StringConnection, String, String)}}
      * when *HELP* is requested.
      * @since 1.1.07
+     * @see #DEBUG_COMMANDS_HELP_DEV_TYPES
      */
     public static final String[] DEBUG_COMMANDS_HELP =
         {
@@ -3528,6 +3529,14 @@ public class SOCServer extends Server
         "7 temple",
         "8 chapel"
         };
+
+    /**
+     * Debug help: 1-line summary of dev card types, from {@link SOCDevCardConstants}.
+     * @see #DEBUG_COMMANDS_HELP
+     * @since 1.1.17
+     */
+    private static final String DEBUG_COMMANDS_HELP_DEV_TYPES =
+        "### 0:soldier  1:road  2:year of plenty  3:mono  4:gov  5:market  6:univ  7:temple  8:chapel";
 
     /**
      * Process a debug command, sent by the "debug" client/player.
@@ -9229,6 +9238,7 @@ public class SOCServer extends Server
     /** this is a debugging command that gives a dev card to a player.
      *  <PRE> dev: cardtype player </PRE>
      *  For card-types numbers, see {@link SOCDevCardConstants}
+     *  or {@link #DEBUG_COMMANDS_HELP_DEV_TYPES}.
      */
     protected void giveDevCard(StringConnection c, String mes, SOCGame game)
     {
@@ -9253,7 +9263,7 @@ public class SOCServer extends Server
             }
             else
             {
-                // get all the of the line, in case there's a space in the player name ("robot 7"),
+                // get all of the line, in case there's a space in the player name ("robot 7"),
                 //  by choosing an unlikely separator character
                 name = st.nextToken(Character.toString( (char) 1 )).trim();
                 break;
@@ -9263,14 +9273,21 @@ public class SOCServer extends Server
         final SOCPlayer pl = game.getPlayer(name);
         if ((pl == null) && ! parseError)
         {
-            messageToPlayer(c, game.getName(), "### dev: Player name not found: " + name);
-            parseError = true;
+            if (name.length() > 0)
+            {
+                messageToPlayer(c, game.getName(), "### dev: Player name not found: " + name);
+                return;  // <--- early return ---
+            } else {
+                parseError = true;
+            }
         }
         if (parseError)
         {
             messageToPlayer(c, game.getName(), "### Usage: " + DEBUG_COMMANDS_HELP_DEV);
+            messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_DEV_TYPES);
             return;  // <--- early return ---
         }
+
         SOCDevCardSet dcSet = pl.getDevCards();
         dcSet.add(1, SOCDevCardSet.NEW, cardType);
 
