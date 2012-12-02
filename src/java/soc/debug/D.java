@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009 Jeremy D. Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.debug;
 
@@ -125,10 +125,21 @@ public class D
             } catch (Throwable th)
             {
                 ex = th;
-            }            
+            }
         }
         if (prefixMsg != null)
-            ebugPrintln(prefixMsg + " - " + ex.toString());
+        {
+            StringBuffer sb = new StringBuffer(prefixMsg);
+            sb.append(" - ");
+            sb.append(ex.getClass().getName());  // also, stack trace will print ex.toString()
+            final String det = ex.getMessage();  // some ex.toString don't include getMessage contents
+            if (det != null)
+            {
+                sb.append(": ");
+                sb.append(det);
+            }
+            ebugPrintln(ex.toString());
+        }
         System.out.println("-- Exception stack trace begins -- Thread: " + Thread.currentThread().getName());
         ex.printStackTrace(System.out);
 
