@@ -3798,7 +3798,7 @@ public class SOCServer extends Server
      * @since 1.1.17
      */
     private static final String DEBUG_COMMANDS_HELP_DEV_TYPES =
-        "### 1:road  2:year of plenty  3:mono  4:gov  5:market  6:univ  7:temple  8:chapel  9:robber";
+        "### 1:road  2:year of plenty  3:mono  4:gov  5:market  6:univ  7:temple  8:chapel  9:soldier";
 
     /**
      * Process a debug command, sent by the "debug" client/player.
@@ -10538,6 +10538,7 @@ public class SOCServer extends Server
             messageToPlayer(c, game.getName(), DEBUG_COMMANDS_HELP_DEV_TYPES);
             return;  // <--- early return ---
         }
+
         SOCDevCardSet dcSet = pl.getDevCards();
         dcSet.add(1, SOCDevCardSet.NEW, cardType);
 

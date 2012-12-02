@@ -29,7 +29,7 @@ import java.util.StringTokenizer;
  *   their mind about spending resources to build a piece.  Only allowed during normal
  *   game play (PLACING_ROAD, PLACING_SETTLEMENT, or PLACING_CITY).
  *<P>
- * - While placing the second free road or ship {PLACING_FREE_ROAD2), means
+ * - While placing the second free road or ship (PLACING_FREE_ROAD2), means
  *      the player has decided to skip placing the second free road or ship,
  *      to use just one road or ship piece.
  *      (This was added in v1.1.17)
