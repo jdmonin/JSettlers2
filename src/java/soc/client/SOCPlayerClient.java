@@ -818,6 +818,8 @@ public class SOCPlayerClient extends Applet
     {
         host = chost;
         port = cport;
+        nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
+        pass.setEditable(true);
         nick.setText(cuser);
         pass.setText(cpass);
         cardLayout.show(this, MESSAGE_PANEL);
