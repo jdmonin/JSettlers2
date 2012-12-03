@@ -1312,14 +1312,16 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
+     * @param hideLongNameOpts omit options with long key names or underscores?
+     *            Set true if client's version &lt; {@link #VERSION_FOR_LONGER_OPTNAMES}.
      * @return string of name-value pairs, same format as {@link #packOptionsToString(Hashtable, boolean)};
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string.
      * @see #parseOptionsToHash(String)
      */
-    public static String packKnownOptionsToString(boolean hideEmptyStringOpts)
+    public static String packKnownOptionsToString(final boolean hideEmptyStringOpts, final boolean hideLongNameOpts)
     {
-        return packOptionsToString(allOptions, hideEmptyStringOpts);
+        return packOptionsToString(allOptions, hideEmptyStringOpts, (hideLongNameOpts) ? -3 : -2);
     }
 
     /**
@@ -1364,6 +1366,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param cliVers  Client version; assumed >= {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
+     *            Use -3 to omit options with long names, and do no other adjustment;
+     *               for use with clients older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
      * @return string of name-value pairs, or "-" for an empty or null ohash;
      *         see {@link #packOptionsToString(Hashtable, boolean)} javadoc for details.
      * @throws ClassCastException if hashtable contains anything other
@@ -1378,7 +1382,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     
     	// If the "PLB" option is set, old client versions
     	//  may need adjustment of the "PL" option.
-    	final boolean hasOptPLB = (cliVers != -2) && ohash.containsKey("PLB")
+    	final boolean hasOptPLB = (cliVers > -2) && ohash.containsKey("PLB")
     	    && ohash.get("PLB").boolValue;
     
     	// Pack all non-unknown options:
@@ -1392,7 +1396,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     	        && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
     	        && op.getStringValue().length() == 0)
                     continue;  // <-- Skip this one --
-    
+    	    if ((cliVers == -3) && ((op.optKey.length() > 3) || op.optKey.contains("_")))
+    	        continue;  // <-- Skip this one -- (VERSION_FOR_LONGER_OPTNAMES)
+
     	    if (hadAny)
     		sb.append(SOCMessage.sep2_char);
     	    else
@@ -1401,7 +1407,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     	    sb.append('=');
     
     	    boolean wroteValueAlready = false;
-    	    if (cliVers != -2)
+    	    if (cliVers > -2)
     	    {
     	        if (hasOptPLB && op.optKey.equals("PL")
     	            && (cliVers < 1113) && (op.intValue < 5))
@@ -2193,7 +2199,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Form a string with the key and current value, useful for debugging purposes.
      * @return string such as "PL=4" or "BC=t3", with the same format
-     *    as {@link #packKnownOptionsToString(boolean)}.
+     *    as {@link #packKnownOptionsToString(boolean, boolean)}.
      */
     public String toString()
     {

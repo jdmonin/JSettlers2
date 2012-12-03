@@ -49,6 +49,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -8150,6 +8151,8 @@ public class SOCServer extends Server
      * All of server's known options are sent, except empty string-valued options.
      * Depending on client version, server's response may include option names that
      * the client is too old to use; the client is able to ignore them.
+     * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
+     * options with long names won't be sent.
      * @param c  the connection
      * @param mes  the message
      * @since 1.1.07
@@ -8158,8 +8161,9 @@ public class SOCServer extends Server
     {
         if (c == null)
             return;
+        final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
         c.put(SOCGameOptionGetDefaults.toCmd
-              (SOCGameOption.packKnownOptionsToString(true)));
+              (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
     }
 
     /**
@@ -8172,6 +8176,8 @@ public class SOCServer extends Server
      * cases where some option values are restricted to newer client versions.
      * Any option where opt.{@link SOCGameOption#minVersion minVersion} is too new for
      * this client's version, is sent as {@link SOCGameOption#OTYPE_UNKNOWN}.
+     * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
+     * options with long names won't be sent.
      *
      * @param c  the connection
      * @param mes  the message
@@ -8182,31 +8188,45 @@ public class SOCServer extends Server
         if (c == null)
             return;
         final int cliVers = c.getVersion();
-        boolean vecIsOptObjs = false;
         boolean alreadyTrimmedEnums = false;
-        Vector<?> okeys = mes.getOptionKeys();
+        Vector<String> okeys = mes.getOptionKeys();
+        Vector<SOCGameOption> opts = null;
 
         if (okeys == null)
         {
             // received "-", look for newer options (cli is older than us).
             // okeys will be null if nothing is new.
-            okeys = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
-            vecIsOptObjs = true;
+            opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
             alreadyTrimmedEnums = true;
+
+            if ((opts != null) && (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
+            {
+                // Client is older than 2.0.00; we can't send it any long option names.
+                Iterator<SOCGameOption> opi = opts.iterator();
+                while (opi.hasNext())
+                {
+                    final SOCGameOption op = opi.next();
+                    if ((op.optKey.length() > 3) || op.optKey.contains("_"))
+                        opi.remove();
+                }
+                if (opts.isEmpty())
+                    opts = null;
+            }
         }
 
-        if (okeys != null)
+        if ((opts != null) || (okeys != null))
         {
-            for (int i = 0; i < okeys.size(); ++i)
+            int L = (opts != null) ? opts.size() : okeys.size();
+            for (int i = 0; i < L; ++i)
             {
                 SOCGameOption opt;
-                if (vecIsOptObjs)
+                if (opts != null)
                 {
-                    opt = (SOCGameOption) okeys.elementAt(i);
+                    opt = opts.elementAt(i);
                     if (opt.minVersion > cliVers)
                         opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN
                 } else {
-                    String okey = (String) okeys.elementAt(i);
+                    String okey = okeys.elementAt(i);
                     opt = SOCGameOption.getOption(okey);
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
