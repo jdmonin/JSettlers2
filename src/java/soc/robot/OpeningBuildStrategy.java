@@ -597,7 +597,7 @@ public class OpeningBuildStrategy {
      *<P>
      * Road choice is based on the best nearby potential settlements, and doesn't
      * directly check {@link SOCPlayer#isPotentialRoad(int) ourPlayerData.isPotentialRoad(edgeCoord)}.
-     * If the server rejects our road choice, then {@link #cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
+     * If the server rejects our road choice, then {@link SOCRobotBrain#cancelWrongPiecePlacementLocal(SOCPlayingPiece)}
      * will need to know which settlement node we were aiming for,
      * and call {@link SOCPlayer#clearPotentialSettlement(int) ourPlayerData.clearPotentialSettlement(nodeCoord)}.
      * The {@link #lastStartingRoadTowardsNode} field holds this coordinate.

@@ -960,7 +960,7 @@ public class SOCGame implements Serializable, Cloneable
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
-    public SOCGame(String n)
+    public SOCGame(final String n)
     {
         this(n, true, null);
     }
@@ -981,7 +981,7 @@ public class SOCGame implements Serializable, Cloneable
      *             object class besides {@link SOCGameOption}
      * @since 1.1.07
      */
-    public SOCGame(String n, Hashtable<String, SOCGameOption> op)
+    public SOCGame(final String n, Hashtable<String, SOCGameOption> op)
         throws IllegalArgumentException
     {
         this(n, true, op);
@@ -993,14 +993,14 @@ public class SOCGame implements Serializable, Cloneable
      * @param n  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param a  true if this is an active game, false for inactive
+     * @param isActive  true if this is an active game, false for inactive
      * @throws IllegalArgumentException if game name fails
      *           {@link SOCMessage#isSingleLineAndSafe(String)}. This check was added in 1.1.07.
      */
-    public SOCGame(String n, boolean a)
+    public SOCGame(final String n, final boolean isActive)
         throws IllegalArgumentException
     {
-        this(n, a, null);
+        this(n, isActive, null);
     }
 
     /**
@@ -1009,7 +1009,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param n  the name of the game.  For network message safety, must not contain
      *           control characters, {@link SOCMessage#sep_char}, or {@link SOCMessage#sep2_char}.
      *           This is enforced by calling {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param a  true if this is an active game, false for inactive
+     * @param isActive  true if this is an active game, false for inactive
      * @param op if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      *           Will validate options by calling
      *           {@link SOCGameOption#adjustOptionsToKnown(Hashtable, Hashtable, boolean)}
@@ -1021,7 +1021,7 @@ public class SOCGame implements Serializable, Cloneable
      *             fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      * @since 1.1.07
      */
-    public SOCGame(String n, boolean a, Hashtable<String, SOCGameOption> op)
+    public SOCGame(final String n, final boolean isActive, Hashtable<String, SOCGameOption> op)
         throws IllegalArgumentException
     {
         // For places to initialize fields, see also resetAsCopy().
@@ -1029,7 +1029,7 @@ public class SOCGame implements Serializable, Cloneable
         if (! SOCMessage.isSingleLineAndSafe(n))
             throw new IllegalArgumentException("n");
 
-        active = a;
+        active = isActive;
         inUse = false;
         name = n;
         if (op != null)
@@ -1189,7 +1189,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param ex  the expiration time in milliseconds,
      *            same epoch as {@link java.util.Date#getTime()}
      */
-    public void setExpiration(long ex)
+    public void setExpiration(final long ex)
     {
         expiration = ex;
     }
@@ -1213,7 +1213,7 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.10
      * @throws IllegalStateException if <tt>gameOwnerName</tt> not null, but the game's owner is already set
      */
-    public void setOwner(String gameOwnerName)
+    public void setOwner(final String gameOwnerName)
         throws IllegalStateException
     {
         if ((ownerName != null) && (gameOwnerName != null))
@@ -1270,7 +1270,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalArgumentException if name isn't in this game.
      *           This exception was added in 1.1.07.
      */
-    public void removePlayer(String name)
+    public void removePlayer(final String name)
         throws IllegalArgumentException
     {
         SOCPlayer pl = getPlayer(name);
@@ -1288,7 +1288,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn the number of the seat
      * @see #getAvailableSeatCount()
      */
-    public boolean isSeatVacant(int pn)
+    public boolean isSeatVacant(final int pn)
     {
         return (seats[pn] == VACANT);
     }
@@ -1322,7 +1322,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn the number of the seat
      */
-    public void lockSeat(int pn)
+    public void lockSeat(final int pn)
     {
         seatLocks[pn] = LOCKED;
     }
@@ -1332,7 +1332,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn the number of the seat
      */
-    public void unlockSeat(int pn)
+    public void unlockSeat(final int pn)
     {
         seatLocks[pn] = UNLOCKED;
     }
@@ -1342,7 +1342,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn the number of the seat
      */
-    public boolean isSeatLocked(int pn)
+    public boolean isSeatLocked(final int pn)
     {
         return (seatLocks[pn] == LOCKED);
     }
@@ -1352,7 +1352,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the player number, in range 0 to {@link #maxPlayers}-1
      */
-    public SOCPlayer getPlayer(int pn)
+    public SOCPlayer getPlayer(final int pn)
     {
         return players[pn];
     }
@@ -1364,7 +1364,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param nn  the nickname
      */
-    public SOCPlayer getPlayer(String nn)
+    public SOCPlayer getPlayer(final String nn)
     {
         if (nn != null)
         {
@@ -1528,7 +1528,8 @@ public class SOCGame implements Serializable, Cloneable
      * @see #isGameOptionSet(String)
      * @see #getGameOptionIntValue(Hashtable, String)
      */
-    public static int getGameOptionIntValue(Hashtable<String, SOCGameOption> opts, final String optKey, final int defValue, final boolean onlyIfBoolSet)
+    public static int getGameOptionIntValue
+        (Hashtable<String, SOCGameOption> opts, final String optKey, final int defValue, final boolean onlyIfBoolSet)
     {
         // OTYPE_* - if a new type is added, update this method's javadoc.
 
@@ -1638,7 +1639,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pl  the player data
      * @throws IllegalArgumentException if pl is null
      */
-    protected void setPlayer(int pn, SOCPlayer pl)
+    protected void setPlayer(final int pn, SOCPlayer pl)
     {
         if (pl != null)
             players[pn] = pl;
@@ -1669,7 +1670,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #endTurn()
      * @see #checkForWinner()
      */
-    public void setCurrentPlayerNumber(int pn)
+    public void setCurrentPlayerNumber(final int pn)
     {
         //D.ebugPrintln("SETTING CURRENT PLAYER NUMBER TO "+pn);
         if ((pn >= -1) && (pn < players.length))
@@ -1704,7 +1705,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param dr  the dice result
      */
-    public void setCurrentDice(int dr)
+    public void setCurrentDice(final int dr)
     {
         currentDice = dr;
     }
@@ -1734,7 +1735,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param gs  the game state
      * @see #checkForWinner()
      */
-    public void setGameState(int gs)
+    public void setGameState(final int gs)
     {
         if ((gs == PLAY) && (gameState == SPECIAL_BUILDING))
             oldGameState = PLAY1;  // Needed for isSpecialBuilding() to work at client
@@ -1801,7 +1802,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param  nd  the number of dev cards in the deck
      */
-    public void setNumDevCards(int nd)
+    public void setNumDevCards(final int nd)
     {
         numDevCards = nd;
     }
@@ -3154,7 +3155,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the seat number of the first player, or -1 if not set yet
      */
-    public void setFirstPlayer(int pn)
+    public void setFirstPlayer(final int pn)
     {
         firstPlayerNumber = pn;
         if (pn < 0)  // -1 == not set yet; use <0 to be defensive in while-loop
@@ -3207,7 +3208,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #endTurn()
      * @see #forceEndTurn()
      */
-    public boolean canEndTurn(int pn)
+    public boolean canEndTurn(final int pn)
     {
         if (currentPlayerNumber != pn)
         {
@@ -4005,8 +4006,8 @@ public class SOCGame implements Serializable, Cloneable
      * @since 1.1.17
      */
     private final void getResourcesGainedFromRollPieces
-        (int roll, SOCResourceSet resources, SOCResourceSet missedResources,
-         int robberHex, Collection<? extends SOCPlayingPiece> sEnum, int incr)
+        (final int roll, SOCResourceSet resources, SOCResourceSet missedResources,
+         final int robberHex, Collection<? extends SOCPlayingPiece> sEnum, final int incr)
     {
         for (SOCPlayingPiece sc : sEnum)
         {
@@ -4058,7 +4059,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player that is discarding
      * @param rs  the resources that the player is discarding
      */
-    public boolean canDiscard(int pn, SOCResourceSet rs)
+    public boolean canDiscard(final int pn, SOCResourceSet rs)
     {
         if (gameState != WAITING_FOR_DISCARDS)
         {
@@ -4101,7 +4102,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn   the number of the player
      * @param rs   the resources that are being discarded
      */
-    public void discard(int pn, SOCResourceSet rs)
+    public void discard(final int pn, SOCResourceSet rs)
     {
         players[pn].getResources().subtract(rs);
         players[pn].setNeedToDiscard(false);
@@ -4288,7 +4289,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #moveRobber(int, int)
      * @see #canMovePirate(int, int)
      */
-    public boolean canMoveRobber(int pn, int co)
+    public boolean canMoveRobber(final int pn, final int co)
     {
         if (gameState != PLACING_ROBBER)
         {
@@ -4516,7 +4517,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #canChooseRobClothOrResource(int)
      * @see #stealFromPlayer(int, boolean)
      */
-    public boolean canChoosePlayer(int pn)
+    public boolean canChoosePlayer(final int pn)
     {
         if ((gameState != WAITING_FOR_CHOICE) && (gameState != WAITING_FOR_ROB_CLOTH_OR_RESOURCE))
         {
@@ -4827,7 +4828,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param accepting the number of the player accepting the offer
      * @see #canMakeBankTrade(SOCResourceSet, SOCResourceSet)
      */
-    public boolean canMakeTrade(int offering, int accepting)
+    public boolean canMakeTrade(final int offering, final int accepting)
     {
         D.ebugPrintln("*** canMakeTrade ***");
         D.ebugPrintln("*** offering = " + offering);
@@ -4892,7 +4893,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param accepting the number of the player accepting the offer
      * @see #makeBankTrade(SOCResourceSet, SOCResourceSet)
      */
-    public void makeTrade(int offering, int accepting)
+    public void makeTrade(final int offering, final int accepting)
     {
         if (isGameOptionSet("NT"))
             return;
@@ -5110,7 +5111,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      */
-    public boolean couldBuildRoad(int pn)
+    public boolean couldBuildRoad(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
 
@@ -5124,7 +5125,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player
      * @see SOCPlayer#canPlaceSettlement(int)
      */
-    public boolean couldBuildSettlement(int pn)
+    public boolean couldBuildSettlement(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
 
@@ -5137,7 +5138,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      */
-    public boolean couldBuildCity(int pn)
+    public boolean couldBuildCity(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
 
@@ -5152,7 +5153,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player
      * @see #buyDevCard()
      */
-    public boolean couldBuyDevCard(int pn)
+    public boolean couldBuyDevCard(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
 
@@ -5168,7 +5169,7 @@ public class SOCGame implements Serializable, Cloneable
      * @since 2.0.00
      * @see #canPlaceShip(SOCPlayer, int)
      */
-    public boolean couldBuildShip(int pn)
+    public boolean couldBuildShip(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
 
@@ -5183,7 +5184,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #putPiece(SOCPlayingPiece)
      * @see #cancelBuildRoad(int)
      */
-    public void buyRoad(int pn)
+    public void buyRoad(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
         resources.subtract(1, SOCResourceConstants.CLAY);
@@ -5200,7 +5201,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #putPiece(SOCPlayingPiece)
      * @see #cancelBuildSettlement(int)
      */
-    public void buySettlement(int pn)
+    public void buySettlement(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
         resources.subtract(1, SOCResourceConstants.CLAY);
@@ -5219,7 +5220,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #putPiece(SOCPlayingPiece)
      * @see #cancelBuildCity(int)
      */
-    public void buyCity(int pn)
+    public void buyCity(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
         resources.subtract(3, SOCResourceConstants.ORE);
@@ -5237,7 +5238,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #cancelBuildShip(int)
      * @since 2.0.00
      */
-    public void buyShip(int pn)
+    public void buyShip(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
         resources.subtract(1, SOCResourceConstants.SHEEP);
@@ -5289,7 +5290,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      */
-    public void cancelBuildRoad(int pn)
+    public void cancelBuildRoad(final int pn)
     {
         if (gameState == PLACING_FREE_ROAD2)
         {
@@ -5333,7 +5334,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      */
-    public void cancelBuildCity(int pn)
+    public void cancelBuildCity(final int pn)
     {
         SOCResourceSet resources = players[pn].getResources();
         resources.add(3, SOCResourceConstants.ORE);
@@ -5355,7 +5356,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player
      * @since 2.0.00
      */
-    public void cancelBuildShip(int pn)
+    public void cancelBuildShip(final int pn)
     {
         if (gameState == PLACING_FREE_ROAD2)
         {
@@ -5405,7 +5406,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      */
-    public boolean canPlayKnight(int pn)
+    public boolean canPlayKnight(final int pn)
     {
         if (!((gameState == PLAY) || (gameState == PLAY1)))
         {
@@ -5439,7 +5440,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param pn  the number of the player
      * @see #playRoadBuilding()
      */
-    public boolean canPlayRoadBuilding(int pn)
+    public boolean canPlayRoadBuilding(final int pn)
     {
         if (!((gameState == PLAY) || (gameState == PLAY1)))
         {
@@ -5472,7 +5473,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      */
-    public boolean canPlayDiscovery(int pn)
+    public boolean canPlayDiscovery(final int pn)
     {
         if (!((gameState == PLAY) || (gameState == PLAY1)))
         {
@@ -5497,7 +5498,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player
      */
-    public boolean canPlayMonopoly(int pn)
+    public boolean canPlayMonopoly(final int pn)
     {
         if (!((gameState == PLAY) || (gameState == PLAY1)))
         {
@@ -5750,7 +5751,7 @@ public class SOCGame implements Serializable, Cloneable
      *
      * @param pn  the number of the player who is affected
      */
-    public void updateLongestRoad(int pn)
+    public void updateLongestRoad(final int pn)
     {
         if (isGameOptionSet(SOCGameOption.K_SC_0RVP))
             return;  // <--- No longest road ---
@@ -6049,7 +6050,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #resetVoteRegister(int, boolean)
      * @see #getResetVoteResult()
      */
-    public void resetVoteBegin(int reqPN) throws IllegalArgumentException, IllegalStateException
+    public void resetVoteBegin(final int reqPN) throws IllegalArgumentException, IllegalStateException
     {
         if (players[reqPN].hasAskedBoardReset())
             throw new IllegalArgumentException("Player has already asked to reset this turn");
@@ -6127,7 +6128,7 @@ public class SOCGame implements Serializable, Cloneable
      * @throws IllegalStateException    If voting is not currently active.
      * @see #getResetPlayerVote(int)
      */
-    public boolean resetVoteRegister(int pn, boolean votingYes)
+    public boolean resetVoteRegister(final int pn, final boolean votingYes)
         throws IllegalArgumentException, IllegalStateException
     {
         boolean vcomplete;
@@ -6163,7 +6164,7 @@ public class SOCGame implements Serializable, Cloneable
      * @see #resetVoteRegister(int, boolean)
      * @see #getResetVoteResult()
      */
-    public int getResetPlayerVote(int pn)
+    public int getResetPlayerVote(final int pn)
     {
         synchronized (boardResetVotes)
         {

@@ -1312,6 +1312,7 @@ public class SOCPlayerClient extends Panel
                 ? SOCNewGameWithOptionsRequest.toCmd(nickname, password, net.getHost(), gmName, opts)
                 : SOCJoinGame.toCmd(nickname, password, net.getHost(), gmName);
             System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
+            System.err.println("      Got all opts,defaults? " + tcpServGameOpts.allOptionsReceived + " " + tcpServGameOpts.defaultsReceived);
             net.putNet(askMsg);
             System.out.flush();  // for debug print output (temporary)
             status.setText("Talking to server...");

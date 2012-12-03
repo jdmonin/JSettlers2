@@ -8216,7 +8216,7 @@ public class SOCServer extends Server
 
         if ((opts != null) || (okeys != null))
         {
-            int L = (opts != null) ? opts.size() : okeys.size();
+            final int L = (opts != null) ? opts.size() : okeys.size();
             for (int i = 0; i < L; ++i)
             {
                 SOCGameOption opt;
@@ -8226,7 +8226,7 @@ public class SOCServer extends Server
                     if (opt.minVersion > cliVers)
                         opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN
                 } else {
-                    String okey = okeys.elementAt(i);
+                    final String okey = okeys.elementAt(i);
                     opt = SOCGameOption.getOption(okey);
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN

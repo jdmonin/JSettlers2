@@ -77,7 +77,7 @@ public class SOCDevCard extends SOCMessage
      * Create a DevCard message.
      *
      * @param ga  name of the game
-     * @param pn  the player number, or -1 for {@link #CANNOT_PLAY}
+     * @param pn  the player number, or -1 for action type {@link #CANNOT_PLAY}
      * @param ac  the type of action
      * @param ct  the type of card, like {@link SOCDevCardConstants#ROADS}
      */
