@@ -1526,6 +1526,7 @@ public class SOCBoardLarge extends SOCBoard
      *   {@link #getLandAreasLegalNodes()}.
      *   0 if players can start anywhere and/or
      *   <tt>landAreasLegalNodes == null</tt>.
+     * @see SOCPlayer#getStartingLandAreasEncoded()
      */
     public int getStartingLandArea()
     {

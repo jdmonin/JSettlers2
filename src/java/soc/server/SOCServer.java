@@ -8961,6 +8961,11 @@ public class SOCServer extends Server
             messageToPlayer(c, new SOCPlayerElement
                 (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, itm));
 
+        itm = pl.getStartingLandAreasEncoded();
+        if (itm != 0)
+            messageToPlayer(c, new SOCPlayerElement
+                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.STARTING_LANDAREAS, itm));
+
         itm = pl.getCloth();
         if (itm != 0)
             messageToPlayer(c, new SOCPlayerElement

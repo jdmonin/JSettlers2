@@ -2876,6 +2876,10 @@ public class SOCPlayerClient extends Panel
                 pl.setScenarioSVPLandAreas(mes.getValue());
                 break;
 
+            case SOCPlayerElement.STARTING_LANDAREAS:
+                pl.setStartingLandAreasEncoded(mes.getValue());
+                break;
+
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
                 if (pn != -1)
                 {

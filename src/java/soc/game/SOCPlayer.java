@@ -1885,6 +1885,31 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board}, get
+     * this player's starting settlement land areas, encoded to send over the network
+     * from server to client. 0 otherwise.
+     * @return  Encoded starting land area numbers 1 and 2
+     * @see #setStartingLandAreas(int)
+     * @see SOCPlayerElement#STARTING_LANDAREAS
+     * @since 2.0.00
+     */
+    public int getStartingLandAreasEncoded()
+    {
+        return (startingLandArea2 << 8) | startingLandArea1;
+    }
+
+    /**
+     * At client, set the player's {@link #getStartingLandAreasEncoded()} based on a server message.
+     * @param slas  Starting land areas to set for player
+     * @since 2.0.00
+     */
+    public void setStartingLandAreasEncoded(final int slas)
+    {
+        startingLandArea1 = slas & 0xFF;
+        startingLandArea2 = (slas >> 8) & 0xFF;
+    }
+
+    /**
      * @return the list of nodes that touch the roads/ships in play
      */
     public Vector<Integer> getRoadNodes()
@@ -2017,7 +2042,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         /**
                          * do we get an SVP for reaching a new land area?
                          */
-                        else if (startingLandArea1 != 0)
+                        else
                         {
                             final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(settlementNode);
                             if ((newSettleArea != 0)
