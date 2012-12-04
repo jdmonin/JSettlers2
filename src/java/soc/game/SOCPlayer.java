@@ -418,6 +418,27 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int scenario_svpFromEachLandArea_bitmask;
 
     /**
+     * The land area(s) of the player's initial settlements,
+     * if {@link SOCGame#hasSeaBoard} and the board defines Land Areas
+     * (<tt>null != {@link SOCBoardLarge#getLandAreasLegalNodes()}</tt>).
+     * Used for Special Victory Points in some scenarios.
+     * 0 otherwise.
+     *<P>
+     * If both initial settlements are in the same land area,
+     * then {@link #startingLandArea2} is 0.
+     *<P>
+     * Also: If {@link SOCBoardLarge#getStartingLandArea()} != 0,
+     * the players must start in that land area.  This is enforced
+     * at the server during makeNewBoard, by using that land area
+     * for the only initial potential/legal settlement locations.
+     *
+     * @since 2.0.00
+     */
+    private int startingLandArea1, startingLandArea2;
+        // skip startingLandArea3: Although some scenarios have 3 initial settlements,
+        // none have placement in 3 initial land areas and SVPs for settling new areas.
+
+    /**
      * this is true if this player is a robot
      */
     private boolean robotFlag;
@@ -520,6 +541,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         scenario_playerEvents_bitmask = player.scenario_playerEvents_bitmask;
         scenario_svpFromEachLandArea_bitmask = player.scenario_svpFromEachLandArea_bitmask;
+        startingLandArea1 = player.startingLandArea1;
+        startingLandArea2 = player.startingLandArea2;
     }
 
     /**
@@ -1973,18 +1996,32 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     final int portType = board.getPortTypeFromNodeCoord(settlementNode);
                     if (portType != -1)
                         setPortFlag(portType, true);
-    
-                    /**
-                     * Do we get an SVP for reaching a new land area?
-                     */
-                    if ((board instanceof SOCBoardLarge)
-                        && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
+
+                    if ((board instanceof SOCBoardLarge) && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
                     {
-                        final int startArea = ((SOCBoardLarge) board).getStartingLandArea();
-                        if (startArea != 0)
+                        /**
+                         * track starting Land Areas on large board
+                         */
+                        if (game.isInitialPlacement())
                         {
                             final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(settlementNode);
-                            if ((newSettleArea != 0) && (newSettleArea != startArea))
+                            if (newSettleArea != 0)
+                            {
+                                if (startingLandArea1 == 0)
+                                    startingLandArea1 = newSettleArea;
+                                else if ((startingLandArea2 == 0) && (newSettleArea != startingLandArea1))
+                                    startingLandArea2 = newSettleArea;
+                            }
+                        }
+
+                        /**
+                         * do we get an SVP for reaching a new land area?
+                         */
+                        else if (startingLandArea1 != 0)
+                        {
+                            final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(settlementNode);
+                            if ((newSettleArea != 0)
+                                && (newSettleArea != startingLandArea1) && (newSettleArea != startingLandArea2))
                             {
                                 putPiece_settlement_checkScenarioSVPs
                                     ((SOCSettlement) piece, newSettleArea, isTempPiece);                            
@@ -2228,9 +2265,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Does the player get a Special Victory Point (SVP) for reaching a new land area?
-     * Call when a settlement has been placed in a land area different from {@link SOCBoardLarge#getStartingLandArea()}.
+     * Call when a settlement has been placed in a land area different from
+     * {@link #startingLandArea1} and {@link #startingLandArea2}.
      * Used with game options {@link SOCGameOption#K_SC_SANY _SC_SANY} and {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
-     * @param piece  Newly placed settlement
+     * @param newSettle  Newly placed settlement
      * @param newSettleArea  Land area number of new settlement's location
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *                     game's {@link SOCScenarioEventListener}.

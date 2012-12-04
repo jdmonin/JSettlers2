@@ -1518,6 +1518,10 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the starting land area, if multiple "land areas" are used
      * and the players must start the game in a certain land area.
+     *<P>
+     * This is enforced during {@link #makeNewBoard(Hashtable)}, by using
+     * that land area for the only initial potential/legal settlement locations.
+     *
      * @return the starting land area number; also its index in
      *   {@link #getLandAreasLegalNodes()}.
      *   0 if players can start anywhere and/or
