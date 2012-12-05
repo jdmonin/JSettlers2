@@ -135,22 +135,34 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         if (hasScenario4ISL)
         {
             // Four Islands (SC_4ISL)
-            landAreasLegalNodes = new HashSet[5];
             if (maxPl < 4)
             {
+                landAreasLegalNodes = new HashSet[5];
                 makeNewBoard_placeHexes
                     (FOUR_ISL_LANDHEX_TYPE_3PL, FOUR_ISL_LANDHEX_COORD_3PL, FOUR_ISL_DICENUM_3PL, true,
                      FOUR_ISL_LANDHEX_LANDAREA_RANGES_3PL, opt_breakClumps);
                 PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_3PL;
                 PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_3PL;
                 pirateHex = FOUR_ISL_PIRATE_HEX[0];
-            } else {
+            }
+            else if (maxPl != 6)
+            {
+                landAreasLegalNodes = new HashSet[5];
                 makeNewBoard_placeHexes
                     (FOUR_ISL_LANDHEX_TYPE_4PL, FOUR_ISL_LANDHEX_COORD_4PL, FOUR_ISL_DICENUM_4PL, true,
                      FOUR_ISL_LANDHEX_LANDAREA_RANGES_4PL, opt_breakClumps);
                 PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_4PL;
                 PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_4PL;
                 pirateHex = FOUR_ISL_PIRATE_HEX[1];
+            } else {
+                // Six Islands
+                landAreasLegalNodes = new HashSet[7];
+                makeNewBoard_placeHexes
+                    (FOUR_ISL_LANDHEX_TYPE_6PL, FOUR_ISL_LANDHEX_COORD_6PL, FOUR_ISL_DICENUM_6PL, true,
+                     FOUR_ISL_LANDHEX_LANDAREA_RANGES_6PL, opt_breakClumps);
+                PORTS_TYPES_MAINLAND = FOUR_ISL_PORT_TYPE_6PL;
+                PORT_LOC_FACING_MAINLAND = FOUR_ISL_PORT_EDGE_FACING_6PL;
+                pirateHex = FOUR_ISL_PIRATE_HEX[2];
             }
             PORT_LOC_FACING_ISLANDS = null;
             PORTS_TYPES_ISLANDS = null;
@@ -1899,8 +1911,101 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     //
-    // TODO 6-player
+    // 6-player
     //
+
+    /**
+     * Six Islands: Land hex types for all 6 islands.
+     */
+    private static final int FOUR_ISL_LANDHEX_TYPE_6PL[] =
+    {
+        // 32 hexes total: 6 or 7 each of 5 resources
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX
+    };
+
+    /**
+     * Six Islands: Land hex coordinates for all 6 islands.
+     */
+    private static final int FOUR_ISL_LANDHEX_COORD_6PL[] =
+    {
+        // All 3 Northern islands are centered on rows 1,3,5.
+
+        // Northwest island: 6 hexes centered on columns 2-6
+        0x0104, 0x0106, 0x0303, 0x0305, 0x0502, 0x0504,
+
+        // Center North island: 5 hexes  on columns 8-b
+        0x010A, 0x0309, 0x030B, 0x0508, 0x050A,
+
+        // Northeast island: 5 hexes  on columns e-0x11
+        0x010E, 0x0110, 0x030F, 0x0311, 0x0510,
+
+        // All 3 Southern islands are centered on rows 9,b,d.
+
+        // Southwest island: 5 hexes centered on columns 3-6
+        0x0904, 0x0B03, 0x0B05, 0x0D04, 0x0D06,
+
+        // Center South island: 5 hexes on columns 9-c
+        0x090A, 0x090C, 0x0B09, 0x0B0B, 0x0D0A,
+
+        // Southeast island: 6 hexes on columns e-0x12
+        0x0910, 0x0912, 0x0B0F, 0x0B11, 0x0D0E, 0x0D10
+    };
+
+    /**
+     * Six Islands: Dice numbers for hexes on all 6 islands.
+     * No defined NumPath; as long as 6 and 8 aren't adjacent, all is OK.
+     */
+    private static final int FOUR_ISL_DICENUM_6PL[] =
+    {
+        // 32 hexes total, no deserts
+        2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6,
+        8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 12, 12
+    };
+
+    /**
+     * Six Islands: Island hex counts and land area numbers within {@link #FOUR_ISL_LANDHEX_COORD_6PL}.
+     * Allows them to be defined, shuffled, and placed together.
+     */
+    private static final int FOUR_ISL_LANDHEX_LANDAREA_RANGES_6PL[] =
+    {
+            1, 6,  // landarea 1 is the northwest island with 6 hexes
+            2, 5,  // landarea 2 is center north
+            3, 5,  // landarea 3 NE
+            4, 5,  // SW
+            5, 5,  // S
+            6, 6   // SE
+    };
+
+    /**
+     * Six Islands: Port edges and facings on all 6 islands.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Each port's type will be from {@link #FOUR_ISL_PORT_TYPE_6PL}.
+     */
+    private static final int FOUR_ISL_PORT_EDGE_FACING_6PL[] =
+    {
+        // 1 row here per island, same order as hexes
+        0x0005, FACING_SE,  0x0405, FACING_NW,  0x0603, FACING_NE,
+        0x000A, FACING_SW,
+        0x0010, FACING_SW,  0x040E, FACING_NE,
+        0x0B02, FACING_E,   0x0C06, FACING_SW,
+        0x0C08, FACING_NE,
+        0x0B12, FACING_W,   0x0E0D, FACING_NE
+    };
+
+    /**
+     * Six Islands: Port types on all 6 islands.  OK to shuffle.
+     */
+    private static final int FOUR_ISL_PORT_TYPE_6PL[] =
+    {
+        // 5 3:1, 6 2:1 ports (extra is sheep)
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT,
+        MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT
+    };
 
 
     ////////////////////////////////////////////
