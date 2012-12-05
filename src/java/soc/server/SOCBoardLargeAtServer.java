@@ -60,12 +60,33 @@ import soc.util.IntTriple;
  * {@link #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)}
  * once for each land area.  In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
+ *<P>
+ * <H3> To Add a New Board:</H3>
+ * To add a new board, you'll need to declare all parts of its layout, recognize its
+ * scenario or game option in makeNewBoard, and call methods to set up the structure.
+ *<P>
+ * A good example is SC_4ISL "Four Islands"; see commits f316299, bcd540f, and 97bb3b4
+ * or search this class for the string SC_4ISL.
+ *<P>
+ * Parts of the layout:
+ *<UL>
+ * <LI> Its set of land hex types, usually shuffled *
+ * <LI> Land hex coordinates *
+ * <LI> Dice numbers to place at land hex coordinates, sometimes shuffled
+ * <LI> Its set of port types (3:1, 2:1), usually shuffled
+ * <LI> Its port edge locations and facing directions
+ * <LI> Pirate and/or robber starting coordinate (optional)
+ * <LI> If multiple Land Areas, its land area ranges within the array of land hex coordinates
+ *</UL>
+ * &nbsp; * Some "land areas" may include water hexes, to vary the coastline from game to game. <BR>
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
 public class SOCBoardLargeAtServer extends SOCBoardLarge
 {
+    private static final long serialVersionUID = 2000L;
+
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
@@ -83,6 +104,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     ////////////////////////////////////////////
     //
     // Make New Board
+    //
+    // To add a new board, see the class javadoc.
     //
 
 

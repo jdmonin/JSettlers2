@@ -1889,7 +1889,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * this player's starting settlement land areas, encoded to send over the network
      * from server to client. 0 otherwise.
      * @return  Encoded starting land area numbers 1 and 2
-     * @see #setStartingLandAreas(int)
      * @see SOCPlayerElement#STARTING_LANDAREAS
      * @since 2.0.00
      */
