@@ -8601,6 +8601,35 @@ public class SOCServer extends Server
         {
             SOCPlayer pl = gameData.getPlayer(i);
 
+            /**
+             * send scenario info before any putpiece, so they know their
+             * starting land areas and scenario events
+             */
+            int itm = pl.getSpecialVP();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
+
+            itm = pl.getScenarioPlayerEvents();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, itm));
+
+            itm = pl.getScenarioSVPLandAreas();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, itm));
+
+            itm = pl.getStartingLandAreasEncoded();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.STARTING_LANDAREAS, itm));
+
+            itm = pl.getCloth();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, itm));
+
             // Send piece info even if player has left the game (pl.getName() == null).
             // This lets them see "their" pieces before sitDown(), if they rejoin at same position.
 
@@ -8942,34 +8971,6 @@ public class SOCServer extends Server
             }  // for (dcType)
 
         }  // for (dcAge)
-
-        /**
-         * send scenario info
-         */
-        int itm = pl.getSpecialVP();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
-
-        itm = pl.getScenarioPlayerEvents();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, itm));
-
-        itm = pl.getScenarioSVPLandAreas();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, itm));
-
-        itm = pl.getStartingLandAreasEncoded();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.STARTING_LANDAREAS, itm));
-
-        itm = pl.getCloth();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, itm));
 
         /**
          * send game state info such as requests for discards
