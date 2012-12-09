@@ -160,10 +160,17 @@ public class SOCVillage extends SOCPlayingPiece
     }
 
     /**
-     * Game action: Distribute cloth to players from this village.
+     * Game action: Distribute cloth to players from this village and
+     * (if needed) from the board general supply.
      * Each player from {@link #addTradingPlayer(SOCPlayer)} gets at most 1 cloth.
      * If the village has no cloth remaining, does nothing (returns null).
      * Calls {@link #takeCloth(int)}, {@link SOCBoardLarge#takeCloth(int)}, {@link SOCPlayer#setCloth(int)}, etc.
+     *<P>
+     * If the village has some cloth, but not enough to distribute to all trading players
+     * (including from the general supply), then start with the current player if they're
+     * trading with this village. Then, the players with first pick are those who
+     * established trade first.
+     *
      * @param game  Game with this village
      * @return  null, or results as an array:
      *   [ Cloth amount taken from general supply, Matching village node coordinate,
@@ -178,7 +185,7 @@ public class SOCVillage extends SOCPlayingPiece
         results[1] = coord;
 
         final int n = traders.size();
-        final int nFromHere = takeCloth(n);
+        final int nFromHere = takeCloth(n);  // will be > 0 because numCloth != 0
         final int nFromGeneral;
         if (nFromHere < n)
         {
@@ -188,24 +195,34 @@ public class SOCVillage extends SOCPlayingPiece
             nFromGeneral = 0;
         }
 
-        // Mark the established trading players
-        for (final SOCPlayer pl : traders)
-            results[2 + pl.getPlayerNumber()] = 1;
+        // In case not enough to distribute, track amount remaining and prioritize:
+        // First, the current player, if trading with this village.
+        // After current, go through traders list (chronological order).
 
-        if (nFromHere + nFromGeneral < n)
+        int remain = nFromHere + nFromGeneral;
+
+        final int cpn = game.getCurrentPlayerNumber();
+        if (cpn != -1)
         {
-            // TODO if not enough to distribute, keep only some per-player results:
-            // Track amount remaining in "distribute" for-loop, start that loop @ current player. 
+            SOCPlayer currPl = game.getPlayer(cpn);
+            if (traders.contains(currPl))
+            {
+                currPl.setCloth(1 + currPl.getCloth());
+                results[2 + cpn] = 1;
+                --remain;
+            }
         }
 
-        // Distribute
-        for (int pn = 0; pn < game.maxPlayers; ++pn)
+        for (int i = 0; (i < n) && (remain > 0); ++i)
         {
-            if (results[2 + pn] != 0)
-            {
-                SOCPlayer pl = game.getPlayer(pn);
-                pl.setCloth(1 + pl.getCloth());
-            }
+            SOCPlayer pl = traders.get(i);
+            final int pn = pl.getPlayerNumber();
+            if (pn == cpn)
+                continue;  // already gave
+
+            pl.setCloth(1 + pl.getCloth());
+            results[2 + pn] = 1;
+            --remain;
         }
 
         return results;

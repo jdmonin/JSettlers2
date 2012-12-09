@@ -1271,6 +1271,7 @@ public class SOCBoardLarge extends SOCBoard
      * That calls {@link #takeCloth(int)}, {@link SOCPlayer#setCloth(int)}, etc.
      * Each player trading with that village gets at most 1 cloth.
      * For scenario game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     * This and any other dice-roll methods are called at server only.
      * @param game  Game with this board
      * @param dice  Rolled dice number
      * @return  null, or results as an array:

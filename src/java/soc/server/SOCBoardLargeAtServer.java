@@ -288,7 +288,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // Add villages, if the scenario does that
         opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
         if ((opt != null) && opt.getBoolValue())
-            setVillageAndClothLayout(SCEN_CLOTH_VILLAGE_NODES_DICE);
+            setVillageAndClothLayout(SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE);
                 // also sets board's "general supply"
 
         // copy and shuffle the ports, and check vs game option BC
@@ -1340,7 +1340,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @see SOCGameOption#K_SC_CLVI
      * @see #setVillageAndClothLayout(int[])
      */
-    private static final int SCEN_CLOTH_VILLAGE_NODES_DICE[] =
+    private static final int SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE[] =
     {
         SOCVillage.STARTING_GENERAL_CLOTH,  // Board's "general supply" cloth count
         SOCVillage.STARTING_CLOTH,
