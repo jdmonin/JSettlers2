@@ -4601,6 +4601,9 @@ public class SOCGame implements Serializable, Cloneable
 
         for (int i = 0; i < maxPlayers; i++)
         {
+            if (isSeatVacant(i))
+                continue;
+
             Vector<SOCSettlement> settlements = players[i].getSettlements();
             Vector<SOCCity> cities = players[i].getCities();
             boolean touching = false;
@@ -4656,6 +4659,9 @@ public class SOCGame implements Serializable, Cloneable
 
         for (int i = 0; i < maxPlayers; i++)
         {
+            if (isSeatVacant(i))
+                continue;
+
             Vector<SOCRoad> roads_ships = players[i].getRoads();
             boolean touching = false;
             for (SOCRoad rs : roads_ships)
@@ -4699,15 +4705,48 @@ public class SOCGame implements Serializable, Cloneable
      * Victims are players with resources; for scenario option
      * {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, also players with cloth
      * when robbing with the pirate.
+     *<P>
+     * For scenario option {@link SOCGameOption#K_SC_PIRI}, this is called
+     * after a 7 is rolled, or after the game moves the pirate ship (fleet).
+     * When a 7 is rolled, the current player may rob from any player with resources.
+     * When the pirate ship is moved (at every dice roll), the player with a
+     * port settlement/city adjacent to the pirate ship's hex is attacked,
+     * unless there are multiple adjacent players (nothing happens).
+     *
      * @return a list of possible players to rob, or an empty Vector
      * @see #canChoosePlayer(int)
      * @see #choosePlayerForRobbery(int)
      */
     public Vector<SOCPlayer> getPossibleVictims()
     {
+        // victims wil be a subset of candidates:
+        // has resources, ! isSeatVacant, ! currentPlayer.
         Vector<SOCPlayer> victims = new Vector<SOCPlayer>();
         Vector<SOCPlayer> candidates;
-        if (robberyWithPirateNotRobber)
+
+        if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            if (robberyWithPirateNotRobber)
+            {
+                // Pirate moved: Any player with adjacent port settlement/city.
+                // If more than 1 player, no one is attacked by the pirates.
+                // Resource counts don't matter.
+
+                candidates = getPlayersOnHex(((SOCBoardLarge) board).getPirateHex());
+                if (candidates.size() > 1)
+                    candidates.clear();
+                return candidates;  // <--- Early return: Special for scenario ---
+
+            } else {
+                // Robber (7 rolled): all non-current players with resources.
+                // For-loop below will check candidate resources.
+                candidates = new Vector<SOCPlayer>();
+                for (int pn = 0; pn < maxPlayers; ++pn)
+                    if ((pn != currentPlayerNumber) && ! isSeatVacant(pn))
+                        candidates.add(players[pn]);
+            }
+        }
+        else if (robberyWithPirateNotRobber)
         {
             candidates = getPlayersShipsOnHex(((SOCBoardLarge) board).getPirateHex());
         } else {
@@ -4718,7 +4757,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             int pn = pl.getPlayerNumber();
 
-            if ((pn != currentPlayerNumber) && (! isSeatVacant(pn))
+            if ((pn != currentPlayerNumber)
                 && ( (pl.getResources().getTotal() > 0) || (robberyWithPirateNotRobber && (pl.getCloth() > 0)) ))
             {
                 victims.addElement(pl);
