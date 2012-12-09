@@ -639,7 +639,39 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         if (redHexes.isEmpty())
             return true;
 
-        // TODO Before anything else, check for frequent gold hexes and swap their numbers with random other hexes.
+        // Before anything else, check for frequent gold hexes and
+        // swap their numbers with random other hexes in numPath
+        // which are less-frequent dice numbers (<= 4 or >= 10).
+        {
+            ArrayList<Integer> frequentGold = new ArrayList<Integer>();
+            for (Integer hexCoord : redHexes)
+                if (getHexTypeFromCoord(hexCoord.intValue()) == GOLD_HEX)
+                    frequentGold.add(hexCoord);
+
+            if (! frequentGold.isEmpty())
+            {
+                for (int hex : frequentGold)
+                {
+                    int swapHex, diceNum;
+                    do {
+                        swapHex = numPath[Math.abs(rand.nextInt() % (numPath.length - 1))];
+                        diceNum = getNumberOnHexFromCoord(swapHex);
+                    } while ((swapHex == hex)
+                             || (diceNum == 0) || ((diceNum > 4) && (diceNum < 10)) 
+                             || (getHexTypeFromCoord(swapHex) == GOLD_HEX));
+
+                    int hr = hex >> 8,
+                        hc = hex & 0xFF,
+                        sr = swapHex >> 8,
+                        sc = swapHex & 0xFF;
+                    numberLayoutLg[sr][sc] = numberLayoutLg[hr][hc];  // gets 6 or 8
+                    numberLayoutLg[hr][hc] = diceNum;  // gets 2, 3, 4, 10, 11, or 12
+
+                    redHexes.remove(Integer.valueOf(hex));
+                    redHexes.add(swapHex);
+                }
+            }
+        }
 
         // Overall plan:
 
@@ -649,7 +681,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // numRetries = 0
         // Top of retry loop:
         // Make sets otherCoastalHexes, otherHexes: all land hexes in numPath not adjacent to redHexes
-        //   (This can be deferred until adjacent redHexes are found)
+        //   which aren't desert or gold (This can be deferred until adjacent redHexes are found)
         //   otherCoastalHexes holds ones at the edge of the board,
         //   which have fewer adjacent land hexes, and thus less chance of
         //   taking up the last available un-adjacent places
@@ -667,7 +699,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // - If it has no adjacent reds, remove it from redHexes and loop to next
         // - If it has 1 adjacent red, should swap that adjacent instead;
         //   the algorithm will also remove this one from redHexes
-        //   because it wil have 0 adjacents after the swap
+        //   because it will have 0 adjacents after the swap
         // - Do the Swapping Algorithm on it
         //   (updates redHexes, otherCoastalHexes, otherHexes; see below)
         // - If no swap was available, we should undo all and retry.
@@ -828,7 +860,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 // - If it has no adjacent reds, remove it from redHexes and loop to next
                 // - If it has 1 adjacent red, should swap that adjacent instead;
                 //   the algorithm will also remove this one from redHexes
-                //   because it wil have 0 adjacents after the swap
+                //   because it will have 0 adjacents after the swap
                 // - Do the Swapping Algorithm on it
                 //   (updates redHexes, otherCoastalHexes, otherHexes)
                 // - If no swap was available, we should undo all and retry.
@@ -943,6 +975,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * otherCoastalHexes holds ones at the edge of the board,
      * which have fewer adjacent land hexes, and thus less chance of
      * taking up the last available un-adjacent places.
+     * Water, desert, and gold hexes won't be added to either set.
+     *
      * @param numPath   Coordinates for each hex being placed; may contain water
      * @param redHexes  Hex coordinates of placed "red" (frequent) dice numbers (6s, 8s)
      * @param otherCoastalHexes  Empty set to build here
@@ -967,7 +1001,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
 
             // Don't consider unnumbered or 6s or 8s
-            // (some may have already been removed from redHexes)
+            // (check here because some may have already been removed from redHexes)
             {
                 final int dnum = getNumberOnHexFromCoord(h);
                 if ((dnum <= 0) || (dnum == 6) || (dnum == 8))
@@ -1015,7 +1049,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param otherCoastalHexes  Land hexes not adjacent to "red" numbers, at the edge of the island,
      *          for swapping dice numbers.  Coastal hexes have fewer adjacent land hexes, and
      *          thus less chance of taking up the last available un-adjacent places when swapped.
+     *          Should not contain gold, desert, or water hexes.
      * @param otherHexes   Land hexes not adjacent to "red" numbers, not at the edge of the island.
+     *          Should not contain gold, desert, or water hexes.
      * @return The old frequent-number hex coordinate, its swapped coordinate, and the "index delta",
      *         or null if nothing was available to swap.
      *         If the "index delta" != 0, a hex at <tt>redHexes[j]</tt> was removed
