@@ -1107,9 +1107,11 @@ public class SOCPlayerInterface extends Frame
             }
 
             String s = textInput.getText().trim();
+            String sOverflow = null;
 
             if (s.length() > 100)
             {
+                sOverflow = s.substring(100);
                 s = s.substring(0, 100);
             }
             else if (s.length() == 0)
@@ -1164,7 +1166,16 @@ public class SOCPlayerInterface extends Frame
                     return;
                 }
             }
+
             client.getGameManager().sendText(game, s + "\n");
+
+            if (sOverflow != null)
+            {
+                textInput.setText(sOverflow);  // user can choose to re-send the rest
+                textInput.setSelectionStart(0);  // clear highlight, so typing won't erase overflow
+                textInput.setSelectionEnd(0);
+                textInput.setCaretPosition(sOverflow.length());
+            }
         }
     }
 
