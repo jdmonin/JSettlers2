@@ -1304,7 +1304,7 @@ public class SOCRobotBrain extends Thread
                         expectPLACING_ROBBER = true;
                         waitingForGameState = true;
                         counter = 0;
-                        client.choosePlayer(game, -1);
+                        client.choosePlayer(game, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
                         pause(200);
                     }
 

@@ -6825,7 +6825,7 @@ public class SOCServer extends Server
                 switch (ga.getGameState())
                 {
                 case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
-                    ga.chooseMovePirate(choice == -2);
+                    ga.chooseMovePirate(choice == SOCChoosePlayer.CHOICE_MOVE_PIRATE);
                     sendGameState(ga);
                     break;
 
