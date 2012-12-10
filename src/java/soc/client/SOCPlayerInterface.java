@@ -1664,12 +1664,13 @@ public class SOCPlayerInterface extends Frame
      * @param pnums   the player ids of those players; length of this
      *                array may be larger than count (may be {@link SOCGame#maxPlayers}).
      *                Only the first <tt>count</tt> elements will be used.
+     * @param allowChooseNone  if true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
      * @see SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)
      * @see #showChooseRobClothOrResourceDialog(int)
      */
-    public void showChoosePlayerDialog(int count, int[] pnums)
+    public void showChoosePlayerDialog(final int count, final int[] pnums, final boolean allowChooseNone)
     {
-        choosePlayerDialog = new SOCChoosePlayerDialog(this, count, pnums);
+        choosePlayerDialog = new SOCChoosePlayerDialog(this, count, pnums, allowChooseNone);
         choosePlayerDialog.setVisible(true);
     }
 

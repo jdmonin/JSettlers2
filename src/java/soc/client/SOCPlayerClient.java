@@ -3102,11 +3102,13 @@ public class SOCPlayerClient extends Panel
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes)
     {
         SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        boolean[] ch = mes.getChoices();
-        int[] choices = new int[ch.length];  // == SOCGame.maxPlayers
+        final int maxPl = pi.getGame().maxPlayers;
+        final boolean[] ch = mes.getChoices();
+        final boolean allowChooseNone = ((ch.length > maxPl) && ch[maxPl]);  // for scenario SC_PIRI
+        int[] choices = new int[maxPl];
         int count = 0;
 
-        for (int i = 0; i < ch.length; i++)
+        for (int i = 0; i < maxPl; i++)
         {
             if (ch[i])
             {
@@ -3115,7 +3117,7 @@ public class SOCPlayerClient extends Panel
             }
         }
 
-        pi.showChoosePlayerDialog(count, choices);
+        pi.showChoosePlayerDialog(count, choices, allowChooseNone);
     }
 
     /**

@@ -22,6 +22,7 @@ package soc.client;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.message.SOCChoosePlayer;
 
 import java.awt.Button;
 import java.awt.Color;
@@ -55,6 +56,12 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
     /** Number of players to choose from for {@link #buttons} and {@link #players}. */
     final int number;
 
+    /** If true, player is allowed to choose to steal from no one.
+     *  Used with game scenario <tt>SC_PIRI</tt>.
+     *  @since 2.0.00
+     */
+    final private boolean allowChooseNone;
+
     final Label msg;
     final SOCPlayerInterface pi;
 
@@ -69,20 +76,25 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
 
     /**
      * Creates a new SOCChoosePlayerDialog object.
+     * After creation, call {@link #setVisible(boolean)}.
      *
      * @param plInt  PlayerInterface that owns this dialog
      * @param num    The number of players to choose from
      * @param p   The player ids of those players; length of this
      *            array may be larger than count (may be {@link SOCGame#maxPlayers}).
      *            Only the first <tt>count</tt> elements will be used.
+     * @param allowChooseNone  If true, player can choose to rob no one
+     *            (game scenario <tt>SC_PIRI</tt>)
      */
-    public SOCChoosePlayerDialog(SOCPlayerInterface plInt, int num, int[] p)
+    public SOCChoosePlayerDialog
+        (SOCPlayerInterface plInt, final int num, final int[] p, final boolean allowChooseNone)
     {
         super(plInt, "Choose Player", true);
 
         pi = plInt;
-        number = num;
+        number = (allowChooseNone) ? (num + 1) : num;
         players = p;
+        this.allowChooseNone = allowChooseNone;
         setBackground(new Color(255, 230, 162));
         setForeground(Color.black);
         setFont(new Font("Geneva", Font.PLAIN, 12));
@@ -102,7 +114,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
 
         SOCGame ga = pi.getGame();
 
-        for (int i = 0; i < number; i++)
+        for (int i = 0; i < num; i++)
         {
             SOCPlayer pl = ga.getPlayer(players[i]);            
 
@@ -132,6 +144,18 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
                 restooltip = "This player has " + rescount + " resources.";
             }
             new AWTToolTip(restooltip, player_res_lbl[i]);
+        }
+
+        if (allowChooseNone)
+        {
+            Button bNone = new Button("None");
+            buttons[num] = bNone;
+            add(bNone);
+            bNone.addActionListener(this);
+            new AWTToolTip("Choose this to steal from no player", bNone);
+            players[num] = SOCChoosePlayer.CHOICE_NO_PLAYER;
+            player_res_lbl[num] = new Label("(decline)", Label.CENTER);
+            add(player_res_lbl[num]);
         }
     }
 
