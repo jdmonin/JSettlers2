@@ -103,6 +103,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * a list of this player's roads and ships in play
+     * @see #getRoadOrShip(int)
      */
     private Vector<SOCRoad> roads;
 
@@ -3062,6 +3063,46 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         if (legalSettlements.contains(nodeInt))
                         {
                             potentialSettlements.add(nodeInt);
+                        }
+                    }
+                }
+
+                // For game scenario _SC_PIRI, ship routes can't branch
+                // in different directions, only extend from their ends.
+                if ((ptype == SOCPlayingPiece.SHIP) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                {
+                    // Find the end of this ship edge with a previous ship,
+                    // make sure that end node has no other potential ships.
+                    // Remove any potentials to prevent new branches from the old node.
+                    // Check both end nodes of the new edge, in case we're joining
+                    // 2 previous "segments" of ship routes from different directions.
+
+                    for (int ni = 0; ni < 2; ++ni)
+                    {
+                        final int node = nodes[ni];
+                        boolean foundOtherShips = false;
+
+                        final int[] edges = board.getAdjacentEdgesToNode_arr(node);
+                        for (int i = 0; i < 3; ++i)
+                        {
+                            final int edge = edges[i];
+                            if ((edge == -9) || (edge == id))
+                                continue;
+                            if (null != getRoadOrShip(edge))
+                            {
+                                foundOtherShips = true;
+                                break;
+                            }
+                        }
+
+                        if (foundOtherShips)
+                        {
+                            for (int i = 0; i < 3; ++i)
+                            {
+                                final Integer edgeInt = Integer.valueOf(edges[i]);
+                                if (potentialShips.contains(edgeInt))
+                                    potentialShips.remove(edgeInt);
+                            }
                         }
                     }
                 }
