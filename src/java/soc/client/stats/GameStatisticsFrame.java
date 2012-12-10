@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -262,7 +263,7 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             
             if (value > 0)
             {
-                Font BAR_FONT = new Font("sans-serif", Font.PLAIN, 12);
+                Font BAR_FONT = new Font("SansSerif", Font.PLAIN, 12);
                 g.setColor(Color.CYAN);
                 g.setFont(BAR_FONT);
                 g.drawString(String.valueOf(value), 2, sz.height - 2);

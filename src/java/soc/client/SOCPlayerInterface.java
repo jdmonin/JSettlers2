@@ -466,11 +466,11 @@ public class SOCPlayerInterface extends Frame
         }
 
         /**
-         * initialize the font and the forground, and background colors
+         * initialize the font and the foreground, and background colors
          */
         setBackground(Color.black);
         setForeground(Color.black);
-        setFont(new Font("Geneva", Font.PLAIN, 10));
+        setFont(new Font("SansSerif", Font.PLAIN, 10));
 
         /**
          * we're doing our own layout management

@@ -504,7 +504,7 @@ public class SOCHandPanel extends Panel implements ActionListener
         final Color pcolor = playerInterface.getPlayerColor(playerNumber);
         setBackground(pcolor);
         setForeground(COLOR_FOREGROUND);
-        setFont(new Font("Helvetica", Font.PLAIN, 10));
+        setFont(new Font("SansSerif", Font.PLAIN, 10));
 
         blankStandIn = new ColorSquare(pcolor, "One moment...");
         blankStandIn.setVisible(false);
