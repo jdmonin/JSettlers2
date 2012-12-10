@@ -29,6 +29,10 @@ import java.util.StringTokenizer;
  *<LI> After a server's {@link SOCChoosePlayerRequest}, 
  *     it says which player the current player wants to
  *     steal from.
+ *     <P>
+ *     In some game scenarios in version 2.0.00 or newer,
+ *     the player might have the option to steal from no one.
+ *     If the player makes that choice, {@link #getChoice()} is {@link #CHOICE_NO_PLAYER}.
  *<LI> After a server's {@link SOCGameState}
  *     ({@link soc.game.SOCGame#WAITING_FOR_ROBBER_OR_PIRATE WAITING_FOR_ROBBER_OR_PIRATE}) message,
  *     it says whether the player wants to move the robber

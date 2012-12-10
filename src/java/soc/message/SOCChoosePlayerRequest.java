@@ -24,8 +24,14 @@ import java.util.StringTokenizer;
 
 
 /**
- * This message asks a player to choose a player to
- * steal from.
+ * This message from server to client asks a player to choose a player to
+ * steal from.  The client responds with {@link SOCChoosePlayer}.
+ *<P>
+ * In some game scenarios in version 2.0.00 or newer,
+ * the player might have the option to steal from no one.
+ * See {@link #getChoices()} for details.  If the player
+ * makes that choice, the response is {@link SOCChoosePlayer}
+ * ({@link SOCChoosePlayer#CHOICE_NO_PLAYER CHOICE_NO_PLAYER}).
  *
  * @author Robert S. Thomas
  */
@@ -42,6 +48,9 @@ public class SOCChoosePlayerRequest extends SOCMessage
      * (0 to <tt>game.maxPlayers - 1</tt>).
      * True means that the player with a matching index is a
      * possible choice.
+     *<P>
+     * In version 2.0.00+, this array may sometimes have an extra element <tt>choices[game.maxPlayers]</tt>.
+     * If that element is true, the player may choose to steal from no one.
      */
     private boolean[] choices;
 
@@ -51,6 +60,10 @@ public class SOCChoosePlayerRequest extends SOCMessage
      * @param ga  the name of the game
      * @param ch  the possible choices; an array with 1 element per player number
      * (0 to <tt>game.maxPlayers - 1</tt>).
+     *<P>
+     * In version 2.0.00+, this array may sometimes have an extra element <tt>choices[game.maxPlayers]</tt>.
+     * If that element is true, the player may choose to steal from no one.
+     * This is used with some game scenarios; all scenarios require version 2.0.00 or newer.
      */
     public SOCChoosePlayerRequest(String ga, boolean[] ch)
     {
@@ -70,6 +83,10 @@ public class SOCChoosePlayerRequest extends SOCMessage
     /**
      * @return the choices; an array with 1 element per player number
      * (0 to <tt>game.maxPlayers - 1</tt>).
+     *<P>
+     * In version 2.0.00+, this array may sometimes have an extra element <tt>choices[game.maxPlayers]</tt>.
+     * If that element is true, the player may choose to steal from no one.
+     * This is used with some game scenarios; all scenarios require version 2.0.00 or newer.
      */
     public boolean[] getChoices()
     {
@@ -91,7 +108,8 @@ public class SOCChoosePlayerRequest extends SOCMessage
      *
      * @param ga  the name of the game
      * @param ch  the choices; an array with 1 element per player number
-     * (0 to <tt>game.maxPlayers - 1</tt>).
+     *     (0 to <tt>game.maxPlayers - 1</tt>).
+     *     May be longer in v2.0.00 scenarios; see {@link #getChoices()}.
      * @return the command string
      */
     public static String toCmd(String ga, boolean[] ch)
