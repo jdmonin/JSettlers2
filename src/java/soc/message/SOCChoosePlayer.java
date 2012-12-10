@@ -46,17 +46,23 @@ import java.util.StringTokenizer;
 public class SOCChoosePlayer extends SOCMessage
     implements SOCMessageForGame
 {
+    /** Constant for {@link #getChoice()} in response to server's {@link SOCChoosePlayerRequest},
+     *  if player has chosen to not rob from any player.
+     *  @since 2.0.00
+     */
+    public static final int CHOICE_NO_PLAYER = -1;
+
     /** Constant for {@link #getChoice()} in game state
      *  WAITING_FOR_ROBBER_OR_PIRATE: move Robber (not pirate ship).
      *  @since 2.0.00
      */
-    public static final int CHOICE_MOVE_ROBBER = -1;
+    public static final int CHOICE_MOVE_ROBBER = -2;
 
     /** Constant for {@link #getChoice()} in game state
      *  WAITING_FOR_ROBBER_OR_PIRATE: move Pirate Ship (not robber).
      *  @since 2.0.00
      */
-    public static final int CHOICE_MOVE_PIRATE = -2;
+    public static final int CHOICE_MOVE_PIRATE = -3;
 
     /**
      * Name of game
@@ -65,6 +71,7 @@ public class SOCChoosePlayer extends SOCMessage
 
     /**
      * The number of the chosen player,
+     * or {@link #CHOICE_NO_PLAYER} to choose no one,
      * or {@link #CHOICE_MOVE_ROBBER} to move the robber
      * or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      */
@@ -75,6 +82,7 @@ public class SOCChoosePlayer extends SOCMessage
      *
      * @param ga  the name of the game
      * @param ch  the number of the chosen player,
+     *   or {@link #CHOICE_NO_PLAYER} to choose no one,
      *   or {@link #CHOICE_MOVE_ROBBER} to move the robber
      *   or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      *<br>
@@ -98,6 +106,7 @@ public class SOCChoosePlayer extends SOCMessage
 
     /**
      * @return the number of the chosen player,
+     *   or {@link #CHOICE_NO_PLAYER} to choose no one,
      *   or {@link #CHOICE_MOVE_ROBBER} to move the robber
      *   or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      *<br>
