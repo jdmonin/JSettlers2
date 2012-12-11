@@ -227,6 +227,9 @@ public class SOCGame implements Serializable, Cloneable
      * If 7 is rolled, might be {@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_ROBBER_OR_PIRATE}
      *   or {@link #PLACING_ROBBER} or {@link #PLACING_PIRATE}.
      *<P>
+     * If 7 is rolled with scenario option <tt>_SC_PIRI</tt>, there is no robber to move, but
+     * the player will choose their robbery victim ({@link #WAITING_FOR_CHOICE}) after any discards.
+     *<P>
      * If the number rolled is on a gold hex, next state might be
      *   {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      */
@@ -246,6 +249,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * Player is placing the robber on a new land hex.
      * May follow state {@link #WAITING_FOR_ROBBER_OR_PIRATE} if the game {@link #hasSeaBoard}.
+     * Next game state may be {@link #WAITING_FOR_CHOICE} if multiple possible victims.
      * @see #PLACING_PIRATE
      * @see #canMoveRobber(int, int)
      * @see #moveRobber(int, int)
@@ -286,6 +290,12 @@ public class SOCGame implements Serializable, Cloneable
      * (if other players still need to discard),
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE},
      * or {@link #PLACING_ROBBER}.
+     *<P>
+     * In scenario option <tt>_SC_PIRI</tt>, there is no robber
+     * to move, but the player will choose their robbery victim
+     * ({@link #WAITING_FOR_CHOICE}) after any discards.
+     * If there are no possible victims, next state is {@link #PLAY1}.
+     *
      * @see #discard(int, SOCResourceSet)
      */
     public static final int WAITING_FOR_DISCARDS = 50;
@@ -297,6 +307,19 @@ public class SOCGame implements Serializable, Cloneable
      * Next game state is {@link #PLAY1} or {@link #WAITING_FOR_ROB_CLOTH_OR_RESOURCE}.
      * To see whether we're moving the robber or the pirate, use {@link #getRobberyPirateFlag()}.
      * To choose the player, call {@link #choosePlayerForRobbery(int)}.
+     *<P>
+     * In scenario option <tt>_SC_PIRI</tt>, there is no robber
+     * to move, but the player will choose their robbery victim.
+     * <tt>{@link #currentRoll}.sc_clvi_robPossibleVictims</tt>
+     * holds the list of possible victims.  In that scenario,
+     * the player also doesn't control the pirate ships, and
+     * never has Knight cards to move the robber and steal.
+     *<P>
+     * So in that scenario, the only time the game state is <tt>WAITING_FOR_CHOICE</tt>
+     * is when the player must choose to steal from a possible victim, or choose to steal
+     * from no one, after a 7 is rolled.  To choose the victim, call {@link #choosePlayerForRobbery(int)}.
+     * To choose no one, call {@link #choosePlayerForRobbery(int) choosePlayerForRobbery(-1)}.
+     *
      * @see #playKnight()
      * @see #canChoosePlayer(int)
      * @see #canChooseRobClothOrResource(int)
@@ -3890,7 +3913,16 @@ public class SOCGame implements Serializable, Cloneable
             {
                 placingRobberForKnightCard = false;
                 oldGameState = PLAY1;
-                if (canChooseMovePirate())
+                if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                {
+                    robberyWithPirateNotRobber = false;
+                    currentRoll.sc_clvi_robPossibleVictims = getPossibleVictims();
+                    if (currentRoll.sc_clvi_robPossibleVictims.isEmpty())
+                        gameState = PLAY1;  // no victims
+                    else
+                        gameState = WAITING_FOR_CHOICE;  // 1 or more victims; could choose to not steal anything
+                }
+                else if (canChooseMovePirate())
                 {
                     gameState = WAITING_FOR_ROBBER_OR_PIRATE;
                 } else {
@@ -4094,6 +4126,12 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Assumes {@link #canDiscard(int, SOCResourceSet)} already called to validate.
      *<P>
+     * In scenario option <tt>_SC_PIRI</tt>, there is no robber
+     * to move, but the player will choose their robbery victim
+     * (state {@link #WAITING_FOR_CHOICE}) after any discards.
+     * If there are no possible victims, state becomes {@link #PLAY1}.
+     * Check for those game states after calling this method.
+     *<P>
      * Special case:
      * If {@link #isForcingEndTurn()}, and no one else needs to discard,
      * gameState becomes {@link #PLAY1} but the caller must call
@@ -4129,10 +4167,19 @@ public class SOCGame implements Serializable, Cloneable
         if (gameState == -1)
         {
             oldGameState = PLAY1;
-            placingRobberForKnightCard = false;  // known because robber doesn't trigger discard
+            placingRobberForKnightCard = false;  // known because knight card doesn't trigger discard
             if (! forcingEndTurn)
             {
-                if (canChooseMovePirate())
+                if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                {
+                    robberyWithPirateNotRobber = false;
+                    currentRoll.sc_clvi_robPossibleVictims = getPossibleVictims();
+                    if (currentRoll.sc_clvi_robPossibleVictims.isEmpty())
+                        gameState = PLAY1;  // no victims
+                    else
+                        gameState = WAITING_FOR_CHOICE;  // 1 or more victims; could choose to not steal anything
+                }
+                else if (canChooseMovePirate())
                 {
                     gameState = WAITING_FOR_ROBBER_OR_PIRATE;
                 } else {
@@ -4510,7 +4557,9 @@ public class SOCGame implements Serializable, Cloneable
      * To choose the player and rob, call {@link #choosePlayerForRobbery(int)}.
      *
      * @return true if the current player can choose this player to rob
-     * @param pn  the number of the player to rob
+     * @param pn  the number of the player to rob, or -1 to rob no one
+     *           in game scenario <tt>_SC_PIRI</tt> as described in
+     *           {@link #WAITING_FOR_CHOICE}.
      *
      * @see #getRobberyPirateFlag()
      * @see #getPossibleVictims()
@@ -4522,6 +4571,14 @@ public class SOCGame implements Serializable, Cloneable
         if ((gameState != WAITING_FOR_CHOICE) && (gameState != WAITING_FOR_ROB_CLOTH_OR_RESOURCE))
         {
             return false;
+        }
+
+        if (pn == -1)
+        {
+            if (gameState != WAITING_FOR_CHOICE)
+                return false;
+
+            return isGameOptionSet(SOCGameOption.K_SC_PIRI);
         }
 
         for (SOCPlayer pl : getPossibleVictims())
@@ -4536,7 +4593,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * The current player has choosen a victim to rob.
+     * The current player has chosen a victim to rob.
      * Do that, unless they must choose whether to rob cloth or a resource.
      * Calls {@link #canChooseRobClothOrResource(int)} to check that.
      *<P>
@@ -4547,6 +4604,11 @@ public class SOCGame implements Serializable, Cloneable
      * Once chosen, call {@link #stealFromPlayer(int, boolean)}.
      *<P>
      * Does not validate <tt>pn</tt>; assumes {@link #canChoosePlayer(int)} has been called already.
+     *<P>
+     * In scenario option <tt>_SC_PIRI</tt>, the player can
+     * choose to not steal from anyone after rolling a 7.
+     * In that case, call with <tt>pn == -1</tt>.
+     * State becomes {@link #PLAY1}.
      *
      * @param pn  the number of the player being robbed
      * @return the type of resource that was stolen, as in {@link SOCResourceConstants}, or 0
@@ -4556,6 +4618,12 @@ public class SOCGame implements Serializable, Cloneable
      */
     public int choosePlayerForRobbery(final int pn)
     {
+        if ((pn == -1) && (gameState == WAITING_FOR_CHOICE))
+        {
+            gameState = PLAY1;
+            return 0;
+        }
+
         if (! canChooseRobClothOrResource(pn))
         {
             return stealFromPlayer(pn, false);
@@ -4719,6 +4787,13 @@ public class SOCGame implements Serializable, Cloneable
      */
     public Vector<SOCPlayer> getPossibleVictims()
     {
+        if ((currentRoll.sc_clvi_robPossibleVictims != null)
+            && (gameState == WAITING_FOR_CHOICE))
+        {
+            // already computed this turn
+            return currentRoll.sc_clvi_robPossibleVictims;
+        }
+
         // victims wil be a subset of candidates:
         // has resources, ! isSeatVacant, ! currentPlayer.
         Vector<SOCPlayer> victims = new Vector<SOCPlayer>();
@@ -6530,12 +6605,23 @@ public class SOCGame implements Serializable, Cloneable
          */
         public int[] cloth;
 
+        /**
+         * When a 7 is rolled in game scenario {@link SOCGameOption#K_SC_CLVI},
+         * there is no robber piece to move; the current player immediately picks another
+         * player with resources to steal from.  In that situation, this field holds
+         * the list of possible victims, and gameState is {@link #WAITING_FOR_CHOICE}.
+         * Otherwise null.
+         * @see SOCGame#getPossibleVictims()
+         */
+        public Vector<SOCPlayer> sc_clvi_robPossibleVictims;
+
         /** Convenience: Set diceA and dice, clear {@link #cloth}. */
         public void update (final int dA, int dB)
         {
             diceA = dA;
             diceB = dB;
             cloth = null;
+            sc_clvi_robPossibleVictims = null;
         }
 
     }  // nested class RollResult

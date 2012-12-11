@@ -44,6 +44,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
@@ -6362,7 +6363,7 @@ public class SOCServer extends Server
 
             if (ga.canDiscard(pn, mes.getResources()))
             {
-                ga.discard(pn, mes.getResources());
+                ga.discard(pn, mes.getResources());  // discard, change gameState
 
                 /**
                  * tell the player client that the player discarded the resources
@@ -6380,7 +6381,7 @@ public class SOCServer extends Server
                  */
                 if ((ga.getGameState() != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
-                    sendGameState(ga);
+                    sendGameState(ga);  // if state is WAITING_FOR_CHOICE (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
                 } else {
                     endGameTurn(ga, player);  // already did ga.takeMonitor()
                 }
@@ -6830,7 +6831,13 @@ public class SOCServer extends Server
                     break;
 
                 case SOCGame.WAITING_FOR_CHOICE:
-                    if (ga.canChoosePlayer(choice))
+                    if ((choice == SOCChoosePlayer.CHOICE_NO_PLAYER) && ga.canChoosePlayer(-1))
+                    {
+                        ga.choosePlayerForRobbery(-1);  // state becomes PLAY1
+                        messageToGame(ga.getName(), ((String) c.getData()) + " declined to steal.");
+                        sendGameState(ga);
+                    }
+                    else if (ga.canChoosePlayer(choice))
                     {
                         final int rsrc = ga.choosePlayerForRobbery(choice);
                         final boolean waitingClothOrRsrc = (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE);
@@ -9106,6 +9113,10 @@ public class SOCServer extends Server
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
      *<P>
+     * State {@link SOCGame#WAITING_FOR_CHOICE}:
+     * If current player must choose which player to rob,
+     * will also prompt their client to choose (in a CHOOSEPLAYERREQUEST).
+     *<P>
      * State {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
      * To announce the player must pick a resource to gain from the gold hex initial placement,
      * please call {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection)}.
@@ -9230,12 +9241,11 @@ public class SOCServer extends Server
             /**
              * get the choices from the game
              */
-            boolean[] choices = new boolean[ga.maxPlayers];
-
-            for (int i = 0; i < ga.maxPlayers; i++)
-            {
-                choices[i] = false;
-            }
+            final boolean canStealNone = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+            boolean[] choices = new boolean[ga.maxPlayers + (canStealNone ? 1 : 0)];
+            Arrays.fill(choices, false);
+            if (canStealNone)
+                choices[ga.maxPlayers] = true;
 
             Enumeration<SOCPlayer> plEnum = ga.getPossibleVictims().elements();
 
