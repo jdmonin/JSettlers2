@@ -386,6 +386,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
      *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert in <tt>landHexType[]</tt>
      * @param shuffleDiceNumbers  If true, shuffle the dice <tt>number</tt>s before placing along <tt>numPath</tt>.
+     *                 Also only if true, calls {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList)}
+     *                 to make sure 6s, 8s aren't adjacent and gold hexes aren't on 6 or 8.
      * @param landAreaNumber  0 unless there will be more than 1 Land Area (group of islands).
      *                    If != 0, updates {@link #landAreasLegalNodes}<tt>[landAreaNumber]</tt>
      *                    with the same nodes added to {@link SOCBoard#nodesOnLand}.
@@ -717,18 +719,19 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // - Jump back to "Make sets otherCoastalHexes, otherHexes"
 
         // Swapping Algorithm:
-        //   Returns a pair (old location, swapped location), or nothing if we failed to swap.
+        //   Returns a triple for swap info (old location, swapped location, delta to index numbers),
+        //   or nothing if we failed to swap.
         // - If otherCoastalHexes and otherHexes are empty:
         //   Return nothing.
         // - Pick a random hex from otherCoastalHexes if not empty, otherwise from otherHexes
-        // - Swap the numbers and build the pair to return
+        // - Swap the numbers and build the swap-info to return
         // - Remove new location and its adjacents from otherCoastalHexes or otherHexes
         // - Remove old location from redHexes
         // - Check each of its adjacent non-red lands, to see if each should be added to otherCoastalHexes or otherHexes
         //     because the adjacent no longer has any adjacent reds
         // - Check each of its adjacent reds, to see if the adjacent no longer has adjacent reds
         //     If so, we won't need to move it: remove from redHexes
-        // - Return the pair.
+        // - Return the swap info.
 
         // Implementation:
 
@@ -1090,7 +1093,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             ohex = h;
         }
 
-        // - Swap the numbers and build the pair to return
+        // - Swap the numbers and build the swap-info to return
         IntTriple triple = new IntTriple(swaphex, ohex, 0);
         {
             final int rs = swaphex >> 8,
