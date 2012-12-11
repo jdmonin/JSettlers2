@@ -5954,6 +5954,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 else
                 {
                     // Nothing currently here.
+                    // Look for potential pieces.
+
+                    hoverSettlementID = 0;
 
                     // Villages for Cloth trade scenario
                     if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
@@ -5965,7 +5968,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hoverID = id;
                             hoverIsPort = false;
                             hoverTextSet = true;
-                            hoverSettlementID = 0;
                             hoverCityID = 0;
                             setHoverText("Village for cloth trade on " + vi.diceNum + " (" + vi.getCloth() + " cloth)");
                         }
@@ -5990,10 +5992,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 hoverID = id;
                                 hoverIsPort = false;
                                 hoverTextSet = true;
-                                hoverSettlementID = 0;
                             }
-                        } else {
-                            hoverSettlementID = 0;
                         }
                     }
 
