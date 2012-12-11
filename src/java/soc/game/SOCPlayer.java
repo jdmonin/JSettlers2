@@ -3367,7 +3367,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialSettlement(final int node)
     {
-        return potentialSettlements.contains(new Integer(node));
+        return potentialSettlements.contains(Integer.valueOf(node));
     }
 
     /**
@@ -3380,7 +3380,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialSettlement(final int node)
     {
-        potentialSettlements.remove(new Integer(node));
+        potentialSettlements.remove(Integer.valueOf(node));
     }
 
     /**
@@ -3391,7 +3391,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isLegalSettlement(final int node)
     {
-        return legalSettlements.contains(new Integer(node));
+        return legalSettlements.contains(Integer.valueOf(node));
     }
 
     /**
@@ -3403,7 +3403,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialCity(final int node)
     {
-        return potentialCities.contains(new Integer(node));
+        return potentialCities.contains(Integer.valueOf(node));
     }
 
     /**
@@ -3416,7 +3416,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialCity(final int node)
     {
-        potentialCities.remove(new Integer(node));
+        potentialCities.remove(Integer.valueOf(node));
     }
 
     /**
@@ -3431,7 +3431,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (edge == -1)
             edge = 0x00;
-        return potentialRoads.contains(new Integer(edge));
+        return potentialRoads.contains(Integer.valueOf(edge));
     }
 
     /**
@@ -3446,7 +3446,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (edge == -1)
             edge = 0x00;
-        potentialRoads.remove(new Integer(edge));
+        potentialRoads.remove(Integer.valueOf(edge));
     }
 
     /**
@@ -3460,7 +3460,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             edge = 0x00;
         else if (edge < 0)
             return false;
-        return legalRoads.contains(new Integer(edge));
+        return legalRoads.contains(Integer.valueOf(edge));
     }
 
     /**
@@ -3486,7 +3486,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialShip(final int edge, final int ignoreShipEdge)
     {
-        if (! potentialShips.contains(new Integer(edge)))
+        if (! potentialShips.contains(Integer.valueOf(edge)))
             return false;
 
         final SOCBoard board = game.getBoard();
@@ -3527,7 +3527,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialShip(int edge)
     {
-        return potentialShips.contains(new Integer(edge));
+        return potentialShips.contains(Integer.valueOf(edge));
     }
 
     /**
@@ -3540,7 +3540,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialShip(int edge)
     {
-        potentialShips.remove(new Integer(edge));
+        potentialShips.remove(Integer.valueOf(edge));
     }
 
     /**
@@ -3553,7 +3553,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (edge < 0)
             return false;
-        return legalShips.contains(new Integer(edge));
+        return legalShips.contains(Integer.valueOf(edge));
     }
 
     /**
