@@ -3862,6 +3862,8 @@ public class SOCGame implements Serializable, Cloneable
             currentDice = die1 + die2;
         } while ((currentDice == 7) && ! okToRoll7);
 
+        currentRoll.update(die1, die2);  // also clears currentRoll.cloth
+
         /**
          * handle the seven case
          */
@@ -3896,8 +3898,6 @@ public class SOCGame implements Serializable, Cloneable
                     gameState = PLACING_ROBBER;
                 }
             }
-
-            currentRoll.cloth = null;
         }
         else
         {
@@ -3924,9 +3924,11 @@ public class SOCGame implements Serializable, Cloneable
             {
                 // distribute will usually return null
                 final int[] rollCloth = ((SOCBoardLarge) board).distributeClothFromRoll(this, currentDice);
-                currentRoll.cloth = rollCloth;
                 if (rollCloth != null)
+                {
+                    currentRoll.cloth = rollCloth;
                     checkForWinner();
+                }
             }
 
             /**
@@ -3944,8 +3946,6 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
-        currentRoll.diceA = die1;
-        currentRoll.diceB = die2;
         return currentRoll;
     }
 
@@ -6535,6 +6535,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             diceA = dA;
             diceB = dB;
+            cloth = null;
         }
 
     }  // nested class RollResult
