@@ -2306,7 +2306,15 @@ public class SOCPlayerClient extends Applet
      */
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isPractice)
     {
-        status.setText(mes.getStatus());
+        final String statusText = mes.getStatus();
+        status.setText(statusText);
+
+        // If warning about debug during initial connect, show that.
+        // That status message would be sent after VERSION.
+        if (statusText.toLowerCase().indexOf("debug") != -1)
+            versionOrlocalTCPPortLabel.setText
+                (versionOrlocalTCPPortLabel.getText() + ", debug is on");
+
         // If was trying to join a game, reset cursor from WAIT_CURSOR.
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
@@ -2315,7 +2323,7 @@ public class SOCPlayerClient extends Applet
             // Extract game name and failing game-opt keynames,
             // and pop up an error message window.
             String errMsg;
-            StringTokenizer st = new StringTokenizer(mes.getStatus(), SOCMessage.sep2);
+            StringTokenizer st = new StringTokenizer(statusText, SOCMessage.sep2);
             try
             {
                 String gameName = null;
@@ -2344,7 +2352,7 @@ public class SOCPlayerClient extends Applet
             }
             catch (Throwable t)
             {
-                errMsg = mes.getStatus();  // fallback, not expected to happen
+                errMsg = statusText;  // fallback, not expected to happen
             }
             NotifyDialog.createAndShow(this, (Frame) null,
                 errMsg, "Cancel", false);
