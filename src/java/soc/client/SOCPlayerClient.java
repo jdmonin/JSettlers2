@@ -2360,7 +2360,7 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * handle the "join authorization" message
+     * handle the "join channel authorization" message
      * @param mes  the message
      */
     protected void handleJOINAUTH(SOCJoinAuth mes)
@@ -2398,7 +2398,7 @@ public class SOCPlayerClient extends Applet
     }
 
     /**
-     * handle the "members" message
+     * handle the "channel members" message
      * @param mes  the message
      */
     protected void handleMEMBERS(SOCMembers mes)

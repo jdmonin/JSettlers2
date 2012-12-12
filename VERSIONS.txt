@@ -17,6 +17,7 @@ new features, until 2.0.00 is ready.
 - Road Building: While placing first free road, don't enable Cancel in popup menu
 - If jar client can't connect to server, returns to first panel, with buttons to connect or practice
 - If try to start server in JSettlers.jar, but port already in use, show message instead of exiting immediately
+- If server's debug commands are on, warn at connect
 - Get Practice Game options from practice server, not from most recently started game
 - If join a server after a practice game, re-enable name and password fields
 - Chat text field: If a long line is truncated, keep the rest of it in the textfield

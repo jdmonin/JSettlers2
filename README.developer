@@ -52,7 +52,9 @@ Tips for Debugging
 You can use debug commands in any practice game, by typing into the game chat
 textfield.  Type *help* for a list of commands.
 (If you need to use debug commands over a network connection, start that server
- with -Djsettlers.allow.debug=Y and connect with username debug).
+ with -Djsettlers.allow.debug=Y and connect with username debug.  For security,
+ please use sqlite or another database, and make a "debug" account with a password.
+ See README.txt section "Database Setup".)
 
 If you want to inspect the game object state at the server or robot:
 	Set a breakpoint at SOCServer.processDebugCommand, or at "case SOCMessage.GAMETEXTMSG"
