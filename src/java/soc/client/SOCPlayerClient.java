@@ -736,8 +736,9 @@ public class SOCPlayerClient extends Panel
     {
         nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
         pass.setEditable(true);
-        nick.setText(cuser);
         pass.setText(cpass);
+        nick.setText(cuser);
+        nick.requestFocusInWindow();
         cardLayout.show(this, MESSAGE_PANEL);
         net.connect(chost, cport);
     }
@@ -1470,6 +1471,7 @@ public class SOCPlayerClient extends Panel
 
             /**
              * list of channels on the server
+             * (sent at connect after VERSION, even if no channels)
              */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes, isPractice);
@@ -2101,7 +2103,7 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * handle the "join authorization" message
+     * handle the "join channel authorization" message
      * @param mes  the message
      */
     protected void handleJOINAUTH(SOCJoinAuth mes)
@@ -2139,7 +2141,7 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * handle the "members" message
+     * handle the "channel members" message
      * @param mes  the message
      */
     protected void handleMEMBERS(SOCMembers mes)
@@ -2182,7 +2184,6 @@ public class SOCPlayerClient extends Panel
             cardLayout.show(SOCPlayerClient.this, MAIN_PANEL);
             validate();
 
-            nick.requestFocus();
             status.setText("Login by entering nickname and then joining a channel or game.");
         }
 
@@ -2192,6 +2193,9 @@ public class SOCPlayerClient extends Panel
         {
             addToList(ch, chlist);
         }
+
+        if (! isPractice)
+            nick.requestFocus();
     }
 
     /**
