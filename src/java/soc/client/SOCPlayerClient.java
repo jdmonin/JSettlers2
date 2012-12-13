@@ -2987,6 +2987,7 @@ public class SOCPlayerClient extends Panel
         if (pi == null)
             return;
 
+        // send event to listener for UI to handle, instead of updating UI directly [mra]
         pi.updateAtPutPiece
             (mes.getPlayerNumber(), mes.getCoordinates(), mes.getPieceType(), false, 0);
     }
