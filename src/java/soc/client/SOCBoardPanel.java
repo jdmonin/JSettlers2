@@ -80,6 +80,10 @@ import java.util.Timer;
  *<P>
  * During game play, you can show a short 1-line message text in the
  * top-center part of the panel by calling {@link #setSuperimposedTopText(String)}.
+ *<P>
+ * This panel's minimum width and height in pixels is {@link #getMinimumSize()}.
+ * To set its size, call {@link #setSize(int, int)} or {@link #setBounds(int, int, int, int)};
+ * these methods will set a flag to rescale board graphics if needed.
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
@@ -439,6 +443,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Set in constructor based on {@link #PANELX}, {@link #PANELY}.
      * Used by {@link #getMinimumSize()}.
      * @since 1.1.08
+     * @see #panelMinBW
      */
     private Dimension minSize;
 
@@ -515,7 +520,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected int scaledPanelX, scaledPanelY;
 
     /**
-     * Minimum width and height, in board-internal coordinates.
+     * <tt>panelMinBW</tt> and <tt>panelMinBH</tt> are the minimum width and height,
+     * in board-internal coordinates (not rotated or scaled).
      * Differs from static {@link #PANELX}, {@link #PANELY} for {@link #is6player 6-player board}
      * and the {@link #isLargeBoard large board}.
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account,
@@ -1654,6 +1660,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Minimum required width and height, as determined by options and {@link #isRotated()}.
+     *<P>
+     * Minimum size is set in the constructor.
+     * On the classic 4-player and 6-player boards, the size is based on {@link #PANELX} and {@link #PANELY}.
+     * When {@link SOCGame#hasSeaBoard}, the size is based on {@link SOCBoard#getBoardWidth()}
+     * and {@link SOCBoard#getBoardHeight() .getBoardHeight()}.
      *
      * @return minimum size
      */
