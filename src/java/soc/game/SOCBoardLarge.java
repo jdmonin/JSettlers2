@@ -29,6 +29,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
+import soc.util.IntPair;
+
 /**
  * A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
@@ -251,7 +253,12 @@ public class SOCBoardLarge extends SOCBoard
      */
     protected static final int MAX_LAND_HEX_LG = FOG_HEX;
 
-    private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
+    /**
+     * Default size of the large board.
+     * Can override in constructor.
+     * See {@link SOCBoard#getBoardHeight() getBoardHeight()}, {@link SOCBoard#getBoardWidth() getBoardWidth()}.
+     */
+    public static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;
 
     /**
      * For {@link #getAdjacentHexesToHex(int, boolean)}, the offsets to add to the hex
@@ -512,23 +519,41 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
+     * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      */
     public SOCBoardLarge(Hashtable<String,SOCGameOption> gameOpts, int maxPlayers)
-            throws IllegalArgumentException
+        throws IllegalArgumentException
+    {
+        this(gameOpts, maxPlayers, new IntPair(BOARDHEIGHT_LARGE, BOARDWIDTH_LARGE));
+    }
+
+    /**
+     * Create a new Settlers of Catan Board, with the v3 encoding and a certain size.
+     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param maxPlayers Maximum players; must be 4 or 6
+     * @param boardHeightWidth  Board's height and width.
+     *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
+     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
+     */
+    public SOCBoardLarge
+        (final Hashtable<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
+        throws IllegalArgumentException
     {
         super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
+        if (boardHeightWidth == null)
+            throw new IllegalArgumentException("boardHeightWidth null");
         this.maxPlayers = maxPlayers;
-        // TODO maxPlayers 6 not yet supported in our board layout for "PLL"
 
-        setBoardBounds(BOARDWIDTH_LARGE, BOARDHEIGHT_LARGE);
+        final int bH = boardHeightWidth.a, bW = boardHeightWidth.b;
+        setBoardBounds(bH, bW);
 
-        hexLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
-        numberLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
+        hexLayoutLg = new int[bH + 1][bW + 1];
+        numberLayoutLg = new int[bH + 1][bW + 1];
         landHexLayout = new HashSet<Integer>();
         fogHiddenHexes = new HashMap<Integer, Integer>();
         legalRoadEdges = new HashSet<Integer>();
@@ -540,7 +565,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // Only odd-numbered rows are valid,
         // but we fill all rows here just in case.
-        for (int r = 0; r <= boardHeight; ++r)
+        for (int r = 0; r <= bH; ++r)
         {
             Arrays.fill(hexLayoutLg[r], WATER_HEX);
             Arrays.fill(numberLayoutLg[r], 0);

@@ -2355,17 +2355,17 @@ public class SOCBoard implements Serializable, Cloneable
     }
 
     /**
-     * For subclass constructor usage, set the board width and height.
+     * For subclass constructor usage, set the board height and width.
      * Does not set node or edge ranges (minNode, maxEdge, etc) because these
      * limits aren't used in all encodings. 
-     * @param boardW  New maximum column coordinate, for {@link #getBoardWidth()}
      * @param boardH  New maximum row coordinate, for {@link #getBoardHeight()}
+     * @param boardW  New maximum column coordinate, for {@link #getBoardWidth()}
      * @since 2.0.00
      */
-    protected void setBoardBounds(final int boardW, final int boardH)
+    protected void setBoardBounds(final int boardH, final int boardW)
     {
-        boardWidth = boardW;
         boardHeight = boardH;
+        boardWidth = boardW;
     }
 
     /**
@@ -3527,7 +3527,7 @@ public class SOCBoard implements Serializable, Cloneable
     }  // nested class BoardFactory
 
     /**
-     * Default implementation of {@link BoardFactory}.
+     * Default implementation of {@link BoardFactory}, used at client.
      * Called by game constructor via <tt>static {@link SOCGame#boardFactory}</tt>.
      * @author Jeremy D Monin
      * @since 2.0.00

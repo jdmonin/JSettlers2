@@ -35,6 +35,7 @@ import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
 import soc.game.SOCVillage;
 import soc.game.SOCBoard.BoardFactory;
+import soc.util.IntPair;
 import soc.util.IntTriple;
 
 /**
@@ -89,14 +90,19 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
+     * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Hashtable, boolean, int)}
+     * to get the right board size and layout based on game options and optional {@link SOCScenario}.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
-     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+     * @param boardHeightWidth  Board's height and width.
+     *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
+     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
      */
-    public SOCBoardLargeAtServer(Hashtable<String,SOCGameOption> gameOpts, int maxPlayers)
+    public SOCBoardLargeAtServer
+        (final Hashtable<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
         throws IllegalArgumentException
     {
-        super(gameOpts, maxPlayers);
+        super(gameOpts, maxPlayers, boardHeightWidth);
         // Nothing special for now at server
     }
 
@@ -194,6 +200,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         {
             landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
             // TODO revisit, un-hardcode, when we have multiple scenarios
+            // TODO maxPlayers 6 doesn't have its own board layout yet here
 
             // - Mainland:
             makeNewBoard_placeHexes
@@ -2101,7 +2108,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             if (! largeBoard)
                 return SOCBoard.DefaultBoardFactory.staticCreateBoard(gameOpts, false, maxPlayers);
             else
-                return new SOCBoardLargeAtServer(gameOpts, maxPlayers);
+                return new SOCBoardLargeAtServer
+                    (gameOpts, maxPlayers, new IntPair(BOARDHEIGHT_LARGE, BOARDWIDTH_LARGE));
         }
 
     }  // nested class BoardFactoryAtServer
