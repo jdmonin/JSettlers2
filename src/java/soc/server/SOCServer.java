@@ -4182,7 +4182,7 @@ public class SOCServer extends Server
         sendGameList(c, prevVers);
 
         // Warn if debug commands are allowed.
-        // This will be displayed in the client's status line.
+        // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK, "Debugging is On.  Welcome to Java Settlers of Catan!"));            

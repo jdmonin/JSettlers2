@@ -27,19 +27,20 @@ new features, until 2.0.00 is ready.
 
 
 
-    > 1.1.17 (build OV20121xxx)
+    > 1.1.17 (build OV20121212)
 - Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece
 - Road Building: While placing first free road, don't enable Cancel in popup menu
 - If jar client can't connect to server, returns to first panel, with buttons to connect or practice
 - If try to start server in JSettlers.jar, but port already in use, show message instead of exiting immediately
+- If server's debug commands are on, warn at connect
 - Get Practice Game options from practice server, not from most recently started game
 - If join a server after a practice game, re-enable name and password fields
 - Chat text field: If a long line is truncated, keep the rest of it in the textfield
+- Debug commands: dev cards: Send card type numbers with help message
 - If server rejects bot's dev card play, bot sees that and tries a different move
 - When player leaves game, don't send hostname to all players
 - Server DB setup script: Ignore net errors when running script and exiting
 - If server DB is empty, use default parameters for all bots
-- Debug commands: dev cards: Send card type numbers with help message
 - Server constructors: throw exceptions instead of System.exit
 
     > 1.1.16 (build OV20121027)
