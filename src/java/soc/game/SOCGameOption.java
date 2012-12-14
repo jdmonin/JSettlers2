@@ -129,6 +129,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
      *<LI> DH  Dev Cards for house rules (swap/destroy)
+     *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
      *    existing option.  So in NewGameOptionsFrame, it appears on the line following
@@ -271,6 +272,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         // TODO PLL for SOCBoardLarge: Decide final name
         opt.put("PLL", new SOCGameOption
                 ("PLL", 2000, 2000, false, true, "Experimental: Use large board"));
+        opt.put("_BHW", new SOCGameOption
+                ("_BHW", 2000, 2000, 0, 0, 0xFFFF, "Large board's height and width (0xRRCC) if not default"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption

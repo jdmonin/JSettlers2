@@ -1072,9 +1072,13 @@ public class SOCGame implements Serializable, Cloneable
             vp_winner = VP_WINNER_STANDARD;
             hasScenarioWinCondition = false;
         }
+
         if (boardFactory == null)
             boardFactory = new SOCBoard.DefaultBoardFactory();
         board = boardFactory.createBoard(op, hasSeaBoard, maxPlayers);
+            // At server, createBoard might add "_BHW" to op if SOCBoardLarge with non-default size.
+            // op won't be null because SOCBoardLarge requires game opt "PLL".
+
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
         seatLocks = new boolean[maxPlayers];

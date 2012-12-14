@@ -520,6 +520,7 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
      * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
+     * Only the client uses this constructor.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
@@ -527,7 +528,7 @@ public class SOCBoardLarge extends SOCBoard
     public SOCBoardLarge(Hashtable<String,SOCGameOption> gameOpts, int maxPlayers)
         throws IllegalArgumentException
     {
-        this(gameOpts, maxPlayers, new IntPair(BOARDHEIGHT_LARGE, BOARDWIDTH_LARGE));
+        this(gameOpts, maxPlayers, getBoardSize(gameOpts, maxPlayers));
     }
 
     /**
@@ -574,6 +575,29 @@ public class SOCBoardLarge extends SOCBoard
         portsCount = 0;
         pirateHex = 0;
         prevPirateHex = 0;
+    }
+
+    /**
+     * Get the board size for client's constructor:
+     * Default size {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE},
+     * unless <tt>gameOpts</tt> contains <tt>"_BHW"</tt> Board Height and Width.
+     * @param gameOpts  Game options, or null
+     * @param maxPlayers  Maximum players; must be 4 or 6
+     * @return a new IntPair(height, width)
+     */
+    private static IntPair getBoardSize(Hashtable<String, SOCGameOption> gameOpts, int maxPlayers)
+    {
+        SOCGameOption bhwOpt = null;
+        if (gameOpts != null)
+            bhwOpt = gameOpts.get("_BHW");
+
+        if ((bhwOpt == null) || (bhwOpt.getIntValue() == 0))
+        {
+            return new IntPair(BOARDHEIGHT_LARGE, BOARDWIDTH_LARGE);
+        } else {
+            final int bhw = bhwOpt.getIntValue();
+            return new IntPair(bhw >> 8, bhw & 0xFF);
+        }
     }
 
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers

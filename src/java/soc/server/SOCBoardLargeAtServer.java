@@ -2097,6 +2097,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
          * From v1.1.11 through 1.1.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
          * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+         *                  If <tt>largeBoard</tt>, and {@link #getBoardSize(Hashtable, int)}
+         *                  gives a non-default size, <tt>"_BHW"</tt> will be added to <tt>gameOpts</tt>.
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
          * @param maxPlayers Maximum players; must be 4 or 6.
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
@@ -2106,10 +2108,38 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             throws IllegalArgumentException
         {
             if (! largeBoard)
+            {
                 return SOCBoard.DefaultBoardFactory.staticCreateBoard(gameOpts, false, maxPlayers);
-            else
+            } else {
+                IntPair boardHeightWidth = new IntPair(BOARDHEIGHT_LARGE, BOARDWIDTH_LARGE);
+
+                // Check board size, set _BHW if not default.
+                final int bH = boardHeightWidth.a, bW = boardHeightWidth.b;
+                if (gameOpts != null)
+                {
+                    // gameOpts should never be null if largeBoard; largeBoard requires opt "PLL".
+                    int bhw = 0;
+                    SOCGameOption bhwOpt = gameOpts.get("_BHW");
+                    if (bhwOpt != null)
+                        bhw = bhwOpt.getIntValue();
+
+                    if (((bH != SOCBoardLarge.BOARDHEIGHT_LARGE) || (bW != SOCBoardLarge.BOARDWIDTH_LARGE))
+                        && (bhw == 0))
+                    {
+                        bhw = (bH << 8) | bW;
+                        if (bhwOpt == null)
+                            bhwOpt = SOCGameOption.getOption("_BHW");
+                        if (bhwOpt != null)
+                        {
+                            bhwOpt.setIntValue(bhw);
+                            gameOpts.put("_BHW", bhwOpt);
+                        }
+                    }
+                }
+
                 return new SOCBoardLargeAtServer
-                    (gameOpts, maxPlayers, new IntPair(BOARDHEIGHT_LARGE, BOARDWIDTH_LARGE));
+                    (gameOpts, maxPlayers, boardHeightWidth);
+            }
         }
 
     }  // nested class BoardFactoryAtServer
