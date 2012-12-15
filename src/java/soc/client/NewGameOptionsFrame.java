@@ -1072,6 +1072,8 @@ public class NewGameOptionsFrame extends Frame
                 {
                     final String chText = ch.getSelectedItem();
                     opt.setStringValue(chText.substring(0, chText.indexOf(':')));
+                } else {
+                    opt.setStringValue("");
                 }
             }
 
