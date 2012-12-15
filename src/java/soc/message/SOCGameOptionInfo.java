@@ -176,7 +176,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    break;
 
 	case SOCGameOption.OTYPE_INT:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, pa[11]);  // skip_def ignored
+	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, skip_def, pa[11]);
 	    opt.setIntValue(ival_cur);
 	    break;
 
@@ -190,7 +190,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    {
 		String[] choices = new String[ival_max];
 		System.arraycopy(pa, 12, choices, 0, ival_max);
-	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, pa[11]);  // skip_def ignored
+	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, skip_def, choices, pa[11]);
 	        opt.setIntValue(ival_cur);
             }
 	    break;
