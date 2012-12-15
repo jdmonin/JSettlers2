@@ -65,12 +65,14 @@ import soc.util.IntTriple;
  * <H3> To Add a New Board:</H3>
  * To add a new board, you'll need to declare all parts of its layout, recognize its
  * scenario or game option in makeNewBoard, and call methods to set up the structure.
+ * These layout parts' values can be different for 3, 4, or 6 players.
  *<P>
  * A good example is SC_4ISL "Four Islands"; see commits f316299, bcd540f, and 97bb3b4
  * or search this class for the string SC_4ISL.
  *<P>
  * Parts of the layout:
  *<UL>
+ * <LI> Its height and width, if not default
  * <LI> Its set of land hex types, usually shuffled *
  * <LI> Land hex coordinates *
  * <LI> Dice numbers to place at land hex coordinates, sometimes shuffled
@@ -666,7 +668,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                         swapHex = numPath[Math.abs(rand.nextInt() % (numPath.length - 1))];
                         diceNum = getNumberOnHexFromCoord(swapHex);
                     } while ((swapHex == hex)
-                             || (diceNum == 0) || ((diceNum > 4) && (diceNum < 10)) 
+                             || (diceNum == 0) || ((diceNum > 4) && (diceNum < 10))
                              || (getHexTypeFromCoord(swapHex) == GOLD_HEX));
 
                     int hr = hex >> 8,
@@ -1283,6 +1285,35 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             hexLayoutLg[r][c] = FOG_HEX;
             numberLayoutLg[r][c] = -1;
         }
+    }
+
+    /**
+     * Get the board size for
+     * {@link BoardFactoryAtServer#createBoard(Hashtable, boolean, int) BoardFactoryAtServer.createBoard}:
+     * Default size {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE},
+     * unless <tt>gameOpts</tt> contains a scenario (<tt>"SC"</tt>) whose layout has a custom height/width.
+     * @param gameOpts  Game options, or null
+     * @param maxPlayers  Maximum players; must be 4 or 6
+     * @return encoded size (0xRRCC)
+     * @see SOCBoardLarge#getBoardSize(Hashtable, int)
+     */
+    private static int getBoardSize(Hashtable<String, SOCGameOption> gameOpts, final int maxPlayers)
+    {
+        int heightWidth = 0;
+        SOCGameOption scOpt = null;
+        if (gameOpts != null)
+            scOpt = gameOpts.get("SC");
+
+        if (scOpt != null)
+        {
+            // Check scenario name; not all scenarios have a custom board size.
+            final String sc = scOpt.getStringValue();
+        }
+
+        if (heightWidth == 0)
+            return (BOARDHEIGHT_LARGE << 8) | BOARDWIDTH_LARGE;
+        else
+            return heightWidth;
     }
 
 
@@ -2093,15 +2124,18 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     {
         /**
          * Create a new Settlers of Catan Board based on <tt>gameOpts</tt>; this is a factory method.
+         * Board size is based on <tt>maxPlayers</tt> and optional scenario (game option <tt>"SC"</tt>).
          *<P>
          * From v1.1.11 through 1.1.xx, this was SOCBoard.createBoard.  Moved to new factory class in 2.0.00.
          *
          * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
-         *                  If <tt>largeBoard</tt>, and {@link #getBoardSize(Hashtable, int)}
+         *                  If <tt>largeBoard</tt>, and
+         *                  {@link SOCBoardLargeAtServer#getBoardSize(Hashtable, int) getBoardSize(Hashtable, int)}
          *                  gives a non-default size, <tt>"_BHW"</tt> will be added to <tt>gameOpts</tt>.
          * @param largeBoard  true if {@link SOCBoardLarge} should be used (v3 encoding)
          * @param maxPlayers Maximum players; must be 4 or 6.
          * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
+         *                  or (unlikely internal error) game option "_BHW" isn't known in SOCGameOption.getOption.
          */
         public SOCBoard createBoard
             (Hashtable<String,SOCGameOption> gameOpts, final boolean largeBoard, final int maxPlayers)
@@ -2111,10 +2145,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             {
                 return SOCBoard.DefaultBoardFactory.staticCreateBoard(gameOpts, false, maxPlayers);
             } else {
-                IntPair boardHeightWidth = new IntPair(BOARDHEIGHT_LARGE, BOARDWIDTH_LARGE);
-
                 // Check board size, set _BHW if not default.
-                final int bH = boardHeightWidth.a, bW = boardHeightWidth.b;
+                final int boardHeightWidth = getBoardSize(gameOpts, maxPlayers);
+                final int bH = boardHeightWidth >> 8, bW = boardHeightWidth & 0xFF;
+
                 if (gameOpts != null)
                 {
                     // gameOpts should never be null if largeBoard; largeBoard requires opt "PLL".
@@ -2124,21 +2158,22 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                         bhw = bhwOpt.getIntValue();
 
                     if (((bH != SOCBoardLarge.BOARDHEIGHT_LARGE) || (bW != SOCBoardLarge.BOARDWIDTH_LARGE))
-                        && (bhw == 0))
+                        && (bhw != boardHeightWidth))
                     {
-                        bhw = (bH << 8) | bW;
                         if (bhwOpt == null)
                             bhwOpt = SOCGameOption.getOption("_BHW");
                         if (bhwOpt != null)
                         {
-                            bhwOpt.setIntValue(bhw);
+                            bhwOpt.setIntValue(boardHeightWidth);
                             gameOpts.put("_BHW", bhwOpt);
+                        } else {
+                            throw new IllegalArgumentException("Internal error: Game opt _BHW not known");
                         }
                     }
                 }
 
                 return new SOCBoardLargeAtServer
-                    (gameOpts, maxPlayers, boardHeightWidth);
+                    (gameOpts, maxPlayers, new IntPair(bH, bW));
             }
         }
 

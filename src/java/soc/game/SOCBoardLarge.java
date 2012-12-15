@@ -584,6 +584,7 @@ public class SOCBoardLarge extends SOCBoard
      * @param gameOpts  Game options, or null
      * @param maxPlayers  Maximum players; must be 4 or 6
      * @return a new IntPair(height, width)
+     * @see soc.server.SOCBoardLargeAtServer#getBoardSize(Hashtable, int)
      */
     private static IntPair getBoardSize(Hashtable<String, SOCGameOption> gameOpts, int maxPlayers)
     {
