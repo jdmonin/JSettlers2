@@ -284,8 +284,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
                 ("VP", -1, 1114, false, 10, 10, 15, true, "Victory points to win: #"));
-        opt.put("SC", new SOCGameOption
-                ("SC", 2000, 2000, 8, false, true, "Game Scenario: #"));
+        final SOCGameOption sc = new SOCGameOption
+                ("SC", 2000, 2000, 8, false, true, "Game Scenario: #");
+        opt.put("SC", sc);
         opt.put("DH", new SOCGameOption
                 ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
                 // TODO no robot players for DH
@@ -367,6 +368,24 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
                 if (refreshPl)
                     pl.refreshDisplay();
+            }
+        });
+
+        // If SC (scenario) is chosen, also set PLL (large board)
+        sc.addChangeListener(new ChangeListener()
+        {
+            public void valueChanged
+                (final SOCGameOption optSc, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
+            {
+                SOCGameOption pll = currentOpts.get("PLL");
+                if ((pll == null) || pll.userChanged)
+                    return;
+                final boolean scPicked = optSc.getBoolValue() && (optSc.getStringValue().length() != 0);
+                if (scPicked != pll.getBoolValue())
+                {
+                    pll.setBoolValue(scPicked);
+                    pll.refreshDisplay();
+                }
             }
         });
 
@@ -1870,6 +1889,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                         newOpts.putAll(scOpts);
                     }
                 }
+
+                // Client-side gameopt code also assumes all scenarios use
+                // the large board, and set game option "PLL" when a scenario
+                // is chosen by the user.
             }
 
             // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
