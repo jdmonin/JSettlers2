@@ -258,7 +258,7 @@ public class SOCBoardLarge extends SOCBoard
      * Can override in constructor.
      * See {@link SOCBoard#getBoardHeight() getBoardHeight()}, {@link SOCBoard#getBoardWidth() getBoardWidth()}.
      */
-    public static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;
+    public static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 18;
 
     /**
      * For {@link #getAdjacentHexesToHex(int, boolean)}, the offsets to add to the hex

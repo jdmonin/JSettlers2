@@ -111,6 +111,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     public static final int PANELX = 379, PANELY = 340;
 
+    /**
+     * Minimum visual {@link SOCBoard#getBoardWidth()} = 18 for good-looking aspect ratio, and
+     * enough width for {@link SOCBuildingPanel} contents below.
+     * @since 2.0.00
+     */
+    private static final int BOARDWIDTH_VISUAL_MIN = 18;
+
+    /**
+     * Minimum visual {@link SOCBoard#getBoardHeight()} = 17 for
+     * enough height for {@link SOCHandPanel}s to left and right.
+     * @since 2.0.00
+     */
+    private static final int BOARDHEIGHT_VISUAL_MIN = 17;
+
     /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
     private static final int deltaY = 46;
 
@@ -1072,10 +1086,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (isLargeBoard)
             {
                 // TODO isLargeBoard: what if we need a scrollbar?
-                //    Currently based on SOCBoardLarge hardcoded size 16r x 22c
-                //    which has water in the rightmost hex columns (thus -4)
-                scaledPanelX = halfdeltaX * (board.getBoardWidth() - 4) + 3;
-                scaledPanelY = halfdeltaY * (board.getBoardHeight() + 1) + 18;
+                int bh = board.getBoardHeight(), bw = board.getBoardWidth();
+                if (bh < BOARDHEIGHT_VISUAL_MIN)
+                    bh = BOARDHEIGHT_VISUAL_MIN;
+                if (bw < BOARDWIDTH_VISUAL_MIN)
+                    bw = BOARDWIDTH_VISUAL_MIN;                
+                scaledPanelX = halfdeltaX * bw + 3;
+                scaledPanelY = halfdeltaY * bh + 18;
             } else {
                 scaledPanelX = PANELX;
                 scaledPanelY = PANELY;
