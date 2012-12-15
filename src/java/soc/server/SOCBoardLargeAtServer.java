@@ -1308,6 +1308,20 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         {
             // Check scenario name; not all scenarios have a custom board size.
             final String sc = scOpt.getStringValue();
+            if (sc.equals(SOCScenario.K_SC_4ISL))
+            {
+                if (maxPlayers == 6)
+                    heightWidth = FOUR_ISL_BOARDSIZE_6PL;
+                else
+                    heightWidth = FOUR_ISL_BOARDSIZE_4PL;
+            }
+            else if (sc.equals(SOCScenario.K_SC_FOG))
+            {
+                if (maxPlayers == 6)
+                    heightWidth = FOG_ISL_BOARDSIZE_6PL;
+                else
+                    heightWidth = FOG_ISL_BOARDSIZE_4PL;
+            }
         }
 
         if (heightWidth == 0)
@@ -1608,6 +1622,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // 4-player
     //
 
+    /** Fog Island: Board size for 4 players: Max row 0x10, max col 0x11. */
+    private static final int FOG_ISL_BOARDSIZE_4PL = 0x1011;
+
     /**
      * Fog Island: Land hex types for the large southwest and northeast islands.
      */
@@ -1701,6 +1718,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //
     // 6-player
     //
+
+    /** Fog Island: Board size for 6 players: Max row 0x10, max col 0x14. */
+    private static final int FOG_ISL_BOARDSIZE_6PL = 0x1014;
 
     /**
      * Fog Island: Land hex types for the northern main island.
@@ -1932,6 +1952,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // 4-player
     //
 
+    /** Four Islands: Board size for 4 players: Max row 0x10, max col 0x0e. */
+    private static final int FOUR_ISL_BOARDSIZE_4PL = 0x100e;
+
     /**
      * Four Islands: Land hex types for all 4 islands.
      */
@@ -2013,6 +2036,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     //
     // 6-player
     //
+
+    /** Four Islands: Board size for 6 players: Max row 0x10, max col 0x14. */
+    private static final int FOUR_ISL_BOARDSIZE_6PL = 0x1014;
 
     /**
      * Six Islands: Land hex types for all 6 islands.
