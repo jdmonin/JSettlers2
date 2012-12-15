@@ -1230,6 +1230,8 @@ public class NewGameOptionsFrame extends Frame
         final boolean becameChecked = ! cb.getState();
         cb.setState(becameChecked);
         opt.setBoolValue(becameChecked);
+        if (! opt.userChanged)
+            opt.userChanged = true;
         SOCGameOption.ChangeListener cl = opt.getChangeListener();
         if (cl == null)
             return;
