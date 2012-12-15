@@ -1079,23 +1079,27 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      */
     public int getMinVersion(Hashtable<?, SOCGameOption> opts)
     {
-        if ((optType == OTYPE_BOOL) || (optType == OTYPE_INTBOOL)
-            || (optType == OTYPE_ENUMBOOL))  // OTYPE_*: check here if boolean-valued
+        // Check for unset/droppable options
+        switch (optType)
         {
+        case OTYPE_BOOL:      // OTYPE_*: check here if boolean-valued
+        case OTYPE_INTBOOL:
+        case OTYPE_ENUMBOOL:
             if (! boolValue)
                 return -1;  // Option not set: any client version is OK
-        }
+            break;
 
-        else if ((optType == OTYPE_INT) || (optType == OTYPE_ENUM))
-        {
+        case OTYPE_INT:
+        case OTYPE_ENUM:
             if (dropIfUnused && (intValue == defaultIntValue))
-                return -1;  // Option not set: any client version is OK            
-        }
+                return -1;  // Option not set: any client version is OK
+            break;
 
-        else if ((optType == OTYPE_STR) || (optType == OTYPE_STRHIDE))
-        {
+        case OTYPE_STR:
+        case OTYPE_STRHIDE:
             if (dropIfUnused && ((strValue == null) || (strValue.length() == 0)))
                 return -1;  // Option not set: any client version is OK
+            break;
         }
 
         // NEW_OPTION:
