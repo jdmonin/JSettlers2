@@ -112,6 +112,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     public static final int PANELX = 379, PANELY = 340;
 
     /**
+     * When {@link #isLargeBoard},
      * Minimum visual {@link SOCBoard#getBoardWidth()} = 18 for good-looking aspect ratio, and
      * enough width for {@link SOCBuildingPanel} contents below.
      * @since 2.0.00
@@ -119,11 +120,18 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int BOARDWIDTH_VISUAL_MIN = 18;
 
     /**
+     * When {@link #isLargeBoard},
      * Minimum visual {@link SOCBoard#getBoardHeight()} = 17 for
      * enough height for {@link SOCHandPanel}s to left and right.
      * @since 2.0.00
      */
     private static final int BOARDHEIGHT_VISUAL_MIN = 17;
+
+    /**
+     * When {@link #isLargeBoard}, padding on right-hand side, in internal coordinates (like {@link #panelMinBW}).
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_LBOARD_RT = 3;
 
     /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
     private static final int deltaY = 46;
@@ -1091,7 +1099,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     bh = BOARDHEIGHT_VISUAL_MIN;
                 if (bw < BOARDWIDTH_VISUAL_MIN)
                     bw = BOARDWIDTH_VISUAL_MIN;                
-                scaledPanelX = halfdeltaX * bw + 3;
+                scaledPanelX = halfdeltaX * bw + PANELPAD_LBOARD_RT;
                 scaledPanelY = halfdeltaY * bh + 18;
             } else {
                 scaledPanelX = PANELX;
@@ -3437,6 +3445,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             y + ((halfdeltaY + HEXY_OFF_SLOPE_HEIGHT) / 2) + 1,
                             halfdeltaX, halfdeltaY + 1, 6, 6);
                     }
+                }
+
+                // If board is narrower than panel, fill in with water 
+                while (x < (panelMinBW - PANELPAD_LBOARD_RT))
+                {
+                    final int hexCoord = rshift | c;
+                    drawHex(g, x, y, SOCBoard.WATER_HEX, -1, hexCoord);
+                    c += 2;
+                    x += deltaX;
                 }
             }
 
