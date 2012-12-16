@@ -178,6 +178,10 @@ public class RobberStrategy {
 
    /**
     * choose a robber victim
+    *<P>
+    * In some game scenarios (such as <tt>SC_PIRI</tt>), the robot may have the
+    * option to choose to not rob anyone. This strategy will ignore that and
+    * always choose a victim to rob.
     *
     * @param choices  a boolean array representing which players are possible victims;
     *                 1 element per player number (0 to <tt>game.maxPlayers</tt> - 1).

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -95,7 +95,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         } else {
             pa[9] = Integer.toString(op.getIntValue());
         }
-        pa[10] = (op.dropIfUnused ? "t" : "f");
+        pa[10] = (op.dropIfUnused ? "t" : "f");  // before v2.0.00, client ignores this flag for OTYPE_INT, OTYPE_ENUM 
         pa[11] = op.optDesc;
 
         // for OTYPE_ENUM, _ENUMBOOL, pa[12+] are the enum choices' string values
@@ -176,7 +176,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    break;
 
 	case SOCGameOption.OTYPE_INT:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, pa[11]);  // skip_def ignored
+	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, skip_def, pa[11]);
 	    opt.setIntValue(ival_cur);
 	    break;
 
@@ -190,7 +190,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    {
 		String[] choices = new String[ival_max];
 		System.arraycopy(pa, 12, choices, 0, ival_max);
-	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, pa[11]);  // skip_def ignored
+	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, skip_def, choices, pa[11]);
 	        opt.setIntValue(ival_cur);
             }
 	    break;

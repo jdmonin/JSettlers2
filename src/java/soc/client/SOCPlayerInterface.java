@@ -37,6 +37,7 @@ import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
+import soc.message.SOCChoosePlayer;
 import soc.message.SOCPlayerElement;
 
 import java.awt.Color;
@@ -465,11 +466,11 @@ public class SOCPlayerInterface extends Frame
         }
 
         /**
-         * initialize the font and the forground, and background colors
+         * initialize the font and the foreground, and background colors
          */
         setBackground(Color.black);
         setForeground(Color.black);
-        setFont(new Font("Geneva", Font.PLAIN, 10));
+        setFont(new Font("SansSerif", Font.PLAIN, 10));
 
         /**
          * we're doing our own layout management
@@ -1107,9 +1108,11 @@ public class SOCPlayerInterface extends Frame
             }
 
             String s = textInput.getText().trim();
+            String sOverflow = null;
 
             if (s.length() > 100)
             {
+                sOverflow = s.substring(100);
                 s = s.substring(0, 100);
             }
             else if (s.length() == 0)
@@ -1164,7 +1167,16 @@ public class SOCPlayerInterface extends Frame
                     return;
                 }
             }
+
             client.getGameManager().sendText(game, s + "\n");
+
+            if (sOverflow != null)
+            {
+                textInput.setText(sOverflow);  // user can choose to re-send the rest
+                textInput.setSelectionStart(0);  // clear highlight, so typing won't erase overflow
+                textInput.setSelectionEnd(0);
+                textInput.setCaretPosition(sOverflow.length());
+            }
         }
     }
 
@@ -1649,12 +1661,16 @@ public class SOCPlayerInterface extends Frame
      * Before v2.0.00, this was <tt>choosePlayer</tt>.
      *
      * @param count   the number of players to choose from
-     * @param pnums   the player ids of those players
-     * @see #sendChoosePlayer(int)
+     * @param pnums   the player ids of those players; length of this
+     *                array may be larger than count (may be {@link SOCGame#maxPlayers}).
+     *                Only the first <tt>count</tt> elements will be used.
+     * @param allowChooseNone  if true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
+     * @see SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)
+     * @see #showChooseRobClothOrResourceDialog(int)
      */
-    public void showChoosePlayerDialog(int count, int[] pnums)
+    public void showChoosePlayerDialog(final int count, final int[] pnums, final boolean allowChooseNone)
     {
-        choosePlayerDialog = new SOCChoosePlayerDialog(this, count, pnums);
+        choosePlayerDialog = new SOCChoosePlayerDialog(this, count, pnums, allowChooseNone);
         choosePlayerDialog.setVisible(true);
     }
 
@@ -1662,6 +1678,7 @@ public class SOCPlayerInterface extends Frame
      * Show the {@link ChooseRobClothOrResourceDialog} to choose what to rob from a player.
      * @param vpn  Victim player number
      * @since 2.0.00
+     * @see #showChoosePlayerDialog(int, int[])
      */
     public void showChooseRobClothOrResourceDialog(final int vpn)
     {
@@ -2639,7 +2656,8 @@ public class SOCPlayerInterface extends Frame
      * Modal dialog to ask whether to move the robber or the pirate ship.
      * Start a new thread to show, so message treating can continue while the dialog is showing.
      * When the choice is made, calls {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)}
-     * with -1 or -2.
+     * with {@link SOCChoosePlayer#CHOICE_MOVE_ROBBER CHOICE_MOVE_ROBBER}
+     * or {@link SOCChoosePlayer#CHOICE_MOVE_PIRATE CHOICE_MOVE_PIRATE}.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
      * @since 2.0.00
@@ -2668,22 +2686,22 @@ public class SOCPlayerInterface extends Frame
 
         /**
          * React to the Move Robber button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(-1)}.
+         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_ROBBER)}.
          */
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, -1);
+            pcli.getGameManager().choosePlayer(game, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
         }
 
         /**
          * React to the Move Pirate button.
-         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(-2)}.
+         * Call {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int) pcli.choosePlayer(CHOICE_MOVE_PIRATE)}.
          */
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, -2);
+            pcli.getGameManager().choosePlayer(game, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
         }
 
         /**

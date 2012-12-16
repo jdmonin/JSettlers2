@@ -80,6 +80,10 @@ import java.util.Timer;
  *<P>
  * During game play, you can show a short 1-line message text in the
  * top-center part of the panel by calling {@link #setSuperimposedTopText(String)}.
+ *<P>
+ * This panel's minimum width and height in pixels is {@link #getMinimumSize()}.
+ * To set its size, call {@link #setSize(int, int)} or {@link #setBounds(int, int, int, int)};
+ * these methods will set a flag to rescale board graphics if needed.
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
@@ -106,6 +110,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Left/top margins for {@link #isLargeBoard}: 0 for x, {@link #halfdeltaY} for y.
      */
     public static final int PANELX = 379, PANELY = 340;
+
+    /**
+     * When {@link #isLargeBoard},
+     * Minimum visual {@link SOCBoard#getBoardWidth()} = 18 for good-looking aspect ratio, and
+     * enough width for {@link SOCBuildingPanel} contents below.
+     * @since 2.0.00
+     */
+    private static final int BOARDWIDTH_VISUAL_MIN = 18;
+
+    /**
+     * When {@link #isLargeBoard},
+     * Minimum visual {@link SOCBoard#getBoardHeight()} = 17 for
+     * enough height for {@link SOCHandPanel}s to left and right.
+     * @since 2.0.00
+     */
+    private static final int BOARDHEIGHT_VISUAL_MIN = 17;
+
+    /**
+     * When {@link #isLargeBoard}, padding on right-hand side, in internal coordinates (like {@link #panelMinBW}).
+     * @since 2.0.00
+     */
+    private static final int PANELPAD_LBOARD_RT = 3;
 
     /** How many pixels to drop for each row of hexes. @see #HEXHEIGHT */
     private static final int deltaY = 46;
@@ -439,6 +465,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Set in constructor based on {@link #PANELX}, {@link #PANELY}.
      * Used by {@link #getMinimumSize()}.
      * @since 1.1.08
+     * @see #panelMinBW
      */
     private Dimension minSize;
 
@@ -515,7 +542,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected int scaledPanelX, scaledPanelY;
 
     /**
-     * Minimum width and height, in board-internal coordinates.
+     * <tt>panelMinBW</tt> and <tt>panelMinBH</tt> are the minimum width and height,
+     * in board-internal coordinates (not rotated or scaled).
      * Differs from static {@link #PANELX}, {@link #PANELY} for {@link #is6player 6-player board}
      * and the {@link #isLargeBoard large board}.
      * Differs from {@link #minSize} because minSize takes {@link #isRotated} into account,
@@ -1066,10 +1094,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (isLargeBoard)
             {
                 // TODO isLargeBoard: what if we need a scrollbar?
-                //    Currently based on SOCBoardLarge hardcoded size 16r x 22c
-                //    which has water in the rightmost hex columns (thus -4)
-                scaledPanelX = halfdeltaX * (board.getBoardWidth() - 4) + 3;
-                scaledPanelY = halfdeltaY * (board.getBoardHeight() + 1) + 18;
+                int bh = board.getBoardHeight(), bw = board.getBoardWidth();
+                if (bh < BOARDHEIGHT_VISUAL_MIN)
+                    bh = BOARDHEIGHT_VISUAL_MIN;
+                if (bw < BOARDWIDTH_VISUAL_MIN)
+                    bw = BOARDWIDTH_VISUAL_MIN;                
+                scaledPanelX = halfdeltaX * bw + PANELPAD_LBOARD_RT;
+                scaledPanelY = halfdeltaY * bh + 18;
             } else {
                 scaledPanelX = PANELX;
                 scaledPanelY = PANELY;
@@ -1654,6 +1685,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Minimum required width and height, as determined by options and {@link #isRotated()}.
+     *<P>
+     * Minimum size is set in the constructor.
+     * On the classic 4-player and 6-player boards, the size is based on {@link #PANELX} and {@link #PANELY}.
+     * When {@link SOCGame#hasSeaBoard}, the size is based on {@link SOCBoard#getBoardWidth()}
+     * and {@link SOCBoard#getBoardHeight() .getBoardHeight()}.
      *
      * @return minimum size
      */
@@ -3409,6 +3445,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             y + ((halfdeltaY + HEXY_OFF_SLOPE_HEIGHT) / 2) + 1,
                             halfdeltaX, halfdeltaY + 1, 6, 6);
                     }
+                }
+
+                // If board is narrower than panel, fill in with water 
+                while (x < (panelMinBW - PANELPAD_LBOARD_RT))
+                {
+                    final int hexCoord = rshift | c;
+                    drawHex(g, x, y, SOCBoard.WATER_HEX, -1, hexCoord);
+                    c += 2;
+                    x += deltaX;
                 }
             }
 
@@ -5954,6 +5999,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 else
                 {
                     // Nothing currently here.
+                    // Look for potential pieces.
+
+                    hoverSettlementID = 0;
 
                     // Villages for Cloth trade scenario
                     if (game.isGameOptionSet(SOCGameOption.K_SC_CLVI))
@@ -5965,7 +6013,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hoverID = id;
                             hoverIsPort = false;
                             hoverTextSet = true;
-                            hoverSettlementID = 0;
                             hoverCityID = 0;
                             setHoverText("Village for cloth trade on " + vi.diceNum + " (" + vi.getCloth() + " cloth)");
                         }
@@ -5990,10 +6037,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                                 hoverID = id;
                                 hoverIsPort = false;
                                 hoverTextSet = true;
-                                hoverSettlementID = 0;
                             }
-                        } else {
-                            hoverSettlementID = 0;
                         }
                     }
 

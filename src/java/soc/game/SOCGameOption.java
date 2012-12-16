@@ -129,6 +129,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
      *<LI> DH  Dev Cards for house rules (swap/destroy)
+     *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
      *    existing option.  So in NewGameOptionsFrame, it appears on the line following
@@ -263,7 +264,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         Hashtable<String, SOCGameOption> opt = new Hashtable<String, SOCGameOption>();
 
         final SOCGameOption pl = new SOCGameOption
-                ("PL", -1, 1108, 4, 2, 6, "Maximum # players");
+                ("PL", -1, 1108, 4, 2, 6, false, "Maximum # players");
         opt.put("PL", pl);
         final SOCGameOption plb = new SOCGameOption
                 ("PLB", 1108, 1113, false, true, "Use 6-player board");
@@ -271,6 +272,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         // TODO PLL for SOCBoardLarge: Decide final name
         opt.put("PLL", new SOCGameOption
                 ("PLL", 2000, 2000, false, true, "Experimental: Use large board"));
+        opt.put("_BHW", new SOCGameOption
+                ("_BHW", 2000, 2000, 0, 0, 0xFFFF, true, "Large board's height and width (0xRRCC) if not default"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
@@ -281,8 +284,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 ("NT", 1107, 1107, false, true, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
                 ("VP", -1, 1114, false, 10, 10, 15, true, "Victory points to win: #"));
-        opt.put("SC", new SOCGameOption
-                ("SC", 2000, 2000, 8, false, true, "Game Scenario: #"));
+        final SOCGameOption sc = new SOCGameOption
+                ("SC", 2000, 2000, 8, false, true, "Game Scenario: #");
+        opt.put("SC", sc);
         opt.put("DH", new SOCGameOption
                 ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
                 // TODO no robot players for DH
@@ -367,6 +371,24 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
             }
         });
 
+        // If SC (scenario) is chosen, also set PLL (large board)
+        sc.addChangeListener(new ChangeListener()
+        {
+            public void valueChanged
+                (final SOCGameOption optSc, Object oldValue, Object newValue, Hashtable<String, SOCGameOption> currentOpts)
+            {
+                SOCGameOption pll = currentOpts.get("PLL");
+                if ((pll == null) || pll.userChanged)
+                    return;
+                final boolean scPicked = optSc.getBoolValue() && (optSc.getStringValue().length() != 0);
+                if (scPicked != pll.getBoolValue())
+                {
+                    pll.setBoolValue(scPicked);
+                    pll.refreshDisplay();
+                }
+            }
+        });
+
         return opt;
 
         /*
@@ -375,12 +397,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
         opt.put("DEBUGENUM", new SOCGameOption
                 ("DEBUGENUM", 1107, 1107,
-                 3, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option # enum"));
+                 3, true, new String[]{ "First", "Second", "Third", "Fourth"}, "Test option # enum"));
         opt.put("DEBUGENUMBOOL", new SOCGameOption
                 ("DEBUGENUMBOOL", 1107, 1108, true,
                  3, new String[]{ "First", "Second", "Third", "Fourth"}, true, "Test option # enumbool"));
         opt.put("DEBUGINT", new SOCGameOption
-                ("DEBUGINT", -1, 1113, 500, 1, 1000, "Test option int # (range 1-1000)"));
+                ("DEBUGINT", -1, 1113, 500, 1, 1000, true, "Test option int # (range 1-1000)"));
         opt.put("DEBUGSTR", new SOCGameOption
                 ("DEBUGSTR", 1107, 1107, 20, false, true, "Test option str"));
         opt.put("DEBUGSTRHIDE", new SOCGameOption
@@ -558,7 +580,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Should the server drop this option from game options, and not send over
      * the network (to reduce overhead), if the value is un-set or blank?
      * (Meaning not set (false) for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
-     * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE})
+     * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE};
+     * {@link #defaultIntValue} for {@link #OTYPE_INT} or {@link #OTYPE_ENUM})
      *<P>
      * Only recommended for seldom-used options.
      * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)}.
@@ -674,8 +697,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Create a new integer game option ({@link #OTYPE_INT}).
-     * There is no dropIfUnused parameter for integer options,
-     * because they have no 'blank' value.
+     *<P>
+     * If {@link #dropIfUnused} is true, the option will be dropped if == {@link #defaultIntValue}.<BR>
+     * Before v2.0.00, there was no dropIfUnused parameter for integer options.
      *
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
@@ -685,6 +709,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param minValue Minimum permissible value
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
+     * @param dropIfUnused If this option's value is the default,
+     *           should server not add it to game options
+     *           or send over the network (to reduce overhead)?
+     *           Only recommended for seldom-used options, or if game behavior without the option is well-established
+     *           (for example, board size is a known default if option _BHW is dropped).
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the int value goes.
      *             If no placeholder is found, the value text field appears at left,
@@ -694,12 +723,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
-    public SOCGameOption(String key, int minVers, int lastModVers,
-        int defaultValue, int minValue, int maxValue, String desc)
+    public SOCGameOption(final String key, final int minVers, final int lastModVers,
+        final int defaultValue, final int minValue, final int maxValue,
+        final boolean dropIfUnused, final String desc)
         throws IllegalArgumentException
     {
 	this(OTYPE_INT, key, minVers, lastModVers, false, defaultValue,
-	     minValue, maxValue, false, null, desc);
+	     minValue, maxValue, dropIfUnused, null, desc);
     }
 
     /**
@@ -736,14 +766,19 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Create a new enumerated game option ({@link #OTYPE_ENUM}).
      * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
-     * There is no dropIfUnused parameter for enum options,
-     * because they have no 'blank' value.
+     *<P>
+     * If {@link #dropIfUnused} is true, the option will be dropped if == {@link #defaultIntValue}.<BR>
+     * Before v2.0.00, there was no dropIfUnused parameter for enum options.
      *
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
+     * @param dropIfUnused If this option's value is the default,
+     *           should server not add it to game options
+     *           or send over the network (to reduce overhead)?
+     *           Only recommended for seldom-used options, or if game behavior without the option is well-established.
      * @param enumVals text to display for each possible choice of this option.
      *                Please see the explanation at {@link #initAllOptions()} about
      *                changing or adding to enumVals in later versions.
@@ -756,12 +791,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
-    public SOCGameOption(String key, int minVers, int lastModVers,
-        int defaultValue, String[] enumVals, String desc)
+    public SOCGameOption(final String key, final int minVers, final int lastModVers,
+        final int defaultValue, final boolean dropIfUnused, final String[] enumVals, final String desc)
         throws IllegalArgumentException
     {
         this(OTYPE_ENUM, key, minVers, lastModVers, false, defaultValue,
-             1, enumVals.length, false, enumVals, desc);
+             1, enumVals.length, dropIfUnused, enumVals, desc);
     }
 
     /**
@@ -1063,17 +1098,27 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      */
     public int getMinVersion(Hashtable<?, SOCGameOption> opts)
     {
-        if ((optType == OTYPE_BOOL) || (optType == OTYPE_INTBOOL)
-            || (optType == OTYPE_ENUMBOOL))  // OTYPE_*: check here if boolean-valued
+        // Check for unset/droppable options
+        switch (optType)
         {
+        case OTYPE_BOOL:      // OTYPE_*: check here if boolean-valued
+        case OTYPE_INTBOOL:
+        case OTYPE_ENUMBOOL:
             if (! boolValue)
                 return -1;  // Option not set: any client version is OK
-        }
+            break;
 
-        if ((optType == OTYPE_STR) || (optType == OTYPE_STRHIDE))
-        {
+        case OTYPE_INT:
+        case OTYPE_ENUM:
+            if (dropIfUnused && (intValue == defaultIntValue))
+                return -1;  // Option not set: any client version is OK
+            break;
+
+        case OTYPE_STR:
+        case OTYPE_STRHIDE:
             if (dropIfUnused && ((strValue == null) || (strValue.length() == 0)))
                 return -1;  // Option not set: any client version is OK
+            break;
         }
 
         // NEW_OPTION:
@@ -1312,14 +1357,16 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *
      * @param hideEmptyStringOpts omit string-valued options which are empty?
      *            Suitable only for sending defaults.
+     * @param hideLongNameOpts omit options with long key names or underscores?
+     *            Set true if client's version &lt; {@link #VERSION_FOR_LONGER_OPTNAMES}.
      * @return string of name-value pairs, same format as {@link #packOptionsToString(Hashtable, boolean)};
      *         any gameoptions of {@link #OTYPE_UNKNOWN} will not be
      *         part of the string.
      * @see #parseOptionsToHash(String)
      */
-    public static String packKnownOptionsToString(boolean hideEmptyStringOpts)
+    public static String packKnownOptionsToString(final boolean hideEmptyStringOpts, final boolean hideLongNameOpts)
     {
-        return packOptionsToString(allOptions, hideEmptyStringOpts);
+        return packOptionsToString(allOptions, hideEmptyStringOpts, (hideLongNameOpts) ? -3 : -2);
     }
 
     /**
@@ -1364,6 +1411,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param cliVers  Client version; assumed >= {@link soc.message.SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}.
      *            If any game's options need adjustment for an older client, cliVers triggers that.
      *            Use -2 if the client version doesn't matter, or if adjustment should not be done.
+     *            Use -3 to omit options with long names, and do no other adjustment;
+     *               for use with clients older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES}.
      * @return string of name-value pairs, or "-" for an empty or null ohash;
      *         see {@link #packOptionsToString(Hashtable, boolean)} javadoc for details.
      * @throws ClassCastException if hashtable contains anything other
@@ -1378,7 +1427,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     
     	// If the "PLB" option is set, old client versions
     	//  may need adjustment of the "PL" option.
-    	final boolean hasOptPLB = (cliVers != -2) && ohash.containsKey("PLB")
+    	final boolean hasOptPLB = (cliVers > -2) && ohash.containsKey("PLB")
     	    && ohash.get("PLB").boolValue;
     
     	// Pack all non-unknown options:
@@ -1392,7 +1441,9 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     	        && ((op.optType == OTYPE_STR) || (op.optType == OTYPE_STRHIDE))  // OTYPE_* - add here if string-valued
     	        && op.getStringValue().length() == 0)
                     continue;  // <-- Skip this one --
-    
+    	    if ((cliVers == -3) && ((op.optKey.length() > 3) || op.optKey.contains("_")))
+    	        continue;  // <-- Skip this one -- (VERSION_FOR_LONGER_OPTNAMES)
+
     	    if (hadAny)
     		sb.append(SOCMessage.sep2_char);
     	    else
@@ -1401,7 +1452,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     	    sb.append('=');
     
     	    boolean wroteValueAlready = false;
-    	    if (cliVers != -2)
+    	    if (cliVers > -2)
     	    {
     	        if (hasOptPLB && op.optKey.equals("PL")
     	            && (cliVers < 1113) && (op.intValue < 5))
@@ -1762,7 +1813,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * Compare a set of options with known-good values.
      * If any are above/below maximum/minimum, clip to the max/min value in knownOpts.
      * If any are unknown, return a description. Will still check (and clip) the known ones.
-     * If any boolean or string-valued options are default, and unset/blank, and
+     * If any options are default, and unset/blank, and
      * their {@link #dropIfUnused} flag is set, remove them from newOpts.
      * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
      * boolean values are checked against defaults.
@@ -1838,6 +1889,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                         newOpts.putAll(scOpts);
                     }
                 }
+
+                // Client-side gameopt code also assumes all scenarios use
+                // the large board, and set game option "PLL" when a scenario
+                // is chosen by the user.
             }
 
             // NEW_OPTION: If you created a ChangeListener, you should probably add similar code
@@ -1940,13 +1995,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 			    op.setIntValue(iv);
 			}
 
-                        // integer-type options are not subject to dropIfUnused,
-                        // except when also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
-                        if (((op.optType == OTYPE_INTBOOL) || (op.optType == OTYPE_ENUMBOOL))
-                               && knownOp.dropIfUnused
-                               && (iv == knownOp.defaultIntValue)
-                               && (! op.boolValue))
-                             ikv.remove();
+                        if (knownOp.dropIfUnused
+                            && (iv == knownOp.defaultIntValue))
+                        {
+                            // ignore boolValue unless also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
+                            if ((op.optType == OTYPE_INT) || (op.optType == OTYPE_ENUM) || ! op.boolValue)
+                                ikv.remove();
+                        }
 		    }
 		    break;
 
@@ -2193,7 +2248,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Form a string with the key and current value, useful for debugging purposes.
      * @return string such as "PL=4" or "BC=t3", with the same format
-     *    as {@link #packKnownOptionsToString(boolean)}.
+     *    as {@link #packKnownOptionsToString(boolean, boolean)}.
      */
     public String toString()
     {

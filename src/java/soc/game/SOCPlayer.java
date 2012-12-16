@@ -98,11 +98,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * a list of this player's pieces in play
+     * (does not include any {@link #fortress}).
      */
     private Vector<SOCPlayingPiece> pieces;
 
     /**
      * a list of this player's roads and ships in play
+     * @see #getRoadOrShip(int)
      */
     private Vector<SOCRoad> roads;
 
@@ -115,6 +117,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a list of this player's cities in play
      */
     private Vector<SOCCity> cities;
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the "pirate fortress" that this player must defeat to win.
+     * Null if fortress has been defeated and converted to a settlement.
+     * Null unless game has that scenario option.
+     *<P>
+     * There is no setFortress method; use putPiece. For details see {@link #getFortress()}.
+     * @since 2.0.00
+     */
+    private SOCFortress fortress;
 
     /**
      * The node coordinate of our most recent settlement.
@@ -418,6 +431,27 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int scenario_svpFromEachLandArea_bitmask;
 
     /**
+     * The land area(s) of the player's initial settlements,
+     * if {@link SOCGame#hasSeaBoard} and the board defines Land Areas
+     * (<tt>null != {@link SOCBoardLarge#getLandAreasLegalNodes()}</tt>).
+     * Used for Special Victory Points in some scenarios.
+     * 0 otherwise.
+     *<P>
+     * If both initial settlements are in the same land area,
+     * then {@link #startingLandArea2} is 0.
+     *<P>
+     * Also: If {@link SOCBoardLarge#getStartingLandArea()} != 0,
+     * the players must start in that land area.  This is enforced
+     * at the server during makeNewBoard, by using that land area
+     * for the only initial potential/legal settlement locations.
+     *
+     * @since 2.0.00
+     */
+    private int startingLandArea1, startingLandArea2;
+        // skip startingLandArea3: Although some scenarios have 3 initial settlements,
+        // none have placement in 3 initial land areas and SVPs for settling new areas.
+
+    /**
      * this is true if this player is a robot
      */
     private boolean robotFlag;
@@ -520,6 +554,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         scenario_playerEvents_bitmask = player.scenario_playerEvents_bitmask;
         scenario_svpFromEachLandArea_bitmask = player.scenario_svpFromEachLandArea_bitmask;
+        startingLandArea1 = player.startingLandArea1;
+        startingLandArea2 = player.startingLandArea2;
     }
 
     /**
@@ -994,6 +1030,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public Vector<SOCCity> getCities()
     {
         return cities;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the "pirate fortress" that this player must defeat to win.
+     * Null if fortress has already been defeated and converted to a settlement.
+     * Null unless game has that scenario option.
+     *<P>
+     * There is no <tt>setFortress</tt> method; instead call
+     * {@link SOCGame#putPiece(SOCPlayingPiece) game.putPiece(SOCFortress)} to set, or
+     * {@link SOCGame#putPiece(SOCPlayingPiece) game.putPiece(SOCSettlement)} to clear.
+     * @since 2.0.00
+     */
+    public SOCFortress getFortress()
+    {
+        return fortress;
     }
 
     /**
@@ -1862,6 +1914,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board}, get
+     * this player's starting settlement land areas, encoded to send over the network
+     * from server to client. 0 otherwise.
+     * @return  Encoded starting land area numbers 1 and 2
+     * @see SOCPlayerElement#STARTING_LANDAREAS
+     * @since 2.0.00
+     */
+    public int getStartingLandAreasEncoded()
+    {
+        return (startingLandArea2 << 8) | startingLandArea1;
+    }
+
+    /**
+     * At client, set the player's {@link #getStartingLandAreasEncoded()} based on a server message.
+     * @param slas  Starting land areas to set for player
+     * @since 2.0.00
+     */
+    public void setStartingLandAreasEncoded(final int slas)
+    {
+        startingLandArea1 = slas & 0xFF;
+        startingLandArea2 = (slas >> 8) & 0xFF;
+    }
+
+    /**
      * @return the list of nodes that touch the roads/ships in play
      */
     public Vector<Integer> getRoadNodes()
@@ -1918,6 +1994,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * calls {@link #calcLongestRoad2()}.
      *<P>
      * <b>Note:</b> Placing a city automatically removes the settlement there
+     * via {@link SOCGame#putPiece(SOCPlayingPiece)} calling
+     * {@link SOCPlayer#removePiece(SOCPlayingPiece, SOCPlayingPiece)}.
      *<P>
      * Call this before calling {@link SOCBoard#putPiece(SOCPlayingPiece)}.
      *<P>
@@ -1925,19 +2003,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
      * This method will increment {@link #specialVP}
      * and set the {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
+     *<P>
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * call with <tt>piece</tt> = {@link SOCFortress} to set the single "pirate fortress"
+     * that this player must defeat to win.  When the fortress is defeated, it is
+     * converted to a settlement; call with <tt>piece</tt> = {@link SOCSettlement} at the
+     * fortress location.
+     * <tt>isTempPiece</tt> must be false to set or clear the fortress.
      *
      * @param piece        The piece to be put into play; coordinates are not checked for validity.
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *                     game's {@link SOCScenarioEventListener}.
+     * @throws IllegalArgumentException  only if piece is a {@link SOCFortress}, and either
+     *                     <tt>isTempPiece</tt>, or player already has a fortress set.
      */
     public void putPiece(final SOCPlayingPiece piece, final boolean isTempPiece)
+        throws IllegalArgumentException
     {
         /**
          * only do this stuff if it's our piece
          */
         if (piece.getPlayerNumber() == playerNumber)
         {
-            pieces.addElement(piece);
+            if (! (piece instanceof SOCFortress))
+                pieces.addElement(piece);
 
             final SOCBoard board = game.getBoard();
             switch (piece.getType())
@@ -1956,7 +2045,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             case SOCPlayingPiece.SETTLEMENT:
                 {
                     final int settlementNode = piece.getCoordinates();
-                    numPieces[SOCPlayingPiece.SETTLEMENT]--;
+                    if ((fortress != null) && (fortress.getCoordinates() == settlementNode))
+                    {
+                        // settlement is converted from the defeated fortress,
+                        // not subtracted from player's numPieces
+                        fortress = null;
+                        if (isTempPiece)
+                            throw new IllegalArgumentException("temporary fortress settlement");
+                    } else {
+                        numPieces[SOCPlayingPiece.SETTLEMENT]--;                        
+                    }
                     putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
                     settlements.addElement((SOCSettlement) piece);
                     lastSettlementCoord = settlementNode;
@@ -1973,18 +2071,32 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     final int portType = board.getPortTypeFromNodeCoord(settlementNode);
                     if (portType != -1)
                         setPortFlag(portType, true);
-    
-                    /**
-                     * Do we get an SVP for reaching a new land area?
-                     */
-                    if ((board instanceof SOCBoardLarge)
-                        && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
+
+                    if ((board instanceof SOCBoardLarge) && (null != ((SOCBoardLarge) board).getLandAreasLegalNodes()))
                     {
-                        final int startArea = ((SOCBoardLarge) board).getStartingLandArea();
-                        if (startArea != 0)
+                        /**
+                         * track starting Land Areas on large board
+                         */
+                        if (game.isInitialPlacement())
                         {
                             final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(settlementNode);
-                            if ((newSettleArea != 0) && (newSettleArea != startArea))
+                            if (newSettleArea != 0)
+                            {
+                                if (startingLandArea1 == 0)
+                                    startingLandArea1 = newSettleArea;
+                                else if ((startingLandArea2 == 0) && (newSettleArea != startingLandArea1))
+                                    startingLandArea2 = newSettleArea;
+                            }
+                        }
+
+                        /**
+                         * do we get an SVP for reaching a new land area?
+                         */
+                        else
+                        {
+                            final int newSettleArea = ((SOCBoardLarge) board).getNodeLandArea(settlementNode);
+                            if ((newSettleArea != 0)
+                                && (newSettleArea != startingLandArea1) && (newSettleArea != startingLandArea2))
                             {
                                 putPiece_settlement_checkScenarioSVPs
                                     ((SOCSettlement) piece, newSettleArea, isTempPiece);                            
@@ -2021,6 +2133,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             case SOCPlayingPiece.SHIP:
                 numPieces[SOCPlayingPiece.SHIP]--;
                 putPiece_roadOrShip((SOCShip) piece, board);
+                break;
+
+            /**
+             * placing the player's pirate fortress (scenario game opt _SC_PIRI)
+             */
+            case SOCPlayingPiece.FORTRESS:
+                if (isTempPiece)
+                    throw new IllegalArgumentException("temporary fortress");
+                if (fortress != null)
+                    throw new IllegalArgumentException("already has fortress");
+                fortress = (SOCFortress) piece;
                 break;
             }
         }
@@ -2228,9 +2351,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Does the player get a Special Victory Point (SVP) for reaching a new land area?
-     * Call when a settlement has been placed in a land area different from {@link SOCBoardLarge#getStartingLandArea()}.
+     * Call when a settlement has been placed in a land area different from
+     * {@link #startingLandArea1} and {@link #startingLandArea2}.
      * Used with game options {@link SOCGameOption#K_SC_SANY _SC_SANY} and {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
-     * @param piece  Newly placed settlement
+     * @param newSettle  Newly placed settlement
      * @param newSettleArea  Land area number of new settlement's location
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *                     game's {@link SOCScenarioEventListener}.
@@ -2601,6 +2725,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece)}
      * which calls removePiece and does more.
+     *<P>
+     * Don't call removePiece for a {@link SOCFortress}; see {@link #getFortress()} javadoc.
      *<P>
      *<B>Note:</b> removePiece does NOT update the potential building lists
      *           for removing settlements or cities.
@@ -3003,6 +3129,46 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         }
                     }
                 }
+
+                // For game scenario _SC_PIRI, ship routes can't branch
+                // in different directions, only extend from their ends.
+                if ((ptype == SOCPlayingPiece.SHIP) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                {
+                    // Find the end of this ship edge with a previous ship,
+                    // make sure that end node has no other potential ships.
+                    // Remove any potentials to prevent new branches from the old node.
+                    // Check both end nodes of the new edge, in case we're joining
+                    // 2 previous "segments" of ship routes from different directions.
+
+                    for (int ni = 0; ni < 2; ++ni)
+                    {
+                        final int node = nodes[ni];
+                        boolean foundOtherShips = false;
+
+                        final int[] edges = board.getAdjacentEdgesToNode_arr(node);
+                        for (int i = 0; i < 3; ++i)
+                        {
+                            final int edge = edges[i];
+                            if ((edge == -9) || (edge == id))
+                                continue;
+                            if (null != getRoadOrShip(edge))
+                            {
+                                foundOtherShips = true;
+                                break;
+                            }
+                        }
+
+                        if (foundOtherShips)
+                        {
+                            for (int i = 0; i < 3; ++i)
+                            {
+                                final Integer edgeInt = Integer.valueOf(edges[i]);
+                                if (potentialShips.contains(edgeInt))
+                                    potentialShips.remove(edgeInt);
+                            }
+                        }
+                    }
+                }
             }
 
             break;
@@ -3264,7 +3430,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialSettlement(final int node)
     {
-        return potentialSettlements.contains(new Integer(node));
+        return potentialSettlements.contains(Integer.valueOf(node));
     }
 
     /**
@@ -3277,7 +3443,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialSettlement(final int node)
     {
-        potentialSettlements.remove(new Integer(node));
+        potentialSettlements.remove(Integer.valueOf(node));
     }
 
     /**
@@ -3288,7 +3454,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isLegalSettlement(final int node)
     {
-        return legalSettlements.contains(new Integer(node));
+        return legalSettlements.contains(Integer.valueOf(node));
     }
 
     /**
@@ -3300,7 +3466,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialCity(final int node)
     {
-        return potentialCities.contains(new Integer(node));
+        return potentialCities.contains(Integer.valueOf(node));
     }
 
     /**
@@ -3313,7 +3479,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialCity(final int node)
     {
-        potentialCities.remove(new Integer(node));
+        potentialCities.remove(Integer.valueOf(node));
     }
 
     /**
@@ -3328,7 +3494,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (edge == -1)
             edge = 0x00;
-        return potentialRoads.contains(new Integer(edge));
+        return potentialRoads.contains(Integer.valueOf(edge));
     }
 
     /**
@@ -3343,7 +3509,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (edge == -1)
             edge = 0x00;
-        potentialRoads.remove(new Integer(edge));
+        potentialRoads.remove(Integer.valueOf(edge));
     }
 
     /**
@@ -3357,7 +3523,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             edge = 0x00;
         else if (edge < 0)
             return false;
-        return legalRoads.contains(new Integer(edge));
+        return legalRoads.contains(Integer.valueOf(edge));
     }
 
     /**
@@ -3383,7 +3549,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialShip(final int edge, final int ignoreShipEdge)
     {
-        if (! potentialShips.contains(new Integer(edge)))
+        if (! potentialShips.contains(Integer.valueOf(edge)))
             return false;
 
         final SOCBoard board = game.getBoard();
@@ -3424,7 +3590,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public boolean isPotentialShip(int edge)
     {
-        return potentialShips.contains(new Integer(edge));
+        return potentialShips.contains(Integer.valueOf(edge));
     }
 
     /**
@@ -3437,7 +3603,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      */
     public void clearPotentialShip(int edge)
     {
-        potentialShips.remove(new Integer(edge));
+        potentialShips.remove(Integer.valueOf(edge));
     }
 
     /**
@@ -3450,7 +3616,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     {
         if (edge < 0)
             return false;
-        return legalShips.contains(new Integer(edge));
+        return legalShips.contains(Integer.valueOf(edge));
     }
 
     /**
@@ -3808,6 +3974,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         settlements = null;
         cities.removeAllElements();
         cities = null;
+        fortress = null;
         resources = null;
         resourceStats = null;
         devCards = null;

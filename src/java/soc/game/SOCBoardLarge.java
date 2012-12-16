@@ -29,6 +29,8 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
+import soc.util.IntPair;
+
 /**
  * A representation of a larger (up to 127 x 127 hexes) JSettlers board,
  * with an arbitrary mix of land and water tiles.
@@ -251,7 +253,12 @@ public class SOCBoardLarge extends SOCBoard
      */
     protected static final int MAX_LAND_HEX_LG = FOG_HEX;
 
-    private static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 22;  // hardcode size for now
+    /**
+     * Default size of the large board.
+     * Can override in constructor.
+     * See {@link SOCBoard#getBoardHeight() getBoardHeight()}, {@link SOCBoard#getBoardWidth() getBoardWidth()}.
+     */
+    public static final int BOARDHEIGHT_LARGE = 16, BOARDWIDTH_LARGE = 18;
 
     /**
      * For {@link #getAdjacentHexesToHex(int, boolean)}, the offsets to add to the hex
@@ -512,23 +519,42 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
+     * Board height and width will be the default, {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE}.
+     * Only the client uses this constructor.
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6
      */
     public SOCBoardLarge(Hashtable<String,SOCGameOption> gameOpts, int maxPlayers)
-            throws IllegalArgumentException
+        throws IllegalArgumentException
+    {
+        this(gameOpts, maxPlayers, getBoardSize(gameOpts, maxPlayers));
+    }
+
+    /**
+     * Create a new Settlers of Catan Board, with the v3 encoding and a certain size.
+     * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
+     * @param maxPlayers Maximum players; must be 4 or 6
+     * @param boardHeightWidth  Board's height and width.
+     *        The constants for default size are {@link #BOARDHEIGHT_LARGE}, {@link #BOARDWIDTH_LARGE}.
+     * @throws IllegalArgumentException if <tt>maxPlayers</tt> is not 4 or 6, or <tt>boardHeightWidth</tt> is null
+     */
+    public SOCBoardLarge
+        (final Hashtable<String,SOCGameOption> gameOpts, final int maxPlayers, final IntPair boardHeightWidth)
+        throws IllegalArgumentException
     {
         super(BOARD_ENCODING_LARGE, MAX_LAND_HEX_LG);
         if ((maxPlayers != 4) && (maxPlayers != 6))
             throw new IllegalArgumentException("maxPlayers: " + maxPlayers);
+        if (boardHeightWidth == null)
+            throw new IllegalArgumentException("boardHeightWidth null");
         this.maxPlayers = maxPlayers;
-        // TODO maxPlayers 6 not yet supported in our board layout for "PLL"
 
-        setBoardBounds(BOARDWIDTH_LARGE, BOARDHEIGHT_LARGE);
+        final int bH = boardHeightWidth.a, bW = boardHeightWidth.b;
+        setBoardBounds(bH, bW);
 
-        hexLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
-        numberLayoutLg = new int[BOARDHEIGHT_LARGE+1][BOARDWIDTH_LARGE+1];
+        hexLayoutLg = new int[bH + 1][bW + 1];
+        numberLayoutLg = new int[bH + 1][bW + 1];
         landHexLayout = new HashSet<Integer>();
         fogHiddenHexes = new HashMap<Integer, Integer>();
         legalRoadEdges = new HashSet<Integer>();
@@ -540,7 +566,7 @@ public class SOCBoardLarge extends SOCBoard
 
         // Only odd-numbered rows are valid,
         // but we fill all rows here just in case.
-        for (int r = 0; r <= boardHeight; ++r)
+        for (int r = 0; r <= bH; ++r)
         {
             Arrays.fill(hexLayoutLg[r], WATER_HEX);
             Arrays.fill(numberLayoutLg[r], 0);
@@ -549,6 +575,30 @@ public class SOCBoardLarge extends SOCBoard
         portsCount = 0;
         pirateHex = 0;
         prevPirateHex = 0;
+    }
+
+    /**
+     * Get the board size for client's constructor:
+     * Default size {@link #BOARDHEIGHT_LARGE} by {@link #BOARDWIDTH_LARGE},
+     * unless <tt>gameOpts</tt> contains <tt>"_BHW"</tt> Board Height and Width.
+     * @param gameOpts  Game options, or null
+     * @param maxPlayers  Maximum players; must be 4 or 6
+     * @return a new IntPair(height, width)
+     * @see soc.server.SOCBoardLargeAtServer#getBoardSize(Hashtable, int)
+     */
+    private static IntPair getBoardSize(Hashtable<String, SOCGameOption> gameOpts, int maxPlayers)
+    {
+        SOCGameOption bhwOpt = null;
+        if (gameOpts != null)
+            bhwOpt = gameOpts.get("_BHW");
+
+        if ((bhwOpt == null) || (bhwOpt.getIntValue() == 0))
+        {
+            return new IntPair(BOARDHEIGHT_LARGE, BOARDWIDTH_LARGE);
+        } else {
+            final int bhw = bhwOpt.getIntValue();
+            return new IntPair(bhw >> 8, bhw & 0xFF);
+        }
     }
 
     // TODO hexLayoutLg, numberLayoutLg will only ever use the odd row numbers
@@ -1271,6 +1321,7 @@ public class SOCBoardLarge extends SOCBoard
      * That calls {@link #takeCloth(int)}, {@link SOCPlayer#setCloth(int)}, etc.
      * Each player trading with that village gets at most 1 cloth.
      * For scenario game option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}.
+     * This and any other dice-roll methods are called at server only.
      * @param game  Game with this board
      * @param dice  Rolled dice number
      * @return  null, or results as an array:
@@ -1518,10 +1569,15 @@ public class SOCBoardLarge extends SOCBoard
     /**
      * Get the starting land area, if multiple "land areas" are used
      * and the players must start the game in a certain land area.
+     *<P>
+     * This is enforced during {@link #makeNewBoard(Hashtable)}, by using
+     * that land area for the only initial potential/legal settlement locations.
+     *
      * @return the starting land area number; also its index in
      *   {@link #getLandAreasLegalNodes()}.
      *   0 if players can start anywhere and/or
      *   <tt>landAreasLegalNodes == null</tt>.
+     * @see SOCPlayer#getStartingLandAreasEncoded()
      */
     public int getStartingLandArea()
     {

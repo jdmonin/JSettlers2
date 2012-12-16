@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2010,2012 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,12 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.message.SOCChoosePlayer;
 
 import java.awt.Button;
 import java.awt.Color;
@@ -34,26 +35,38 @@ import java.awt.event.ActionListener;
 
 /**
  * This is the dialog to ask a player from whom she wants to steal.
+ * One button for each victim player.  When a player is chosen,
+ * send the server a choose-player command with that player number.
  *
  * @author  Robert S. Thomas
  */
 class SOCChoosePlayerDialog extends Dialog implements ActionListener
 {
-    /** Player names on each button */
+    /** Player names on each button. This array's elements align with {@link #players}. Length is {@link #number}. */
     Button[] buttons;
 
-    /** Player index of each to choose */    
-    int[] players;
+    /** Player index of each to choose. This array's elements align with {@link #buttons}.
+     *  Only the first {@link #number} elements are used.
+     */    
+    final int[] players;
 
-    /** Show Count of resources of each player */
+    /** Show Count of resources of each player. Length is {@link #number}. */
     Label[] player_res_lbl;
 
-    int number;
-    Label msg;
-    SOCPlayerInterface pi;
+    /** Number of players to choose from for {@link #buttons} and {@link #players}. */
+    final int number;
+
+    /** If true, player is allowed to choose to steal from no one.
+     *  Used with game scenario <tt>SC_PIRI</tt>.
+     *  @since 2.0.00
+     */
+    final private boolean allowChooseNone;
+
+    final Label msg;
+    final SOCPlayerInterface pi;
 
     /** Desired size (visible size inside of insets) **/
-    protected int wantW, wantH;
+    protected final int wantW, wantH;
 
     /**
      * Place window in center when displayed (in doLayout),
@@ -63,21 +76,28 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
 
     /**
      * Creates a new SOCChoosePlayerDialog object.
+     * After creation, call {@link #setVisible(boolean)}.
      *
-     * @param plInt DOCUMENT ME!
-     * @param num DOCUMENT ME!
-     * @param p DOCUMENT ME!
+     * @param plInt  PlayerInterface that owns this dialog
+     * @param num    The number of players to choose from
+     * @param p   The player ids of those players; length of this
+     *            array may be larger than count (may be {@link SOCGame#maxPlayers}).
+     *            Only the first <tt>count</tt> elements will be used.
+     * @param allowChooseNone  If true, player can choose to rob no one
+     *            (game scenario <tt>SC_PIRI</tt>)
      */
-    public SOCChoosePlayerDialog(SOCPlayerInterface plInt, int num, int[] p)
+    public SOCChoosePlayerDialog
+        (SOCPlayerInterface plInt, final int num, final int[] p, final boolean allowChooseNone)
     {
         super(plInt, "Choose Player", true);
 
         pi = plInt;
-        number = num;
+        number = (allowChooseNone) ? (num + 1) : num;
         players = p;
+        this.allowChooseNone = allowChooseNone;
         setBackground(new Color(255, 230, 162));
         setForeground(Color.black);
-        setFont(new Font("Geneva", Font.PLAIN, 12));
+        setFont(new Font("SansSerif", Font.PLAIN, 12));
         didSetLocation = false;
         setLayout(null);
         // wantH formula based on doLayout
@@ -94,7 +114,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
 
         SOCGame ga = pi.getGame();
 
-        for (int i = 0; i < number; i++)
+        for (int i = 0; i < num; i++)
         {
             SOCPlayer pl = ga.getPlayer(players[i]);            
 
@@ -125,12 +145,25 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
             }
             new AWTToolTip(restooltip, player_res_lbl[i]);
         }
+
+        if (allowChooseNone)
+        {
+            Button bNone = new Button("None");
+            buttons[num] = bNone;
+            add(bNone);
+            bNone.addActionListener(this);
+            new AWTToolTip("Choose this to steal from no player", bNone);
+            players[num] = SOCChoosePlayer.CHOICE_NO_PLAYER;
+            player_res_lbl[num] = new Label("(decline)", Label.CENTER);
+            add(player_res_lbl[num]);
+        }
     }
 
     /**
-     * DOCUMENT ME!
+     * Show or hide this dialog.
+     * If showing it, request focus on the first button.
      *
-     * @param b DOCUMENT ME!
+     * @param b True to show, false to hide
      */
     public void setVisible(boolean b)
     {
@@ -143,7 +176,7 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
+     * Do our dialog's custom layout.
      */
     public void doLayout()
     {
@@ -195,9 +228,12 @@ class SOCChoosePlayerDialog extends Dialog implements ActionListener
     }
 
     /**
-     * DOCUMENT ME!
+     * A button was clicked to choose a victim player.
+     * Find the right {@link #buttons}[i]
+     * and send the server a choose-player command
+     * with the corresponding player number {@link #players}[i].
      *
-     * @param e DOCUMENT ME!
+     * @param e AWT event, from a button source
      */
     public void actionPerformed(ActionEvent e)
     {

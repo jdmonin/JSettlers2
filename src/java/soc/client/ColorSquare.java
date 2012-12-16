@@ -261,7 +261,7 @@ public class ColorSquare extends Canvas implements MouseListener
         super();
 
         setSize(WIDTH, HEIGHT);
-        setFont(new Font("Geneva", Font.PLAIN, 10));
+        setFont(new Font("Dialog", Font.PLAIN, 10));
 
         borderColor = Color.BLACK;
         setBackground(c);

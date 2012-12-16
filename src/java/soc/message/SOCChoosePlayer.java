@@ -29,6 +29,10 @@ import java.util.StringTokenizer;
  *<LI> After a server's {@link SOCChoosePlayerRequest}, 
  *     it says which player the current player wants to
  *     steal from.
+ *     <P>
+ *     In some game scenarios in version 2.0.00 or newer,
+ *     the player might have the option to steal from no one.
+ *     If the player makes that choice, {@link #getChoice()} is {@link #CHOICE_NO_PLAYER}.
  *<LI> After a server's {@link SOCGameState}
  *     ({@link soc.game.SOCGame#WAITING_FOR_ROBBER_OR_PIRATE WAITING_FOR_ROBBER_OR_PIRATE}) message,
  *     it says whether the player wants to move the robber
@@ -46,6 +50,24 @@ import java.util.StringTokenizer;
 public class SOCChoosePlayer extends SOCMessage
     implements SOCMessageForGame
 {
+    /** Constant for {@link #getChoice()} in response to server's {@link SOCChoosePlayerRequest},
+     *  if player has chosen to not rob from any player.
+     *  @since 2.0.00
+     */
+    public static final int CHOICE_NO_PLAYER = -1;
+
+    /** Constant for {@link #getChoice()} in game state
+     *  WAITING_FOR_ROBBER_OR_PIRATE: move Robber (not pirate ship).
+     *  @since 2.0.00
+     */
+    public static final int CHOICE_MOVE_ROBBER = -2;
+
+    /** Constant for {@link #getChoice()} in game state
+     *  WAITING_FOR_ROBBER_OR_PIRATE: move Pirate Ship (not robber).
+     *  @since 2.0.00
+     */
+    public static final int CHOICE_MOVE_PIRATE = -3;
+
     /**
      * Name of game
      */
@@ -53,8 +75,9 @@ public class SOCChoosePlayer extends SOCMessage
 
     /**
      * The number of the chosen player,
-     * or -1 to move the robber
-     * or -2 to move the pirate ship.
+     * or {@link #CHOICE_NO_PLAYER} to choose no one,
+     * or {@link #CHOICE_MOVE_ROBBER} to move the robber
+     * or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      */
     private int choice;
 
@@ -63,8 +86,9 @@ public class SOCChoosePlayer extends SOCMessage
      *
      * @param ga  the name of the game
      * @param ch  the number of the chosen player,
-     *   or -1 to move the robber
-     *   or -2 to move the pirate ship.
+     *   or {@link #CHOICE_NO_PLAYER} to choose no one,
+     *   or {@link #CHOICE_MOVE_ROBBER} to move the robber
+     *   or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      *<br>
      * For <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>, use <tt>ch</tt> = playerNumber
      * to rob a resource; to rob cloth, use <tt>ch</tt> = -(playerNumber + 1).
@@ -86,8 +110,9 @@ public class SOCChoosePlayer extends SOCMessage
 
     /**
      * @return the number of the chosen player,
-     *   or -1 to move the robber
-     *   or -2 to move the pirate ship.
+     *   or {@link #CHOICE_NO_PLAYER} to choose no one,
+     *   or {@link #CHOICE_MOVE_ROBBER} to move the robber
+     *   or {@link #CHOICE_MOVE_PIRATE} to move the pirate ship.
      *<br>
      * For <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>, <tt>getChoice()</tt> &gt;= 0
      * means rob a resource from that player number, and <tt>getChoice()</tt> &lt; 0

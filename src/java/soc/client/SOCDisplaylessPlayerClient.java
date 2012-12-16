@@ -1174,6 +1174,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 pl.setScenarioSVPLandAreas(mes.getValue());
                 break;
 
+            case SOCPlayerElement.STARTING_LANDAREAS:
+                pl.setStartingLandAreasEncoded(mes.getValue());
+                break;
+
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
                 if (pn != -1)
                     pl.setCloth(mes.getValue());
@@ -2028,8 +2032,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *
      * @param ga  the game
      * @param ch  the player number,
-     *   or -1 to move the robber
-     *   or -2 to move the pirate ship.
+     *   or {@link SOCChoosePlayer#CHOICE_MOVE_ROBBER} to move the robber
+     *   or {@link SOCChoosePlayer#CHOICE_MOVE_PIRATE} to move the pirate ship.
      *   See {@link SOCChoosePlayer#SOCChoosePlayer(String, int)} for meaning
      *   of <tt>ch</tt> for game state <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>.
      */

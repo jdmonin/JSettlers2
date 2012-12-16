@@ -736,8 +736,9 @@ public class SOCPlayerClient extends Panel
     {
         nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
         pass.setEditable(true);
-        nick.setText(cuser);
         pass.setText(cpass);
+        nick.setText(cuser);
+        nick.requestFocusInWindow();
         cardLayout.show(this, MESSAGE_PANEL);
         net.connect(chost, cport);
     }
@@ -1312,6 +1313,7 @@ public class SOCPlayerClient extends Panel
                 ? SOCNewGameWithOptionsRequest.toCmd(nickname, password, net.getHost(), gmName, opts)
                 : SOCJoinGame.toCmd(nickname, password, net.getHost(), gmName);
             System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
+            System.err.println("      Got all opts,defaults? " + tcpServGameOpts.allOptionsReceived + " " + tcpServGameOpts.defaultsReceived);
             net.putNet(askMsg);
             System.out.flush();  // for debug print output (temporary)
             status.setText("Talking to server...");
@@ -1469,6 +1471,7 @@ public class SOCPlayerClient extends Panel
 
             /**
              * list of channels on the server
+             * (sent at connect after VERSION, even if no channels)
              */
             case SOCMessage.CHANNELS:
                 handleCHANNELS((SOCChannels) mes, isPractice);
@@ -2100,7 +2103,7 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * handle the "join authorization" message
+     * handle the "join channel authorization" message
      * @param mes  the message
      */
     protected void handleJOINAUTH(SOCJoinAuth mes)
@@ -2138,7 +2141,7 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * handle the "members" message
+     * handle the "channel members" message
      * @param mes  the message
      */
     protected void handleMEMBERS(SOCMembers mes)
@@ -2181,7 +2184,6 @@ public class SOCPlayerClient extends Panel
             cardLayout.show(SOCPlayerClient.this, MAIN_PANEL);
             validate();
 
-            nick.requestFocus();
             status.setText("Login by entering nickname and then joining a channel or game.");
         }
 
@@ -2191,6 +2193,9 @@ public class SOCPlayerClient extends Panel
         {
             addToList(ch, chlist);
         }
+
+        if (! isPractice)
+            nick.requestFocus();
     }
 
     /**
@@ -2875,6 +2880,10 @@ public class SOCPlayerClient extends Panel
                 pl.setScenarioSVPLandAreas(mes.getValue());
                 break;
 
+            case SOCPlayerElement.STARTING_LANDAREAS:
+                pl.setStartingLandAreasEncoded(mes.getValue());
+                break;
+
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
                 if (pn != -1)
                 {
@@ -3098,11 +3107,13 @@ public class SOCPlayerClient extends Panel
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes)
     {
         SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        boolean[] ch = mes.getChoices();
-        int[] choices = new int[ch.length];  // == SOCGame.maxPlayers
+        final int maxPl = pi.getGame().maxPlayers;
+        final boolean[] ch = mes.getChoices();
+        final boolean allowChooseNone = ((ch.length > maxPl) && ch[maxPl]);  // for scenario SC_PIRI
+        int[] choices = new int[maxPl];
         int count = 0;
 
-        for (int i = 0; i < ch.length; i++)
+        for (int i = 0; i < maxPl; i++)
         {
             if (ch[i])
             {
@@ -3111,7 +3122,7 @@ public class SOCPlayerClient extends Panel
             }
         }
 
-        pi.showChoosePlayerDialog(count, choices);
+        pi.showChoosePlayerDialog(count, choices, allowChooseNone);
     }
 
     /**
@@ -4273,8 +4284,8 @@ public class SOCPlayerClient extends Panel
      *
      * @param ga  the game
      * @param ch  the player number,
-     *   or -1 to move the robber
-     *   or -2 to move the pirate ship.
+     *   or {@link SOCChoosePlayer#CHOICE_MOVE_ROBBER} to move the robber
+     *   or {@link SOCChoosePlayer#CHOICE_MOVE_PIRATE} to move the pirate ship.
      *   See {@link SOCChoosePlayer#SOCChoosePlayer(String, int)} for meaning
      *   of <tt>ch</tt> for game state <tt>WAITING_FOR_ROB_CLOTH_OR_RESOURCE</tt>.
      */

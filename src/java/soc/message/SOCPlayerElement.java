@@ -108,6 +108,14 @@ public class SOCPlayerElement extends SOCMessage
     public static final int SCENARIO_SVP_LANDAREAS_BITMASK = 20;
 
     /**
+     * Player's starting land area numbers.
+     * Sent only at reconnect, because these are also tracked during play at the client.
+     * Sent as <tt>(landArea2 &lt;&lt; 8) | landArea1</tt>.
+     * @since 2.0.00
+     */
+    public static final int STARTING_LANDAREAS = 21;
+
+    /**
      * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
      * the number of cloth held by this player.
      * This element is {@link #SET} to 0, or to the player's cloth count
@@ -119,7 +127,7 @@ public class SOCPlayerElement extends SOCMessage
      * Each village's cloth count is updated with a {@link SOCPieceValue PIECEVALUE} message.
      * @since 2.0.00
      */
-    public static final int SCENARIO_CLOTH_COUNT = 21;
+    public static final int SCENARIO_CLOTH_COUNT = 22;
 
     /**
      * player element actions

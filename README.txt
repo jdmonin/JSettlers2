@@ -133,7 +133,7 @@ You can instead double-click the JAR file to launch the client, and then
 click "connect to server".  Use the command line if you want to see the
 message traffic and debug output.
 
-In the player client window, enter "debug" in the Nickname field and
+In the player client window, enter any name in the Nickname field and
 create a new game.
 
 Type *STATS* into the chat part of the game window.  You should see
@@ -148,9 +148,6 @@ something like the following in the chat display:
   * > Total Memory: 2031616
   * > Free Memory: 1524112
   * > Version: 1100 (1.1.00) build JM20080808
-
-If you do not, you might not have entered your nickname correctly.  It
-must be "debug" in order to use the administrative commands.
 
 Now click on the "Sit Here" button and press "Start Game".  The robot
 players should automatically join the game and start playing.
@@ -175,8 +172,8 @@ Shutting down the server
 
 To shut down the server enter *STOP* in the chat area of a game
 window.  This will stop the server and all connected clients will be
-disconnected.
-(Only debug users can shut down the server.)
+disconnected.  (Only debug users can shut down the server.
+See README.developer if you want that.)
 
 
 Hosting a JSettlers server
@@ -227,7 +224,8 @@ Database Setup
 
 If you want to maintain user accounts, you will need to set up a MySQL, SQLite,
 or PostgreSQL database. This will eliminate the "Problem connecting to database"
-errors from the server. We assume you have installed it correctly. 
+errors from the server. We assume you have installed it correctly.
+SQLite is recommended because it's just a JAR file, not a separate large install.
 
 The default name for the database is "socdata".  To use another name,
 you'll need to specify it as a JDBC URL on the command line, such as:

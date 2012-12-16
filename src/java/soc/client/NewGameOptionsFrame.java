@@ -147,6 +147,8 @@ public class NewGameOptionsFrame extends Frame
      *                 To preserve them, call {@link SOCGameOption#cloneOptions(Hashtable)} beforehand.
      *                 Null if server doesn't support game options.
      *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
+     *                 If not <tt>readOnly</tt>, each option's {@link SOCGameOption#userChanged userChanged}
+     *                 flag will be cleared, to reset status from any previously shown NewGameOptionsFrame. 
      * @param forPractice Will this game be on local practice server, vs remote tcp server?
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
@@ -203,7 +205,8 @@ public class NewGameOptionsFrame extends Frame
     /**
      * Creates and shows a new NewGameOptionsFrame.
      * Once created, reset the mouse cursor from hourglass to normal, and clear main panel's status text.
-     * See constructor for parameters.
+     * See {@link #NewGameOptionsFrame(SOCPlayerClient, String, Hashtable, boolean, boolean) constructor}
+     * for notes about <tt>opts</tt> and other parameters.
      * @return the new frame
      */
     public static NewGameOptionsFrame createAndShow
@@ -322,6 +325,10 @@ public class NewGameOptionsFrame extends Frame
      * which are set at the server during game creation.  When the options are shown read-only
      * during a game, these options are shown and not hidden.
      *<P>
+     * This is called from constructor, so this is a new NGOF being shown.
+     * If not read-only, clear {@link SOCGameOption#userChanged} flag for
+     * each option in {@link #opts}.
+     *<P>
      * If options are null, put a label with {@link #TXT_SERVER_TOO_OLD}.
      */
     private void initInterface_Options(Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
@@ -338,6 +345,11 @@ public class NewGameOptionsFrame extends Frame
             gbl.setConstraints(L, gbc);
             bp.add(L);
             return;  // <---- Early return: no options ----
+        }
+        else if (! readOnly)
+        {
+            for (SOCGameOption opt : opts.values())
+                opt.userChanged = false;  // clear flag from any previously shown NGOF
         }
 
         gbc.anchor = GridBagConstraints.WEST;
@@ -1072,6 +1084,8 @@ public class NewGameOptionsFrame extends Frame
                 {
                     final String chText = ch.getSelectedItem();
                     opt.setStringValue(chText.substring(0, chText.indexOf(':')));
+                } else {
+                    opt.setStringValue("");
                 }
             }
 
@@ -1228,6 +1242,8 @@ public class NewGameOptionsFrame extends Frame
         final boolean becameChecked = ! cb.getState();
         cb.setState(becameChecked);
         opt.setBoolValue(becameChecked);
+        if (! opt.userChanged)
+            opt.userChanged = true;
         SOCGameOption.ChangeListener cl = opt.getChangeListener();
         if (cl == null)
             return;

@@ -236,6 +236,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int PIECEVALUE = 1094;  // cloth villages scenario, 20121115, v2.0.00
 
+    /** Legal road or ship edges for the large sea board,.
+     *  @since 2.0.00 */
+    public static final int LEGALEDGES = 1095;  // large sea board, 20121216, v2.0.00 
+
 
     /////////////////////////////////////////
     // REQUEST FOR FUTURE MESSAGE NUMBERS: //
@@ -803,6 +807,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case PIECEVALUE:        // cloth villages scenario, 20121115, v2.0.00
                 return SOCPieceValue.parseDataStr(data);
+
+            case LEGALEDGES:        // large sea board, 20121216, v2.0.00
+                return SOCLegalEdges.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

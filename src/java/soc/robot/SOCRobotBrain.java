@@ -469,7 +469,10 @@ public class SOCRobotBrain extends Thread
     protected boolean waitingForDevCard;
 
     /**
-     * true when the robber will move because a seven was rolled
+     * True when the robber will move because a seven was rolled.
+     * Used to help bot remember why the robber is moving (Knight dev card, or 7).
+     * Set true when {@link SOCMessage#DICERESULT} received.
+     * Read in gamestate {@link SOCGame#PLACING_ROBBER PLACING_ROBBER}.
      */
     protected boolean moveRobberOnSeven;
 
@@ -1304,7 +1307,7 @@ public class SOCRobotBrain extends Thread
                         expectPLACING_ROBBER = true;
                         waitingForGameState = true;
                         counter = 0;
-                        client.choosePlayer(game, -1);
+                        client.choosePlayer(game, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
                         pause(200);
                     }
 
@@ -1316,8 +1319,9 @@ public class SOCRobotBrain extends Thread
                         {
                             if (!((expectPLAY || expectPLAY1) && (counter < 4000)))
                             {
-                                if (moveRobberOnSeven == true)
+                                if (moveRobberOnSeven)
                                 {
+                                    // robber moved because 7 rolled on dice
                                     moveRobberOnSeven = false;
                                     waitingForGameState = true;
                                     counter = 0;
@@ -1330,10 +1334,12 @@ public class SOCRobotBrain extends Thread
 
                                     if (oldGameState == SOCGame.PLAY)
                                     {
+                                        // robber moved from playing knight card before dice roll
                                         expectPLAY = true;
                                     }
                                     else if (oldGameState == SOCGame.PLAY1)
                                     {
+                                        // robber moved from playing knight card after dice roll
                                         expectPLAY1 = true;
                                     }
                                 }
@@ -1656,13 +1662,21 @@ public class SOCRobotBrain extends Thread
 
                             if (((SOCDiceResult) mes).getResult() == 7)
                             {
-                                moveRobberOnSeven = true;
+                                final boolean robWithoutRobber = game.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+
+                                if (! robWithoutRobber)
+                                    moveRobberOnSeven = true;
 
                                 if (ourPlayerData.getResources().getTotal() > 7)
                                     expectDISCARD = true;
 
                                 else if (ourTurn)
-                                    expectPLACING_ROBBER = true;
+                                {
+                                    if (! robWithoutRobber)
+                                        expectPLACING_ROBBER = true;
+                                    else
+                                        expectPLAY1 = true;
+                                }
                             }
                             else
                             {
@@ -3098,6 +3112,10 @@ public class SOCRobotBrain extends Thread
 
         case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
             pl.setScenarioSVPLandAreas(mes.getValue());
+            break;
+
+        case SOCPlayerElement.STARTING_LANDAREAS:
+            pl.setStartingLandAreasEncoded(mes.getValue());
             break;
 
         case SOCPlayerElement.SCENARIO_CLOTH_COUNT:

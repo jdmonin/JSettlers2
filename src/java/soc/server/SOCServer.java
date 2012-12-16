@@ -44,11 +44,13 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -4180,7 +4182,7 @@ public class SOCServer extends Server
         sendGameList(c, prevVers);
 
         // Warn if debug commands are allowed.
-        // This will be displayed in the client's status line.
+        // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
             c.put(SOCStatusMessage.toCmd
                     (SOCStatusMessage.SV_OK, "Debugging is On.  Welcome to Java Settlers of Catan!"));            
@@ -6361,7 +6363,7 @@ public class SOCServer extends Server
 
             if (ga.canDiscard(pn, mes.getResources()))
             {
-                ga.discard(pn, mes.getResources());
+                ga.discard(pn, mes.getResources());  // discard, change gameState
 
                 /**
                  * tell the player client that the player discarded the resources
@@ -6379,7 +6381,7 @@ public class SOCServer extends Server
                  */
                 if ((ga.getGameState() != SOCGame.PLAY1) || ! ga.isForcingEndTurn())
                 {
-                    sendGameState(ga);
+                    sendGameState(ga);  // if state is WAITING_FOR_CHOICE (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
                 } else {
                     endGameTurn(ga, player);  // already did ga.takeMonitor()
                 }
@@ -6824,12 +6826,18 @@ public class SOCServer extends Server
                 switch (ga.getGameState())
                 {
                 case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
-                    ga.chooseMovePirate(choice == -2);
+                    ga.chooseMovePirate(choice == SOCChoosePlayer.CHOICE_MOVE_PIRATE);
                     sendGameState(ga);
                     break;
 
                 case SOCGame.WAITING_FOR_CHOICE:
-                    if (ga.canChoosePlayer(choice))
+                    if ((choice == SOCChoosePlayer.CHOICE_NO_PLAYER) && ga.canChoosePlayer(-1))
+                    {
+                        ga.choosePlayerForRobbery(-1);  // state becomes PLAY1
+                        messageToGame(ga.getName(), ((String) c.getData()) + " declined to steal.");
+                        sendGameState(ga);
+                    }
+                    else if (ga.canChoosePlayer(choice))
                     {
                         final int rsrc = ga.choosePlayerForRobbery(choice);
                         final boolean waitingClothOrRsrc = (ga.getGameState() == SOCGame.WAITING_FOR_ROB_CLOTH_OR_RESOURCE);
@@ -8150,6 +8158,8 @@ public class SOCServer extends Server
      * All of server's known options are sent, except empty string-valued options.
      * Depending on client version, server's response may include option names that
      * the client is too old to use; the client is able to ignore them.
+     * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
+     * options with long names won't be sent.
      * @param c  the connection
      * @param mes  the message
      * @since 1.1.07
@@ -8158,8 +8168,9 @@ public class SOCServer extends Server
     {
         if (c == null)
             return;
+        final boolean hideLongNameOpts = (c.getVersion() < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES);
         c.put(SOCGameOptionGetDefaults.toCmd
-              (SOCGameOption.packKnownOptionsToString(true)));
+              (SOCGameOption.packKnownOptionsToString(true, hideLongNameOpts)));
     }
 
     /**
@@ -8172,6 +8183,8 @@ public class SOCServer extends Server
      * cases where some option values are restricted to newer client versions.
      * Any option where opt.{@link SOCGameOption#minVersion minVersion} is too new for
      * this client's version, is sent as {@link SOCGameOption#OTYPE_UNKNOWN}.
+     * If the client is older than {@link SOCGameOption#VERSION_FOR_LONGER_OPTNAMES},
+     * options with long names won't be sent.
      *
      * @param c  the connection
      * @param mes  the message
@@ -8182,31 +8195,45 @@ public class SOCServer extends Server
         if (c == null)
             return;
         final int cliVers = c.getVersion();
-        boolean vecIsOptObjs = false;
         boolean alreadyTrimmedEnums = false;
-        Vector<?> okeys = mes.getOptionKeys();
+        Vector<String> okeys = mes.getOptionKeys();
+        Vector<SOCGameOption> opts = null;
 
         if (okeys == null)
         {
             // received "-", look for newer options (cli is older than us).
             // okeys will be null if nothing is new.
-            okeys = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
-            vecIsOptObjs = true;
+            opts = SOCGameOption.optionsNewerThanVersion(cliVers, false, true, null);
             alreadyTrimmedEnums = true;
+
+            if ((opts != null) && (cliVers < SOCGameOption.VERSION_FOR_LONGER_OPTNAMES))
+            {
+                // Client is older than 2.0.00; we can't send it any long option names.
+                Iterator<SOCGameOption> opi = opts.iterator();
+                while (opi.hasNext())
+                {
+                    final SOCGameOption op = opi.next();
+                    if ((op.optKey.length() > 3) || op.optKey.contains("_"))
+                        opi.remove();
+                }
+                if (opts.isEmpty())
+                    opts = null;
+            }
         }
 
-        if (okeys != null)
+        if ((opts != null) || (okeys != null))
         {
-            for (int i = 0; i < okeys.size(); ++i)
+            final int L = (opts != null) ? opts.size() : okeys.size();
+            for (int i = 0; i < L; ++i)
             {
                 SOCGameOption opt;
-                if (vecIsOptObjs)
+                if (opts != null)
                 {
-                    opt = (SOCGameOption) okeys.elementAt(i);
+                    opt = opts.elementAt(i);
                     if (opt.minVersion > cliVers)
                         opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN
                 } else {
-                    String okey = (String) okeys.elementAt(i);
+                    final String okey = okeys.elementAt(i);
                     opt = SOCGameOption.getOption(okey);
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
@@ -8581,6 +8608,35 @@ public class SOCServer extends Server
         {
             SOCPlayer pl = gameData.getPlayer(i);
 
+            /**
+             * send scenario info before any putpiece, so they know their
+             * starting land areas and scenario events
+             */
+            int itm = pl.getSpecialVP();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
+
+            itm = pl.getScenarioPlayerEvents();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, itm));
+
+            itm = pl.getScenarioSVPLandAreas();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, itm));
+
+            itm = pl.getStartingLandAreasEncoded();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                        (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.STARTING_LANDAREAS, itm));
+
+            itm = pl.getCloth();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, itm));
+
             // Send piece info even if player has left the game (pl.getName() == null).
             // This lets them see "their" pieces before sitDown(), if they rejoin at same position.
 
@@ -8924,29 +8980,6 @@ public class SOCServer extends Server
         }  // for (dcAge)
 
         /**
-         * send scenario info
-         */
-        int itm = pl.getSpecialVP();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
-
-        itm = pl.getScenarioPlayerEvents();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                    (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, itm));
-
-        itm = pl.getScenarioSVPLandAreas();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK, itm));
-
-        itm = pl.getCloth();
-        if (itm != 0)
-            messageToPlayer(c, new SOCPlayerElement
-                (gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_CLOTH_COUNT, itm));
-
-        /**
          * send game state info such as requests for discards
          */
         sendGameState(ga);
@@ -9080,6 +9113,10 @@ public class SOCServer extends Server
      * State {@link SOCGame#WAITING_FOR_DISCARDS}:
      * If a 7 is rolled, will also say who must discard (in a GAMETEXTMSG).
      *<P>
+     * State {@link SOCGame#WAITING_FOR_CHOICE}:
+     * If current player must choose which player to rob,
+     * will also prompt their client to choose (in a CHOOSEPLAYERREQUEST).
+     *<P>
      * State {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
      * To announce the player must pick a resource to gain from the gold hex initial placement,
      * please call {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection)}.
@@ -9204,12 +9241,11 @@ public class SOCServer extends Server
             /**
              * get the choices from the game
              */
-            boolean[] choices = new boolean[ga.maxPlayers];
-
-            for (int i = 0; i < ga.maxPlayers; i++)
-            {
-                choices[i] = false;
-            }
+            final boolean canStealNone = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+            boolean[] choices = new boolean[ga.maxPlayers + (canStealNone ? 1 : 0)];
+            Arrays.fill(choices, false);
+            if (canStealNone)
+                choices[ga.maxPlayers] = true;
 
             Enumeration<SOCPlayer> plEnum = ga.getPossibleVictims().elements();
 
