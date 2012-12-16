@@ -23,7 +23,7 @@ package soc.client;
 
 import java.applet.Applet;
 import java.awt.BorderLayout;
-import java.awt.Button;
+import  java.awt.Button;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Container;
