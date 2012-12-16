@@ -98,6 +98,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * a list of this player's pieces in play
+     * (does not include any {@link #fortress}).
      */
     private Vector<SOCPlayingPiece> pieces;
 
@@ -116,6 +117,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a list of this player's cities in play
      */
     private Vector<SOCCity> cities;
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the "pirate fortress" that this player must defeat to win.
+     * Null if fortress has been defeated and converted to a settlement.
+     * Null unless game has that scenario option.
+     *<P>
+     * There is no setFortress method; use putPiece. For details see {@link #getFortress()}.
+     * @since 2.0.00
+     */
+    private SOCFortress fortress;
 
     /**
      * The node coordinate of our most recent settlement.
@@ -1018,6 +1030,22 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     public Vector<SOCCity> getCities()
     {
         return cities;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the "pirate fortress" that this player must defeat to win.
+     * Null if fortress has already been defeated and converted to a settlement.
+     * Null unless game has that scenario option.
+     *<P>
+     * There is no <tt>setFortress</tt> method; instead call
+     * {@link SOCGame#putPiece(SOCPlayingPiece) game.putPiece(SOCFortress)} to set, or
+     * {@link SOCGame#putPiece(SOCPlayingPiece) game.putPiece(SOCSettlement)} to clear.
+     * @since 2.0.00
+     */
+    public SOCFortress getFortress()
+    {
+        return fortress;
     }
 
     /**
@@ -1966,6 +1994,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * calls {@link #calcLongestRoad2()}.
      *<P>
      * <b>Note:</b> Placing a city automatically removes the settlement there
+     * via {@link SOCGame#putPiece(SOCPlayingPiece)} calling
+     * {@link SOCPlayer#removePiece(SOCPlayingPiece, SOCPlayingPiece)}.
      *<P>
      * Call this before calling {@link SOCBoard#putPiece(SOCPlayingPiece)}.
      *<P>
@@ -1973,19 +2003,30 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * a settlement in a new Land Area may award the player a Special Victory Point (SVP).
      * This method will increment {@link #specialVP}
      * and set the {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
+     *<P>
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * call with <tt>piece</tt> = {@link SOCFortress} to set the single "pirate fortress"
+     * that this player must defeat to win.  When the fortress is defeated, it is
+     * converted to a settlement; call with <tt>piece</tt> = {@link SOCSettlement} at the
+     * fortress location.
+     * <tt>isTempPiece</tt> must be false to set or clear the fortress.
      *
      * @param piece        The piece to be put into play; coordinates are not checked for validity.
      * @param isTempPiece  Is this a temporary piece?  If so, do not call the
      *                     game's {@link SOCScenarioEventListener}.
+     * @throws IllegalArgumentException  only if piece is a {@link SOCFortress}, and either
+     *                     <tt>isTempPiece</tt>, or player already has a fortress set.
      */
     public void putPiece(final SOCPlayingPiece piece, final boolean isTempPiece)
+        throws IllegalArgumentException
     {
         /**
          * only do this stuff if it's our piece
          */
         if (piece.getPlayerNumber() == playerNumber)
         {
-            pieces.addElement(piece);
+            if (! (piece instanceof SOCFortress))
+                pieces.addElement(piece);
 
             final SOCBoard board = game.getBoard();
             switch (piece.getType())
@@ -2004,7 +2045,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             case SOCPlayingPiece.SETTLEMENT:
                 {
                     final int settlementNode = piece.getCoordinates();
-                    numPieces[SOCPlayingPiece.SETTLEMENT]--;
+                    if ((fortress != null) && (fortress.getCoordinates() == settlementNode))
+                    {
+                        // settlement is converted from the defeated fortress,
+                        // not subtracted from player's numPieces
+                        fortress = null;
+                        if (isTempPiece)
+                            throw new IllegalArgumentException("temporary fortress settlement");
+                    } else {
+                        numPieces[SOCPlayingPiece.SETTLEMENT]--;                        
+                    }
                     putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
                     settlements.addElement((SOCSettlement) piece);
                     lastSettlementCoord = settlementNode;
@@ -2083,6 +2133,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             case SOCPlayingPiece.SHIP:
                 numPieces[SOCPlayingPiece.SHIP]--;
                 putPiece_roadOrShip((SOCShip) piece, board);
+                break;
+
+            /**
+             * placing the player's pirate fortress (scenario game opt _SC_PIRI)
+             */
+            case SOCPlayingPiece.FORTRESS:
+                if (isTempPiece)
+                    throw new IllegalArgumentException("temporary fortress");
+                if (fortress != null)
+                    throw new IllegalArgumentException("already has fortress");
+                fortress = (SOCFortress) piece;
                 break;
             }
         }
@@ -2664,6 +2725,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * Most callers will want to instead call {@link #undoPutPiece(SOCPlayingPiece)}
      * which calls removePiece and does more.
+     *<P>
+     * Don't call removePiece for a {@link SOCFortress}; see {@link #getFortress()} javadoc.
      *<P>
      *<B>Note:</b> removePiece does NOT update the potential building lists
      *           for removing settlements or cities.
@@ -3911,6 +3974,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         settlements = null;
         cities.removeAllElements();
         cities = null;
+        fortress = null;
         resources = null;
         resourceStats = null;
         devCards = null;

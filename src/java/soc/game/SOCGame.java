@@ -2233,6 +2233,9 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If the piece is a city, putPiece removes the settlement there.
      *<P>
+     * If the piece is a settlement, and its owning player has their {@link SOCFortress} there
+     * (scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}), putPiece removes the defeated fortress.
+     *<P>
      * If placing this piece reveals any {@link SOCBoardLarge#FOG_HEX fog hex}, that happens first of all.
      * Hex is revealed (at server only) via {@link #putPieceCommon_checkFogHexes(int[], boolean)}.
      * Current player gets a resource from each revealed hex, and a scenario player event is fired.
@@ -2292,7 +2295,7 @@ public class SOCGame implements Serializable, Cloneable
                 final int[] endHexes = ((SOCBoardLarge) board).getAdjacentHexesToEdgeEnds(coord);
                 putPieceCommon_checkFogHexes(endHexes, false);
             }
-            else if (isInitialPlacement())
+            else if (isInitialPlacement() && (pp instanceof SOCSettlement))
             {
                 // settlements
                 final Collection<Integer> hexColl = board.getAdjacentHexesToNode(coord);
@@ -2321,9 +2324,9 @@ public class SOCGame implements Serializable, Cloneable
 
         board.putPiece(pp);
 
-        if (pp instanceof SOCVillage)
+        if ((pp instanceof SOCFortress) || (pp instanceof SOCVillage))
         {
-            return;  // <--- Early return: Piece is part of board initial layout, not player info ---
+            return;  // <--- Early return: Piece is part of initial layout ---
         }
 
         if ((! isTempPiece) && debugFreePlacement && (gameState <= START3B))
@@ -2345,6 +2348,12 @@ public class SOCGame implements Serializable, Cloneable
 
             board.removePiece(se);
         }
+
+        /**
+         * the rare situation "if the piece is a settlement, remove the fortress there" is
+         * handled in player.putPiece instead of here, because the SOCPlayer knows about the
+         * fortress and settlement, and that single call can correlate the removal and placement.
+         */
 
         /**
          * if this their final initial settlement, give the player some resources.
@@ -2432,7 +2441,7 @@ public class SOCGame implements Serializable, Cloneable
                  */
                 updateLongestRoad(ppPlayer.getPlayerNumber());
             }
-            else
+            else if (pieceType == SOCPlayingPiece.SETTLEMENT)
             {
                 /**
                  * this is a settlement, check if it cut anyone else's road or trade route
