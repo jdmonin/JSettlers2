@@ -54,6 +54,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -62,7 +63,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
 
-import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
 import soc.game.SOCBoard;
@@ -374,8 +374,15 @@ public class SOCPlayerClient extends Panel
 
     /**
      * the player interfaces for the games
+     * @deprecated For proper inversion of control, use player client listeners
      */
-    protected Map<String,SOCPlayerInterface> playerInterfaces = new Hashtable<String,SOCPlayerInterface>();
+    @Deprecated
+    private Map<String, SOCPlayerInterface> playerInterfaces = new Hashtable<String, SOCPlayerInterface>();
+    
+    /**
+     * Map from game-name to the listener for that game.
+     */
+    private final Map<String, PlayerClientListener> clientListeners = new HashMap<String, PlayerClientListener>();
 
     /**
      * the ignore list
@@ -2336,6 +2343,7 @@ public class SOCPlayerClient extends Panel
             pi.setVisible(true);
             System.err.println("L2328 visible at " + System.currentTimeMillis());
             playerInterfaces.put(gaName, pi);
+            clientListeners.put(gaName, pi.getClientListener());
             games.put(gaName, ga);
         }
         System.err.println("L2332 handlejoin done at " + System.currentTimeMillis());
@@ -2962,24 +2970,24 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleDICERESULT(SOCDiceResult mes)
     {
-        SOCGame ga = games.get(mes.getGame());
-
-        if (ga != null)
-        {
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-            int roll = mes.getResult();
-            ga.setCurrentDice(roll);
-            pi.setTextDisplayRollExpected(roll);
-            pi.getBoardPanel().repaint();
-
-            // only notify about valid rolls
-            if (roll >= 2 && roll <= 12)
-            {
-                final int cpn = ga.getCurrentPlayerNumber();
-                if (cpn >= 0)
-                    pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, ga.getPlayer(cpn)));
-            }
-        }
+        final String gameName = mes.getGame();
+        SOCGame ga = games.get(gameName);
+        if (ga == null)
+            throw new IllegalStateException("No game found for name '"+gameName+"'");
+        
+        final int cpn = ga.getCurrentPlayerNumber();
+        SOCPlayer player = null;
+        if (cpn >= 0)
+            player = ga.getPlayer(cpn);
+        
+        int roll = mes.getResult();
+        
+        // update game state
+        ga.setCurrentDice(roll);
+        
+        // notify listener
+        PlayerClientListener listener = clientListeners.get(gameName);
+        listener.diceRolled(new PlayerClientListener.DiceRollEvent(player, roll));
     }
 
     /**

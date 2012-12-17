@@ -24,7 +24,6 @@ package soc.client;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
-import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
@@ -418,6 +417,8 @@ public class SOCPlayerInterface extends Frame
     protected SOCMonopolyDialog monopolyDialog;
 
     private SOCGameStatistics gameStats;
+    
+    private final ClientBridge clientListener;
 
     /**
      * create a new player interface
@@ -428,14 +429,18 @@ public class SOCPlayerInterface extends Frame
      */
     public SOCPlayerInterface(String title, SOCPlayerClient cl, SOCGame ga)
     {
-        super(TITLEBAR_GAME + title +
-              (ga.isPractice ? "" : " [" + cl.getNickname() + "]"));
+        super(TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + cl.getNickname() + "]"));
+        if (ga == null)
+            // keep even though it is dead code
+            throw new IllegalArgumentException("game is null");
+        
         setResizable(true);
         layoutNotReadyYet = true;  // will set to false at end of doLayout
 
         client = cl;
         game = ga;
         game.setScenarioEventListener(this);
+        clientListener = new ClientBridge(this);
         gameStats = new SOCGameStatistics(game);
         gameIsStarting = false;
         clientHand = null;
@@ -516,6 +521,14 @@ public class SOCPlayerInterface extends Frame
          * it will reset mouse cursor from WAIT_CURSOR to normal (WAIT_CURSOR is
          * set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
          */
+    }
+    
+    /**
+     * Provide access to the client listener in case this class does not directly implement it.
+     */
+    public PlayerClientListener getClientListener()
+    {
+        return clientListener;
     }
 
     /**
@@ -1931,7 +1944,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @param ga  Game
      * @param evt Event code
-     * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>  
+     * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>
      * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)
      * @since 2.0.00
      */
@@ -1942,7 +1955,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Listener callback for per-player scenario events on the large sea board.
-     * For example, there might be an SVP awarded for settlements. 
+     * For example, there might be an SVP awarded for settlements.
      * @param ga  Game
      * @param pl  Player
      * @param evt  Event code
@@ -2030,6 +2043,8 @@ public class SOCPlayerInterface extends Frame
             return;
         if (clientHandPlayerNum != rejoinPlayerNumber)
             return;
+        if (newGame == null)
+            throw new IllegalArgumentException("newGame is null");
 
         // Feedback: "busy" mouse cursor while clearing and re-laying out the components
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -2540,6 +2555,29 @@ public class SOCPlayerInterface extends Frame
      * Nested classes begin here
      */
     //========================================================
+    
+    private static class ClientBridge implements PlayerClientListener
+    {
+        final SOCPlayerInterface pi;
+        
+        public ClientBridge(SOCPlayerInterface pi)
+        {
+            this.pi = pi;
+        }
+        
+        public void diceRolled(DiceRollEvent evt)
+        {
+            int roll = evt.result;
+            pi.setTextDisplayRollExpected(roll);
+            pi.getBoardPanel().repaint();
+            
+            // only notify about valid rolls
+            if (roll >= 2 && roll <= 12 && evt.player != null)
+            {
+                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, evt.player));
+            }
+        }
+    }
 
     /**
      * This is the modal dialog to vote on another player's board reset request.
