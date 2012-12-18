@@ -67,8 +67,8 @@ import soc.util.IntTriple;
  * scenario or game option in makeNewBoard, and call methods to set up the structure.
  * These layout parts' values can be different for 3, 4, or 6 players.
  *<P>
- * A good example is SC_4ISL "Four Islands"; see commits f316299, bcd540f, 97bb3b4, and de55a32,
- * or search this class for the string SC_4ISL.
+ * A good example is SC_PIRI "Pirate Islands"; see commits 57073cb, f9623e5, and 112e289,
+ * or search this class for the string SC_PIRI.
  *<P>
  * Parts of the layout:
  *<UL>
