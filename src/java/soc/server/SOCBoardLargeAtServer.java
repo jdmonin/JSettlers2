@@ -198,6 +198,29 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORT_LOC_FACING_ISLANDS = null;
             PORTS_TYPES_ISLANDS = null;
         }
+        else if ((optSC != null) && optSC.getStringValue().equals(SOCScenario.K_SC_PIRI))
+        {
+            // Pirate Islands
+            landAreasLegalNodes = new HashSet[3];
+            final int idx = (maxPl > 4) ? 1 : 0;  // 4-player or 6-player board
+
+            // - Large starting island
+            makeNewBoard_placeHexes
+                (PIR_ISL_LANDHEX_TYPE_MAIN[idx], PIR_ISL_LANDHEX_COORD_MAIN[idx], PIR_ISL_DICENUM_MAIN[idx],
+                 false, false, 1, opt_breakClumps);
+
+            // - Pirate islands
+            makeNewBoard_placeHexes
+                (PIR_ISL_LANDHEX_TYPE_PIRI[idx], PIR_ISL_LANDHEX_COORD_PIRI[idx], PIR_ISL_DICENUM_PIRI[idx],
+                 false, false, 2, opt_breakClumps);
+
+            pirateHex = PIR_ISL_PIRATE_HEX[idx];
+
+            PORTS_TYPES_MAINLAND = PIR_ISL_PORT_TYPE[idx];
+            PORTS_TYPES_ISLANDS = null;
+            PORT_LOC_FACING_MAINLAND = PIR_ISL_PORT_EDGE_FACING[idx];
+            PORT_LOC_FACING_ISLANDS = null;
+        }
         else if (! hasScenarioFog)
         {
             landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
@@ -1346,6 +1369,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 else
                     heightWidth = FOG_ISL_BOARDSIZE_4PL;
             }
+            else if (sc.equals(SOCScenario.K_SC_PIRI))
+            {
+                if (maxPlayers == 6)
+                    heightWidth = PIR_ISL_BOARDSIZE[1];
+                else
+                    heightWidth = PIR_ISL_BOARDSIZE[0];
+            }
         }
 
         if (heightWidth == 0)
@@ -2156,6 +2186,167 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         CLAY_PORT, ORE_PORT, SHEEP_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT,
         MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT
     };
+
+
+    ////////////////////////////////////////////
+    //
+    // Pirate Island scenario Layout (_SC_PIRI)
+    //   Has 4-player, 6-player versions;
+    //   each array here uses index [0] for 4-player, [1] for 6-player.
+    //
+
+    /**
+     * Pirate Islands: Board size:
+     * 4 players max row 0x10, max col 0x12.
+     * 6 players max row 0x10, max col 0x16.
+     */
+    private static final int PIR_ISL_BOARDSIZE[] = { 0x1012, 0x1016 };
+
+    /**
+     * Pirate Islands: Starting pirate sea hex coordinate for 4, 6 players.
+     */
+    private static final int PIR_ISL_PIRATE_HEX[] = { 0x0D0A, 0x0D0A };
+
+    /**
+     * Pirate Islands: Land hex types for the large eastern starting island.
+     * Each row from west to east.  These won't be shuffled.
+     */
+    private static final int PIR_ISL_LANDHEX_TYPE_MAIN[][] =
+    {{
+        // 4-player: 17 hexes; 7 rows, each row 2 or 3 hexes across
+        WHEAT_HEX, CLAY_HEX, ORE_HEX, WOOD_HEX,
+        WOOD_HEX, SHEEP_HEX, WOOD_HEX,
+        WHEAT_HEX, CLAY_HEX, SHEEP_HEX,
+        SHEEP_HEX, WOOD_HEX, SHEEP_HEX,
+        ORE_HEX, WOOD_HEX, WHEAT_HEX, CLAY_HEX
+    }, {
+        // 6-player: 24 hexes; 7 rows, each row 3 or 4 hexes across
+        SHEEP_HEX, WHEAT_HEX, CLAY_HEX,
+        ORE_HEX, CLAY_HEX, WOOD_HEX,
+        WOOD_HEX, WOOD_HEX, SHEEP_HEX, WOOD_HEX,
+        WHEAT_HEX, WHEAT_HEX, ORE_HEX, SHEEP_HEX,
+        SHEEP_HEX, SHEEP_HEX, CLAY_HEX, SHEEP_HEX,
+        WHEAT_HEX, ORE_HEX, CLAY_HEX,
+        WOOD_HEX, WHEAT_HEX, WOOD_HEX
+    }};
+
+    /**
+     * Pirate Islands: Land hex coordinates for the large eastern starting island.
+     * Indexes line up with {@link #PIR_ISL_LANDHEX_TYPE_MAIN}, because they won't be shuffled.
+     */
+    private static final int PIR_ISL_LANDHEX_COORD_MAIN[][] =
+    {{
+        // 4-player: 17 hexes; 7 rows, centered on columns b - 0x10
+        0x010C, 0x010E, 0x030D, 0x030F,
+        0x050C, 0x050E, 0x0510,
+        0x070B, 0x070D, 0x070F,
+        0x090C, 0x090E, 0x0910,
+        0x0B0D, 0x0B0F, 0x0D0C, 0x0D0E
+    }, {
+        // 6-player: 24 hexes; 7 rows, centered on columns d - 0x14
+        0x010E, 0x0110, 0x0112,
+        0x030F, 0x0311, 0x0313,
+        0x050E, 0x0510, 0x0512, 0x0514,
+        0x070D, 0x070F, 0x0711, 0x0713,
+        0x090E, 0x0910, 0x0912, 0x0914,
+        0x0B0F, 0x0B11, 0x0B13,
+        0x0D0E, 0x0D10, 0x0D12
+    }};
+
+    /**
+     * Pirate Islands: Dice numbers for hexes on the large eastern starting island.
+     * NumPath is {@link #PIR_ISL_LANDHEX_COORD_MAIN}.
+     */
+    private static final int PIR_ISL_DICENUM_MAIN[][] =
+    {{
+        4, 5, 9, 10, 3, 8, 5, 6, 9, 12, 11, 8, 9, 5, 2, 10, 4
+    }, {
+        5, 4, 9, 3, 10, 11, 12, 6, 4, 10,
+        6, 4, 5, 8,  // <-- center row
+        2, 10, 3, 5, 11, 9, 8, 9, 5, 4
+    }};
+
+    /**
+     * Pirate Islands: Port edges and facings on the large eastern starting island.
+     * Clockwise, starting at northwest corner of island.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Each port's type will be {@link #PIR_ISL_PORT_TYPE}[i].
+     */
+    private static final int PIR_ISL_PORT_EDGE_FACING[][] =
+    {{
+        // 4 players
+        0x000B, FACING_SE,  0x000D, FACING_SE,  0x010F, FACING_W,
+        0x0310, FACING_W,   0x0710, FACING_W,   0x0A10, FACING_NW,
+        0x0C0F, FACING_NW,  0x0E0C, FACING_NW
+    }, {
+        // 6 players
+        0x000F, FACING_SE,  0x0011, FACING_SE,  0x0113, FACING_W,
+        0x0314, FACING_W,   0x0714, FACING_W,   0x0B14, FACING_W,
+        0x0D13, FACING_W,   0x0E11, FACING_NE,  0x0E0F, FACING_NE
+    }};
+
+    /**
+     * Pirate Islands: Port types on the large eastern starting island.  Will be shuffled.
+     */
+    private static final int PIR_ISL_PORT_TYPE[][] =
+    {{
+        // 4 players:
+        MISC_PORT, MISC_PORT, MISC_PORT,
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT
+    }, {
+        // 6 players:
+        MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT,
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT
+    }};
+
+    /**
+     * Pirate Islands: Hex land types on the several pirate islands.
+     * Only the first several have dice numbers.
+     */
+    private static final int PIR_ISL_LANDHEX_TYPE_PIRI[][] =
+    {{
+        // 4 players, see PIR_ISL_LANDHEX_COORD_PIRI for layout details
+        ORE_HEX, GOLD_HEX, WHEAT_HEX, ORE_HEX, GOLD_HEX, WHEAT_HEX, ORE_HEX,
+        CLAY_HEX, CLAY_HEX, DESERT_HEX, DESERT_HEX, DESERT_HEX, SHEEP_HEX
+    }, {
+        // 6 players
+        GOLD_HEX, ORE_HEX, GOLD_HEX, ORE_HEX, GOLD_HEX, ORE_HEX, GOLD_HEX, ORE_HEX,
+        DESERT_HEX, DESERT_HEX, DESERT_HEX, DESERT_HEX, DESERT_HEX
+    }};
+
+    /**
+     * Pirate Islands: Land hex coordinates for the several pirate islands.
+     * Hex types for the pirate island are {@link #PIR_ISL_LANDHEX_TYPE_PIRI}.
+     * Only the first several have dice numbers ({@link #PIR_ISL_DICENUM_PIRI}).
+     */
+    private static final int PIR_ISL_LANDHEX_COORD_PIRI[][] =
+    {{
+        // 4 players: With dice numbers: Northwest and southwest islands, center-west island
+        0x0106, 0x0104, 0x0502, 0x0D06, 0x0D04, 0x0902, 0x0705,
+        //            Without numbers: Northwest, southwest, north-center, south-center
+        0x0303, 0x0B03, 0x0309, 0x0508, 0x0908, 0x0B09
+    }, {
+        // 6 players: With dice numbers: Scattered from north to south
+        0x0104, 0x0108, 0x0502, 0x0506, 0x0902, 0x0906, 0x0D04, 0x0D08,
+        //            Without numbers: Scattered north to south, center or west
+        0x030B, 0x0504, 0x0709, 0x0904, 0x0B0B
+    }};
+
+    /**
+     * Pirate Islands: Dice numbers for the first few land hexes along {@link #PIR_ISL_LANDHEX_COORD_PIRI}
+     */
+    private static final int PIR_ISL_DICENUM_PIRI[][] =
+    {{
+        // 4 players
+        6, 11, 4, 6, 3, 10, 8
+    }, {
+        // 6 players
+        3, 6, 11, 8, 11, 6, 3, 8
+    }};
 
 
     ////////////////////////////////////////////
