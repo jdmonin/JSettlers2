@@ -92,6 +92,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *<LI> {@link #K_SC_FOG  SC_FOG}   A hex has been revealed from behind fog:
      *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
      *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
+     *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
      *</UL>
      *
      * <h3>If you want to add a game scenario:</h3>
@@ -165,6 +166,11 @@ public class SOCScenario implements Cloneable, Comparable<Object>
              "Cloth Trade with neutral villages",
              "_SC_CLVI=t,PLL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
+        allSc.put(K_SC_PIRI, new SOCScenario
+            (K_SC_PIRI, 2000, 2000,
+             "Pirate Islands and Fortresses",
+             "_SC_PIRI=t,PLL=t,VP=t10"));  // win condition: 10 VP _and_ defeat a pirate fortress
+
         return allSc;
 
         // OBSOLETE SCENARIOS, REMOVED SCENARIOS - Move its allSc.put down here, commented out,
@@ -191,6 +197,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Main option is {@link SOCGameOption#K_SC_CLVI}.
      */
     public static final String K_SC_CLVI = "SC_CLVI";
+
+    /**
+     * Scenario key <tt>SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
+     * Main option is {@link SOCGameOption#K_SC_PIRI}.
+     */
+    public static final String K_SC_PIRI = "SC_PIRI";
 
     /**
      * Is this an unknown scenario?  Used in cross-version compatibility.
