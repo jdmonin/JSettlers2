@@ -135,8 +135,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         SOCGameOption opt = (opts != null ? opts.get(SOCGameOption.K_SC_FOG) : null);
         final boolean hasScenarioFog = (opt != null) && opt.getBoolValue();
 
-        opt = (opts != null ? opts.get("SC") : null);
-        final boolean hasScenario4ISL = (opt != null) && opt.getStringValue().equals(SOCScenario.K_SC_4ISL);
+        final SOCGameOption optSC = (opts != null ? opts.get("SC") : null);
+        final boolean hasScenario4ISL = (optSC != null) && optSC.getStringValue().equals(SOCScenario.K_SC_4ISL);
 
         // For scenario boards, use 3-player or 4-player or 6-player layout?
         // Always test maxPl for ==6 or < 4 ; actual value may be 6, 4, 3, or 2.
@@ -160,7 +160,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // Clears cachedGetlandHexCoords.
         // Also checks vs game option BC: Break up clumps of # or more same-type hexes/ports
 
-        final int PORTS_TYPES_MAINLAND[], PORTS_TYPES_ISLANDS[];  // port types
+        final int PORTS_TYPES_MAINLAND[], PORTS_TYPES_ISLANDS[];  // port types, or null if none
         final int PORT_LOC_FACING_MAINLAND[], PORT_LOC_FACING_ISLANDS[];  // port edge locations and facings
 
         if (hasScenario4ISL)
@@ -299,6 +299,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         if ((opt != null) && opt.getBoolValue())
             setVillageAndClothLayout(SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE);
                 // also sets board's "general supply"
+
+        if (PORTS_TYPES_MAINLAND == null)
+        {
+            return;  // <--- Early return: No ports to place ---
+        }
 
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPES_MAINLAND.length];
@@ -452,6 +457,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *                    into multiple Land Areas.
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
      *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert or water in <tt>landHexType[]</tt>
+     *                    if every land hex has a dice number.
+     *                    If only some land hexes have dice numbers, <tt>number[]</tt> can be shorter; each
+     *                    <tt>number[i]</tt> will be placed at <tt>numPath[i]</tt> until <tt>i >= number.length</tt>.
      * @param shuffleDiceNumbers  If true, shuffle the dice <tt>number</tt>s before placing along <tt>numPath</tt>.
      * @param landAreaPathRanges  <tt>numPath[]</tt>'s Land Area Numbers, and the size of each land area.
      *                    Array length is 2 x the count of land areas included.
@@ -574,7 +582,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 {
                     throw new IllegalArgumentException("landHexType can't contain FOG_HEX");
                 }
-                else
+                else if (cnt < number.length)
                 {
                     // place the numbers
                     final int diceNum = number[cnt];
