@@ -462,6 +462,14 @@ public class SOCBoardLarge extends SOCBoard
     protected int[][] numberLayoutLg;
 
     /**
+     * For some scenarios, keyed lists of additional layout parts to add to game layout when sent from server to client.
+     * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
+     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
+     * Null for most scenarios.  Initialized in <tt>SOCBoardLargeAtServer.makeNewBoard</tt>.
+     */
+    private HashMap<String, int[]> addedLayoutParts;
+
+    /**
      * Actual hex types and dice numbers hidden under {@link #FOG_HEX}.
      * Key is the hex coordinate; value is
      * <tt>({@link #hexLayoutLg}[coord] &lt;&lt; 8) | ({@link #numberLayoutLg}[coord] & 0xFF)</tt>.
@@ -878,6 +886,64 @@ public class SOCBoardLarge extends SOCBoard
         throws UnsupportedOperationException
     {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Get the keyed lists of additional layout parts to add to game layout, used only in some scenarios.
+     * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
+     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
+     * Please treat the returned value as read-only.
+     * @return  The added layout parts, or null if none
+     * @see #getAddedLayoutPart(String)
+     */
+    public HashMap<String, int[]> getAddedLayoutParts()
+    {
+        if ((addedLayoutParts != null) && addedLayoutParts.isEmpty())
+            return null;
+        else
+            return addedLayoutParts;
+    }
+
+    /**
+     * Get one "added layout part" by its key name.
+     * @param key  Key name (short and uppercase)
+     * @return  The added layout part, or null if none with that key
+     * @see #getAddedLayoutParts()
+     */
+    public int[] getAddedLayoutPart(final String key)
+    {
+        if (addedLayoutParts == null)
+            return null;
+        else
+            return addedLayoutParts.get(key);
+    }
+
+    /**
+     * Set all the "added layout parts", for use at client.
+     * Should be set only during <tt>SOCBoardLargeAtServer.makeNewBoard</tt>, not changed afterwards.
+     * @param adds  Added parts, or null if none
+     * @see #setAddedLayoutPart(String, int[])
+     */
+    public void setAddedLayoutParts(HashMap<String, int[]> adds)
+    {
+        if ((adds != null) && adds.isEmpty())
+            addedLayoutParts = null;
+        else
+            addedLayoutParts = adds;
+    }
+
+    /**
+     * Set one "added layout part" by its key name.
+     * Should be set only during <tt>SOCBoardLargeAtServer.makeNewBoard</tt>, not changed afterwards.
+     * @param key  Key name (short and uppercase)
+     * @param v    Value (typically a list of coordinates)
+     * @see #setAddedLayoutParts(HashMap)
+     */
+    public void setAddedLayoutPart(final String key, final int[] v)
+    {
+        if (addedLayoutParts == null)
+            addedLayoutParts = new HashMap<String, int[]>();
+        addedLayoutParts.put(key, v);
     }
 
     /**

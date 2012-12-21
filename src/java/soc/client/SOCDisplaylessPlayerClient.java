@@ -42,7 +42,6 @@ import soc.game.SOCVillage;
 import soc.message.*;
 import soc.robot.SOCRobotClient;
 import soc.server.genericServer.LocalStringConnection;
-import soc.util.Version;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -51,6 +50,7 @@ import java.io.InterruptedIOException;
 
 import java.net.Socket;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -991,6 +991,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
             x = mes.getIntArrayPart("CV");
             if (x != null)
                 ((SOCBoardLarge) bd).setVillageAndClothLayout(x);
+
+            HashMap<String, int[]> others = mes.getAddedParts();
+            if (others != null)
+                ((SOCBoardLarge) bd).setAddedLayoutParts(others);
         }
         else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
         {

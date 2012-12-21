@@ -10199,7 +10199,7 @@ public class SOCServer extends Server
             return new SOCBoardLayout2
                 (ga.getName(), bef, bl.getLandHexLayout(), board.getPortsLayout(),
                  robber, bl.getPirateHex(), bl.getPlayerExcludedLandAreas(), bl.getRobberExcludedLandAreas(),
-                 bl.getVillageAndClothLayout());
+                 bl.getVillageAndClothLayout(), bl.getAddedLayoutParts());
 
         default:
             throw new IllegalArgumentException("unknown board encoding v" + bef);

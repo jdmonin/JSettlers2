@@ -54,6 +54,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -2646,6 +2647,10 @@ public class SOCPlayerClient extends Panel
             x = mes.getIntArrayPart("CV");
             if (x != null)
                 ((SOCBoardLarge) bd).setVillageAndClothLayout(x);
+
+            HashMap<String, int[]> others = mes.getAddedParts();
+            if (others != null)
+                ((SOCBoardLarge) bd).setAddedLayoutParts(others);
         }
         else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
         {
