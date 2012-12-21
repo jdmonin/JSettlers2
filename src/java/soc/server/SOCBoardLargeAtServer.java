@@ -220,6 +220,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORTS_TYPES_ISLANDS = null;
             PORT_LOC_FACING_MAINLAND = PIR_ISL_PORT_EDGE_FACING[idx];
             PORT_LOC_FACING_ISLANDS = null;
+
+            setAddedLayoutPart("PP", PIR_ISL_PPATH[idx]);
         }
         else if (! hasScenarioFog)
         {
@@ -2348,6 +2350,20 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         3, 6, 11, 8, 11, 6, 3, 8
     }};
 
+    /**
+     * Pirate Islands: The hex-coordinate path for the Pirate Fleet; SOCBoardLarge additional part <tt>"PP"</tt>.
+     * First element is the pirate starting position.
+     */
+    private static final int PIR_ISL_PPATH[][] =
+    {{
+        // 4 players
+        0x0D0A, 0x0D08, 0x0B07, 0x0906, 0x0707, 0x0506, 0x0307,
+        0x0108, 0x010A, 0x030B, 0x050A, 0x0709, 0x090A, 0x0B0B
+    }, {
+        // 6 players
+        0x0D0A, 0x0B09, 0x0908, 0x0707, 0x0508, 0x0309, 0x010A,
+        0x010C, 0x030D, 0x050C, 0x070B, 0x090C, 0x0B0D, 0x0D0C
+    }};
 
     ////////////////////////////////////////////
     //

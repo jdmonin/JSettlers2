@@ -33,6 +33,7 @@ import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
 
+import java.awt.BasicStroke;
 import java.awt.Canvas;
 import java.awt.Color;
 import java.awt.Component;
@@ -40,10 +41,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MediaTracker;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -3457,6 +3460,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
+            // For scenario _SC_PIRI, check for the Pirate Path
+            final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
+            if (ppath != null)
+                drawBoardEmpty_drawPiratePath(g, ppath);
+
             drawPorts_LargeBoard(g);
 
             HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
@@ -3481,6 +3489,46 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             repaint();
             new DelayedRepaint(this).start();
         }
+    }
+
+    /**
+     * For the {@link SOCGameOption#K_SC_PIRI _SC_PIRI} game scenario on {@link SOCBoardLarge},
+     * draw the path that the pirate fleet takes around the board. 
+     * @param ppath  Path of hex coordinates
+     */
+    private final void drawBoardEmpty_drawPiratePath(Graphics g, final int[] ppath)
+    {
+        int hc = ppath[ppath.length - 1];
+        int r = hc >> 8, c = hc & 0xFF;
+        int yprev = scaleToActualY(r * halfdeltaY + 32),  // 32 == halfdeltaY + 9
+            xprev = scaleToActualX(c * halfdeltaX);
+
+        Stroke prevStroke;
+        if (g instanceof Graphics2D)
+        {
+            // Draw as a dotted line with some thickness
+            prevStroke = ((Graphics2D) g).getStroke();
+            final int hexPartWidth = scaleToActualX(halfdeltaX);
+            final float[] dash = { hexPartWidth * 0.2f, hexPartWidth * 0.3f };  // length of dash/break
+            ((Graphics2D) g).setStroke
+                (new BasicStroke(2.5f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 2.5f, dash, 0.8f));
+        } else {
+            prevStroke = null;
+        }
+
+        g.setColor(ColorSquare.WATER.brighter());
+        for (int i = 0; i < ppath.length; ++i)
+        {
+            hc = ppath[i];
+            r = hc >> 8; c = hc & 0xFF;
+            int y = scaleToActualY(r * halfdeltaY + 32),
+                x = scaleToActualX(c * halfdeltaX);
+            g.drawLine(xprev, yprev, x, y);
+            xprev = x; yprev = y;
+        }
+
+        if (g instanceof Graphics2D)
+            ((Graphics2D) g).setStroke(prevStroke);
     }
 
     /**
