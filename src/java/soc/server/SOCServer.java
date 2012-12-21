@@ -34,7 +34,6 @@ import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
-import soc.util.IntPair;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
@@ -44,6 +43,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -1782,7 +1782,7 @@ public class SOCServer extends Server
                         messageToGame
                             (gaName, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1));
                         messageToGame
-                            (gaName, ga.getPlayer(ga.getCurrentPlayerNumber()).getName() + " gets 1 "
+                            (gaName, ga.getPlayer(cpn).getName() + " gets 1 "
                              + SOCResourceConstants.resName(res) + " by revealing the fog hex.");
                     }
                 }
@@ -1795,6 +1795,8 @@ public class SOCServer extends Server
     /**
      * Listener callback for per-player scenario events on the large sea board.
      * For example, there might be an SVP awarded for settlements.
+     * Server sends messages to the game to announce it (PLAYERELEMENT,
+     * {@link #updatePlayerSVPPendingMessage(SOCGame, SOCPlayer, int, String)}, etc).
      *<P>
      * <em>Threads:</em> The game's treater thread handles incoming client messages and calls
      * game methods that change state. Those same game methods will trigger the scenario events;
@@ -1829,17 +1831,14 @@ public class SOCServer extends Server
         {
         case SVP_SETTLED_ANY_NEW_LANDAREA:
             {
-                messageToGame
-                    (gaName, plName + " gets a Special Victory Point for growing past the main island.");
+                updatePlayerSVPPendingMessage(ga, pl, 1, "growing past the main island");
                 // TODO adjust wording
             }
             break;
 
         case SVP_SETTLED_EACH_NEW_LANDAREA:
             {
-                messageToGame
-                    (gaName, plName + " gets 2 Special Victory Points for settling a new island.");
-
+                updatePlayerSVPPendingMessage(ga, pl, 2, "settling a new island");
                 sendPlayerEventsBitmask = false;
                 final int las = pl.getScenarioSVPLandAreas();
                 if (las != 0)
@@ -1881,6 +1880,29 @@ public class SOCServer extends Server
             ga.pendingMessagesOut.add(new SOCPlayerElement
                 (gaName, pn, SOCPlayerElement.SET,
                  SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, pl.getScenarioPlayerEvents()));
+    }
+
+    /**
+     * A player has been awarded Special Victory Points (SVP), so send
+     * a {@link SOCSVPTextMessage} to the game about the SVP description,
+     * and also call {@link SOCPlayer#addSpecialVPInfo(int, String)}.
+     * Should be called before {@link SOCPlayerElement}({@link SOCPlayerElement#SCENARIO_SVP SCENARIO_SVP}),
+     * not after.
+     *<P>
+     * Adds the message to {@link SOCGame#pendingMessagesOut}; note that
+     * right now, that field is checked only in {@link #handlePUTPIECE(StringConnection, SOCPutPiece)},
+     * because no other method currently awards SVP.
+     * @param ga  Game
+     * @param pl  Player
+     * @param svp  Number of SVP
+     * @param desc  Description of player's action that led to SVP
+     * @since 2.0.00
+     */
+    private void updatePlayerSVPPendingMessage(SOCGame ga, SOCPlayer pl, final int svp, final String desc)
+    {
+        pl.addSpecialVPInfo(svp, desc);
+        final String gaName = ga.getName();
+        ga.pendingMessagesOut.add(new SOCSVPTextMessage(gaName, pl.getPlayerNumber(), svp, desc));        
     }
 
     /**
@@ -8614,8 +8636,15 @@ public class SOCServer extends Server
              */
             int itm = pl.getSpecialVP();
             if (itm != 0)
+            {
                 messageToPlayer(c, new SOCPlayerElement
                         (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
+
+                ArrayList<SOCPlayer.SpecialVPInfo> svpis = pl.getSpecialVPInfo();
+                if (svpis != null)
+                    for (SOCPlayer.SpecialVPInfo svpi : svpis)
+                        messageToPlayer(c, new SOCSVPTextMessage(gameName, i, svpi.svp, svpi.desc));
+            }
 
             itm = pl.getScenarioPlayerEvents();
             if (itm != 0)

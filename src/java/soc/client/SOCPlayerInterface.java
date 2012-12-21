@@ -1606,6 +1606,31 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * A player has been awarded Special Victory Points (SVP), so announce those details.
+     * Example: "Lily gets 2 Special Victory Points for settling a new island."
+     * Only prints text, does not update SOCHandPanel's SVP or call {@link SOCPlayer#addSpecialVPInfo(int, String)}.
+     * @param plName  Player name
+     * @param svp  Number of SVP awarded
+     * @param desc  Description of player's action that led to SVP; example: "settling a new island"
+     * @since 2.0.00
+     */
+    public void updateAtSVPText(final String plName, final int svp, final String desc)
+    {
+        StringBuilder sb = new StringBuilder("* ");
+        sb.append(plName);
+        sb.append(" gets ");
+        sb.append(svp);
+        final String svpFor = (svp == 1)
+            ? " Special Victory Point for "
+            : " Special Victory Points for ";
+        sb.append(svpFor);
+        sb.append(desc);
+        sb.append(".\n");
+
+        textDisplay.append(sb.toString());
+    }
+
+    /**
      * Set or clear the chat text input's initial prompt.
      * Sets its status, foreground color, and the prompt text if true.
      *

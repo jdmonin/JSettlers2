@@ -1929,6 +1929,14 @@ public class SOCPlayerClient extends Panel
                 handlePIECEVALUE((SOCPieceValue) mes);
                 break;
 
+            /**
+             * Text that a player has been awarded Special Victory Point(s).
+             * Added 2012-12-21 for v2.0.00.
+             */
+            case SOCMessage.SVPTEXTMSG:
+                handleSVPTEXTMSG((SOCSVPTextMessage) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -3767,6 +3775,28 @@ public class SOCPlayerClient extends Panel
 
         SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(mes.getParam1());
         vi.setCloth(mes.getParam2());
+    }
+
+    /**
+     * Text that a player has been awarded Special Victory Point(s).
+     * The server will also send a {@link SOCPlayerElement} with the SVP total.
+     * Also sent for each player's SVPs when client is joining a game in progress.
+     * @since 2.0.00
+     */
+    protected void handleSVPTEXTMSG(final SOCSVPTextMessage mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+        SOCPlayer pl = ga.getPlayer(mes.pn);
+        if (pl == null)
+            return;
+        pl.addSpecialVPInfo(mes.svp, mes.desc);
+        SOCPlayerInterface pi = playerInterfaces.get(gaName);
+        if ((pi == null) || (null == pi.getClientHand()))
+            return;  // not seated yet (joining game in progress)
+        pi.updateAtSVPText(pl.getName(), mes.svp, mes.desc);
     }
 
     }  // nested class MessageTreater
