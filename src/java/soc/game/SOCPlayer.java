@@ -203,9 +203,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *<P>
      * When updating this value, if the SVP came from a piece, also set or check {@link SOCPlayingPiece#specialVP}
      * and {@link SOCPlayingPiece#specialVPEvent}.
+     * @see #svpInfo
      * @since 2.0.00
      */
     private int specialVP;
+
+    /**
+     * The details behind the total SVP count in {@link #specialVP}, or null if none.
+     * This is filled at the server (because it has the text strings) when
+     * {@link SOCGame#scenarioEventListener} != null, and sent out to clients.
+     * @see #addSpecialVPInfo(int, String)
+     */
+    private ArrayList<SpecialVPInfo> svpInfo;
 
     /**
      * the final total score (pushed from server at end of game),
@@ -1733,6 +1742,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Get the number of Special Victory Points (SVPs) awarded to this player.
      * SVPs are part of some game scenarios on the large sea board.
      * @return the number of SVPs, or 0
+     * @see #getSpecialVPInfo()
      * @since 2.0.00
      */
     public int getSpecialVP()
@@ -1744,6 +1754,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Set the number of Special Victory Points (SVPs) awarded to this player.
      * For use at client based on messages from server. 
      * @param svp the number of SVPs, or 0
+     * @see #addSpecialVPInfo(int, String)
      * @since 2.0.00
      */
     public void setSpecialVP(int svp)
@@ -1819,6 +1830,35 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             return;  // Consider throw IllegalStateException
         
         finalTotalVP = score;
+    }
+
+    /**
+     * Add details on Special Victory Points (SVP) just awarded.
+     * This is called at the server (because it has the text strings) when
+     * {@link SOCGame#scenarioEventListener} != null, and sent out to clients.
+     * Clients call it from the network message handler.
+     * @param svp  Number of SVP
+     * @param desc  Description of player's action that led to the SVP
+     * @see #getSpecialVPInfo()
+     * @since 2.0.00
+     */
+    public void addSpecialVPInfo(final int svp, final String desc)
+    {
+        if (svpInfo == null)
+            svpInfo = new ArrayList<SpecialVPInfo>();
+
+        svpInfo.add(new SpecialVPInfo(svp, desc));
+    }
+
+    /**
+     * Get the details, if known, behind this player's {@link #getSpecialVP()} total.
+     * In chronological order during game play.
+     * @return Info on the Special Victory Points (SVP) awarded, or null; please treat as read-only
+     * @since 2.0.00
+     */
+    public ArrayList<SpecialVPInfo> getSpecialVPInfo()
+    {
+        return svpInfo;
     }
 
     /**
@@ -4003,4 +4043,26 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
         currentOffer = null;
     }
+
+    /**
+     * Holds details of {@link SOCPlayer#getSpecialVP()}.
+     * Built via {@link SOCPlayer#addSpecialVPInfo(int, String)}.
+     * @author jeremy@nand.net
+     * @since 2.0.00
+     */
+    public static class SpecialVPInfo
+    {
+        /** Number of special victory points */
+        public final int svp;
+
+        /** Description of the player's action that led to the SVP */
+        public final String desc;
+
+        public SpecialVPInfo(final int svp, final String desc)
+        {
+            this.svp = svp;
+            this.desc = desc;
+        }
+    }
+
 }

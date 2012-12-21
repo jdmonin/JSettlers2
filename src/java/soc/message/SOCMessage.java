@@ -409,14 +409,30 @@ public abstract class SOCMessage implements Serializable, Cloneable
      * @param s   string to test; if null, returns false.
      * @return true if all characters are OK, false otherwise.
      *            Null string or 0-length string returns false.
+     * @see #isSingleLineAndSafe(String, boolean)
      * @since 1.1.07
      */
     public static final boolean isSingleLineAndSafe(String s)
     {
+        return isSingleLineAndSafe(s, false);
+    }
+
+    /**
+     * Variant of {@link #isSingleLineAndSafe(String)} that can optionally
+     * allow {@link #sep_char} or {@link #sep2_char}.
+     * @param s  string to test; if null, returns false.
+     * @param allowSepChars  If true, string can contain {@link #sep_char} or {@link #sep2_char}
+     * @return true if all characters are OK, false otherwise.
+     *            Null string or 0-length string returns false.
+     * @since 2.0.00
+     */
+    public static final boolean isSingleLineAndSafe(final String s, final boolean allowSepChars)
+    {
         if (s == null)
             return false;
-        if ((-1 != s.indexOf(sep_char))
-            || (-1 != s.indexOf(sep2_char)))
+        if ((! allowSepChars)
+            && ((-1 != s.indexOf(sep_char))
+                || (-1 != s.indexOf(sep2_char))))
             return false;
         int i = s.length();
         if (i == 0)
