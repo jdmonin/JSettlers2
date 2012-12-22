@@ -8677,7 +8677,6 @@ public class SOCServer extends Server
             // This lets them see "their" pieces before sitDown(), if they rejoin at same position.
 
             Enumeration<SOCPlayingPiece> piecesEnum = pl.getPieces().elements();
-
             while (piecesEnum.hasMoreElements())
             {
                 SOCPlayingPiece piece = piecesEnum.nextElement();
@@ -8688,6 +8687,14 @@ public class SOCServer extends Server
                 }
 
                 c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), piece.getCoordinates()));
+            }
+
+            // _SC_PIRI: special-case piece not part of getPieces
+            {
+                final SOCPlayingPiece piece = pl.getFortress();
+                if (piece != null)
+                    messageToGameWithMon
+                        (gameName, new SOCPutPiece(gameName, i, piece.getType(), piece.getCoordinates()));
             }
 
             /**
@@ -9941,13 +9948,8 @@ public class SOCServer extends Server
             if (! ga.isSeatVacant(i))
             {
                 SOCPlayer pl = ga.getPlayer(i);
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
-                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
                 if (ga.hasSeaBoard)
                 {
-                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
-
                     // Some scenarios like SC_PIRI may place initial pieces at fixed locations.
                     // Usually, pieces will be empty.
                     final Vector<SOCPlayingPiece> pieces = pl.getPieces();
@@ -9971,7 +9973,12 @@ public class SOCServer extends Server
                             messageToGameWithMon
                                 (gaName, new SOCPutPiece(gaName, i, pp.getType(), pp.getCoordinates()));
                     }
+
+                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
                 }
+                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
+                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
+                messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
                 messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
             }
         }
