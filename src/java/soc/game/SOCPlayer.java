@@ -992,6 +992,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get this player's pieces on the board. Does not include {@link #getFortress()}, if any,
+     * because the player doesn't control that piece.
      * @return the list of pieces in play
      * @see #getNumPieces(int)
      */

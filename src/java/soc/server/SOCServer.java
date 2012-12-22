@@ -9863,7 +9863,14 @@ public class SOCServer extends Server
         final String gaName = ga.getName();
 
         numberOfGamesStarted++;
+
         ga.startGame();
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            // scenario has initial pieces
+            SOCBoardLargeAtServer.startGame_putInitPieces(ga);
+        }
+
         gameList.takeMonitorForGame(gaName);
 
         /**
@@ -9874,6 +9881,7 @@ public class SOCServer extends Server
             messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
                 // For scenario option _SC_CLVI, the board layout message
                 // includes villages and the general supply cloth count.
+                // For _SC_PIRI, it includes the Pirate Path (additional layout part "PP").
         } catch (IllegalArgumentException e) {
             gameList.releaseMonitorForGame(gaName);
             System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
@@ -9920,6 +9928,7 @@ public class SOCServer extends Server
         /**
          * send the player info
          */
+        boolean sentInitPiecesState = false;
         for (int i = 0; i < ga.maxPlayers; i++)
         {
             if (! ga.isSeatVacant(i))
@@ -9929,7 +9938,33 @@ public class SOCServer extends Server
                 messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
                 messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
                 if (ga.hasSeaBoard)
+                {
                     messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
+
+                    // Some scenarios like SC_PIRI may place initial pieces at fixed locations.
+                    // Usually, pieces will be empty.
+                    final Vector<SOCPlayingPiece> pieces = pl.getPieces();
+                    if (! pieces.isEmpty())
+                    {
+                        if (! sentInitPiecesState)
+                        {
+                            // Temporary state change, to avoid initial-piece placement actions.
+                            // The actual game state will be sent soon.
+                            messageToGameWithMon
+                                (gaName, new SOCGameState(gaName, SOCGame.READY));
+                            sentInitPiecesState = true;
+                        }
+
+                        for (SOCPlayingPiece pp : pieces)
+                            messageToGameWithMon
+                                (gaName, new SOCPutPiece(gaName, i, pp.getType(), pp.getCoordinates()));
+
+                        SOCPlayingPiece pp = pl.getFortress();
+                        if (pp != null)
+                            messageToGameWithMon
+                                (gaName, new SOCPutPiece(gaName, i, pp.getType(), pp.getCoordinates()));
+                    }
+                }
                 messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
             }
         }

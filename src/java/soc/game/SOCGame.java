@@ -24,7 +24,7 @@ package soc.game;
 
 import soc.disableDebug.D;
 
-import soc.message.SOCMessage;
+import soc.message.SOCMessage;  // For static calls only; SOCGame does not interact with network messages
 import soc.util.SOCGameBoardReset;
 
 import java.io.Serializable;
@@ -2256,6 +2256,10 @@ public class SOCGame implements Serializable, Cloneable
      * This method will increment {@link SOCPlayer#getSpecialVP()}
      * and set the player's {@link SOCScenarioPlayerEvent#SVP_SETTLED_ANY_NEW_LANDAREA} flag.
      *<P>
+     * Some scenarios use extra initial pieces in fixed locations, placed in
+     * <tt>SOCBoardLargeAtServer.startGame_putInitPieces</tt>.  To prevent the state or current player from
+     * advancing when putPiece is called for these, temporarily set game state {@link #READY} before calling.
+     *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
      *
@@ -2512,7 +2516,7 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * check if the game is over
          */
-        if (oldGameState != SPECIAL_BUILDING)
+        if ((gameState > READY) && (oldGameState != SPECIAL_BUILDING))
             checkForWinner();
 
         /**
@@ -2604,6 +2608,9 @@ public class SOCGame implements Serializable, Cloneable
      */
     private boolean advanceTurnStateAfterPutPiece()
     {
+        if (currentPlayerNumber < 0)
+            return true;  // Game hasn't started yet
+
         //D.ebugPrintln("CHANGING GAME STATE FROM "+gameState);
 
         final boolean needToPickFromGold
@@ -3074,6 +3081,9 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes {@link #START1A}.
      *<P>
      * Called only at server, not client.
+     * If appropriate for a scenario, server should call
+     * <tt>SOCBoardLargeAtServer.startGame_putInitPieces(SOCGame)</tt>
+     * right after calling this method.
      */
     public void startGame()
     {
