@@ -3493,9 +3493,11 @@ public class SOCGame implements Serializable, Cloneable
                 (SOCForceEndTurnResult.FORCE_ENDTURN_NONE);
 
         case PLACING_ROAD:
-            cancelBuildRoad(currentPlayerNumber);
-            return new SOCForceEndTurnResult
-                (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, ROAD_SET);
+            {
+                final boolean rets = cancelBuildRoad(currentPlayerNumber);
+                return new SOCForceEndTurnResult
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? ROAD_SET : null);
+            }            
 
         case PLACING_SETTLEMENT:
             cancelBuildSettlement(currentPlayerNumber);
@@ -3506,6 +3508,13 @@ public class SOCGame implements Serializable, Cloneable
             cancelBuildCity(currentPlayerNumber);
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, CITY_SET);
+
+        case PLACING_SHIP:
+            {
+                final boolean rets = cancelBuildShip(currentPlayerNumber);
+                return new SOCForceEndTurnResult
+                    (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? SHIP_SET : null);
+            }
 
         case PLACING_ROBBER:
             {
@@ -5539,13 +5548,14 @@ public class SOCGame implements Serializable, Cloneable
      * sets gameState to PLAY or PLAY1 as if the free road was placed.
      *
      * @param pn  the number of the player
+     * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
      */
-    public void cancelBuildRoad(final int pn)
+    public boolean cancelBuildRoad(final int pn)
     {
         if (gameState == PLACING_FREE_ROAD2)
         {
             advanceTurnStateAfterPutPiece();
-            return;  // <--- Special case: Not returning resources ---
+            return false;  // <--- Special case: Not returning resources ---
         }
 
         SOCResourceSet resources = players[pn].getResources();
@@ -5555,6 +5565,7 @@ public class SOCGame implements Serializable, Cloneable
             gameState = PLAY1;
         else
             gameState = SPECIAL_BUILDING;
+        return true;
     }
 
     /**
@@ -5604,14 +5615,15 @@ public class SOCGame implements Serializable, Cloneable
      * sets gameState to PLAY or PLAY1 as if the free ship was placed.
      *
      * @param pn  the number of the player
+     * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
      * @since 2.0.00
      */
-    public void cancelBuildShip(final int pn)
+    public boolean cancelBuildShip(final int pn)
     {
         if (gameState == PLACING_FREE_ROAD2)
         {
             advanceTurnStateAfterPutPiece();
-            return;  // <--- Special case: Not returning resources ---
+            return false;  // <--- Special case: Not returning resources ---
         }
 
         SOCResourceSet resources = players[pn].getResources();
@@ -5621,6 +5633,7 @@ public class SOCGame implements Serializable, Cloneable
             gameState = PLAY1;
         else
             gameState = SPECIAL_BUILDING;
+        return true;
     }
 
     /**
