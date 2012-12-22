@@ -135,7 +135,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         if (path == null)
             throw new IllegalStateException();
         int i = piratePathIndex + numSteps;
-        while (i > path.length)
+        while (i >= path.length)
             i -= path.length;
         piratePathIndex = i;
         final int ph = path[i];
