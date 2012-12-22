@@ -6101,6 +6101,13 @@ public class SOCServer extends Server
                 messageToGame(gn, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + ".");
                 sendGameState(ga);  // For 7, give visual feedback before sending discard request
 
+                if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                {
+                    // pirate moves on every roll
+                    messageToGame(gn, new SOCMoveRobber
+                        (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
+                }
+
                 /**
                  * if the roll is not 7, tell players what they got
                  */
