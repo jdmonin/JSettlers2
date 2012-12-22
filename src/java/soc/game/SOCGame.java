@@ -773,6 +773,13 @@ public class SOCGame implements Serializable, Cloneable
     private RollResult currentRoll;
 
     /**
+     * The most recent {@link #moveRobber(int, int)} result.
+     * Used at server only.
+     * @since 2.0.00
+     */
+    private SOCMoveRobberResult robberResult;
+
+    /**
      * the current game state
      */
     private int gameState;
@@ -4437,12 +4444,16 @@ public class SOCGame implements Serializable, Cloneable
      * @return returns a result that says if a resource was stolen, or
      *         if the player needs to make a choice.  It also returns
      *         what was stolen and who was the victim.
+     *         The private <tt>robberResult</tt> field is updated to this return value.
      * @throws IllegalArgumentException if <tt>rh</tt> &lt;= 0
      */
     public SOCMoveRobberResult moveRobber(final int pn, final int rh)
         throws IllegalArgumentException
     {
-        SOCMoveRobberResult result = new SOCMoveRobberResult();
+        if (robberResult == null)
+            robberResult = new SOCMoveRobberResult();
+        else
+            robberResult.clear();
 
         board.setRobberHex(rh, true);  // if co invalid, throws IllegalArgumentException
         robberyWithPirateNotRobber = false;
@@ -4462,7 +4473,7 @@ public class SOCGame implements Serializable, Cloneable
         {
             SOCPlayer victim = victims.firstElement();
             final int loot = stealFromPlayer(victim.getPlayerNumber(), false);
-            result.setLoot(loot);
+            robberResult.setLoot(loot);
         }
         else
         {
@@ -4472,9 +4483,9 @@ public class SOCGame implements Serializable, Cloneable
             gameState = WAITING_FOR_CHOICE;
         }
 
-        result.setVictims(victims);
+        robberResult.setVictims(victims);
 
-        return result;
+        return robberResult;
     }
 
     /**
@@ -4550,7 +4561,10 @@ public class SOCGame implements Serializable, Cloneable
     public SOCMoveRobberResult movePirate(final int pn, final int ph)
         throws IllegalArgumentException
     {
-        SOCMoveRobberResult result = new SOCMoveRobberResult();
+        if (robberResult == null)
+            robberResult = new SOCMoveRobberResult();
+        else
+            robberResult.clear();
 
         ((SOCBoardLarge) board).setPirateHex(ph, true);  // if ph invalid, throws IllegalArgumentException
         robberyWithPirateNotRobber = true;
@@ -4572,14 +4586,14 @@ public class SOCGame implements Serializable, Cloneable
             if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
                 // steal multiple items, don't change gameState
-                stealFromPlayerPirateFleet(victim.getPlayerNumber(), result);
+                stealFromPlayerPirateFleet(victim.getPlayerNumber());
                 // TODO if player has warships, might tie or be stronger 
             }
             else if (! canChooseRobClothOrResource(victim.getPlayerNumber()))
             {
                 // steal item, also sets gameState
                 final int loot = stealFromPlayer(victim.getPlayerNumber(), false);
-                result.setLoot(loot);
+                robberResult.setLoot(loot);
             } else {
                 /**
                  * the current player needs to make a choice
@@ -4597,9 +4611,9 @@ public class SOCGame implements Serializable, Cloneable
             gameState = WAITING_FOR_CHOICE;
         }
 
-        result.setVictims(victims);
+        robberResult.setVictims(victims);
 
-        return result;
+        return robberResult;
     }
 
     /**
@@ -4911,7 +4925,7 @@ public class SOCGame implements Serializable, Cloneable
      *                    if player has 0 {@link SOCPlayer#getResources() resources}.
      * @return the type of resource that was stolen, as in {@link SOCResourceConstants},
      *         or {@link SOCResourceConstants#CLOTH_STOLEN_LOCAL} for cloth.
-     * @see #stealFromPlayerPirateFleet(int, SOCResourceSet)
+     * @see #stealFromPlayerPirateFleet(int)
      */
     public int stealFromPlayer(final int pn, boolean choseCloth)
     {
@@ -4973,24 +4987,26 @@ public class SOCGame implements Serializable, Cloneable
      * Perform the robbery.  Number of resources stolen are 1 + victim's number of cities.
      * The stolen resources are discarded, no player gets them.
      * Does not change gameState.
-     * Results will be reported back through {@link SOCMoveRobberResult#sc_piri_loot}.
+     *<P>
+     * Results will be reported back through {@link #robberResult}:
+     * Will set {@link SOCMoveRobberResult#sc_piri_loot} to the resource(s) stolen.
+     * If player had no resources, <tt>sc_piri_loot.getTotal()</tt> will be 0.
      *<P>
      * Does not validate <tt>pn</tt>; assumes proper game state and scenario.
      *
      * @param pn  the number of the player being robbed
-     * @param result  Move-robber result object to report into; will set
-     *              {@link SOCMoveRobberResult#sc_piri_loot result.sc_piri_loot}
-     *              to the resource(s) stolen.
-     *              If player had no resources, <tt>sc_piri_loot.getTotal()</tt> will be 0.
      * @see #stealFromPlayer(int, boolean)
      * @since 2.0.00
      */
-    public void stealFromPlayerPirateFleet(final int pn, SOCMoveRobberResult result)
+    private void stealFromPlayerPirateFleet(final int pn)
     {
-        result.loot = -1;
-        if (result.sc_piri_loot == null)
-            result.sc_piri_loot = new SOCResourceSet();
-        SOCResourceSet loot = result.sc_piri_loot;
+        if (robberResult == null)
+            robberResult = new SOCMoveRobberResult();
+
+        robberResult.loot = -1;
+        if (robberResult.sc_piri_loot == null)
+            robberResult.sc_piri_loot = new SOCResourceSet();
+        SOCResourceSet loot = robberResult.sc_piri_loot;
         loot.clear();
 
         SOCPlayer victim = players[pn];
