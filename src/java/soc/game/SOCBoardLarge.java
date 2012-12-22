@@ -627,6 +627,7 @@ public class SOCBoardLarge extends SOCBoard
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
      * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      * Call soc.server.SOCBoardLargeAtServer.makeNewBoard instead of this stub super method.
+     * @throws UnsupportedOperationException if called at client
      */
     @Override
     public void makeNewBoard(Hashtable<String, SOCGameOption> opts)
@@ -947,7 +948,27 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * move the pirate fleet's position along its path.
+     * This is called at server, but not at client; client instead calls {@link #setPirateHex(int, boolean)}.
+     * Call <tt>SOCBoardLargeAtServer.movePirateHexAlongPath</tt> instead of this stub super method.
+     * @param numSteps  Number of steps to move along the path
+     * @return  new pirate hex coordinate
+     * @throws UnsupportedOperationException if called at client
+     * @throws IllegalStateException if this board doesn't have layout part "PP" for the Pirate Path.
+     */
+    public int movePirateHexAlongPath(final int numSteps)
+        throws UnsupportedOperationException, IllegalStateException
+    {
+        throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
+    }
+
+    /**
      * Set where the pirate is.
+     *<P>
+     * For scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the
+     * server should call {@link #movePirateHexAlongPath(int)}
+     * instead of directly calling this method.
      *
      * @param ph  the new pirate hex coordinate; must be &gt; 0, not validated beyond that
      * @param rememberPrevious  Should we remember the old pirate hex?

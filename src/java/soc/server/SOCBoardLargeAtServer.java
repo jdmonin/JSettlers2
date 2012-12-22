@@ -95,6 +95,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final long serialVersionUID = 2000L;
 
     /**
+     * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the pirate fleet's position on its path (PP).  Otherwise unused.
+     * @see #movePirateHexAlongPath(int)
+     */
+    private int piratePathIndex;
+
+    /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
      * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Hashtable, boolean, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
@@ -112,6 +119,29 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // Nothing special for now at server
     }
 
+    /**
+     * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * move the pirate fleet's position along its path.
+     * Calls {@link SOCBoardLarge#setPirateHex(int, boolean) setPirateHex(newHex, true)}.
+     * @param numSteps  Number of steps to move along the path
+     * @return  new pirate hex coordinate
+     * @throws IllegalStateException if this board doesn't have layout part "PP" for the Pirate Path.
+     */
+    @Override
+    public int movePirateHexAlongPath(final int numSteps)
+        throws IllegalStateException
+    {
+        final int[] path = getAddedLayoutPart("PP");
+        if (path == null)
+            throw new IllegalStateException();
+        int i = piratePathIndex + numSteps;
+        while (i > path.length)
+            i -= path.length;
+        piratePathIndex = i;
+        final int ph = path[i];
+        setPirateHex(ph, true);
+        return ph;
+    }
 
     ////////////////////////////////////////////
     //
@@ -2387,7 +2417,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * Pirate Islands: The hex-coordinate path for the Pirate Fleet; SOCBoardLarge additional part <tt>"PP"</tt>.
-     * First element is the pirate starting position.
+     * First element is the pirate starting position.  {@link #piratePathIndex} is already 0.
      */
     private static final int PIR_ISL_PPATH[][] =
     {{
