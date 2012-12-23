@@ -1715,7 +1715,10 @@ public class SOCRobotBrain extends Thread
                         //	      (counter < 4000))) {
                         if ((game.getCurrentDice() == 7) && (ourTurn))
                         {
-                            expectPLACING_ROBBER = true;
+                            if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                                expectPLACING_ROBBER = true;
+                            else
+                                expectPLAY1 = true;
                         }
                         else
                         {
