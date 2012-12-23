@@ -1737,6 +1737,7 @@ public class SOCRobotBrain extends Thread
                         {
                             final int choicePl = RobberStrategy.chooseRobberVictim
                                 (((SOCChoosePlayerRequest) mes).getChoices(), game, playerTrackers);
+                            counter = 0;
                             client.choosePlayer(game, choicePl);
                         }
                         break;
@@ -3655,6 +3656,7 @@ public class SOCRobotBrain extends Thread
              */
             whatWeWantToBuild = null;
             buildingPlan.clear();
+            waitingForGameState = false;
         }
 
         /**
