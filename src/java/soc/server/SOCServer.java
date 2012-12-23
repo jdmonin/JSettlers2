@@ -2425,6 +2425,7 @@ public class SOCServer extends Server
      *            (See {@link #messageToGameUrgent(String, String)})
      * @see #messageToGame(String, SOCMessage)
      * @see #messageToGameWithMon(String, SOCMessage)
+     * @see #messageToGameExcept(String, StringConnection, String, boolean)
      * @since 1.1.08
      */
     public void messageToGame(final String ga, final String txt)
@@ -2491,6 +2492,31 @@ public class SOCServer extends Server
     }
 
     /**
+     * Send a server text message to all the connections in a game excluding one.
+     * Equivalent to: messageToGameExcept(gn, new SOCGameTextMsg(gn, {@link #SERVERNAME}, txt), takeMon);
+     *<P>
+     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
+     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
+     *
+     * @param gn  the name of the game
+     * @param ex  the excluded connection, or null
+     * @param txt the message text to send. If
+     *            text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @see #messageToGame(String, String)
+     * @see #messageToGameExcept(String, StringConnection, SOCMessage, boolean)
+     * @since 2.0.00
+     */
+    public void messageToGameExcept(final String gn, final StringConnection ex, final String txt, final boolean takeMon)
+    {
+        messageToGameExcept(gn, ex, new SOCGameTextMsg(gn, SERVERNAME, txt), takeMon);
+    }
+
+    /**
      * Send a message to all the connections in a game
      * excluding some.
      *
@@ -2546,6 +2572,7 @@ public class SOCServer extends Server
      * @param mes the message
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @see #messageToGameExcept(String, StringConnection, String, boolean)
      * @see #messageToGameExcept(String, Vector, SOCMessage, boolean)
      * @see #messageToGameForVersionsExcept(SOCGame, int, int, StringConnection, SOCMessage, boolean)
      */
@@ -6139,7 +6166,8 @@ public class SOCServer extends Server
                                 rword = " resource";
                             else
                                 rword = " resources";
-                            messageToGame(gn, vicName + " lost " + lootTotal + rword +  " to pirate fleet attack.");
+                            messageToGameExcept
+                                (gn, vCon, vicName + " lost " + lootTotal + rword +  " to pirate fleet attack.", true);
                         }
                     }
                 }
@@ -7901,7 +7929,7 @@ public class SOCServer extends Server
                     String message = monoPlayerName + " monopolized" + resName;
 
                     gameList.takeMonitorForGame(gaName);
-                    messageToGameExcept(gaName, c, new SOCGameTextMsg(gaName, SERVERNAME, message), false);
+                    messageToGameExcept(gaName, c, message, false);
 
                     /**
                      * just send all the player's resource counts for the
