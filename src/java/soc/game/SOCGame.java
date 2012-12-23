@@ -3942,11 +3942,16 @@ public class SOCGame implements Serializable, Cloneable
      * {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or {@link #PLACING_ROBBER}.
      *<br>
      * Checks game option N7: Roll no 7s during first # rounds
-     *<br>
+     *<P>
      * For scenario option {@link SOCGameOption#K_SC_CLVI}, calls
      * {@link SOCBoardLarge#distributeClothFromRoll(SOCGame, int)}.
      * Cloth are worth VP, so check for game state {@link #OVER}
      * if results include {@link RollResult#cloth}.
+     *<P>
+     * For scenario option {@link SOCGameOption#K_SC_PIRI}, calls
+     * {@link SOCBoardLarge#movePirateHexAlongPath(int)}.
+     * Check {@link RollResult#sc_piri_fleetAttackVictim}
+     * and {@link RollResult#sc_piri_fleetAttackRsrcs}.
      *<P>
      * Called at server only.
      * @return The roll results: Dice numbers, and any scenario-specific results
@@ -3975,16 +3980,31 @@ public class SOCGame implements Serializable, Cloneable
             currentDice = die1 + die2;
         } while ((currentDice == 7) && ! okToRoll7);
 
-        currentRoll.update(die1, die2);  // also clears currentRoll.cloth
+        currentRoll.update(die1, die2);  // also clears currentRoll.cloth (SC_CLVI)
 
         if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
+            /**
+             * Move the pirate fleet along their path.
+             * Copy pirate fleet attack results to currentRoll.
+             */
             final int numSteps = (die1 < die2) ? die1 : die2;
             final int newPirateHex = ((SOCBoardLarge) board).movePirateHexAlongPath(numSteps);
             oldGameState = gameState;
             movePirate(currentPlayerNumber, newPirateHex);
-            // TODO if player has warship and wins tie, gets to pick a resource.
-            //    That will need a new game state.
+
+            final Vector<SOCPlayer> victims = robberResult.victims;
+            if ((victims != null) && (victims.size() == 1))
+            {
+                currentRoll.sc_piri_fleetAttackVictim = victims.firstElement();
+
+                // TODO if player has warship and wins tie, gets to pick a resource.
+                //    That will need a new game state.
+                currentRoll.sc_piri_fleetAttackRsrcs = robberResult.sc_piri_loot;
+            } else {
+                currentRoll.sc_piri_fleetAttackVictim = null;
+                currentRoll.sc_piri_fleetAttackRsrcs = null;
+            }
         }
 
         /**
@@ -4016,8 +4036,8 @@ public class SOCGame implements Serializable, Cloneable
                 if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
                 {
                     robberyWithPirateNotRobber = false;
-                    currentRoll.sc_clvi_robPossibleVictims = getPossibleVictims();
-                    if (currentRoll.sc_clvi_robPossibleVictims.isEmpty())
+                    currentRoll.sc_robPossibleVictims = getPossibleVictims();
+                    if (currentRoll.sc_robPossibleVictims.isEmpty())
                         gameState = PLAY1;  // no victims
                     else
                         gameState = WAITING_FOR_CHOICE;  // 1 or more victims; could choose to not steal anything
@@ -4273,8 +4293,8 @@ public class SOCGame implements Serializable, Cloneable
                 if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
                 {
                     robberyWithPirateNotRobber = false;
-                    currentRoll.sc_clvi_robPossibleVictims = getPossibleVictims();
-                    if (currentRoll.sc_clvi_robPossibleVictims.isEmpty())
+                    currentRoll.sc_robPossibleVictims = getPossibleVictims();
+                    if (currentRoll.sc_robPossibleVictims.isEmpty())
                         gameState = PLAY1;  // no victims
                     else
                         gameState = WAITING_FOR_CHOICE;  // 1 or more victims; could choose to not steal anything
@@ -4584,7 +4604,7 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * move the pirate ship.
+     * Move the pirate ship.  Update the private {@link #robberResult} field.
      *<P>
      * Called only at server.  Client gets messages with results of the move, and
      * calls {@link SOCBoardLarge#setPirateHex(int, boolean)}.
@@ -4607,11 +4627,12 @@ public class SOCGame implements Serializable, Cloneable
      * Assumes gameState {@link #PLACING_PIRATE}.
      *<P>
      * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> the pirate is moved not by the player,
-     * but by the game at every dice roll.  See <tt>SOCBoardLargeAtServer.movePirateHexAlongPath(int)</tt>.
-     * {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s), if any.
+     * but by the game at every dice roll.  See {@link SOCBoardLarge#movePirateHexAlongPath(int)}.
+     * {@link SOCMoveRobberResult#victims} will be the player(s) with a settlement/city adjacent to the new pirate hex.
+     * If there is 1 victim, {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s), if any.
      *
      * @param pn  the number of the player that is moving the pirate ship
-     * @param rh  the robber's new hex coordinate; should be a water hex
+     * @param ph  the pirate's new hex coordinate; should be a water hex
      *
      * @return returns a result that says if a resource was stolen, or
      *         if the player needs to make a choice.  It also returns
@@ -4646,7 +4667,7 @@ public class SOCGame implements Serializable, Cloneable
             SOCPlayer victim = victims.firstElement();
             if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
-                // steal multiple items, don't change gameState
+                // steal multiple items, set sc_piri_loot, don't change gameState
                 stealFromPlayerPirateFleet(victim.getPlayerNumber());
                 // TODO if player has warships, might tie or be stronger
             }
@@ -4663,11 +4684,12 @@ public class SOCGame implements Serializable, Cloneable
                 gameState = WAITING_FOR_ROB_CLOTH_OR_RESOURCE;
             }
         }
-        else
+        else if (! isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
             /**
              * the current player needs to make a choice
              * of which player to steal from
+             * (no pirate robbery in _SC_PIRI if multiple victims)
              */
             gameState = WAITING_FOR_CHOICE;
         }
@@ -4913,11 +4935,11 @@ public class SOCGame implements Serializable, Cloneable
      */
     public Vector<SOCPlayer> getPossibleVictims()
     {
-        if ((currentRoll.sc_clvi_robPossibleVictims != null)
+        if ((currentRoll.sc_robPossibleVictims != null)
             && (gameState == WAITING_FOR_CHOICE))
         {
             // already computed this turn
-            return currentRoll.sc_clvi_robPossibleVictims;
+            return currentRoll.sc_robPossibleVictims;
         }
 
         // victims wil be a subset of candidates:
@@ -6807,14 +6829,41 @@ public class SOCGame implements Serializable, Cloneable
         public int[] cloth;
 
         /**
-         * When a 7 is rolled in game scenario {@link SOCGameOption#K_SC_CLVI},
+         * Robber/pirate fleet victims in some scenarios, otherwise null.
+         *<P>
+         * When a 7 is rolled in game scenario {@link SOCGameOption#K_SC_PIRI},
          * there is no robber piece to move; the current player immediately picks another
          * player with resources to steal from.  In that situation, this field holds
          * the list of possible victims, and gameState is {@link #WAITING_FOR_CHOICE}.
-         * Otherwise null.
+         *<P>
+         * Moving the pirate fleet might also have a different victim,
+         * see {@link #sc_piri_fleetAttackVictim} and {@link #sc_piri_fleetAttackRsrcs}.
+         *
          * @see SOCGame#getPossibleVictims()
          */
-        public Vector<SOCPlayer> sc_clvi_robPossibleVictims;
+        public Vector<SOCPlayer> sc_robPossibleVictims;
+
+        /**
+         * When the pirate fleet moves in game scenario {@link SOCGameOption#K_SC_PIRI},
+         * they may attack the player with an adjacent settlement or city.
+         * If no adjacent, or more than 1, nothing happens, and this field is null.
+         * Otherwise see {@link #sc_piri_fleetAttackRsrcs} for the result.
+         *<P>
+         * Each time the dice is rolled, the fleet is moved and this field is updated; may be null.
+         */
+        public SOCPlayer sc_piri_fleetAttackVictim;
+
+        /**
+         * When the pirate fleet moves in game scenario {@link SOCGameOption#K_SC_PIRI},
+         * resources lost when they attack the player with an adjacent settlement or city
+         * ({@link #sc_piri_fleetAttackVictim}).
+         *<P>
+         * Each time the dice is rolled, the fleet is moved and this field is updated; may be null.
+         *<P>
+         * If the victim wins against the attack, they gain a resource of their choice, but
+         * that chosen resource would be in a different game state, not part of the RollResult.
+         */
+        public SOCResourceSet sc_piri_fleetAttackRsrcs;
 
         /** Convenience: Set diceA and dice, clear {@link #cloth}. */
         public void update (final int dA, int dB)
@@ -6822,7 +6871,7 @@ public class SOCGame implements Serializable, Cloneable
             diceA = dA;
             diceB = dB;
             cloth = null;
-            sc_clvi_robPossibleVictims = null;
+            sc_robPossibleVictims = null;
         }
 
     }  // nested class RollResult
