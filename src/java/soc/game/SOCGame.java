@@ -3479,6 +3479,13 @@ public class SOCGame implements Serializable, Cloneable
                 // FORCE_ENDTURN_UNPLACE_START_ADVBACK
                 // or FORCE_ENDTURN_UNPLACE_START_TURN
 
+        case STARTS_WAITING_FOR_PICK_GOLD_RESOURCE:
+            return forceEndTurnStartState((oldGameState != START2A) && (oldGameState != START2B));
+                // sets gameState, picks randomly;
+                // FORCE_ENDTURN_SKIP_START_ADV,
+                // FORCE_ENDTURN_SKIP_START_ADVBACK,
+                // or FORCE_ENDTURN_SKIP_START_TURN
+
         case PLAY:
             gameState = PLAY1;
             return new SOCForceEndTurnResult
@@ -3558,7 +3565,11 @@ public class SOCGame implements Serializable, Cloneable
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE,
                  SOCDevCardConstants.MONO);
 
-        // TODO STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
+        case WAITING_FOR_ROB_CLOTH_OR_RESOURCE:
+            gameState = PLAY1;
+            return new SOCForceEndTurnResult
+                (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE);
+            
         case WAITING_FOR_PICK_GOLD_RESOURCE:
             return forceEndTurnChkDiscardOrGain(currentPlayerNumber, false);  // sets gameState, picks randomly
 
@@ -3586,6 +3597,8 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * Special forceEndTurn() treatment for start-game states.
+     * Changes gameState and usually {@link #currentPlayerNumber}.
+     * Handles {@link #START1A} - {@link #START3B} and {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      * See {@link #forceEndTurn()} for description.
      *<P>
      * Check for gamestate >= {@link #OVER} after calling this method,
@@ -3602,9 +3615,46 @@ public class SOCGame implements Serializable, Cloneable
     {
         final int cpn = currentPlayerNumber;
         int cancelResType;  // Turn result type
+        final SOCResourceSet goldPicks;  // null unless STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
         boolean updateFirstPlayer, updateLastPlayer;  // are we forcing the very first player's (or last player's) turn?
         updateFirstPlayer = (cpn == firstPlayerNumber);
         updateLastPlayer = (cpn == lastPlayerNumber);
+
+        if (gameState == STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
+        {
+            goldPicks = new SOCResourceSet();
+
+            // From this state, pickGoldHexResources will call advanceTurnStateAfterPutPiece.
+            // It knows about oldGameState, but doesn't know we're force-ending the turn.
+            // Before calling, make sure oldGameState is one that will advance the turn:
+            if (advTurnForward)
+            {
+                if (oldGameState >= START3A)
+                    oldGameState = START3B;  // third init placement
+                else
+                    oldGameState = START1B;  // first init placement
+            } else {
+                oldGameState = START2B;
+            }
+
+            // Choose random resource(s) and pick:
+            discardOrGainPickRandom
+                (players[cpn].getResources(), players[cpn].getNeedToPickGoldHexResources(), false, goldPicks, rand);
+            pickGoldHexResources(cpn, goldPicks);  // sets gameState based on oldGameState + advance
+            if (gameState == PLAY)
+                gameState = PLAY1;
+
+            if (gameState == PLAY1)
+                cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
+            else if (advTurnForward)
+                cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADV;
+            else
+                cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
+
+        } else {
+            // Normal start states (not STARTS_WAITING_FOR_PICK_GOLD_RESOURCE)
+
+            goldPicks = null;
 
         /**
          * Set the state we're advancing "from";
@@ -3665,6 +3715,7 @@ public class SOCGame implements Serializable, Cloneable
             else
                 cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
         }
+        }
 
         // update these so the game knows when to stop initial placement
         if (updateFirstPlayer)
@@ -3672,7 +3723,7 @@ public class SOCGame implements Serializable, Cloneable
         if (updateLastPlayer)
             lastPlayerNumber = currentPlayerNumber;
 
-        return new SOCForceEndTurnResult(cancelResType, updateFirstPlayer, updateLastPlayer);
+        return new SOCForceEndTurnResult(cancelResType, updateFirstPlayer, updateLastPlayer, goldPicks);
     }
 
     /**
@@ -3683,6 +3734,9 @@ public class SOCGame implements Serializable, Cloneable
      * Otherwise, must wait for them; if so,
      * set game state ({@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_PICK_GOLD_RESOURCE}).
      * When called, assumes {@link #isForcingEndTurn()} flag is already set.
+     *<P>
+     * Not called for {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE},
+     * which has different result types and doesn't need to check other players.
      *
      * @param pn Player number to force to randomly discard or gain
      * @param isDiscard  True to discard resources, false to gain
@@ -3700,9 +3754,6 @@ public class SOCGame implements Serializable, Cloneable
             discardOrGainPickRandom(hand, hand.getTotal() / 2, true, picks, rand);
             discard(pn, picks);  // Checks for other discarders, sets gameState
         } else {
-            // TODO for init place (STARTS_WAITING_FOR_PICK_GOLD_RESOURCE):
-            //    even more randomly pick one, then set state START2A or START2B or START3A or START3B;
-            //    then call forceEnd again; maybe not here but after here
             discardOrGainPickRandom(hand, players[pn].getNeedToPickGoldHexResources(), false, picks, rand);
             pickGoldHexResources(pn, picks);  // Checks for other players, sets gameState
             // TODO - what if not waiting for current pl to pick gains, but other pl?
@@ -3727,11 +3778,11 @@ public class SOCGame implements Serializable, Cloneable
      * For discards, randomly choose from contents of <tt>fromHand</tt>.
      * For gains, randomly choose resource types least plentiful in <tt>fromHand</tt>.
      *
-     * @param fromHand     Discard from this set; this set's contents will be changed by calling this method
+     * @param fromHand     Discard from this set
      * @param numToPick    This many must be discarded or added
+     * @param isDiscard    True to discard resources, false to gain
      * @param picks        Add the picked resources to this set (typically new and empty when called)
      * @param rand         Source of random
-     * @param isDiscard    True to discard resources, false to gain
      * @throws IllegalArgumentException if <tt>isDiscard</tt> and
      *     <tt>numDiscards</tt> &gt; {@link SOCResourceSet#getKnownTotal() fromHand.getKnownTotal()}
      */
@@ -4276,6 +4327,7 @@ public class SOCGame implements Serializable, Cloneable
      * Assumes {@link #canPickGoldHexResources(int, SOCResourceSet)} already called to validate.
      *<P>
      * During initial placement from {@link #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE},
+     * calls {@link #advanceTurnStateAfterPutPiece()}.
      * the current player won't change if the gold pick was for the player's final initial settlement.
      * If the gold pick was for placing a road or ship that revealed a gold hex from {@link SOCBoardLarge#FOG_HEX fog},
      * the player will probably change here, since the player changes after most inital roads or ships.
