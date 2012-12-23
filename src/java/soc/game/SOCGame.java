@@ -1780,7 +1780,7 @@ public class SOCGame implements Serializable, Cloneable
         if ((gameState == OVER) && (playerWithWin == -1))
             checkForWinner();
     }
-   
+
     /**
      * If the game board was reset, get the old game state.
      *
@@ -2393,23 +2393,23 @@ public class SOCGame implements Serializable, Cloneable
                     case SOCBoard.CLAY_HEX:
                         resources.add(1, SOCResourceConstants.CLAY);
                         break;
-    
+
                     case SOCBoard.ORE_HEX:
                         resources.add(1, SOCResourceConstants.ORE);
                         break;
-    
+
                     case SOCBoard.SHEEP_HEX:
                         resources.add(1, SOCResourceConstants.SHEEP);
                         break;
-    
+
                     case SOCBoard.WHEAT_HEX:
                         resources.add(1, SOCResourceConstants.WHEAT);
                         break;
-    
+
                     case SOCBoard.WOOD_HEX:
                         resources.add(1, SOCResourceConstants.WOOD);
                         break;
-    
+
                     case SOCBoardLarge.GOLD_HEX:
                         if (hasSeaBoard)
                             ++goldHexAdjacent;
@@ -2629,7 +2629,7 @@ public class SOCGame implements Serializable, Cloneable
             if (needToPickFromGold)
             {
                 oldGameState = START1A;
-                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE; 
+                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
             } else {
                 gameState = START1B;
             }
@@ -2639,7 +2639,7 @@ public class SOCGame implements Serializable, Cloneable
             if (needToPickFromGold)
             {
                 oldGameState = START1B;
-                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE; 
+                gameState = STARTS_WAITING_FOR_PICK_GOLD_RESOURCE;
             } else  {
                 int tmpCPN = currentPlayerNumber + 1;
                 if (tmpCPN >= maxPlayers)
@@ -2659,7 +2659,7 @@ public class SOCGame implements Serializable, Cloneable
                         return false;
                     }
                 }
-    
+
                 if (tmpCPN == firstPlayerNumber)
                 {
                     // All have placed their first settlement/road.
@@ -2710,7 +2710,7 @@ public class SOCGame implements Serializable, Cloneable
                         return false;
                     }
                 }
-    
+
                 if (tmpCPN == lastPlayerNumber)
                 {
                     // All have placed their second settlement/road.
@@ -2769,7 +2769,7 @@ public class SOCGame implements Serializable, Cloneable
                         return false;
                     }
                 }
-    
+
                 if (tmpCPN == firstPlayerNumber)
                 {
                     // All have placed their third settlement/road.
@@ -3253,7 +3253,7 @@ public class SOCGame implements Serializable, Cloneable
      * In some states, the current player can't end their turn yet
      * (such as needing to move the robber, or choose resources for a
      *  year-of-plenty card, or discard if a 7 is rolled).
-     * 
+     *
      * @param pn  player number of the player who wants to end the turn
      * @return true if okay for this player to end the turn
      *    (They are current player, game state is {@link #PLAY1} or {@link #SPECIAL_BUILDING})
@@ -3470,14 +3470,14 @@ public class SOCGame implements Serializable, Cloneable
         case START3A:
         case START3B:
             return forceEndTurnStartState(true);
-                // FORCE_ENDTURN_UNPLACE_START_ADV
-                // or FORCE_ENDTURN_UNPLACE_START_ADVBACK
+                // FORCE_ENDTURN_SKIP_START_ADV,
+                // FORCE_ENDTURN_SKIP_START_ADVBACK,
+                // or FORCE_ENDTURN_SKIP_START_TURN
 
         case START2A:
         case START2B:
             return forceEndTurnStartState(false);
-                // FORCE_ENDTURN_UNPLACE_START_ADVBACK
-                // or FORCE_ENDTURN_UNPLACE_START_TURN
+                // same types as above
 
         case STARTS_WAITING_FOR_PICK_GOLD_RESOURCE:
             return forceEndTurnStartState((oldGameState != START2A) && (oldGameState != START2B));
@@ -3504,7 +3504,7 @@ public class SOCGame implements Serializable, Cloneable
                 final boolean rets = cancelBuildRoad(currentPlayerNumber);
                 return new SOCForceEndTurnResult
                     (SOCForceEndTurnResult.FORCE_ENDTURN_RSRC_RET_UNPLACE, rets ? ROAD_SET : null);
-            }            
+            }
 
         case PLACING_SETTLEMENT:
             cancelBuildSettlement(currentPlayerNumber);
@@ -3569,7 +3569,7 @@ public class SOCGame implements Serializable, Cloneable
             gameState = PLAY1;
             return new SOCForceEndTurnResult
                 (SOCForceEndTurnResult.FORCE_ENDTURN_LOST_CHOICE);
-            
+
         case WAITING_FOR_PICK_GOLD_RESOURCE:
             return forceEndTurnChkDiscardOrGain(currentPlayerNumber, false);  // sets gameState, picks randomly
 
@@ -3656,65 +3656,65 @@ public class SOCGame implements Serializable, Cloneable
 
             goldPicks = null;
 
-        /**
-         * Set the state we're advancing "from";
-         * this is needed because {@link #START1A}, {@link #START2A}, {@link #START3A}
-         * don't change player number after placing their piece.
-         */
-        if (advTurnForward)
-        {
-            if (gameState >= START3A)
-                gameState = START3B;  // third init placement
-            else
-                gameState = START1B;  // first init placement
-        } else {
-            gameState = START2B;
-        }
-
-        final boolean stillActive = advanceTurnStateAfterPutPiece();  // Changes state, may change current player
-
-        if ((cpn == currentPlayerNumber) && stillActive)
-        {
-            // Player didn't change.  This happens when the last player places
-            // their first or second road.  But we're trying to end this player's
-            // turn, and give another player a chance.
+            /**
+             * Set the state we're advancing "from";
+             * this is needed because {@link #START1A}, {@link #START2A}, {@link #START3A}
+             * don't change player number after placing their piece.
+             */
             if (advTurnForward)
             {
-                if (gameState == START1B)
+                if (gameState >= START3A)
+                    gameState = START3B;  // third init placement
+                else
+                    gameState = START1B;  // first init placement
+            } else {
+                gameState = START2B;
+            }
+
+            final boolean stillActive = advanceTurnStateAfterPutPiece();  // Changes state, may change current player
+
+            if ((cpn == currentPlayerNumber) && stillActive)
+            {
+                // Player didn't change.  This happens when the last player places
+                // their first or second road.  But we're trying to end this player's
+                // turn, and give another player a chance.
+                if (advTurnForward)
                 {
-                    // Was first placement; allow other players to begin second placement.
-                    // This player won't get a second placement either.
-                    gameState = START2A;
-                    advanceTurnBackwards();
-                    cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
+                    if (gameState == START1B)
+                    {
+                        // Was first placement; allow other players to begin second placement.
+                        // This player won't get a second placement either.
+                        gameState = START2A;
+                        advanceTurnBackwards();
+                        cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
+                    } else {
+                        // Was third placement.  Begin normal gameplay.
+                        // Set resType to tell caller to call endTurn().
+                        gameState = PLAY1;
+                        cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
+                    }
                 } else {
-                    // Was third placement.  Begin normal gameplay.
-                    // Set resType to tell caller to call endTurn().
-                    gameState = PLAY1;
-                    cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
+                    // Was second placement; begin normal gameplay?
+                    if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
+                    {
+                        // Set resType to tell caller to call endTurn().
+                        gameState = PLAY1;
+                        cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
+                    } else {
+                        // Begin third settlement.  This player won't get one.
+                        gameState = START3A;
+                        advanceTurn();
+                        cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADV;
+                    }
                 }
             } else {
-                // Was second placement; begin normal gameplay?
-                if (! isGameOptionSet(SOCGameOption.K_SC_3IP))
-                {
-                    // Set resType to tell caller to call endTurn().
-                    gameState = PLAY1;
-                    cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_TURN;
-                } else {
-                    // Begin third settlement.  This player won't get one.
-                    gameState = START3A;
-                    advanceTurn();
+                // OK, player has changed.  This means advanceTurnStateAfterPutPiece()
+                // has also cleared the forcingEndTurn flag.
+                if (advTurnForward)
                     cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADV;
-                }
+                else
+                    cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
             }
-        } else {
-            // OK, player has changed.  This means advanceTurnStateAfterPutPiece()
-            // has also cleared the forcingEndTurn flag.
-            if (advTurnForward)
-                cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADV;
-            else
-                cancelResType = SOCForceEndTurnResult.FORCE_ENDTURN_SKIP_START_ADVBACK;
-        }
         }
 
         // update these so the game knows when to stop initial placement
@@ -4110,7 +4110,7 @@ public class SOCGame implements Serializable, Cloneable
          * check the hexes touching cities
          */
         getResourcesGainedFromRollPieces(roll, resources, missedResources, robberHex, player.getCities(), 2);
-        
+
         if (missedResources.getTotal() > 0)
         {
             //System.out.println
@@ -4429,7 +4429,7 @@ public class SOCGame implements Serializable, Cloneable
      * Must not be a desert if {@link SOCGameOption game option} RD is set to true
      * ("Robber can't return to the desert").
      * Must be current player.  Game state must be {@link #PLACING_ROBBER}.
-     * 
+     *
      * @return true if the player can move the robber to the coordinates
      *
      * @param pn  the number of the player that is moving the robber
@@ -4557,7 +4557,7 @@ public class SOCGame implements Serializable, Cloneable
      * Must be current player.  Game state must be {@link #PLACING_PIRATE}.
      * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI}, the player
      * must have {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}.
-     * 
+     *
      * @return true if this player can move the pirate ship to this hex coordinate
      *
      * @param pn  the number of the player that is moving the pirate
@@ -4648,7 +4648,7 @@ public class SOCGame implements Serializable, Cloneable
             {
                 // steal multiple items, don't change gameState
                 stealFromPlayerPirateFleet(victim.getPlayerNumber());
-                // TODO if player has warships, might tie or be stronger 
+                // TODO if player has warships, might tie or be stronger
             }
             else if (! canChooseRobClothOrResource(victim.getPlayerNumber()))
             {
@@ -5011,7 +5011,7 @@ public class SOCGame implements Serializable, Cloneable
              */
             int[] rsrcs = new int[nRsrcs];  // 1 element per resource card held by victim
             int cnt = 0;
-    
+
             for (int i = SOCResourceConstants.CLAY; i <= SOCResourceConstants.WOOD;
                     i++)
             {
@@ -5021,7 +5021,7 @@ public class SOCGame implements Serializable, Cloneable
                     cnt++;
                 }
             }
-    
+
             int pick = Math.abs(rand.nextInt() % cnt);
             rpick = rsrcs[pick];
 
@@ -5044,7 +5044,7 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the pirate fleet is moved every
-     * dice roll, and may steal from the single player with an adjacent settlement or city. 
+     * dice roll, and may steal from the single player with an adjacent settlement or city.
      * Perform the robbery.  Number of resources stolen are 1 + victim's number of cities.
      * The stolen resources are discarded, no player gets them.
      * Does not change gameState.
