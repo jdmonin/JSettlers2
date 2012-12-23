@@ -903,7 +903,10 @@ public class SOCRobotBrain extends Thread
             sb.append("  ");
             sb.append(s[i]);
             sb.append(": ");
-            sb.append(b[i]);
+            if (b[i])
+                sb.append("TRUE");
+            else
+                sb.append("false");
             slen = sb.length();
         }
         if (slen > 0)
