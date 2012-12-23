@@ -6106,6 +6106,42 @@ public class SOCServer extends Server
                     // pirate moves on every roll
                     messageToGame(gn, new SOCMoveRobber
                         (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
+
+                    if (roll.sc_piri_fleetAttackVictim != null)
+                    {
+                        final SOCResourceSet loot = roll.sc_piri_fleetAttackRsrcs;
+                        final int lootTotal = (loot != null) ? loot.getTotal() : 0;
+                        if (lootTotal != 0)
+                        {
+                            // use same resource-loss messages sent in handleDISCARD
+
+                            SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
+                            final String vicName = vic.getName();
+                            final StringConnection vCon = getConnection(vicName);
+                            final int pn = vic.getPlayerNumber();
+
+                            StringBuffer sb = new StringBuffer("You lost ");
+
+                            /**
+                             * tell the victim client that the player lost the resources
+                             */
+                            reportRsrcGainLoss(gn, loot, true, pn, -1, sb, vCon);
+                            sb.append(" to the pirate fleet.");
+                            messageToPlayer(vCon, gn, sb.toString());
+
+                            /**
+                             * tell everyone else that the player lost unknown resources
+                             */
+                            messageToGameExcept(gn, vCon, new SOCPlayerElement
+                                (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
+                            final String rword;
+                            if (lootTotal == 1)
+                                rword = " resource";
+                            else
+                                rword = " resources";
+                            messageToGame(gn, vicName + " lost " + lootTotal + rword +  " to pirate fleet attack.");
+                        }
+                    }
                 }
 
                 /**
@@ -6393,6 +6429,8 @@ public class SOCServer extends Server
             if (ga.canDiscard(pn, mes.getResources()))
             {
                 ga.discard(pn, mes.getResources());  // discard, change gameState
+
+                // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
 
                 /**
                  * tell the player client that the player discarded the resources
