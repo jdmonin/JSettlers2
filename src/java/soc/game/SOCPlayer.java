@@ -92,7 +92,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Indexes match SOCPlayingPiece constants:
      * {@link SOCPlayingPiece#ROAD},
      * {@link SOCPlayingPiece#SETTLEMENT},
-     * {@link SOCPlayingPiece#CITY}.
+     * {@link SOCPlayingPiece#CITY},
+     * {@link SOCPlayingPiece#SHIP}.
      */
     private int[] numPieces;
 
@@ -111,7 +112,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private Vector<SOCPlayingPiece> pieces;
 
     /**
-     * a list of this player's roads and ships in play
+     * a list of this player's roads and ships in play.
+     * Although roads and ships are kept together here,
+     * in {@link #numPieces}[] they're counted separately.
      * @see #getRoadOrShip(int)
      */
     private Vector<SOCRoad> roads;

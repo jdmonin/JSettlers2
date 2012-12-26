@@ -116,7 +116,7 @@ public class SOCPlayerElement extends SOCMessage
     public static final int STARTING_LANDAREAS = 21;
 
     /**
-     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
      * the number of cloth held by this player.
      * This element is {@link #SET} to 0, or to the player's cloth count
      * from {@link soc.game.SOCPlayer#getCloth()}.
@@ -139,6 +139,9 @@ public class SOCPlayerElement extends SOCMessage
      * @since 2.0.00
      */
     public static final int SCENARIO_WARSHIP_COUNT = 23;
+
+    // End of element declaration list.
+    // -----------------------------------------------------------
 
     /**
      * player element actions
