@@ -2909,6 +2909,11 @@ public class SOCPlayerClient extends Panel
                 }
                 break;
 
+            case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+                pl.setNumWarships(mes.getValue());
+                // TODO update playerinterface
+                break;
+
             }
 
             if (hpan == null)

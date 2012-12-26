@@ -8763,6 +8763,12 @@ public class SOCServer extends Server
                         (gameName, new SOCPutPiece(gameName, i, piece.getType(), piece.getCoordinates()));
             }
 
+            // _SC_PIRI: for display, send count of warships only after SOCShip pieces are sent
+            itm = pl.getNumWarships();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, itm));
+
             /**
              * send each player's unique potential settlement list,
              * if game has started

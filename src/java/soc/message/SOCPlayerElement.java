@@ -130,6 +130,17 @@ public class SOCPlayerElement extends SOCMessage
     public static final int SCENARIO_CLOTH_COUNT = 22;
 
     /**
+     * For scenario game option <tt>_SC_PIRI</tt>,
+     * the player's total number of ships that are converted to warships.
+     * See SOCPlayer.getNumWarships() for details.
+     *<P>
+     * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
+     * message is sent to their client only after sending their SOCShip piece positions.
+     * @since 2.0.00
+     */
+    public static final int SCENARIO_WARSHIP_COUNT = 23;
+
+    /**
      * player element actions
      */
     public static final int SET = 100;

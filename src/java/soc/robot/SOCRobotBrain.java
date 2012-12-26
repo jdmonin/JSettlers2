@@ -3132,6 +3132,10 @@ public class SOCRobotBrain extends Thread
                 ((SOCBoardLarge) (game.getBoard())).setCloth(mes.getValue());
             break;
 
+        case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+            pl.setNumWarships(mes.getValue());
+            break;
+
         }
 
         ///

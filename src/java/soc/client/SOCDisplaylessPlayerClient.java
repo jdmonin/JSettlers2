@@ -1189,6 +1189,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
                     ((SOCBoardLarge) (ga.getBoard())).setCloth(mes.getValue());
                 break;
 
+            case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+                pl.setNumWarships(mes.getValue());
+                break;
+
             }
         }
     }
