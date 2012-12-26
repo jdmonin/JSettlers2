@@ -97,6 +97,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private int[] numPieces;
 
     /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the number of {@link SOCShip}s that are converted to warships.
+     * See {@link #getNumWarships()} for details.
+     * @since 2.0.00
+     */
+    private int numWarships;
+
+    /**
      * a list of this player's pieces in play
      * (does not include any {@link #fortress}).
      */
@@ -121,6 +129,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     /**
      * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * the "pirate fortress" that this player must defeat to win.
+     * The player's warships are used to defeat the fortress; see {@link #getNumWarships()}.
      * Null if fortress has been defeated and converted to a settlement.
      * Null unless game has that scenario option.
      *<P>
@@ -504,6 +513,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         roads = new Vector<SOCRoad>(player.roads);
         settlements = new Vector<SOCSettlement>(player.settlements);
         cities = new Vector<SOCCity>(player.cities);
+        fortress = player.fortress;
+        numWarships = player.numWarships;
         longestRoadLength = player.longestRoadLength;
         lrPaths = new Vector<SOCLRPathData>(player.lrPaths);
         resources = player.resources.copy();
@@ -970,6 +981,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param ptype the type of piece; matches SOCPlayingPiece constants,
      *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
      * @see #getPieces()
+     * @see #getNumWarships()
      * @throws ArrayIndexOutOfBoundsException if piece type is invalid
      */
     public int getNumPieces(int ptype)
@@ -985,10 +997,37 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param ptype the type of piece; matches SOCPlayingPiece constants,
      *   such as {@link SOCPlayingPiece#ROAD}, {@link SOCPlayingPiece#SETTLEMENT}.
      * @param amt                 the amount
+     * @see #setNumWarships(int)
      */
     public void setNumPieces(int ptype, int amt)
     {
         numPieces[ptype] = amt;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the number of {@link SOCShip}s that are converted to warships
+     * to defend against the pirate fleet and attack the {@link SOCFortress}.
+     *<P>
+     * {@link SOCShip} has no "isWarship" field; the player's first <tt>numWarships</tt>
+     * ships within {@link #getRoads()} are the warships, because those are the ships
+     * heading out to sea starting at the player's settlement, placed chronologically.
+     * @since 2.0.00
+     */
+    public int getNumWarships()
+    {
+        return numWarships;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * set the player's number of warships.  See {@link #getNumWarships()} for details.
+     * @param count  New number of warships
+     * @since 2.0.00
+     */
+    public void setNumWarships(final int count)
+    {
+        numWarships = count;
     }
 
     /**
@@ -1003,6 +1042,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
+     * Get this player's roads and ships on the board.  Chronological order.
      * @return the list of roads/ships in play
      */
     public Vector<SOCRoad> getRoads()
