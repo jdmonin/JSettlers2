@@ -274,12 +274,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Ship, placed horizontally along left vertical ("|") edge of hex.
      * Center is (x=0.5, y=32).
+     * @see #warshipX
      * @since 2.0.00
      */
     private static final int[] vertShipX =        // center is (x=0.5, y=32)
         { -4,  3,  7,  7,  5, 13, 11,-12,-12, -3, -1, -1, -3, -4 },
                                vertShipY =
         { 22, 23, 28, 32, 37, 37, 42, 42, 37, 37, 34, 30, 25, 22 };
+
+    /**
+     * Warship for scenario <tt>SC_PIRI</tt>, placed horizontally along left vertical ("|") edge of hex.
+     * Center is (x=0.5, y=32).
+     * Design is based on the normal ship ({@link #vertShipX}, {@link #vertShipY})
+     * with a second sail and a taller hull.
+     * @since 2.0.00
+     */
+    private static final int[] warshipX =        // center is (x=0.5, y=32)
+        { -8, -2,  1,  1, -1,     3,  5,  5,  3,  2,  8, 11, 11, 9,     13, 10,-10,-12, -7, -5, -5, -7, -8 },
+                               warshipY =
+        { 21, 22, 27, 31, 36,    36, 33, 29, 24, 21, 22, 27, 31, 36,    36, 43, 43, 36, 36, 33, 29, 24, 21 };
 
     /*** village polygon. X is -13 to +13; Y is -9 to +9. @since 2.0.00 */
     private static final int[] villageX = {  0, 13, 0, -13,  0 };
@@ -748,6 +761,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /*** village ***/
     private int[] scaledVillageX, scaledVillageY;  // @since 2.0.00
+
+    /*** warship (scenario _SC_PIRI) ***/
+    private int[] scaledWarshipX, scaledWarshipY;  // @since 2.0.00
 
     /***  robber  ***/
     private int[] scaledRobberX, scaledRobberY;
@@ -1943,6 +1959,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledCityX     = cityX;         scaledCityY     = cityY;
             scaledVertShipX = vertShipX;     scaledVertShipY = vertShipY;
             scaledVillageX  = villageX;      scaledVillageY  = villageY;
+            scaledWarshipX  = warshipX;      scaledWarshipY  = warshipY;
             scaledRobberX   = robberX;       scaledRobberY   = robberY;
             scaledArrowXL   = arrowXL;       scaledArrowY    = arrowY;
             if (arrowXR == null)
@@ -1968,8 +1985,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 scaledUpRoadY   = scaleCopyToActualY(upRoadY);
                 scaledDownRoadX = scaleCopyToActualX(downRoadX);
                 scaledDownRoadY = scaleCopyToActualY(downRoadY);
-                scaledVertShipX = scaleCopyToActualY(vertShipX);
-                scaledVertShipY = scaleCopyToActualY(vertShipY);
                 scaledHexCornersX = scaleCopyToActualX(hexCornersX);
                 scaledHexCornersY = scaleCopyToActualY(hexCornersY);
             } else {
@@ -1991,6 +2006,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledVertShipY = scaleCopyToActualY(vertShipY);
             scaledVillageX  = scaleCopyToActualX(villageX);
             scaledVillageY  = scaleCopyToActualY(villageY);
+            scaledWarshipX = scaleCopyToActualX(warshipX);
+            scaledWarshipY = scaleCopyToActualY(warshipY);
             scaledRobberX   = scaleCopyToActualX(robberX);
             scaledRobberY   = scaleCopyToActualY(robberY);
             scaledArrowXL   = scaleCopyToActualX(arrowXL);
@@ -2559,9 +2576,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *             or -2 for the black pirate ship, -3 for the previous-pirate outline.
      * @param isHilight  Is this the hilight for showing a potential placement?
      * @param isRoadNotShip  True to draw a road; false to draw a ship if {@link #isLargeBoard}
+     * @param isWarship   True to draw a war ship (not normal ship) if {@link #isLargeBoard}, for scenario _SC_PIRI
      */
     private final void drawRoadOrShip
-        (Graphics g, int edgeNum, final int pn, final boolean isHilight, final boolean isRoadNotShip)
+        (Graphics g, int edgeNum, final int pn, final boolean isHilight,
+         final boolean isRoadNotShip, final boolean isWarship)
     {
         // Draw a road or ship
         final int roadX[], roadY[];
@@ -2635,6 +2654,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     roadX = scaledVertRoadX;
                     roadY = scaledVertRoadY;
+                } else if (isWarship) {
+                    roadX = scaledWarshipX;
+                    roadY = scaledWarshipY;
                 } else {
                     roadX = scaledVertShipX;
                     roadY = scaledVertShipY;
@@ -2649,6 +2671,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         roadX = scaledUpRoadX;
                         roadY = scaledUpRoadY;
+                    } else if (isWarship) {
+                        roadX = scaledWarshipX;
+                        roadY = scaledWarshipY;
                     } else {
                         roadX = scaledVertShipX;
                         roadY = scaledVertShipY;
@@ -2663,6 +2688,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         roadX = scaledDownRoadX;
                         roadY = scaledDownRoadY;
+                    } else if (isWarship) {
+                        roadX = scaledWarshipX;
+                        roadY = scaledWarshipY;
                     } else {
                         roadX = scaledVertShipX;
                         roadY = scaledVertShipY;
@@ -3229,13 +3257,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             int hex = ((SOCBoardLarge) board).getPirateHex();
             if (hex > 0)
             {
-                drawRoadOrShip(g, hex, -2, (gameState == SOCGame.PLACING_PIRATE), false);
+                drawRoadOrShip(g, hex, -2, (gameState == SOCGame.PLACING_PIRATE), false, false);
             }
 
             hex = ((SOCBoardLarge) board).getPreviousPirateHex();
             if (hex > 0)
             {
-                drawRoadOrShip(g, hex, -3, (gameState == SOCGame.PLACING_PIRATE), false);
+                drawRoadOrShip(g, hex, -3, (gameState == SOCGame.PLACING_PIRATE), false, false);
             }
         }
 
@@ -3247,9 +3275,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /**
          * draw the roads and ships
          */
-        for (SOCRoad r : board.getRoads())
+        if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
-            drawRoadOrShip(g, r.getCoordinates(), r.getPlayerNumber(), false, r.isRoadNotShip());
+            for (SOCRoad r : board.getRoads())
+            {
+                drawRoadOrShip(g, r.getCoordinates(), r.getPlayerNumber(), false, ! (r instanceof SOCShip), false);
+            }
+        } else {
+            for (int pn = 0; pn < game.maxPlayers; ++pn)
+            {
+                final SOCPlayer pl = game.getPlayer(pn);
+                int numWarships = pl.getNumWarships();
+                for (SOCRoad r : pl.getRoads())
+                {
+                    final boolean isShip = (r instanceof SOCShip);
+                    final boolean isWarship = isShip && (numWarships > 0); 
+                    drawRoadOrShip(g, r.getCoordinates(), pn, false, ! isShip, isWarship);
+                    if (isWarship)
+                        --numWarships;  // this works since warships begin with player's 1st-placed ship in getRoads()
+                }
+            }
         }
 
         /**
@@ -3280,7 +3325,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
         case MOVE_SHIP:
             if (moveShip_fromEdge != 0)
-                drawRoadOrShip(g, moveShip_fromEdge, -1, false, false);
+                drawRoadOrShip(g, moveShip_fromEdge, -1, false, false, false);
             // fall through to road modes, to draw new location (hilight)
 
         case PLACE_ROAD:
@@ -3290,7 +3335,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hilight != 0)
             {
                 drawRoadOrShip
-                    (g, hilight, playerNumber, true, ! hilightIsShip);
+                    (g, hilight, playerNumber, true, ! hilightIsShip, false);
             }
             break;
 
@@ -3315,7 +3360,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawRoadOrShip(g, hilight, playerNumber, true, false);
+                drawRoadOrShip(g, hilight, playerNumber, true, false, false);
             }
             break;
 
@@ -3333,7 +3378,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight != 0)
             {
-                drawRoadOrShip(g, hilight, otherPlayer.getPlayerNumber(), false, true);
+                drawRoadOrShip(g, hilight, otherPlayer.getPlayerNumber(), false, true, false);
             }
             break;
 
@@ -3357,7 +3402,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         case PLACE_PIRATE:
             if (hilight > 0)
             {
-                drawRoadOrShip(g, hilight, -2, false, false);
+                drawRoadOrShip(g, hilight, -2, false, false, false);
             }
             break;
 
@@ -5865,13 +5910,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (hoverRoadID != 0)
                 {
                     if (! hoverIsShipMovable)
-                        drawRoadOrShip(g, hoverRoadID, playerNumber, true, true);
+                        drawRoadOrShip(g, hoverRoadID, playerNumber, true, true, false);
                     else
-                        drawRoadOrShip(g, hoverRoadID, -1, true, true);
+                        drawRoadOrShip(g, hoverRoadID, -1, true, true, false);
                 }
                 if (hoverShipID != 0)
                 {
-                    drawRoadOrShip(g, hoverShipID, playerNumber, true, false);
+                    drawRoadOrShip(g, hoverShipID, playerNumber, true, false, false);
                 }
                 if (hoverSettlementID != 0)
                 {
