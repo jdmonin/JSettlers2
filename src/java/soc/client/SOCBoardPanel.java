@@ -24,6 +24,7 @@ package soc.client;
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
@@ -293,6 +294,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         { -8, -2,  1,  1, -1,     3,  5,  5,  3,  2,  8, 11, 11, 9,     13, 10,-10,-12, -7, -5, -5, -7, -8 },
                                warshipY =
         { 21, 22, 27, 31, 36,    36, 33, 29, 24, 21, 22, 27, 31, 36,    36, 43, 43, 36, 36, 33, 29, 24, 21 };
+
+    /*** Fortress polygon for scenario <tt>SC_PIRI</tt>. X is -13 to +13; Y is -11 to +11. @since 2.0.00 */
+    private static final int[] fortressX =
+        //  left side        //  crenellations
+        // right side        // entrance portal
+        { -13,-13, -7, -7,   -5, -5, -1, -1, 1,  1,  5, 5,      
+          7,  7, 13, 13,     3, 3, 1, -1, -3, -3 },
+                               fortressY =
+        {  11,-11,-11, -7,   -7,-10,-10, -7,-7,-10,-10,-7,
+         -7,-11,-11, 11,     11,7, 5,  5,  7, 11 };
 
     /*** village polygon. X is -13 to +13; Y is -9 to +9. @since 2.0.00 */
     private static final int[] villageX = {  0, 13, 0, -13,  0 };
@@ -759,7 +770,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /*** ship ***/
     private int[] scaledVertShipX, scaledVertShipY;
 
-    /*** village ***/
+    /*** fortress (scenario _SC_PIRI) ***/
+    private int[] scaledFortressX, scaledFortressY;  // @since 2.0.00
+
+    /*** village (scenario _SC_CLVI) ***/
     private int[] scaledVillageX, scaledVillageY;  // @since 2.0.00
 
     /*** warship (scenario _SC_PIRI) ***/
@@ -1958,6 +1972,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledSettlementX = settlementX; scaledSettlementY = settlementY;
             scaledCityX     = cityX;         scaledCityY     = cityY;
             scaledVertShipX = vertShipX;     scaledVertShipY = vertShipY;
+            scaledFortressX = fortressX;     scaledFortressY = fortressY;
             scaledVillageX  = villageX;      scaledVillageY  = villageY;
             scaledWarshipX  = warshipX;      scaledWarshipY  = warshipY;
             scaledRobberX   = robberX;       scaledRobberY   = robberY;
@@ -2004,6 +2019,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledCityY     = scaleCopyToActualY(cityY);
             scaledVertShipX = scaleCopyToActualX(vertShipX);
             scaledVertShipY = scaleCopyToActualY(vertShipY);
+            scaledFortressX = scaleCopyToActualX(fortressX);
+            scaledFortressY = scaleCopyToActualY(fortressY);
             scaledVillageX  = scaleCopyToActualX(villageX);
             scaledVillageY  = scaleCopyToActualY(villageY);
             scaledWarshipX = scaleCopyToActualX(warshipX);
@@ -2891,6 +2908,59 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * Draw a pirate fortress, for scenario <tt>SC_PIRI</tt>.
+     * @since 2.0.00
+     */
+    private final void drawFortress
+        (Graphics g, final SOCFortress fo, final int pn, final boolean isHilight)
+    {
+        final int nodeNum = fo.getCoordinates();
+        int hx, hy;
+
+        // always isLargeBoard
+
+        final int r = (nodeNum >> 8),
+                  c = (nodeNum & 0xFF);
+        hx = halfdeltaX * c;
+        hy = halfdeltaY * (r+1);
+
+        // If the node isn't at the top center of a hex,
+        // it will need to move up or down a bit vertically.
+        //
+        // 'Y' nodes vertical offset: move down
+        final int s = r / 2;
+        if ((s % 2) != (c % 2))
+            hy += HEXY_OFF_SLOPE_HEIGHT;
+
+        if (isScaled)
+        {
+            hx = scaleToActualX(hx);
+            hy = scaleToActualY(hy);
+        }
+
+        if (isHilight)
+            g.setColor(playerInterface.getPlayerColor(pn, true));
+        else
+            g.setColor(playerInterface.getPlayerColor(pn));
+        g.translate(hx, hy);
+        g.fillPolygon(scaledFortressX, scaledFortressY, scaledFortressY.length);
+        if (isHilight)
+            g.setColor(playerInterface.getPlayerColor(pn, false));
+        else
+            g.setColor(Color.black);
+        g.drawPolygon(scaledFortressX, scaledFortressY, scaledFortressY.length);
+
+        // strength
+        final String numstr = Integer.toString(fo.getStrength());
+        int x = -diceNumberCircleFM.stringWidth(numstr) / 2;
+        int y = (diceNumberCircleFM.getAscent() - diceNumberCircleFM.getDescent()) / 2;
+        g.setFont(diceNumberCircleFont);
+        g.drawString(numstr, x, y);
+
+        g.translate(-hx, -hy);
+    }
+
+    /**
      * Draw a cloth trade village (used in some scenarios in the large sea board).
      * Same logic for determining (x,y) from nodeNum as {@link #drawSettlementOrCity(Graphics, int, int, boolean, boolean)}.
      * @param v  Village
@@ -3294,6 +3364,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (isWarship)
                         --numWarships;  // this works since warships begin with player's 1st-placed ship in getRoads()
                 }
+
+                /**
+                 * draw the player's fortress, if any
+                 */
+                SOCFortress fo = pl.getFortress();
+                if (fo != null)
+                    drawFortress(g, fo, pn, false);
             }
         }
 

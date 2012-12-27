@@ -26,6 +26,7 @@ import soc.debug.D;  // JM
 
 import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
@@ -1923,6 +1924,11 @@ public class SOCPlayerInterface extends Frame
             game.putPiece(pp);
 
             return; // <--- Early return: Piece is part of board initial layout, not player info ---
+
+        case SOCPlayingPiece.FORTRESS:
+            pp = new SOCFortress(pl, coord, game.getBoard());
+            game.putPiece(pp);
+            return; // <--- Early return: Piece is part of board initial layout, not added during game ---
 
         default:
             chatPrintDebug("* Unknown piece type " + pieceType + " at coord 0x" + coord);
