@@ -2600,7 +2600,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          final boolean isRoadNotShip, final boolean isWarship)
     {
         // Draw a road or ship
-        final int roadX[], roadY[];
+        int roadX[], roadY[];
         int hx, hy;
         if (edgeNum == -1)
             edgeNum = 0x00;
@@ -2662,6 +2662,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             final int r = (edgeNum >> 8),
                       c = (edgeNum & 0xFF);
+
+            if (isWarship) {
+                roadX = scaledWarshipX;
+                roadY = scaledWarshipY;
+            } else if (! isRoadNotShip) {
+                roadX = scaledVertShipX;
+                roadY = scaledVertShipY;
+            } else {
+                // roadX,roadY contents vary by edge direction
+                roadX = null;  // always set below; null here
+                roadY = null;  // to satisfy compiler
+            }
+
             if ((pn <= -2) || ((r % 2) == 1))  // -2 or -3 is pirate ship, at a hex coordinate
             {
                 // "|"
@@ -2671,12 +2684,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     roadX = scaledVertRoadX;
                     roadY = scaledVertRoadY;
-                } else if (isWarship) {
-                    roadX = scaledWarshipX;
-                    roadY = scaledWarshipY;
-                } else {
-                    roadX = scaledVertShipX;
-                    roadY = scaledVertShipY;
                 }
             } else {
                 if ((c % 2) != ((r/2) % 2))
@@ -2688,12 +2695,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         roadX = scaledUpRoadX;
                         roadY = scaledUpRoadY;
-                    } else if (isWarship) {
-                        roadX = scaledWarshipX;
-                        roadY = scaledWarshipY;
                     } else {
-                        roadX = scaledVertShipX;
-                        roadY = scaledVertShipY;
                         hx += (halfdeltaX / 2);
                         hy -= halfdeltaY;
                     }
@@ -2705,12 +2707,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     {
                         roadX = scaledDownRoadX;
                         roadY = scaledDownRoadY;
-                    } else if (isWarship) {
-                        roadX = scaledWarshipX;
-                        roadY = scaledWarshipY;
                     } else {
-                        roadX = scaledVertShipX;
-                        roadY = scaledVertShipY;
                         hx += (halfdeltaX / 2);
                         hy += halfdeltaY;
                     }
