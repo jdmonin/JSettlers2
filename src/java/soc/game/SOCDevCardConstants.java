@@ -101,7 +101,10 @@ public interface SOCDevCardConstants
     /** tower, chapel VP card */
     public static final int TOW = 8;
 
-    /** knight, robber card */
+    /** Knight, robber card.
+     *<P>
+     * In game scenario <tt>SC_PIRI</tt>, used for "Warship" cards to convert normal ships to warships.
+     */
     public static final int KNIGHT = 9;
 
     /**

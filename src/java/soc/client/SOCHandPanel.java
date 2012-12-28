@@ -1186,12 +1186,23 @@ public class SOCHandPanel extends Panel
                 cardTypeToPlay = SOCDevCardConstants.MONO;
             }
         }
+        else if (item.equals("Warship"))
+        {
+            if (game.canPlayWarshipConvert(playerNumber))
+                cardTypeToPlay = SOCDevCardConstants.KNIGHT;
+            else
+                playerInterface.print("* You cannot convert a ship to a warship right now.");
+        }
         else if (item.indexOf("VP)") > 0)
         {
             playerInterface.print("*** You secretly played this VP card when you bought it.");
             itemNum = cardList.getSelectedIndex();
             if (itemNum >= 0)
                 cardList.deselect(itemNum);
+        }
+        else
+        {
+            playerInterface.print("L1198 internal error: Unknown card type " + item);
         }
 
         if (cardTypeToPlay != -1)
@@ -1909,7 +1920,8 @@ public class SOCHandPanel extends Panel
                             SOCDevCardConstants.TOW,
                             SOCDevCardConstants.UNIV };
         String[] cardNames = {"Year of Plenty",
-                              "Soldier",
+                              (game.isGameOptionSet(SOCGameOption.K_SC_PIRI)
+                                  ? "Warship" : "Soldier"),
                               "Monopoly",
                               "Road Building",
                               "Gov. House (1VP)",
