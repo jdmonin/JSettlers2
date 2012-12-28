@@ -273,20 +273,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     };
 
     /**
-     * Ship, placed horizontally along left vertical ("|") edge of hex.
+     * Ship.
      * Center is (x=0.5, y=32).
      * @see #warshipX
      * @since 2.0.00
      */
-    private static final int[] vertShipX =        // center is (x=0.5, y=32)
+    private static final int[] shipX =           // center is (x=0.5, y=32)
         { -4,  3,  7,  7,  5, 13, 11,-12,-12, -3, -1, -1, -3, -4 },
-                               vertShipY =
+                               shipY =
         { 22, 23, 28, 32, 37, 37, 42, 42, 37, 37, 34, 30, 25, 22 };
 
     /**
-     * Warship for scenario <tt>SC_PIRI</tt>, placed horizontally along left vertical ("|") edge of hex.
+     * Warship for scenario <tt>SC_PIRI</tt>.
      * Center is (x=0.5, y=32).
-     * Design is based on the normal ship ({@link #vertShipX}, {@link #vertShipY})
+     * Design is based on the normal ship ({@link #shipX}, {@link #shipY})
      * with a second sail and a taller hull.
      * @since 2.0.00
      */
@@ -320,7 +320,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         -2, -4, -6, -8, -8, -6, -4, -2, 0, 8, 8, 0, -2, -2
     };
 
-    // The pirate ship uses vertShipX, vertShipY.
+    // The pirate ship uses shipX, shipY like any other ship.
 
     /**
      * Arrow, left-pointing.
@@ -768,7 +768,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int[] scaledCityX, scaledCityY;
 
     /*** ship ***/
-    private int[] scaledVertShipX, scaledVertShipY;
+    private int[] scaledShipX, scaledShipY;
 
     /*** fortress (scenario _SC_PIRI) ***/
     private int[] scaledFortressX, scaledFortressY;  // @since 2.0.00
@@ -782,7 +782,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /***  robber  ***/
     private int[] scaledRobberX, scaledRobberY;
 
-    // The pirate ship uses scaledVertShipX, scaledVertShipY.
+    // The pirate ship uses scaledShipX, scaledShipY like any other ship.
 
     /**
      * arrow, left-pointing and right-pointing.
@@ -1971,7 +1971,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
             scaledSettlementX = settlementX; scaledSettlementY = settlementY;
             scaledCityX     = cityX;         scaledCityY     = cityY;
-            scaledVertShipX = vertShipX;     scaledVertShipY = vertShipY;
+            scaledShipX     = shipX;         scaledShipY     = shipY;
             scaledFortressX = fortressX;     scaledFortressY = fortressY;
             scaledVillageX  = villageX;      scaledVillageY  = villageY;
             scaledWarshipX  = warshipX;      scaledWarshipY  = warshipY;
@@ -2017,8 +2017,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             scaledSettlementY = scaleCopyToActualY(settlementY);
             scaledCityX     = scaleCopyToActualX(cityX);
             scaledCityY     = scaleCopyToActualY(cityY);
-            scaledVertShipX = scaleCopyToActualX(vertShipX);
-            scaledVertShipY = scaleCopyToActualY(vertShipY);
+            scaledShipX = scaleCopyToActualX(shipX);
+            scaledShipY = scaleCopyToActualY(shipY);
             scaledFortressX = scaleCopyToActualX(fortressX);
             scaledFortressY = scaleCopyToActualY(fortressY);
             scaledVillageX  = scaleCopyToActualX(villageX);
@@ -2667,8 +2667,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 roadX = scaledWarshipX;
                 roadY = scaledWarshipY;
             } else if (! isRoadNotShip) {
-                roadX = scaledVertShipX;
-                roadY = scaledVertShipY;
+                roadX = scaledShipX;
+                roadY = scaledShipY;
             } else {
                 // roadX,roadY contents vary by edge direction
                 roadX = null;  // always set below; null here
