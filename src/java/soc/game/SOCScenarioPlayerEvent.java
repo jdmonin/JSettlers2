@@ -24,6 +24,16 @@ package soc.game;
  * Per-player scenario event codes.
  * Used by {@link SOCScenarioEventListener}s.
  * Each event also has a {@link SOCGameOption} to indicate its scenario rules are active; see enum value javadocs.
+ *<P>
+ * Not all scenario-related rules changes have or need an event. For example, in
+ * {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the Knight/Soldier card is used only to
+ * convert ships to warships.  This happens every time the card is played, so there's
+ * no event for it.  The game/server logic for playing dev cards checks for _SC_PIRI
+ * right there, instead of code elsewhere in an event listener.  However, in
+ * {@link SOCGameOption#K_SC_SANY _SC_SANY}, the player will <em>sometimes</em> get an
+ * SVP for settling a new island; it doesn't happen each time the player builds a settlement.
+ * So, a scenario event communicates the new SVP.
+ *
  * @see SOCScenarioGameEvent
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
