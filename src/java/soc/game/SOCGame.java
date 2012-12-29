@@ -465,6 +465,15 @@ public class SOCGame implements Serializable, Cloneable
     public static final int VP_WINNER_STANDARD = 10;
 
     /**
+     * Number of development cards (5) which are Victory Point cards.
+     * Not used in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * (If 4 or more players in that scenario, they become {@link SOCDevCardConstants#KNIGHT KNIGHT} cards.)
+     * @see #NUM_DEVCARDS_STANDARD
+     * @since 2.0.00
+     */
+    private static final int NUM_DEVCARDS_VP = 5;
+
+    /**
      * Number of development cards (25) in the standard rules.
      * @see #NUM_DEVCARDS_6PLAYER
      * @since 1.1.08
@@ -3118,10 +3127,19 @@ public class SOCGame implements Serializable, Cloneable
         /**
          * shuffle the development cards
          */
+        final boolean sc_piri_devcards = isGameOptionSet(SOCGameOption.K_SC_PIRI);
         if (maxPlayers > 4)
+        {
+            // 6-player set
             devCardDeck = new int[NUM_DEVCARDS_6PLAYER];
-        else
+        } else if (sc_piri_devcards && (getGameOptionIntValue(opts, "PL", 4, false) < 4)) {
+            // _SC_PIRI with 2 or 3 players omits Victory Point cards
+            devCardDeck = new int[NUM_DEVCARDS_STANDARD - NUM_DEVCARDS_VP];
+            numDevCards = devCardDeck.length;
+        } else {
+            // 4-player set
             devCardDeck = new int[NUM_DEVCARDS_STANDARD];
+        }
 
         int i;
         int j;
@@ -3160,11 +3178,21 @@ public class SOCGame implements Serializable, Cloneable
             devCardDeck[i] = SOCDevCardConstants.DISC;
         }
 
-        devCardDeck[20] = SOCDevCardConstants.CAP;
-        devCardDeck[21] = SOCDevCardConstants.LIB;
-        devCardDeck[22] = SOCDevCardConstants.UNIV;
-        devCardDeck[23] = SOCDevCardConstants.TEMP;
-        devCardDeck[24] = SOCDevCardConstants.TOW;
+        // VP cards are set up after the 4-player non-VP cards.
+
+        if (! sc_piri_devcards)
+        {
+            devCardDeck[20] = SOCDevCardConstants.CAP;
+            devCardDeck[21] = SOCDevCardConstants.LIB;
+            devCardDeck[22] = SOCDevCardConstants.UNIV;
+            devCardDeck[23] = SOCDevCardConstants.TEMP;
+            devCardDeck[24] = SOCDevCardConstants.TOW;
+        } else {
+            // _SC_PIRI: VP cards become Knight cards, or omit if < 4 players
+            if (devCardDeck.length > 24)
+                for (i = 20; i <= 24; ++i)
+                    devCardDeck[i] = SOCDevCardConstants.KNIGHT;
+        }
 
         if (maxPlayers > 4)
         {
