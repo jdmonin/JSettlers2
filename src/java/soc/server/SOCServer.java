@@ -6146,6 +6146,7 @@ public class SOCServer extends Server
                             final String vicName = vic.getName();
                             final StringConnection vCon = getConnection(vicName);
                             final int pn = vic.getPlayerNumber();
+                            final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
 
                             StringBuffer sb = new StringBuffer("You lost ");
 
@@ -6153,7 +6154,9 @@ public class SOCServer extends Server
                              * tell the victim client that the player lost the resources
                              */
                             reportRsrcGainLoss(gn, loot, true, pn, -1, sb, vCon);
-                            sb.append(" to the pirate fleet.");
+                            sb.append(" to the pirate fleet (strength ");
+                            sb.append(strength);
+                            sb.append(").");
                             messageToPlayer(vCon, gn, sb.toString());
 
                             /**
@@ -6167,7 +6170,8 @@ public class SOCServer extends Server
                             else
                                 rword = " resources";
                             messageToGameExcept
-                                (gn, vCon, vicName + " lost " + lootTotal + rword +  " to pirate fleet attack.", true);
+                                (gn, vCon, vicName + " lost " + lootTotal + rword
+                                 + " to pirate fleet attack (strength " + strength + ").", true);
                         }
                     }
                 }
