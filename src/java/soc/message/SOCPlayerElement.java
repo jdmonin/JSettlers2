@@ -131,8 +131,10 @@ public class SOCPlayerElement extends SOCMessage
 
     /**
      * For scenario game option <tt>_SC_PIRI</tt>,
-     * the player's total number of ships that are converted to warships.
+     * the player's total number of ships that have been converted to warships.
      * See SOCPlayer.getNumWarships() for details.
+     * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of
+     * warships decreases, send {@link #SET}, never send {@link #LOSE}.
      *<P>
      * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
      * message is sent to their client only after sending their SOCShip piece positions.

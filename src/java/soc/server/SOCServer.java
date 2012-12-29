@@ -7706,11 +7706,20 @@ public class SOCServer extends Server
                 {
                 case SOCDevCardConstants.KNIGHT:
 
+                    final boolean isWarshipConvert = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+
                     if (ga.canPlayKnight(pn))
                     {
+                        final int peType = (isWarshipConvert)
+                            ? SOCPlayerElement.SCENARIO_WARSHIP_COUNT : SOCPlayerElement.NUMKNIGHTS;
+
                         ga.playKnight();
+                        final String cardplayed = (isWarshipConvert)
+                            ? " converted a ship to a warship."
+                            : " played a Soldier card.";
                         gameList.takeMonitorForGame(gaName);
-                        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Soldier card."));
+                        messageToGameWithMon
+                            (gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + cardplayed));
                         if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                         {
                             messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
@@ -7723,14 +7732,19 @@ public class SOCServer extends Server
                                  new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT), false);
                         }
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.NUMKNIGHTS, 1));
+                        messageToGameWithMon
+                            (gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, peType, 1));
                         gameList.releaseMonitorForGame(gaName);
-                        broadcastGameStats(ga);
-                        sendGameState(ga);
+                        if (! isWarshipConvert)
+                        {
+                            broadcastGameStats(ga);
+                            sendGameState(ga);
+                        }
                     }
                     else
                     {
-                        denyText = "You can't play a Soldier card now.";
+                        final String cardname = (isWarshipConvert) ? "Warship" : "Soldier";
+                        denyText = "You can't play a " + cardname + " card now.";
                     }
 
                     break;

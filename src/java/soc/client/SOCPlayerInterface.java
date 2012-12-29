@@ -1831,17 +1831,37 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Handle updates after pieces have changed on the board.
+     * For example, when scenario {@link SOCGameOption#K_SC_PIRI}
+     * converts players' ships to warships, changes the strength
+     * of a pirate fortress, etc.
+     *<P>
+     * Call <b>after</b> updating game state.  This is different than
+     * {@link #updateAtPutPiece(int, int, int, boolean, int)} which
+     * updates both the {@link SOCGame} and the board.
+     *<P>
+     * Currently, hand panels aren't updated (piece counts or VP total), only {@link SOCBoardPanel}.
+     * @since 2.0.00
+     */
+    public void updateAtPiecesChanged()
+    {
+        boardPanel.repaint();
+    }
+
+    /**
      * Handle updates after putting a piece on the board,
      * or moving a ship that was already placed.
      * Place or move the piece within our {@link SOCGame}
      * and visually on our {@link SOCBoardPanel}.
-     * @since 2.0.00
      *
      * @param mesPn  The piece's player number
      * @param coord  The piece's coordinate.  If <tt>isMove</tt>, the coordinate to move <em>from</em>.
      * @param pieceType  Piece type, like {@link SOCPlayingPiece#CITY}
      * @param isMove   If true, it's a move, not a new placement; valid only for ships.
      * @param moveToCoord  If <tt>isMove</tt>, the coordinate to move <em>to</em>.  Otherwise ignored.
+     *
+     * @see #updateAtPiecesChanged()
+     * @since 2.0.00
      */
     public void updateAtPutPiece
         (final int mesPn, final int coord, final int pieceType,

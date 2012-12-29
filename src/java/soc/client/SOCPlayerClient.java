@@ -2910,8 +2910,17 @@ public class SOCPlayerClient extends Panel
                 break;
 
             case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-                pl.setNumWarships(mes.getValue());
-                // TODO update playerinterface
+                switch (mes.getAction())
+                {
+                case SOCPlayerElement.SET:
+                    pl.setNumWarships(mes.getValue());
+                    break;
+
+                case SOCPlayerElement.GAIN:
+                    pl.setNumWarships(pl.getNumWarships() + mes.getValue());
+                    break;
+                }
+                pi.updateAtPiecesChanged();
                 break;
 
             }

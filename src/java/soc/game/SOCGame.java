@@ -5891,24 +5891,37 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes either {@link #PLACING_ROBBER}
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
      * Assumes {@link #canPlayKnight(int)} already called, and the play is allowed.
+     *<P>
+     * <b>In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> instead the player
+     * converts a normal ship to a warship.  There is no robber piece in this scenario.
+     * Assumes {@link #canPlayWarshipConvert(int)} already called to validate.
+     * Call {@link SOCPlayer#getNumWarships()} afterwards.
      */
     public void playKnight()
     {
+        final boolean isWarshipConvert = isGameOptionSet(SOCGameOption.K_SC_PIRI);
+        SOCPlayer pl = players[currentPlayerNumber];
+
         lastActionTime = System.currentTimeMillis();
         lastActionWasBankTrade = false;
         players[currentPlayerNumber].setPlayedDevCard(true);
         players[currentPlayerNumber].getDevCards().subtract(1, SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT);
-        players[currentPlayerNumber].incrementNumKnights();
-        updateLargestArmy();
-        checkForWinner();
-        placingRobberForKnightCard = true;
-        oldGameState = gameState;
-        if (canChooseMovePirate())
+        if (! isWarshipConvert)
         {
-            gameState = WAITING_FOR_ROBBER_OR_PIRATE;
+            pl.incrementNumKnights();
+            updateLargestArmy();
+            checkForWinner();
+            placingRobberForKnightCard = true;
+            oldGameState = gameState;
+            if (canChooseMovePirate())
+            {
+                gameState = WAITING_FOR_ROBBER_OR_PIRATE;
+            } else {
+                robberyWithPirateNotRobber = false;
+                gameState = PLACING_ROBBER;
+            }
         } else {
-            robberyWithPirateNotRobber = false;
-            gameState = PLACING_ROBBER;
+            pl.setNumWarships(1 + pl.getNumWarships());
         }
     }
 

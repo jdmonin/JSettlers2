@@ -1009,7 +1009,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
-     * the number of {@link SOCShip}s that are converted to warships
+     * the number of {@link SOCShip}s that have been converted to warships
      * to defend against the pirate fleet and attack the {@link SOCFortress}.
      *<P>
      * {@link SOCShip} has no "isWarship" field; the player's first <tt>numWarships</tt>

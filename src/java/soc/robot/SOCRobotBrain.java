@@ -3133,7 +3133,16 @@ public class SOCRobotBrain extends Thread
             break;
 
         case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-            pl.setNumWarships(mes.getValue());
+            switch (mes.getAction())
+            {
+            case SOCPlayerElement.SET:
+                pl.setNumWarships(mes.getValue());
+                break;
+
+            case SOCPlayerElement.GAIN:
+                pl.setNumWarships(pl.getNumWarships() + mes.getValue());
+                break;
+            }
             break;
 
         }
