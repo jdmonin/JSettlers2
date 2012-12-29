@@ -1188,7 +1188,7 @@ public class SOCHandPanel extends Panel
         }
         else if (item.equals("Warship"))
         {
-            if (game.canPlayWarshipConvert(playerNumber))
+            if (game.canPlayKnight(playerNumber))
                 cardTypeToPlay = SOCDevCardConstants.KNIGHT;
             else
                 playerInterface.print("* You cannot convert a ship to a warship right now.");

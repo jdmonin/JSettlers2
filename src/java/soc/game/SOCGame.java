@@ -5740,9 +5740,12 @@ public class SOCGame implements Serializable, Cloneable
      * Must have a {@link SOCDevCardConstants#KNIGHT} and must
      * not have already played a dev card this turn.
      *<P>
-     * These same conditions are checked in {@link #canPlayWarshipConvert(int)}.
-     * So, this method returns true in that scenario, even though
-     * it has no robber on the board. 
+     * In <b>game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}</b>,
+     * can this player currently play a Warship (Knight) card to
+     * convert one of their ships into a warship?
+     * Conditions in first paragraph must be true, and player's {@link SOCPlayer#getRoads()}
+     * must contain more ships than {@link SOCPlayer#getNumWarships()}.
+     * That scenario has no robber on the board, only the pirate fleet.
      *
      * @param pn  the number of the player
      * @return true if the player can play a knight card
@@ -5764,7 +5767,17 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         }
 
-        return true;
+        if (! isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            return true;
+
+        // Check if the player has any ship to convert to a warship
+        final Vector<SOCRoad> roadsShips = players[pn].getRoads();
+        int numShip = 0;
+        for (SOCRoad r : roadsShips)
+            if (r instanceof SOCShip)
+                ++numShip;
+
+        return (numShip - players[pn].getNumWarships()) > 0;
     }
 
     /**
@@ -5860,41 +5873,13 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
-     * In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
-     * can this player currently play a Warship (Knight) card to
-     * convert one of their ships into a warship?
-     * {@link #canPlayKnight(int)} must be true, and player's {@link SOCPlayer#getRoads()}
-     * must contain more ships than {@link SOCPlayer#getNumWarships()}.
-     *<P>
-     * To play the Warship card, call {@link #playKnight()}.
-     *
-     * @param pn  player number
-     * @return  true if the player can play a Warship card
-     * @since 2.0.00
-     */
-    public boolean canPlayWarshipConvert(final int pn)
-    {
-        if (! (canPlayKnight(pn) && isGameOptionSet(SOCGameOption.K_SC_PIRI)))
-            return false;
-
-        final Vector<SOCRoad> roadsShips = players[pn].getRoads();
-        int numShip = 0;
-        for (SOCRoad r : roadsShips)
-            if (r instanceof SOCShip)
-                ++numShip;
-
-        return (numShip - players[pn].getNumWarships()) > 0;
-    }
-
-    /**
      * The current player plays a Knight card.
+     * Assumes {@link #canPlayKnight(int)} already called, and the play is allowed.
      * gameState becomes either {@link #PLACING_ROBBER}
      * or {@link #WAITING_FOR_ROBBER_OR_PIRATE}.
-     * Assumes {@link #canPlayKnight(int)} already called, and the play is allowed.
      *<P>
      * <b>In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> instead the player
      * converts a normal ship to a warship.  There is no robber piece in this scenario.
-     * Assumes {@link #canPlayWarshipConvert(int)} already called to validate.
      * Call {@link SOCPlayer#getNumWarships()} afterwards.
      */
     public void playKnight()
