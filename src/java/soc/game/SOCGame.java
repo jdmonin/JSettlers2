@@ -4804,10 +4804,13 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Get the players who have settlements or cities on this hex.
      * @return a list of {@link SOCPlayer players} touching a hex
-     *   with settlements/cities, or an empty Vector if none
+     *   with settlements/cities, or an empty Vector if none.
+     *   Any player with multiple settlements/cities on the hex
+     *   will be in the list just once, not once per piece.
      *
-     * @param hex  the coordinates of the hex
+     * @param hex  the coordinates of the hex; not checked for validity
      */
     public Vector<SOCPlayer> getPlayersOnHex(final int hex)
     {
