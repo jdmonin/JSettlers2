@@ -10671,7 +10671,8 @@ public class SOCServer extends Server
                     continue;  // not the robot's turn
 
                 final int gameState = ga.getGameState();
-                if ((gameState == SOCGame.WAITING_FOR_DISCARDS) || (gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
+                if ((gameState == SOCGame.WAITING_FOR_DISCARDS) || (gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                    || (gameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                 {
                     // Check if we're just waiting on humans, not on the robot
                     boolean waitHumans = false;

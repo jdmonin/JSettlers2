@@ -66,6 +66,11 @@ import java.util.Vector;
  * {@link #putPiece(SOCPlayingPiece)} and other game-action methods update <tt>gameState</tt>.
  * {@link #updateAtTurn()}, <tt>putPiece</tt> and some other game-action methods update {@link #lastActionTime}.
  *<P>
+ * The game's current plays and actions are tracked through game states, such as
+ * {@value #START1A} or {@link #WAITING_FOR_DISCARDS}.  A normal turn starts at {@link #PLAY};
+ * after dice are rolled, the turn will spend most of its time in {@link #PLAY1}.  If you need to
+ * add a state, please see the instructions at {@link #NEW}.
+ *<P>
  * The winner is the player who has {@link #vp_winner} or more victory points (typically 10)
  * on their own turn.  Some optional game scenarios have special win conditions, see {@link #checkForWinner()}.
  *<P>
@@ -107,6 +112,11 @@ public class SOCGame implements Serializable, Cloneable
      *</UL>
      * Also, if your state is similar to an existing state, do a where-used search
      * for that state, and decide where both states should be reacted to.
+     *<P>
+     * If your new state might be waiting for several players (not just the current player) to
+     * respond with a choice (such as picking resources to discard or gain), also update
+     * {@link soc.server.SOCServer#checkForExpiredTurns(long)}.  Otherwise the robot will be
+     * forced to lose its turn while waiting for human players.
      *<P>
      * Other places to check, if you add a game state:
      *<UL>
