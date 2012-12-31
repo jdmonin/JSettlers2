@@ -242,6 +242,16 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If the number rolled is on a gold hex, next state might be
      *   {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
+     *<P>
+     * <b>More special notes for scenario <tt>_SC_PIRI</tt>:</b> When the dice is rolled, the pirate fleet moves
+     * along a path, and attacks the sole player with an adjacent settlement to the pirate hex, if any.
+     * This is resolved before any of the normal dice-rolling actions (distributing resources, handling a 7, etc.)
+     * If the player ties or loses (pirate fleet is stronger than player's fleet of warships), the roll is
+     * handled as normal, as described above.  If the player wins, they get to pick a random resource.
+     * Unless the roll is 7, this can be dealt with along with other gained resources (gold hexes).
+     * So: <b>If the player wins and the roll is 7,</b> the player must pick their resource before any normal 7 discarding.
+     * In that case only, the next state is {@link #WAITING_FOR_PICK_GOLD_RESOURCE}, which will be
+     * followed by {@link #WAITING_FOR_DISCARDS} or {@link #WAITING_FOR_CHOICE}.
      */
     public static final int PLAY = 15; // Play continues normally; time to roll or play card
 
@@ -375,6 +385,13 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlements or cities
      * adjacent to {@link SOCBoardLarge#GOLD_HEX}.
+     *<P>
+     * If scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} is active,
+     * this state is also used when a 7 is rolled and the player has won against a
+     * pirate fleet attack.  They must choose a free resource.  Then, the 7 is
+     * resolved as normal.  See {@link #PLAY} javadoc for details.
+     * That's the only time free resources are picked on rolling 7.
+     *
      * @see #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
      * @see #pickGoldHexResources(int, SOCResourceSet)
      * @since 2.0.00
