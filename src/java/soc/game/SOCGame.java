@@ -382,6 +382,7 @@ public class SOCGame implements Serializable, Cloneable
      * Waiting for player(s) to choose which Gold Hex resources to receive.
      * Next game state is usually {@link #PLAY1}, sometimes
      * {@link #PLACING_FREE_ROAD2} or {@link #SPECIAL_BUILDING}.
+     * ({@link #oldGameState} holds the <b>next</b> state after this WAITING state.)
      *<P>
      * Valid only when {@link #hasSeaBoard}, settlements or cities
      * adjacent to {@link SOCBoardLarge#GOLD_HEX}.
@@ -4067,44 +4068,7 @@ public class SOCGame implements Serializable, Cloneable
          */
         if (currentDice == 7)
         {
-            /**
-             * if there are players with too many cards, wait for
-             * them to discard
-             */
-            for (int i = 0; i < maxPlayers; i++)
-            {
-                if (players[i].getResources().getTotal() > 7)
-                {
-                    players[i].setNeedToDiscard(true);
-                    gameState = WAITING_FOR_DISCARDS;
-                }
-            }
-
-            /**
-             * if no one needs to discard, then wait for
-             * the robber to move
-             */
-            if (gameState != WAITING_FOR_DISCARDS)
-            {
-                placingRobberForKnightCard = false;
-                oldGameState = PLAY1;
-                if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                {
-                    robberyWithPirateNotRobber = false;
-                    currentRoll.sc_robPossibleVictims = getPossibleVictims();
-                    if (currentRoll.sc_robPossibleVictims.isEmpty())
-                        gameState = PLAY1;  // no victims
-                    else
-                        gameState = WAITING_FOR_CHOICE;  // 1 or more victims; could choose to not steal anything
-                }
-                else if (canChooseMovePirate())
-                {
-                    gameState = WAITING_FOR_ROBBER_OR_PIRATE;
-                } else {
-                    robberyWithPirateNotRobber = false;
-                    gameState = PLACING_ROBBER;
-                }
-            }
+            rollDice_update7gameState();
         }
         else
         {
@@ -4154,6 +4118,61 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         return currentRoll;
+    }
+
+    /**
+     * When a 7 is rolled, update the {@link #gameState}:
+     * Always {@link #WAITING_FOR_DISCARDS} if any {@link SOCPlayer#getResources()} total &gt; 7.
+     * Otherwise {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or for
+     * scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, {@link #WAITING_FOR_CHOICE} or {@link #PLAY1}.
+     *<P>
+     * For state {@link #PLACING_ROBBER}, also clears {@link #robberyWithPirateNotRobber}.
+     * For <tt>_SC_PIRI</tt>, sets <tt>currentRoll.sc_robPossibleVictims</tt>.
+     *<P>
+     * This is a separate method from {@link #rollDice()} because for <tt>_SC_PIRI</tt>, if a player wins against
+     * the pirate fleet, this "7 update" happens only after they pick and gain their free resource.
+     * @since 2.0.00
+     */
+    private final void rollDice_update7gameState()
+    {
+        /**
+         * if there are players with too many cards, wait for
+         * them to discard
+         */
+        for (int i = 0; i < maxPlayers; i++)
+        {
+            if (players[i].getResources().getTotal() > 7)
+            {
+                players[i].setNeedToDiscard(true);
+                gameState = WAITING_FOR_DISCARDS;
+            }
+        }
+
+        /**
+         * if no one needs to discard, then wait for
+         * the robber to move
+         */
+        if (gameState != WAITING_FOR_DISCARDS)
+        {
+            placingRobberForKnightCard = false;
+            oldGameState = PLAY1;
+            if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            {
+                robberyWithPirateNotRobber = false;
+                currentRoll.sc_robPossibleVictims = getPossibleVictims();
+                if (currentRoll.sc_robPossibleVictims.isEmpty())
+                    gameState = PLAY1;  // no victims
+                else
+                    gameState = WAITING_FOR_CHOICE;  // 1 or more victims; could choose to not steal anything
+            }
+            else if (canChooseMovePirate())
+            {
+                gameState = WAITING_FOR_ROBBER_OR_PIRATE;
+            } else {
+                robberyWithPirateNotRobber = false;
+                gameState = PLACING_ROBBER;
+            }
+        }        
     }
 
     /**

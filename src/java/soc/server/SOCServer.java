@@ -6503,6 +6503,8 @@ public class SOCServer extends Server
 
     /**
      * Handle "pick resources" message (gold hex).
+     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE},
+     * or rarely {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
