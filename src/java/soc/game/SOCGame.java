@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -389,8 +389,8 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * If scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} is active,
      * this state is also used when a 7 is rolled and the player has won against a
-     * pirate fleet attack.  They must choose a free resource.  Then, the 7 is
-     * resolved as normal.  See {@link #PLAY} javadoc for details.
+     * pirate fleet attack.  They must choose a free resource.  {@link #oldGameState} is {@link #PLAY}.
+     * Then, the 7 is resolved as normal.  See {@link #PLAY} javadoc for details.
      * That's the only time free resources are picked on rolling 7.
      *
      * @see #STARTS_WAITING_FOR_PICK_GOLD_RESOURCE
@@ -4008,6 +4008,9 @@ public class SOCGame implements Serializable, Cloneable
      * {@link SOCBoardLarge#movePirateHexAlongPath(int)}.
      * Check {@link RollResult#sc_piri_fleetAttackVictim}
      * and {@link RollResult#sc_piri_fleetAttackRsrcs}.
+     * Note that if player's warships are stronger than the pirate fleet, <tt>sc_piri_loot</tt> will contain
+     * {@link SOCResourceConstants#GOLD_LOCAL}, and that player's {@link SOCPlayer#setNeedToPickGoldHexResources(int)}
+     * will be set to include the free pick.
      *<P>
      * Called at server only.
      * @return The roll results: Dice numbers, and any scenario-specific results
@@ -4038,6 +4041,7 @@ public class SOCGame implements Serializable, Cloneable
 
         currentRoll.update(die1, die2);  // also clears currentRoll.cloth (SC_CLVI)
 
+        int sc_piri_pnGainsGold = -1;  // If a player wins against pirate fleet attack, that player number (SC_PIRI)
         if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
             /**
@@ -4054,9 +4058,20 @@ public class SOCGame implements Serializable, Cloneable
             {
                 currentRoll.sc_piri_fleetAttackVictim = victims.firstElement();
 
-                // TODO if player has warship and wins tie, gets to pick a resource.
-                //    That will need a new game state.
                 currentRoll.sc_piri_fleetAttackRsrcs = robberResult.sc_piri_loot;
+                if (currentRoll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL) > 0)
+                {
+                    if (currentDice == 7)
+                    {
+                        // Need to set this state only on 7, to pick _before_ discards.  On any other
+                        // dice roll, the free pick here will be combined with the usual roll-result gold picks.
+                        oldGameState = PLAY;
+                        gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+                        return currentRoll;  // <--- Early return: Wait to pick, then come back & discard ---
+                    } else {
+                        sc_piri_pnGainsGold = currentRoll.sc_piri_fleetAttackVictim.getPlayerNumber();
+                    }
+                }
             } else {
                 currentRoll.sc_piri_fleetAttackVictim = null;
                 currentRoll.sc_piri_fleetAttackRsrcs = null;
@@ -4086,6 +4101,12 @@ public class SOCGame implements Serializable, Cloneable
                     if (hasSeaBoard && pl.getNeedToPickGoldHexResources() > 0)
                         anyGoldHex = true;
                 }
+            }
+            if (sc_piri_pnGainsGold != -1)
+            {
+                SOCPlayer pl = players[sc_piri_pnGainsGold];
+                pl.setNeedToPickGoldHexResources(1 + pl.getNeedToPickGoldHexResources());
+                anyGoldHex = true;
             }
 
             /**
@@ -4126,6 +4147,7 @@ public class SOCGame implements Serializable, Cloneable
      * Otherwise {@link #PLACING_ROBBER}, {@link #WAITING_FOR_ROBBER_OR_PIRATE}, or for
      * scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, {@link #WAITING_FOR_CHOICE} or {@link #PLAY1}.
      *<P>
+     * For state {@link #WAITING_FOR_DISCARDS}, also sets {@link SOCPlayer#setNeedToDiscard(boolean)}.
      * For state {@link #PLACING_ROBBER}, also clears {@link #robberyWithPirateNotRobber}.
      * For <tt>_SC_PIRI</tt>, sets <tt>currentRoll.sc_robPossibleVictims</tt>.
      *<P>
@@ -4426,6 +4448,8 @@ public class SOCGame implements Serializable, Cloneable
      * If the gold pick was for placing a road or ship that revealed a gold hex from {@link SOCBoardLarge#FOG_HEX fog},
      * the player will probably change here, since the player changes after most inital roads or ships.
      *<P>
+     * Also used in scenario {@link SOCGameOption#K_SC_PIRI SC_PIRI} after winning a pirate fleet battle at dice roll.
+     *<P>
      * Called at server only; clients will instead get <tt>SOCPlayerElement</tt> messages
      * for the resources picked and the "need to pick" flag, and will call
      * {@link SOCPlayer#getResources()}<tt>.add</tt> and {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
@@ -4462,15 +4486,19 @@ public class SOCGame implements Serializable, Cloneable
          */
         gameState = oldGameState;  // nearly always PLAY1, after a roll
 
-        for (int i = 0; i < maxPlayers; i++)
+        if ((gameState == PLAY) && (currentDice == 7))
         {
-            if (players[i].getNeedToPickGoldHexResources() > 0)
+            rollDice_update7gameState();  // from win vs pirate fleet at dice roll (SC_PIRI)
+        } else {
+            for (int i = 0; i < maxPlayers; i++)
             {
-                gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
-                break;
+                if (players[i].getNeedToPickGoldHexResources() > 0)
+                {
+                    gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+                    break;
+                }
             }
         }
-
     }
 
     /**
@@ -4733,6 +4761,7 @@ public class SOCGame implements Serializable, Cloneable
      * If there is 1 victim, {@link SOCMoveRobberResult#sc_piri_loot} will be set to the robbed resource(s), if any.
      * if player's warships are stronger than the pirate fleet, <tt>sc_piri_loot</tt> will contain
      * {@link SOCResourceConstants#GOLD_LOCAL}.
+     * Does not set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
      *
      * @param pn  the number of the player that is moving the pirate ship
      * @param ph  the pirate's new hex coordinate; should be a water hex
@@ -5181,6 +5210,7 @@ public class SOCGame implements Serializable, Cloneable
      * If player had no resources, <tt>sc_piri_loot.getTotal()</tt> will be 0.
      * If player is stronger than the pirate fleet, they get to pick a free resource:
      * <tt>sc_piri_loot</tt> will contain 1 {@link SOCResourceConstants#GOLD_LOCAL}.
+     * Does not set {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
      *<P>
      * Does not validate <tt>pn</tt>; assumes proper game state and scenario.
      *

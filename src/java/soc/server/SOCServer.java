@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -5506,7 +5506,7 @@ public class SOCServer extends Server
                                 || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
+                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
                             if (!checkTurn(c, ga))
@@ -5565,7 +5565,7 @@ public class SOCServer extends Server
                             if (ga.hasSeaBoard && (ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // Prompt to pick from gold: send text and SOCPickResourcesRequest
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
+                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
                             if (!checkTurn(c, ga))
@@ -5659,7 +5659,7 @@ public class SOCServer extends Server
                                 || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
+                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
                             if (!checkTurn(c, ga))
@@ -6142,42 +6142,50 @@ public class SOCServer extends Server
                         {
                             // use same resource-loss messages sent in handleDISCARD
 
+                            final boolean won = (loot.getAmount(SOCResourceConstants.GOLD_LOCAL) > 0);
                             SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
                             final String vicName = vic.getName();
                             final StringConnection vCon = getConnection(vicName);
                             final int pn = vic.getPlayerNumber();
                             final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
 
-                            StringBuffer sb = new StringBuffer("You lost ");
+                            if (won)
+                            {
+                                messageToGame(gn,
+                                    vicName + " won against the pirate fleet (strength " + strength
+                                    + ") and will pick a free resource.");
+                            } else {
+                                /**
+                                 * tell the victim client that the player lost the resources
+                                 */
+                                StringBuffer sb = new StringBuffer("You lost ");
+                                reportRsrcGainLoss(gn, loot, true, pn, -1, sb, vCon);
+                                sb.append(" to the pirate fleet (strength ");
+                                sb.append(strength);
+                                sb.append(").");
+                                messageToPlayer(vCon, gn, sb.toString());
 
-                            /**
-                             * tell the victim client that the player lost the resources
-                             */
-                            reportRsrcGainLoss(gn, loot, true, pn, -1, sb, vCon);
-                            sb.append(" to the pirate fleet (strength ");
-                            sb.append(strength);
-                            sb.append(").");
-                            messageToPlayer(vCon, gn, sb.toString());
-
-                            /**
-                             * tell everyone else that the player lost unknown resources
-                             */
-                            messageToGameExcept(gn, vCon, new SOCPlayerElement
-                                (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
-                            final String rword;
-                            if (lootTotal == 1)
-                                rword = " resource";
-                            else
-                                rword = " resources";
-                            messageToGameExcept
-                                (gn, vCon, vicName + " lost " + lootTotal + rword
-                                 + " to pirate fleet attack (strength " + strength + ").", true);
+                                /**
+                                 * tell everyone else that the player lost unknown resources
+                                 */
+                                messageToGameExcept(gn, vCon, new SOCPlayerElement
+                                    (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
+                                final String rword;
+                                if (lootTotal == 1)
+                                    rword = " resource";
+                                else
+                                    rword = " resources";
+                                messageToGameExcept
+                                    (gn, vCon, vicName + " lost " + lootTotal + rword
+                                     + " to pirate fleet attack (strength " + strength + ").", true);
+                            }
                         }
                     }
                 }
 
                 /**
                  * if the roll is not 7, tell players what they got
+                 * (if 7, sendGameState already told them what they lost).
                  */
                 if (ga.getCurrentDice() != 7)
                 {
@@ -6294,7 +6302,7 @@ public class SOCServer extends Server
                     }
 
                     if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                        sendGameState_sendGoldPickAnnounceText(ga, gn, null);
+                        sendGameState_sendGoldPickAnnounceText(ga, gn, null, roll);
 
                     /*
                        if (D.ebugOn) {
@@ -6318,16 +6326,36 @@ public class SOCServer extends Server
                      * player rolled 7
                      * If anyone needs to discard, prompt them.
                      */
-                    for (int i = 0; i < ga.maxPlayers; i++)
+                    if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
                     {
-                        if (( ! ga.isSeatVacant(i))
-                            && (ga.getPlayer(i).getResources().getTotal() > 7))
+                        for (int i = 0; i < ga.maxPlayers; i++)
                         {
-                            // Request to discard half (round down)
-                            StringConnection con = getConnection(ga.getPlayer(i).getName());
-                            if (con != null)
+                            final SOCPlayer ipl = ga.getPlayer(i);
+                            if (( ! ga.isSeatVacant(i)) && ipl.getNeedToDiscard())
                             {
-                                con.put(SOCDiscardRequest.toCmd(ga.getName(), ga.getPlayer(i).getResources().getTotal() / 2));
+                                // Request to discard half (round down)
+                                StringConnection con = getConnection(ipl.getName());
+                                if (con != null)
+                                    con.put(SOCDiscardRequest.toCmd(gn, ipl.getResources().getTotal() / 2));
+                            }
+                        }
+                    }
+                    else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                    {
+                        // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
+                        for (int i = 0; i < ga.maxPlayers; ++i)
+                        {
+                            final SOCPlayer ipl = ga.getPlayer(i);
+                            final int numPick = ipl.getNeedToPickGoldHexResources();
+                            if (( ! ga.isSeatVacant(i)) && (numPick > 0))
+                            {
+                                StringConnection con = getConnection(ipl.getName());
+                                if (con != null)
+                                {
+                                    messageToGame(gn, new SOCPlayerElement
+                                        (gn, i, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
+                                    con.put(SOCPickResourcesRequest.toCmd(gn, numPick));
+                                }
                             }
                         }
                     }
@@ -6505,6 +6533,7 @@ public class SOCServer extends Server
      * Handle "pick resources" message (gold hex).
      * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE},
      * or rarely {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * Also used with <tt>_SC_PIRI</tt> after winning a pirate fleet battle at dice roll.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -6558,6 +6587,23 @@ public class SOCServer extends Server
                     if (! fromInitPlace)
                     {
                         sendGameState(ga);
+
+                        if (gstate == SOCGame.WAITING_FOR_DISCARDS)
+                        {
+                            // happens only in scenario _SC_PIRI, when 7 is rolled, player wins against pirate fleet
+                            // and has picked their won resource, and then someone must discard
+                            for (int i = 0; i < ga.maxPlayers; ++i)
+                            {
+                                SOCPlayer pl = ga.getPlayer(i);
+                                if (( ! ga.isSeatVacant(i) ) && pl.getNeedToDiscard())
+                                {
+                                    // Request to discard half (round down)
+                                    StringConnection con = getConnection(pl.getName());
+                                    if (con != null)
+                                        con.put(SOCDiscardRequest.toCmd(gn, pl.getResources().getTotal() / 2));
+                                }
+                            }
+                        }
                     } else {
                         // send state, and current player if changed
 
@@ -9254,12 +9300,12 @@ public class SOCServer extends Server
      *<P>
      * State {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
      * To announce the player must pick a resource to gain from the gold hex initial placement,
-     * please call {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection)}.
+     * please call {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection, SOCGame.RollResult)}.
      *<P>
      * State {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}:
      * If a gold hex is rolled, does not say who
      * must pick resources to gain (because of timing).  Please call
-     * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection)}
+     * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection, SOCGame.RollResult)}
      * after sending the resource gain text ("x gets 1 sheep").
      *
      * @see #sendTurn(SOCGame, boolean)
@@ -9469,30 +9515,45 @@ public class SOCServer extends Server
      *                   {@link SOCPickResourcesRequest} if they are the only one to pick gold.
      *                   If more than 1 player has {@link SOCPlayer#getNeedToPickGoldHexResources()},
      *                   no message will be sent to <tt>playerCon</tt>.
+     * @param roll  For gold gained from dice rolls, the roll details, otherwise null.
+     *                   In scenario SC_PIRI, is used to avoid announcing twice for a pick from victory against pirate fleet.
      * @since 2.0.00
      */
     private final void sendGameState_sendGoldPickAnnounceText
-        (SOCGame ga, final String gname, StringConnection playerCon)
+        (SOCGame ga, final String gname, StringConnection playerCon, SOCGame.RollResult roll)
     {
+        final int ignoreRollPirateVictory;
+        if ((roll != null) && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI) && (roll.sc_piri_fleetAttackRsrcs != null))
+            ignoreRollPirateVictory = roll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL);
+        else
+            ignoreRollPirateVictory = 0;
+
         int count = 0, amount = 0;
         String[] names = new String[ga.maxPlayers];
         int[] num = new int[ga.maxPlayers];
 
         for (int pl = 0; pl < ga.maxPlayers; ++pl)
         {
-            final int numGoldRes = ga.getPlayer(pl).getNeedToPickGoldHexResources();
+            final SOCPlayer player = ga.getPlayer(pl);
+            int numGoldRes = player.getNeedToPickGoldHexResources();
             if (numGoldRes > 0)
             {
                 num[pl] = numGoldRes;
-                names[count] = ga.getPlayer(pl).getName();
-                count++;
-                if (count == 1)
-                    amount = numGoldRes;
+                if ((ignoreRollPirateVictory > 0) && (player == roll.sc_piri_fleetAttackVictim))
+                    numGoldRes -= ignoreRollPirateVictory;
+                if (numGoldRes > 0)
+                {
+                    names[count] = player.getName();
+                    count++;
+                    if (count == 1)
+                        amount = numGoldRes;
+                }
             }
         }
 
-        messageToGame(gname, sendGameState_buildPlayerNamesText
-            (count, names, "pick resources from the gold hex."));
+        if (count > 0)
+            messageToGame(gname, sendGameState_buildPlayerNamesText
+                (count, names, "pick resources from the gold hex."));
         for (int pl = 0; pl < ga.maxPlayers; ++pl)
             if (num[pl] > 0)
                 messageToGame(gname, new SOCPlayerElement
