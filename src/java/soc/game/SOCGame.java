@@ -1861,6 +1861,21 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, if true and 
+     * {@link #canPickGoldHexResources(int, SOCResourceSet)} in state {@link #WAITING_FOR_PICK_GOLD_RESOURCE},
+     * this player's "gold hex" free resources include victory over a pirate fleet attack at a dice roll. 
+     * @param pn  Player number
+     * @since 2.0.00
+     */
+    public final boolean isPickResourceIncludingPirateFleet(final int pn)
+    {
+        return (gameState == WAITING_FOR_PICK_GOLD_RESOURCE)
+            && (players[pn] == currentRoll.sc_piri_fleetAttackVictim)
+            && (currentRoll.sc_piri_fleetAttackRsrcs != null)
+            && (currentRoll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL) > 0);
+    }
+
+    /**
      * @return the number of dev cards in the deck
      */
     public int getNumDevCards()

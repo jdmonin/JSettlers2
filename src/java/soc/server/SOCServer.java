@@ -6569,13 +6569,14 @@ public class SOCServer extends Server
             if (ga.canPickGoldHexResources(pn, rsrcs))
             {
                 final boolean fromInitPlace = ga.isInitialPlacement();
+                final boolean fromPirateFleet = ga.isPickResourceIncludingPirateFleet(pn);
 
                 ga.pickGoldHexResources(pn, rsrcs);
 
                 /**
                  * tell everyone what the player gained
                  */
-                reportRsrcGainGold(gn, player, pn, rsrcs);
+                reportRsrcGainGold(gn, player, pn, rsrcs, ! fromPirateFleet);
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
@@ -6873,7 +6874,7 @@ public class SOCServer extends Server
                     || (endFromGameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                 {
                     // Send SOCPlayerElement messages, "gains" text
-                    reportRsrcGainGold(gaName, cp, cpn, resGainLoss);
+                    reportRsrcGainGold(gaName, cp, cpn, resGainLoss, false);
                 } else {
                     // Send SOCPlayerElement messages
                     reportRsrcGainLoss(gaName, resGainLoss, false, cpn, -1, null, null);
@@ -9968,23 +9969,28 @@ public class SOCServer extends Server
      * Report to game members what a player picked from the gold hex.
      * Sends {@link SOCPlayerElement} for resources and to reset the
      * {@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES} counter.
-     * Sends text "playername gets ___ from the gold hex.".
+     * Sends text "playername has picked ___ from the gold hex.".
      * @param gn      Game name
      * @param player  Player gaining
      * @param pn      <tt>player</tt>{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()}
      * @param rsrcs   Resources picked
+     * @param includeGoldHexText  If true, text ends with "from the gold hex." after the resource name.
      * @since 2.0.00
      */
     private void reportRsrcGainGold
-        (final String gn, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs)
+        (final String gn, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs,
+         final boolean includeGoldHexText)
     {
         StringBuffer gainsText = new StringBuffer();
         gainsText.append(player.getName());
-        gainsText.append(" gets ");
+        gainsText.append(" has picked ");
         // Send SOCPlayerElement messages,
         // build resource-text in gainsText.
         reportRsrcGainLoss(gn, rsrcs, false, pn, -1, gainsText, null);
-        gainsText.append(" from the gold hex.");
+        if (includeGoldHexText)
+            gainsText.append(" from the gold hex.");
+        else
+            gainsText.append('.');
         messageToGame(gn, gainsText.toString());
         messageToGame(gn, new SOCPlayerElement
             (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
