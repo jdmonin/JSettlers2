@@ -103,9 +103,26 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
+     * Does the set contain any resources of this type?
+     * @param rtype  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @return true if the set's amount of this resource &gt; 0
+     * @since 2.0.00
+     * @see #getAmount(int)
+     * @see #contains(SOCResourceSet)
+     */
+    public boolean contains(final int rtype)
+    {
+        if (rtype >= resources.length)
+            return false;
+        return (resources[rtype] > 0);
+    }
+
+    /**
+     * How many resources of this type are contained in the site?
      * @return the number of a kind of resource
      *
      * @param rtype  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @see #contains(int)
      */
     public int getAmount(int rtype)
     {
@@ -408,6 +425,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      * @return true if sub is in this set
      *
      * @param sub  the sub set
+     * @see #contains(int)
      */
     public boolean contains(SOCResourceSet sub)
     {
