@@ -144,6 +144,7 @@
           description="Copy resources to classes directory">
       <copy toDir="${classes}">
         <fileset dir="${java.src}" includes="soc/**/*.gif" />
+        <fileset dir="${java.src}" includes="soc/**/*.properties" />
       </copy>
   </target>
 
