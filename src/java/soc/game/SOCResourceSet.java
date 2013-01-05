@@ -118,7 +118,7 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
-     * How many resources of this type are contained in the site?
+     * How many resources of this type are contained in the set?
      * @return the number of a kind of resource
      *
      * @param rtype  the type of resource, like {@link SOCResourceConstants#CLAY}
@@ -130,14 +130,16 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
+     * Get the total number of resources in this set, including unknown types.
      * @return the total number of resources
+     * @see #getKnownTotal()
      */
     public int getTotal()
     {
         int sum = 0;
 
         for (int i = SOCResourceConstants.MIN;
-                i < SOCResourceConstants.MAXPLUSONE; i++)
+                 i < SOCResourceConstants.MAXPLUSONE; i++)
         {
             sum += resources[i];
         }
