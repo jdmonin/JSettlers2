@@ -6142,7 +6142,7 @@ public class SOCServer extends Server
                         {
                             // use same resource-loss messages sent in handleDISCARD
 
-                            final boolean won = (loot.getAmount(SOCResourceConstants.GOLD_LOCAL) > 0);
+                            final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
                             SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
                             final String vicName = vic.getName();
                             final StringConnection vCon = getConnection(vicName);

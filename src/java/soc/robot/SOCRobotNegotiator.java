@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009,2011-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009,2011-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -166,7 +166,7 @@ public class SOCRobotNegotiator
             for (int pn = 0; pn < game.maxPlayers; pn++)
             {
                 if (( ! game.isSeatVacant(pn)) &&
-                    (game.getPlayer(pn).getResources().getAmount(rsrcType) > 0))
+                    game.getPlayer(pn).getResources().contains(rsrcType))
                 {
                     isSellingResource[pn][rsrcType] = true;
                 }
@@ -306,7 +306,7 @@ public class SOCRobotNegotiator
             return offer;
         }
 
-        if (ourResources.getAmount(SOCResourceConstants.UNKNOWN) > 0)
+        if (ourResources.contains(SOCResourceConstants.UNKNOWN))
         {
             D.ebugPrintln("AGG WE HAVE UNKNOWN RESOURCES !!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
@@ -346,7 +346,7 @@ public class SOCRobotNegotiator
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
         {
-            if (targetResources.getAmount(rsrcType) > 0)
+            if (targetResources.contains(rsrcType))
             {
                 neededRsrc[neededRsrcCount] = rsrcType;
                 neededRsrcCount++;
@@ -460,7 +460,7 @@ public class SOCRobotNegotiator
             {
                 D.ebugPrintln("*** ourResources.getAmount(" + notNeededRsrc[giveRsrcIdx] + ") = " + ourResources.getAmount(notNeededRsrc[giveRsrcIdx]));
 
-                if (ourResources.getAmount(notNeededRsrc[giveRsrcIdx]) > 0)
+                if (ourResources.contains(notNeededRsrc[giveRsrcIdx]))
                 {
                     giveResourceSet.clear();
                     giveResourceSet.add(1, notNeededRsrc[giveRsrcIdx]);
@@ -527,7 +527,7 @@ public class SOCRobotNegotiator
 
                 while ((giveRsrcIdx1 < notNeededRsrcCount) && (offer == null))
                 {
-                    if (ourResources.getAmount(notNeededRsrc[giveRsrcIdx1]) > 0)
+                    if (ourResources.contains(notNeededRsrc[giveRsrcIdx1]))
                     {
                         while ((giveRsrcIdx2 < notNeededRsrcCount) && (offer == null))
                         {
@@ -591,7 +591,7 @@ public class SOCRobotNegotiator
 
                 while ((giveRsrcIdx1 < neededRsrcCount) && (offer == null))
                 {
-                    if ((leftovers.getAmount(neededRsrc[giveRsrcIdx1]) > 0) && (neededRsrc[giveRsrcIdx1] != neededRsrc[getRsrcIdx]))
+                    if (leftovers.contains(neededRsrc[giveRsrcIdx1]) && (neededRsrc[giveRsrcIdx1] != neededRsrc[getRsrcIdx]))
                     {
                         while ((giveRsrcIdx2 < notNeededRsrcCount) && (offer == null))
                         {
@@ -685,7 +685,7 @@ public class SOCRobotNegotiator
 
                     while ((giveRsrcIdx1 < notNeededRsrcCount) && (offer == null))
                     {
-                        if ((leftovers.getAmount(notNeededRsrc[giveRsrcIdx1]) > 0) && (notNeededRsrc[giveRsrcIdx1] != notNeededRsrc[getRsrcIdx2]))
+                        if (leftovers.contains(notNeededRsrc[giveRsrcIdx1]) && (notNeededRsrc[giveRsrcIdx1] != notNeededRsrc[getRsrcIdx2]))
                         {
                             leftovers.subtract(1, notNeededRsrc[giveRsrcIdx1]);
 
@@ -723,7 +723,7 @@ public class SOCRobotNegotiator
 
                     while ((giveRsrcIdx1 < neededRsrcCount) && (offer == null))
                     {
-                        if (leftovers.getAmount(neededRsrc[giveRsrcIdx1]) > 0)
+                        if (leftovers.contains(neededRsrc[giveRsrcIdx1]))
                         {
                             leftovers.subtract(1, neededRsrc[giveRsrcIdx1]);
 
@@ -977,7 +977,7 @@ public class SOCRobotNegotiator
         //
         // if the receiver doesn't have what's asked for, they'll reject
         //
-        if ((receiverResources.getAmount(SOCResourceConstants.UNKNOWN) == 0) && (!receiverResources.contains(rsrcsOut)))
+        if (! (receiverResources.contains(SOCResourceConstants.UNKNOWN) || receiverResources.contains(rsrcsOut)) )
         {
             return response;
         }
@@ -1642,7 +1642,7 @@ public class SOCRobotNegotiator
             return counterOffer;
         }
 
-        if (ourResources.getAmount(SOCResourceConstants.UNKNOWN) > 0)
+        if (ourResources.contains(SOCResourceConstants.UNKNOWN))
         {
             D.ebugPrintln("AGG WE HAVE UNKNOWN RESOURCES !!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%");
 
@@ -1680,7 +1680,7 @@ public class SOCRobotNegotiator
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
         {
-            if (targetResources.getAmount(rsrcType) > 0)
+            if (targetResources.contains(rsrcType))
             {
                 neededRsrc[neededRsrcCount] = rsrcType;
                 neededRsrcCount++;
@@ -1746,7 +1746,8 @@ public class SOCRobotNegotiator
         ///
         int getRsrcIdx = neededRsrcCount - 1;
 
-        while ((getRsrcIdx >= 0) && ((ourResources.getAmount(neededRsrc[getRsrcIdx]) >= targetResources.getAmount(neededRsrc[getRsrcIdx])) || (originalOffer.getGiveSet().getAmount(neededRsrc[getRsrcIdx]) == 0)))
+        while ((getRsrcIdx >= 0) && ((ourResources.getAmount(neededRsrc[getRsrcIdx]) >= targetResources.getAmount(neededRsrc[getRsrcIdx]))
+                                     || ! originalOffer.getGiveSet().contains(neededRsrc[getRsrcIdx])))
         {
             getRsrcIdx--;
         }
@@ -1772,7 +1773,7 @@ public class SOCRobotNegotiator
             {
                 D.ebugPrintln("*** ourResources.getAmount(" + notNeededRsrc[giveRsrcIdx] + ") = " + ourResources.getAmount(notNeededRsrc[giveRsrcIdx]));
 
-                if (ourResources.getAmount(notNeededRsrc[giveRsrcIdx]) > 0)
+                if (ourResources.contains(notNeededRsrc[giveRsrcIdx]))
                 {
                     giveResourceSet.clear();
                     giveResourceSet.add(1, notNeededRsrc[giveRsrcIdx]);
@@ -1836,7 +1837,7 @@ public class SOCRobotNegotiator
 
                 while ((giveRsrcIdx1 < notNeededRsrcCount) && (counterOffer == null))
                 {
-                    if (ourResources.getAmount(notNeededRsrc[giveRsrcIdx1]) > 0)
+                    if (ourResources.contains(notNeededRsrc[giveRsrcIdx1]))
                     {
                         while ((giveRsrcIdx2 < notNeededRsrcCount) && (counterOffer == null))
                         {
@@ -1900,7 +1901,7 @@ public class SOCRobotNegotiator
 
                 while ((giveRsrcIdx1 < neededRsrcCount) && (counterOffer == null))
                 {
-                    if ((leftovers.getAmount(neededRsrc[giveRsrcIdx1]) > 0) && (neededRsrc[giveRsrcIdx1] != neededRsrc[getRsrcIdx]))
+                    if (leftovers.contains(neededRsrc[giveRsrcIdx1]) && (neededRsrc[giveRsrcIdx1] != neededRsrc[getRsrcIdx]))
                     {
                         while ((giveRsrcIdx2 < notNeededRsrcCount) && (counterOffer == null))
                         {
@@ -1974,7 +1975,7 @@ public class SOCRobotNegotiator
 
             int getRsrcIdx2 = notNeededRsrcCount - 1;
 
-            while ((getRsrcIdx2 >= 0) && (originalOffer.getGiveSet().getAmount(notNeededRsrc[getRsrcIdx2]) == 0))
+            while ((getRsrcIdx2 >= 0) && ! originalOffer.getGiveSet().contains(notNeededRsrc[getRsrcIdx2]))
             {
                 getRsrcIdx2--;
             }
@@ -1994,7 +1995,7 @@ public class SOCRobotNegotiator
 
                     while ((giveRsrcIdx1 < notNeededRsrcCount) && (counterOffer == null))
                     {
-                        if ((leftovers.getAmount(notNeededRsrc[giveRsrcIdx1]) > 0) && (notNeededRsrc[giveRsrcIdx1] != notNeededRsrc[getRsrcIdx2]))
+                        if (leftovers.contains(notNeededRsrc[giveRsrcIdx1]) && (notNeededRsrc[giveRsrcIdx1] != notNeededRsrc[getRsrcIdx2]))
                         {
                             leftovers.subtract(1, notNeededRsrc[giveRsrcIdx1]);
 
@@ -2032,7 +2033,7 @@ public class SOCRobotNegotiator
 
                     while ((giveRsrcIdx1 < neededRsrcCount) && (counterOffer == null))
                     {
-                        if (leftovers.getAmount(neededRsrc[giveRsrcIdx1]) > 0)
+                        if (leftovers.contains(neededRsrc[giveRsrcIdx1]))
                         {
                             leftovers.subtract(1, neededRsrc[giveRsrcIdx1]);
 
@@ -2078,7 +2079,7 @@ public class SOCRobotNegotiator
 
             int getRsrcIdx2 = notNeededRsrcCount - 1;
 
-            while ((getRsrcIdx2 >= 0) && (originalOffer.getGiveSet().getAmount(notNeededRsrc[getRsrcIdx2]) == 0))
+            while ((getRsrcIdx2 >= 0) && ! originalOffer.getGiveSet().contains(notNeededRsrc[getRsrcIdx2]))
             {
                 getRsrcIdx2--;
             }
@@ -2098,7 +2099,7 @@ public class SOCRobotNegotiator
 
                     while ((giveRsrcIdx1 < notNeededRsrcCount) && (counterOffer == null))
                     {
-                        if ((leftovers.getAmount(notNeededRsrc[giveRsrcIdx1]) > 0) && (notNeededRsrc[giveRsrcIdx1] != notNeededRsrc[getRsrcIdx2]))
+                        if (leftovers.contains(notNeededRsrc[giveRsrcIdx1]) && (notNeededRsrc[giveRsrcIdx1] != notNeededRsrc[getRsrcIdx2]))
                         {
                             leftovers.subtract(1, notNeededRsrc[giveRsrcIdx1]);
 
@@ -2136,7 +2137,7 @@ public class SOCRobotNegotiator
 
                     while ((giveRsrcIdx1 < neededRsrcCount) && (counterOffer == null))
                     {
-                        if (leftovers.getAmount(neededRsrc[giveRsrcIdx1]) > 0)
+                        if (leftovers.contains(neededRsrc[giveRsrcIdx1]))
                         {
                             leftovers.subtract(1, neededRsrc[giveRsrcIdx1]);
 
@@ -2182,7 +2183,7 @@ public class SOCRobotNegotiator
 
             int getRsrcIdx2 = notNeededRsrcCount - 1;
 
-            while ((getRsrcIdx2 >= 0) && (originalOffer.getGiveSet().getAmount(notNeededRsrc[getRsrcIdx2]) == 0))
+            while ((getRsrcIdx2 >= 0) && ! originalOffer.getGiveSet().contains(notNeededRsrc[getRsrcIdx2]))
             {
                 getRsrcIdx2--;
             }
@@ -2202,7 +2203,7 @@ public class SOCRobotNegotiator
 
                     while ((giveRsrcIdx1 < notNeededRsrcCount) && (counterOffer == null))
                     {
-                        if ((leftovers.getAmount(notNeededRsrc[giveRsrcIdx1]) > 0) && (notNeededRsrc[giveRsrcIdx1] != notNeededRsrc[getRsrcIdx2]))
+                        if (leftovers.contains(notNeededRsrc[giveRsrcIdx1]) && (notNeededRsrc[giveRsrcIdx1] != notNeededRsrc[getRsrcIdx2]))
                         {
                             leftovers.subtract(1, notNeededRsrc[giveRsrcIdx1]);
 
@@ -2240,7 +2241,7 @@ public class SOCRobotNegotiator
 
                     while ((giveRsrcIdx1 < neededRsrcCount) && (counterOffer == null))
                     {
-                        if (leftovers.getAmount(neededRsrc[giveRsrcIdx1]) > 0)
+                        if (leftovers.contains(neededRsrc[giveRsrcIdx1]))
                         {
                             leftovers.subtract(1, neededRsrc[giveRsrcIdx1]);
 
@@ -2315,7 +2316,7 @@ public class SOCRobotNegotiator
         for (int rsrcType = SOCResourceConstants.CLAY;
                 rsrcType <= SOCResourceConstants.WOOD; rsrcType++)
         {
-            if (targetResources.getAmount(rsrcType) > 0)
+            if (targetResources.contains(rsrcType))
             {
                 neededRsrc[neededRsrcCount] = rsrcType;
                 neededRsrcCount++;

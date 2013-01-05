@@ -3,7 +3,7 @@
  * This file copyright (C) 2008 Christopher McNeil <http://sourceforge.net/users/cmcneil>
  * Portions of this file copyright (C) 2003-2004 Robert S. Thomas
  * Portions of this file copyright (C) 2008 Eli McGowan <http://sourceforge.net/users/emcgowan>
- * Portions of this file copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -125,7 +125,7 @@ public class DiscardStrategy {
                 while ((discards.getTotal() < numDiscards) && (curRsrc < 5))
                 {
                     //log.debug("(1) dis.tot="+discards.getTotal()+" curRsrc="+curRsrc);
-                    if (leftOvers.getAmount(resourceOrder[curRsrc]) > 0)
+                    if (leftOvers.contains(resourceOrder[curRsrc]))
                     {
                         discards.add(1, resourceOrder[curRsrc]);
                         leftOvers.subtract(1, resourceOrder[curRsrc]);
@@ -146,7 +146,7 @@ public class DiscardStrategy {
                 while ((discards.getTotal() < numDiscards) && (curRsrc < 5))
                 {
                     //log.debug("(2) dis.tot="+discards.getTotal()+" curRsrc="+curRsrc);
-                    if (neededRsrcs.getAmount(resourceOrder[curRsrc]) > 0)
+                    if (neededRsrcs.contains(resourceOrder[curRsrc]))
                     {
                         discards.add(1, resourceOrder[curRsrc]);
                         neededRsrcs.subtract(1, resourceOrder[curRsrc]);

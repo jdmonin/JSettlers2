@@ -1872,7 +1872,7 @@ public class SOCGame implements Serializable, Cloneable
         return (gameState == WAITING_FOR_PICK_GOLD_RESOURCE)
             && (players[pn] == currentRoll.sc_piri_fleetAttackVictim)
             && (currentRoll.sc_piri_fleetAttackRsrcs != null)
-            && (currentRoll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL) > 0);
+            && (currentRoll.sc_piri_fleetAttackRsrcs.contains(SOCResourceConstants.GOLD_LOCAL));
     }
 
     /**
@@ -4074,7 +4074,7 @@ public class SOCGame implements Serializable, Cloneable
                 currentRoll.sc_piri_fleetAttackVictim = victims.firstElement();
 
                 currentRoll.sc_piri_fleetAttackRsrcs = robberResult.sc_piri_loot;
-                if (currentRoll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL) > 0)
+                if (currentRoll.sc_piri_fleetAttackRsrcs.contains(SOCResourceConstants.GOLD_LOCAL))
                 {
                     if (currentDice == 7)
                     {
@@ -5534,11 +5534,12 @@ public class SOCGame implements Serializable, Cloneable
             for (int i = SOCResourceConstants.CLAY;
                     i <= SOCResourceConstants.WOOD; i++)
             {
-                if (give.getAmount(i) > 0)
+                final int giveAmt = give.getAmount(i);
+                if (giveAmt > 0)
                 {
-                    if (((give.getAmount(i) % 2) == 0) && currPlayer.getPortFlag(i))
+                    if (((giveAmt % 2) == 0) && currPlayer.getPortFlag(i))
                     {
-                        groupCount += (give.getAmount(i) / 2);
+                        groupCount += (giveAmt / 2);
                     }
                     else
                     {
