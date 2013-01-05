@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatistics, nested class refactoring, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
@@ -5225,7 +5226,8 @@ public class SOCPlayerClient extends Panel
                     new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
                     // Reader will start its own thread.
                     // Send VERSION right away (1.1.06 and later)
-                    putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+                    putPractice(SOCVersion.toCmd
+                        (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
 
                     // practice server will support per-game options
                     if (client.gi != null)
@@ -5347,7 +5349,8 @@ public class SOCPlayerClient extends Panel
                 connected = true;
                 (reader = new Thread(new NetReadTask(client, this))).start();
                 // send VERSION right away (1.1.06 and later)
-                putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+                putNet(SOCVersion.toCmd
+                    (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
             }
             catch (Exception e)
             {

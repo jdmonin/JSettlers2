@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2008-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2008-2010,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,6 +37,16 @@ public class SOCClientData
 {
     /** Number of games won and lost since client connected */
     private int wins, losses;
+
+    /**
+     * Client's reported JVM locale, or null, as in {@link java.util.Locale#toString()}.
+     * Sent as part of the SOCVersion message.
+     * Not sent from jsettlers clients older than 2.0.00;
+     * if null, should probably assume <tt>en_US</tt>
+     * since older versions had all messages in english.
+     * @since 2.0.00
+     */
+    public String locale;
 
     /**
      * Number of games/channels this client has created, which currently exist (not deleted)
@@ -308,7 +318,7 @@ public class SOCClientData
             cliData.cliVersionTask = null;  // Clear reference to this soon-to-expire obj
             if (! cliConn.isVersionKnown())
             {
-                srv.setClientVersSendGamesOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, false);
+                srv.setClientVersSendGamesOrReject(cliConn, SOCServer.CLI_VERSION_ASSUMED_GUESS, null, false);
 		// will also send game list.
 		// if cli vers already known, it's already sent the list.
             }

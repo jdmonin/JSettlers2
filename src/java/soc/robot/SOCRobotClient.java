@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -22,7 +22,6 @@
 package soc.robot;
 
 import soc.client.SOCDisplaylessPlayerClient;
-import soc.client.SOCPlayerInterface;
 
 import soc.disableDebug.D;
 
@@ -251,7 +250,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
-            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
             put(SOCImARobot.toCmd(nickname, SOCImARobot.RBCLASS_BUILTIN));
         }
         catch (Exception e)
@@ -291,7 +290,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
 
             //resetThread = new SOCRobotResetThread(this);
             //resetThread.start();
-            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+            put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
             put(SOCImARobot.toCmd(nickname, SOCImARobot.RBCLASS_BUILTIN));
         }
         catch (Exception e)

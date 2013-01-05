@@ -204,14 +204,14 @@ public class SOCServer extends Server
      * Minimum required client version, to connect and play a game.
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Currently there is no enforced minimum (0000).
-     * @see #setClientVersSendGamesOrReject(StringConnection, int, boolean)
+     * @see #setClientVersSendGamesOrReject(StringConnection, int, String, boolean)
      */
     public static final int CLI_VERSION_MIN = 0000;
 
     /**
      * Minimum required client version, in "display" form, like "1.0.00".
      * Currently there is no minimum.
-     * @see #setClientVersSendGamesOrReject(StringConnection, int, boolean)
+     * @see #setClientVersSendGamesOrReject(StringConnection, int, String, boolean)
      */
     public static final String CLI_VERSION_MIN_DISPLAY = "0.0.00";
 
@@ -2851,7 +2851,7 @@ public class SOCServer extends Server
         c.setAppData(cdata);
 
         // VERSION of server
-        c.put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+        c.put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
 
         // CHANNELS
         Vector<String> cl = new Vector<String>();
@@ -4149,11 +4149,11 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        setClientVersSendGamesOrReject(c, mes.getVersionNumber(), true);
+        setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.locale, true);
     }
 
     /**
-     * Set client's version, and check against minimum required version {@link #CLI_VERSION_MIN}.
+     * Set client's version and locale, and check against minimum required version {@link #CLI_VERSION_MIN}.
      * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}.
      * If we haven't yet sent the game list, send now.
      * If we've already sent the game list, send changes based on true version.
@@ -4171,19 +4171,24 @@ public class SOCServer extends Server
      *
      * @param c     Client's connection
      * @param cvers Version reported by client, or assumed version if no report
+     * @param clocale  Locale reported by client, or null if none given (was added to {@link SOCVersion} in 2.0.00)
      * @param isKnown Is this the client's definite version, or just an assumed one?
      *                Affects {@link StringConnection#isVersionKnown() c.isVersionKnown}.
      *                Can set the client's known version only once; a second "known" call with
      *                a different cvers will be rejected.
      * @return True if OK, false if rejected
      */
-    boolean setClientVersSendGamesOrReject(StringConnection c, final int cvers, final boolean isKnown)
+    boolean setClientVersSendGamesOrReject
+        (StringConnection c, final int cvers, final String clocale, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
 
+        SOCClientData scd = (SOCClientData) c.getAppData();
+        if (clocale != null)
+            scd.locale = clocale;
         if (prevVers == -1)
-            ((SOCClientData) c.getAppData()).clearVersionTimer();
+            scd.clearVersionTimer();
 
         if (prevVers != cvers)
         {
@@ -4262,7 +4267,7 @@ public class SOCServer extends Server
          */
         if (cliVers == -1)
         {
-            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
+            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, null, false))
                 return;  // <--- Discon and Early return: Client too old ---
             cliVers = c.getVersion();
         }
@@ -4873,7 +4878,7 @@ public class SOCServer extends Server
          */
         if (c.getVersion() == -1)
         {
-            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
+            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, null, false))
                 return;  // <--- Early return: Client too old ---
         }
 
