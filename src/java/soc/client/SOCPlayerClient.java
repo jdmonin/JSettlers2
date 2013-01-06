@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatistics, nested class refactoring, parameterize types
  *
  * This program is free software; you can redistribute it and/or
@@ -57,6 +57,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
@@ -1936,6 +1937,14 @@ public class SOCPlayerClient extends Panel
                 handlePIECEVALUE((SOCPieceValue) mes);
                 break;
 
+            /**
+             * Text that a player has been awarded Special Victory Point(s).
+             * Added 2012-12-21 for v2.0.00.
+             */
+            case SOCMessage.SVPTEXTMSG:
+                handleSVPTEXTMSG((SOCSVPTextMessage) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -2623,6 +2632,10 @@ public class SOCPlayerClient extends Panel
             x = mes.getIntArrayPart("CV");
             if (x != null)
                 ((SOCBoardLarge) bd).setVillageAndClothLayout(x);
+
+            HashMap<String, int[]> others = mes.getAddedParts();
+            if (others != null)
+                ((SOCBoardLarge) bd).setAddedLayoutParts(others);
         }
         else if (bef <= SOCBoard.BOARD_ENCODING_6PLAYER)
         {
@@ -2879,6 +2892,20 @@ public class SOCPlayerClient extends Panel
                     ((SOCBoardLarge) (ga.getBoard())).setCloth(mes.getValue());
                     pi.getBuildingPanel().updateClothCount();
                 }
+                break;
+
+            case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+                switch (mes.getAction())
+                {
+                case SOCPlayerElement.SET:
+                    pl.setNumWarships(mes.getValue());
+                    break;
+
+                case SOCPlayerElement.GAIN:
+                    pl.setNumWarships(pl.getNumWarships() + mes.getValue());
+                    break;
+                }
+                pi.updateAtPiecesChanged();
                 break;
 
             }
@@ -3763,6 +3790,28 @@ public class SOCPlayerClient extends Panel
 
         SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(mes.getParam1());
         vi.setCloth(mes.getParam2());
+    }
+
+    /**
+     * Text that a player has been awarded Special Victory Point(s).
+     * The server will also send a {@link SOCPlayerElement} with the SVP total.
+     * Also sent for each player's SVPs when client is joining a game in progress.
+     * @since 2.0.00
+     */
+    protected void handleSVPTEXTMSG(final SOCSVPTextMessage mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+        SOCPlayer pl = ga.getPlayer(mes.pn);
+        if (pl == null)
+            return;
+        pl.addSpecialVPInfo(mes.svp, mes.desc);
+        SOCPlayerInterface pi = playerInterfaces.get(gaName);
+        if ((pi == null) || (null == pi.getClientHand()))
+            return;  // not seated yet (joining game in progress)
+        pi.updateAtSVPText(pl.getName(), mes.svp, mes.desc);
     }
 
     }  // nested class MessageTreater
@@ -5172,7 +5221,8 @@ public class SOCPlayerClient extends Panel
                     new SOCPlayerLocalStringReader((LocalStringConnection) prCli);
                     // Reader will start its own thread.
                     // Send VERSION right away (1.1.06 and later)
-                    putPractice(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+                    putPractice(SOCVersion.toCmd
+                        (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
 
                     // practice server will support per-game options
                     if (client.gi != null)
@@ -5294,7 +5344,8 @@ public class SOCPlayerClient extends Panel
                 connected = true;
                 (reader = new Thread(new NetReadTask(client, this))).start();
                 // send VERSION right away (1.1.06 and later)
-                putNet(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+                putNet(SOCVersion.toCmd
+                    (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
             }
             catch (Exception e)
             {

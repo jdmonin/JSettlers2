@@ -236,9 +236,14 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int PIECEVALUE = 1094;  // cloth villages scenario, 20121115, v2.0.00
 
-    /** Legal road or ship edges for the large sea board,.
+    /** Legal road or ship edges for the large sea board.
      *  @since 2.0.00 */
     public static final int LEGALEDGES = 1095;  // large sea board, 20121216, v2.0.00 
+
+    /** Text that a player has been awarded Special Victory Point(s).
+     *  The server will also send a {@link SOCPlayerElement} with the SVP total.
+     *  @since 2.0.00 */
+    public static final int SVPTEXTMSG = 1096;  // SVP text messages, 20121221, v2.0.00 
 
 
     /////////////////////////////////////////
@@ -420,6 +425,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /**
      * Variant of {@link #isSingleLineAndSafe(String)} that can optionally
      * allow {@link #sep_char} or {@link #sep2_char}.
+     * See that method for other conditions checked here.
      * @param s  string to test; if null, returns false.
      * @param allowSepChars  If true, string can contain {@link #sep_char} or {@link #sep2_char}
      * @return true if all characters are OK, false otherwise.
@@ -826,6 +832,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case LEGALEDGES:        // large sea board, 20121216, v2.0.00
                 return SOCLegalEdges.parseDataStr(data);
+
+            case SVPTEXTMSG:        // SVP text messages, 20121221, v2.0.00
+                return SOCSVPTextMessage.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

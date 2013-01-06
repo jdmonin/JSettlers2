@@ -116,7 +116,7 @@ public class SOCPlayerElement extends SOCMessage
     public static final int STARTING_LANDAREAS = 21;
 
     /**
-     * For scenarios on the {@link soc.game.SOCBoardLarge large sea board},
+     * For scenario <tt>_SC_CLVI</tt> on the {@link soc.game.SOCBoardLarge large sea board},
      * the number of cloth held by this player.
      * This element is {@link #SET} to 0, or to the player's cloth count
      * from {@link soc.game.SOCPlayer#getCloth()}.
@@ -128,6 +128,22 @@ public class SOCPlayerElement extends SOCMessage
      * @since 2.0.00
      */
     public static final int SCENARIO_CLOTH_COUNT = 22;
+
+    /**
+     * For scenario game option <tt>_SC_PIRI</tt>,
+     * the player's total number of ships that have been converted to warships.
+     * See SOCPlayer.getNumWarships() for details.
+     * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of
+     * warships decreases, send {@link #SET}, never send {@link #LOSE}.
+     *<P>
+     * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
+     * message is sent to their client only after sending their SOCShip piece positions.
+     * @since 2.0.00
+     */
+    public static final int SCENARIO_WARSHIP_COUNT = 23;
+
+    // End of element declaration list.
+    // -----------------------------------------------------------
 
     /**
      * player element actions

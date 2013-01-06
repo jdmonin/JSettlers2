@@ -30,9 +30,13 @@ import java.util.Vector;
 
 import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
+import soc.game.SOCPlayer;
 import soc.game.SOCScenario;
+import soc.game.SOCSettlement;
+import soc.game.SOCShip;
 import soc.game.SOCVillage;
 import soc.game.SOCBoard.BoardFactory;
 import soc.util.IntPair;
@@ -91,6 +95,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     private static final long serialVersionUID = 2000L;
 
     /**
+     * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the pirate fleet's position on its path (PP).  Otherwise unused.
+     * @see #movePirateHexAlongPath(int)
+     */
+    private int piratePathIndex;
+
+    /**
      * Create a new Settlers of Catan Board, with the v3 encoding.
      * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Hashtable, boolean, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
@@ -108,6 +119,29 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // Nothing special for now at server
     }
 
+    /**
+     * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * move the pirate fleet's position along its path.
+     * Calls {@link SOCBoardLarge#setPirateHex(int, boolean) setPirateHex(newHex, true)}.
+     * @param numSteps  Number of steps to move along the path
+     * @return  new pirate hex coordinate
+     * @throws IllegalStateException if this board doesn't have layout part "PP" for the Pirate Path.
+     */
+    @Override
+    public int movePirateHexAlongPath(final int numSteps)
+        throws IllegalStateException
+    {
+        final int[] path = getAddedLayoutPart("PP");
+        if (path == null)
+            throw new IllegalStateException();
+        int i = piratePathIndex + numSteps;
+        while (i >= path.length)
+            i -= path.length;
+        piratePathIndex = i;
+        final int ph = path[i];
+        setPirateHex(ph, true);
+        return ph;
+    }
 
     ////////////////////////////////////////////
     //
@@ -220,6 +254,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             PORTS_TYPES_ISLANDS = null;
             PORT_LOC_FACING_MAINLAND = PIR_ISL_PORT_EDGE_FACING[idx];
             PORT_LOC_FACING_ISLANDS = null;
+
+            setAddedLayoutPart("PP", PIR_ISL_PPATH[idx]);
         }
         else if (! hasScenarioFog)
         {
@@ -1384,6 +1420,37 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             return heightWidth;
     }
 
+    /**
+     * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * place each player's initial pieces.  Otherwise do nothing.
+     */
+    public static void startGame_putInitPieces(SOCGame ga)
+    {
+        if (! ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            return;
+
+        final int gstate = ga.getGameState();
+        ga.setGameState(SOCGame.READY);  // prevent ga.putPiece from advancing turn
+
+        final int[] inits = (ga.maxPlayers > 4) ? PIR_ISL_INIT_PIECES[1] : PIR_ISL_INIT_PIECES[0];
+        SOCBoard board = ga.getBoard();
+
+        int i = 0;  // iterate out here, to avoid spacing gaps from vacant players
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            if (ga.isSeatVacant(pn))
+                continue;
+
+            SOCPlayer pl = ga.getPlayer(pn);
+            ga.putPiece(new SOCSettlement(pl, inits[i], board));  ++i;
+            ga.putPiece(new SOCShip(pl, inits[i], board));  ++i;
+            ga.putPiece(new SOCFortress(pl, inits[i], board));  ++i;
+            ++i;  // TODO handle possible-settlement node
+        }
+
+        ga.setGameState(gstate);
+    }
+
 
     ////////////////////////////////////////////
     //
@@ -2348,6 +2415,45 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         3, 6, 11, 8, 11, 6, 3, 8
     }};
 
+    /**
+     * Pirate Islands: The hex-coordinate path for the Pirate Fleet; SOCBoardLarge additional part <tt>"PP"</tt>.
+     * First element is the pirate starting position.  {@link #piratePathIndex} is already 0.
+     */
+    private static final int PIR_ISL_PPATH[][] =
+    {{
+        // 4 players
+        0x0D0A, 0x0D08, 0x0B07, 0x0906, 0x0707, 0x0506, 0x0307,
+        0x0108, 0x010A, 0x030B, 0x050A, 0x0709, 0x090A, 0x0B0B
+    }, {
+        // 6 players
+        0x0D0A, 0x0B09, 0x0908, 0x0707, 0x0508, 0x0309, 0x010A,
+        0x010C, 0x030D, 0x050C, 0x070B, 0x090C, 0x0B0D, 0x0D0C
+    }};
+
+    /**
+     * Pirate Islands: Initial piece coordinates for each player.
+     * Each player has 4 elements, starting at index <tt>4 * playerNumber</tt>:
+     * Initial settlement node, initial ship edge, pirate fortress node,
+     * and the node on the pirate island where they are allowed to build
+     * a settlement on the way to the fortress.
+     */
+    private static final int PIR_ISL_INIT_PIECES[][] =
+    {{
+        // 4 players
+        0x0C0C, 0x0C0B, 0x0E04, 0x0E07,
+        0x020C, 0x020B, 0x0004, 0x0007,
+        0x080B, 0x080A, 0x0A03, 0x0805,
+        0x060B, 0x060A, 0x0403, 0x0605
+    }, {
+        // 6 players
+        0x0C0E, 0x0C0D, 0x0C04, 0x0C08,
+        0x020E, 0x020D, 0x0204, 0x0208,
+        0x080D, 0x080C, 0x0803, 0x0807,
+        0x060D, 0x060C, 0x0603, 0x0607,
+        0x000D, 0x000C, 0x0003, 0x0009,
+        0x0E0D, 0x0E0C, 0x0E03, 0x0E09
+    }};
+ 
 
     ////////////////////////////////////////////
     //

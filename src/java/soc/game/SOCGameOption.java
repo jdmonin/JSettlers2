@@ -526,7 +526,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
-     * Fortresses are in a game only if this option is set.
+     * Fortresses and player warships are in a game only if this option is set.
      * @since 2.0.00
      */
     public static final String K_SC_PIRI = "_SC_PIRI";

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatistics, type parameterization, GUI API updates
  *
  * This program is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@ import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
 import soc.game.SOCCity;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
@@ -1619,6 +1620,31 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * A player has been awarded Special Victory Points (SVP), so announce those details.
+     * Example: "Lily gets 2 Special Victory Points for settling a new island."
+     * Only prints text, does not update SOCHandPanel's SVP or call {@link SOCPlayer#addSpecialVPInfo(int, String)}.
+     * @param plName  Player name
+     * @param svp  Number of SVP awarded
+     * @param desc  Description of player's action that led to SVP; example: "settling a new island"
+     * @since 2.0.00
+     */
+    public void updateAtSVPText(final String plName, final int svp, final String desc)
+    {
+        StringBuilder sb = new StringBuilder("* ");
+        sb.append(plName);
+        sb.append(" gets ");
+        sb.append(svp);
+        final String svpFor = (svp == 1)
+            ? " Special Victory Point for "
+            : " Special Victory Points for ";
+        sb.append(svpFor);
+        sb.append(desc);
+        sb.append(".\n");
+
+        textDisplay.append(sb.toString());
+    }
+
+    /**
      * Set or clear the chat text input's initial prompt.
      * Sets its status, foreground color, and the prompt text if true.
      *
@@ -1818,17 +1844,37 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Handle updates after pieces have changed on the board.
+     * For example, when scenario {@link SOCGameOption#K_SC_PIRI}
+     * converts players' ships to warships, changes the strength
+     * of a pirate fortress, etc.
+     *<P>
+     * Call <b>after</b> updating game state.  This is different than
+     * {@link #updateAtPutPiece(int, int, int, boolean, int)} which
+     * updates both the {@link SOCGame} and the board.
+     *<P>
+     * Currently, hand panels aren't updated (piece counts or VP total), only {@link SOCBoardPanel}.
+     * @since 2.0.00
+     */
+    public void updateAtPiecesChanged()
+    {
+        boardPanel.repaint();
+    }
+
+    /**
      * Handle updates after putting a piece on the board,
      * or moving a ship that was already placed.
      * Place or move the piece within our {@link SOCGame}
      * and visually on our {@link SOCBoardPanel}.
-     * @since 2.0.00
      *
      * @param mesPn  The piece's player number
      * @param coord  The piece's coordinate.  If <tt>isMove</tt>, the coordinate to move <em>from</em>.
      * @param pieceType  Piece type, like {@link SOCPlayingPiece#CITY}
      * @param isMove   If true, it's a move, not a new placement; valid only for ships.
      * @param moveToCoord  If <tt>isMove</tt>, the coordinate to move <em>to</em>.  Otherwise ignored.
+     *
+     * @see #updateAtPiecesChanged()
+     * @since 2.0.00
      */
     public void updateAtPutPiece
         (final int mesPn, final int coord, final int pieceType,
@@ -1912,6 +1958,11 @@ public class SOCPlayerInterface extends Frame
 
             return; // <--- Early return: Piece is part of board initial layout, not player info ---
 
+        case SOCPlayingPiece.FORTRESS:
+            pp = new SOCFortress(pl, coord, game.getBoard());
+            game.putPiece(pp);
+            return; // <--- Early return: Piece is part of board initial layout, not added during game ---
+
         default:
             chatPrintDebug("* Unknown piece type " + pieceType + " at coord 0x" + coord);
 
@@ -1977,6 +2028,7 @@ public class SOCPlayerInterface extends Frame
         if (flagsChanged && (pl.getSpecialVP() != 0))
         {
             // assumes will never be reduced to 0 again
+            //   so won't ever need to hide SVP counter
             mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
             mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
             // (This code also appears in SOCPlayerClient.handlePLAYERELEMENT)
@@ -2030,6 +2082,7 @@ public class SOCPlayerInterface extends Frame
     /**
      * Handle board reset (new game with same players, same game name).
      * The reset message will be followed with others which will fill in the game state.
+     * Most GUI panels are destroyed and re-created.  Player chat text is kept.
      *
      * @param newGame New game object
      * @param rejoinPlayerNumber Sanity check - must be our correct player number in this game
@@ -2061,6 +2114,7 @@ public class SOCPlayerInterface extends Frame
             hands[i].setEnabled(false);
             hands[i].destroy();
         }
+        final String prevChatText = chatDisplay.getText();
         final boolean[] boardDebugShow = boardPanel.debugShowPotentials.clone();
         clientHand = null;
         clientHandPlayerNum = -1;
@@ -2072,8 +2126,11 @@ public class SOCPlayerInterface extends Frame
         setTitle(TITLEBAR_GAME + game.getName() +
                  (game.isPractice ? "" : " [" + client.getNickname() + "]"));
         boardPanel.debugShowPotentials = boardDebugShow;
+
         validate();
         repaint();
+
+        chatDisplay.append(prevChatText);
         String requesterName = game.getPlayer(requesterNumber).getName();
         if (requesterName == null)
             requesterName = "player who left";

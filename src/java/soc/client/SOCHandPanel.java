@@ -48,7 +48,9 @@ import java.awt.PopupMenu;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
+import java.util.ArrayList;
 import java.util.Timer;  // For auto-roll
 import java.util.TimerTask;
 
@@ -67,7 +69,8 @@ import java.util.TimerTask;
  * To set this panel's position or size, please use {@link #setBounds(int, int, int, int)},
  * because it is overridden to also update {@link #getBlankStandIn()}.
  */
-public class SOCHandPanel extends Panel implements ActionListener
+public class SOCHandPanel extends Panel
+    implements ActionListener, MouseListener
 {
     /** Minimum desired width, in pixels */
     public static final int WIDTH_MIN = 218;
@@ -541,10 +544,12 @@ public class SOCHandPanel extends Panel implements ActionListener
             svpLab.setVisible(false);
             add(svpLab);
             new AWTToolTip("Special Victory Points for this player", svpLab);
+            svpLab.addMouseListener(this);
             svpSq = new ColorSquare(ColorSquare.GREY, 0);
             svpSq.setVisible(false);
-            svpSq.setTooltipText("Special Victory Points for this player");
+            svpSq.setTooltipText("Special Victory Points, click for details");
             add(svpSq);
+            svpSq.addMouseListener(this);
         } else {
             svpLab = null;
             svpSq = null;
@@ -999,6 +1004,46 @@ public class SOCHandPanel extends Panel implements ActionListener
     }
 
     /**
+     * Handle clicks on {@link #svpSq} or {@link #svpLab} to get more info.
+     * @since 2.0.00
+     */
+    public void mouseClicked(MouseEvent e)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Total Special Victory Points: " + player.getSpecialVP());
+
+        ArrayList<SOCPlayer.SpecialVPInfo> svpis = player.getSpecialVPInfo();
+        if ((svpis != null) && (svpis.size() > 0))
+        {
+            sb.append("\n");
+
+            // null shouldn't happen: server sends svp info when SVPs are awarded,
+            //  or when the client joins a game in progress.
+            for (SOCPlayer.SpecialVPInfo svpi : svpis)
+            {
+                sb.append("\n");
+                sb.append(svpi.svp);
+                sb.append(": ");
+                sb.append(svpi.desc);
+            }
+        }
+
+        NotifyDialog.createAndShow(client, playerInterface, sb.toString(), null, true);
+    }
+
+    /** required stub for MouseListener */
+    public void mousePressed(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mouseReleased(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mouseEntered(MouseEvent e) {}
+
+    /** required stub for MouseListener */
+    public void mouseExited(MouseEvent e) {}
+
+    /**
      * Create and send a bank/port trade request.
      * Remember the resources for the "undo" button.
      * @param game  Our game
@@ -1141,12 +1186,23 @@ public class SOCHandPanel extends Panel implements ActionListener
                 cardTypeToPlay = SOCDevCardConstants.MONO;
             }
         }
+        else if (item.equals("Warship"))
+        {
+            if (game.canPlayKnight(playerNumber))
+                cardTypeToPlay = SOCDevCardConstants.KNIGHT;
+            else
+                playerInterface.print("* You cannot convert a ship to a warship right now.");
+        }
         else if (item.indexOf("VP)") > 0)
         {
             playerInterface.print("*** You secretly played this VP card when you bought it.");
             itemNum = cardList.getSelectedIndex();
             if (itemNum >= 0)
                 cardList.deselect(itemNum);
+        }
+        else
+        {
+            playerInterface.print("L1198 internal error: Unknown card type " + item);
         }
 
         if (cardTypeToPlay != -1)
@@ -1864,7 +1920,8 @@ public class SOCHandPanel extends Panel implements ActionListener
                             SOCDevCardConstants.TOW,
                             SOCDevCardConstants.UNIV };
         String[] cardNames = {"Year of Plenty",
-                              "Soldier",
+                              (game.isGameOptionSet(SOCGameOption.K_SC_PIRI)
+                                  ? "Warship" : "Soldier"),
                               "Monopoly",
                               "Road Building",
                               "Gov. House (1VP)",

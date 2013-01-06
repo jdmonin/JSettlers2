@@ -133,13 +133,16 @@ public class SOCForceEndTurnResult
      *            ({@link #FORCE_ENDTURN_UNPLACE_ROBBER}, etc.)
      * @param updateFirstPlayer Was {@link SOCGame#getFirstPlayer()} changed?
      * @param updateLastPlayer  Was game's lastPlayer changed?
+     * @param rsrcGained  null, or randomly picked resources from gold hex
+     *            from state {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}
      * @throws IllegalArgumentException If res is not in the range
      *            {@link #FORCE_ENDTURN_MIN} to {@link #FORCE_ENDTURN_MAX}.
      * @since 1.1.09
      */
-    public SOCForceEndTurnResult(int res, final boolean updateFirstPlayer, final boolean updateLastPlayer)
+    public SOCForceEndTurnResult
+        (final int res, final boolean updateFirstPlayer, final boolean updateLastPlayer, SOCResourceSet rsrcGained)
     {
-        this(res, null, false, updateFirstPlayer, updateLastPlayer);
+        this(res, rsrcGained, false, updateFirstPlayer, updateLastPlayer);
     }
 
     /**

@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -34,7 +34,6 @@ import soc.server.genericServer.LocalStringConnection;
 import soc.server.genericServer.Server;
 import soc.server.genericServer.StringConnection;
 
-import soc.util.IntPair;
 import soc.util.SOCGameBoardReset;
 import soc.util.SOCGameList;  // used in javadoc
 import soc.util.SOCRobotParameters;
@@ -44,6 +43,8 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -204,14 +205,14 @@ public class SOCServer extends Server
      * Minimum required client version, to connect and play a game.
      * Same format as {@link soc.util.Version#versionNumber()}.
      * Currently there is no enforced minimum (0000).
-     * @see #setClientVersSendGamesOrReject(StringConnection, int, boolean)
+     * @see #setClientVersSendGamesOrReject(StringConnection, int, String, boolean)
      */
     public static final int CLI_VERSION_MIN = 0000;
 
     /**
      * Minimum required client version, in "display" form, like "1.0.00".
      * Currently there is no minimum.
-     * @see #setClientVersSendGamesOrReject(StringConnection, int, boolean)
+     * @see #setClientVersSendGamesOrReject(StringConnection, int, String, boolean)
      */
     public static final String CLI_VERSION_MIN_DISPLAY = "0.0.00";
 
@@ -1334,7 +1335,7 @@ public class SOCServer extends Server
         recordGameEvent(gm, leaveMessage.toCmd());
 
         D.ebugPrintln("*** " + plName + " left the game " + gm);
-        messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, plName + " left the game"));
+        messageFormatToGame(gm, false, "{0} left the game", plName);
 
         /**
          * check if there is at least one person playing the game
@@ -1418,19 +1419,18 @@ public class SOCServer extends Server
                  */
                 foundNoRobots = false;
 
-                messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Fetching a robot player..."));
+                messageToGameWithMon(gm, "Fetching a robot player...");
 
                 if (robots.isEmpty())
                 {
-                    messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Sorry, no robots on this server."));
+                    messageToGameWithMon(gm, "Sorry, no robots on this server.");
                     foundNoRobots = true;
                 }
                 else if (ga.getClientVersionMinRequired() > Version.versionNumber())
                 {
-                    messageToGameWithMon(gm, new SOCGameTextMsg
-                            (gm, SERVERNAME,
-                             "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's "
-                             + ga.getClientVersionMinRequired()));
+                    messageFormatToGame(gm, false,
+                         "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's {0}",
+                         ga.getClientVersionMinRequired());
                     foundNoRobots = true;
                 }
                 else
@@ -1520,7 +1520,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "*** Can't find a robot! ***"));
+                        messageToGameWithMon(gm, "*** Can't find a robot! ***");
                         foundNoRobots = true;
                     }
                 }
@@ -1781,9 +1781,9 @@ public class SOCServer extends Server
                     {
                         messageToGame
                             (gaName, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.GAIN, res, 1));
-                        messageToGame
-                            (gaName, ga.getPlayer(ga.getCurrentPlayerNumber()).getName() + " gets 1 "
-                             + SOCResourceConstants.resName(res) + " by revealing the fog hex.");
+                        messageFormatToGame
+                            (gaName, true, "{0} gets 1 {1} by revealing the fog hex.",
+                             ga.getPlayer(cpn).getName(), SOCResourceConstants.resName(res));
                     }
                 }
             }
@@ -1795,6 +1795,8 @@ public class SOCServer extends Server
     /**
      * Listener callback for per-player scenario events on the large sea board.
      * For example, there might be an SVP awarded for settlements.
+     * Server sends messages to the game to announce it (PLAYERELEMENT,
+     * {@link #updatePlayerSVPPendingMessage(SOCGame, SOCPlayer, int, String)}, etc).
      *<P>
      * <em>Threads:</em> The game's treater thread handles incoming client messages and calls
      * game methods that change state. Those same game methods will trigger the scenario events;
@@ -1829,17 +1831,14 @@ public class SOCServer extends Server
         {
         case SVP_SETTLED_ANY_NEW_LANDAREA:
             {
-                messageToGame
-                    (gaName, plName + " gets a Special Victory Point for growing past the main island.");
+                updatePlayerSVPPendingMessage(ga, pl, 1, "growing past the main island");
                 // TODO adjust wording
             }
             break;
 
         case SVP_SETTLED_EACH_NEW_LANDAREA:
             {
-                messageToGame
-                    (gaName, plName + " gets 2 Special Victory Points for settling a new island.");
-
+                updatePlayerSVPPendingMessage(ga, pl, 2, "settling a new island");
                 sendPlayerEventsBitmask = false;
                 final int las = pl.getScenarioSVPLandAreas();
                 if (las != 0)
@@ -1854,13 +1853,13 @@ public class SOCServer extends Server
                 sendSVP = false;
                 if (! flagsChanged)
                     sendPlayerEventsBitmask = false;
-                StringConnection c = getConnection(plName);
-                if (c != null)
+                messageFormatToGame(gaName, true, "{0} established a trade route with a village.", plName);
+                if (flagsChanged)
                 {
-                    String txt = (flagsChanged)
-                        ? "Trade route established with village. You are no longer prevented from moving the pirate ship."
-                        : "Trade route established with village.";
-                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, txt));
+                    StringConnection c = getConnection(plName);
+                    if (c != null)
+                        c.put(SOCGameTextMsg.toCmd
+                            (gaName, SERVERNAME, "You are no longer prevented from moving the pirate ship."));
                 }
 
                 // Player gets 1 cloth for establishing trade
@@ -1881,6 +1880,29 @@ public class SOCServer extends Server
             ga.pendingMessagesOut.add(new SOCPlayerElement
                 (gaName, pn, SOCPlayerElement.SET,
                  SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, pl.getScenarioPlayerEvents()));
+    }
+
+    /**
+     * A player has been awarded Special Victory Points (SVP), so send
+     * a {@link SOCSVPTextMessage} to the game about the SVP description,
+     * and also call {@link SOCPlayer#addSpecialVPInfo(int, String)}.
+     * Should be called before {@link SOCPlayerElement}({@link SOCPlayerElement#SCENARIO_SVP SCENARIO_SVP}),
+     * not after.
+     *<P>
+     * Adds the message to {@link SOCGame#pendingMessagesOut}; note that
+     * right now, that field is checked only in {@link #handlePUTPIECE(StringConnection, SOCPutPiece)},
+     * because no other method currently awards SVP.
+     * @param ga  Game
+     * @param pl  Player
+     * @param svp  Number of SVP
+     * @param desc  Description of player's action that led to SVP
+     * @since 2.0.00
+     */
+    private void updatePlayerSVPPendingMessage(SOCGame ga, SOCPlayer pl, final int svp, final String desc)
+    {
+        pl.addSpecialVPInfo(svp, desc);
+        final String gaName = ga.getName();
+        ga.pendingMessagesOut.add(new SOCSVPTextMessage(gaName, pl.getPlayerNumber(), svp, desc));        
     }
 
     /**
@@ -2003,7 +2025,7 @@ public class SOCServer extends Server
             reportRsrcGainLoss(gaName, discard, true, cpn, -1, null, c);
         int totalRes = discard.getTotal();
         messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
-        messageToGame(gaName, plName + " discarded " + totalRes + " resources.");
+        messageFormatToGame(gaName, true, "{0} discarded {1} resources.", plName, totalRes);
     }
 
     /**
@@ -2402,7 +2424,9 @@ public class SOCServer extends Server
      *            an urgent message, and draw the user's attention in some way.
      *            (See {@link #messageToGameUrgent(String, String)})
      * @see #messageToGame(String, SOCMessage)
+     * @see #messageFormatToGame(String, boolean, String, Object...)
      * @see #messageToGameWithMon(String, SOCMessage)
+     * @see #messageToGameExcept(String, StringConnection, String, boolean)
      * @since 1.1.08
      */
     public void messageToGame(final String ga, final String txt)
@@ -2443,6 +2467,7 @@ public class SOCServer extends Server
      *
      * @param ga  the name of the game
      * @param mes the message to send
+     * @see #messageToGameWithMon(String, String)
      * @see #messageToGame(String, SOCMessage)
      * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
      */
@@ -2466,6 +2491,90 @@ public class SOCServer extends Server
                 c.put(mesCmd);
             }
         }
+    }
+
+    /**
+     * Send a server text message to the given game.
+     * Equivalent to: messageToGameWithMon(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, txt));
+     *<P>
+     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
+     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
+     *<P>
+     *<b>Locks:</b> MUST HAVE THE
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
+     * before calling this method.
+     *
+     * @param ga  the name of the game
+     * @param txt the message text to send. If
+     *            text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @see #messageToGame(String, String)
+     * @see #messageToGameWithMon(String, SOCMessage)
+     * @since 2.0.00
+     */
+    public void messageToGameWithMon(String ga, String txt)
+    {
+        messageToGameWithMon(ga, new SOCGameTextMsg(ga, SERVERNAME, txt));
+    }
+
+    /**
+     * Send a formatted server text message to the given game.
+     * Standardizes construction of strings with arguments, to aid with internationalization.
+     * Equivalent to: messageToGame(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, MessageFormat.format(txt, args)));
+     *<P>
+     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
+     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
+     *<P>
+     *<b>Locks:</b> Either set <tt>takeMon</tt> true, or call
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
+     * before calling this method.
+     *
+     * @param ga  the name of the game
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param txt the message text to send. If
+     *            text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param args  Any parameters within <tt>, to be formatted as in {@link MessageFormat}
+     * @see #messageToGame(String, String)
+     * @since 2.0.00
+     */
+    public void messageFormatToGame(final String ga, final boolean takeMon, final String txt, final Object ... args)
+    {
+        final String finalTxt = MessageFormat.format(txt, args);
+
+        if (takeMon)
+            messageToGame(ga, finalTxt);
+        else
+            messageToGameWithMon(ga, finalTxt);
+    }
+
+    /**
+     * Send a server text message to all the connections in a game excluding one.
+     * Equivalent to: messageToGameExcept(gn, new SOCGameTextMsg(gn, {@link #SERVERNAME}, txt), takeMon);
+     *<P>
+     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
+     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
+     *
+     * @param gn  the name of the game
+     * @param ex  the excluded connection, or null
+     * @param txt the message text to send. If
+     *            text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @see #messageToGame(String, String)
+     * @see #messageToGameExcept(String, StringConnection, SOCMessage, boolean)
+     * @since 2.0.00
+     */
+    public void messageToGameExcept(final String gn, final StringConnection ex, final String txt, final boolean takeMon)
+    {
+        messageToGameExcept(gn, ex, new SOCGameTextMsg(gn, SERVERNAME, txt), takeMon);
     }
 
     /**
@@ -2524,6 +2633,7 @@ public class SOCServer extends Server
      * @param mes the message
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     * @see #messageToGameExcept(String, StringConnection, String, boolean)
      * @see #messageToGameExcept(String, Vector, SOCMessage, boolean)
      * @see #messageToGameForVersionsExcept(SOCGame, int, int, StringConnection, SOCMessage, boolean)
      */
@@ -2802,7 +2912,7 @@ public class SOCServer extends Server
         c.setAppData(cdata);
 
         // VERSION of server
-        c.put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum()));
+        c.put(SOCVersion.toCmd(Version.versionNumber(), Version.version(), Version.buildnum(), null));
 
         // CHANNELS
         Vector<String> cl = new Vector<String>();
@@ -4100,11 +4210,11 @@ public class SOCServer extends Server
         if (c == null)
             return;
 
-        setClientVersSendGamesOrReject(c, mes.getVersionNumber(), true);
+        setClientVersSendGamesOrReject(c, mes.getVersionNumber(), mes.locale, true);
     }
 
     /**
-     * Set client's version, and check against minimum required version {@link #CLI_VERSION_MIN}.
+     * Set client's version and locale, and check against minimum required version {@link #CLI_VERSION_MIN}.
      * If version is too low, send {@link SOCRejectConnection REJECTCONNECTION}.
      * If we haven't yet sent the game list, send now.
      * If we've already sent the game list, send changes based on true version.
@@ -4122,19 +4232,24 @@ public class SOCServer extends Server
      *
      * @param c     Client's connection
      * @param cvers Version reported by client, or assumed version if no report
+     * @param clocale  Locale reported by client, or null if none given (was added to {@link SOCVersion} in 2.0.00)
      * @param isKnown Is this the client's definite version, or just an assumed one?
      *                Affects {@link StringConnection#isVersionKnown() c.isVersionKnown}.
      *                Can set the client's known version only once; a second "known" call with
      *                a different cvers will be rejected.
      * @return True if OK, false if rejected
      */
-    boolean setClientVersSendGamesOrReject(StringConnection c, final int cvers, final boolean isKnown)
+    boolean setClientVersSendGamesOrReject
+        (StringConnection c, final int cvers, final String clocale, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
 
+        SOCClientData scd = (SOCClientData) c.getAppData();
+        if (clocale != null)
+            scd.locale = clocale;
         if (prevVers == -1)
-            ((SOCClientData) c.getAppData()).clearVersionTimer();
+            scd.clearVersionTimer();
 
         if (prevVers != cvers)
         {
@@ -4213,7 +4328,7 @@ public class SOCServer extends Server
          */
         if (cliVers == -1)
         {
-            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
+            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, null, false))
                 return;  // <--- Discon and Early return: Client too old ---
             cliVers = c.getVersion();
         }
@@ -4824,7 +4939,7 @@ public class SOCServer extends Server
          */
         if (c.getVersion() == -1)
         {
-            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, false))
+            if (! setClientVersSendGamesOrReject(c, CLI_VERSION_ASSUMED_GUESS, null, false))
                 return;  // <--- Early return: Client too old ---
         }
 
@@ -5441,7 +5556,7 @@ public class SOCServer extends Server
                                }
                              */
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a road."));
+                            messageFormatToGame(gaName, false, "{0} built a road.", plName);
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -5457,7 +5572,7 @@ public class SOCServer extends Server
                                 || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
+                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
                             if (!checkTurn(c, ga))
@@ -5500,7 +5615,7 @@ public class SOCServer extends Server
                         {
                             ga.putPiece(se);   // Changes game state and (if game start) player
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a settlement."));
+                            messageFormatToGame(gaName, false, "{0} built a settlement.", plName);
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -5516,7 +5631,7 @@ public class SOCServer extends Server
                             if (ga.hasSeaBoard && (ga.getGameState() == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // Prompt to pick from gold: send text and SOCPickResourcesRequest
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
+                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
                             if (!checkTurn(c, ga))
@@ -5549,7 +5664,7 @@ public class SOCServer extends Server
                         {
                             ga.putPiece(ci);  // changes game state and maybe player
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a city."));
+                            messageFormatToGame(gaName, false, "{0} built a city.", plName);
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -5594,7 +5709,7 @@ public class SOCServer extends Server
                             ga.putPiece(sh);  // Changes state and sometimes player (during initial placement)
 
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a ship."));
+                            messageFormatToGame(gaName, false, "{0} built a ship.", plName);
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -5610,7 +5725,7 @@ public class SOCServer extends Server
                                 || (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
                             {
                                 // gold hex revealed from fog (scenario SC_FOG)
-                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c);
+                                sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                             }
 
                             if (!checkTurn(c, ga))
@@ -5863,9 +5978,9 @@ public class SOCServer extends Server
                     {
                         if (numPlayers < SOCGame.MINPLAYERS)
                         {
-                            messageToGame(gn,
-                                "No robots on this server, please fill at least "
-                                + SOCGame.MINPLAYERS + " seats before starting." );
+                            messageFormatToGame(gn, true,
+                                "No robots on this server, please fill at least {0} seats before starting.",
+                                SOCGame.MINPLAYERS);
                         }
                         else
                         {
@@ -5882,10 +5997,10 @@ public class SOCServer extends Server
                         {
                             String m;
                             if (anyLocked)
-                                m = "Sorry, not enough robots to fill all the seats.  Only " + robots.size() + " robots are available.";
+                                m = "Sorry, not enough robots to fill all the seats.  Only {0} robots are available.";
                             else
-                                m = "Sorry, not enough robots to fill all the seats.  Lock some seats.  Only " + robots.size() + " robots are available.";
-                            messageToGame(gn, m);
+                                m = "Sorry, not enough robots to fill all the seats.  Lock some seats.  Only {0} robots are available.";
+                            messageFormatToGame(gn, true, m, robots.size());
                         }
                         else
                         {
@@ -5902,9 +6017,9 @@ public class SOCServer extends Server
                             }
                             catch (IllegalStateException e)
                             {
-                                String m = "Sorry, robots cannot join this game: " + e.getMessage();
-                                messageToGame(gn, m);
-                                System.err.println("Robot-join problem in game " + gn + ": " + m);
+                                String m = "Sorry, robots cannot join this game: {0}";
+                                messageFormatToGame(gn, true, m, e.getMessage());
+                                System.err.println("Robot-join problem in game " + gn + ": " + m + e);
                             }
                         }
                     }
@@ -6079,8 +6194,64 @@ public class SOCServer extends Server
                 messageToGame(gn, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + ".");
                 sendGameState(ga);  // For 7, give visual feedback before sending discard request
 
+                if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                {
+                    // pirate moves on every roll
+                    messageToGame(gn, new SOCMoveRobber
+                        (gn, ga.getCurrentPlayerNumber(), -( ((SOCBoardLarge) ga.getBoard()).getPirateHex() )));
+
+                    if (roll.sc_piri_fleetAttackVictim != null)
+                    {
+                        final SOCResourceSet loot = roll.sc_piri_fleetAttackRsrcs;
+                        final int lootTotal = (loot != null) ? loot.getTotal() : 0;
+                        if (lootTotal != 0)
+                        {
+                            // use same resource-loss messages sent in handleDISCARD
+
+                            final boolean won = (loot.contains(SOCResourceConstants.GOLD_LOCAL));
+                            SOCPlayer vic = roll.sc_piri_fleetAttackVictim;
+                            final String vicName = vic.getName();
+                            final StringConnection vCon = getConnection(vicName);
+                            final int pn = vic.getPlayerNumber();
+                            final int strength = (roll.diceA < roll.diceB) ? roll.diceA : roll.diceB;
+
+                            if (won)
+                            {
+                                messageFormatToGame(gn, true,
+                                    "{0} won against the pirate fleet (strength {1}) and will pick a free resource.",
+                                    vicName, strength);
+                            } else {
+                                /**
+                                 * tell the victim client that the player lost the resources
+                                 */
+                                StringBuffer sb = new StringBuffer("You lost ");
+                                reportRsrcGainLoss(gn, loot, true, pn, -1, sb, vCon);
+                                sb.append(" to the pirate fleet (strength ");
+                                sb.append(strength);
+                                sb.append(").");
+                                messageToPlayer(vCon, gn, sb.toString());
+
+                                /**
+                                 * tell everyone else that the player lost unknown resources
+                                 */
+                                messageToGameExcept(gn, vCon, new SOCPlayerElement
+                                    (gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, lootTotal), true);
+                                final String rword;
+                                if (lootTotal == 1)
+                                    rword = " resource";
+                                else
+                                    rword = " resources";
+                                messageToGameExcept
+                                    (gn, vCon, vicName + " lost " + lootTotal + rword
+                                     + " to pirate fleet attack (strength " + strength + ").", true);
+                            }
+                        }
+                    }
+                }
+
                 /**
                  * if the roll is not 7, tell players what they got
+                 * (if 7, sendGameState already told them what they lost).
                  */
                 if (ga.getCurrentDice() != 7)
                 {
@@ -6197,7 +6368,7 @@ public class SOCServer extends Server
                     }
 
                     if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
-                        sendGameState_sendGoldPickAnnounceText(ga, gn, null);
+                        sendGameState_sendGoldPickAnnounceText(ga, gn, null, roll);
 
                     /*
                        if (D.ebugOn) {
@@ -6221,16 +6392,36 @@ public class SOCServer extends Server
                      * player rolled 7
                      * If anyone needs to discard, prompt them.
                      */
-                    for (int i = 0; i < ga.maxPlayers; i++)
+                    if (ga.getGameState() == SOCGame.WAITING_FOR_DISCARDS)
                     {
-                        if (( ! ga.isSeatVacant(i))
-                            && (ga.getPlayer(i).getResources().getTotal() > 7))
+                        for (int i = 0; i < ga.maxPlayers; i++)
                         {
-                            // Request to discard half (round down)
-                            StringConnection con = getConnection(ga.getPlayer(i).getName());
-                            if (con != null)
+                            final SOCPlayer ipl = ga.getPlayer(i);
+                            if (( ! ga.isSeatVacant(i)) && ipl.getNeedToDiscard())
                             {
-                                con.put(SOCDiscardRequest.toCmd(ga.getName(), ga.getPlayer(i).getResources().getTotal() / 2));
+                                // Request to discard half (round down)
+                                StringConnection con = getConnection(ipl.getName());
+                                if (con != null)
+                                    con.put(SOCDiscardRequest.toCmd(gn, ipl.getResources().getTotal() / 2));
+                            }
+                        }
+                    }
+                    else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                    {
+                        // Used in _SC_PIRI, when 7 is rolled and a player wins against the pirate fleet
+                        for (int i = 0; i < ga.maxPlayers; ++i)
+                        {
+                            final SOCPlayer ipl = ga.getPlayer(i);
+                            final int numPick = ipl.getNeedToPickGoldHexResources();
+                            if (( ! ga.isSeatVacant(i)) && (numPick > 0))
+                            {
+                                StringConnection con = getConnection(ipl.getName());
+                                if (con != null)
+                                {
+                                    messageToGame(gn, new SOCPlayerElement
+                                        (gn, i, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, numPick));
+                                    con.put(SOCPickResourcesRequest.toCmd(gn, numPick));
+                                }
                             }
                         }
                     }
@@ -6365,6 +6556,8 @@ public class SOCServer extends Server
             {
                 ga.discard(pn, mes.getResources());  // discard, change gameState
 
+                // Same resource-loss messages are sent in handleROLLDICE after a pirate fleet attack (_SC_PIRI).
+
                 /**
                  * tell the player client that the player discarded the resources
                  */
@@ -6374,7 +6567,8 @@ public class SOCServer extends Server
                  * tell everyone else that the player discarded unknown resources
                  */
                 messageToGameExcept(gn, c, new SOCPlayerElement(gn, pn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, mes.getResources().getTotal()), true);
-                messageToGame(gn, (String) c.getData() + " discarded " + mes.getResources().getTotal() + " resources.");
+                messageFormatToGame(gn, true, "{0} discarded {1} resources.",
+                    (String) c.getData(), mes.getResources().getTotal());
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
@@ -6404,6 +6598,9 @@ public class SOCServer extends Server
 
     /**
      * Handle "pick resources" message (gold hex).
+     * Game state {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE},
+     * or rarely {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}.
+     * Also used with <tt>_SC_PIRI</tt> after winning a pirate fleet battle at dice roll.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -6439,13 +6636,14 @@ public class SOCServer extends Server
             if (ga.canPickGoldHexResources(pn, rsrcs))
             {
                 final boolean fromInitPlace = ga.isInitialPlacement();
+                final boolean fromPirateFleet = ga.isPickResourceIncludingPirateFleet(pn);
 
                 ga.pickGoldHexResources(pn, rsrcs);
 
                 /**
                  * tell everyone what the player gained
                  */
-                reportRsrcGainGold(gn, player, pn, rsrcs);
+                reportRsrcGainGold(gn, player, pn, rsrcs, ! fromPirateFleet);
 
                 /**
                  * send the new state, or end turn if was marked earlier as forced
@@ -6457,6 +6655,23 @@ public class SOCServer extends Server
                     if (! fromInitPlace)
                     {
                         sendGameState(ga);
+
+                        if (gstate == SOCGame.WAITING_FOR_DISCARDS)
+                        {
+                            // happens only in scenario _SC_PIRI, when 7 is rolled, player wins against pirate fleet
+                            // and has picked their won resource, and then someone must discard
+                            for (int i = 0; i < ga.maxPlayers; ++i)
+                            {
+                                SOCPlayer pl = ga.getPlayer(i);
+                                if (( ! ga.isSeatVacant(i) ) && pl.getNeedToDiscard())
+                                {
+                                    // Request to discard half (round down)
+                                    StringConnection con = getConnection(pl.getName());
+                                    if (con != null)
+                                        con.put(SOCDiscardRequest.toCmd(gn, pl.getResources().getTotal() / 2));
+                                }
+                            }
+                        }
                     } else {
                         // send state, and current player if changed
 
@@ -6658,10 +6873,9 @@ public class SOCServer extends Server
          */
         sendTurn(ga, wantsRollPrompt);
         if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
-            messageToGame(gname,
-                "Special building phase: "
-                  + ga.getPlayer(ga.getCurrentPlayerNumber()).getName()
-                  + "'s turn to place.");
+            messageFormatToGame(gname, true,
+                "Special building phase: {0}''s turn to place.",
+                ga.getPlayer(ga.getCurrentPlayerNumber()).getName());
     }
 
     /**
@@ -6726,7 +6940,7 @@ public class SOCServer extends Server
                     || (endFromGameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                 {
                     // Send SOCPlayerElement messages, "gains" text
-                    reportRsrcGainGold(gaName, cp, cpn, resGainLoss);
+                    reportRsrcGainGold(gaName, cp, cpn, resGainLoss, false);
                 } else {
                     // Send SOCPlayerElement messages
                     reportRsrcGainLoss(gaName, resGainLoss, false, cpn, -1, null, null);
@@ -6737,7 +6951,7 @@ public class SOCServer extends Server
                     reportRsrcGainLoss(gaName, resGainLoss, true, cpn, -1, null, c);
                 int totalRes = resGainLoss.getTotal();
                 messageToGameExcept(gaName, c, new SOCPlayerElement(gaName, cpn, SOCPlayerElement.LOSE, SOCPlayerElement.UNKNOWN, totalRes), true);
-                messageToGame(gaName, plName + " discarded " + totalRes + " resources.");
+                messageFormatToGame(gaName, true,  "{0} discarded {1} resources.", plName, totalRes);
             }
         }
 
@@ -6766,7 +6980,7 @@ public class SOCServer extends Server
                     (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                      c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
             }
-            messageToGame(gaName, plName + "'s just-played development card was returned.");
+            messageFormatToGame(gaName, true, "{0}''s just-played development card was returned.", plName);
         }
 
         /**
@@ -6834,7 +7048,7 @@ public class SOCServer extends Server
                     if ((choice == SOCChoosePlayer.CHOICE_NO_PLAYER) && ga.canChoosePlayer(-1))
                     {
                         ga.choosePlayerForRobbery(-1);  // state becomes PLAY1
-                        messageToGame(ga.getName(), ((String) c.getData()) + " declined to steal.");
+                        messageFormatToGame(ga.getName(), true, "{0} declined to steal.", ((String) c.getData()));
                         sendGameState(ga);
                     }
                     else if (ga.canChoosePlayer(choice))
@@ -6846,10 +7060,9 @@ public class SOCServer extends Server
                             reportRobbery
                                 (ga, ga.getPlayer((String) c.getData()), ga.getPlayer(choice), rsrc);
                         } else {
-                            messageToGame(ga.getName(),
-                                ((String) c.getData())
-                                + " moved the pirate, must choose to steal cloth or steal resources from "
-                                + ga.getPlayer(choice).getName() + ".");
+                            messageFormatToGame(ga.getName(), true,
+                                "{0} moved the pirate, must choose to steal cloth or steal resources from {1}.",
+                                ((String) c.getData()), ga.getPlayer(choice).getName());
                         }
                         sendGameState(ga);
                         if (waitingClothOrRsrc)
@@ -6944,13 +7157,14 @@ public class SOCServer extends Server
                                    offGet  = offer.getGetSet();
                     remadeOffer = new SOCTradeOffer(gaName, player.getPlayerNumber(), offer.getTo(), offGive, offGet);
                     player.setCurrentOffer(remadeOffer);
-                    StringBuffer offMsgText = new StringBuffer((String) c.getData());
-                    offMsgText.append(" made an offer to trade ");
-                    offGive.toFriendlyString(offMsgText);
-                    offMsgText.append(" for ");
-                    offGet.toFriendlyString(offMsgText);
-                    offMsgText.append('.');
-                    messageToGame(gaName, offMsgText.toString() );
+
+                    StringBuffer giveText = new StringBuffer();
+                    offGive.toFriendlyString(giveText);
+                    StringBuffer getText = new StringBuffer();                    
+                    offGet.toFriendlyString(getText);
+                    messageFormatToGame
+                        (gaName, true, "{0} made a trade offer to give {1} for {2}.",
+                         (String) c.getData(), giveText, getText);
                 }
 
                 SOCMakeOffer makeOfferMessage = new SOCMakeOffer(gaName, remadeOffer);
@@ -7370,7 +7584,7 @@ public class SOCServer extends Server
                             messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.CLAY, 1));
                             messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                         } else {
-                            messageToGame(gaName, player.getName() + " skipped placing the second road.");
+                            messageFormatToGame(gaName, true, "{0} skipped placing the second road.", player.getName());
                         }
                         sendGameState(ga);
                     }
@@ -7400,7 +7614,7 @@ public class SOCServer extends Server
                         ga.undoPutInitSettlement(pp);
                         messageToGame(gaName, mes);  // Re-send to all clients to announce it
                             // (Safe since we've validated all message parameters)
-                        messageToGame(gaName, player.getName() + " cancelled this settlement placement.");
+                        messageFormatToGame(gaName, true, "{0} cancelled this settlement placement.",  player.getName());
                         sendGameState(ga);  // This send is redundant, if client reaction changes game state
                     }
                     else
@@ -7436,7 +7650,7 @@ public class SOCServer extends Server
                             messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.SHEEP, 1));
                             messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.WOOD, 1));
                         } else {
-                            messageToGame(gaName, player.getName() + " skipped placing the second ship.");
+                            messageFormatToGame(gaName, true, "{0} skipped placing the second ship.", player.getName());
                         }
                         sendGameState(ga);
                     }
@@ -7514,11 +7728,11 @@ public class SOCServer extends Server
                             (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
                              c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     }
-                    messageToGame(gaName, (String) c.getData() + " bought a development card.");
+                    messageFormatToGame(gaName, true, "{0} bought a development card.", (String) c.getData());
 
                     if (ga.getNumDevCards() > 1)
                     {
-                        messageToGame(gaName, "There are " + ga.getNumDevCards() + " cards left.");
+                        messageFormatToGame(gaName, true, "There are {0} cards left.", ga.getNumDevCards());
                     }
                     else if (ga.getNumDevCards() == 1)
                     {
@@ -7611,11 +7825,19 @@ public class SOCServer extends Server
                 {
                 case SOCDevCardConstants.KNIGHT:
 
+                    final boolean isWarshipConvert = ga.isGameOptionSet(SOCGameOption.K_SC_PIRI);
+
                     if (ga.canPlayKnight(pn))
                     {
+                        final int peType = (isWarshipConvert)
+                            ? SOCPlayerElement.SCENARIO_WARSHIP_COUNT : SOCPlayerElement.NUMKNIGHTS;
+
                         ga.playKnight();
+                        final String cardplayed = (isWarshipConvert)
+                            ? "{0} converted a ship to a warship."
+                            : "{0} played a Soldier card.";
                         gameList.takeMonitorForGame(gaName);
-                        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Soldier card."));
+                        messageFormatToGame(gaName, false, cardplayed, player.getName());
                         if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                         {
                             messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
@@ -7628,14 +7850,19 @@ public class SOCServer extends Server
                                  new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT), false);
                         }
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageToGameWithMon(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, SOCPlayerElement.NUMKNIGHTS, 1));
+                        messageToGameWithMon
+                            (gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.GAIN, peType, 1));
                         gameList.releaseMonitorForGame(gaName);
-                        broadcastGameStats(ga);
-                        sendGameState(ga);
+                        if (! isWarshipConvert)
+                        {
+                            broadcastGameStats(ga);
+                            sendGameState(ga);
+                        }
                     }
                     else
                     {
-                        denyText = "You can't play a Soldier card now.";
+                        final String cardname = (isWarshipConvert) ? "Warship" : "Soldier";
+                        denyText = "You can't play a " + cardname + " card now.";
                     }
 
                     break;
@@ -7648,7 +7875,7 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.ROADS));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Road Building card."));
+                        messageFormatToGame(gaName, false, "{0} played a Road Building card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                         if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
@@ -7681,7 +7908,7 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.DISC));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Year of Plenty card."));
+                        messageFormatToGame(gaName, false, "{0} played a Year of Plenty card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                     }
@@ -7700,7 +7927,7 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.MONO));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Monopoly card."));
+                        messageFormatToGame(gaName, false, "{0} played a Monopoly card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                     }
@@ -7834,7 +8061,7 @@ public class SOCServer extends Server
                     String message = monoPlayerName + " monopolized" + resName;
 
                     gameList.takeMonitorForGame(gaName);
-                    messageToGameExcept(gaName, c, new SOCGameTextMsg(gaName, SERVERNAME, message), false);
+                    messageToGameExcept(gaName, c, message, false);
 
                     /**
                      * just send all the player's resource counts for the
@@ -8043,17 +8270,17 @@ public class SOCServer extends Server
             {
                 // No one else is capable of voting.
                 // Reset the game immediately.
-                messageToGameWithMon(gaName, new SOCGameTextMsg
-                    (gaName, SERVERNAME, ">>> " + (String) c.getData()
-                     + " is resetting the game - other connected players are unable to vote (client too old)."));
+                messageFormatToGame(gaName, false,
+                    ">>> {0} is resetting the game - other connected players are unable to vote (client too old).",
+                    (String) c.getData());
                 gameList.releaseMonitorForGame(gaName);
                 resetBoardAndNotify(gaName, reqPN);
             }
             else
             {
                 // Put it to a vote
-                messageToGameWithMon(gaName, new SOCGameTextMsg
-                    (gaName, SERVERNAME, (String) c.getData() + " requests a board reset - other players please vote."));
+                messageFormatToGame(gaName, false,
+                    "{0} requests a board reset - other players please vote.", (String) c.getData());
                 String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
                 ga.resetVoteBegin(reqPN);
                 gameList.releaseMonitorForGame(gaName);
@@ -8614,8 +8841,15 @@ public class SOCServer extends Server
              */
             int itm = pl.getSpecialVP();
             if (itm != 0)
+            {
                 messageToPlayer(c, new SOCPlayerElement
                         (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_SVP, itm));
+
+                ArrayList<SOCPlayer.SpecialVPInfo> svpis = pl.getSpecialVPInfo();
+                if (svpis != null)
+                    for (SOCPlayer.SpecialVPInfo svpi : svpis)
+                        messageToPlayer(c, new SOCSVPTextMessage(gameName, i, svpi.svp, svpi.desc));
+            }
 
             itm = pl.getScenarioPlayerEvents();
             if (itm != 0)
@@ -8641,7 +8875,6 @@ public class SOCServer extends Server
             // This lets them see "their" pieces before sitDown(), if they rejoin at same position.
 
             Enumeration<SOCPlayingPiece> piecesEnum = pl.getPieces().elements();
-
             while (piecesEnum.hasMoreElements())
             {
                 SOCPlayingPiece piece = piecesEnum.nextElement();
@@ -8653,6 +8886,20 @@ public class SOCServer extends Server
 
                 c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), piece.getCoordinates()));
             }
+
+            // _SC_PIRI: special-case piece not part of getPieces
+            {
+                final SOCPlayingPiece piece = pl.getFortress();
+                if (piece != null)
+                    messageToGameWithMon
+                        (gameName, new SOCPutPiece(gameName, i, piece.getType(), piece.getCoordinates()));
+            }
+
+            // _SC_PIRI: for display, send count of warships only after SOCShip pieces are sent
+            itm = pl.getNumWarships();
+            if (itm != 0)
+                messageToPlayer(c, new SOCPlayerElement
+                    (gameName, i, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, itm));
 
             /**
              * send each player's unique potential settlement list,
@@ -9034,7 +9281,7 @@ public class SOCServer extends Server
             messageToGame(gaName,
                 new SOCPlayerElement(gaName, pePN, SOCPlayerElement.SET,
                     SOCPlayerElement.SCENARIO_CLOTH_COUNT, pe.getCloth()));
-            messageToGame(gaName, peName + " stole a cloth from " + viName);
+            messageFormatToGame(gaName, true, "{0} stole a cloth from {1}.", peName, viName);
 
             return;  // <--- early return: cloth is announced to entire game ---
         }
@@ -9119,12 +9366,12 @@ public class SOCServer extends Server
      *<P>
      * State {@link SOCGame#STARTS_WAITING_FOR_PICK_GOLD_RESOURCE}:
      * To announce the player must pick a resource to gain from the gold hex initial placement,
-     * please call {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection)}.
+     * please call {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection, SOCGame.RollResult)}.
      *<P>
      * State {@link SOCGame#WAITING_FOR_PICK_GOLD_RESOURCE}:
      * If a gold hex is rolled, does not say who
      * must pick resources to gain (because of timing).  Please call
-     * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection)}
+     * {@link #sendGameState_sendGoldPickAnnounceText(SOCGame, String, StringConnection, SOCGame.RollResult)}
      * after sending the resource gain text ("x gets 1 sheep").
      *
      * @see #sendTurn(SOCGame, boolean)
@@ -9168,7 +9415,7 @@ public class SOCServer extends Server
         case SOCGame.START1A:
         case SOCGame.START2A:
         case SOCGame.START3A:
-            messageToGame(gname, "It's " + player.getName() + "'s turn to build a settlement.");
+            messageFormatToGame(gname, true, "It''s {0}''s turn to build a settlement.", player.getName());
             if ((ga.getGameState() >= SOCGame.START2A)
                 && ga.isGameOptionSet(SOCGameOption.K_SC_3IP))
             {
@@ -9187,13 +9434,14 @@ public class SOCServer extends Server
         case SOCGame.START1B:
         case SOCGame.START2B:
         case SOCGame.START3B:
-            messageToGame(gname, "It's " + player.getName()
-                + ((ga.hasSeaBoard) ? "'s turn to build a road or ship.": "'s turn to build a road."));
-
+            messageFormatToGame(gname, true,
+                ((ga.hasSeaBoard) ? "It''s {0}''s turn to build a road or ship."
+                    : "It''s {0}''s turn to build a road."),
+                player.getName());
             break;
 
         case SOCGame.PLAY:
-            messageToGame(gname, "It's " + player.getName() + "'s turn to roll the dice.");
+            messageFormatToGame(gname, true, "It''s {0}''s turn to roll the dice.", player.getName());
             promptedRoll = true;
             if (sendRollPrompt)
                 messageToGame(gname, new SOCRollDicePrompt (gname, player.getPlayerNumber()));
@@ -9201,7 +9449,6 @@ public class SOCServer extends Server
             break;
 
         case SOCGame.WAITING_FOR_DISCARDS:
-
             int count = 0;
             String[] names = new String[ga.maxPlayers];
 
@@ -9225,19 +9472,18 @@ public class SOCServer extends Server
             // These methods directly call sendGameState_sendGoldPickAnnounceText.
 
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
-            messageToGame(gname, player.getName() + " must choose to move the robber or the pirate.");
+            messageFormatToGame(gname, true, "{0} must choose to move the robber or the pirate.", player.getName());
             break;
 
         case SOCGame.PLACING_ROBBER:
-            messageToGame(gname, player.getName() + " will move the robber.");
+            messageFormatToGame(gname, true, "{0} will move the robber.", player.getName());
             break;
 
         case SOCGame.PLACING_PIRATE:
-            messageToGame(gname, player.getName() + " will move the pirate ship.");
+            messageFormatToGame(gname, true, "{0} will move the pirate ship.", player.getName());
             break;
 
         case SOCGame.WAITING_FOR_CHOICE:
-
             /**
              * get the choices from the game
              */
@@ -9267,7 +9513,6 @@ public class SOCServer extends Server
             break;
 
         case SOCGame.OVER:
-
             sendGameStateOVER(ga);
             
             break;
@@ -9278,7 +9523,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * For discard or gold hex in {@link #sendGameState(SOCGame, boolean), build
+     * For discard or gold hex in {@link #sendGameState(SOCGame, boolean)}, build
      * the list of player names affected.
      * @param count  Number of players to name
      * @param names  Player names
@@ -9334,30 +9579,45 @@ public class SOCServer extends Server
      *                   {@link SOCPickResourcesRequest} if they are the only one to pick gold.
      *                   If more than 1 player has {@link SOCPlayer#getNeedToPickGoldHexResources()},
      *                   no message will be sent to <tt>playerCon</tt>.
+     * @param roll  For gold gained from dice rolls, the roll details, otherwise null.
+     *                   In scenario SC_PIRI, is used to avoid announcing twice for a pick from victory against pirate fleet.
      * @since 2.0.00
      */
     private final void sendGameState_sendGoldPickAnnounceText
-        (SOCGame ga, final String gname, StringConnection playerCon)
+        (SOCGame ga, final String gname, StringConnection playerCon, SOCGame.RollResult roll)
     {
+        final int ignoreRollPirateVictory;
+        if ((roll != null) && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI) && (roll.sc_piri_fleetAttackRsrcs != null))
+            ignoreRollPirateVictory = roll.sc_piri_fleetAttackRsrcs.getAmount(SOCResourceConstants.GOLD_LOCAL);
+        else
+            ignoreRollPirateVictory = 0;
+
         int count = 0, amount = 0;
         String[] names = new String[ga.maxPlayers];
         int[] num = new int[ga.maxPlayers];
 
         for (int pl = 0; pl < ga.maxPlayers; ++pl)
         {
-            final int numGoldRes = ga.getPlayer(pl).getNeedToPickGoldHexResources();
+            final SOCPlayer player = ga.getPlayer(pl);
+            int numGoldRes = player.getNeedToPickGoldHexResources();
             if (numGoldRes > 0)
             {
                 num[pl] = numGoldRes;
-                names[count] = ga.getPlayer(pl).getName();
-                count++;
-                if (count == 1)
-                    amount = numGoldRes;
+                if ((ignoreRollPirateVictory > 0) && (player == roll.sc_piri_fleetAttackVictim))
+                    numGoldRes -= ignoreRollPirateVictory;
+                if (numGoldRes > 0)
+                {
+                    names[count] = player.getName();
+                    count++;
+                    if (count == 1)
+                        amount = numGoldRes;
+                }
             }
         }
 
-        messageToGame(gname, sendGameState_buildPlayerNamesText
-            (count, names, "pick resources from the gold hex."));
+        if (count > 0)
+            messageToGame(gname, sendGameState_buildPlayerNamesText
+                (count, names, "pick resources from the gold hex."));
         for (int pl = 0; pl < ga.maxPlayers; ++pl)
             if (num[pl] > 0)
                 messageToGame(gname, new SOCPlayerElement
@@ -9498,26 +9758,27 @@ public class SOCServer extends Server
             final String gLengthMsg;
             if (gstart != null)
             {
-                StringBuffer sb = new StringBuffer("This game was ");
-                sb.append(ga.getRoundCount());
-                sb.append(" rounds, and took ");
+                StringBuffer sb = new StringBuffer();  // game duration
                 long gameSeconds = ((now.getTime() - gstart.getTime())+500L) / 1000L;
                 long gameMinutes = gameSeconds/60L;
                 gameSeconds = gameSeconds % 60L;
                 sb.append(gameMinutes);
                 if (gameSeconds == 0)
                 {
-                    sb.append(" minutes.");
+                    sb.append(" minutes");
                 } else if (gameSeconds == 1)
                 {
-                    sb.append(" minutes 1 second.");
+                    sb.append(" minutes 1 second");
                 } else {
                     sb.append(" minutes ");
                     sb.append(gameSeconds);
-                    sb.append(" seconds.");
+                    sb.append(" seconds");
                 }
                 gLengthMsg = sb.toString();
                 messageToGame(gname, gLengthMsg);
+                messageFormatToGame
+                    (gname, true, "This game was {0} rounds, and took {1}.",
+                     ga.getRoundCount(), sb);
 
                 // Ignore possible "1 minutes"; that game is too short to worry about.
             } else {
@@ -9772,23 +10033,28 @@ public class SOCServer extends Server
      * Report to game members what a player picked from the gold hex.
      * Sends {@link SOCPlayerElement} for resources and to reset the
      * {@link SOCPlayerElement#NUM_PICK_GOLD_HEX_RESOURCES} counter.
-     * Sends text "playername gets ___ from the gold hex.".
+     * Sends text "playername has picked ___ from the gold hex.".
      * @param gn      Game name
      * @param player  Player gaining
      * @param pn      <tt>player</tt>{@link SOCPlayer#getPlayerNumber() .getPlayerNumber()}
      * @param rsrcs   Resources picked
+     * @param includeGoldHexText  If true, text ends with "from the gold hex." after the resource name.
      * @since 2.0.00
      */
     private void reportRsrcGainGold
-        (final String gn, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs)
+        (final String gn, final SOCPlayer player, final int pn, final SOCResourceSet rsrcs,
+         final boolean includeGoldHexText)
     {
         StringBuffer gainsText = new StringBuffer();
         gainsText.append(player.getName());
-        gainsText.append(" gets ");
+        gainsText.append(" has picked ");
         // Send SOCPlayerElement messages,
         // build resource-text in gainsText.
         reportRsrcGainLoss(gn, rsrcs, false, pn, -1, gainsText, null);
-        gainsText.append(" from the gold hex.");
+        if (includeGoldHexText)
+            gainsText.append(" from the gold hex.");
+        else
+            gainsText.append('.');
         messageToGame(gn, gainsText.toString());
         messageToGame(gn, new SOCPlayerElement
             (gn, pn, SOCPlayerElement.SET, SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES, 0));
@@ -9834,7 +10100,14 @@ public class SOCServer extends Server
         final String gaName = ga.getName();
 
         numberOfGamesStarted++;
+
         ga.startGame();
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            // scenario has initial pieces
+            SOCBoardLargeAtServer.startGame_putInitPieces(ga);
+        }
+
         gameList.takeMonitorForGame(gaName);
 
         /**
@@ -9845,6 +10118,7 @@ public class SOCServer extends Server
             messageToGameWithMon(gaName, getBoardLayoutMessage(ga));
                 // For scenario option _SC_CLVI, the board layout message
                 // includes villages and the general supply cloth count.
+                // For _SC_PIRI, it includes the Pirate Path (additional layout part "PP").
         } catch (IllegalArgumentException e) {
             gameList.releaseMonitorForGame(gaName);
             System.err.println("startGame: Cannot send board for " + gaName + ": " + e.getMessage());
@@ -9891,16 +10165,43 @@ public class SOCServer extends Server
         /**
          * send the player info
          */
+        boolean sentInitPiecesState = false;
         for (int i = 0; i < ga.maxPlayers; i++)
         {
             if (! ga.isSeatVacant(i))
             {
                 SOCPlayer pl = ga.getPlayer(i);
+                if (ga.hasSeaBoard)
+                {
+                    // Some scenarios like SC_PIRI may place initial pieces at fixed locations.
+                    // Usually, pieces will be empty.
+                    final Vector<SOCPlayingPiece> pieces = pl.getPieces();
+                    if (! pieces.isEmpty())
+                    {
+                        if (! sentInitPiecesState)
+                        {
+                            // Temporary state change, to avoid initial-piece placement actions.
+                            // The actual game state will be sent soon.
+                            messageToGameWithMon
+                                (gaName, new SOCGameState(gaName, SOCGame.READY));
+                            sentInitPiecesState = true;
+                        }
+
+                        for (SOCPlayingPiece pp : pieces)
+                            messageToGameWithMon
+                                (gaName, new SOCPutPiece(gaName, i, pp.getType(), pp.getCoordinates()));
+
+                        SOCPlayingPiece pp = pl.getFortress();
+                        if (pp != null)
+                            messageToGameWithMon
+                                (gaName, new SOCPutPiece(gaName, i, pp.getType(), pp.getCoordinates()));
+                    }
+
+                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
+                }
                 messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.ROADS, pl.getNumPieces(SOCPlayingPiece.ROAD)));
                 messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SETTLEMENTS, pl.getNumPieces(SOCPlayingPiece.SETTLEMENT)));
                 messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.CITIES, pl.getNumPieces(SOCPlayingPiece.CITY)));
-                if (ga.hasSeaBoard)
-                    messageToGameWithMon(gaName, new SOCPlayerElement(gaName, i, SOCPlayerElement.SET, SOCPlayerElement.SHIPS, pl.getNumPieces(SOCPlayingPiece.SHIP)));
                 messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, i, false));
             }
         }
@@ -9913,7 +10214,7 @@ public class SOCServer extends Server
         /**
          * ga.startGame() picks who goes first, but feedback is nice
          */
-        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "Randomly picking a starting player..."));
+        messageToGameWithMon(gaName, "Randomly picking a starting player...");
 
         gameList.releaseMonitorForGame(gaName);
 
@@ -10170,7 +10471,7 @@ public class SOCServer extends Server
             return new SOCBoardLayout2
                 (ga.getName(), bef, bl.getLandHexLayout(), board.getPortsLayout(),
                  robber, bl.getPirateHex(), bl.getPlayerExcludedLandAreas(), bl.getRobberExcludedLandAreas(),
-                 bl.getVillageAndClothLayout());
+                 bl.getVillageAndClothLayout(), bl.getAddedLayoutParts());
 
         default:
             throw new IllegalArgumentException("unknown board encoding v" + bef);
@@ -10503,7 +10804,8 @@ public class SOCServer extends Server
                     continue;  // not the robot's turn
 
                 final int gameState = ga.getGameState();
-                if ((gameState == SOCGame.WAITING_FOR_DISCARDS) || (gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE))
+                if ((gameState == SOCGame.WAITING_FOR_DISCARDS) || (gameState == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                    || (gameState == SOCGame.STARTS_WAITING_FOR_PICK_GOLD_RESOURCE))
                 {
                     // Check if we're just waiting on humans, not on the robot
                     boolean waitHumans = false;

@@ -19,7 +19,10 @@
  **/
 package soc.message;
 
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import soc.game.SOCBoard;
@@ -50,12 +53,14 @@ import soc.game.SOCBoardLarge;  // for javadocs
  *<LI> RX: Robber is excluded from these land area numbers (usually none)
  *<LI> CV: Cloth Village layout (usually none), from {@link SOCBoardLarge#getVillageAndClothLayout()}
  *</UL>
+ * A few game scenarios in jsettlers v2.0.00 may add other parts; see {@link #getAddedParts()}.
+ *<P>
  * Board layout parts by board encoding version:
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
  *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL.
- *         Sometimes (for game scenarios) one ore more of: PX, RX, CV.
+ *         Sometimes (for game scenarios) one or more of: PX, RX, CV.
  *         LH is null before makeNewBoard is called.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
@@ -73,6 +78,12 @@ import soc.game.SOCBoardLarge;  // for javadocs
 public class SOCBoardLayout2 extends SOCMessage
     implements SOCMessageForGame
 {
+    /**
+     * Known layout part keys.  To be ignored by {@link #getAddedParts()}.
+     * @since 2.0.00
+     */
+    private final String[] KNOWN_KEYS = { "HL", "NL", "RH", "PL", "LH", "PH", "PX", "RX", "CV" };
+
     /**
      * Minimum version (1.1.08) of client/server which recognize
      * and send VERSION_FOR_BOARDLAYOUT2.
@@ -175,8 +186,13 @@ public class SOCBoardLayout2 extends SOCMessage
      * @param px   the player exclusion land areas, or null, from {@link SOCBoardLarge#getPlayerExcludedLandAreas()}
      * @param rx   the robber exclusion land areas, or null, from {@link SOCBoardLarge#getRobberExcludedLandAreas()}
      * @param cv   the cloth villages, or null, from {@link SOCBoardLarge#getVillageAndClothLayout()}
+     * @param other  any other layout parts to add, or null; see {@link #getAddedParts()}.
+     *             Please be sure that none of the keys conflict with ones already listed in the class javadoc.
      */
-    public SOCBoardLayout2(String ga, final int bef, int[] lh, int[] pl, int rh, int ph, int[] px, int[] rx, int[] cv)
+    public SOCBoardLayout2
+        (final String ga, final int bef,
+         int[] lh, int[] pl, int rh, int ph, int[] px, int[] rx, int[] cv,
+         Map<String, int[]> other)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -196,6 +212,9 @@ public class SOCBoardLayout2 extends SOCMessage
             layoutParts.put("RX", rx);
         if (cv != null)
             layoutParts.put("CV", cv);
+
+        if (other != null)
+            layoutParts.putAll(other);
     }
 
     /**
@@ -278,6 +297,42 @@ public class SOCBoardLayout2 extends SOCMessage
     public String getStringPart(String pkey)
     {
         return (String) layoutParts.get(pkey);
+    }
+
+    /**
+     * Some game scenarios may add other layout part keys and int[] values.
+     * This is a generic mechanism for adding to layout information
+     * without continually changing <tt>SOCBoardLayout2</tt>.
+     * The returned keys of those parts will be none of the ones listed in this class javadoc.
+     * @return  Other added parts' keys and values, or null if none
+     * @since 2.0.00
+     */
+    public HashMap<String, int[]> getAddedParts()
+    {
+        HashMap<String, int[]> added = null;
+        Enumeration<String> ke = layoutParts.keys();
+        while (ke.hasMoreElements())
+        {
+            final String key = ke.nextElement();
+            boolean known = false;
+            for (String knk : KNOWN_KEYS)
+            {
+                if (key.equals(knk))
+                {
+                    known = true;
+                    break;
+                }
+            }
+
+            if (! known)
+            {
+                if (added == null)
+                    added = new HashMap<String, int[]>();
+                added.put(key, (int[]) layoutParts.get(key));
+            }
+        }
+
+        return added;
     }
 
     /**

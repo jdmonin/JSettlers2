@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2008-2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2008-2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -103,9 +103,26 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
+     * Does the set contain any resources of this type?
+     * @param rtype  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @return true if the set's amount of this resource &gt; 0
+     * @since 2.0.00
+     * @see #getAmount(int)
+     * @see #contains(SOCResourceSet)
+     */
+    public boolean contains(final int rtype)
+    {
+        if (rtype >= resources.length)
+            return false;
+        return (resources[rtype] > 0);
+    }
+
+    /**
+     * How many resources of this type are contained in the set?
      * @return the number of a kind of resource
      *
      * @param rtype  the type of resource, like {@link SOCResourceConstants#CLAY}
+     * @see #contains(int)
      */
     public int getAmount(int rtype)
     {
@@ -113,14 +130,16 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
+     * Get the total number of resources in this set, including unknown types.
      * @return the total number of resources
+     * @see #getKnownTotal()
      */
     public int getTotal()
     {
         int sum = 0;
 
         for (int i = SOCResourceConstants.MIN;
-                i < SOCResourceConstants.MAXPLUSONE; i++)
+                 i < SOCResourceConstants.MAXPLUSONE; i++)
         {
             sum += resources[i];
         }
@@ -292,6 +311,7 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
+     * Are set A's resources each greater than or equal to set B's?
      * @return true if each resource type in set A is >= each resource type in set B
      *
      * @param a   set A
@@ -308,7 +328,8 @@ public class SOCResourceSet implements Serializable, Cloneable
     }
 
     /**
-     * @return true if each resource type in set A is <= each resource type in set B
+     * Are set A's resources each less than or equal to set B's?
+     * @return true if each resource type in set A is &lt;= each resource type in set B
      *
      * @param a   set A
      * @param b   set B
@@ -408,6 +429,7 @@ public class SOCResourceSet implements Serializable, Cloneable
      * @return true if sub is in this set
      *
      * @param sub  the sub set
+     * @see #contains(int)
      */
     public boolean contains(SOCResourceSet sub)
     {

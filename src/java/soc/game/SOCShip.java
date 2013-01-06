@@ -24,6 +24,10 @@ package soc.game;
 /**
  * A ship playing piece, on the large sea board ({@link SOCBoardLarge}).
  * To simplify some game code, ships are a subclass of roads.
+ *<P>
+ * In scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+ * <tt>SOCShip</tt> has no "isWarship" field; see {@link SOCPlayer#getNumWarships()} for details.
+ *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 2.0.00
  */

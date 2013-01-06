@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2011,2012 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@ import java.util.Vector;
  * Specifically, the victim or possible victims, and
  * what was stolen.
  * Call {@link SOCGame#getRobberyPirateFlag()} to see which one was moved.
+ * Each game has 1 instance of this object, which is updated each time the robber or pirate is moved.
  */
 public class SOCMoveRobberResult
 {
@@ -39,9 +40,30 @@ public class SOCMoveRobberResult
     int loot;
 
     /**
+     * When the pirate fleet moves in game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * the resources stolen from victim.  Otherwise null and ignored.
+     * When {@link #sc_piri_loot} is set, the other {@link #loot} field is -1.
+     * When {@link #victims} is empty, ignore this field.
+     * @see SOCGame#stealFromPlayerPirateFleet(int)
+     * @since 2.0.00
+     */
+    public SOCResourceSet sc_piri_loot;
+
+    /**
      * Creates a new SOCMoveRobberResult object.
      */
     public SOCMoveRobberResult()
+    {
+        victims = null;
+        loot = -1;
+    }
+
+    /**
+     * Clear common fields for reuse of this object.
+     * Does not clear the infrequently-used {@link #sc_piri_loot}.
+     * @since 2.0.00
+     */
+    public void clear()
     {
         victims = null;
         loot = -1;

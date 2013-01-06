@@ -24,6 +24,16 @@ package soc.game;
  * Scenario event codes which affect the game or board, not a specific player.
  * Used by {@link SOCScenarioEventListener}s.
  * Each event also has a {@link SOCGameOption} to indicate its scenario rules are active; see enum value javadocs.
+ *<P>
+ * Not all scenario-related rules changes have or need an event, only those that <em>sometimes</em>
+ * fire and sometimes don't when a player takes an action.  See {@link SOCScenarioPlayerEvent} for more
+ * details.
+ *<br>
+ * <b>Game Event example:</b> Not every hex is a fog hex ({@link #SGE_FOG_HEX_REVEALED}), so fog isn't
+ * revealed every time a player builds a settlement or road.  If this happened each time, the scenario-related
+ * code might be clearer if it was located at the game/server logic for placing pieces, instead of code
+ * elsewhere in an event listener.
+ *
  * @see SOCScenarioPlayerEvent
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00

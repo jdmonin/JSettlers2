@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -903,7 +903,10 @@ public class SOCRobotBrain extends Thread
             sb.append("  ");
             sb.append(s[i]);
             sb.append(": ");
-            sb.append(b[i]);
+            if (b[i])
+                sb.append("TRUE");
+            else
+                sb.append("false");
             slen = sb.length();
         }
         if (slen > 0)
@@ -1712,7 +1715,10 @@ public class SOCRobotBrain extends Thread
                         //	      (counter < 4000))) {
                         if ((game.getCurrentDice() == 7) && (ourTurn))
                         {
-                            expectPLACING_ROBBER = true;
+                            if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                                expectPLACING_ROBBER = true;
+                            else
+                                expectPLAY1 = true;
                         }
                         else
                         {
@@ -1731,6 +1737,7 @@ public class SOCRobotBrain extends Thread
                         {
                             final int choicePl = RobberStrategy.chooseRobberVictim
                                 (((SOCChoosePlayerRequest) mes).getChoices(), game, playerTrackers);
+                            counter = 0;
                             client.choosePlayer(game, choicePl);
                         }
                         break;
@@ -1841,7 +1848,7 @@ public class SOCRobotBrain extends Thread
                     rsrcType <= SOCResourceConstants.WOOD;
                     rsrcType++)
             {
-                if (getSet.getAmount(rsrcType) > 0)
+                if (getSet.contains(rsrcType))
                 {
                     for (int pn = 0; pn < game.maxPlayers; pn++)
                     {
@@ -2520,7 +2527,7 @@ public class SOCRobotBrain extends Thread
                 rsrcType <= SOCResourceConstants.WOOD;
                 rsrcType++)
         {
-            if (giveSet.getAmount(rsrcType) > 0)
+            if (giveSet.contains(rsrcType))
             {
                 D.ebugPrintln("%%% player " + offer.getFrom() + " wants to sell " + rsrcType);
                 negotiator.markAsWantsAnotherOffer(offer.getFrom(), rsrcType);
@@ -2537,7 +2544,7 @@ public class SOCRobotBrain extends Thread
                 rsrcType <= SOCResourceConstants.WOOD;
                 rsrcType++)
         {
-            if (getSet.getAmount(rsrcType) > 0)
+            if (getSet.contains(rsrcType))
             {
                 D.ebugPrintln("%%% player " + offer.getFrom() + " wants to buy " + rsrcType + " and therefore does not want to sell it");
                 negotiator.markAsNotSelling(offer.getFrom(), rsrcType);
@@ -2645,7 +2652,7 @@ public class SOCRobotBrain extends Thread
                     rsrcType <= SOCResourceConstants.WOOD;
                     rsrcType++)
             {
-                if ((getSet.getAmount(rsrcType) > 0) && (!negotiator.wantsAnotherOffer(rejector, rsrcType)))
+                if (getSet.contains(rsrcType) && ! negotiator.wantsAnotherOffer(rejector, rsrcType))
                     negotiator.markAsNotSelling(rejector, rsrcType);
             }
 
@@ -2700,7 +2707,7 @@ public class SOCRobotBrain extends Thread
                                 rsrcType <= SOCResourceConstants.WOOD;
                                 rsrcType++)
                         {
-                            if ((getSet.getAmount(rsrcType) > 0) && (!negotiator.wantsAnotherOffer(rejector, rsrcType)))
+                            if (getSet.contains(rsrcType) && ! negotiator.wantsAnotherOffer(rejector, rsrcType))
                                 negotiator.markAsNotSelling(rejector, rsrcType);
                         }
                     }
@@ -3123,6 +3130,19 @@ public class SOCRobotBrain extends Thread
                 pl.setCloth(mes.getValue());
             else
                 ((SOCBoardLarge) (game.getBoard())).setCloth(mes.getValue());
+            break;
+
+        case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+            switch (mes.getAction())
+            {
+            case SOCPlayerElement.SET:
+                pl.setNumWarships(mes.getValue());
+                break;
+
+            case SOCPlayerElement.GAIN:
+                pl.setNumWarships(pl.getNumWarships() + mes.getValue());
+                break;
+            }
             break;
 
         }
@@ -3649,6 +3669,7 @@ public class SOCRobotBrain extends Thread
              */
             whatWeWantToBuild = null;
             buildingPlan.clear();
+            waitingForGameState = false;
         }
 
         /**

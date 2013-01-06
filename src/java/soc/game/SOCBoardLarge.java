@@ -462,6 +462,14 @@ public class SOCBoardLarge extends SOCBoard
     protected int[][] numberLayoutLg;
 
     /**
+     * For some scenarios, keyed lists of additional layout parts to add to game layout when sent from server to client.
+     * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
+     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
+     * Null for most scenarios.  Initialized in <tt>SOCBoardLargeAtServer.makeNewBoard</tt>.
+     */
+    private HashMap<String, int[]> addedLayoutParts;
+
+    /**
      * Actual hex types and dice numbers hidden under {@link #FOG_HEX}.
      * Key is the hex coordinate; value is
      * <tt>({@link #hexLayoutLg}[coord] &lt;&lt; 8) | ({@link #numberLayoutLg}[coord] & 0xFF)</tt>.
@@ -619,6 +627,7 @@ public class SOCBoardLarge extends SOCBoard
      * client instead calls methods such as {@link #setLandHexLayout(int[])}
      * and {@link #setLegalAndPotentialSettlements(Collection, int, HashSet[])}.
      * Call soc.server.SOCBoardLargeAtServer.makeNewBoard instead of this stub super method.
+     * @throws UnsupportedOperationException if called at client
      */
     @Override
     public void makeNewBoard(Hashtable<String, SOCGameOption> opts)
@@ -881,7 +890,85 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Get the keyed lists of additional layout parts to add to game layout, used only in some scenarios.
+     * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
+     * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
+     * Please treat the returned value as read-only.
+     * @return  The added layout parts, or null if none
+     * @see #getAddedLayoutPart(String)
+     */
+    public HashMap<String, int[]> getAddedLayoutParts()
+    {
+        if ((addedLayoutParts != null) && addedLayoutParts.isEmpty())
+            return null;
+        else
+            return addedLayoutParts;
+    }
+
+    /**
+     * Get one "added layout part" by its key name.
+     * @param key  Key name (short and uppercase)
+     * @return  The added layout part, or null if none with that key
+     * @see #getAddedLayoutParts()
+     */
+    public int[] getAddedLayoutPart(final String key)
+    {
+        if (addedLayoutParts == null)
+            return null;
+        else
+            return addedLayoutParts.get(key);
+    }
+
+    /**
+     * Set all the "added layout parts", for use at client.
+     * Should be set only during <tt>SOCBoardLargeAtServer.makeNewBoard</tt>, not changed afterwards.
+     * @param adds  Added parts, or null if none
+     * @see #setAddedLayoutPart(String, int[])
+     */
+    public void setAddedLayoutParts(HashMap<String, int[]> adds)
+    {
+        if ((adds != null) && adds.isEmpty())
+            addedLayoutParts = null;
+        else
+            addedLayoutParts = adds;
+    }
+
+    /**
+     * Set one "added layout part" by its key name.
+     * Should be set only during <tt>SOCBoardLargeAtServer.makeNewBoard</tt>, not changed afterwards.
+     * @param key  Key name (short and uppercase)
+     * @param v    Value (typically a list of coordinates)
+     * @see #setAddedLayoutParts(HashMap)
+     */
+    public void setAddedLayoutPart(final String key, final int[] v)
+    {
+        if (addedLayoutParts == null)
+            addedLayoutParts = new HashMap<String, int[]>();
+        addedLayoutParts.put(key, v);
+    }
+
+    /**
+     * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * move the pirate fleet's position along its path.
+     * This is called at server, but not at client; client instead calls {@link #setPirateHex(int, boolean)}.
+     * Call <tt>SOCBoardLargeAtServer.movePirateHexAlongPath</tt> instead of this stub super method.
+     * @param numSteps  Number of steps to move along the path
+     * @return  new pirate hex coordinate
+     * @throws UnsupportedOperationException if called at client
+     * @throws IllegalStateException if this board doesn't have layout part "PP" for the Pirate Path.
+     */
+    public int movePirateHexAlongPath(final int numSteps)
+        throws UnsupportedOperationException, IllegalStateException
+    {
+        throw new UnsupportedOperationException("Use SOCBoardLargeAtServer instead");
+    }
+
+    /**
      * Set where the pirate is.
+     *<P>
+     * For scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the
+     * server should call {@link #movePirateHexAlongPath(int)}
+     * instead of directly calling this method.
      *
      * @param ph  the new pirate hex coordinate; must be &gt; 0, not validated beyond that
      * @param rememberPrevious  Should we remember the old pirate hex?
