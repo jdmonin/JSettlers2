@@ -2466,6 +2466,7 @@ public class SOCServer extends Server
      *
      * @param ga  the name of the game
      * @param mes the message to send
+     * @see #messageToGameWithMon(String, String)
      * @see #messageToGame(String, SOCMessage)
      * @see #messageToGameForVersions(String, int, int, SOCMessage, boolean)
      */
@@ -2489,6 +2490,31 @@ public class SOCServer extends Server
                 c.put(mesCmd);
             }
         }
+    }
+
+    /**
+     * Send a server text message to the given game.
+     * Equivalent to: messageToGameWithMon(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, txt));
+     *<P>
+     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
+     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
+     *<P>
+     *<b>Locks:</b> MUST HAVE THE
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
+     * before calling this method.
+     *
+     * @param ga  the name of the game
+     * @param txt the message text to send. If
+     *            text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @see #messageToGame(String, String)
+     * @see #messageToGameWithMon(String, SOCMessage)
+     * @since 2.0.00
+     */
+    public void messageToGameWithMon(String ga, String txt)
+    {
+        messageToGameWithMon(ga, new SOCGameTextMsg(ga, SERVERNAME, txt));
     }
 
     /**
