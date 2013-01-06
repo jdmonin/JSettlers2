@@ -1853,13 +1853,13 @@ public class SOCServer extends Server
                 sendSVP = false;
                 if (! flagsChanged)
                     sendPlayerEventsBitmask = false;
-                StringConnection c = getConnection(plName);
-                if (c != null)
+                messageFormatToGame(gaName, true, "{0} established a trade route with a village.", plName);
+                if (flagsChanged)
                 {
-                    String txt = (flagsChanged)
-                        ? "Trade route established with village. You are no longer prevented from moving the pirate ship."
-                        : "Trade route established with village.";
-                    c.put(SOCGameTextMsg.toCmd(gaName, SERVERNAME, txt));
+                    StringConnection c = getConnection(plName);
+                    if (c != null)
+                        c.put(SOCGameTextMsg.toCmd
+                            (gaName, SERVERNAME, "You are no longer prevented from moving the pirate ship."));
                 }
 
                 // Player gets 1 cloth for establishing trade
@@ -7163,7 +7163,7 @@ public class SOCServer extends Server
                     StringBuffer getText = new StringBuffer();                    
                     offGet.toFriendlyString(getText);
                     messageFormatToGame
-                        (gaName, true, "{0} made an offer to trade {1} for {2}.",
+                        (gaName, true, "{0} made a trade offer to give {1} for {2}.",
                          (String) c.getData(), giveText, getText);
                 }
 
@@ -9523,7 +9523,7 @@ public class SOCServer extends Server
     }
 
     /**
-     * For discard or gold hex in {@link #sendGameState(SOCGame, boolean), build
+     * For discard or gold hex in {@link #sendGameState(SOCGame, boolean)}, build
      * the list of player names affected.
      * @param count  Number of players to name
      * @param names  Player names
