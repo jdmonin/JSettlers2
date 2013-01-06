@@ -9924,15 +9924,12 @@ public class SOCServer extends Server
         final String gaName = ga.getName();
         final SOCTradeOffer offer = ga.getPlayer(offering).getCurrentOffer();
 
-        StringBuffer message = new StringBuffer(ga.getPlayer(offering).getName());
-        message.append(" traded ");
-        reportRsrcGainLoss(gaName, offer.getGiveSet(), true, offering, accepting, message, null);
-        message.append(" for ");
-        reportRsrcGainLoss(gaName, offer.getGetSet(), false, offering, accepting, message, null);
-        message.append(" from ");
-        message.append(ga.getPlayer(accepting).getName());
-        message.append('.');
-        messageToGame(gaName, message.toString());
+        StringBuffer giveDesc = new StringBuffer();  // will fill with "2 sheep", etc
+        reportRsrcGainLoss(gaName, offer.getGiveSet(), true, offering, accepting, giveDesc, null);
+        StringBuffer getDesc = new StringBuffer();
+        reportRsrcGainLoss(gaName, offer.getGetSet(), false, offering, accepting, getDesc, null);
+        messageFormatToGame(gaName, true, "{0} gave {1} for {2} from {3}.",
+            ga.getPlayer(offering).getName(), giveDesc, getDesc, ga.getPlayer(accepting).getName());
     }
 
     /**
