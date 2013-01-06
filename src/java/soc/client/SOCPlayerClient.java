@@ -5349,6 +5349,7 @@ public class SOCPlayerClient extends Panel
                 connected = true;
                 (reader = new Thread(new NetReadTask(client, this))).start();
                 // send VERSION right away (1.1.06 and later)
+                // Version msg includes locale in 2.0.00 and later clients; older 1.1.xx servers will ignore that token.
                 putNet(SOCVersion.toCmd
                     (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
             }

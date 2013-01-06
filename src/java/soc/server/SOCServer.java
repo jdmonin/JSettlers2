@@ -4240,14 +4240,29 @@ public class SOCServer extends Server
      * @return True if OK, false if rejected
      */
     boolean setClientVersSendGamesOrReject
-        (StringConnection c, final int cvers, final String clocale, final boolean isKnown)
+        (StringConnection c, final int cvers, String clocale, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
 
         SOCClientData scd = (SOCClientData) c.getAppData();
+
         if (clocale != null)
+        {
+            final int hashIdx = clocale.indexOf("_#");
+            if (hashIdx != -1)
+            {
+                // extended info from java 1.7+ Locale.toString();
+                // if our server is an older JRE version, strip that out.
+                final String jreVersStr = System.getProperty("java.specification.version");
+                if (jreVersStr.startsWith("1.5") || jreVersStr.startsWith("1.6"))
+                {
+                    clocale = clocale.substring(0, hashIdx);
+                }
+            }
             scd.locale = clocale;
+        }
+
         if (prevVers == -1)
             scd.clearVersionTimer();
 
