@@ -43,6 +43,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -2424,6 +2425,7 @@ public class SOCServer extends Server
      *            an urgent message, and draw the user's attention in some way.
      *            (See {@link #messageToGameUrgent(String, String)})
      * @see #messageToGame(String, SOCMessage)
+     * @see #messageFormatToGame(String, boolean, String, Object...)
      * @see #messageToGameWithMon(String, SOCMessage)
      * @see #messageToGameExcept(String, StringConnection, String, boolean)
      * @since 1.1.08
@@ -2515,6 +2517,40 @@ public class SOCServer extends Server
     public void messageToGameWithMon(String ga, String txt)
     {
         messageToGameWithMon(ga, new SOCGameTextMsg(ga, SERVERNAME, txt));
+    }
+
+    /**
+     * Send a formatted server text message to the given game.
+     * Standardizes construction of strings with arguments, to aid with internationalization.
+     * Equivalent to: messageToGame(ga, new SOCGameTextMsg(ga, {@link #SERVERNAME}, MessageFormat.format(txt, args)));
+     *<P>
+     * Do not pass SOCSomeMessage.toCmd() into this method; the message type number
+     * will be GAMETEXTMSG, not the desired SOMEMESSAGE.
+     *<P>
+     *<b>Locks:</b> Either set <tt>takeMon</tt> true, or call
+     * {@link SOCGameList#takeMonitorForGame(String) gameList.takeMonitorForGame(ga)}
+     * before calling this method.
+     *
+     * @param ga  the name of the game
+     * @param takeMon Should this method take and release
+     *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
+     *                True unless caller already holds that monitor.
+     * @param txt the message text to send. If
+     *            text begins with ">>>", the client should consider this
+     *            an urgent message, and draw the user's attention in some way.
+     *            (See {@link #messageToGameUrgent(String, String)})
+     * @param args  Any parameters within <tt>, to be formatted as in {@link MessageFormat}
+     * @see #messageToGame(String, String)
+     * @since 2.0.00
+     */
+    public void messageFormatToGame(final String ga, final boolean takeMon, final String txt, final Object ... args)
+    {
+        final String finalTxt = MessageFormat.format(txt, args);
+
+        if (takeMon)
+            messageToGameWithMon(ga, finalTxt);
+        else
+            messageToGame(ga, finalTxt);
     }
 
     /**
