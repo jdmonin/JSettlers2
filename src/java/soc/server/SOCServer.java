@@ -1418,11 +1418,11 @@ public class SOCServer extends Server
                  */
                 foundNoRobots = false;
 
-                messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Fetching a robot player..."));
+                messageToGameWithMon(gm, "Fetching a robot player...");
 
                 if (robots.isEmpty())
                 {
-                    messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "Sorry, no robots on this server."));
+                    messageToGameWithMon(gm, "Sorry, no robots on this server.");
                     foundNoRobots = true;
                 }
                 else if (ga.getClientVersionMinRequired() > Version.versionNumber())
@@ -1520,7 +1520,7 @@ public class SOCServer extends Server
                     }
                     else
                     {
-                        messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, "*** Can't find a robot! ***"));
+                        messageToGameWithMon(gm, "*** Can't find a robot! ***");
                         foundNoRobots = true;
                     }
                 }
@@ -10181,7 +10181,7 @@ public class SOCServer extends Server
         /**
          * ga.startGame() picks who goes first, but feedback is nice
          */
-        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, "Randomly picking a starting player..."));
+        messageToGameWithMon(gaName, "Randomly picking a starting player...");
 
         gameList.releaseMonitorForGame(gaName);
 
