@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
- * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@ import soc.game.SOCPlayer;
 
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
+ * This presents the facade of the UI to the networking layer.
  * <br/>
  * The notification methods of this API accept "event" objects rather than multiple arguments for
  * several reasons. The primary reasons are that the methods are definitively identified as event
@@ -31,31 +32,64 @@ import soc.game.SOCPlayer;
  * event objects can easily be augmented with paramters in the future without breaking the API
  * of implementors of this interface. Also, the event objects can be made immutable which greatly
  * simplifies determining thread safety.
+ * <br/>
+ * The event objects are defined as interfaces to allow for flexibility in implementation. Instead
+ * of several general-purpose concrete types with various configurations of values for parameters,
+ * the interfaces are defined with only the information they are known to have.
  */
 public interface PlayerClientListener
 {
-    class DiceRollEvent
-    {
-        /**
-         * The sum of the dice rolled. May be <tt>-1</tt> for some game events.
-         */
-        public final int result;
-        
-        /**
-         * May be {@code null} if the current player was null when the dice roll was received from the server.
-         */
-        public final SOCPlayer player;
-
-        public DiceRollEvent(SOCPlayer player, int result)
-        {
-            this.player = player;
-            this.result = result;
-        }
-    }
-
     /**
      * Receive a notification that the current player has rolled the dice.
      * @param evt
      */
     void diceRolled(DiceRollEvent evt);
+    
+    void playerJoined(PlayerJoinEvent evt);
+    void playerLeft(PlayerLeaveEvent evt);
+    
+    void playerSitdown(PlayerSeatEvent evt);
+    
+    interface DiceRollEvent
+    {
+        /**
+         * The sum of the dice rolled. May be <tt>-1</tt> for some game events.
+         */
+        int getResult();
+        
+        /**
+         * May be {@code null} if the current player was null when the dice roll was received from the server.
+         */
+        SOCPlayer getPlayer();
+    }
+    
+    interface PlayerJoinEvent
+    {
+        /**
+         * The player name. Will not be {@code null}
+         */
+        String getNickname();
+    }
+    
+    interface PlayerLeaveEvent
+    {
+        /**
+         * The player name. Will not be {@code null}
+         */
+        String getNickname();
+        
+        /**
+         * May be {@code null} if the current player is an observer.
+         */
+        SOCPlayer getPlayer();
+    }
+    
+    interface PlayerSeatEvent
+    {
+        int getSeatNumber();
+        /**
+         * The player name. Will not be {@code null}
+         */
+        String getNickname();
+    }
 }

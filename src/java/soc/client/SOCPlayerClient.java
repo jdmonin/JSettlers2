@@ -2353,15 +2353,20 @@ public class SOCPlayerClient extends Panel
      * handle the "join game" message
      * @param mes  the message
      */
-    protected void handleJOINGAME(SOCJoinGame mes)
+    protected void handleJOINGAME(final SOCJoinGame mes)
     {
         final String gn = mes.getGame();
-        SOCPlayerInterface pi = playerInterfaces.get(gn);
-        final String msg = "*** " + mes.getNickname() + " has joined this game.\n";
-        pi.print(msg);
-        SOCGame ga = games.get(gn);
-        if ((ga != null) && (ga.getGameState() >= SOCGame.START1A))
-            pi.chatPrint(msg);
+        final String name = mes.getNickname();
+        if (name == null)
+            return;
+        
+        PlayerClientListener pcl = clientListeners.get(gn);
+        pcl.playerJoined(new PlayerClientListener.PlayerJoinEvent(){
+            public String getNickname()
+            {
+                return name;
+            }
+        });
     }
 
     /**
@@ -2373,28 +2378,20 @@ public class SOCPlayerClient extends Panel
         String gn = mes.getGame();
         SOCGame ga = games.get(gn);
 
-        final String name = mes.getNickname();
         if (ga != null)
         {
-            SOCPlayerInterface pi = playerInterfaces.get(gn);
-            SOCPlayer player = ga.getPlayer(name);
-
-            if (player != null)
-            {
-                //
-                //  This user was not a spectator.
-                //  Remove first from interface, then from game data.
-                //
-                pi.removePlayer(player.getPlayerNumber());
-                ga.removePlayer(name);
-            }
-            else if (ga.getGameState() >= SOCGame.START1A)
-            {
-                //  Spectator, game in progress.
-                //  Server prints it in the game text area,
-                //  and we also print in the chat area (less clutter there).
-                pi.chatPrint("* " + name + " left the game");
-            }
+            final String name = mes.getNickname();
+            final SOCPlayer player = ga.getPlayer(name);
+            
+            PlayerClientListener pcl = clientListeners.get(gn);
+            pcl.playerLeft(new PlayerClientListener.PlayerLeaveEvent(){
+                public String getNickname() {
+                    return name;
+                }
+                public SOCPlayer getPlayer() {
+                    return player;
+                }
+            });
         }
     }
 
@@ -2482,50 +2479,59 @@ public class SOCPlayerClient extends Panel
      * handle the "player sitting down" message
      * @param mes  the message
      */
-    protected void handleSITDOWN(SOCSitDown mes)
+    protected void handleSITDOWN(final SOCSitDown mes)
     {
         /**
          * tell the game that a player is sitting
          */
         final SOCGame ga = games.get(mes.getGame());
-
         if (ga != null)
         {
             final int mesPN = mes.getPlayerNumber();
+    
             ga.takeMonitor();
-
+            SOCPlayer player = null;
             try
             {
                 ga.addPlayer(mes.getNickname(), mesPN);
-
+    
+                player = ga.getPlayer(mesPN);
                 /**
                  * set the robot flag
                  */
-                ga.getPlayer(mesPN).setRobotFlag(mes.isRobot(), false);
+                player.setRobotFlag(mes.isRobot(), false);
             }
             catch (Exception e)
             {
-                ga.releaseMonitor();
                 System.out.println("Exception caught - " + e);
                 e.printStackTrace();
+                
+                return;
             }
-
-            ga.releaseMonitor();
-
+            finally
+            {
+                ga.releaseMonitor();
+            }
+    
             /**
              * tell the GUI that a player is sitting
              */
-            final SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-            pi.addPlayer(mes.getNickname(), mesPN);
-
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            PlayerClientListener.PlayerSeatEvent evt = new PlayerClientListener.PlayerSeatEvent(){
+                public String getNickname() {
+                    return mes.getNickname();
+                }
+                public int getSeatNumber() {
+                    return mesPN;
+                }
+            };
+            pcl.playerSitdown(evt);
+            
             /**
              * let the board panel & building panel find our player object if we sat down
              */
             if (nickname.equals(mes.getNickname()))
             {
-                pi.getBoardPanel().setPlayer();
-                pi.getBuildingPanel().setPlayer();
-
                 /**
                  * change the face (this is so that old faces don't 'stick')
                  */
@@ -2534,35 +2540,6 @@ public class SOCPlayerClient extends Panel
                     ga.getPlayer(mesPN).setFaceId(lastFaceChange);
                     gmgr.changeFace(ga, lastFaceChange);
                 }
-            }
-
-            /**
-             * update the hand panel's displayed values
-             */
-            final SOCHandPanel hp = pi.getPlayerHandPanel(mesPN);
-            hp.updateValue(SOCPlayerElement.ROADS);
-            hp.updateValue(SOCPlayerElement.SETTLEMENTS);
-            hp.updateValue(SOCPlayerElement.CITIES);
-            if (ga.hasSeaBoard)
-                hp.updateValue(SOCPlayerElement.SHIPS);
-            hp.updateValue(SOCPlayerElement.NUMKNIGHTS);
-            hp.updateValue(SOCHandPanel.VICTORYPOINTS);
-            hp.updateValue(SOCHandPanel.LONGESTROAD);
-            hp.updateValue(SOCHandPanel.LARGESTARMY);
-
-            if (nickname.equals(mes.getNickname()))
-            {
-                hp.updateValue(SOCPlayerElement.CLAY);
-                hp.updateValue(SOCPlayerElement.ORE);
-                hp.updateValue(SOCPlayerElement.SHEEP);
-                hp.updateValue(SOCPlayerElement.WHEAT);
-                hp.updateValue(SOCPlayerElement.WOOD);
-                hp.updateDevCards();
-            }
-            else
-            {
-                hp.updateValue(SOCHandPanel.NUMRESOURCES);
-                hp.updateValue(SOCHandPanel.NUMDEVCARDS);
             }
         }
     }
@@ -2976,18 +2953,28 @@ public class SOCPlayerClient extends Panel
             throw new IllegalStateException("No game found for name '"+gameName+"'");
         
         final int cpn = ga.getCurrentPlayerNumber();
-        SOCPlayer player = null;
+        SOCPlayer p = null;
         if (cpn >= 0)
-            player = ga.getPlayer(cpn);
+            p = ga.getPlayer(cpn);
         
-        int roll = mes.getResult();
+        final int roll = mes.getResult();
+        final SOCPlayer player = p;
         
         // update game state
         ga.setCurrentDice(roll);
         
         // notify listener
         PlayerClientListener listener = clientListeners.get(gameName);
-        listener.diceRolled(new PlayerClientListener.DiceRollEvent(player, roll));
+        listener.diceRolled(new PlayerClientListener.DiceRollEvent() {
+            public SOCPlayer getPlayer()
+            {
+                return player;
+            }
+            public int getResult()
+            {
+                return roll;
+            }
+        });
     }
 
     /**

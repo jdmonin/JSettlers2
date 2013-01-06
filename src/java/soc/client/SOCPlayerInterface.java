@@ -2567,14 +2567,87 @@ public class SOCPlayerInterface extends Frame
         
         public void diceRolled(DiceRollEvent evt)
         {
-            int roll = evt.result;
+            int roll = evt.getResult();
             pi.setTextDisplayRollExpected(roll);
             pi.getBoardPanel().repaint();
             
             // only notify about valid rolls
-            if (roll >= 2 && roll <= 12 && evt.player != null)
+            if (roll >= 2 && roll <= 12 && evt.getPlayer() != null)
             {
-                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, evt.player));
+                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, evt.getPlayer()));
+            }
+        }
+        
+        public void playerJoined(PlayerJoinEvent evt)
+        {
+            final String msg = "*** " + evt.getNickname() + " has joined this game.\n";
+            pi.print(msg);
+            if ((pi.game != null) && (pi.game.getGameState() >= SOCGame.START1A))
+                pi.chatPrint(msg);
+        }
+        
+        public void playerLeft(PlayerLeaveEvent evt)
+        {
+            if (evt.getPlayer() != null)
+            {
+                //
+                //  This user was not a spectator.
+                //  Remove first from interface, then from game data.
+                //
+                pi.removePlayer(evt.getPlayer().getPlayerNumber());
+                pi.game.removePlayer(evt.getNickname());
+            }
+            else if (pi.game.getGameState() >= SOCGame.START1A)
+            {
+                //  Spectator, game in progress.
+                //  Server prints it in the game text area,
+                //  and we also print in the chat area (less clutter there).
+                pi.chatPrint("* " + evt.getNickname() + " left the game");
+            }
+        }
+        
+        public void playerSitdown(PlayerSeatEvent evt)
+        {
+            pi.addPlayer(evt.getNickname(), evt.getSeatNumber());
+            
+            String nickname = pi.getClient().getNickname();
+
+            /**
+             * let the board panel & building panel find our player object if we sat down
+             */
+            if (nickname.equals(evt.getNickname()))
+            {
+                pi.getBoardPanel().setPlayer();
+                pi.getBuildingPanel().setPlayer();
+            }
+
+            /**
+             * update the hand panel's displayed values
+             */
+            final SOCHandPanel hp = pi.getPlayerHandPanel(evt.getSeatNumber());
+            hp.updateValue(SOCPlayerElement.ROADS);
+            hp.updateValue(SOCPlayerElement.SETTLEMENTS);
+            hp.updateValue(SOCPlayerElement.CITIES);
+            if (pi.game.hasSeaBoard)
+                hp.updateValue(SOCPlayerElement.SHIPS);
+            hp.updateValue(SOCPlayerElement.NUMKNIGHTS);
+            hp.updateValue(SOCHandPanel.VICTORYPOINTS);
+            hp.updateValue(SOCHandPanel.LONGESTROAD);
+            hp.updateValue(SOCHandPanel.LARGESTARMY);
+
+            if (nickname.equals(evt.getNickname()))
+            {
+                hp.updateValue(SOCPlayerElement.CLAY);
+                hp.updateValue(SOCPlayerElement.ORE);
+                hp.updateValue(SOCPlayerElement.SHEEP);
+                hp.updateValue(SOCPlayerElement.WHEAT);
+                hp.updateValue(SOCPlayerElement.WOOD);
+                hp.updateDevCards();
+            }
+            else
+            {
+                hp.updateValue(SOCHandPanel.NUMRESOURCES);
+                hp.updateValue(SOCHandPanel.NUMDEVCARDS);
             }
         }
     }
