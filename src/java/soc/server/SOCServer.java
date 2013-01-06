@@ -1335,7 +1335,7 @@ public class SOCServer extends Server
         recordGameEvent(gm, leaveMessage.toCmd());
 
         D.ebugPrintln("*** " + plName + " left the game " + gm);
-        messageToGameWithMon(gm, new SOCGameTextMsg(gm, SERVERNAME, plName + " left the game"));
+        messageFormatToGame(gm, false, "{0} left the game", plName);
 
         /**
          * check if there is at least one person playing the game
@@ -1428,10 +1428,9 @@ public class SOCServer extends Server
                 }
                 else if (ga.getClientVersionMinRequired() > Version.versionNumber())
                 {
-                    messageToGameWithMon(gm, new SOCGameTextMsg
-                            (gm, SERVERNAME,
-                             "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's "
-                             + ga.getClientVersionMinRequired()));
+                    messageFormatToGame(gm, false,
+                         "Sorry, the robots can't join this game; its version is somehow newer than server and robots, it's {0}",
+                         ga.getClientVersionMinRequired());
                     foundNoRobots = true;
                 }
                 else
@@ -2548,9 +2547,9 @@ public class SOCServer extends Server
         final String finalTxt = MessageFormat.format(txt, args);
 
         if (takeMon)
-            messageToGameWithMon(ga, finalTxt);
-        else
             messageToGame(ga, finalTxt);
+        else
+            messageToGameWithMon(ga, finalTxt);
     }
 
     /**
@@ -5557,7 +5556,7 @@ public class SOCServer extends Server
                                }
                              */
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a road."));
+                            messageFormatToGame(gaName, false, "{0} built a road.", plName);
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.ROAD, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -5616,7 +5615,7 @@ public class SOCServer extends Server
                         {
                             ga.putPiece(se);   // Changes game state and (if game start) player
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a settlement."));
+                            messageFormatToGame(gaName, false, "{0} built a settlement.", plName);
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SETTLEMENT, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -5665,7 +5664,7 @@ public class SOCServer extends Server
                         {
                             ga.putPiece(ci);  // changes game state and maybe player
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a city."));
+                            messageFormatToGame(gaName, false, "{0} built a city.", plName);
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.CITY, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -5710,7 +5709,7 @@ public class SOCServer extends Server
                             ga.putPiece(sh);  // Changes state and sometimes player (during initial placement)
 
                             gameList.takeMonitorForGame(gaName);
-                            messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, plName + " built a ship."));
+                            messageFormatToGame(gaName, false, "{0} built a ship.", plName);
                             messageToGameWithMon(gaName, new SOCPutPiece(gaName, pn, SOCPlayingPiece.SHIP, coord));
                             if (! ga.pendingMessagesOut.isEmpty())
                             {
@@ -7835,11 +7834,10 @@ public class SOCServer extends Server
 
                         ga.playKnight();
                         final String cardplayed = (isWarshipConvert)
-                            ? " converted a ship to a warship."
-                            : " played a Soldier card.";
+                            ? "{0} converted a ship to a warship."
+                            : "{0} played a Soldier card.";
                         gameList.takeMonitorForGame(gaName);
-                        messageToGameWithMon
-                            (gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + cardplayed));
+                        messageFormatToGame(gaName, false, cardplayed, player.getName());
                         if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                         {
                             messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
@@ -7877,7 +7875,7 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.ROADS));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Road Building card."));
+                        messageFormatToGame(gaName, false, "{0} played a Road Building card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                         if (ga.getGameState() == SOCGame.PLACING_FREE_ROAD1)
@@ -7910,7 +7908,7 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.DISC));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Year of Plenty card."));
+                        messageFormatToGame(gaName, false, "{0} played a Year of Plenty card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                     }
@@ -7929,7 +7927,7 @@ public class SOCServer extends Server
                         gameList.takeMonitorForGame(gaName);
                         messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.MONO));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
-                        messageToGameWithMon(gaName, new SOCGameTextMsg(gaName, SERVERNAME, player.getName() + " played a Monopoly card."));
+                        messageFormatToGame(gaName, false, "{0} played a Monopoly card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
                         sendGameState(ga);
                     }
@@ -8272,17 +8270,17 @@ public class SOCServer extends Server
             {
                 // No one else is capable of voting.
                 // Reset the game immediately.
-                messageToGameWithMon(gaName, new SOCGameTextMsg
-                    (gaName, SERVERNAME, ">>> " + (String) c.getData()
-                     + " is resetting the game - other connected players are unable to vote (client too old)."));
+                messageFormatToGame(gaName, false,
+                    ">>> {0} is resetting the game - other connected players are unable to vote (client too old).",
+                    (String) c.getData());
                 gameList.releaseMonitorForGame(gaName);
                 resetBoardAndNotify(gaName, reqPN);
             }
             else
             {
                 // Put it to a vote
-                messageToGameWithMon(gaName, new SOCGameTextMsg
-                    (gaName, SERVERNAME, (String) c.getData() + " requests a board reset - other players please vote."));
+                messageFormatToGame(gaName, false,
+                    "{0} requests a board reset - other players please vote.", (String) c.getData());
                 String vrCmd = SOCResetBoardVoteRequest.toCmd(gaName, reqPN);
                 ga.resetVoteBegin(reqPN);
                 gameList.releaseMonitorForGame(gaName);
