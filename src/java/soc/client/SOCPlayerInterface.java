@@ -2707,6 +2707,46 @@ public class SOCPlayerInterface extends Frame
                 hp.updateValue(SOCHandPanel.NUMDEVCARDS);
             }
         }
+        
+        public void playerTurnSet(PlayerTurnEvent evt)
+        {
+            pi.updateAtTurn(evt.getSeatNumber());
+        }
+        
+        public void playerPiecePlaced(PlayerPiecePlacedEvent evt)
+        {
+            pi.updateAtPutPiece(evt.getPlayer().getPlayerNumber(), evt.getCoordinate(), evt.getPieceType(), false, 0);
+        }
+        
+        public void playerPieceMoved(PlayerPieceMovedEvent evt)
+        {
+            pi.updateAtPutPiece(evt.getPlayer().getPlayerNumber(),
+                                evt.getSourceCoordinate(),
+                                evt.getPieceType(),
+                                true,
+                                evt.getTargetCoordinate());
+        }
+        
+        public void membersListed(MemberListEvent evt)
+        {
+            Vector<String> names = new Vector<String>(evt.getNames());
+            pi.began(names);
+        }
+        
+        public void boardLayoutUpdated(BoardLayoutEvent evt)
+        {
+            pi.updateAtNewBoard();
+        }
+        
+        public void gameStarted(GameStartEvent evt)
+        {
+            pi.startGame();
+        }
+        
+        public void gameStateChanged(GameStateEvent evt)
+        {
+            pi.updateAtGameState();
+        }
     }
 
     /**

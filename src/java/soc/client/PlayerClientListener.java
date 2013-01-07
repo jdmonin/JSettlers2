@@ -20,6 +20,8 @@
  */
 package soc.client;
 
+import java.util.Collection;
+
 import soc.game.SOCPlayer;
 
 /**
@@ -47,8 +49,15 @@ public interface PlayerClientListener
     
     void playerJoined(PlayerJoinEvent evt);
     void playerLeft(PlayerLeaveEvent evt);
-    
     void playerSitdown(PlayerSeatEvent evt);
+    void playerTurnSet(PlayerTurnEvent evt);
+    void playerPiecePlaced(PlayerPiecePlacedEvent evt);
+    void playerPieceMoved(PlayerPieceMovedEvent evt);
+    
+    void membersListed(MemberListEvent evt);
+    void boardLayoutUpdated(BoardLayoutEvent evt);
+    void gameStarted(GameStartEvent evt);
+    void gameStateChanged(GameStateEvent evt);
     
     interface DiceRollEvent
     {
@@ -91,5 +100,54 @@ public interface PlayerClientListener
          * The player name. Will not be {@code null}
          */
         String getNickname();
+    }
+    
+    interface PlayerTurnEvent
+    {
+        int getSeatNumber();
+    }
+    
+    interface PlayerPiecePlacedEvent
+    {
+        SOCPlayer getPlayer();
+        int getCoordinate();
+        /**
+         * @return A piece type identifier, such as {@link SOCPlayingPiece#CITY}
+         */
+        int getPieceType();
+    }
+    
+    interface PlayerPieceMovedEvent
+    {
+        SOCPlayer getPlayer();
+        int getSourceCoordinate();
+        int getTargetCoordinate();
+        /**
+         * @return A piece type identifier, such as {@link SOCPlayingPiece#CITY}
+         */
+        int getPieceType();
+    }
+    
+    interface MemberListEvent
+    {
+        Collection<String> getNames();
+    }
+    
+    interface BoardLayoutEvent
+    {
+        // nothing yet
+    }
+    
+    interface GameStartEvent
+    {
+        // nothing yet
+    }
+    
+    interface GameStateEvent
+    {
+        /**
+         * @return One of the codes from SOCGame, such as {@link soc.game.SOCGame#NEW}
+         */
+        int getGameState();
     }
 }

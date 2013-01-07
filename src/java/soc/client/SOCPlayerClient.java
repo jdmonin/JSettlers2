@@ -2428,10 +2428,15 @@ public class SOCPlayerClient extends Panel
      * done sending us the complete game state in response to JOINGAME.
      * @param mes  the message
      */
-    protected void handleGAMEMEMBERS(SOCGameMembers mes)
+    protected void handleGAMEMEMBERS(final SOCGameMembers mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.began(mes.getMembers());
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.membersListed(new PlayerClientListener.MemberListEvent()
+        {
+            public Collection<String> getNames() {
+                return mes.getMembers();
+            }
+        });
     }
 
     /**
@@ -2570,9 +2575,9 @@ public class SOCPlayerClient extends Panel
             bd.setHexLayout(mes.getHexLayout());
             bd.setNumberLayout(mes.getNumberLayout());
             bd.setRobberHex(mes.getRobberHex(), false);
-
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-            pi.updateAtNewBoard();
+            
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.boardLayoutUpdated(new PlayerClientListener.BoardLayoutEvent(){});
         }
     }
 
@@ -2653,8 +2658,8 @@ public class SOCPlayerClient extends Panel
             return;
         }
 
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.updateAtNewBoard();
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.boardLayoutUpdated(new PlayerClientListener.BoardLayoutEvent(){});
     }
 
     /**
@@ -2663,8 +2668,8 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleSTARTGAME(SOCStartGame mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.startGame();
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.gameStarted(new PlayerClientListener.GameStartEvent(){});
     }
 
     /**
@@ -2677,14 +2682,20 @@ public class SOCPlayerClient extends Panel
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
             if (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW)
             {
-                pi.startGame();
+                pcl.gameStarted(new PlayerClientListener.GameStartEvent(){});
             }
 
-            ga.setGameState(mes.getState());
-            pi.updateAtGameState();
+            final int newState = mes.getState();
+            ga.setGameState(newState);
+            pcl.gameStateChanged(new PlayerClientListener.GameStateEvent() {
+                public int getGameState()
+                {
+                    return newState;
+                }
+            });
         }
     }
 
@@ -2702,9 +2713,12 @@ public class SOCPlayerClient extends Panel
         final int pn = mes.getPlayerNumber();
         ga.setCurrentPlayerNumber(pn);
 
-        // repaint board panel, update buttons' status, etc:
-        SOCPlayerInterface pi = playerInterfaces.get(gaName);
-        pi.updateAtTurn(pn);
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.playerTurnSet(new PlayerClientListener.PlayerTurnEvent() {
+            public int getSeatNumber() {
+                return pn;
+            }
+        });
     }
 
     /**
@@ -2735,8 +2749,12 @@ public class SOCPlayerClient extends Panel
             final int pnum = mes.getPlayerNumber();
             ga.setCurrentPlayerNumber(pnum);
             ga.updateAtTurn();
-            SOCPlayerInterface pi = playerInterfaces.get(gaName);
-            pi.updateAtTurn(pnum);
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.playerTurnSet(new PlayerClientListener.PlayerTurnEvent() {
+                public int getSeatNumber() {
+                    return pnum;
+                }
+            });
         }
     }
 
@@ -3013,14 +3031,25 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(mes.getGame());
         if (ga == null)
             return;
-
-        final SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        if (pi == null)
+        
+        final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        final int coord = mes.getCoordinates();
+        final int ptype = mes.getPieceType();
+        
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
             return;
-
-        // send event to listener for UI to handle, instead of updating UI directly [mra]
-        pi.updateAtPutPiece
-            (mes.getPlayerNumber(), mes.getCoordinates(), mes.getPieceType(), false, 0);
+        pcl.playerPiecePlaced(new PlayerClientListener.PlayerPiecePlacedEvent() {
+            public SOCPlayer getPlayer() {
+                return player;
+            }
+            public int getCoordinate() {
+                return coord;
+            }
+            public int getPieceType() {
+                return ptype;
+            }
+        });
     }
 
     /**
@@ -3744,13 +3773,28 @@ public class SOCPlayerClient extends Panel
         if (ga == null)
             return;  // Not one of our games
 
-        SOCPlayerInterface pi = playerInterfaces.get(gaName);
-        if (pi == null)
-            return;  // Not one of our games
-
-        pi.updateAtPutPiece
-            (mes.getPlayerNumber(), mes.getFromCoord(), mes.getPieceType(),
-             true, mes.getToCoord());
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;
+        final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        final int src = mes.getFromCoord();
+        final int dest = mes.getToCoord();
+        final int ptype = mes.getPieceType();
+        
+        pcl.playerPieceMoved(new PlayerClientListener.PlayerPieceMovedEvent() {
+            public SOCPlayer getPlayer() {
+                return player;
+            }
+            public int getSourceCoordinate() {
+                return src;
+            }
+            public int getTargetCoordinate() {
+                return dest;
+            }
+            public int getPieceType() {
+                return ptype;
+            }
+        });
     }
 
     /**
