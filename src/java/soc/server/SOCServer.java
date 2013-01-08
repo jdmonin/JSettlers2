@@ -1789,6 +1789,16 @@ public class SOCServer extends Server
             }
             break;
 
+        case SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY:
+            {
+                final String gaName = ga.getName();
+                messageToGame(gaName, "Game is ending: Less than half the villages have cloth remaining.");
+                messageFormatToGame
+                    (gaName, true, "{0} has won due to this special win condition.",
+                     ((SOCPlayer) detail).getName());
+            }
+            break;
+
         }
     }
 

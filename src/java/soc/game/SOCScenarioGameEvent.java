@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,7 +21,7 @@
 package soc.game;
 
 /**
- * Scenario event codes which affect the game or board, not a specific player.
+ * Scenario event codes which affect the game or board, not only a specific player.
  * Used by {@link SOCScenarioEventListener}s.
  * Each event also has a {@link SOCGameOption} to indicate its scenario rules are active; see enum value javadocs.
  *<P>
@@ -54,7 +54,19 @@ public enum SOCScenarioGameEvent
      * In {@link SOCScenarioEventListener#gameEvent(SOCGame, SOCScenarioGameEvent, Object)},
      * <tt>detail</tt> is the revealed hex's coordinate as an Integer.
      */
-    SGE_FOG_HEX_REVEALED(0x01);
+    SGE_FOG_HEX_REVEALED(0x01),
+
+    /**
+     * Special win condition for this scenario:
+     * A player has won because less than half the villages have cloth remaining.
+     * The winning player's VP total might be less than {@link SOCGame#vp_winner}.
+     *<P>
+     * In {@link SOCScenarioEventListener#gameEvent(SOCGame, SOCScenarioGameEvent, Object)},
+     * <tt>detail</tt> is the winning {@link SOCPlayer}.
+     *<P>
+     * Checked in private method <tt>SOCGame.checkForWinner_SC_CLVI()</tt>
+     */
+    SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY(0x02);
 
     /**
      * Value for sending event codes over a network.
