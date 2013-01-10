@@ -53,11 +53,15 @@ public interface PlayerClientListener
     void playerTurnSet(PlayerTurnEvent evt);
     void playerPiecePlaced(PlayerPiecePlacedEvent evt);
     void playerPieceMoved(PlayerPieceMovedEvent evt);
+    void playerSVPAwarded(PlayerSvpEvent evt);
     
     void membersListed(MemberListEvent evt);
     void boardLayoutUpdated(BoardLayoutEvent evt);
+    void boardUpdated(BoardUpdateEvent evt);
+    
     void gameStarted(GameStartEvent evt);
     void gameStateChanged(GameStateEvent evt);
+    void gameEnded(GameEndedEvent evt);
     
     interface DiceRollEvent
     {
@@ -128,12 +132,29 @@ public interface PlayerClientListener
         int getPieceType();
     }
     
+    interface PlayerSvpEvent
+    {
+        /**
+         * @return The player awarded special victory points. Will not be {@code null}
+         */
+        SOCPlayer getPlayer();
+        /** The count of how many new special victory points were awarded */
+        int getNumSvp();
+        /** A user-display message describing the reason for the award */
+        String getAwardDescription();
+    }
+    
     interface MemberListEvent
     {
         Collection<String> getNames();
     }
     
     interface BoardLayoutEvent
+    {
+        // nothing yet
+    }
+    
+    interface BoardUpdateEvent
     {
         // nothing yet
     }
@@ -149,5 +170,10 @@ public interface PlayerClientListener
          * @return One of the codes from SOCGame, such as {@link soc.game.SOCGame#NEW}
          */
         int getGameState();
+    }
+    
+    interface GameEndedEvent
+    {
+        int[] getScores();
     }
 }

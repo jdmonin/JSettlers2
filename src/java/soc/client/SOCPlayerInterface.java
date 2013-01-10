@@ -2727,6 +2727,13 @@ public class SOCPlayerInterface extends Frame
                                 evt.getTargetCoordinate());
         }
         
+        public void playerSVPAwarded(PlayerSvpEvent evt)
+        {
+            if (pi.getClientHand() == null)
+                return;  // not seated yet (joining game in progress)
+            pi.updateAtSVPText(evt.getPlayer().getName(), evt.getNumSvp(), evt.getAwardDescription());
+        }
+        
         public void membersListed(MemberListEvent evt)
         {
             Vector<String> names = new Vector<String>(evt.getNames());
@@ -2738,6 +2745,11 @@ public class SOCPlayerInterface extends Frame
             pi.updateAtNewBoard();
         }
         
+        public void boardUpdated(BoardUpdateEvent evt)
+        {
+            pi.getBoardPanel().flushBoardLayoutAndRepaint();
+        }
+        
         public void gameStarted(GameStartEvent evt)
         {
             pi.startGame();
@@ -2746,6 +2758,11 @@ public class SOCPlayerInterface extends Frame
         public void gameStateChanged(GameStateEvent evt)
         {
             pi.updateAtGameState();
+        }
+        
+        public void gameEnded(GameEndedEvent evt)
+        {
+            pi.updateAtOver(evt.getScores());
         }
     }
 

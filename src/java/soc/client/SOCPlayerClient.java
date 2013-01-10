@@ -3813,10 +3813,10 @@ public class SOCPlayerClient extends Panel
         ga.revealFogHiddenHex
             (mes.getParam1(), mes.getParam2(), mes.getParam3());
 
-        SOCPlayerInterface pi = playerInterfaces.get(gaName);
-        if (pi == null)
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        if (pcl == null)
             return;  // Not one of our games
-        pi.getBoardPanel().flushBoardLayoutAndRepaint();
+        pcl.boardUpdated(new PlayerClientListener.BoardUpdateEvent(){});
     }
 
     /**
@@ -3848,14 +3848,24 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gaName);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayer pl = ga.getPlayer(mes.pn);
+        final SOCPlayer pl = ga.getPlayer(mes.pn);
         if (pl == null)
             return;
         pl.addSpecialVPInfo(mes.svp, mes.desc);
-        SOCPlayerInterface pi = playerInterfaces.get(gaName);
-        if ((pi == null) || (null == pi.getClientHand()))
-            return;  // not seated yet (joining game in progress)
-        pi.updateAtSVPText(pl.getName(), mes.svp, mes.desc);
+        PlayerClientListener pcl = clientListeners.get(gaName);
+        if (pcl == null)
+            return;
+        pcl.playerSVPAwarded(new PlayerClientListener.PlayerSvpEvent(){
+            public SOCPlayer getPlayer() {
+                return pl;
+            }
+            public int getNumSvp() {
+                return mes.svp;
+            }
+            public String getAwardDescription() {
+                return mes.desc;
+            }
+        });
     }
 
     }  // nested class MessageTreater
@@ -4023,7 +4033,7 @@ public class SOCPlayerClient extends Panel
      *  This is used to show the true scores, including hidden
      *  victory-point cards, at the game's end.
      */
-    public void updateGameEndStats(String game, int[] scores)
+    public void updateGameEndStats(String game, final int[] scores)
     {
         SOCGame ga = games.get(game);
         if (ga == null)
@@ -4034,8 +4044,14 @@ public class SOCPlayerClient extends Panel
             return;  // Should not have been sent; game is not yet over.
         }
 
-        SOCPlayerInterface pi = playerInterfaces.get(game);
-        pi.updateAtOver(scores);
+        PlayerClientListener pcl = clientListeners.get(game);
+        if (pcl == null)
+            return;
+        pcl.gameEnded(new PlayerClientListener.GameEndedEvent(){
+            public int[] getScores() {
+                return scores;
+            }
+        });
     }
 
     /**
