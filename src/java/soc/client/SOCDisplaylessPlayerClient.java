@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -1150,59 +1150,87 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 handlePLAYERELEMENT_numRsrc(mes, pl, SOCResourceConstants.UNKNOWN);
                 break;
 
-            case SOCPlayerElement.ASK_SPECIAL_BUILD:
-                if (0 != mes.getValue())
-                {
-                    try {
-                        ga.askSpecialBuild(pn, false);  // set per-player, per-game flags
-                    }
-                    catch (RuntimeException e) {}
-                } else {
-                    pl.setAskedSpecialBuild(false);
-                }
-                break;
-
-            case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
-                pl.setNeedToPickGoldHexResources(mes.getValue());
-                break;
-
-            case SOCPlayerElement.SCENARIO_SVP:
-                pl.setSpecialVP(mes.getValue());
-                break;
-
-            case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
-                pl.setScenarioPlayerEvents(mes.getValue());
-                break;
-
-            case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
-                pl.setScenarioSVPLandAreas(mes.getValue());
-                break;
-
-            case SOCPlayerElement.STARTING_LANDAREAS:
-                pl.setStartingLandAreasEncoded(mes.getValue());
-                break;
-
-            case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
-                if (pn != -1)
-                    pl.setCloth(mes.getValue());
-                else
-                    ((SOCBoardLarge) (ga.getBoard())).setCloth(mes.getValue());
-                break;
-
-            case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-                switch (mes.getAction())
-                {
-                case SOCPlayerElement.SET:
-                    pl.setNumWarships(mes.getValue());
-                    break;
-
-                case SOCPlayerElement.GAIN:
-                    pl.setNumWarships(pl.getNumWarships() + mes.getValue());
-                    break;
-                }
+            default:
+                handlePLAYERELEMENT_simple(mes, ga, pl, pn);
                 break;
 
             }
+        }
+    }
+
+    /**
+     * Update game data for a simple player element or flag, for {@link #handlePLAYERELEMENT(SOCPlayerElement)}.
+     * Handles ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc.
+     *<P>
+     * To avoid code duplication, also called from
+     * {@link SOCPlayerClient#handlePLAYERELEMENT(SOCPlayerElement)}
+     * and {@link soc.robot.SOCRobotBrain#run()}.
+     *
+     * @param mes  Message with amount and action (SET/GAIN/LOSE)
+     * @param ga   Game to update
+     * @param pl   Player to update
+     * @param pn   Player number from message (sometimes -1 for none)
+     * @since 2.0.00
+     */
+    public static void handlePLAYERELEMENT_simple
+        (SOCPlayerElement mes, SOCGame ga, SOCPlayer pl, final int pn)
+    {
+        final int val = mes.getValue();
+
+        switch (mes.getElementType())
+        {
+        case SOCPlayerElement.ASK_SPECIAL_BUILD:
+            if (0 != val)
+            {
+                try {
+                    ga.askSpecialBuild(pn, false);  // set per-player, per-game flags
+                }
+                catch (RuntimeException e) {}
+            } else {
+                pl.setAskedSpecialBuild(false);
+            }
+            break;
+
+        case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
+            pl.setNeedToPickGoldHexResources(val);
+            break;
+
+        case SOCPlayerElement.SCENARIO_SVP:
+            pl.setSpecialVP(val);
+            break;
+
+        case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
+            pl.setScenarioPlayerEvents(val);
+            break;
+
+        case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
+            pl.setScenarioSVPLandAreas(val);
+            break;
+
+        case SOCPlayerElement.STARTING_LANDAREAS:
+            pl.setStartingLandAreasEncoded(val);
+            break;
+
+        case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
+            if (pn != -1)
+                pl.setCloth(val);
+            else
+                ((SOCBoardLarge) (ga.getBoard())).setCloth(val);
+            break;
+
+        case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+            switch (mes.getAction())
+            {
+            case SOCPlayerElement.SET:
+                pl.setNumWarships(val);
+                break;
+
+            case SOCPlayerElement.GAIN:
+                pl.setNumWarships(pl.getNumWarships() + val);
+                break;
+            }
+            break;
+        
         }
     }
 

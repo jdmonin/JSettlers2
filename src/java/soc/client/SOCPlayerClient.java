@@ -2857,22 +2857,10 @@ public class SOCPlayerClient extends Panel
                 break;
 
             case SOCPlayerElement.ASK_SPECIAL_BUILD:
-                if (0 != mes.getValue())
-                {
-                    try {
-                        ga.askSpecialBuild(pn, false);  // set per-player, per-game flags
-                    }
-                    catch (RuntimeException e) {}
-                } else {
-                    pl.setAskedSpecialBuild(false);
-                }
-                hpan.updateValue(etype);
-                // for client player, hpan also refreshes BuildingPanel with this value.
-                break;
-
             case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
-                pl.setNeedToPickGoldHexResources(mes.getValue());
+                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
                 hpan.updateValue(etype);
+                // ASK_SPECIAL_BUILD: for client player, hpan also refreshes BuildingPanel with this value.
                 break;
 
             case SOCPlayerElement.SCENARIO_SVP:
@@ -2887,15 +2875,9 @@ public class SOCPlayerClient extends Panel
                 break;
 
             case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
-                pl.setScenarioPlayerEvents(mes.getValue());
-                break;
-
             case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
-                pl.setScenarioSVPLandAreas(mes.getValue());
-                break;
-
             case SOCPlayerElement.STARTING_LANDAREAS:
-                pl.setStartingLandAreasEncoded(mes.getValue());
+                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
                 break;
 
             case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
@@ -2911,16 +2893,7 @@ public class SOCPlayerClient extends Panel
                 break;
 
             case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-                switch (mes.getAction())
-                {
-                case SOCPlayerElement.SET:
-                    pl.setNumWarships(mes.getValue());
-                    break;
-
-                case SOCPlayerElement.GAIN:
-                    pl.setNumWarships(pl.getNumWarships() + mes.getValue());
-                    break;
-                }
+                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
                 pi.updateAtPiecesChanged();
                 break;
 
