@@ -21,8 +21,10 @@
 package soc.client;
 
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.List;
 
+import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
 /**
@@ -55,6 +57,8 @@ public interface PlayerClientListener
     void playerPiecePlaced(PlayerPiecePlacedEvent evt);
     void playerPieceMoved(PlayerPieceMovedEvent evt);
     void playerSVPAwarded(PlayerSvpEvent evt);
+    void playerDevCardUpdated(SOCPlayer player);
+    void playerFaceChanged(SOCPlayer player, int faceId);
     
     /**
      * @param player May be {@code null}
@@ -62,6 +66,7 @@ public interface PlayerClientListener
      */
     void playerElementUpdated(SOCPlayer player, UpdateType utype);
     void playerResourcesUpdated(SOCPlayer player);
+    void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats);
     
     void requestedDiscard(int countToDiscard);
     void requestedResourceSelect(int countToSelect);
@@ -79,14 +84,24 @@ public interface PlayerClientListener
      */
     void requestedTradeReset(SOCPlayer playerToReset);
     void requestedSpecialBuild(SOCPlayer player);
+    void requestedDiceRoll();
     
     /** The largest army might have changed, so update */
     void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew);
+    /** The longest road might have changed, so update */
+    void longestRoadRefresh(SOCPlayer old, SOCPlayer potentialNew);
     
     void membersListed(MemberListEvent evt);
     void boardLayoutUpdated(BoardLayoutEvent evt);
     void boardUpdated(BoardUpdateEvent evt);
+    void boardPotentialsUpdated();
+    void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber);
+    void boardResetVoteRequested(SOCPlayer requestor);
+    void boardResetVoteCast(SOCPlayer voter, boolean vote);
+    void boardResetVoteRejected();
     void robberMoved();
+    void devCardDeckUpdated();
+    void seatLockUpdated();
     
     void gameStarted(GameStartEvent evt);
     void gameStateChanged(GameStateEvent evt);

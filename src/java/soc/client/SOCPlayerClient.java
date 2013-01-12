@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;import java.util.List;
 
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -3225,9 +3226,9 @@ public class SOCPlayerClient extends Panel
         if (ga != null)
         {
             ga.setNumDevCards(mes.getNumDevCards());
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-            if (pi != null)
-                pi.updateDevCardCount();
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            if (pcl != null)
+                pcl.devCardDeckUpdated();
         }
     }
 
@@ -3243,7 +3244,6 @@ public class SOCPlayerClient extends Panel
         {
             final int mesPN = mes.getPlayerNumber();
             SOCPlayer player = ga.getPlayer(mesPN);
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
 
             int ctype = mes.getCardType();
             if ((! isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
@@ -3278,16 +3278,8 @@ public class SOCPlayerClient extends Panel
             }
 
             SOCPlayer ourPlayerData = ga.getPlayer(nickname);
-            if ((ourPlayerData != null) && (mesPN == ourPlayerData.getPlayerNumber()))
-            {
-                SOCHandPanel hp = pi.getClientHand();
-                hp.updateDevCards();
-                hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
-            }
-            else
-            {
-                pi.getPlayerHandPanel(mesPN).updateValue(PlayerClientListener.UpdateType.DevCards);
-            }
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.playerDevCardUpdated(ourPlayerData);
         }
     }
 
@@ -3315,10 +3307,9 @@ public class SOCPlayerClient extends Panel
         System.err.println("L3292 potentialsettles at " + System.currentTimeMillis());
         SOCDisplaylessPlayerClient.handlePOTENTIALSETTLEMENTS(mes, games);
 
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        if (pi == null)
-            return;
-        pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl != null)
+            pcl.boardPotentialsUpdated();
     }
 
     /**
@@ -3332,9 +3323,9 @@ public class SOCPlayerClient extends Panel
         if (ga != null)
         {
             SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
             player.setFaceId(mes.getFaceId());
-            pi.changeFace(mes.getPlayerNumber(), mes.getFaceId());
+            pcl.playerFaceChanged(player, mes.getFaceId());
         }
     }
 
@@ -3371,10 +3362,9 @@ public class SOCPlayerClient extends Panel
             }
             ga.setPlayerWithLongestRoad(newLongestRoadPlayer);
 
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
             // Update player victory points; check for and announce change in longest road
-            pi.updateLongestLargest(true, oldLongestRoadPlayer, newLongestRoadPlayer);
+            pcl.longestRoadRefresh(oldLongestRoadPlayer, newLongestRoadPlayer);
         }
     }
 
@@ -3400,10 +3390,9 @@ public class SOCPlayerClient extends Panel
             }
             ga.setPlayerWithLargestArmy(newLargestArmyPlayer);
 
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
             // Update player victory points; check for and announce change in largest army
-            pi.updateLongestLargest(false, oldLargestArmyPlayer, newLargestArmyPlayer);
+            pcl.largestArmyRefresh(oldLargestArmyPlayer, newLargestArmyPlayer);
         }
     }
 
@@ -3426,13 +3415,8 @@ public class SOCPlayerClient extends Panel
                 ga.unlockSeat(mes.getPlayerNumber());
             }
 
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-
-            for (int i = 0; i < ga.maxPlayers; i++)
-            {
-                pi.getPlayerHandPanel(i).updateSeatLockButton();
-                pi.getPlayerHandPanel(i).updateTakeOverButton();
-            }
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.seatLockUpdated();
         }
     }
     
@@ -3445,10 +3429,10 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleROLLDICEPROMPT(SOCRollDicePrompt mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        if (pi == null)
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
             return;  // Not one of our games
-        pi.updateAtRollPrompt();
+        pcl.requestedDiceRoll();
     }
 
     /**
@@ -3470,14 +3454,14 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayerInterface pi = playerInterfaces.get(gname);
-        if (pi == null)
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
             return;  // Not one of our games
 
         SOCGame greset = ga.resetAsCopy();
         greset.isPractice = ga.isPractice;
         games.put(gname, greset);
-        pi.resetBoard(greset, mes.getRejoinPlayerNumber(), mes.getRequestingPlayerNumber());
+        pcl.boardReset(greset, mes.getRejoinPlayerNumber(), mes.getRequestingPlayerNumber());
         ga.destroyGame();
     }
 
@@ -3493,11 +3477,12 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayerInterface pi = playerInterfaces.get(gname);
-        if (pi == null)
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
             return;  // Not one of our games
 
-        pi.resetBoardAskVote(mes.getRequestingPlayer());
+        SOCPlayer player = ga.getPlayer(mes.getRequestingPlayer());
+        pcl.boardResetVoteRequested(player);
     }
 
     /**
@@ -3511,11 +3496,12 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayerInterface pi = playerInterfaces.get(gname);
-        if (pi == null)
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
             return;  // Not one of our games
 
-        pi.resetBoardVoted(mes.getPlayerNumber(), mes.getPlayerVote());
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        pcl.boardResetVoteCast(player, mes.getPlayerVote());
     }
 
     /**
@@ -3529,11 +3515,11 @@ public class SOCPlayerClient extends Panel
         SOCGame ga = games.get(gname);
         if (ga == null)
             return;  // Not one of our games
-        SOCPlayerInterface pi = playerInterfaces.get(gname);
-        if (pi == null)
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
             return;  // Not one of our games
 
-        pi.resetBoardRejected();
+        pcl.boardResetVoteRejected();
     }
 
     /**
@@ -3679,8 +3665,8 @@ public class SOCPlayerClient extends Panel
      */
     private void handlePLAYERSTATS(SOCPlayerStats mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        if (pi == null)
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
             return;  // Not one of our games
 
         final int stype = mes.getStatType();
@@ -3689,19 +3675,13 @@ public class SOCPlayerClient extends Panel
 
         final int[] rstat = mes.getParams();
 
-        pi.print("* Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)");
-        StringBuffer sb = new StringBuffer("* ");
-        int total = 0;
-        for (int rtype = SOCResourceConstants.CLAY; rtype <= SOCResourceConstants.WOOD; ++rtype)
-        {
-            total += rstat[rtype];
-            if (rtype > 1)
-                sb.append(", ");
-            sb.append(rstat[rtype]);
-        }
-        sb.append(". Total: ");
-        sb.append(total);
-        pi.print(sb.toString());
+        EnumMap<PlayerClientListener.UpdateType, Integer> stats = new EnumMap<PlayerClientListener.UpdateType, Integer>(PlayerClientListener.UpdateType.class);
+        stats.put(PlayerClientListener.UpdateType.Clay, Integer.valueOf(rstat[SOCResourceConstants.CLAY]));
+        stats.put(PlayerClientListener.UpdateType.Ore, Integer.valueOf(rstat[SOCResourceConstants.ORE]));
+        stats.put(PlayerClientListener.UpdateType.Sheep, Integer.valueOf(rstat[SOCResourceConstants.SHEEP]));
+        stats.put(PlayerClientListener.UpdateType.Wheat, Integer.valueOf(rstat[SOCResourceConstants.WHEAT]));
+        stats.put(PlayerClientListener.UpdateType.Wood, Integer.valueOf(rstat[SOCResourceConstants.WOOD]));
+        pcl.playerStats(stats);
     }
 
     /**

@@ -62,6 +62,7 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Timer;
@@ -2689,6 +2690,15 @@ public class SOCPlayerInterface extends Frame
      */
     public void mouseReleased(MouseEvent e) { }
 
+    protected boolean isClientPlayer(SOCPlayer p)
+    {
+        if (p == null)
+            return false;
+        int pn = p.getPlayerNumber();
+        return hands[pn].isClientPlayer();
+        //return p.getName().equals(client.getNickname());
+    }
+    
     //========================================================
     /**
      * Nested classes begin here
@@ -2925,10 +2935,9 @@ public class SOCPlayerInterface extends Frame
         
         public void requestedSpecialBuild(SOCPlayer player)
         {
-            boolean isClientPlayer = player.getName().equals(pi.client.getNickname());
             if (player.hasAskedSpecialBuild())
                 pi.print("* " + player.getName() + " wants to Special Build.");
-            if (isClientPlayer)
+            if (pi.isClientPlayer(player))
                 pi.getBuildingPanel().updateButtonStatus();
         }
         
@@ -2938,9 +2947,61 @@ public class SOCPlayerInterface extends Frame
             hpan.updatePickGoldHexResources();
         }
         
+        public void playerDevCardUpdated(SOCPlayer player)
+        {
+            if (pi.isClientPlayer(player))
+            {
+                SOCHandPanel hp = pi.getClientHand();
+                hp.updateDevCards();
+                hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
+            }
+            else
+            {
+                pi.getPlayerHandPanel(player.getPlayerNumber()).updateValue(PlayerClientListener.UpdateType.DevCards);
+            }
+        }
+        
+        public void playerFaceChanged(SOCPlayer player, int faceId)
+        {
+            pi.changeFace(player.getPlayerNumber(), faceId);
+        }
+        
+        public void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats)
+        {
+            pi.print("* Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)");
+            StringBuffer sb = new StringBuffer("* ");
+            int total = 0;
+            
+            PlayerClientListener.UpdateType[] types = {
+                PlayerClientListener.UpdateType.Clay,
+                PlayerClientListener.UpdateType.Ore,
+                PlayerClientListener.UpdateType.Sheep,
+                PlayerClientListener.UpdateType.Wheat,
+                PlayerClientListener.UpdateType.Wood
+            };
+            
+            for (PlayerClientListener.UpdateType t : types)
+            {
+                int value = stats.get(t).intValue();
+                total += value;
+                sb.append(value);
+                sb.append(", ");
+            }
+            // Remove the last comma-space
+            sb.delete(sb.length()-2, sb.length());
+            sb.append(". Total: ");
+            sb.append(total);
+            pi.print(sb.toString());
+        }
+        
         public void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew)
         {
             pi.updateLongestLargest(false, old, potentialNew);
+        }
+        
+        public void longestRoadRefresh(SOCPlayer old, SOCPlayer potentialNew)
+        {
+            pi.updateLongestLargest(true, old, potentialNew);
         }
         
         public void membersListed(MemberListEvent evt)
@@ -2957,6 +3018,40 @@ public class SOCPlayerInterface extends Frame
         public void boardUpdated(BoardUpdateEvent evt)
         {
             pi.getBoardPanel().flushBoardLayoutAndRepaint();
+        }
+        
+        public void boardPotentialsUpdated()
+        {
+            pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
+        }
+        
+        public void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber)
+        {
+            pi.resetBoard(newGame, newSeatNumber, requestingPlayerNumber);
+        }
+        
+        public void boardResetVoteRequested(SOCPlayer requestor)
+        {
+            pi.resetBoardAskVote(requestor.getPlayerNumber());
+        }
+        
+        public void boardResetVoteCast(SOCPlayer voter, boolean vote)
+        {
+            pi.resetBoardVoted(voter.getPlayerNumber(), vote);
+        }
+        
+        public void boardResetVoteRejected()
+        {
+            pi.resetBoardRejected();
+        }
+        
+        public void seatLockUpdated()
+        {
+            for (int i = 0; i < pi.game.maxPlayers; i++)
+            {
+                pi.getPlayerHandPanel(i).updateSeatLockButton();
+                pi.getPlayerHandPanel(i).updateTakeOverButton();
+            }
         }
         
         public void gameStarted(GameStartEvent evt)
@@ -3013,6 +3108,11 @@ public class SOCPlayerInterface extends Frame
             pi.getBoardPanel().repaint();
         }
         
+        public void devCardDeckUpdated()
+        {
+            pi.updateDevCardCount();
+        }
+        
         public void requestedDiscard(int countToDiscard)
         {
             pi.showDiscardOrGainDialog(countToDiscard, true);
@@ -3065,6 +3165,11 @@ public class SOCPlayerInterface extends Frame
         public void requestedTradeReset(SOCPlayer playerToReset)
         {
             pi.clearTradeMsg(playerToReset.getPlayerNumber());
+        }
+        
+        public void requestedDiceRoll()
+        {
+            pi.updateAtRollPrompt();
         }
     }
 
