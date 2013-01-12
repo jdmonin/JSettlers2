@@ -55,9 +55,36 @@ public interface PlayerClientListener
     void playerPieceMoved(PlayerPieceMovedEvent evt);
     void playerSVPAwarded(PlayerSvpEvent evt);
     
+    /**
+     * @param player May be {@code null}
+     * @param etype One of the fields of {@link soc.message.SOCPlayerElement}
+     * @param value
+     */
+    void playerElementUpdated(SOCPlayer player, int etype);
+    void playerResourcesUpdated(SOCPlayer player);
+    
+    void requestedDiscard(int countToDiscard);
+    void requestedResourceSelect(int countToDiscard);
+    void requestedChoosePlayer(int count, int[] choices, boolean isNoneAllowed);
+    void requestedChooseRobResourceType(SOCPlayer player);
+    void requestedTrade(SOCPlayer offerer);
+    /**
+     * @param offerer May be {@code null}
+     */
+    void requestedTradeClear(SOCPlayer offerer);
+    void requestedTradeRejection(SOCPlayer rejecter);
+    /**
+     * @param playerToReset May be {@code null} to clear all seats
+     */
+    void requestedTradeReset(SOCPlayer playerToReset);
+    
+    /** The largest army might have changed, so update */
+    void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew);
+    
     void membersListed(MemberListEvent evt);
     void boardLayoutUpdated(BoardLayoutEvent evt);
     void boardUpdated(BoardUpdateEvent evt);
+    void robberMoved();
     
     void gameStarted(GameStartEvent evt);
     void gameStateChanged(GameStateEvent evt);
@@ -67,6 +94,8 @@ public interface PlayerClientListener
 
     void messageBroadcast(String message);
     void messageSent(String nickname, String message);
+    
+    void buildRequestCanceled(SOCPlayer player);
     
     interface DiceRollEvent
     {

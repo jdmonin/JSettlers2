@@ -2734,7 +2734,6 @@ public class SOCPlayerInterface extends Frame
                 //  Remove first from interface, then from game data.
                 //
                 pi.removePlayer(evt.getPlayer().getPlayerNumber());
-                pi.game.removePlayer(evt.getNickname());
             }
             else if (pi.game.getGameState() >= SOCGame.START1A)
             {
@@ -2816,6 +2815,125 @@ public class SOCPlayerInterface extends Frame
             pi.updateAtSVPText(evt.getPlayer().getName(), evt.getNumSvp(), evt.getAwardDescription());
         }
         
+        public void playerResourcesUpdated(SOCPlayer player)
+        {
+            SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
+            hpan.updateValue(SOCHandPanel.NUMRESOURCES);
+        }
+        
+        public void playerElementUpdated(SOCPlayer player, int etype)
+        {
+            final SOCHandPanel hpan = player == null ? null : pi.getPlayerHandPanel(player.getPlayerNumber());  // null if no player
+            int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
+
+            switch (etype)
+            {
+            case SOCPlayerElement.ROADS:
+                hpan.updateValue(etype);
+                break;
+
+            case SOCPlayerElement.SETTLEMENTS:
+                hpan.updateValue(etype);
+                break;
+
+            case SOCPlayerElement.CITIES:
+                hpan.updateValue(etype);
+                break;
+
+            case SOCPlayerElement.SHIPS:
+                hpan.updateValue(etype);
+                break;
+
+            case SOCPlayerElement.NUMKNIGHTS:
+                // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
+                hpan.updateValue(etype);
+                break;
+
+            case SOCPlayerElement.CLAY:
+                hpanUpdateRsrcType = etype;
+                break;
+
+            case SOCPlayerElement.ORE:
+                hpanUpdateRsrcType = etype;
+                break;
+
+            case SOCPlayerElement.SHEEP:
+                hpanUpdateRsrcType = etype;
+                break;
+
+            case SOCPlayerElement.WHEAT:
+                hpanUpdateRsrcType = etype;
+                break;
+
+            case SOCPlayerElement.WOOD:
+                hpanUpdateRsrcType = etype;
+                break;
+
+            case SOCPlayerElement.UNKNOWN:
+                hpan.updateValue(SOCHandPanel.NUMRESOURCES);
+                break;
+
+            case SOCPlayerElement.ASK_SPECIAL_BUILD:
+                hpan.updateValue(etype);
+                // for client player, hpan also refreshes BuildingPanel with this value.
+                break;
+
+            case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
+                hpan.updateValue(etype);
+                break;
+
+            case SOCPlayerElement.SCENARIO_SVP:
+                if (player.getSpecialVP() != 0)
+                {
+                    // assumes will never be reduced to 0 again
+                    hpan.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
+                    hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
+                    // (This code also appears in SOCPlayerInterface.playerEvent)
+                }
+                break;
+
+            case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
+                if (player != null)
+                {
+                    hpan.updateValue(etype);
+                    hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // 2 cloth = 1 VP
+                } else {
+                    pi.getBuildingPanel().updateClothCount();
+                }
+                break;
+
+            case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+                pi.updateAtPiecesChanged();
+                break;
+
+            }
+
+            if (hpan == null)
+                return;  // <--- early return: not a per-player element ---
+
+            if (hpanUpdateRsrcType != 0)
+            {
+                if (hpan.isClientPlayer())
+                {
+                    hpan.updateValue(hpanUpdateRsrcType);
+                }
+                else
+                {
+                    hpan.updateValue(SOCHandPanel.NUMRESOURCES);
+                }
+            }
+
+            if (hpan.isClientPlayer() && (pi.getGame().getGameState() != SOCGame.NEW))
+            {
+                pi.getBuildingPanel().updateButtonStatus();
+            }
+        }
+        
+        public void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew)
+        {
+            pi.updateLongestLargest(false, old, potentialNew);
+        }
+        
         public void membersListed(MemberListEvent evt)
         {
             Vector<String> names = new Vector<String>(evt.getNames());
@@ -2873,6 +2991,67 @@ public class SOCPlayerInterface extends Frame
                     pi.chatPrint(nickname + ": " + message);
                 }
             }
+        }
+        
+        public void buildRequestCanceled(SOCPlayer player)
+        {
+            pi.getPlayerHandPanel(player.getPlayerNumber()).updateResourcesVP();
+            pi.getBoardPanel().updateMode();
+        }
+        
+        public void robberMoved()
+        {
+            pi.getBoardPanel().repaint();
+        }
+        
+        public void requestedDiscard(int countToDiscard)
+        {
+            pi.showDiscardOrGainDialog(countToDiscard, true);
+        }
+        
+        public void requestedResourceSelect(int countToDiscard)
+        {
+            pi.showDiscardOrGainDialog(countToDiscard, false);
+        }
+        
+        public void requestedChoosePlayer(int count, int[] choices, boolean isNoneAllowed)
+        {
+            pi.showChoosePlayerDialog(count, choices, isNoneAllowed);
+        }
+        
+        public void requestedChooseRobResourceType(SOCPlayer player)
+        {
+            pi.showChooseRobClothOrResourceDialog(player.getPlayerNumber());
+        }
+        
+        public void requestedTrade(SOCPlayer offerer)
+        {
+            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer();
+        }
+        
+        public void requestedTradeClear(SOCPlayer offerer)
+        {
+            if (offerer != null)
+            {
+                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer();
+            }
+            else
+            {
+                for (int i = 0; i < pi.game.maxPlayers; ++i)
+                {
+                    pi.getPlayerHandPanel(i).updateCurrentOffer();
+                }
+            }
+        }
+        
+        public void requestedTradeRejection(SOCPlayer rejecter)
+        {
+            pi.getPlayerHandPanel(rejecter.getPlayerNumber()).rejectOfferShowNonClient();
+        }
+        
+        public void requestedTradeReset(SOCPlayer playerToReset)
+        {
+            pi.clearTradeMsg(playerToReset.getPlayerNumber());
         }
     }
 

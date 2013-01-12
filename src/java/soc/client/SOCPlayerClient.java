@@ -2392,6 +2392,7 @@ public class SOCPlayerClient extends Panel
             final String name = mes.getNickname();
             final SOCPlayer player = ga.getPlayer(name);
             
+            // Give the listener a chance to clean up while the player is still in the game
             PlayerClientListener pcl = clientListeners.get(gn);
             pcl.playerLeft(new PlayerClientListener.PlayerLeaveEvent(){
                 public String getNickname() {
@@ -2401,6 +2402,15 @@ public class SOCPlayerClient extends Panel
                     return player;
                 }
             });
+            
+            if (player != null)
+            {
+                //
+                //  This user was not a spectator.
+                //  Remove first from listener, then from game data.
+                //
+                ga.removePlayer(name);
+            }
         }
     }
 
@@ -2753,35 +2763,29 @@ public class SOCPlayerClient extends Panel
         {
             final int pn = mes.getPlayerNumber();
             final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
-            final SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-            final SOCHandPanel hpan = pi.getPlayerHandPanel(pn);  // null if pn == -1
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
             final int etype = mes.getElementType();
-            int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
 
             switch (etype)
             {
             case SOCPlayerElement.ROADS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.ROAD);
-                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.SETTLEMENTS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.SETTLEMENT);
-                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.CITIES:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.CITY);
-                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.SHIPS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.SHIP);
-                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.NUMKNIGHTS:
@@ -2790,12 +2794,11 @@ public class SOCPlayerClient extends Panel
                     final SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
                     SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
                         (mes, pl, ga);
-                    hpan.updateValue(etype);
 
                     // Check for change in largest-army player; update handpanels'
                     // LARGESTARMY and VICTORYPOINTS counters if so, and
                     // announce with text message.
-                    pi.updateLongestLargest(false, oldLargestArmyPlayer, ga.getPlayerWithLargestArmy());
+                    pcl.largestArmyRefresh(oldLargestArmyPlayer, ga.getPlayerWithLargestArmy());
                 }
 
                 break;
@@ -2803,31 +2806,26 @@ public class SOCPlayerClient extends Panel
             case SOCPlayerElement.CLAY:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.CLAY);
-                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.ORE:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.ORE);
-                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.SHEEP:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.SHEEP);
-                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.WHEAT:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.WHEAT);
-                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.WOOD:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.WOOD);
-                hpanUpdateRsrcType = etype;
                 break;
 
             case SOCPlayerElement.UNKNOWN:
@@ -2838,7 +2836,6 @@ public class SOCPlayerClient extends Panel
                  */
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.UNKNOWN);
-                hpan.updateValue(SOCHandPanel.NUMRESOURCES);
                 break;
 
             case SOCPlayerElement.ASK_SPECIAL_BUILD:
@@ -2851,24 +2848,15 @@ public class SOCPlayerClient extends Panel
                 } else {
                     pl.setAskedSpecialBuild(false);
                 }
-                hpan.updateValue(etype);
                 // for client player, hpan also refreshes BuildingPanel with this value.
                 break;
 
             case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
                 pl.setNeedToPickGoldHexResources(mes.getValue());
-                hpan.updateValue(etype);
                 break;
 
             case SOCPlayerElement.SCENARIO_SVP:
                 pl.setSpecialVP(mes.getValue());
-                if (pl.getSpecialVP() != 0)
-                {
-                    // assumes will never be reduced to 0 again
-                    hpan.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
-                    hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
-                    // (This code also appears in SOCPlayerInterface.playerEvent)
-                }
                 break;
 
             case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
@@ -2887,11 +2875,8 @@ public class SOCPlayerClient extends Panel
                 if (pn != -1)
                 {
                     pl.setCloth(mes.getValue());
-                    hpan.updateValue(etype);
-                    hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // 2 cloth = 1 VP
                 } else {
                     ((SOCBoardLarge) (ga.getBoard())).setCloth(mes.getValue());
-                    pi.getBuildingPanel().updateClothCount();
                 }
                 break;
 
@@ -2906,30 +2891,12 @@ public class SOCPlayerClient extends Panel
                     pl.setNumWarships(pl.getNumWarships() + mes.getValue());
                     break;
                 }
-                pi.updateAtPiecesChanged();
                 break;
 
             }
 
-            if (hpan == null)
-                return;  // <--- early return: not a per-player element ---
-
-            if (hpanUpdateRsrcType != 0)
-            {
-                if (hpan.isClientPlayer())
-                {
-                    hpan.updateValue(hpanUpdateRsrcType);
-                }
-                else
-                {
-                    hpan.updateValue(SOCHandPanel.NUMRESOURCES);
-                }
-            }
-
-            if (hpan.isClientPlayer() && (ga.getGameState() != SOCGame.NEW))
-            {
-                pi.getBuildingPanel().updateButtonStatus();
-            }
+            if (pcl != null)
+                pcl.playerElementUpdated(pl, etype);
         }
     }
 
@@ -2944,7 +2911,7 @@ public class SOCPlayerClient extends Panel
         if (ga != null)
         {
             SOCPlayer pl = ga.getPlayer(mes.getPlayerNumber());
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
 
             if (mes.getCount() != pl.getResources().getTotal())
             {
@@ -2955,15 +2922,17 @@ public class SOCPlayerClient extends Panel
                     //pi.print(">>> RESOURCE COUNT ERROR: "+mes.getCount()+ " != "+rsrcs.getTotal());
                 }
 
+                boolean isClientPlayer = pl.getName().equals(client.getNickname());
+                
                 //
                 //  fix it
                 //
-                SOCHandPanel hpan = pi.getPlayerHandPanel(mes.getPlayerNumber());
-                if (! hpan.isClientPlayer())
+
+                if (! isClientPlayer)
                 {
                     rsrcs.clear();
                     rsrcs.setAmount(mes.getCount(), SOCResourceConstants.UNKNOWN);
-                    hpan.updateValue(SOCHandPanel.NUMRESOURCES);
+                    pcl.playerResourcesUpdated(pl);
                 }
             }
         }
@@ -3082,9 +3051,8 @@ public class SOCPlayerClient extends Panel
         SOCSettlement pp = new SOCSettlement(pl, pl.getLastSettlementCoord(), null);
         ga.undoPutInitSettlement(pp);
 
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.getPlayerHandPanel(pl.getPlayerNumber()).updateResourcesVP();
-        pi.getBoardPanel().updateMode();
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.buildRequestCanceled(pl);
     }
 
     /**
@@ -3097,8 +3065,6 @@ public class SOCPlayerClient extends Panel
 
         if (ga != null)
         {
-            SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-
             /**
              * Note: Don't call ga.moveRobber() because that will call the
              * functions to do the stealing.  We just want to say where
@@ -3109,7 +3075,9 @@ public class SOCPlayerClient extends Panel
                 ga.getBoard().setRobberHex(newHex, true);
             else
                 ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);
-            pi.getBoardPanel().repaint();
+            
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.robberMoved();
         }
     }
 
@@ -3119,8 +3087,8 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleDISCARDREQUEST(SOCDiscardRequest mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.showDiscardOrGainDialog(mes.getNumberOfDiscards(), true);
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.requestedDiscard(mes.getNumberOfDiscards());
     }
 
     /**
@@ -3130,8 +3098,8 @@ public class SOCPlayerClient extends Panel
      */
     protected void handlePICKRESOURCESREQUEST(SOCPickResourcesRequest mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.showDiscardOrGainDialog(mes.getParam(), false);
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.requestedResourceSelect(mes.getParam());
     }
 
     /**
@@ -3140,8 +3108,8 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleCHOOSEPLAYERREQUEST(SOCChoosePlayerRequest mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        final int maxPl = pi.getGame().maxPlayers;
+        SOCGame game = games.get(mes.getGame());
+        final int maxPl = game.maxPlayers;
         final boolean[] ch = mes.getChoices();
         final boolean allowChooseNone = ((ch.length > maxPl) && ch[maxPl]);  // for scenario SC_PIRI
         int[] choices = new int[maxPl];
@@ -3156,7 +3124,8 @@ public class SOCPlayerClient extends Panel
             }
         }
 
-        pi.showChoosePlayerDialog(count, choices, allowChooseNone);
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.requestedChoosePlayer(count, choices, allowChooseNone);
     }
 
     /**
@@ -3165,8 +3134,12 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleCHOOSEPLAYER(SOCChoosePlayer mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.showChooseRobClothOrResourceDialog(mes.getChoice());
+        SOCGame ga = games.get(mes.getGame());
+        int victimPlayerNumber = mes.getChoice();
+        SOCPlayer player = ga.getPlayer(victimPlayerNumber);
+        
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.requestedChooseRobResourceType(player);
     }
 
     /**
@@ -3179,15 +3152,12 @@ public class SOCPlayerClient extends Panel
 
         if (ga != null)
         {
-            // Since the message is from the network thread, ensure it runs in the display thread
-            javax.swing.SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-                    SOCTradeOffer offer = mes.getOffer();
-                    ga.getPlayer(offer.getFrom()).setCurrentOffer(offer);
-                    pi.getPlayerHandPanel(offer.getFrom()).updateCurrentOffer();
-                }
-            });
+            SOCTradeOffer offer = mes.getOffer();
+            SOCPlayer from = ga.getPlayer(offer.getFrom());
+            from.setCurrentOffer(offer);
+            
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.requestedTrade(from);
         }
     }
 
@@ -3201,24 +3171,23 @@ public class SOCPlayerClient extends Panel
 
         if (ga != null)
         {
-            // Since the message is from the network thread, ensure it runs in the display thread
-            javax.swing.SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-                    final int pn = mes.getPlayerNumber();
-                    if (pn != -1)
-                    {
-                        ga.getPlayer(pn).setCurrentOffer(null);
-                        pi.getPlayerHandPanel(pn).updateCurrentOffer();
-                    } else {
-                        for (int i = 0; i < ga.maxPlayers; ++i)
-                        {
-                            ga.getPlayer(i).setCurrentOffer(null);
-                            pi.getPlayerHandPanel(i).updateCurrentOffer();
-                        }
-                    }
+            final int pn = mes.getPlayerNumber();
+            SOCPlayer player = null;
+            if (pn != -1)
+                player = ga.getPlayer(pn);
+            
+            if (pn != -1)
+            {
+                ga.getPlayer(pn).setCurrentOffer(null);
+            } else {
+                for (int i = 0; i < ga.maxPlayers; ++i)
+                {
+                    ga.getPlayer(i).setCurrentOffer(null);
                 }
-            });
+            }
+            
+            PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            pcl.requestedTradeClear(player);
         }
     }
 
@@ -3228,8 +3197,11 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleREJECTOFFER(SOCRejectOffer mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.getPlayerHandPanel(mes.getPlayerNumber()).rejectOfferShowNonClient();
+        SOCGame ga = games.get(mes.getGame());
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.requestedTradeRejection(player);
     }
 
     /**
@@ -3238,8 +3210,11 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        pi.clearTradeMsg(mes.getPlayerNumber());
+        SOCGame ga = games.get(mes.getGame());
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        pcl.requestedTradeReset(player);
     }
 
     /**
