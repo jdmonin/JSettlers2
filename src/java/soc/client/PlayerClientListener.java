@@ -63,6 +63,11 @@ public interface PlayerClientListener
     void gameStateChanged(GameStateEvent evt);
     void gameEnded(GameEndedEvent evt);
     
+    void gameDisconnected(String errorMessage);
+
+    void messageBroadcast(String message);
+    void messageSent(String nickname, String message);
+    
     interface DiceRollEvent
     {
         /**

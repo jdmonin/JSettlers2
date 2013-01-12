@@ -2225,9 +2225,9 @@ public class SOCPlayerClient extends Panel
             fr.print("::: " + mes.getText() + " :::");
         }
 
-        for (SOCPlayerInterface pi : playerInterfaces.values())
+        for (PlayerClientListener pcl : clientListeners.values())
         {
-            pi.chatPrint("::: " + mes.getText() + " :::");
+            pcl.messageBroadcast(mes.getText());
         }
     }
 
@@ -2467,26 +2467,9 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-
-        if (pi != null)
-        {
-            if (mes.getNickname().equals("Server"))
-            {
-                String mesText = mes.getText();
-                String starMesText = "* " + mesText;
-                pi.print(starMesText);
-                if (mesText.startsWith(">>>"))
-                    pi.chatPrint(starMesText);
-            }
-            else
-            {
-                if (!onIgnoreList(mes.getNickname()))
-                {
-                    pi.chatPrint(mes.getNickname() + ": " + mes.getText());
-                }
-            }
-        }
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl != null)
+            pcl.messageSent(mes.getNickname(), mes.getText());
     }
 
     /**
@@ -4298,10 +4281,7 @@ public class SOCPlayerClient extends Panel
      */
     public void sendText(SOCGame ga, String me)
     {
-        if (!client.doLocalCommand(ga, me))
-        {
-            put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, me), ga.isPractice);
-        }
+        put(SOCGameTextMsg.toCmd(ga.getName(), client.nickname, me), ga.isPractice);
     }
 
     /**
@@ -4312,6 +4292,7 @@ public class SOCPlayerClient extends Panel
     public void leaveGame(SOCGame ga)
     {
         client.playerInterfaces.remove(ga.getName());
+        client.clientListeners.remove(ga.getName());
         client.games.remove(ga.getName());
         put(SOCLeaveGame.toCmd(client.nickname, net.getHost(), ga.getName()), ga.isPractice);
     }
@@ -4652,88 +4633,6 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * Handle local client commands for games.
-     *
-     * @param cmd  Local client command string, which starts with \
-     * @return true if a command was handled
-     */
-    public boolean doLocalCommand(SOCGame ga, String cmd)
-    {
-        SOCPlayerInterface pi = playerInterfaces.get(ga.getName());
-
-        if (cmd.startsWith("\\ignore "))
-        {
-            String name = cmd.substring(8);
-            addToIgnoreList(name);
-            pi.print("* Ignoring " + name);
-            printIgnoreList(pi);
-
-            return true;
-        }
-        else if (cmd.startsWith("\\unignore "))
-        {
-            String name = cmd.substring(10);
-            removeFromIgnoreList(name);
-            pi.print("* Unignoring " + name);
-            printIgnoreList(pi);
-
-            return true;
-        }
-        else if (cmd.startsWith("\\clm-set "))
-        {
-            String name = cmd.substring(9).trim();
-            pi.getBoardPanel().setOtherPlayer(ga.getPlayer(name));
-            pi.getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_SETTLEMENT);
-
-            return true;
-        }
-        else if (cmd.startsWith("\\clm-road "))
-        {
-            String name = cmd.substring(10).trim();
-            pi.getBoardPanel().setOtherPlayer(ga.getPlayer(name));
-            pi.getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_ROAD);
-
-            return true;
-        }
-        else if (cmd.startsWith("\\clm-city "))
-        {
-            String name = cmd.substring(10).trim();
-            pi.getBoardPanel().setOtherPlayer(ga.getPlayer(name));
-            pi.getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_CITY);
-
-            return true;
-        }
-        else if (cmd.startsWith("\\clt-set "))
-        {
-            String name = cmd.substring(9).trim();
-            pi.getBoardPanel().setOtherPlayer(ga.getPlayer(name));
-            pi.getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_SETTLEMENT);
-
-            return true;
-        }
-        else if (cmd.startsWith("\\clt-road "))
-        {
-            String name = cmd.substring(10).trim();
-            pi.getBoardPanel().setOtherPlayer(ga.getPlayer(name));
-            pi.getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_ROAD);
-
-            return true;
-        }
-        else if (cmd.startsWith("\\clt-city "))
-        {
-            String name = cmd.substring(10).trim();
-            pi.getBoardPanel().setOtherPlayer(ga.getPlayer(name));
-            pi.getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_CITY);
-
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /**
      * @return true if name is on the ignore list
      */
     protected boolean onIgnoreList(String name)
@@ -5006,7 +4905,6 @@ public class SOCPlayerClient extends Panel
      */
     public void dispose()
     {
-     
         final boolean canPractice = net.putLeaveAll(); // Can we still start a practice game?
 
         String err;
@@ -5023,14 +4921,16 @@ public class SOCPlayerClient extends Panel
             cf.over(err);
         }
 
-        for (SOCPlayerInterface pi : playerInterfaces.values())
+        // Stop network games; Practice games can continue.
+        for (Map.Entry<String, PlayerClientListener> e : clientListeners.entrySet())
         {
-            // Stop network games.
-            // Practice games can continue.
-            if (! (canPractice && pi.getGame().isPractice))
-            {
-                pi.over(err);
-            }
+            String gameName = e.getKey();
+            SOCGame game = games.get(gameName);
+            boolean isPractice = false;
+            if (game != null)
+                isPractice = game.isPractice;
+            if (!(canPractice && isPractice))
+                e.getValue().gameDisconnected(err);
         }
         
         net.dispose();

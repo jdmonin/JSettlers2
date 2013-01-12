@@ -1182,7 +1182,9 @@ public class SOCPlayerInterface extends Frame
                 }
             }
 
-            client.getGameManager().sendText(game, s + "\n");
+            String msg = s + '\n';
+            if (!doLocalCommand(msg))
+                client.getGameManager().sendText(game, msg);
 
             if (sOverflow != null)
             {
@@ -1191,6 +1193,86 @@ public class SOCPlayerInterface extends Frame
                 textInput.setSelectionEnd(0);
                 textInput.setCaretPosition(sOverflow.length());
             }
+        }
+    }
+    
+    /**
+     * Handle local client commands for games.
+     *
+     * @param cmd  Local client command string, which starts with \
+     * @return true if a command was handled
+     */
+    private boolean doLocalCommand(String cmd)
+    {
+        if (cmd.startsWith("\\ignore "))
+        {
+            String name = cmd.substring(8);
+            client.addToIgnoreList(name);
+            print("* Ignoring " + name);
+            client.printIgnoreList(this);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\unignore "))
+        {
+            String name = cmd.substring(10);
+            client.removeFromIgnoreList(name);
+            print("* Unignoring " + name);
+            client.printIgnoreList(this);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clm-set "))
+        {
+            String name = cmd.substring(9).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_SETTLEMENT);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clm-road "))
+        {
+            String name = cmd.substring(10).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_ROAD);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clm-city "))
+        {
+            String name = cmd.substring(10).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_CITY);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clt-set "))
+        {
+            String name = cmd.substring(9).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_SETTLEMENT);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clt-road "))
+        {
+            String name = cmd.substring(10).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_ROAD);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clt-city "))
+        {
+            String name = cmd.substring(10).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_CITY);
+
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
@@ -2763,6 +2845,34 @@ public class SOCPlayerInterface extends Frame
         public void gameEnded(GameEndedEvent evt)
         {
             pi.updateAtOver(evt.getScores());
+        }
+        
+        public void gameDisconnected(String errorMessage)
+        {
+            pi.over(errorMessage);
+        }
+        
+        public void messageBroadcast(String msg)
+        {
+            pi.chatPrint("::: " + msg + " :::");
+        }
+        
+        public void messageSent(String nickname, String message)
+        {
+            if (nickname.equals("Server"))
+            {
+                String starMesText = "* " + message;
+                pi.print(starMesText);
+                if (message.startsWith(">>>"))
+                    pi.chatPrint(starMesText);
+            }
+            else
+            {
+                if (!pi.getClient().onIgnoreList(nickname))
+                {
+                    pi.chatPrint(nickname + ": " + message);
+                }
+            }
         }
     }
 
