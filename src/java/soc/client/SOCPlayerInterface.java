@@ -2874,12 +2874,9 @@ public class SOCPlayerInterface extends Frame
                 break;
 
             case SOCPlayerElement.ASK_SPECIAL_BUILD:
-                hpan.updateValue(etype);
-                // for client player, hpan also refreshes BuildingPanel with this value.
-                break;
-
             case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
                 hpan.updateValue(etype);
+                // ASK_SPECIAL_BUILD: for client player, hpan also refreshes BuildingPanel with this value.
                 break;
 
             case SOCPlayerElement.SCENARIO_SVP:

@@ -1789,6 +1789,16 @@ public class SOCServer extends Server
             }
             break;
 
+        case SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY:
+            {
+                final String gaName = ga.getName();
+                messageToGame(gaName, "Game is ending: Less than half the villages have cloth remaining.");
+                messageFormatToGame
+                    (gaName, true, "{0} has won due to this special win condition.",
+                     ((SOCPlayer) detail).getName());
+            }
+            break;
+
         }
     }
 
@@ -4240,14 +4250,29 @@ public class SOCServer extends Server
      * @return True if OK, false if rejected
      */
     boolean setClientVersSendGamesOrReject
-        (StringConnection c, final int cvers, final String clocale, final boolean isKnown)
+        (StringConnection c, final int cvers, String clocale, final boolean isKnown)
     {
         final int prevVers = c.getVersion();
         final boolean wasKnown = c.isVersionKnown();
 
         SOCClientData scd = (SOCClientData) c.getAppData();
+
         if (clocale != null)
+        {
+            final int hashIdx = clocale.indexOf("_#");
+            if (hashIdx != -1)
+            {
+                // extended info from java 1.7+ Locale.toString();
+                // if our server is an older JRE version, strip that out.
+                final String jreVersStr = System.getProperty("java.specification.version");
+                if (jreVersStr.startsWith("1.5") || jreVersStr.startsWith("1.6"))
+                {
+                    clocale = clocale.substring(0, hashIdx);
+                }
+            }
             scd.locale = clocale;
+        }
+
         if (prevVers == -1)
             scd.clearVersionTimer();
 
@@ -9909,15 +9934,12 @@ public class SOCServer extends Server
         final String gaName = ga.getName();
         final SOCTradeOffer offer = ga.getPlayer(offering).getCurrentOffer();
 
-        StringBuffer message = new StringBuffer(ga.getPlayer(offering).getName());
-        message.append(" traded ");
-        reportRsrcGainLoss(gaName, offer.getGiveSet(), true, offering, accepting, message, null);
-        message.append(" for ");
-        reportRsrcGainLoss(gaName, offer.getGetSet(), false, offering, accepting, message, null);
-        message.append(" from ");
-        message.append(ga.getPlayer(accepting).getName());
-        message.append('.');
-        messageToGame(gaName, message.toString());
+        StringBuffer giveDesc = new StringBuffer();  // will fill with "2 sheep", etc
+        reportRsrcGainLoss(gaName, offer.getGiveSet(), true, offering, accepting, giveDesc, null);
+        StringBuffer getDesc = new StringBuffer();
+        reportRsrcGainLoss(gaName, offer.getGetSet(), false, offering, accepting, getDesc, null);
+        messageFormatToGame(gaName, true, "{0} gave {1} for {2} from {3}.",
+            ga.getPlayer(offering).getName(), giveDesc, getDesc, ga.getPlayer(accepting).getName());
     }
 
     /**

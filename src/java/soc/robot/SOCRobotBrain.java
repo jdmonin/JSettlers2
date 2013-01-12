@@ -3018,7 +3018,7 @@ public class SOCRobotBrain extends Thread
     private void handlePLAYERELEMENT(SOCPlayerElement mes)
     {
         final int pn = mes.getPlayerNumber();
-        SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
+        final SOCPlayer pl = (pn != -1) ? game.getPlayer(pn) : null;
 
         switch (mes.getElementType())
         {
@@ -3093,56 +3093,11 @@ public class SOCRobotBrain extends Thread
                 (mes, pl, SOCResourceConstants.UNKNOWN, "UNKNOWN");
             break;
 
-        case SOCPlayerElement.ASK_SPECIAL_BUILD:
-            if (0 != mes.getValue())
-            {
-                try {
-                    game.askSpecialBuild(pn, false);  // set per-player, per-game flags
-                }
-                catch (RuntimeException e) {}
-            } else {
-                pl.setAskedSpecialBuild(false);
-            }
-            break;
+        default:
+            // handle ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc;
+            // those are all self-contained informational fields that don't need any reaction from a bot.
 
-        case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
-            pl.setNeedToPickGoldHexResources(mes.getValue());
-            break;
-
-        case SOCPlayerElement.SCENARIO_SVP:
-            pl.setSpecialVP(mes.getValue());
-            break;
-
-        case SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK:
-            pl.setScenarioPlayerEvents(mes.getValue());
-            break;
-
-        case SOCPlayerElement.SCENARIO_SVP_LANDAREAS_BITMASK:
-            pl.setScenarioSVPLandAreas(mes.getValue());
-            break;
-
-        case SOCPlayerElement.STARTING_LANDAREAS:
-            pl.setStartingLandAreasEncoded(mes.getValue());
-            break;
-
-        case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
-            if (pn != -1)
-                pl.setCloth(mes.getValue());
-            else
-                ((SOCBoardLarge) (game.getBoard())).setCloth(mes.getValue());
-            break;
-
-        case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
-            switch (mes.getAction())
-            {
-            case SOCPlayerElement.SET:
-                pl.setNumWarships(mes.getValue());
-                break;
-
-            case SOCPlayerElement.GAIN:
-                pl.setNumWarships(pl.getNumWarships() + mes.getValue());
-                break;
-            }
+            SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, game, pl, pn);
             break;
 
         }

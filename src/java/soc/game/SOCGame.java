@@ -6385,22 +6385,31 @@ public class SOCGame implements Serializable, Cloneable
         if (! hasScenarioWinCondition)
             return;
 
+        // _SC_CLVI: Check if less than half the villages have cloth remaining
         if (isGameOptionSet(SOCGameOption.K_SC_CLVI))
         {
-            // Check if less than half the villages have cloth remaining
-            checkForWinner_SC_CLVI();
-            if (gameState == OVER)
+            if (checkForWinner_SC_CLVI())
+            {
+                // gameState is OVER
                 currentPlayerNumber = playerWithWin;  // don't call setCurrentPlayerNumber, would recurse here
+                if (scenarioEventListener != null)
+                    scenarioEventListener.gameEvent
+                        (this, SOCScenarioGameEvent.SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY, players[playerWithWin]);
+            }
         }
 
     }
 
     /**
      * Check if less than half the villages have cloth remaining.
+     * (If half or more still have cloth, return false without changing game state.)
      * If so, end the game; see {@link #checkForWinner()} for details.
+     * Sets state to {@link #OVER}.  Returns true.
+     * Caller should fire {@link SOCScenarioGameEvent#SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY}.
+     * @return true if game has ended with a winner under this special condition
      * @since 2.0.00
      */
-    private final void checkForWinner_SC_CLVI()
+    private final boolean checkForWinner_SC_CLVI()
     {
         int nv = 0;
         final HashMap<Integer, SOCVillage> allv = ((SOCBoardLarge) board).getVillages();
@@ -6408,7 +6417,7 @@ public class SOCGame implements Serializable, Cloneable
             if (v.getCloth() > 0)
                 ++nv;
         if (nv >= (allv.size()+1) / 2)
-            return;  // at least half the villages have cloth; +1 is for odd # of villages (int 7 / 2 = 3)
+            return false;  // at least half the villages have cloth; +1 is for odd # of villages (int 7 / 2 = 3)
 
         gameState = OVER;
 
@@ -6436,7 +6445,7 @@ public class SOCGame implements Serializable, Cloneable
         if (numWithMax == 1)
         {
             playerWithWin = p;
-            return;
+            return true;
         }
 
         // VP tied: Check cloth
@@ -6463,7 +6472,7 @@ public class SOCGame implements Serializable, Cloneable
         if (numWithMax == 1)
         {
             playerWithWin = p;
-            return;
+            return true;
         }
 
         // Cloth amount also tied:
@@ -6475,9 +6484,10 @@ public class SOCGame implements Serializable, Cloneable
                 && (players[currentPlayerNumber].getCloth() == maxCl))
             {
                 playerWithWin = p;
-                return;
+                break;
             }
         } while (advanceTurn());
+        return true;
     }
 
     /**
