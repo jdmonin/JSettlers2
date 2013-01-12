@@ -33,7 +33,6 @@ import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCResourceSet;
 import soc.game.SOCTradeOffer;
-import soc.message.SOCPlayerElement;
 
 import java.awt.Button;
 import java.awt.Color;
@@ -1355,7 +1354,7 @@ public class SOCHandPanel extends Panel
         if (clothSq != null)
         {
             clothLab.setVisible(false);
-            clothSq.setVisible(false);            
+            clothSq.setVisible(false);
         }
 
         offer.setVisible(false);
@@ -1510,7 +1509,7 @@ public class SOCHandPanel extends Panel
         if (clothSq != null)
         {
             clothLab.setVisible(true);
-            clothSq.setVisible(true);            
+            clothSq.setVisible(true);
         }
 
         resourceLab.setVisible(true);
@@ -2215,7 +2214,7 @@ public class SOCHandPanel extends Panel
             if (clothSq != null)
             {
                 clothLab.setVisible(hideTradeMsg);
-                clothSq.setVisible(hideTradeMsg);            
+                clothSq.setVisible(hideTradeMsg);
             }
             resourceLab.setVisible(hideTradeMsg);
             resourceSq.setVisible(hideTradeMsg);
@@ -2549,7 +2548,7 @@ public class SOCHandPanel extends Panel
      * @param vt  the type of value, such as {@link #VICTORYPOINTS}
      *            or {@link SOCPlayerElement#SHEEP}.
      */
-    public void updateValue(int vt)
+    public void updateValue(PlayerClientListener.UpdateType utype)
     {
         boolean updateTotalResCount = false;
 
@@ -2559,9 +2558,9 @@ public class SOCHandPanel extends Panel
          * the public vp because we will assume their
          * dev card vp total is zero.
          */
-        switch (vt)
+        switch (utype)
         {
-        case VICTORYPOINTS:
+        case VictoryPoints:
             {
                 int newVP = player.getTotalVP();
                 vpSq.setIntValue(newVP);
@@ -2585,7 +2584,7 @@ public class SOCHandPanel extends Panel
             }
             break;
 
-        case SPECIALVICTORYPOINTS:
+        case SpecialVictoryPoints:
             if (svpSq != null)
             {
                 final int newSVP = player.getSpecialVP();
@@ -2596,93 +2595,77 @@ public class SOCHandPanel extends Panel
             }
             break;
 
-        case LONGESTROAD:
+        case LongestRoad:
 
             setLRoad(player.hasLongestRoad());
 
             break;
 
-        case LARGESTARMY:
+        case LargestArmy:
 
             setLArmy(player.hasLargestArmy());
 
             break;
 
-        case SOCPlayerElement.CLAY:
+        case Clay:
             claySq.setIntValue(player.getResources().getAmount(SOCResourceConstants.CLAY));
             updateTotalResCount = true;
             break;
 
-        case SOCPlayerElement.ORE:
+        case Ore:
             oreSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.ORE));
             updateTotalResCount = true;
             break;
 
-        case SOCPlayerElement.SHEEP:
+        case Sheep:
             sheepSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.SHEEP));
             updateTotalResCount = true;
             break;
 
-        case SOCPlayerElement.WHEAT:
+        case Wheat:
             wheatSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.WHEAT));
             updateTotalResCount = true;
             break;
 
-        case SOCPlayerElement.WOOD:
+        case Wood:
             woodSq.setIntValue(player.getResources().getAmount(SOCResourceConstants.WOOD));
             updateTotalResCount = true;
             break;
 
-        case NUMRESOURCES:
+        case Resources:
             updateTotalResCount = true;
             break;
 
-        case SOCPlayerElement.ROADS:
+        case Road:
             roadSq.setIntValue(player.getNumPieces(SOCPlayingPiece.ROAD));
             break;
 
-        case SOCPlayerElement.SETTLEMENTS:
+        case Settlement:
             settlementSq.setIntValue(player.getNumPieces(SOCPlayingPiece.SETTLEMENT));
             if (playerIsClient)
                 updateResourceTradeCosts(false);
             break;
 
-        case SOCPlayerElement.CITIES:
+        case City:
             citySq.setIntValue(player.getNumPieces(SOCPlayingPiece.CITY));
             break;
 
-        case SOCPlayerElement.SHIPS:
+        case Ship:
             if (shipSq != null)
                 shipSq.setIntValue(player.getNumPieces(SOCPlayingPiece.SHIP));
             break;
 
-        case NUMDEVCARDS:
+        case DevCards:
 
             developmentSq.setIntValue(player.getDevCards().getTotal());
 
             break;
 
-        case SOCPlayerElement.NUMKNIGHTS:
+        case Knight:
             knightsSq.setIntValue(player.getNumKnights());
             break;
 
-        case SOCPlayerElement.ASK_SPECIAL_BUILD:
-            if (player.hasAskedSpecialBuild())
-                playerInterface.print("* " + player.getName() + " wants to Special Build.");
-            if (playerIsClient)
-                playerInterface.getBuildingPanel().updateButtonStatus();
-            break;
-
-        case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
-            if (offerIsDiscardOrPickMessage && (0 == player.getNeedToPickGoldHexResources()))
-            {
-                clearDiscardOrPickMsg();
-                // Clear is handled here.
-                // Set is handled in SOCPlayerInterface.updateAtGameState
-                // by setting a timer: SOCPlayerInterface.discardOrPickTimerSet(false)
-            }
-
-        case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
+        case Cloth:
             if (clothSq != null)
                 clothSq.setIntValue(player.getCloth());
             break;
@@ -2704,7 +2687,17 @@ public class SOCHandPanel extends Panel
                 }
             }
         }
-
+    }
+    
+    public void updatePickGoldHexResources()
+    {
+        if (offerIsDiscardOrPickMessage && (0 == player.getNeedToPickGoldHexResources()))
+        {
+            clearDiscardOrPickMsg();
+            // Clear is handled here.
+            // Set is handled in SOCPlayerInterface.updateAtGameState
+            // by setting a timer: SOCPlayerInterface.discardOrPickTimerSet(false)
+        }
     }
 
     /**
@@ -2715,18 +2708,18 @@ public class SOCHandPanel extends Panel
     {
         if (playerIsClient)
         {
-            updateValue(SOCPlayerElement.CLAY);
-            updateValue(SOCPlayerElement.ORE);
-            updateValue(SOCPlayerElement.SHEEP);
-            updateValue(SOCPlayerElement.WHEAT);
-            updateValue(SOCPlayerElement.WOOD);
+            updateValue(PlayerClientListener.UpdateType.Clay);
+            updateValue(PlayerClientListener.UpdateType.Ore);
+            updateValue(PlayerClientListener.UpdateType.Sheep);
+            updateValue(PlayerClientListener.UpdateType.Wheat);
+            updateValue(PlayerClientListener.UpdateType.Wood);
             updateResourceTradeCosts(false);
         }
         else
         {
-            updateValue(NUMRESOURCES);
+            updateValue(PlayerClientListener.UpdateType.Resources);
         }
-        updateValue(VICTORYPOINTS);
+        updateValue(PlayerClientListener.UpdateType.VictoryPoints);
     }
 
     /**
@@ -2891,7 +2884,7 @@ public class SOCHandPanel extends Panel
         final int space = 2;  // vertical and horizontal spacing between most items
 
         final FontMetrics fm = this.getFontMetrics(this.getFont());
-        final int lineH = ColorSquare.HEIGHT;  // layout's basic line height; most rows have a ColorSquare 
+        final int lineH = ColorSquare.HEIGHT;  // layout's basic line height; most rows have a ColorSquare
         final int faceW = 40;  // face icon width
         final int pnameW = dim.width - (inset + faceW + inset + inset);  // player name width, to right of face
 
@@ -2943,11 +2936,11 @@ public class SOCHandPanel extends Panel
                 // Top has name, then a row with VP count, largest army, longest road
                 //   (If game hasn't started yet, "Start Game" button is here instead of that row)
                 //   SVP is under VP count, if applicable
-                // To left below top area: Trade area 
+                // To left below top area: Trade area
                 //   (Give/Get and SquaresPanel; below that, Offer button and checkboxes, then Clear/Bank buttons)
-                // To left below trade area: Resource counts 
+                // To left below trade area: Resource counts
                 //   (Clay, Ore, Sheep, Wheat, Wood, Total)
-                // To right below top area: Piece counts 
+                // To right below top area: Piece counts
                 //   (Soldiers, Roads, Settlements, Cities, Ships)
                 // To right below piece counts: Dev card list, Play button
                 // Bottom of panel: 1 button row: Quit to left; Roll, Restart to right

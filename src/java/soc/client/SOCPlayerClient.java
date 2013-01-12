@@ -53,9 +53,11 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.Socket;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.Hashtable;import java.util.List;
+
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -2764,6 +2766,7 @@ public class SOCPlayerClient extends Panel
             final int pn = mes.getPlayerNumber();
             final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
+            PlayerClientListener.UpdateType utype = null;
             final int etype = mes.getElementType();
 
             switch (etype)
@@ -2771,21 +2774,25 @@ public class SOCPlayerClient extends Panel
             case SOCPlayerElement.ROADS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.ROAD);
+                utype = PlayerClientListener.UpdateType.Road;
                 break;
 
             case SOCPlayerElement.SETTLEMENTS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.SETTLEMENT);
+                utype = PlayerClientListener.UpdateType.Settlement;
                 break;
 
             case SOCPlayerElement.CITIES:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.CITY);
+                utype = PlayerClientListener.UpdateType.City;
                 break;
 
             case SOCPlayerElement.SHIPS:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numPieces
                     (mes, pl, SOCPlayingPiece.SHIP);
+                utype = PlayerClientListener.UpdateType.Ship;
                 break;
 
             case SOCPlayerElement.NUMKNIGHTS:
@@ -2794,6 +2801,7 @@ public class SOCPlayerClient extends Panel
                     final SOCPlayer oldLargestArmyPlayer = ga.getPlayerWithLargestArmy();
                     SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numKnights
                         (mes, pl, ga);
+                    utype = PlayerClientListener.UpdateType.Knight;
 
                     // Check for change in largest-army player; update handpanels'
                     // LARGESTARMY and VICTORYPOINTS counters if so, and
@@ -2806,26 +2814,31 @@ public class SOCPlayerClient extends Panel
             case SOCPlayerElement.CLAY:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.CLAY);
+                utype = PlayerClientListener.UpdateType.Clay;
                 break;
 
             case SOCPlayerElement.ORE:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.ORE);
+                utype = PlayerClientListener.UpdateType.Ore;
                 break;
 
             case SOCPlayerElement.SHEEP:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.SHEEP);
+                utype = PlayerClientListener.UpdateType.Sheep;
                 break;
 
             case SOCPlayerElement.WHEAT:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.WHEAT);
+                utype = PlayerClientListener.UpdateType.Wheat;
                 break;
 
             case SOCPlayerElement.WOOD:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.WOOD);
+                utype = PlayerClientListener.UpdateType.Wood;
                 break;
 
             case SOCPlayerElement.UNKNOWN:
@@ -2836,11 +2849,18 @@ public class SOCPlayerClient extends Panel
                  */
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_numRsrc
                     (mes, pl, SOCResourceConstants.UNKNOWN);
+                utype = PlayerClientListener.UpdateType.Unknown;
                 break;
 
             case SOCPlayerElement.ASK_SPECIAL_BUILD:
+                SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
+                // This case is not really an element update, so route as a 'request'
+                pcl.requestedSpecialBuild(pl);
+                break;
+                
             case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
+                pcl.requestedGoldResourceSelect(pl, 0);
                 break;
 
             case SOCPlayerElement.SCENARIO_SVP:
@@ -2860,16 +2880,21 @@ public class SOCPlayerClient extends Panel
                 } else {
                     ((SOCBoardLarge) (ga.getBoard())).setCloth(mes.getValue());
                 }
+                utype = PlayerClientListener.UpdateType.Cloth;
                 break;
 
             case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
+                utype = PlayerClientListener.UpdateType.Warship;
                 break;
 
             }
 
             if (pcl != null)
-                pcl.playerElementUpdated(pl, etype);
+            {
+                if (utype != null)
+                    pcl.playerElementUpdated(pl, utype);
+            }
         }
     }
 
@@ -3085,20 +3110,19 @@ public class SOCPlayerClient extends Panel
         final int maxPl = game.maxPlayers;
         final boolean[] ch = mes.getChoices();
         final boolean allowChooseNone = ((ch.length > maxPl) && ch[maxPl]);  // for scenario SC_PIRI
-        int[] choices = new int[maxPl];
-        int count = 0;
 
+        List<SOCPlayer> choices = new ArrayList<SOCPlayer>();
         for (int i = 0; i < maxPl; i++)
         {
             if (ch[i])
             {
-                choices[count] = i;
-                count++;
+                SOCPlayer p = game.getPlayer(i);
+                choices.add(p);
             }
         }
 
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.requestedChoosePlayer(count, choices, allowChooseNone);
+        pcl.requestedChoosePlayer(choices, allowChooseNone);
     }
 
     /**
@@ -3258,11 +3282,11 @@ public class SOCPlayerClient extends Panel
             {
                 SOCHandPanel hp = pi.getClientHand();
                 hp.updateDevCards();
-                hp.updateValue(SOCHandPanel.VICTORYPOINTS);
+                hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
             }
             else
             {
-                pi.getPlayerHandPanel(mesPN).updateValue(SOCHandPanel.NUMDEVCARDS);
+                pi.getPlayerHandPanel(mesPN).updateValue(PlayerClientListener.UpdateType.DevCards);
             }
         }
     }
@@ -4325,6 +4349,26 @@ public class SOCPlayerClient extends Panel
     public void choosePlayer(SOCGame ga, final int ch)
     {
         put(SOCChoosePlayer.toCmd(ga.getName(), ch), ga.isPractice);
+    }
+    
+    /**
+     * The user is reacting to the move robber request.
+     *
+     * @param ga  the game
+     */
+    public void chooseRobber(SOCGame ga)
+    {
+        choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
+    }
+    
+    /**
+     * The user is reacting to the move pirate request.
+     *
+     * @param ga  the game
+     */
+    public void choosePirate(SOCGame ga)
+    {
+        choosePlayer(ga, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
     }
 
     /**

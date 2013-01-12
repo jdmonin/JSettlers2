@@ -30,6 +30,7 @@ import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
 import soc.game.SOCRoad;
 import soc.game.SOCScenarioEventListener;
 import soc.game.SOCScenarioGameEvent;
@@ -37,8 +38,6 @@ import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
-import soc.message.SOCChoosePlayer;
-import soc.message.SOCPlayerElement;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -63,6 +62,7 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -855,16 +855,16 @@ public class SOCPlayerInterface extends Frame
         (boolean isRoadNotArmy, SOCPlayer oldp, SOCPlayer newp)
     {
         // Update handpanels
-        final int updateType;
+        final PlayerClientListener.UpdateType updateType;
         if (isRoadNotArmy)
-            updateType = SOCHandPanel.LONGESTROAD;
+            updateType = PlayerClientListener.UpdateType.LongestRoad;
         else
-            updateType = SOCHandPanel.LARGESTARMY;
+            updateType = PlayerClientListener.UpdateType.LargestArmy;
 
         for (int i = 0; i < game.maxPlayers; i++)
         {
             hands[i].updateValue(updateType);
-            hands[i].updateValue(SOCHandPanel.VICTORYPOINTS);
+            hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);
         }
 
         // Check for and announce change in largest army, or longest road
@@ -1651,7 +1651,7 @@ public class SOCPlayerInterface extends Frame
             game.checkForWinner();  // Assumes "current player" set to winner already, by SETTURN msg
         }
         for (int i = 0; i < finalScores.length; ++i)
-            hands[i].updateValue(SOCHandPanel.VICTORYPOINTS);  // Also disables buttons, etc.
+            hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
         setTitle(TITLEBAR_GAME_OVER + game.getName() +
                  (game.isPractice ? "" : " [" + client.getNickname() + "]"));
         boardPanel.updateMode();
@@ -1975,7 +1975,7 @@ public class SOCPlayerInterface extends Frame
         case SOCPlayingPiece.ROAD:
             pp = new SOCRoad(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCPlayerElement.ROADS);
+            mesHp.updateValue(PlayerClientListener.UpdateType.Road);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
                 boardPanel.flushBoardLayoutAndRepaint();
 
@@ -1984,20 +1984,20 @@ public class SOCPlayerInterface extends Frame
         case SOCPlayingPiece.SETTLEMENT:
             pp = new SOCSettlement(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCPlayerElement.SETTLEMENTS);
+            mesHp.updateValue(PlayerClientListener.UpdateType.Settlement);
 
             /**
              * if this is the second initial settlement, then update the resource display
              */
             if (mesHp.isClientPlayer())
             {
-                mesHp.updateValue(SOCPlayerElement.CLAY);
-                mesHp.updateValue(SOCPlayerElement.ORE);
-                mesHp.updateValue(SOCPlayerElement.SHEEP);
-                mesHp.updateValue(SOCPlayerElement.WHEAT);
-                mesHp.updateValue(SOCPlayerElement.WOOD);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Clay);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Ore);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Sheep);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Wheat);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Wood);
             } else {
-                mesHp.updateValue(SOCHandPanel.NUMRESOURCES);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Resources);
             }
 
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
@@ -2009,8 +2009,8 @@ public class SOCPlayerInterface extends Frame
         case SOCPlayingPiece.CITY:
             pp = new SOCCity(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCPlayerElement.SETTLEMENTS);
-            mesHp.updateValue(SOCPlayerElement.CITIES);
+            mesHp.updateValue(PlayerClientListener.UpdateType.Settlement);
+            mesHp.updateValue(PlayerClientListener.UpdateType.City);
 
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
                 || debugShowPotentials[6])
@@ -2023,7 +2023,7 @@ public class SOCPlayerInterface extends Frame
             if (! isMove)
             {
                 game.putPiece(pp);
-                mesHp.updateValue(SOCPlayerElement.SHIPS);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Ship);
             } else {
                 game.moveShip((SOCShip) pp, moveToCoord);
             }
@@ -2051,7 +2051,7 @@ public class SOCPlayerInterface extends Frame
             return;  // <--- Early return ---
         }
 
-        mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);
+        mesHp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
         boardPanel.repaint();
         buildingPanel.updateButtonStatus();
         if (game.isDebugFreePlacement() && game.isInitialPlacement())
@@ -2111,8 +2111,8 @@ public class SOCPlayerInterface extends Frame
         {
             // assumes will never be reduced to 0 again
             //   so won't ever need to hide SVP counter
-            mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
-            mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
+            mesHp.updateValue(PlayerClientListener.UpdateType.SpecialVictoryPoints);
+            mesHp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // call after SVP, not before, in case ends the game
             // (This code also appears in SOCPlayerClient.handlePLAYERELEMENT)
         }
     }
@@ -2763,29 +2763,29 @@ public class SOCPlayerInterface extends Frame
              * update the hand panel's displayed values
              */
             final SOCHandPanel hp = pi.getPlayerHandPanel(evt.getSeatNumber());
-            hp.updateValue(SOCPlayerElement.ROADS);
-            hp.updateValue(SOCPlayerElement.SETTLEMENTS);
-            hp.updateValue(SOCPlayerElement.CITIES);
+            hp.updateValue(PlayerClientListener.UpdateType.Road);
+            hp.updateValue(PlayerClientListener.UpdateType.Settlement);
+            hp.updateValue(PlayerClientListener.UpdateType.City);
             if (pi.game.hasSeaBoard)
-                hp.updateValue(SOCPlayerElement.SHIPS);
-            hp.updateValue(SOCPlayerElement.NUMKNIGHTS);
-            hp.updateValue(SOCHandPanel.VICTORYPOINTS);
-            hp.updateValue(SOCHandPanel.LONGESTROAD);
-            hp.updateValue(SOCHandPanel.LARGESTARMY);
+                hp.updateValue(PlayerClientListener.UpdateType.Ship);
+            hp.updateValue(PlayerClientListener.UpdateType.Knight);
+            hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
+            hp.updateValue(PlayerClientListener.UpdateType.LongestRoad);
+            hp.updateValue(PlayerClientListener.UpdateType.LargestArmy);
 
             if (nickname.equals(evt.getNickname()))
             {
-                hp.updateValue(SOCPlayerElement.CLAY);
-                hp.updateValue(SOCPlayerElement.ORE);
-                hp.updateValue(SOCPlayerElement.SHEEP);
-                hp.updateValue(SOCPlayerElement.WHEAT);
-                hp.updateValue(SOCPlayerElement.WOOD);
+                hp.updateValue(PlayerClientListener.UpdateType.Clay);
+                hp.updateValue(PlayerClientListener.UpdateType.Ore);
+                hp.updateValue(PlayerClientListener.UpdateType.Sheep);
+                hp.updateValue(PlayerClientListener.UpdateType.Wheat);
+                hp.updateValue(PlayerClientListener.UpdateType.Wood);
                 hp.updateDevCards();
             }
             else
             {
-                hp.updateValue(SOCHandPanel.NUMRESOURCES);
-                hp.updateValue(SOCHandPanel.NUMDEVCARDS);
+                hp.updateValue(PlayerClientListener.UpdateType.Resources);
+                hp.updateValue(PlayerClientListener.UpdateType.DevCards);
             }
         }
         
@@ -2818,91 +2818,88 @@ public class SOCPlayerInterface extends Frame
         public void playerResourcesUpdated(SOCPlayer player)
         {
             SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
-            hpan.updateValue(SOCHandPanel.NUMRESOURCES);
+            hpan.updateValue(PlayerClientListener.UpdateType.Resources);
         }
         
-        public void playerElementUpdated(SOCPlayer player, int etype)
+        public void playerElementUpdated(SOCPlayer player, PlayerClientListener.UpdateType utype)
         {
             final SOCHandPanel hpan = player == null ? null : pi.getPlayerHandPanel(player.getPlayerNumber());  // null if no player
             int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
 
-            switch (etype)
+            switch (utype)
             {
-            case SOCPlayerElement.ROADS:
-                hpan.updateValue(etype);
+            case Road:
+                hpan.updateValue(utype);
                 break;
 
-            case SOCPlayerElement.SETTLEMENTS:
-                hpan.updateValue(etype);
+            case Settlement:
+                hpan.updateValue(utype);
                 break;
 
-            case SOCPlayerElement.CITIES:
-                hpan.updateValue(etype);
+            case City:
+                hpan.updateValue(utype);
                 break;
 
-            case SOCPlayerElement.SHIPS:
-                hpan.updateValue(etype);
+            case Ship:
+                hpan.updateValue(utype);
                 break;
 
-            case SOCPlayerElement.NUMKNIGHTS:
+            case Knight:
                 // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
-                hpan.updateValue(etype);
+                hpan.updateValue(utype);
                 break;
 
-            case SOCPlayerElement.CLAY:
-                hpanUpdateRsrcType = etype;
+            case Clay:
+                hpanUpdateRsrcType = SOCResourceConstants.CLAY;
                 break;
 
-            case SOCPlayerElement.ORE:
-                hpanUpdateRsrcType = etype;
+            case Ore:
+                hpanUpdateRsrcType = SOCResourceConstants.ORE;
                 break;
 
-            case SOCPlayerElement.SHEEP:
-                hpanUpdateRsrcType = etype;
+            case Sheep:
+                hpanUpdateRsrcType = SOCResourceConstants.SHEEP;
                 break;
 
-            case SOCPlayerElement.WHEAT:
-                hpanUpdateRsrcType = etype;
+            case Wheat:
+                hpanUpdateRsrcType = SOCResourceConstants.WHEAT;
                 break;
 
-            case SOCPlayerElement.WOOD:
-                hpanUpdateRsrcType = etype;
+            case Wood:
+                hpanUpdateRsrcType = SOCResourceConstants.WOOD;
                 break;
 
-            case SOCPlayerElement.UNKNOWN:
-                hpan.updateValue(SOCHandPanel.NUMRESOURCES);
+            case Unknown:
+                hpan.updateValue(PlayerClientListener.UpdateType.Resources);
                 break;
 
-            case SOCPlayerElement.ASK_SPECIAL_BUILD:
-            case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
-                hpan.updateValue(etype);
-                // ASK_SPECIAL_BUILD: for client player, hpan also refreshes BuildingPanel with this value.
-                break;
-
-            case SOCPlayerElement.SCENARIO_SVP:
+            case SpecialVictoryPoints:
                 if (player.getSpecialVP() != 0)
                 {
                     // assumes will never be reduced to 0 again
-                    hpan.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
-                    hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
+                    hpan.updateValue(PlayerClientListener.UpdateType.SpecialVictoryPoints);
+                    hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // call after SVP, not before, in case ends the game
                     // (This code also appears in SOCPlayerInterface.playerEvent)
                 }
                 break;
 
-            case SOCPlayerElement.SCENARIO_CLOTH_COUNT:
+            case Cloth:
                 if (player != null)
                 {
-                    hpan.updateValue(etype);
-                    hpan.updateValue(SOCHandPanel.VICTORYPOINTS);  // 2 cloth = 1 VP
+                    hpan.updateValue(utype);
+                    hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // 2 cloth = 1 VP
                 } else {
                     pi.getBuildingPanel().updateClothCount();
                 }
                 break;
 
-            case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+            case Warship:
                 pi.updateAtPiecesChanged();
                 break;
-
+                
+            default:
+                System.out.println("Unhandled case in PlayerClientListener["+utype+"]");
+                break;
             }
 
             if (hpan == null)
@@ -2912,11 +2909,11 @@ public class SOCPlayerInterface extends Frame
             {
                 if (hpan.isClientPlayer())
                 {
-                    hpan.updateValue(hpanUpdateRsrcType);
+                    hpan.updateValue(utype);
                 }
                 else
                 {
-                    hpan.updateValue(SOCHandPanel.NUMRESOURCES);
+                    hpan.updateValue(PlayerClientListener.UpdateType.Resources);
                 }
             }
 
@@ -2924,6 +2921,21 @@ public class SOCPlayerInterface extends Frame
             {
                 pi.getBuildingPanel().updateButtonStatus();
             }
+        }
+        
+        public void requestedSpecialBuild(SOCPlayer player)
+        {
+            boolean isClientPlayer = player.getName().equals(pi.client.getNickname());
+            if (player.hasAskedSpecialBuild())
+                pi.print("* " + player.getName() + " wants to Special Build.");
+            if (isClientPlayer)
+                pi.getBuildingPanel().updateButtonStatus();
+        }
+        
+        public void requestedGoldResourceSelect(SOCPlayer player, int countToSelect)
+        {
+            final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
+            hpan.updatePickGoldHexResources();
         }
         
         public void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew)
@@ -3011,9 +3023,13 @@ public class SOCPlayerInterface extends Frame
             pi.showDiscardOrGainDialog(countToDiscard, false);
         }
         
-        public void requestedChoosePlayer(int count, int[] choices, boolean isNoneAllowed)
+        public void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed)
         {
-            pi.showChoosePlayerDialog(count, choices, isNoneAllowed);
+            int[] pnums = new int[choices.size()];
+            int i = 0;
+            for (SOCPlayer p : choices)
+                pnums[i++] = p.getPlayerNumber();
+            pi.showChoosePlayerDialog(pnums.length, pnums, isNoneAllowed);
         }
         
         public void requestedChooseRobResourceType(SOCPlayer player)
@@ -3202,7 +3218,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
+            pcli.getGameManager().chooseRobber(game);
         }
 
         /**
@@ -3212,7 +3228,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
+            pcli.getGameManager().choosePirate(game);
         }
 
         /**

@@ -21,6 +21,7 @@
 package soc.client;
 
 import java.util.Collection;
+import java.util.List;
 
 import soc.game.SOCPlayer;
 
@@ -57,15 +58,15 @@ public interface PlayerClientListener
     
     /**
      * @param player May be {@code null}
-     * @param etype One of the fields of {@link soc.message.SOCPlayerElement}
-     * @param value
+     * @param utype The type of element to update
      */
-    void playerElementUpdated(SOCPlayer player, int etype);
+    void playerElementUpdated(SOCPlayer player, UpdateType utype);
     void playerResourcesUpdated(SOCPlayer player);
     
     void requestedDiscard(int countToDiscard);
-    void requestedResourceSelect(int countToDiscard);
-    void requestedChoosePlayer(int count, int[] choices, boolean isNoneAllowed);
+    void requestedResourceSelect(int countToSelect);
+    void requestedGoldResourceSelect(SOCPlayer player, int countToSelect);
+    void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
     void requestedChooseRobResourceType(SOCPlayer player);
     void requestedTrade(SOCPlayer offerer);
     /**
@@ -77,6 +78,7 @@ public interface PlayerClientListener
      * @param playerToReset May be {@code null} to clear all seats
      */
     void requestedTradeReset(SOCPlayer playerToReset);
+    void requestedSpecialBuild(SOCPlayer player);
     
     /** The largest army might have changed, so update */
     void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew);
@@ -209,5 +211,30 @@ public interface PlayerClientListener
     interface GameEndedEvent
     {
         int[] getScores();
+    }
+    
+    enum UpdateType
+    {
+        Clay,
+        Ore,
+        Sheep,
+        Wheat,
+        Wood,
+        Unknown,
+        Resources,
+        
+        Road,
+        Settlement,
+        City,
+        Ship,
+        Knight,
+        Warship,
+        Cloth,
+        
+        VictoryPoints,
+        SpecialVictoryPoints,
+        DevCards,
+        LongestRoad,
+        LargestArmy
     }
 }
