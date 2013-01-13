@@ -634,7 +634,7 @@ public class SOCFaceButton extends Canvas
           super ("JSettlers");
           fb = fbutton;
 
-          changeFaceItem = new MenuItem("Change face...");
+          changeFaceItem = new MenuItem(/*I*/"Change face..."/*18N*/);
           add(changeFaceItem);
           changeFaceItem.addActionListener(this);
         }

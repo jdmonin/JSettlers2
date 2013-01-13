@@ -66,10 +66,10 @@ class SOCQuitAllConfirmDialog extends AskDialog
     protected SOCQuitAllConfirmDialog(SOCPlayerClient cli, Frame gamePIOrSelf, boolean hostedServerActive)
     {
         super(cli, gamePIOrSelf,
-            (hostedServerActive ? "Shut down game server?" : "Really quit all games?"),
-            "One or more games are still active.",
-            (hostedServerActive ? "Shut down server anyway" : "Quit all games"),
-            (hostedServerActive ? "Continue serving" : "Continue playing"),
+            (hostedServerActive ? /*I*/"Shut down game server?"/*18N*/ : /*I*/"Really quit all games?"/*18N*/),
+            /*I*/"One or more games are still active."/*18N*/,
+            (hostedServerActive ? /*I*/"Shut down server anyway"/*18N*/ : /*I*/"Quit all games"/*18N*/),
+            (hostedServerActive ? /*I*/"Continue serving"/*18N*/ : /*I*/"Continue playing"/*18N*/),
             false, true);
         this.hostedServerActive = hostedServerActive;
     }

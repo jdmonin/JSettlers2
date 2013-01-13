@@ -55,7 +55,7 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
      */
     public SOCDiscoveryDialog(SOCPlayerInterface pi)
     {
-        super(pi, "Year of Plenty", true);
+        super(pi, /*I*/"Year of Plenty"/*18N*/, true);
 
         rsrcTotal = 0;
 
@@ -64,13 +64,13 @@ class SOCDiscoveryDialog extends Dialog implements ActionListener, ColorSquareLi
         setForeground(Color.black);
         setFont(new Font("SansSerif", Font.PLAIN, 12));
 
-        doneBut = new Button("Pick");
-        clearBut = new Button("Clear");
+        doneBut = new Button(/*I*/"Pick"/*18N*/);
+        clearBut = new Button(/*I*/"Clear"/*18N*/);
 
         setLayout(null);
         addNotify();
 
-        msg = new Label("Please pick two resources.", Label.CENTER);
+        msg = new Label(/*I*/"Please pick two resources."/*18N*/, Label.CENTER);
         add(msg);
 
         setSize(280, 60 + 3 * ColorSquareLarger.HEIGHT_L);

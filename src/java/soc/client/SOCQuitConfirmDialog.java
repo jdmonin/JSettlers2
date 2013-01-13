@@ -60,17 +60,17 @@ class SOCQuitConfirmDialog extends AskDialog
      */
     protected SOCQuitConfirmDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI, boolean gameIsOver)
     {
-        super(cli, gamePI, "Really quit game "
-                + gamePI.getGame().getName() + "?",
+        super(cli, gamePI, /*I*/"Really quit game "
+                + gamePI.getGame().getName() + "?"/*18N*/,
             (gameIsOver
-                ? "Do you want to quit this finished game?"
-                : "Do you want to quit the game being played?"),
-            "Quit this game",
+                ? /*I*/"Do you want to quit this finished game?"/*18N*/
+                : /*I*/"Do you want to quit the game being played?"/*18N*/),
+            /*I*/"Quit this game"/*18N*/,
             (gameIsOver
-                ? "Don't quit"
-                : "Continue playing"),
+                ? /*I*/"Don't quit"/*18N*/
+                : /*I*/"Continue playing"/*18N*/),
             ((gamePI.getGame().getGameState() != SOCGame.NEW)
-                ? "Reset board"
+                ? /*I*/"Reset board"/*18N*/
                 : null),
             (gameIsOver ? 1 : 2));
     }

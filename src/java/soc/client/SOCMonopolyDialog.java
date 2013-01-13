@@ -42,7 +42,7 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
      */
     public SOCMonopolyDialog(SOCPlayerInterface pi)
     {
-        super(pi, "Monopoly", true);
+        super(pi, /*I*/"Monopoly"/*18N*/, true);
 
         this.pi = pi;
         setBackground(new Color(255, 230, 162));
@@ -52,16 +52,16 @@ class SOCMonopolyDialog extends Dialog implements ActionListener
         addNotify();
         setSize(280, 160);
 
-        msg = new Label("Please pick a resource to monopolize.", Label.CENTER);
+        msg = new Label(/*I*/"Please pick a resource to monopolize."/*18N*/, Label.CENTER);
         add(msg);
 
         rsrcBut = new Button[5];
 
-        rsrcBut[0] = new Button("Clay");
-        rsrcBut[1] = new Button("Ore");
-        rsrcBut[2] = new Button("Sheep");
-        rsrcBut[3] = new Button("Wheat");
-        rsrcBut[4] = new Button("Wood");
+        rsrcBut[0] = new Button(/*I*/"Clay"/*18N*/);
+        rsrcBut[1] = new Button(/*I*/"Ore"/*18N*/);
+        rsrcBut[2] = new Button(/*I*/"Sheep"/*18N*/);
+        rsrcBut[3] = new Button(/*I*/"Wheat"/*18N*/);
+        rsrcBut[4] = new Button(/*I*/"Wood"/*18N*/);
 
         for (int i = 0; i < 5; i++)
         {

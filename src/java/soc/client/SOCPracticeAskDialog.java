@@ -36,9 +36,9 @@ class SOCPracticeAskDialog extends AskDialog
      */
     public SOCPracticeAskDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI)
     {
-        super(cli, gamePI, "Practice game in progress",
-            "A practice game is already being played.",
-            "Show this game", "Create another", true, false);
+        super(cli, gamePI, /*I*/"Practice game in progress"/*18N*/,
+            /*I*/"A practice game is already being played."/*18N*/,
+            /*I*/"Show this game"/*18N*/, /*I*/"Create another"/*18N*/, true, false);
     }
 
     /**

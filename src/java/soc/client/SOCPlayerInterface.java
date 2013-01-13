@@ -179,15 +179,15 @@ public class SOCPlayerInterface extends Frame
      * @see #textInput
      */
     public static final String TEXTINPUT_INITIAL_PROMPT_MSG
-        = "Type here to chat.";
+        = /*I*/"Type here to chat."/*18N*/;
 
     /** Titlebar text for game in progress */
     public static final String TITLEBAR_GAME
-        = "Settlers of Catan Game: ";
+        = /*I*/"Settlers of Catan Game: "/*18N*/;
 
     /** Titlebar text for game when over */
     public static final String TITLEBAR_GAME_OVER
-        = "Settlers of Catan Game Over: ";
+        = /*I*/"Settlers of Catan Game Over: "/*18N*/;
 
     /**
      * Used for responding to textfield changes by setting/clearing prompt message.
@@ -581,7 +581,7 @@ public class SOCPlayerInterface extends Frame
         textInput.setForeground(Color.black);
         textInput.setEditable(false);
         textInputIsInitial = false;  // due to "please wait"
-        textInput.setText("Please wait...");
+        textInput.setText(/*I*/"Please wait..."/*18N*/);
         add(textInput);
         textInput.addActionListener(this);
         if (is6player)
@@ -859,6 +859,7 @@ public class SOCPlayerInterface extends Frame
             && ((null != oldp) || (null != newp)))
         {
             StringBuffer msgbuf;
+            //TODO i18n take strings buffers
             if (isRoadNotArmy)
             {
                 if (game.hasSeaBoard)
@@ -920,9 +921,9 @@ public class SOCPlayerInterface extends Frame
             ++availPl;  // Not yet vacant in game data
         if (! noTextOverlay)
         {
-            String availTxt = (availPl == 1) ? "1 seat available" : Integer.toString(availPl) + " seats available";
+            String availTxt = (availPl == 1) ? /*I*/"1 seat available"/*18N*/ : /*I*/Integer.toString(availPl) + " seats available"/*18N*/;
             boardPanel.setSuperimposedText
-                ("Maximum players: " + maxPl, availTxt);
+                (/*I*/"Maximum players: " + maxPl/*18N*/, availTxt);
         }
         if ((gstate == SOCGame.NEW) || ! clientSatAlready)
         {
@@ -1160,7 +1161,7 @@ public class SOCPlayerInterface extends Frame
                             flagnum = Integer.parseInt(s);
                         } catch (NumberFormatException e2) {
                             chatPrintDebug
-                                ("Usage: =*= show: n  or =*= hide: n   where n is all or a number 0-9");
+                                ("Usage: =*= show: n  or =*= hide: n   where n is all or a number 0-9"); //I18N?
                             return;
                         }
                     }
@@ -1203,19 +1204,19 @@ public class SOCPlayerInterface extends Frame
     {
         if (client.getServerVersion(game) < 1100)
         {
-            textDisplay.append("*** This server does not support board reset, server is too old.\n");
+            textDisplay.append(/*I*/"*** This server does not support board reset, server is too old.\n"/*18N*/);
             return;
         }
         if (game.getResetVoteActive())
         {
-            textDisplay.append("*** Voting is already active. Try again when voting completes.\n");
+            textDisplay.append(/*I*/"*** Voting is already active. Try again when voting completes.\n"/*18N*/);
             return;
         }
         SOCPlayer pl = game.getPlayer(clientHandPlayerNum);
         if (! pl.hasAskedBoardReset())
             client.getGameManager().resetBoardRequest(game);
         else
-            textDisplay.append("*** You may ask only once per turn to reset the board.\n");
+            textDisplay.append(/*I*/"*** You may ask only once per turn to reset the board.\n"/*18N*/);
     }
 
     /**
@@ -1226,10 +1227,10 @@ public class SOCPlayerInterface extends Frame
     {
         String voteMsg;
         if (vyes)
-            voteMsg = "Go ahead.";
+            voteMsg = /*I*/"Go ahead."/*18N*/;
         else
-            voteMsg = "No thanks.";
-        textDisplay.append("* " + game.getPlayer(pn).getName() + " has voted: " + voteMsg + "\n");
+            voteMsg = /*I*/"No thanks."/*18N*/;
+        textDisplay.append(/*I*/"* " + game.getPlayer(pn).getName() + " has voted: " + voteMsg + "\n"/*18N*/);
         game.resetVoteRegister(pn, vyes);
         try { hands[pn].resetBoardSetMessage(voteMsg); }
         catch (IllegalStateException e) { /* ignore; discard message is showing */ }
@@ -1241,7 +1242,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void resetBoardRejected()
     {
-        textDisplay.append("** The board reset was rejected.\n");
+        textDisplay.append(/*I*/"** The board reset was rejected.\n"/*18N*/);
         for (int i = 0; i < hands.length; ++i)
         {
             // Clear all displayed votes
@@ -1288,9 +1289,9 @@ public class SOCPlayerInterface extends Frame
         {
             String pleaseMsg;
             if (gaOver)
-                pleaseMsg = "Restart Game?";
+                pleaseMsg = /*I*/"Restart Game?"/*18N*/;
             else
-                pleaseMsg = "Reset Board?";
+                pleaseMsg = /*I*/"Reset Board?"/*18N*/;
             boardResetRequester.resetBoardSetMessage(pleaseMsg);
 
             String requester = game.getPlayer(pnRequester).getName();
@@ -1331,7 +1332,8 @@ public class SOCPlayerInterface extends Frame
              * JM 2009-05-21: Don't edit existing text on Mac OS X 10.5; it can lead to a GUI hang/race condition.
              *   Instead just print the total rolled.
              */
-
+            
+            //TODO i18n calculate
             if (s.startsWith("* ") && (s.indexOf(" rolled a ") > 0))
             {
                 String currentText = textDisplay.getText();
@@ -1398,8 +1400,8 @@ public class SOCPlayerInterface extends Frame
             textInputSetToInitialPrompt(false);  // Clear, set foreground color
         textInput.setEditable(false);
         textInput.setText(s);
-        textDisplay.append("* Sorry, lost connection to the server.\n");
-        textDisplay.append("*** Game stopped. ***\n");
+        textDisplay.append(/*I*/"* Sorry, lost connection to the server.\n"/*18N*/);
+        textDisplay.append(/*I*/"*** Game stopped. ***\n"/*18N*/);
         game.setCurrentPlayerNumber(-1);
         boardPanel.repaint();
     }
@@ -1428,7 +1430,7 @@ public class SOCPlayerInterface extends Frame
         if (members == null)
             return;
         int numObservers = 0;
-        StringBuffer obs = null;
+        StringBuffer obs = null;    //TODO i18n string buffer
         for (int i = members.size() - 1; i >= 0; --i)
         {
             String mname = members.elementAt(i);
@@ -1617,7 +1619,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void updateAtSVPText(final String plName, final int svp, final String desc)
     {
-        StringBuilder sb = new StringBuilder("* ");
+        StringBuilder sb = new StringBuilder("* "); //TODO i18n string buffer
         sb.append(plName);
         sb.append(" gets ");
         sb.append(svp);
@@ -2118,12 +2120,12 @@ public class SOCPlayerInterface extends Frame
         chatDisplay.append(prevChatText);
         String requesterName = game.getPlayer(requesterNumber).getName();
         if (requesterName == null)
-            requesterName = "player who left";
+            requesterName = /*I*/"player who left"/*18N*/;
         String resetMsg;
         if (oldGameState != SOCGame.OVER)
-            resetMsg = "** The board was reset by " + requesterName + ".\n";
+            resetMsg = /*I*/"** The board was reset by " + requesterName + ".\n"/*18N*/;
         else
-            resetMsg = "** New game started by " + requesterName + ".\n";
+            resetMsg = /*I*/"** New game started by " + requesterName + ".\n"/*18N*/;
         textDisplay.append(resetMsg);
         chatDisplay.append(resetMsg);
         setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -2624,17 +2626,17 @@ public class SOCPlayerInterface extends Frame
          */
         protected ResetBoardVoteDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
-            super(cli, gamePI, "Reset board of game "
-                    + gamePI.getGame().getName() + "?",
+            super(cli, gamePI, /*I*/"Reset board of game "
+                    + gamePI.getGame().getName() + "?"/*18N*/,
                 (gameIsOver
-                    ? (requester + " wants to start a new game.")
-                    : (requester + " wants to reset the game being played.")),
+                    ? (/*I*/requester + " wants to start a new game."/*18N*/)
+                    : (/*I*/requester + " wants to reset the game being played."/*18N*/)),
                 (gameIsOver
-                    ? "Restart"
-                    : "Reset"),
+                    ? /*I*/"Restart"/*18N*/
+                    : /*I*/"Reset"/*18N*/),
                 (gameIsOver
-                    ? "No thanks"
-                    : "Continue playing"),
+                    ? /*I*/"No thanks"/*18N*/
+                    : /*I*/"Continue playing"/*18N*/),
                 null,
                 (gameIsOver ? 1 : 2));
             rdt = null;
@@ -2733,10 +2735,10 @@ public class SOCPlayerInterface extends Frame
         protected ChooseMoveRobberOrPirateDialog()
         {
             super(getClient(), SOCPlayerInterface.this,
-                "Move robber or pirate?",
-                "Do you want to move the robber or the pirate ship?",
-                "Move Robber",
-                "Move Pirate",
+                /*I*/"Move robber or pirate?"/*18N*/,
+                /*I*/"Do you want to move the robber or the pirate ship?"/*18N*/,
+                /*I*/"Move Robber"/*18N*/,
+                /*I*/"Move Pirate"/*18N*/,
                 null, 1);
             rdt = null;
         }
@@ -2835,10 +2837,10 @@ public class SOCPlayerInterface extends Frame
         protected ChooseRobClothOrResourceDialog(final int vpn)
         {
             super(getClient(), SOCPlayerInterface.this,
-                "Rob cloth or resource?",
-                "Do you want to steal cloth or a resource from this player?",
-                "Steal Cloth",
-                "Steal Resource",
+                /*I*/"Rob cloth or resource?"/*18N*/,
+                /*I*/"Do you want to steal cloth or a resource from this player?"/*18N*/,
+                /*I*/"Steal Cloth"/*18N*/,
+                /*I*/"Steal Resource"/*18N*/,
                 null, 1);
             rdt = null;
             this.vpn = vpn;
