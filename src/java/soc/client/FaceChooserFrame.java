@@ -90,6 +90,8 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
      * @see #isStillAvailable()
      */
     private boolean stillAvailable;
+    //strings
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
      * Creates a new FaceChooserFrame.
@@ -107,9 +109,7 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
             SOCPlayerInterface gamePI, int pnum, int faceID, int faceWidth)
         throws IllegalArgumentException
     {
-        super("Choose Face Icon: "
-                + gamePI.getGame().getName() + " ["
-                + cli.getNickname() + "]");
+        super(strings.get("facechooser.title", gamePI.getGame().getName(), cli.getNickname()));
 
         if (fbutton == null)
             throw new IllegalArgumentException("fbutton cannot be null");
@@ -133,11 +133,11 @@ public class FaceChooserFrame extends Frame implements ActionListener, WindowLis
         setForeground(Color.black);
         setFont(new Font("Dialog", Font.PLAIN, 12));
 
-        changeFaceBut = new Button("Change");
-        cancelBut = new Button("Cancel");
+        changeFaceBut = new Button(strings.get("base.change"));
+        cancelBut = new Button(strings.get("base.cancel"));
         setLayout (new BorderLayout());
 
-        promptLbl = new Label("Choose your face icon.", Label.LEFT);
+        promptLbl = new Label(strings.get("facechooser.prompt"), Label.LEFT);
         add(promptLbl, BorderLayout.NORTH);
 
         fcl = new FaceChooserList(this, faceID);
