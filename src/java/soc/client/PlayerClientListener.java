@@ -23,6 +23,7 @@ package soc.client;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
@@ -30,33 +31,40 @@ import soc.game.SOCPlayer;
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
  * This presents the facade of the UI to the networking layer.
- * <br/>
- * The notification methods of this API accept "event" objects rather than multiple arguments for
- * several reasons. The primary reasons are that the methods are definitively identified as event
- * handling methods and not confused with other like-named methods on another interface, and the
- * event objects can easily be augmented with paramters in the future without breaking the API
- * of implementors of this interface. Also, the event objects can be made immutable which greatly
- * simplifies determining thread safety.
- * <br/>
- * The event objects are defined as interfaces to allow for flexibility in implementation. Instead
- * of several general-purpose concrete types with various configurations of values for parameters,
- * the interfaces are defined with only the information they are known to have.
  */
 public interface PlayerClientListener
 {
     /**
      * Receive a notification that the current player has rolled the dice.
-     * @param evt
+     * @param player May be {@code null} if the current player was null when the dice roll was received from the server.
+     * @param result The sum of the dice rolled. May be <tt>-1</tt> for some game events.
      */
-    void diceRolled(DiceRollEvent evt);
+    void diceRolled(SOCPlayer player, int result);
     
-    void playerJoined(PlayerJoinEvent evt);
-    void playerLeft(PlayerLeaveEvent evt);
-    void playerSitdown(PlayerSeatEvent evt);
-    void playerTurnSet(PlayerTurnEvent evt);
-    void playerPiecePlaced(PlayerPiecePlacedEvent evt);
-    void playerPieceMoved(PlayerPieceMovedEvent evt);
-    void playerSVPAwarded(PlayerSvpEvent evt);
+    void playerJoined(String nickname);
+    
+    /**
+     * @param nickname The player name. Will not be {@code null}
+     * @param player May be {@code null} if the current player is an observer.
+     */
+    void playerLeft(String nickname, SOCPlayer player);
+    void playerSitdown(int seatNumber, String nickname);
+    void playerTurnSet(int seatNumber);
+    /**
+     * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
+     */
+    void playerPiecePlaced(SOCPlayer player, int coordinate, int pieceType);
+    
+    /**
+     * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
+     */
+    void playerPieceMoved(SOCPlayer player, int sourceCoordinate, int targetCoordinate, int pieceType);
+    /**
+     * @param player The player awarded special victory points. Will not be {@code null}
+     * @param numSvp The count of how many new special victory points were awarded
+     * @param awardDescription A user-display message describing the reason for the award
+     */
+    void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription);
     void playerDevCardUpdated(SOCPlayer player);
     void playerFaceChanged(SOCPlayer player, int faceId);
     
@@ -91,9 +99,9 @@ public interface PlayerClientListener
     /** The longest road might have changed, so update */
     void longestRoadRefresh(SOCPlayer old, SOCPlayer potentialNew);
     
-    void membersListed(MemberListEvent evt);
-    void boardLayoutUpdated(BoardLayoutEvent evt);
-    void boardUpdated(BoardUpdateEvent evt);
+    void membersListed(Collection<String> names);
+    void boardLayoutUpdated();
+    void boardUpdated();
     void boardPotentialsUpdated();
     void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber);
     void boardResetVoteRequested(SOCPlayer requestor);
@@ -103,9 +111,12 @@ public interface PlayerClientListener
     void devCardDeckUpdated();
     void seatLockUpdated();
     
-    void gameStarted(GameStartEvent evt);
-    void gameStateChanged(GameStateEvent evt);
-    void gameEnded(GameEndedEvent evt);
+    void gameStarted();
+    /**
+     * @param gameState One of the codes from SOCGame, such as {@link soc.game.SOCGame#NEW}
+     */
+    void gameStateChanged(int gameState);
+    void gameEnded(Map<SOCPlayer, Integer> scores);
     
     void gameDisconnected(String errorMessage);
 
@@ -114,119 +125,7 @@ public interface PlayerClientListener
     
     void buildRequestCanceled(SOCPlayer player);
     
-    interface DiceRollEvent
-    {
-        /**
-         * The sum of the dice rolled. May be <tt>-1</tt> for some game events.
-         */
-        int getResult();
-        
-        /**
-         * May be {@code null} if the current player was null when the dice roll was received from the server.
-         */
-        SOCPlayer getPlayer();
-    }
-    
-    interface PlayerJoinEvent
-    {
-        /**
-         * The player name. Will not be {@code null}
-         */
-        String getNickname();
-    }
-    
-    interface PlayerLeaveEvent
-    {
-        /**
-         * The player name. Will not be {@code null}
-         */
-        String getNickname();
-        
-        /**
-         * May be {@code null} if the current player is an observer.
-         */
-        SOCPlayer getPlayer();
-    }
-    
-    interface PlayerSeatEvent
-    {
-        int getSeatNumber();
-        /**
-         * The player name. Will not be {@code null}
-         */
-        String getNickname();
-    }
-    
-    interface PlayerTurnEvent
-    {
-        int getSeatNumber();
-    }
-    
-    interface PlayerPiecePlacedEvent
-    {
-        SOCPlayer getPlayer();
-        int getCoordinate();
-        /**
-         * @return A piece type identifier, such as {@link SOCPlayingPiece#CITY}
-         */
-        int getPieceType();
-    }
-    
-    interface PlayerPieceMovedEvent
-    {
-        SOCPlayer getPlayer();
-        int getSourceCoordinate();
-        int getTargetCoordinate();
-        /**
-         * @return A piece type identifier, such as {@link SOCPlayingPiece#CITY}
-         */
-        int getPieceType();
-    }
-    
-    interface PlayerSvpEvent
-    {
-        /**
-         * @return The player awarded special victory points. Will not be {@code null}
-         */
-        SOCPlayer getPlayer();
-        /** The count of how many new special victory points were awarded */
-        int getNumSvp();
-        /** A user-display message describing the reason for the award */
-        String getAwardDescription();
-    }
-    
-    interface MemberListEvent
-    {
-        Collection<String> getNames();
-    }
-    
-    interface BoardLayoutEvent
-    {
-        // nothing yet
-    }
-    
-    interface BoardUpdateEvent
-    {
-        // nothing yet
-    }
-    
-    interface GameStartEvent
-    {
-        // nothing yet
-    }
-    
-    interface GameStateEvent
-    {
-        /**
-         * @return One of the codes from SOCGame, such as {@link soc.game.SOCGame#NEW}
-         */
-        int getGameState();
-    }
-    
-    interface GameEndedEvent
-    {
-        int[] getScores();
-    }
+    void debugFreePlaceModeToggled(boolean isEnabled);
     
     enum UpdateType
     {

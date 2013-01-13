@@ -2373,12 +2373,7 @@ public class SOCPlayerClient extends Panel
             return;
         
         PlayerClientListener pcl = clientListeners.get(gn);
-        pcl.playerJoined(new PlayerClientListener.PlayerJoinEvent(){
-            public String getNickname()
-            {
-                return name;
-            }
-        });
+        pcl.playerJoined(name);
     }
 
     /**
@@ -2397,14 +2392,7 @@ public class SOCPlayerClient extends Panel
             
             // Give the listener a chance to clean up while the player is still in the game
             PlayerClientListener pcl = clientListeners.get(gn);
-            pcl.playerLeft(new PlayerClientListener.PlayerLeaveEvent(){
-                public String getNickname() {
-                    return name;
-                }
-                public SOCPlayer getPlayer() {
-                    return player;
-                }
-            });
+            pcl.playerLeft(name, player);
             
             if (player != null)
             {
@@ -2444,12 +2432,7 @@ public class SOCPlayerClient extends Panel
     protected void handleGAMEMEMBERS(final SOCGameMembers mes)
     {
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.membersListed(new PlayerClientListener.MemberListEvent()
-        {
-            public Collection<String> getNames() {
-                return mes.getMembers();
-            }
-        });
+        pcl.membersListed(mes.getMembers());
     }
 
     /**
@@ -2527,15 +2510,7 @@ public class SOCPlayerClient extends Panel
              * tell the GUI that a player is sitting
              */
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            PlayerClientListener.PlayerSeatEvent evt = new PlayerClientListener.PlayerSeatEvent(){
-                public String getNickname() {
-                    return mes.getNickname();
-                }
-                public int getSeatNumber() {
-                    return mesPN;
-                }
-            };
-            pcl.playerSitdown(evt);
+            pcl.playerSitdown(mesPN, mes.getNickname());
             
             /**
              * let the board panel & building panel find our player object if we sat down
@@ -2573,7 +2548,7 @@ public class SOCPlayerClient extends Panel
             bd.setRobberHex(mes.getRobberHex(), false);
             
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.boardLayoutUpdated(new PlayerClientListener.BoardLayoutEvent(){});
+            pcl.boardLayoutUpdated();
         }
     }
 
@@ -2655,7 +2630,7 @@ public class SOCPlayerClient extends Panel
         }
 
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.boardLayoutUpdated(new PlayerClientListener.BoardLayoutEvent(){});
+        pcl.boardLayoutUpdated();
     }
 
     /**
@@ -2665,7 +2640,7 @@ public class SOCPlayerClient extends Panel
     protected void handleSTARTGAME(SOCStartGame mes)
     {
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.gameStarted(new PlayerClientListener.GameStartEvent(){});
+        pcl.gameStarted();
     }
 
     /**
@@ -2681,17 +2656,12 @@ public class SOCPlayerClient extends Panel
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
             if (ga.getGameState() == SOCGame.NEW && mes.getState() != SOCGame.NEW)
             {
-                pcl.gameStarted(new PlayerClientListener.GameStartEvent(){});
+                pcl.gameStarted();
             }
 
             final int newState = mes.getState();
             ga.setGameState(newState);
-            pcl.gameStateChanged(new PlayerClientListener.GameStateEvent() {
-                public int getGameState()
-                {
-                    return newState;
-                }
-            });
+            pcl.gameStateChanged(newState);
         }
     }
 
@@ -2710,11 +2680,7 @@ public class SOCPlayerClient extends Panel
         ga.setCurrentPlayerNumber(pn);
 
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        pcl.playerTurnSet(new PlayerClientListener.PlayerTurnEvent() {
-            public int getSeatNumber() {
-                return pn;
-            }
-        });
+        pcl.playerTurnSet(pn);
     }
 
     /**
@@ -2746,11 +2712,7 @@ public class SOCPlayerClient extends Panel
             ga.setCurrentPlayerNumber(pnum);
             ga.updateAtTurn();
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.playerTurnSet(new PlayerClientListener.PlayerTurnEvent() {
-                public int getSeatNumber() {
-                    return pnum;
-                }
-            });
+            pcl.playerTurnSet(pnum);
         }
     }
 
@@ -2961,16 +2923,7 @@ public class SOCPlayerClient extends Panel
         
         // notify listener
         PlayerClientListener listener = clientListeners.get(gameName);
-        listener.diceRolled(new PlayerClientListener.DiceRollEvent() {
-            public SOCPlayer getPlayer()
-            {
-                return player;
-            }
-            public int getResult()
-            {
-                return roll;
-            }
-        });
+        listener.diceRolled(player, roll);
     }
 
     /**
@@ -2990,17 +2943,7 @@ public class SOCPlayerClient extends Panel
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         if (pcl == null)
             return;
-        pcl.playerPiecePlaced(new PlayerClientListener.PlayerPiecePlacedEvent() {
-            public SOCPlayer getPlayer() {
-                return player;
-            }
-            public int getCoordinate() {
-                return coord;
-            }
-            public int getPieceType() {
-                return ptype;
-            }
-        });
+        pcl.playerPiecePlaced(player, coord, ptype);
     }
 
     /**
@@ -3690,11 +3633,11 @@ public class SOCPlayerClient extends Panel
      */
     private final void handleDEBUGFREEPLACE(SOCDebugFreePlace mes)
     {
-        SOCPlayerInterface pi = playerInterfaces.get(mes.getGame());
-        if (pi == null)
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
             return;  // Not one of our games
 
-        pi.setDebugFreePlacementMode(mes.getCoordinates() == 1);
+        pcl.debugFreePlaceModeToggled(mes.getCoordinates() == 1);
     }
 
     /**
@@ -3711,25 +3654,8 @@ public class SOCPlayerClient extends Panel
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         if (pcl == null)
             return;
-        final SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
-        final int src = mes.getFromCoord();
-        final int dest = mes.getToCoord();
-        final int ptype = mes.getPieceType();
-        
-        pcl.playerPieceMoved(new PlayerClientListener.PlayerPieceMovedEvent() {
-            public SOCPlayer getPlayer() {
-                return player;
-            }
-            public int getSourceCoordinate() {
-                return src;
-            }
-            public int getTargetCoordinate() {
-                return dest;
-            }
-            public int getPieceType() {
-                return ptype;
-            }
-        });
+        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        pcl.playerPieceMoved(player, mes.getFromCoord(), mes.getToCoord(), mes.getPieceType());
     }
 
     /**
@@ -3751,7 +3677,7 @@ public class SOCPlayerClient extends Panel
         PlayerClientListener pcl = clientListeners.get(gaName);
         if (pcl == null)
             return;  // Not one of our games
-        pcl.boardUpdated(new PlayerClientListener.BoardUpdateEvent(){});
+        pcl.boardUpdated();
     }
 
     /**
@@ -3790,17 +3716,7 @@ public class SOCPlayerClient extends Panel
         PlayerClientListener pcl = clientListeners.get(gaName);
         if (pcl == null)
             return;
-        pcl.playerSVPAwarded(new PlayerClientListener.PlayerSvpEvent(){
-            public SOCPlayer getPlayer() {
-                return pl;
-            }
-            public int getNumSvp() {
-                return mes.svp;
-            }
-            public String getAwardDescription() {
-                return mes.desc;
-            }
-        });
+        pcl.playerSVPAwarded(pl, mes.svp, mes.desc);
     }
 
     }  // nested class MessageTreater
@@ -3982,11 +3898,12 @@ public class SOCPlayerClient extends Panel
         PlayerClientListener pcl = clientListeners.get(game);
         if (pcl == null)
             return;
-        pcl.gameEnded(new PlayerClientListener.GameEndedEvent(){
-            public int[] getScores() {
-                return scores;
-            }
-        });
+        Map<SOCPlayer, Integer> scoresMap = new HashMap<SOCPlayer, Integer>();
+        for (int i=0; i<scores.length; ++i)
+        {
+            scoresMap.put(ga.getPlayer(i), Integer.valueOf(scores[i]));
+        }
+        pcl.gameEnded(scoresMap);
     }
 
     /**

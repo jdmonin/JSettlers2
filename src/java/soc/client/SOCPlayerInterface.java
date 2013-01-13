@@ -62,8 +62,10 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -2714,56 +2716,55 @@ public class SOCPlayerInterface extends Frame
             this.pi = pi;
         }
         
-        public void diceRolled(DiceRollEvent evt)
+        public void diceRolled(SOCPlayer player, int roll)
         {
-            int roll = evt.getResult();
             pi.setTextDisplayRollExpected(roll);
             pi.getBoardPanel().repaint();
             
             // only notify about valid rolls
-            if (roll >= 2 && roll <= 12 && evt.getPlayer() != null)
+            if (roll >= 2 && roll <= 12 && player != null)
             {
-                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, evt.getPlayer()));
+                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, player));
             }
         }
         
-        public void playerJoined(PlayerJoinEvent evt)
+        public void playerJoined(String nickname)
         {
-            final String msg = "*** " + evt.getNickname() + " has joined this game.\n";
+            final String msg = "*** " + nickname + " has joined this game.\n";
             pi.print(msg);
             if ((pi.game != null) && (pi.game.getGameState() >= SOCGame.START1A))
                 pi.chatPrint(msg);
         }
         
-        public void playerLeft(PlayerLeaveEvent evt)
+        public void playerLeft(String nickname, SOCPlayer player)
         {
-            if (evt.getPlayer() != null)
+            if (player != null)
             {
                 //
                 //  This user was not a spectator.
                 //  Remove first from interface, then from game data.
                 //
-                pi.removePlayer(evt.getPlayer().getPlayerNumber());
+                pi.removePlayer(player.getPlayerNumber());
             }
             else if (pi.game.getGameState() >= SOCGame.START1A)
             {
                 //  Spectator, game in progress.
                 //  Server prints it in the game text area,
                 //  and we also print in the chat area (less clutter there).
-                pi.chatPrint("* " + evt.getNickname() + " left the game");
+                pi.chatPrint("* " + nickname + " left the game");
             }
         }
         
-        public void playerSitdown(PlayerSeatEvent evt)
+        public void playerSitdown(int seatNumber, String sitterNickname)
         {
-            pi.addPlayer(evt.getNickname(), evt.getSeatNumber());
+            pi.addPlayer(sitterNickname, seatNumber);
             
             String nickname = pi.getClient().getNickname();
 
             /**
              * let the board panel & building panel find our player object if we sat down
              */
-            if (nickname.equals(evt.getNickname()))
+            if (nickname.equals(sitterNickname))
             {
                 pi.getBoardPanel().setPlayer();
                 pi.getBuildingPanel().setPlayer();
@@ -2772,7 +2773,7 @@ public class SOCPlayerInterface extends Frame
             /**
              * update the hand panel's displayed values
              */
-            final SOCHandPanel hp = pi.getPlayerHandPanel(evt.getSeatNumber());
+            final SOCHandPanel hp = pi.getPlayerHandPanel(seatNumber);
             hp.updateValue(PlayerClientListener.UpdateType.Road);
             hp.updateValue(PlayerClientListener.UpdateType.Settlement);
             hp.updateValue(PlayerClientListener.UpdateType.City);
@@ -2783,7 +2784,7 @@ public class SOCPlayerInterface extends Frame
             hp.updateValue(PlayerClientListener.UpdateType.LongestRoad);
             hp.updateValue(PlayerClientListener.UpdateType.LargestArmy);
 
-            if (nickname.equals(evt.getNickname()))
+            if (nickname.equals(sitterNickname))
             {
                 hp.updateValue(PlayerClientListener.UpdateType.Clay);
                 hp.updateValue(PlayerClientListener.UpdateType.Ore);
@@ -2799,30 +2800,30 @@ public class SOCPlayerInterface extends Frame
             }
         }
         
-        public void playerTurnSet(PlayerTurnEvent evt)
+        public void playerTurnSet(int seatNumber)
         {
-            pi.updateAtTurn(evt.getSeatNumber());
+            pi.updateAtTurn(seatNumber);
         }
         
-        public void playerPiecePlaced(PlayerPiecePlacedEvent evt)
+        public void playerPiecePlaced(SOCPlayer player, int coordinate, int pieceType)
         {
-            pi.updateAtPutPiece(evt.getPlayer().getPlayerNumber(), evt.getCoordinate(), evt.getPieceType(), false, 0);
+            pi.updateAtPutPiece(player.getPlayerNumber(), coordinate, pieceType, false, 0);
         }
         
-        public void playerPieceMoved(PlayerPieceMovedEvent evt)
+        public void playerPieceMoved(SOCPlayer player, int sourceCoordinate, int targetCoordinate, int pieceType)
         {
-            pi.updateAtPutPiece(evt.getPlayer().getPlayerNumber(),
-                                evt.getSourceCoordinate(),
-                                evt.getPieceType(),
+            pi.updateAtPutPiece(player.getPlayerNumber(),
+                                sourceCoordinate,
+                                pieceType,
                                 true,
-                                evt.getTargetCoordinate());
+                                targetCoordinate);
         }
         
-        public void playerSVPAwarded(PlayerSvpEvent evt)
+        public void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription)
         {
             if (pi.getClientHand() == null)
                 return;  // not seated yet (joining game in progress)
-            pi.updateAtSVPText(evt.getPlayer().getName(), evt.getNumSvp(), evt.getAwardDescription());
+            pi.updateAtSVPText(player.getName(), numSvp, awardDescription);
         }
         
         public void playerResourcesUpdated(SOCPlayer player)
@@ -3004,18 +3005,18 @@ public class SOCPlayerInterface extends Frame
             pi.updateLongestLargest(true, old, potentialNew);
         }
         
-        public void membersListed(MemberListEvent evt)
+        public void membersListed(Collection<String> names)
         {
-            Vector<String> names = new Vector<String>(evt.getNames());
-            pi.began(names);
+            Vector<String> v = new Vector<String>(names);
+            pi.began(v);
         }
         
-        public void boardLayoutUpdated(BoardLayoutEvent evt)
+        public void boardLayoutUpdated()
         {
             pi.updateAtNewBoard();
         }
         
-        public void boardUpdated(BoardUpdateEvent evt)
+        public void boardUpdated()
         {
             pi.getBoardPanel().flushBoardLayoutAndRepaint();
         }
@@ -3054,19 +3055,25 @@ public class SOCPlayerInterface extends Frame
             }
         }
         
-        public void gameStarted(GameStartEvent evt)
+        public void gameStarted()
         {
             pi.startGame();
         }
         
-        public void gameStateChanged(GameStateEvent evt)
+        public void gameStateChanged(int gameState)
         {
             pi.updateAtGameState();
         }
         
-        public void gameEnded(GameEndedEvent evt)
+        public void gameEnded(Map<SOCPlayer, Integer> scores)
         {
-            pi.updateAtOver(evt.getScores());
+            int[] scoresArray = new int[scores.size()];
+            for (Map.Entry<SOCPlayer, Integer> e : scores.entrySet())
+            {
+                scoresArray[e.getKey().getPlayerNumber()] = e.getValue().intValue();
+            }
+            
+            pi.updateAtOver(scoresArray);
         }
         
         public void gameDisconnected(String errorMessage)
@@ -3170,6 +3177,11 @@ public class SOCPlayerInterface extends Frame
         public void requestedDiceRoll()
         {
             pi.updateAtRollPrompt();
+        }
+        
+        public void debugFreePlaceModeToggled(boolean isEnabled)
+        {
+            pi.setDebugFreePlacementMode(isEnabled);
         }
     }
 
