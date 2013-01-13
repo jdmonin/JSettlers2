@@ -119,7 +119,7 @@ import soc.util.Version;
  *
  * @author Robert S Thomas
  */
-public class SOCPlayerClient extends Panel
+public class SOCPlayerClient
 {
     /** main panel, in cardlayout */
     protected static final String MAIN_PANEL = "main";
@@ -149,49 +149,6 @@ public class SOCPlayerClient extends Panel
     public static final boolean isJavaOnOSX =
         System.getProperty("os.name").toLowerCase().startsWith("mac os x");
 
-    protected TextField nick;
-    protected TextField pass;
-    protected TextField status;
-    protected TextField channel;
-    // protected TextField game;  // removed 1.1.07 - NewGameOptionsFrame instead
-    protected java.awt.List chlist;
-    protected java.awt.List gmlist;
-
-    /**
-     * "New Game..." button, brings up {@link NewGameOptionsFrame} window
-     * @since 1.1.07
-     */
-    protected Button ng;  // new game
-
-    protected Button jc;  // join channel
-    protected Button jg;  // join game
-    protected Button pg;  // practice game (against practiceServer, not localTCPServer)
-
-    /**
-     * "Game Info" button, shows a game's {@link SOCGameOption}s.
-     *<P>
-     * Renamed in 2.0.00 to 'gi'; previously 'so' Show Options.
-     * @since 1.1.07
-     */
-    protected Button gi;
-
-    protected Label messageLabel;  // error message for messagepanel
-    protected Label messageLabel_top;   // secondary message
-    private Label localTCPServerLabel;  // blank, or 'server is running'
-    private Label versionOrlocalTCPPortLabel;   // shows port number in mainpanel, if running localTCPServer;
-                                         // shows remote version# when connected to a remote server
-    protected Button pgm;  // practice game on messagepanel
-
-    /**
-     * SOCPlayerClient displays one of several panels to the user:
-     * {@link #MAIN_PANEL}, {@link #MESSAGE_PANEL} or
-     * (if launched from jar, or with no command-line arguments)
-     * {@link #CONNECT_OR_PRACTICE_PANEL}.
-     *
-     * @see #hasConnectOrPractice
-     */
-    protected CardLayout cardLayout;
-
     /**
      * Helper object to deal with network connectivity.
      */
@@ -206,6 +163,8 @@ public class SOCPlayerClient extends Panel
      * Helper object to send outgoing network traffic to the server.
      */
     private GameManager gameManager;
+    
+    private final GameDisplay gameDisplay;
     
     /**
      *  Server version number for remote server, sent soon after connect, or -1 if unknown.
@@ -227,63 +186,6 @@ public class SOCPlayerClient extends Panel
      */
     protected GameOptionServerSet tcpServGameOpts = new GameOptionServerSet(),
         practiceServGameOpts = new GameOptionServerSet();
-
-    /**
-     * Task for timeout when asking remote server for {@link SOCGameOptionInfo game options info}.
-     * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
-     * In case of slow connection or server bug.
-     * @see #gameOptionsSetTimeoutTask()
-     * @since 1.1.07
-     */
-    protected GameOptionsTimeoutTask gameOptsTask = null;
-
-    /**
-     * Task for timeout when asking remote server for {@link SOCGameOption game options defaults}.
-     * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
-     * In case of slow connection or server bug.
-     * @see #gameWithOptionsBeginSetup(boolean)
-     * @since 1.1.07
-     */
-    protected GameOptionDefaultsTimeoutTask gameOptsDefsTask = null;
-
-    /**
-     * Utility for time-driven events in the client.
-     * For users, search for where-used of this field
-     * and of {@link #getEventTimer()}.
-     * @since 1.1.07
-     */
-    protected Timer eventTimer = new Timer(true);  // use daemon thread
-
-    /**
-     * Once true, disable "nick" textfield, etc.
-     * Remains true, even if connected becomes false.
-     */
-    protected boolean hasJoinedServer;
-
-    /**
-     * If true, we'll give the user a choice to
-     * connect to a server, start a local server,
-     * or a local practice game.
-     * Used for when we're started from a jar, or
-     * from the command line with no arguments.
-     * Uses {@link SOCConnectOrPracticePanel}.
-     *
-     * @see #cardLayout
-     */
-    protected final boolean hasConnectOrPractice;
-
-    /**
-     * If applicable, is set up in {@link #initVisualElements()}.
-     * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
-     * @see #hasConnectOrPractice
-     */
-    protected SOCConnectOrPracticePanel connectOrPracticePane;
-
-    /**
-     * The currently showing new-game options frame, or null
-     * @since 1.1.07
-     */
-    public NewGameOptionsFrame newGameOptsFrame = null;
 
     /**
      * For practice games, default player name.
@@ -342,11 +244,6 @@ public class SOCPlayerClient extends Panel
     protected int lastFaceChange;
 
     /**
-     * the channels we've joined
-     */
-    protected Hashtable<String, ChannelFrame> channels = new Hashtable<String, ChannelFrame>();
-
-    /**
      * the games we're currently playing
      */
     protected Hashtable<String, SOCGame> games = new Hashtable<String, SOCGame>();
@@ -377,13 +274,6 @@ public class SOCPlayerClient extends Panel
     protected Map<String,String> gamesUnjoinableOverride = new Hashtable<String,String>();
 
     /**
-     * the player interfaces for the games
-     * @deprecated For proper inversion of control, use player client listeners
-     */
-    @Deprecated
-    private Map<String, SOCPlayerInterface> playerInterfaces = new Hashtable<String, SOCPlayerInterface>();
-    
-    /**
      * Map from game-name to the listener for that game.
      */
     private final Map<String, PlayerClientListener> clientListeners = new HashMap<String, PlayerClientListener>();
@@ -397,342 +287,65 @@ public class SOCPlayerClient extends Panel
      * Number of practice games started; used for naming practice games
      */
     protected int numPracticeGames = 0;
-
+    
     /**
-     * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}
+     * A facade for the SOCPlayerClient to use to invoke actions in the GUI
      */
-    public SOCPlayerClient()
+    public interface GameDisplay
     {
-        this(false);
+        void initVisualElements();
+
+        void connect(String cpass, String cuser);
+        
+        /**
+         * Act as if the "practice game" button has been clicked.
+         * Assumes the dialog panels are all initialized.
+         */
+        void clickPracticeButton();
+
+        void setMessage(String string);
+
+        void showErrorDialog(String errMessage, String buttonText);
+        void showErrorPanel(String err, boolean canPractice);
+
+        void enableOptions();
+
+        void showVersion(int versionNumber, String versionString, String buildString);
+        void showStatus(String statusText);
+
+        void channelJoined(String channelName);
+        void channelJoined(String channelName, String nickname);
+        void channelMemberList(String channelName, Collection<String> members);
+        void channelCreated(String channelName);
+        void channelLeft(String channelName);
+        void channelLeft(String channelName, String nickname);
+        void channelList(Collection<String> channelNames, boolean isPractice);
+        void channelDeleted(String channelName);
+        void channelsClosed(String message);
+
+        void messageBroadcast(String message);
+        void messageReceived(String channelName, String nickname, String message);
+
+        PlayerClientListener gameJoined(SOCGame game);
+
+        void optionsRequested();
+        void optionsReceived(GameOptionServerSet opts, boolean isPractice);
+        void optionsReceived(GameOptionServerSet opts, boolean isPractice, boolean isDash, boolean hasAllNow);
     }
 
     /**
-     * Constructor for connecting to the specified host, on the specified
-     * port.  Must call 'init' or 'initVisualElements' to start up and do layout.
-     *
-     * @param h  host, or null for localhost
-     * @param p  port
-     * @param cp  If true, start by showing 'Connect or Practice' panel,
-     *       instead of connecting to host and port.
-     *       Typically true for JAR launch, false for applet.
+     * Create a SOCPlayerClient connecting to localhost port {@link ClientNetwork#SOC_PORT_DEFAULT}.
+     * Must call 'init' or 'initVisualElements' to start up and do layout.
      */
-    public SOCPlayerClient(boolean cp)
+    public SOCPlayerClient(GameDisplay gd)
     {
         gotPassword = false;
-        hasConnectOrPractice = cp;
         lastFaceChange = 1;  // Default human face
         
+        gameDisplay = gd;
         net = new ClientNetwork(this);
         gameManager = new GameManager(this);
         treater = new MessageTreater(this);
-    }
-
-    /**
-     * init the visual elements
-     */
-    protected void initVisualElements()
-    {
-        setFont(new Font("SansSerif", Font.PLAIN, 12));
-        
-        nick = new TextField(20);
-        pass = new TextField(20);
-        if (isJavaOnOSX)
-            pass.setEchoChar('\u2022');  // round bullet (option-8)
-        else
-            pass.setEchoChar('*');
-        status = new TextField(20);
-        status.setEditable(false);
-        channel = new TextField(20);
-        chlist = new java.awt.List(10, false);
-        chlist.add(" ");
-        gmlist = new java.awt.List(10, false);
-        gmlist.add(" ");
-        ng = new Button("New Game...");
-        jc = new Button("Join Channel");
-        jg = new Button("Join Game");
-        pg = new Button("Practice");  // "practice game" text is too wide
-        gi = new Button("Game Info");  // show game options
-
-        // Username not entered yet: can't click buttons
-        ng.setEnabled(false);
-        jc.setEnabled(false);
-
-        // when game is selected in gmlist, these buttons will be enabled:
-        jg.setEnabled(false);
-        gi.setEnabled(false);
-
-        nick.addTextListener(new TextListener()
-        {
-            /**
-             * When nickname contents change, enable/disable buttons as appropriate. ({@link TextListener})
-             * @param e textevent from {@link #nick}
-             * @since 1.1.07
-             */
-            public void textValueChanged(TextEvent e)
-            {
-                boolean notEmpty = (nick.getText().trim().length() > 0);
-                if (notEmpty != ng.isEnabled())
-                {
-                    ng.setEnabled(notEmpty);
-                    jc.setEnabled(notEmpty);
-                }
-            }
-        });
-        
-        ActionListener actionListener = new ActionListener()
-        {
-            /**
-             * Handle mouse clicks and keyboard
-             */
-            public void actionPerformed(ActionEvent e)
-            {
-                try
-                {
-                    Object target = e.getSource();
-                    guardedActionPerform(target);
-                }
-                catch (Throwable thr)
-                {
-                    System.err.println("-- Error caught in AWT event thread: " + thr + " --");
-                    thr.printStackTrace(); // will print causal chain, no need to manually iterate
-                    System.err.println("-- Error stack trace end --");
-                    System.err.println();
-                }
-            }
-        };
-        
-        nick.addActionListener(actionListener);  // hit Enter to go to next field
-        pass.addActionListener(actionListener);
-        channel.addActionListener(actionListener);
-        chlist.addActionListener(actionListener);
-        gmlist.addActionListener(actionListener);
-        gmlist.addItemListener(new ItemListener()
-        {
-            /**
-             * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ItemListener})
-             * @param e textevent from {@link #gmlist}
-             * @since 1.1.07
-             */
-            public void itemStateChanged(ItemEvent e)
-            {
-                boolean wasSel = (e.getStateChange() == ItemEvent.SELECTED);
-                if (wasSel != jg.isEnabled())
-                {
-                    jg.setEnabled(wasSel);
-                    gi.setEnabled(wasSel &&
-                        ((net.practiceServer != null) || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
-                }
-            }
-        });
-        ng.addActionListener(actionListener);
-        jc.addActionListener(actionListener);
-        jg.addActionListener(actionListener);
-        pg.addActionListener(actionListener);
-        gi.addActionListener(actionListener);
-
-        GridBagLayout gbl = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
-        Panel mainPane = new Panel(gbl);
-
-        c.fill = GridBagConstraints.BOTH;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(status, c);
-        mainPane.add(status);
-
-        Label l;
-
-        // Row 1
-
-        l = new Label();
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        // Row 2
-
-        l = new Label("Your Nickname:");
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        c.gridwidth = 1;
-        gbl.setConstraints(nick, c);
-        mainPane.add(nick);
-
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        l = new Label("Optional Password:");
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        c.gridwidth = 1;
-        gbl.setConstraints(pass, c);
-        mainPane.add(pass);
-
-        l = new Label();
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        l = new Label();
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        // Row 3 (New Channel label & textfield, Practice btn, New Game btn)
-
-        l = new Label("New Channel:");
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        c.gridwidth = 1;
-        gbl.setConstraints(channel, c);
-        mainPane.add(channel);
-
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        c.gridwidth = 1;  // this position was "New Game:" label before 1.1.07
-        gbl.setConstraints(pg, c);
-        mainPane.add(pg);
-
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        c.gridwidth = 1;
-        gbl.setConstraints(ng, c);
-        mainPane.add(ng);
-
-        l = new Label();
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        // Row 4 (spacer)
-
-        localTCPServerLabel = new Label();
-        c.gridwidth = 2;
-        gbl.setConstraints(localTCPServerLabel, c);
-        mainPane.add(localTCPServerLabel);
-
-        l = new Label();
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        // Row 5 (version/port# label, join channel btn, show-options btn, join game btn)
-
-        versionOrlocalTCPPortLabel = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(versionOrlocalTCPPortLabel, c);
-        mainPane.add(versionOrlocalTCPPortLabel);
-
-        c.gridwidth = 1;
-        gbl.setConstraints(jc, c);
-        mainPane.add(jc);
-
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        c.gridwidth = 1;
-        gbl.setConstraints(gi, c);
-        mainPane.add(gi);
-
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        c.gridwidth = 1;
-        gbl.setConstraints(jg, c);
-        mainPane.add(jg);
-
-        l = new Label();
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        // Row 6
-
-        l = new Label("Channels");
-        c.gridwidth = 2;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        l = new Label("Games");
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        // Row 7
-
-        c.gridwidth = 2;
-        c.gridheight = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(chlist, c);
-        mainPane.add(chlist);
-
-        l = new Label();
-        c.gridwidth = 1;
-        gbl.setConstraints(l, c);
-        mainPane.add(l);
-
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gbl.setConstraints(gmlist, c);
-        mainPane.add(gmlist);
-
-        Panel messagePane = new Panel(new BorderLayout());
-
-        // secondary message at top of message pane, used with pgm button.
-        messageLabel_top = new Label("", Label.CENTER);
-        messageLabel_top.setVisible(false);
-        messagePane.add(messageLabel_top, BorderLayout.NORTH);
-
-        // message label that takes up the whole pane
-        messageLabel = new Label("", Label.CENTER);
-        messageLabel.setForeground(new Color(252, 251, 243)); // off-white
-        messagePane.add(messageLabel, BorderLayout.CENTER);
-
-        // bottom of message pane: practice-game button
-        pgm = new Button("Practice Game (against robots)");
-        pgm.setVisible(false);
-        messagePane.add(pgm, BorderLayout.SOUTH);
-        pgm.addActionListener(actionListener);
-
-        // all together now...
-        cardLayout = new CardLayout();
-        setLayout(cardLayout);
-
-        if (hasConnectOrPractice)
-        {
-            connectOrPracticePane = new SOCConnectOrPracticePanel(this);
-            add (connectOrPracticePane, CONNECT_OR_PRACTICE_PANEL);  // shown first
-        }
-        add(messagePane, MESSAGE_PANEL); // shown first unless cpPane
-        add(mainPane, MAIN_PANEL);
-
-        messageLabel.setText("Waiting to connect.");
-        validate();
     }
 
     /**
@@ -745,12 +358,7 @@ public class SOCPlayerClient extends Panel
      */
     public void connect(String chost, int cport, String cuser, String cpass)
     {
-        nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
-        pass.setEditable(true);
-        pass.setText(cpass);
-        nick.setText(cuser);
-        nick.requestFocusInWindow();
-        cardLayout.show(this, MESSAGE_PANEL);
+        gameDisplay.connect(cpass, cuser);
         net.connect(chost, cport);
     }
 
@@ -764,66 +372,560 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * Act as if the "practice game" button has been clicked.
-     * Assumes the dialog panels are all initialized.
+     * A {@link GameDisplay} implementation for AWT.
      */
-    public void clickPracticeButton()
+    public static class GameAwtDisplay extends Panel implements GameDisplay
     {
-        guardedActionPerform(pgm);
-    }
+        private SOCPlayerClient client;
+        
+        /**
+         * the player interfaces for the games
+         */
+        private final Map<String, SOCPlayerInterface> playerInterfaces = new Hashtable<String, SOCPlayerInterface>();
+        
+        /**
+         * Task for timeout when asking remote server for {@link SOCGameOptionInfo game options info}.
+         * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
+         * In case of slow connection or server bug.
+         * @see #gameOptionsSetTimeoutTask()
+         * @since 1.1.07
+         */
+        protected GameOptionsTimeoutTask gameOptsTask = null;
 
-    /**
-     * Wrapped version of actionPerformed() for easier encapsulation.
-     * @param target Action source, from ActionEvent.getSource()
-     */
-    private void guardedActionPerform(Object target)
-    {
-        boolean showPopupCannotJoin = false;
+        /**
+         * Task for timeout when asking remote server for {@link SOCGameOption game options defaults}.
+         * Set up when sending {@link SOCGameOptionGetDefaults GAMEOPTIONGETDEFAULTS}.
+         * In case of slow connection or server bug.
+         * @see #gameWithOptionsBeginSetup(boolean)
+         * @since 1.1.07
+         */
+        protected GameOptionDefaultsTimeoutTask gameOptsDefsTask = null;
 
-        if ((target == jc) || (target == channel) || (target == chlist)) // Join channel stuff
+        /**
+         * Once true, disable "nick" textfield, etc.
+         * Remains true, even if connected becomes false.
+         */
+        protected boolean hasJoinedServer;
+
+        /**
+         * If true, we'll give the user a choice to
+         * connect to a server, start a local server,
+         * or a local practice game.
+         * Used for when we're started from a jar, or
+         * from the command line with no arguments.
+         * Uses {@link SOCConnectOrPracticePanel}.
+         *
+         * @see #cardLayout
+         */
+        protected final boolean hasConnectOrPractice;
+
+        /**
+         * If applicable, is set up in {@link #initVisualElements()}.
+         * Key for {@link #cardLayout} is {@link #CONNECT_OR_PRACTICE_PANEL}.
+         * @see #hasConnectOrPractice
+         */
+        protected SOCConnectOrPracticePanel connectOrPracticePane;
+
+        /**
+         * The currently showing new-game options frame, or null
+         * @since 1.1.07
+         */
+        public NewGameOptionsFrame newGameOptsFrame = null;
+
+        protected TextField nick;
+        protected TextField pass;
+        protected TextField status;
+        protected TextField channel;
+        // protected TextField game;  // removed 1.1.07 - NewGameOptionsFrame instead
+        protected java.awt.List chlist;
+        protected java.awt.List gmlist;
+
+        /**
+         * "New Game..." button, brings up {@link NewGameOptionsFrame} window
+         * @since 1.1.07
+         */
+        protected Button ng;  // new game
+
+        protected Button jc;  // join channel
+        protected Button jg;  // join game
+        protected Button pg;  // practice game (against practiceServer, not localTCPServer)
+
+        /**
+         * "Game Info" button, shows a game's {@link SOCGameOption}s.
+         *<P>
+         * Renamed in 2.0.00 to 'gi'; previously 'so' Show Options.
+         * @since 1.1.07
+         */
+        protected Button gi;
+
+        protected Label messageLabel;  // error message for messagepanel
+        protected Label messageLabel_top;   // secondary message
+        private Label localTCPServerLabel;  // blank, or 'server is running'
+        private Label versionOrlocalTCPPortLabel;   // shows port number in mainpanel, if running localTCPServer;
+                                             // shows remote version# when connected to a remote server
+        protected Button pgm;  // practice game on messagepanel
+
+        /**
+         * This class displays one of several panels to the user:
+         * {@link #MAIN_PANEL}, {@link #MESSAGE_PANEL} or
+         * (if launched from jar, or with no command-line arguments)
+         * {@link #CONNECT_OR_PRACTICE_PANEL}.
+         *
+         * @see #hasConnectOrPractice
+         */
+        protected CardLayout cardLayout;
+        
+        /**
+         * the channels we've joined
+         */
+        protected Hashtable<String, ChannelFrame> channels = new Hashtable<String, ChannelFrame>();
+
+        /**
+         * Utility for time-driven events in the display.
+         * For users, search for where-used of this field
+         * and of {@link #getEventTimer()}.
+         * @since 1.1.07
+         */
+        protected Timer eventTimer = new Timer(true);  // use daemon thread
+
+        public GameAwtDisplay(boolean hasConnectOrPractice)
         {
-            showPopupCannotJoin = ! guardedActionPerform_channels(target);
+            this.hasConnectOrPractice = hasConnectOrPractice;
         }
-        else if ((target == jg) || (target == ng) || (target == gmlist)
-                || (target == pg) || (target == pgm) || (target == gi)) // Join game stuff
+        
+        public void setClient(SOCPlayerClient client)
         {
-            showPopupCannotJoin = ! guardedActionPerform_games(target);
+            this.client = client;
+        }
+        
+        public SOCPlayerClient getClient()
+        {
+            return client;
+        }
+        
+        public GameManager getGameManager()
+        {
+            return client.getGameManager();
+        }
+        
+        public WindowAdapter createWindowAdapter()
+        {
+            return new ClientWindowAdapter(this);
+        }
+        
+        public void setMessage(String message)
+        {
+            messageLabel.setText(message);
         }
 
-        if (showPopupCannotJoin)
+        public void showErrorDialog(String errMessage, String buttonText)
         {
-            status.setText(STATUS_CANNOT_JOIN_THIS_GAME);
-            // popup
-            NotifyDialog.createAndShow(this, (Frame) null,
-                STATUS_CANNOT_JOIN_THIS_GAME,
-                "Cancel", true);
+            NotifyDialog.createAndShow(this, null, errMessage, buttonText, true);
+        }
 
+        /**
+         * init the visual elements
+         */
+        public void initVisualElements()
+        {
+            if (client == null)
+                throw new IllegalStateException("No client set");
+            
+            setFont(new Font("SansSerif", Font.PLAIN, 12));
+            
+            nick = new TextField(20);
+            pass = new TextField(20);
+            if (isJavaOnOSX)
+                pass.setEchoChar('\u2022');  // round bullet (option-8)
+            else
+                pass.setEchoChar('*');
+            status = new TextField(20);
+            status.setEditable(false);
+            channel = new TextField(20);
+            chlist = new java.awt.List(10, false);
+            chlist.add(" ");
+            gmlist = new java.awt.List(10, false);
+            gmlist.add(" ");
+            ng = new Button("New Game...");
+            jc = new Button("Join Channel");
+            jg = new Button("Join Game");
+            pg = new Button("Practice");  // "practice game" text is too wide
+            gi = new Button("Game Info");  // show game options
+
+            // Username not entered yet: can't click buttons
+            ng.setEnabled(false);
+            jc.setEnabled(false);
+
+            // when game is selected in gmlist, these buttons will be enabled:
+            jg.setEnabled(false);
+            gi.setEnabled(false);
+
+            nick.addTextListener(new TextListener()
+            {
+                /**
+                 * When nickname contents change, enable/disable buttons as appropriate. ({@link TextListener})
+                 * @param e textevent from {@link #nick}
+                 * @since 1.1.07
+                 */
+                public void textValueChanged(TextEvent e)
+                {
+                    boolean notEmpty = (nick.getText().trim().length() > 0);
+                    if (notEmpty != ng.isEnabled())
+                    {
+                        ng.setEnabled(notEmpty);
+                        jc.setEnabled(notEmpty);
+                    }
+                }
+            });
+            
+            ActionListener actionListener = new ActionListener()
+            {
+                /**
+                 * Handle mouse clicks and keyboard
+                 */
+                public void actionPerformed(ActionEvent e)
+                {
+                    try
+                    {
+                        Object target = e.getSource();
+                        guardedActionPerform(target);
+                    }
+                    catch (Throwable thr)
+                    {
+                        System.err.println("-- Error caught in AWT event thread: " + thr + " --");
+                        thr.printStackTrace(); // will print causal chain, no need to manually iterate
+                        System.err.println("-- Error stack trace end --");
+                        System.err.println();
+                    }
+                }
+            };
+            
+            nick.addActionListener(actionListener);  // hit Enter to go to next field
+            pass.addActionListener(actionListener);
+            channel.addActionListener(actionListener);
+            chlist.addActionListener(actionListener);
+            gmlist.addActionListener(actionListener);
+            gmlist.addItemListener(new ItemListener()
+            {
+                /**
+                 * When a game is selected/deselected, enable/disable buttons as appropriate. ({@link ItemListener})
+                 * @param e textevent from {@link #gmlist}
+                 * @since 1.1.07
+                 */
+                public void itemStateChanged(ItemEvent e)
+                {
+                    boolean wasSel = (e.getStateChange() == ItemEvent.SELECTED);
+                    if (wasSel != jg.isEnabled())
+                    {
+                        jg.setEnabled(wasSel);
+                        gi.setEnabled(wasSel &&
+                            ((client.net.practiceServer != null) || (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)));
+                    }
+                }
+            });
+            ng.addActionListener(actionListener);
+            jc.addActionListener(actionListener);
+            jg.addActionListener(actionListener);
+            pg.addActionListener(actionListener);
+            gi.addActionListener(actionListener);
+
+            GridBagLayout gbl = new GridBagLayout();
+            GridBagConstraints c = new GridBagConstraints();
+            Panel mainPane = new Panel(gbl);
+
+            c.fill = GridBagConstraints.BOTH;
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(status, c);
+            mainPane.add(status);
+
+            Label l;
+
+            // Row 1
+
+            l = new Label();
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            // Row 2
+
+            l = new Label("Your Nickname:");
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            c.gridwidth = 1;
+            gbl.setConstraints(nick, c);
+            mainPane.add(nick);
+
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            l = new Label("Optional Password:");
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            c.gridwidth = 1;
+            gbl.setConstraints(pass, c);
+            mainPane.add(pass);
+
+            l = new Label();
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            l = new Label();
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            // Row 3 (New Channel label & textfield, Practice btn, New Game btn)
+
+            l = new Label("New Channel:");
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            c.gridwidth = 1;
+            gbl.setConstraints(channel, c);
+            mainPane.add(channel);
+
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            c.gridwidth = 1;  // this position was "New Game:" label before 1.1.07
+            gbl.setConstraints(pg, c);
+            mainPane.add(pg);
+
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            c.gridwidth = 1;
+            gbl.setConstraints(ng, c);
+            mainPane.add(ng);
+
+            l = new Label();
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            // Row 4 (spacer)
+
+            localTCPServerLabel = new Label();
+            c.gridwidth = 2;
+            gbl.setConstraints(localTCPServerLabel, c);
+            mainPane.add(localTCPServerLabel);
+
+            l = new Label();
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            // Row 5 (version/port# label, join channel btn, show-options btn, join game btn)
+
+            versionOrlocalTCPPortLabel = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(versionOrlocalTCPPortLabel, c);
+            mainPane.add(versionOrlocalTCPPortLabel);
+
+            c.gridwidth = 1;
+            gbl.setConstraints(jc, c);
+            mainPane.add(jc);
+
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            c.gridwidth = 1;
+            gbl.setConstraints(gi, c);
+            mainPane.add(gi);
+
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            c.gridwidth = 1;
+            gbl.setConstraints(jg, c);
+            mainPane.add(jg);
+
+            l = new Label();
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            // Row 6
+
+            l = new Label("Channels");
+            c.gridwidth = 2;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            l = new Label("Games");
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            // Row 7
+
+            c.gridwidth = 2;
+            c.gridheight = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(chlist, c);
+            mainPane.add(chlist);
+
+            l = new Label();
+            c.gridwidth = 1;
+            gbl.setConstraints(l, c);
+            mainPane.add(l);
+
+            c.gridwidth = GridBagConstraints.REMAINDER;
+            gbl.setConstraints(gmlist, c);
+            mainPane.add(gmlist);
+
+            Panel messagePane = new Panel(new BorderLayout());
+
+            // secondary message at top of message pane, used with pgm button.
+            messageLabel_top = new Label("", Label.CENTER);
+            messageLabel_top.setVisible(false);
+            messagePane.add(messageLabel_top, BorderLayout.NORTH);
+
+            // message label that takes up the whole pane
+            messageLabel = new Label("", Label.CENTER);
+            messageLabel.setForeground(new Color(252, 251, 243)); // off-white
+            messagePane.add(messageLabel, BorderLayout.CENTER);
+
+            // bottom of message pane: practice-game button
+            pgm = new Button("Practice Game (against robots)");
+            pgm.setVisible(false);
+            messagePane.add(pgm, BorderLayout.SOUTH);
+            pgm.addActionListener(actionListener);
+
+            // all together now...
+            cardLayout = new CardLayout();
+            setLayout(cardLayout);
+
+            if (hasConnectOrPractice)
+            {
+                connectOrPracticePane = new SOCConnectOrPracticePanel(this);
+                add (connectOrPracticePane, CONNECT_OR_PRACTICE_PANEL);  // shown first
+            }
+            add(messagePane, MESSAGE_PANEL); // shown first unless cpPane
+            add(mainPane, MAIN_PANEL);
+
+            messageLabel.setText("Waiting to connect.");
+            validate();
+        }
+        
+        public void connect(String cpass, String cuser)
+        {
+            nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
+            pass.setEditable(true);
+            pass.setText(cpass);
+            nick.setText(cuser);
+            nick.requestFocusInWindow();
+            cardLayout.show(this, MESSAGE_PANEL);
+        }
+
+        public String getNickname()
+        {
+            return client.getNickname();
+        }
+
+        /**
+         * Act as if the "practice game" button has been clicked.
+         * Assumes the dialog panels are all initialized.
+         */
+        public void clickPracticeButton()
+        {
+            guardedActionPerform(pgm);
+        }
+
+        /**
+         * Wrapped version of actionPerformed() for easier encapsulation.
+         * @param target Action source, from ActionEvent.getSource()
+         */
+        private void guardedActionPerform(Object target)
+        {
+            boolean showPopupCannotJoin = false;
+        
+            if ((target == jc) || (target == channel) || (target == chlist)) // Join channel stuff
+            {
+                showPopupCannotJoin = ! guardedActionPerform_channels(target);
+            }
+            else if ((target == jg) || (target == ng) || (target == gmlist)
+                    || (target == pg) || (target == pgm) || (target == gi)) // Join game stuff
+            {
+                showPopupCannotJoin = ! guardedActionPerform_games(target);
+            }
+        
+            if (showPopupCannotJoin)
+            {
+                status.setText(STATUS_CANNOT_JOIN_THIS_GAME);
+                // popup
+                NotifyDialog.createAndShow(this, (Frame) null,
+                    STATUS_CANNOT_JOIN_THIS_GAME,
+                    "Cancel", true);
+        
+                return;
+            }
+        
+            if (target == nick)
+            { // Nickname TextField
+                nick.transferFocus();
+            }
+        
             return;
         }
 
-        if (target == nick)
-        { // Nickname TextField
-            nick.transferFocus();
-        }
-
-        return;
-    }
-
-    /**
-     * GuardedActionPerform when a channels-related button or field is clicked
-     * @param target Target as in actionPerformed
-     * @return True if OK, false if caller needs to show popup "cannot join"
-     * @since 1.1.06
-     */
-    private boolean guardedActionPerform_channels(Object target)
-    {
-        String ch;
-
-        if (target == jc) // "Join Channel" Button
+        /**
+         * GuardedActionPerform when a channels-related button or field is clicked
+         * @param target Target as in actionPerformed
+         * @return True if OK, false if caller needs to show popup "cannot join"
+         * @since 1.1.06
+         */
+        private boolean guardedActionPerform_channels(Object target)
         {
-            ch = channel.getText().trim();
-
-            if (ch.length() == 0)
+            String ch;
+        
+            if (target == jc) // "Join Channel" Button
+            {
+                ch = channel.getText().trim();
+        
+                if (ch.length() == 0)
+                {
+                    try
+                    {
+                        ch = chlist.getSelectedItem().trim();
+                    }
+                    catch (NullPointerException ex)
+                    {
+                        return true;
+                    }
+                }
+            }
+            else if (target == channel)
+            {
+                ch = channel.getText().trim();
+            }
+            else
             {
                 try
                 {
@@ -834,556 +936,912 @@ public class SOCPlayerClient extends Panel
                     return true;
                 }
             }
-        }
-        else if (target == channel)
-        {
-            ch = channel.getText().trim();
-        }
-        else
-        {
-            try
-            {
-                ch = chlist.getSelectedItem().trim();
-            }
-            catch (NullPointerException ex)
+        
+            if (ch.length() == 0)
             {
                 return true;
             }
-        }
-
-        if (ch.length() == 0)
-        {
+        
+            if (ch.startsWith(GAMENAME_PREFIX_CANNOT_JOIN))
+            {
+                return false;
+            }
+        
+            ChannelFrame cf = channels.get(ch);
+        
+            if (cf == null)
+            {
+                if (channels.isEmpty())
+                {
+                    // May set hint message if empty, like NEED_NICKNAME_BEFORE_JOIN
+                    if (! readValidNicknameAndPassword())
+                        return true;  // not filled in yet
+                }
+        
+                status.setText("Talking to server...");
+                client.net.putNet(SOCJoin.toCmd(client.nickname, client.password, client.net.getHost(), ch));
+            }
+            else
+            {
+                cf.setVisible(true);
+            }
+        
+            channel.setText("");
             return true;
         }
 
-        if (ch.startsWith(GAMENAME_PREFIX_CANNOT_JOIN))
+        /**
+         * Read and validate username and password GUI fields into client's data fields.
+         * This method may set status bar to a hint message if username is empty,
+         * such as {@link #NEED_NICKNAME_BEFORE_JOIN}.
+         * @return true if OK, false if blank or not ready
+         * @see #getValidNickname(boolean)
+         * @since 1.1.07
+         */
+        public boolean readValidNicknameAndPassword()
         {
-            return false;
+            client.nickname = getValidNickname(true);  // May set hint message if empty,
+                                            // like NEED_NICKNAME_BEFORE_JOIN
+            if (client.nickname == null)
+               return false;  // not filled in yet
+        
+            if (!client.gotPassword)
+            {
+                client.password = getPassword();  // may be 0-length
+            }
+            return true;
         }
 
-        ChannelFrame cf = channels.get(ch);
-
-        if (cf == null)
+        /**
+         * GuardedActionPerform when a games-related button or field is clicked
+         * @param target Target as in actionPerformed
+         * @return True if OK, false if caller needs to show popup "cannot join"
+         * @since 1.1.06
+         */
+        private boolean guardedActionPerform_games(Object target)
         {
-            if (channels.isEmpty())
+            String gm;  // May also be 0-length string, if pulled from Lists
+        
+            if ((target == pg) || (target == pgm)) // "Practice Game" Buttons
             {
-                // May set hint message if empty, like NEED_NICKNAME_BEFORE_JOIN
-                if (! readValidNicknameAndPassword())
-                    return true;  // not filled in yet
+                gm = DEFAULT_PRACTICE_GAMENAME;
+        
+                // If blank, fill in player name
+        
+                if (0 == nick.getText().trim().length())
+                {
+                    nick.setText(DEFAULT_PLAYER_NAME);
+                }
             }
+            else if (target == ng)  // "New Game" button
+            {
+                if (null != getValidNickname(false))  // name check, but don't set nick field yet
+                {
+                    gameWithOptionsBeginSetup(false);  // Also may set status, WAIT_CURSOR
+                } else {
+                    nick.requestFocusInWindow();  // Not a valid player nickname
+                }
+                return true;
+            }
+            else if (target == jg) // "Join Game" Button
+            {
+                try
+                {
+                    gm = gmlist.getSelectedItem().trim();  // may be length 0
+                }
+                catch (NullPointerException ex)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                // game list
+                try
+                {
+                    gm = gmlist.getSelectedItem().trim();
+                }
+                catch (NullPointerException ex)
+                {
+                    return true;
+                }
+            }
+        
+            // System.out.println("GM = |"+gm+"|");
+            if (gm.length() == 0)
+            {
+                return true;
+            }
+        
+            if (target == gi)  // show game info, game options, for an existing game
+            {
+                // This game is either from the tcp server, or practice server,
+                // both servers' games are in the same GUI list.
+                Hashtable<String,SOCGameOption> opts = null;
+                if ((client.net.practiceServer != null) && (-1 != client.net.practiceServer.getGameState(gm)))
+                    opts = client.net.practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
+                else if (client.serverGames != null)
+                {
+                    opts = client.serverGames.getGameOptions(gm);
+                    if ((opts == null) && (client.serverGames.getGameOptionsString(gm) != null))
+                    {
+                        // If necessary, parse game options from string before displaying.
+                        // (Parsed options are cached, they won't be re-parsed)
+        
+                        if (client.tcpServGameOpts.allOptionsReceived)
+                        {
+                            opts = client.serverGames.parseGameOptions(gm);
+                        } else {
+                            // not yet received; remember game name.
+                            // when all are received, will show it,
+                            // and will also clear WAIT_CURSOR.
+                            // (see handleGAMEOPTIONINFO)
+        
+                            client.tcpServGameOpts.gameInfoWaitingForOpts = gm;
+                            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                            return true;  // <---- early return: not yet ready to show ----
+                        }
+                    }
+                }
+        
+                // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
+                NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
+                return true;
+            }
+        
+            final boolean unjoinablePrefix = gm.startsWith(GAMENAME_PREFIX_CANNOT_JOIN);
+            if (unjoinablePrefix)
+            {
+                // Game is marked as un-joinable by this client. Remember that,
+                // then continue to process the game name, without prefix.
+        
+                gm = gm.substring(GAMENAME_PREFIX_CANNOT_JOIN.length());
+            }
+        
+            // Can we not join that game?
+            if (unjoinablePrefix || ((client.serverGames != null) && client.serverGames.isUnjoinableGame(gm)))
+            {
+                if (! client.gamesUnjoinableOverride.containsKey(gm))
+                {
+                    client.gamesUnjoinableOverride.put(gm, gm);  // Next click will try override
+                    return false;
+                }
+            }
+        
+            // Are we already in a game with that name?
+            SOCPlayerInterface pi = playerInterfaces.get(gm);
+        
+            if ((pi == null)
+                    && ((target == pg) || (target == pgm))
+                    && (client.net.practiceServer != null)
+                    && (gm.equalsIgnoreCase(DEFAULT_PRACTICE_GAMENAME)))
+            {
+                // Practice game requested, no game named "Practice" already exists.
+                // Check for other active practice games. (Could be "Practice 2")
+                pi = findAnyActiveGame(true);
+            }
+        
+            if ((pi != null) && ((target == pg) || (target == pgm)))
+            {
+                // Practice game requested, already exists.
+                //
+                // Ask the player if they want to join, or start a new game.
+                // If we're from the error panel (pgm), there's no way to
+                // enter a game name; make a name up if needed.
+                // If we already have a game going, our nickname is not empty.
+                // So, it's OK to not check that here or in the dialog.
+        
+                // Is the game over yet?
+                if (pi.getGame().getGameState() == SOCGame.OVER)
+                {
+                    // No point joining, just get options to start a new one.
+                    gameWithOptionsBeginSetup(true);
+                }
+                else
+                {
+                    new SOCPracticeAskDialog(this, pi).setVisible(true);
+                }
+        
+                return true;
+            }
+        
+            if (pi == null)
+            {
+                if (client.games.isEmpty())
+                {
+                    client.nickname = getValidNickname(true);  // May set hint message if empty,
+                                               // like NEED_NICKNAME_BEFORE_JOIN
+                    if (client.nickname == null)
+                        return true;  // not filled in yet
+        
+                    if (!client.gotPassword)
+                        client.password = getPassword();  // may be 0-length
+                }
+        
+                int endOfName = gm.indexOf(STATSPREFEX);
+        
+                if (endOfName > 0)
+                {
+                    gm = gm.substring(0, endOfName);
+                }
+        
+                if (((target == pg) || (target == pgm)) && (null == client.net.ex_P))
+                {
+                    if (target == pg)
+                    {
+                        status.setText("Starting practice game setup...");
+                    }
+                    gameWithOptionsBeginSetup(true);  // Also may set WAIT_CURSOR
+                }
+                else
+                {
+                    // Join a game on the remote server.
+                    // Send JOINGAME right away.
+                    // (Create New Game is done above; see calls to gameWithOptionsBeginSetup)
+        
+                    // May take a while for server to start game, so set WAIT_CURSOR.
+                    // The new-game window will clear this cursor
+                    // (SOCPlayerInterface constructor)
+        
+                    status.setText("Talking to server...");
+                    setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                    client.net.putNet(SOCJoinGame.toCmd(client.nickname, client.password, client.net.getHost(), gm));
+                }
+            }
+            else
+            {
+                pi.setVisible(true);
+            }
+        
+            return true;
+        }
+
+        /**
+         * Validate and return the nickname textfield, or null if blank or not ready.
+         * If successful, also set {@link #nickname} field.
+         * @param precheckOnly If true, only validate the name, don't set {@link #nickname}.
+         * @since 1.1.07
+         */
+        protected String getValidNickname(boolean precheckOnly)
+        {
+            String n = nick.getText().trim();
+        
+            if (n.length() == 0)
+            {
+                if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
+                    // Send stronger hint message
+                    status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
+                else
+                    // Send first hint message (or re-send first if they've seen _2)
+                    status.setText(NEED_NICKNAME_BEFORE_JOIN);
+                return null;
+            }
+        
+            if (n.length() > 20)
+            {
+                n = n.substring(0, 20);
+            }
+            if (! SOCMessage.isSingleLineAndSafe(n))
+            {
+                status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
+                return null;
+            }
+            nick.setText(n);
+            if (! precheckOnly)
+                client.nickname = n;
+            return n;
+        }
+
+        /**
+         * Validate and return the password textfield contents; may be 0-length.
+         * Also set {@link #password} field.
+         * If {@link #gotPassword} already, return current password without checking textfield.
+         * @since 1.1.07
+         */
+        protected String getPassword()
+        {
+            if (client.gotPassword)
+                return client.password;
+        
+            String p = pass.getText().trim();
+        
+            if (p.length() > 20)
+            {
+                p = p.substring(0, 20);
+            }
+        
+            client.password = p;
+            return p;
+        }
+
+        /**
+         * Utility for time-driven events in the client.
+         * For some users, see where-used of this and of {@link SOCPlayerInterface#getEventTimer()}.
+         * @return the timer
+         * @since 1.1.07
+         */
+        public Timer getEventTimer()
+        {
+            return eventTimer;
+        }
+
+        /**
+         * Want to start a new game, on a server which supports options.
+         * Do we know the valid options already?  If so, bring up the options window.
+         * If not, ask the server for them.
+         * Updates tcpServGameOpts, practiceServGameOpts, newGameOptsFrame.
+         * If a {@link NewGameOptionsFrame} is already showing, give it focus
+         * instead of creating a new one.
+         *<P>
+         * For a summary of the flags and variables involved with game options,
+         * and the client/server interaction about their values, see
+         * {@link GameOptionServerSet}.
+         *
+         * @param forPracticeServer  Ask {@link #practiceServer}, instead of remote tcp server?
+         * @since 1.1.07
+         */
+        protected void gameWithOptionsBeginSetup(final boolean forPracticeServer)
+        {
+            if (newGameOptsFrame != null)
+            {
+                newGameOptsFrame.setVisible(true);
+                return;
+            }
+
+            GameOptionServerSet opts;
+
+            // What server are we going against? Do we need to ask it for options?
+            {
+                boolean setKnown = false;
+                if (forPracticeServer)
+                {
+                    opts = client.practiceServGameOpts;
+                    if (! opts.allOptionsReceived)
+                    {
+                        // We know what the practice options will be,
+                        // because they're in our own JAR file.
+                        // Also, the practice server isn't started yet,
+                        // so we can't ask it for the options.
+                        // The practice server will be started when the player clicks
+                        // "Create Game" in the NewGameOptionsFrame, causing the new
+                        // game to be requested from askStartGameWithOptions.
+                        setKnown = true;
+                        opts.optionSet = SOCGameOption.getAllKnownOptions();
+                    }
+                } else {
+                    opts = client.tcpServGameOpts;
+                    if ((! opts.allOptionsReceived) && (client.sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
+                    {
+                        // Server doesn't support them.  Don't ask it.
+                        setKnown = true;
+                        opts.optionSet = null;
+                    }
+                }
+
+                if (setKnown)
+                {
+                    opts.allOptionsReceived = true;
+                    opts.defaultsReceived = true;
+                }
+            }
+
+            // Do we already have info on all options?
+            boolean askedAlready, optsAllKnown, knowDefaults;
+            synchronized (opts)
+            {
+                askedAlready = opts.askedDefaultsAlready;
+                optsAllKnown = opts.allOptionsReceived;
+                knowDefaults = opts.defaultsReceived;
+            }
+
+            if (askedAlready && ! (optsAllKnown && knowDefaults))
+            {
+                // If we're only waiting on defaults, how long ago did we ask for them?
+                // If > 5 seconds ago, assume we'll never know the unknown ones, and present gui frame.
+                if (optsAllKnown && (5000 < Math.abs(System.currentTimeMillis() - opts.askedDefaultsTime)))
+                {
+                    knowDefaults = true;
+                    opts.defaultsReceived = true;
+                    if (gameOptsDefsTask != null)
+                    {
+                        gameOptsDefsTask.cancel();
+                        gameOptsDefsTask = null;
+                    }
+                    // since optsAllKnown, will present frame below.
+                } else {
+                    return;  // <--- Early return: Already waiting for an answer ----
+                }
+            }
+
+            if (optsAllKnown && knowDefaults)
+            {
+                // All done, present the options window frame
+                newGameOptsFrame = NewGameOptionsFrame.createAndShow
+                    (this, null, opts.optionSet, forPracticeServer, false);
+                return;  // <--- Early return: Show options to user ----
+            }
+
+            // OK, we need the options.
+            // Ask the server by sending GAMEOPTIONGETDEFAULTS.
+            // (This will never happen for practice games, see above.)
+
+            // May take a while for server to send our info.
+            // The new-game-options window will clear this cursor
+            // (NewGameOptionsFrame constructor)
 
             status.setText("Talking to server...");
-            net.putNet(SOCJoin.toCmd(nickname, password, net.getHost(), ch));
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            opts.newGameWaitingForOpts = true;
+            opts.askedDefaultsAlready = true;
+            opts.askedDefaultsTime = System.currentTimeMillis();
+            client.gameManager.put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
+
+            if (gameOptsDefsTask != null)
+                gameOptsDefsTask.cancel();
+            gameOptsDefsTask = new GameOptionDefaultsTimeoutTask(this, client.tcpServGameOpts, forPracticeServer);
+            eventTimer.schedule(gameOptsDefsTask, 5000 /* ms */ );
+
+            // Once options are received, handlers will
+            // create and show NewGameOptionsFrame.
         }
-        else
+
+        /**
+         * Ask server to start a game with options.
+         * If it's practice, will call {@link #startPracticeGame(String, Hashtable, boolean)}.
+         * Otherwise, ask tcp server, and also set WAIT_CURSOR and status line ("Talking to server...").
+         *<P>
+         * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link #host},
+         * and {@link #gotPassword} are already called and valid.
+         *
+         * @param gmName Game name; for practice, null is allowed
+         * @param forPracticeServer Is this for a new game on the practice (not tcp) server?
+         * @param opts Set of {@link SOCGameOption game options} to use, or null
+         * @since 1.1.07
+         * @see #readValidNicknameAndPassword()
+         */
+        public void askStartGameWithOptions(final String gmName, final boolean forPracticeServer, Hashtable<String, SOCGameOption> opts)
         {
-            cf.setVisible(true);
-        }
-
-        channel.setText("");
-        return true;
-    }
-
-    /**
-     * Read and validate username and password GUI fields into client's data fields.
-     * This method may set status bar to a hint message if username is empty,
-     * such as {@link #NEED_NICKNAME_BEFORE_JOIN}.
-     * @return true if OK, false if blank or not ready
-     * @see #getValidNickname(boolean)
-     * @since 1.1.07
-     */
-    public boolean readValidNicknameAndPassword()
-    {
-        nickname = getValidNickname(true);  // May set hint message if empty,
-                                        // like NEED_NICKNAME_BEFORE_JOIN
-        if (nickname == null)
-           return false;  // not filled in yet
-
-        if (!gotPassword)
-        {
-            password = getPassword();  // may be 0-length
-        }
-        return true;
-    }
-
-    /**
-     * GuardedActionPerform when a games-related button or field is clicked
-     * @param target Target as in actionPerformed
-     * @return True if OK, false if caller needs to show popup "cannot join"
-     * @since 1.1.06
-     */
-    private boolean guardedActionPerform_games(Object target)
-    {
-        String gm;  // May also be 0-length string, if pulled from Lists
-
-        if ((target == pg) || (target == pgm)) // "Practice Game" Buttons
-        {
-            gm = DEFAULT_PRACTICE_GAMENAME;
-
-            // If blank, fill in player name
-
-            if (0 == nick.getText().trim().length())
+            if (forPracticeServer)
             {
-                nick.setText(DEFAULT_PLAYER_NAME);
-            }
-        }
-        else if (target == ng)  // "New Game" button
-        {
-            if (null != getValidNickname(false))  // name check, but don't set nick field yet
-            {
-                gameWithOptionsBeginSetup(false);  // Also may set status, WAIT_CURSOR
+                client.startPracticeGame(gmName, opts, true);  // Also sets WAIT_CURSOR
             } else {
-                nick.requestFocusInWindow();  // Not a valid player nickname
-            }
-            return true;
-        }
-        else if (target == jg) // "Join Game" Button
-        {
-            try
-            {
-                gm = gmlist.getSelectedItem().trim();  // may be length 0
-            }
-            catch (NullPointerException ex)
-            {
-                return true;
-            }
-        }
-        else
-        {
-            // game list
-            try
-            {
-                gm = gmlist.getSelectedItem().trim();
-            }
-            catch (NullPointerException ex)
-            {
-                return true;
+                String askMsg =
+                    (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                    ? SOCNewGameWithOptionsRequest.toCmd(client.nickname, client.password, client.net.getHost(), gmName, opts)
+                    : SOCJoinGame.toCmd(client.nickname, client.password, client.net.getHost(), gmName);
+                System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
+                System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived + " " + client.tcpServGameOpts.defaultsReceived);
+                client.net.putNet(askMsg);
+                System.out.flush();  // for debug print output (temporary)
+                status.setText("Talking to server...");
+                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+                System.err.println("L1320 askStartGameWithOptions done at " + System.currentTimeMillis());
+                System.err.println("      sent: " + client.net.lastMessage_N);
             }
         }
 
-        // System.out.println("GM = |"+gm+"|");
-        if (gm.length() == 0)
+        /**
+         * Look for active games that we're playing
+         *
+         * @param fromPracticeServer  Enumerate games from {@link #practiceServer},
+         *     instead of {@link #playerInterfaces}?
+         * @return Any found game of ours which is active (state not OVER), or null if none.
+         * @see #anyHostedActiveGames()
+         */
+        protected SOCPlayerInterface findAnyActiveGame(boolean fromPracticeServer)
         {
-            return true;
-        }
-
-        if (target == gi)  // show game info, game options, for an existing game
-        {
-            // This game is either from the tcp server, or practice server,
-            // both servers' games are in the same GUI list.
-            Hashtable<String,SOCGameOption> opts = null;
-            if ((net.practiceServer != null) && (-1 != net.practiceServer.getGameState(gm)))
-                opts = net.practiceServer.getGameOptions(gm);  // won't ever need to parse from string on practice server
-            else if (serverGames != null)
+            SOCPlayerInterface pi = null;
+            int gs;  // gamestate
+        
+            Collection<String> gameNames;
+            if (fromPracticeServer)
             {
-                opts = serverGames.getGameOptions(gm);
-                if ((opts == null) && (serverGames.getGameOptionsString(gm) != null))
+                if (client.net.practiceServer == null)
+                    return null;  // <---- Early return: no games if no practice server ----
+                gameNames = client.net.practiceServer.getGameNames();
+            } else {
+                gameNames = playerInterfaces.keySet();
+            }
+        
+            for (String tryGm : gameNames)
+            {
+                if (fromPracticeServer)
                 {
-                    // If necessary, parse game options from string before displaying.
-                    // (Parsed options are cached, they won't be re-parsed)
-    
-                    if (tcpServGameOpts.allOptionsReceived)
+                    gs = client.net.practiceServer.getGameState(tryGm);
+                    if (gs < SOCGame.OVER)
                     {
-                        opts = serverGames.parseGameOptions(gm);
-                    } else {
-                        // not yet received; remember game name.
-                        // when all are received, will show it,
-                        // and will also clear WAIT_CURSOR.
-                        // (see handleGAMEOPTIONINFO)
-    
-                        tcpServGameOpts.gameInfoWaitingForOpts = gm;
-                        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                        return true;  // <---- early return: not yet ready to show ----
+                        pi = playerInterfaces.get(tryGm);
+                        if (pi != null)
+                            break;  // Active and we have a window with it
+                    }
+                } else {
+                    pi = playerInterfaces.get(tryGm);
+                    if (pi != null)
+                    {
+                        // we have a window with it
+                        gs = pi.getGame().getGameState();
+                        if (gs < SOCGame.OVER)
+                            break;      // Active
+        
+                        pi = null;  // Avoid false positive
                     }
                 }
             }
-
-            // don't overwrite newGameOptsFrame field; this popup is to show an existing game.
-            NewGameOptionsFrame.createAndShow(this, gm, opts, false, true);
-            return true;
+        
+            return pi;  // Active game, or null
         }
 
-        final boolean unjoinablePrefix = gm.startsWith(GAMENAME_PREFIX_CANNOT_JOIN);
-        if (unjoinablePrefix)
+        /**
+         * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
+         * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
+         *<P>
+         * If {@link #hasConnectOrPractice we have the startup panel} with buttons to connect
+         * to a server or practice, we'll show that instead of the simpler practice-only message panel.
+         *
+         * @param err  Error message to show
+         * @param canPractice  In current state of client, can we start a practice game?
+         * @since 1.1.16
+         */
+        public void showErrorPanel(final String err, final boolean canPractice)
         {
-            // Game is marked as un-joinable by this client. Remember that,
-            // then continue to process the game name, without prefix.
-
-            gm = gm.substring(GAMENAME_PREFIX_CANNOT_JOIN.length());
-        }
-
-        // Can we not join that game?
-        if (unjoinablePrefix || ((serverGames != null) && serverGames.isUnjoinableGame(gm)))
-        {
-            if (! gamesUnjoinableOverride.containsKey(gm))
+            // In case was WAIT_CURSOR while connecting
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        
+            if (canPractice)
             {
-                gamesUnjoinableOverride.put(gm, gm);  // Next click will try override
-                return false;
+                messageLabel_top.setText(err);
+                messageLabel_top.setVisible(true);
+                messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
+                pgm.setVisible(true);
+            }
+            else
+            {
+                messageLabel_top.setVisible(false);
+                messageLabel.setText(err);
+                pgm.setVisible(false);
+            }
+        
+            if (hasConnectOrPractice)
+            {
+                // If we have the startup panel with buttons to connect to a server or practice,
+                // prep to show that by un-setting read-only fields we'll need again after connect.
+                nick.setEditable(true);
+                pass.setText("");
+                pass.setEditable(true);
+        
+                cardLayout.show(this, CONNECT_OR_PRACTICE_PANEL);
+                validate();
+                connectOrPracticePane.clickConnCancel();
+                connectOrPracticePane.setTopText(err);
+                connectOrPracticePane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            }
+            else
+            {
+                cardLayout.show(this, MESSAGE_PANEL);
+                validate();
+                if (canPractice)
+                {
+                    if (null == findAnyActiveGame(true))
+                        pgm.requestFocus();  // No practice games: put this msg as topmost window
+                    else
+                        pgm.requestFocusInWindow();  // Practice game is active; don't interrupt to show this
+                }
             }
         }
 
-        // Are we already in a game with that name?
-        SOCPlayerInterface pi = playerInterfaces.get(gm);
-
-        if ((pi == null)
-                && ((target == pg) || (target == pgm))
-                && (net.practiceServer != null)
-                && (gm.equalsIgnoreCase(DEFAULT_PRACTICE_GAMENAME)))
+        public void enableOptions()
         {
-            // Practice game requested, no game named "Practice" already exists.
-            // Check for other active practice games. (Could be "Practice 2")
-            pi = findAnyActiveGame(true);
+            if (gi != null)
+                gi.setEnabled(true);
         }
 
-        if ((pi != null) && ((target == pg) || (target == pgm)))
+        public void showVersion(int vers, String versionString, String buildString)
         {
-            // Practice game requested, already exists.
+            // Display the version on main panel, unless we're running a server.
+            // (If so, want to display its listening port# instead)
+            if (null == client.net.localTCPServer)
+            {
+                versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
+                versionOrlocalTCPPortLabel.setText("v " + versionString);
+                new AWTToolTip ("Server version is " +versionString
+                                + " build " + buildString
+                                + "; client is " + Version.version()
+                                + " bld " + Version.buildnum(),
+                                versionOrlocalTCPPortLabel);
+            }
+
+            if ((client.net.practiceServer == null) && (vers < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
+                    && (gi != null))
+                gi.setEnabled(false);  // server too old for options, so don't use that button
+        }
+
+        public void showStatus(String statusText)
+        {
+            status.setText(statusText);
+
+            // If warning about debug during initial connect, show that.
+            // That status message would be sent after VERSION.
+            if (statusText.toLowerCase().contains("debug"))
+                versionOrlocalTCPPortLabel.setText
+                    (versionOrlocalTCPPortLabel.getText() + ", debug is on");
+
+            // If was trying to join a game, reset cursor from WAIT_CURSOR.
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        }
+
+        public void channelJoined(String channelName)
+        {
+            nick.setEditable(false);
+            pass.setText("");
+            pass.setEditable(false);
+            if (! hasJoinedServer)
+            {
+                Container c = getParent();
+                if ((c != null) && (c instanceof Frame))
+                {
+                    Frame fr = (Frame) c;
+                    fr.setTitle(fr.getTitle() + " [" + nick.getText() + "]");
+                }
+                hasJoinedServer = true;
+            }
+
+            ChannelFrame cf = new ChannelFrame(channelName, this);
+            cf.setVisible(true);
+            channels.put(channelName, cf);
+        }
+
+        public void channelJoined(String channelName, String nickname)
+        {
+            ChannelFrame fr = channels.get(channelName);
+            fr.print("*** " + nickname + " has joined this channel.\n");
+            fr.addMember(nickname);
+        }
+        
+        public void channelLeft(String channelName)
+        {
+            channels.remove(channelName);
+        }
+        
+        public void channelLeft(String channelName, String nickname)
+        {
+            ChannelFrame fr = channels.get(channelName);
+            fr.print("*** " + nickname + " left.\n");
+            fr.deleteMember(nickname);
+        }
+
+        public void channelMemberList(String channel, Collection<String> members)
+        {
+            ChannelFrame fr = channels.get(channel);
+
+            for (String member : members)
+                fr.addMember(member);
+
+            fr.began();
+        }
+        
+        public void channelDeleted(String channelName)
+        {
+            deleteFromList(channelName, chlist);
+        }
+        
+        public void channelsClosed(String message)
+        {
+            for (ChannelFrame cf : channels.values())
+            {
+                cf.over(message);
+            }
+        }
+
+        /**
+         * add a new channel or game, put it in the list in alphabetical order
+         *
+         * @param thing  the thing to add to the list
+         * @param lst    the list
+         */
+        public void addToList(String thing, java.awt.List lst)
+        {
+            if (lst.getItem(0).equals(" "))
+            {
+                lst.replaceItem(thing, 0);
+                lst.select(0);
+            }
+            else
+            {
+                lst.add(thing, 0);
+
+                /*
+                   int i;
+                   for(i=lst.getItemCount()-1;i>=0;i--)
+                   if(lst.getItem(i).compareTo(thing)<0)
+                   break;
+                   lst.add(thing, i+1);
+                   if(lst.getSelectedIndex()==-1)
+                   lst.select(0);
+                 */
+            }
+        }
+
+        /**
+         * delete a group
+         *
+         * @param thing   the thing to remove
+         * @param lst     the list
+         */
+        public void deleteFromList(String thing, java.awt.List lst)
+        {
+            if (lst.getItemCount() == 1)
+            {
+                if (lst.getItem(0).equals(thing))
+                {
+                    lst.replaceItem(" ", 0);
+                    lst.deselect(0);
+                }
+
+                return;
+            }
+
+            for (int i = lst.getItemCount() - 1; i >= 0; i--)
+            {
+                if (lst.getItem(i).equals(thing))
+                {
+                    lst.remove(i);
+                }
+            }
+
+            if (lst.getSelectedIndex() == -1)
+            {
+                lst.select(lst.getItemCount() - 1);
+            }
+        }
+
+        public void channelCreated(String channelName)
+        {
+            addToList(channelName, chlist);
+        }
+        
+        public void channelList(Collection<String> channelNames, boolean isPractice)
+        {
             //
-            // Ask the player if they want to join, or start a new game.
-            // If we're from the error panel (pgm), there's no way to
-            // enter a game name; make a name up if needed.
-            // If we already have a game going, our nickname is not empty.
-            // So, it's OK to not check that here or in the dialog.
+            // this message indicates that we're connected to the server
+            //
+            if (! isPractice)
+            {
+                cardLayout.show(GameAwtDisplay.this, MAIN_PANEL);
+                validate();
 
-            // Is the game over yet?
-            if (pi.getGame().getGameState() == SOCGame.OVER)
-            {
-                // No point joining, just get options to start a new one.
-                gameWithOptionsBeginSetup(true);
-            }
-            else
-            {
-                new SOCPracticeAskDialog(this, pi).setVisible(true);
+                status.setText("Login by entering nickname and then joining a channel or game.");
             }
 
-            return true;
+            for (String ch : channelNames)
+            {
+                addToList(ch, chlist);
+            }
+
+            if (! isPractice)
+                nick.requestFocus();
         }
 
-        if (pi == null)
+        public void messageBroadcast(String message)
         {
-            if (games.isEmpty())
+            for (ChannelFrame fr : channels.values())
             {
-                nickname = getValidNickname(true);  // May set hint message if empty,
-                                           // like NEED_NICKNAME_BEFORE_JOIN
-                if (nickname == null)
-                    return true;  // not filled in yet
-
-                if (!gotPassword)
-                    password = getPassword();  // may be 0-length
+                fr.print("::: " + message + " :::");
             }
+        }
+        
+        public void messageReceived(String channelName, String nickname, String message)
+        {
+            ChannelFrame fr = channels.get(channelName);
 
-            int endOfName = gm.indexOf(STATSPREFEX);
-
-            if (endOfName > 0)
+            if (fr != null)
             {
-                gm = gm.substring(0, endOfName);
-            }
-
-            if (((target == pg) || (target == pgm)) && (null == net.ex_P))
-            {
-                if (target == pg)
+                if (!client.onIgnoreList(nickname))
                 {
-                    status.setText("Starting practice game setup...");
+                    fr.print(nickname + ": " + message);
                 }
-                gameWithOptionsBeginSetup(true);  // Also may set WAIT_CURSOR
-            }
-            else
-            {
-                // Join a game on the remote server.
-                // Send JOINGAME right away.
-                // (Create New Game is done above; see calls to gameWithOptionsBeginSetup)
-
-                // May take a while for server to start game, so set WAIT_CURSOR.
-                // The new-game window will clear this cursor
-                // (SOCPlayerInterface constructor)
-
-                status.setText("Talking to server...");
-                setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-                net.putNet(SOCJoinGame.toCmd(nickname, password, net.getHost(), gm));
             }
         }
-        else
+        
+        public void leaveGame(SOCGame game)
         {
+            playerInterfaces.remove(game.getName());
+        }
+
+        public PlayerClientListener gameJoined(SOCGame game)
+        {
+            nick.setEditable(false);
+            pass.setEditable(false);
+            pass.setText("");
+            if (! hasJoinedServer)
+            {
+                Container c = getParent();
+                if ((c != null) && (c instanceof Frame))
+                {
+                    Frame fr = (Frame) c;
+                    fr.setTitle(fr.getTitle() + " [" + nick.getText() + "]");
+                }
+                hasJoinedServer = true;
+            }
+            
+            SOCPlayerInterface pi = new SOCPlayerInterface(game.getName(), GameAwtDisplay.this, game);
+            System.err.println("L2325 new pi at " + System.currentTimeMillis());
             pi.setVisible(true);
+            System.err.println("L2328 visible at " + System.currentTimeMillis());
+            playerInterfaces.put(game.getName(), pi);
+            
+            return pi.getClientListener();
         }
-
-        return true;
-    }
-
-    /**
-     * Validate and return the nickname textfield, or null if blank or not ready.
-     * If successful, also set {@link #nickname} field.
-     * @param precheckOnly If true, only validate the name, don't set {@link #nickname}.
-     * @since 1.1.07
-     */
-    protected String getValidNickname(boolean precheckOnly)
-    {
-        String n = nick.getText().trim();
-
-        if (n.length() == 0)
+        
+        /**
+         * Start the game-options info timeout
+         * ({@link GameOptionsTimeoutTask}) at 5 seconds.
+         * @see #gameOptionsCancelTimeoutTask()
+         * @since 1.1.07
+         */
+        private void gameOptionsSetTimeoutTask()
         {
-            if (status.getText().equals(NEED_NICKNAME_BEFORE_JOIN))
-                // Send stronger hint message
-                status.setText(NEED_NICKNAME_BEFORE_JOIN_2);
-            else
-                // Send first hint message (or re-send first if they've seen _2)
-                status.setText(NEED_NICKNAME_BEFORE_JOIN);
-            return null;
+            if (gameOptsTask != null)
+                gameOptsTask.cancel();
+            gameOptsTask = new GameOptionsTimeoutTask(this, client.tcpServGameOpts);
+            eventTimer.schedule(gameOptsTask, 5000 /* ms */ );
         }
-
-        if (n.length() > 20)
+     
+        /**
+         * Cancel the game-options info timeout.
+         * @see #gameOptionsSetTimeoutTask()
+         * @since 1.1.07
+         */
+        private void gameOptionsCancelTimeoutTask()
         {
-            n = n.substring(0, 20);
-        }
-        if (! SOCMessage.isSingleLineAndSafe(n))
-        {
-            status.setText(SOCStatusMessage.MSG_SV_NEWGAME_NAME_REJECTED);
-            return null;
-        }
-        nick.setText(n);
-        if (! precheckOnly)
-            nickname = n;
-        return n;
-    }
-
-    /**
-     * Validate and return the password textfield contents; may be 0-length.
-     * Also set {@link #password} field.
-     * If {@link #gotPassword} already, return current password without checking textfield.
-     * @since 1.1.07
-     */
-    protected String getPassword()
-    {
-        if (gotPassword)
-            return password;
-
-        String p = pass.getText().trim();
-
-        if (p.length() > 20)
-        {
-            p = p.substring(0, 20);
-        }
-
-        password = p;
-        return p;
-    }
-
-    /**
-     * Utility for time-driven events in the client.
-     * For some users, see where-used of this and of {@link SOCPlayerInterface#getEventTimer()}.
-     * @return the timer
-     * @since 1.1.07
-     */
-    public Timer getEventTimer()
-    {
-        return eventTimer;
-    }
-
-    /**
-     * Want to start a new game, on a server which supports options.
-     * Do we know the valid options already?  If so, bring up the options window.
-     * If not, ask the server for them.
-     * Updates tcpServGameOpts, practiceServGameOpts, newGameOptsFrame.
-     * If a {@link NewGameOptionsFrame} is already showing, give it focus
-     * instead of creating a new one.
-     *<P>
-     * For a summary of the flags and variables involved with game options,
-     * and the client/server interaction about their values, see
-     * {@link GameOptionServerSet}.
-     *
-     * @param forPracticeServer  Ask {@link #practiceServer}, instead of remote tcp server?
-     * @since 1.1.07
-     */
-    protected void gameWithOptionsBeginSetup(final boolean forPracticeServer)
-    {
-        if (newGameOptsFrame != null)
-        {
-            newGameOptsFrame.setVisible(true);
-            return;
-        }
-
-        GameOptionServerSet opts;
-
-        // What server are we going against? Do we need to ask it for options?
-        {
-            boolean setKnown = false;
-            if (forPracticeServer)
+            if (gameOptsTask != null)
             {
-                opts = practiceServGameOpts;
-                if (! opts.allOptionsReceived)
-                {
-                    // We know what the practice options will be,
-                    // because they're in our own JAR file.
-                    // Also, the practice server isn't started yet,
-                    // so we can't ask it for the options.
-                    // The practice server will be started when the player clicks
-                    // "Create Game" in the NewGameOptionsFrame, causing the new
-                    // game to be requested from askStartGameWithOptions.
-                    setKnown = true;
-                    opts.optionSet = SOCGameOption.getAllKnownOptions();
-                }
-            } else {
-                opts = tcpServGameOpts;
-                if ((! opts.allOptionsReceived) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS))
-                {
-                    // Server doesn't support them.  Don't ask it.
-                    setKnown = true;
-                    opts.optionSet = null;
-                }
-            }
-
-            if (setKnown)
-            {
-                opts.allOptionsReceived = true;
-                opts.defaultsReceived = true;
+                gameOptsTask.cancel();
+                gameOptsTask = null;
             }
         }
 
-        // Do we already have info on all options?
-        boolean askedAlready, optsAllKnown, knowDefaults;
-        synchronized (opts)
+        public void optionsRequested()
         {
-            askedAlready = opts.askedDefaultsAlready;
-            optsAllKnown = opts.allOptionsReceived;
-            knowDefaults = opts.defaultsReceived;
+            gameOptionsSetTimeoutTask();
         }
-
-        if (askedAlready && ! (optsAllKnown && knowDefaults))
+        
+        public void optionsReceived(GameOptionServerSet opts, boolean isPractice)
         {
-            // If we're only waiting on defaults, how long ago did we ask for them?
-            // If > 5 seconds ago, assume we'll never know the unknown ones, and present gui frame.
-            if (optsAllKnown && (5000 < Math.abs(System.currentTimeMillis() - opts.askedDefaultsTime)))
-            {
-                knowDefaults = true;
-                opts.defaultsReceived = true;
-                if (gameOptsDefsTask != null)
-                {
-                    gameOptsDefsTask.cancel();
-                    gameOptsDefsTask = null;
-                }
-                // since optsAllKnown, will present frame below.
-            } else {
-                return;  // <--- Early return: Already waiting for an answer ----
-            }
-        }
-
-        if (optsAllKnown && knowDefaults)
-        {
-            // All done, present the options window frame
+            gameOptionsCancelTimeoutTask();
             newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (this, null, opts.optionSet, forPracticeServer, false);
-            return;  // <--- Early return: Show options to user ----
+                (GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
         }
-
-        // OK, we need the options.
-        // Ask the server by sending GAMEOPTIONGETDEFAULTS.
-        // (This will never happen for practice games, see above.)
-
-        // May take a while for server to send our info.
-        // The new-game-options window will clear this cursor
-        // (NewGameOptionsFrame constructor)
-
-        status.setText("Talking to server...");
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        opts.newGameWaitingForOpts = true;
-        opts.askedDefaultsAlready = true;
-        opts.askedDefaultsTime = System.currentTimeMillis();
-        gameManager.put(SOCGameOptionGetDefaults.toCmd(null), forPracticeServer);
-
-        if (gameOptsDefsTask != null)
-            gameOptsDefsTask.cancel();
-        gameOptsDefsTask = new GameOptionDefaultsTimeoutTask(this, tcpServGameOpts, forPracticeServer);
-        eventTimer.schedule(gameOptsDefsTask, 5000 /* ms */ );
-
-        // Once options are received, handlers will
-        // create and show NewGameOptionsFrame.
-    }
-
-    /**
-     * Ask server to start a game with options.
-     * If it's practice, will call {@link #startPracticeGame(String, Hashtable, boolean)}.
-     * Otherwise, ask tcp server, and also set WAIT_CURSOR and status line ("Talking to server...").
-     *<P>
-     * Assumes {@link #getValidNickname(boolean) getValidNickname(true)}, {@link #getPassword()}, {@link #host},
-     * and {@link #gotPassword} are already called and valid.
-     *
-     * @param gmName Game name; for practice, null is allowed
-     * @param forPracticeServer Is this for a new game on the practice (not tcp) server?
-     * @param opts Set of {@link SOCGameOption game options} to use, or null
-     * @since 1.1.07
-     * @see #readValidNicknameAndPassword()
-     */
-    public void askStartGameWithOptions(final String gmName, final boolean forPracticeServer, Hashtable<String, SOCGameOption> opts)
-    {
-        if (forPracticeServer)
+        
+        public void optionsReceived(GameOptionServerSet opts, boolean isPractice, boolean isDash, boolean hasAllNow)
         {
-            startPracticeGame(gmName, opts, true);  // Also sets WAIT_CURSOR
-        } else {
-            String askMsg =
-                (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                ? SOCNewGameWithOptionsRequest.toCmd(nickname, password, net.getHost(), gmName, opts)
-                : SOCJoinGame.toCmd(nickname, password, net.getHost(), gmName);
-            System.err.println("L1314 askStartGameWithOptions at " + System.currentTimeMillis());
-            System.err.println("      Got all opts,defaults? " + tcpServGameOpts.allOptionsReceived + " " + tcpServGameOpts.defaultsReceived);
-            net.putNet(askMsg);
-            System.out.flush();  // for debug print output (temporary)
-            status.setText("Talking to server...");
-            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            System.err.println("L1320 askStartGameWithOptions done at " + System.currentTimeMillis());
-            System.err.println("      sent: " + net.lastMessage_N);
-        }
-    }
-
-    /**
-     * Look for active games that we're playing
-     *
-     * @param fromPracticeServer  Enumerate games from {@link #practiceServer},
-     *     instead of {@link #playerInterfaces}?
-     * @return Any found game of ours which is active (state not OVER), or null if none.
-     * @see #anyHostedActiveGames()
-     */
-    protected SOCPlayerInterface findAnyActiveGame(boolean fromPracticeServer)
-    {
-        SOCPlayerInterface pi = null;
-        int gs;  // gamestate
-
-        Collection<String> gameNames;
-        if (fromPracticeServer)
-        {
-            if (net.practiceServer == null)
-                return null;  // <---- Early return: no games if no practice server ----
-            gameNames = net.practiceServer.getGameNames();
-        } else {
-            gameNames = playerInterfaces.keySet();
-        }
-
-        for (String tryGm : gameNames)
-        {
-            if (fromPracticeServer)
+            boolean newGameWaiting;
+            String gameInfoWaiting;
+            synchronized(opts)
             {
-                gs = net.practiceServer.getGameState(tryGm);
-                if (gs < SOCGame.OVER)
-                {
-                    pi = playerInterfaces.get(tryGm);
-                    if (pi != null)
-                        break;  // Active and we have a window with it
-                }
-            } else {
-                pi = playerInterfaces.get(tryGm);
-                if (pi != null)
-                {
-                    // we have a window with it
-                    gs = pi.getGame().getGameState();
-                    if (gs < SOCGame.OVER)
-                        break;      // Active
+                newGameWaiting = opts.newGameWaitingForOpts;
+                gameInfoWaiting = opts.gameInfoWaitingForOpts;
+            }
+            
+            if ((! isPractice) && isDash)
+                gameOptionsCancelTimeoutTask();
 
-                    pi = null;  // Avoid false positive
+            if (hasAllNow)
+            {
+                if (gameInfoWaiting != null)
+                {
+                    Hashtable<String,SOCGameOption> gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
+                    newGameOptsFrame = NewGameOptionsFrame.createAndShow
+                        (GameAwtDisplay.this, gameInfoWaiting, gameOpts, isPractice, true);
+                }
+                else if (newGameWaiting)
+                {
+                    newGameOptsFrame = NewGameOptionsFrame.createAndShow
+                        (GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
                 }
             }
         }
-
-        return pi;  // Active game, or null
     }
+
 
     /**
      * Nested class for processing incoming messages (treating).
@@ -1976,23 +2434,8 @@ public class SOCPlayerClient extends Panel
         if (! isPractice)
         {
             sVersion = vers;
-
-            // Display the version on main panel, unless we're running a server.
-            // (If so, want to display its listening port# instead)
-            if (null == net.localTCPServer)
-            {
-                versionOrlocalTCPPortLabel.setForeground(new Color(252, 251, 243)); // off-white
-                versionOrlocalTCPPortLabel.setText("v " + mes.getVersionString());
-                new AWTToolTip ("Server version is " + mes.getVersionString()
-                                + " build " + mes.getBuild()
-                                + "; client is " + Version.version()
-                                + " bld " + Version.buildnum(),
-                                versionOrlocalTCPPortLabel);
-            }
-
-            if ((net.practiceServer == null) && (sVersion < SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS)
-                    && (gi != null))
-                gi.setEnabled(false);  // server too old for options, so don't use that button
+            
+            gameDisplay.showVersion(vers, mes.getVersionString(), mes.getBuild());
         }
 
         // If we ever require a minimum server version, would check that here.
@@ -2007,7 +2450,7 @@ public class SOCPlayerClient extends Panel
         {
             // Newer server: Ask it to list any options we don't know about yet.
             if (! isPractice)
-                gameOptionsSetTimeoutTask();
+                gameDisplay.optionsRequested();
             gmgr.put(SOCGameOptionGetInfos.toCmd(null), isPractice);  // sends "-"
         }
         else if (sVersion < cliVersion)
@@ -2039,7 +2482,7 @@ public class SOCPlayerClient extends Panel
                 if (tooNewOpts != null)
                 {
                     if (! isPractice)
-                        gameOptionsSetTimeoutTask();
+                        gameDisplay.optionsRequested();
                     gmgr.put(SOCGameOptionGetInfos.toCmd(tooNewOpts.elements()), isPractice);
                 }
             } else {
@@ -2069,16 +2512,7 @@ public class SOCPlayerClient extends Panel
     {
         System.err.println("L2045 statusmsg at " + System.currentTimeMillis());
         final String statusText = mes.getStatus();
-        status.setText(statusText);
-
-        // If warning about debug during initial connect, show that.
-        // That status message would be sent after VERSION.
-        if (statusText.toLowerCase().contains("debug"))
-            versionOrlocalTCPPortLabel.setText
-                (versionOrlocalTCPPortLabel.getText() + ", debug is on");
-
-        // If was trying to join a game, reset cursor from WAIT_CURSOR.
-        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        gameDisplay.showStatus(statusText);
 
         if (mes.getStatusValue() == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
         {
@@ -2116,8 +2550,8 @@ public class SOCPlayerClient extends Panel
             {
                 errMsg = statusText;  // fallback, not expected to happen
             }
-            NotifyDialog.createAndShow(SOCPlayerClient.this, (Frame) null,
-                errMsg, "Cancel", false);
+            
+            gameDisplay.showErrorDialog(errMsg, "Cancel");
         }
     }
 
@@ -2127,24 +2561,8 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleJOINAUTH(SOCJoinAuth mes)
     {
-        nick.setEditable(false);
-        pass.setText("");
-        pass.setEditable(false);
         gotPassword = true;
-        if (! hasJoinedServer)
-        {
-            Container c = getParent();
-            if ((c != null) && (c instanceof Frame))
-            {
-                Frame fr = (Frame) c;
-                fr.setTitle(fr.getTitle() + " [" + nick.getText() + "]");
-            }
-            hasJoinedServer = true;
-        }
-
-        ChannelFrame cf = new ChannelFrame(mes.getChannel(), SOCPlayerClient.this);
-        cf.setVisible(true);
-        channels.put(mes.getChannel(), cf);
+        gameDisplay.channelJoined(mes.getChannel());
     }
 
     /**
@@ -2153,10 +2571,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleJOIN(SOCJoin mes)
     {
-        ChannelFrame fr;
-        fr = channels.get(mes.getChannel());
-        fr.print("*** " + mes.getNickname() + " has joined this channel.\n");
-        fr.addMember(mes.getNickname());
+        gameDisplay.channelJoined(mes.getChannel(), mes.getNickname());
     }
 
     /**
@@ -2165,17 +2580,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleMEMBERS(SOCMembers mes)
     {
-        ChannelFrame fr;
-        fr = channels.get(mes.getChannel());
-
-        Collection<String> membersEnum = mes.getMembers();
-
-        for (String member : membersEnum)
-        {
-            fr.addMember(member);
-        }
-
-        fr.began();
+        gameDisplay.channelMemberList(mes.getChannel(), mes.getMembers());
     }
 
     /**
@@ -2184,7 +2589,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleNEWCHANNEL(SOCNewChannel mes)
     {
-        addToList(mes.getChannel(), chlist);
+        gameDisplay.channelCreated(mes.getChannel());
     }
 
     /**
@@ -2195,26 +2600,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleCHANNELS(SOCChannels mes, final boolean isPractice)
     {
-        //
-        // this message indicates that we're connected to the server
-        //
-        if (! isPractice)
-        {
-            cardLayout.show(SOCPlayerClient.this, MAIN_PANEL);
-            validate();
-
-            status.setText("Login by entering nickname and then joining a channel or game.");
-        }
-
-        Collection<String> channelsEnum = mes.getChannels();
-
-        for (String ch : channelsEnum)
-        {
-            addToList(ch, chlist);
-        }
-
-        if (! isPractice)
-            nick.requestFocus();
+        gameDisplay.channelList(mes.getChannels(), isPractice);
     }
 
     /**
@@ -2223,10 +2609,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleBCASTTEXTMSG(SOCBCastTextMsg mes)
     {
-        for (ChannelFrame fr : channels.values())
-        {
-            fr.print("::: " + mes.getText() + " :::");
-        }
+        gameDisplay.messageBroadcast(mes.getText());
 
         for (PlayerClientListener pcl : clientListeners.values())
         {
@@ -2240,16 +2623,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleTEXTMSG(SOCTextMsg mes)
     {
-        ChannelFrame fr;
-        fr = channels.get(mes.getChannel());
-
-        if (fr != null)
-        {
-            if (!onIgnoreList(mes.getNickname()))
-            {
-                fr.print(mes.getNickname() + ": " + mes.getText());
-            }
-        }
+        gameDisplay.messageReceived(mes.getChannel(), mes.getNickname(), mes.getText());
     }
 
     /**
@@ -2258,10 +2632,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleLEAVE(SOCLeave mes)
     {
-        ChannelFrame fr;
-        fr = channels.get(mes.getChannel());
-        fr.print("*** " + mes.getNickname() + " left.\n");
-        fr.deleteMember(mes.getNickname());
+        gameDisplay.channelLeft(mes.getChannel(), mes.getNickname());
     }
 
     /**
@@ -2270,7 +2641,7 @@ public class SOCPlayerClient extends Panel
      */
     protected void handleDELETECHANNEL(SOCDeleteChannel mes)
     {
-        deleteFromList(mes.getChannel(), chlist);
+        gameDisplay.channelDeleted(mes.getChannel());
     }
 
     /**
@@ -2316,20 +2687,7 @@ public class SOCPlayerClient extends Panel
     protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
     {
         System.err.println("L2299 joingameauth at " + System.currentTimeMillis());
-        nick.setEditable(false);
-        pass.setEditable(false);
-        pass.setText("");
         gotPassword = true;
-        if (! hasJoinedServer)
-        {
-            Container c = getParent();
-            if ((c != null) && (c instanceof Frame))
-            {
-                Frame fr = (Frame) c;
-                fr.setTitle(fr.getTitle() + " [" + nick.getText() + "]");
-            }
-            hasJoinedServer = true;
-        }
 
         final String gaName = mes.getGame();
         Hashtable<String,SOCGameOption> gameOpts;
@@ -2350,12 +2708,8 @@ public class SOCPlayerClient extends Panel
         if (ga != null)
         {
             ga.isPractice = isPractice;
-            SOCPlayerInterface pi = new SOCPlayerInterface(gaName, SOCPlayerClient.this, ga);
-            System.err.println("L2325 new pi at " + System.currentTimeMillis());
-            pi.setVisible(true);
-            System.err.println("L2328 visible at " + System.currentTimeMillis());
-            playerInterfaces.put(gaName, pi);
-            clientListeners.put(gaName, pi.getClientListener());
+            PlayerClientListener clientListener = gameDisplay.gameJoined(ga);
+            clientListeners.put(gaName, clientListener);
             games.put(gaName, ga);
         }
         System.err.println("L2332 handlejoin done at " + System.currentTimeMillis());
@@ -3280,7 +3634,7 @@ public class SOCPlayerClient extends Panel
     {
         net.disconnect();
 
-        showErrorPanel(mes.getText(), (net.ex_P == null));
+        gameDisplay.showErrorPanel(mes.getText(), (net.ex_P == null));
     }
 
     /**
@@ -3490,17 +3844,11 @@ public class SOCPlayerClient extends Panel
         if (unknowns != null)
         {
             if (! isPractice)
-                gameOptionsSetTimeoutTask();
+                gameDisplay.optionsRequested();
             gmgr.put(SOCGameOptionGetInfos.toCmd(unknowns.elements()), isPractice);
         } else {
             opts.newGameWaitingForOpts = false;
-            if (gameOptsDefsTask != null)
-            {
-                gameOptsDefsTask.cancel();
-                gameOptsDefsTask = null;
-            }
-            newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
+            gameDisplay.optionsReceived(opts, isPractice);
         }
     }
 
@@ -3523,32 +3871,14 @@ public class SOCPlayerClient extends Panel
         else
             opts = tcpServGameOpts;
 
-        boolean hasAllNow, newGameWaiting;
-        String gameInfoWaiting;
+        boolean hasAllNow;
         synchronized(opts)
         {
             hasAllNow = opts.receiveInfo(mes);
-            newGameWaiting = opts.newGameWaitingForOpts;
-            gameInfoWaiting = opts.gameInfoWaitingForOpts;
         }
-
-        if ((! isPractice) && mes.getOptionNameKey().equals("-"))
-            gameOptionsCancelTimeoutTask();
-
-        if (hasAllNow)
-        {
-            if (gameInfoWaiting != null)
-            {
-                Hashtable<String,SOCGameOption> gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (SOCPlayerClient.this, gameInfoWaiting, gameOpts, isPractice, true);
-            }
-            else if (newGameWaiting)
-            {
-                newGameOptsFrame = NewGameOptionsFrame.createAndShow
-                    (SOCPlayerClient.this, (String) null, opts.optionSet, isPractice, false);
-            }
-        }
+        
+        boolean isDash = mes.getOptionNameKey().equals("-");
+        gameDisplay.optionsReceived(opts, isPractice, isDash, hasAllNow);
     }
 
     /**
@@ -3786,35 +4116,6 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * add a new channel or game, put it in the list in alphabetical order
-     *
-     * @param thing  the thing to add to the list
-     * @param lst    the list
-     */
-    public void addToList(String thing, java.awt.List lst)
-    {
-        if (lst.getItem(0).equals(" "))
-        {
-            lst.replaceItem(thing, 0);
-            lst.select(0);
-        }
-        else
-        {
-            lst.add(thing, 0);
-
-            /*
-               int i;
-               for(i=lst.getItemCount()-1;i>=0;i--)
-               if(lst.getItem(i).compareTo(thing)<0)
-               break;
-               lst.add(thing, i+1);
-               if(lst.getSelectedIndex()==-1)
-               lst.select(0);
-             */
-        }
-    }
-
-    /**
      * Update this game's stats in the game list display.
      *
      * @param gameName Name of game to update
@@ -3961,39 +4262,6 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * delete a group
-     *
-     * @param thing   the thing to remove
-     * @param lst     the list
-     */
-    public void deleteFromList(String thing, java.awt.List lst)
-    {
-        if (lst.getItemCount() == 1)
-        {
-            if (lst.getItem(0).equals(thing))
-            {
-                lst.replaceItem(" ", 0);
-                lst.deselect(0);
-            }
-
-            return;
-        }
-
-        for (int i = lst.getItemCount() - 1; i >= 0; i--)
-        {
-            if (lst.getItem(i).equals(thing))
-            {
-                lst.remove(i);
-            }
-        }
-
-        if (lst.getSelectedIndex() == -1)
-        {
-            lst.select(lst.getItemCount() - 1);
-        }
-    }
-
-    /**
      * send a text message to a channel
      *
      * @param ch   the name of the channel
@@ -4014,7 +4282,7 @@ public class SOCPlayerClient extends Panel
      */
     public void leaveChannel(String ch)
     {
-        channels.remove(ch);
+        gameDisplay.channelLeft(ch);
         net.putNet(SOCLeave.toCmd(nickname, net.getHost(), ch));
     }
 
@@ -4160,7 +4428,6 @@ public class SOCPlayerClient extends Panel
      */
     public void leaveGame(SOCGame ga)
     {
-        client.playerInterfaces.remove(ga.getName());
         client.clientListeners.remove(ga.getName());
         client.games.remove(ga.getName());
         put(SOCLeaveGame.toCmd(client.nickname, net.getHost(), ga.getName()), ga.isPractice);
@@ -4590,34 +4857,6 @@ public class SOCPlayerClient extends Panel
     }
 
     /**
-     * Start the game-options info timeout
-     * ({@link GameOptionsTimeoutTask}) at 5 seconds.
-     * @see #gameOptionsCancelTimeoutTask()
-     * @since 1.1.07
-     */
-    private void gameOptionsSetTimeoutTask()
-    {
-        if (gameOptsTask != null)
-            gameOptsTask.cancel();
-        gameOptsTask = new GameOptionsTimeoutTask(this, tcpServGameOpts);
-        eventTimer.schedule(gameOptsTask, 5000 /* ms */ );
-    }
- 
-    /**
-     * Cancel the game-options info timeout.
-     * @see #gameOptionsSetTimeoutTask()
-     * @since 1.1.07
-     */
-    private void gameOptionsCancelTimeoutTask()
-    {
-        if (gameOptsTask != null)
-        {
-            gameOptsTask.cancel();
-            gameOptsTask = null;
-        }
-    }
-
-    /**
      * Create a game name, and start a practice game.
      * Assumes {@link #MAIN_PANEL} is initialized.
      */
@@ -4805,10 +5044,7 @@ public class SOCPlayerClient extends Panel
         }
         err = err + ((net.ex == null) ? "Load the page again." : net.ex.toString());
 
-        for (ChannelFrame cf : channels.values())
-        {
-            cf.over(err);
-        }
+        gameDisplay.channelsClosed(err);
 
         // Stop network games; Practice games can continue.
         for (Map.Entry<String, PlayerClientListener> e : clientListeners.entrySet())
@@ -4824,65 +5060,7 @@ public class SOCPlayerClient extends Panel
         
         net.dispose();
 
-        showErrorPanel(err, canPractice);
-    }
-
-    /**
-     * After network trouble, show the error panel ({@link #MESSAGE_PANEL})
-     * instead of the main user/password/games/channels panel ({@link #MAIN_PANEL}).
-     *<P>
-     * If {@link #hasConnectOrPractice we have the startup panel} with buttons to connect
-     * to a server or practice, we'll show that instead of the simpler practice-only message panel.
-     *
-     * @param err  Error message to show
-     * @param canPractice  In current state of client, can we start a practice game?
-     * @since 1.1.16
-     */
-    private void showErrorPanel(final String err, final boolean canPractice)
-    {
-        // In case was WAIT_CURSOR while connecting
-        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-
-        if (canPractice)
-        {
-            messageLabel_top.setText(err);
-            messageLabel_top.setVisible(true);
-            messageLabel.setText(NET_UNAVAIL_CAN_PRACTICE_MSG);
-            pgm.setVisible(true);
-        }
-        else
-        {
-            messageLabel_top.setVisible(false);
-            messageLabel.setText(err);
-            pgm.setVisible(false);
-        }
-
-        if (hasConnectOrPractice)
-        {
-            // If we have the startup panel with buttons to connect to a server or practice,
-            // prep to show that by un-setting read-only fields we'll need again after connect.
-            nick.setEditable(true);
-            pass.setText("");
-            pass.setEditable(true);
-
-            cardLayout.show(this, CONNECT_OR_PRACTICE_PANEL);
-            validate();
-            connectOrPracticePane.clickConnCancel();
-            connectOrPracticePane.setTopText(err);
-            connectOrPracticePane.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        }
-        else
-        {
-            cardLayout.show(this, MESSAGE_PANEL);
-            validate();
-            if (canPractice)
-            {
-                if (null == findAnyActiveGame(true))
-                    pgm.requestFocus();  // No practice games: put this msg as topmost window
-                else
-                    pgm.requestFocusInWindow();  // Practice game is active; don't interrupt to show this
-            }
-        }
+        gameDisplay.showErrorPanel(err, canPractice);
     }
 
     /**
@@ -4898,11 +5076,14 @@ public class SOCPlayerClient extends Panel
      */
     public static void main(String[] args)
     {
-        SOCPlayerClient client;
+        GameAwtDisplay gameDisplay = null;
+        SOCPlayerClient client = null;
 
         if (args.length == 0)
         {
-            client = new SOCPlayerClient(true);
+            gameDisplay = new GameAwtDisplay(true);
+            client = new SOCPlayerClient(gameDisplay);
+            gameDisplay.setClient(client);
         }
         else
         {
@@ -4912,7 +5093,9 @@ public class SOCPlayerClient extends Panel
                 System.exit(1);
             }
 
-            client = new SOCPlayerClient(false);
+            gameDisplay = new GameAwtDisplay(false);
+            client = new SOCPlayerClient(gameDisplay);
+            gameDisplay.setClient(client);
 
             try {
                 String host = args[0];
@@ -4933,20 +5116,15 @@ public class SOCPlayerClient extends Panel
         frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
         frame.setForeground(Color.black);
         // Add a listener for the close event
-        frame.addWindowListener(client.createWindowAdapter());
+        frame.addWindowListener(gameDisplay.createWindowAdapter());
         
-        client.initVisualElements(); // after the background is set
+        gameDisplay.initVisualElements(); // after the background is set
         
-        frame.add(client, BorderLayout.CENTER);
+        frame.add(gameDisplay, BorderLayout.CENTER);
         frame.setSize(620, 400);
         frame.setVisible(true);
     }
 
-    private WindowAdapter createWindowAdapter()
-    {
-        return new ClientWindowAdapter(this);
-    }
-    
     public ClientNetwork getNet()
     {
         return net;
@@ -5058,8 +5236,7 @@ public class SOCPlayerClient extends Panel
                 }
                 catch (Throwable th)
                 {
-                    NotifyDialog.createAndShow
-                        (client, null, "Problem starting practice server:\n" + th, "Cancel", true);
+                    client.gameDisplay.showErrorDialog("Problem starting practice server:\n" + th, "Cancel");
                 }
             }
             if (prCli == null)
@@ -5074,8 +5251,7 @@ public class SOCPlayerClient extends Panel
                         (Version.versionNumber(), Version.version(), Version.buildnum(), Locale.getDefault().toString()));
 
                     // practice server will support per-game options
-                    if (client.gi != null)
-                        client.gi.setEnabled(true);
+                    client.gameDisplay.enableOptions();
                 }
                 catch (ConnectException e)
                 {
@@ -5131,8 +5307,7 @@ public class SOCPlayerClient extends Panel
             }
             catch (Throwable th)
             {
-                NotifyDialog.createAndShow
-                    (client, null, "Problem starting server:\n" + th, "Cancel", true);
+                client.gameDisplay.showErrorDialog("Problem starting server:\n" + th, "Cancel");
                 return false;
             }
 
@@ -5183,7 +5358,7 @@ public class SOCPlayerClient extends Panel
             }
                     
             System.out.println("Connecting to " + hostString);
-            client.messageLabel.setText("Connecting to server...");
+            client.gameDisplay.setMessage("Connecting to server...");
             
             try
             {
@@ -5202,7 +5377,7 @@ public class SOCPlayerClient extends Panel
                 ex = e;
                 String msg = "Could not connect to the server: " + ex;
                 System.err.println(msg);
-                client.showErrorPanel(msg, (ex_P == null));
+                client.gameDisplay.showErrorPanel(msg, (ex_P == null));
             }
         }
         
@@ -5467,12 +5642,12 @@ public class SOCPlayerClient extends Panel
 
     }  // nested class ClientNetwork
 
-    /** React to windowOpened, windowClosing events for SOCPlayerClient's Frame. */
+    /** React to windowOpened, windowClosing events for GameAwtDisplay's Frame. */
     private static class ClientWindowAdapter extends WindowAdapter
     {
-        private final SOCPlayerClient cli;
+        private final GameAwtDisplay cli;
 
-        public ClientWindowAdapter(SOCPlayerClient c)
+        public ClientWindowAdapter(GameAwtDisplay c)
         {
             cli = c;
         }
@@ -5494,14 +5669,14 @@ public class SOCPlayerClient extends Panel
 
             if (piActive != null)
             {
-                SOCQuitAllConfirmDialog.createAndShow(piActive.getClient(), piActive);
+                SOCQuitAllConfirmDialog.createAndShow(piActive.getGameDisplay(), piActive);
                 return;
             }
             boolean canAskHostingGames = false;
             boolean isHostingActiveGames = false;
 
             // Are we running a server?
-            ClientNetwork cnet = cli.getNet();
+            ClientNetwork cnet = cli.getClient().getNet();
             if (cnet.isRunningLocalServer())
                 isHostingActiveGames = cnet.anyHostedActiveGames();
 
@@ -5519,7 +5694,7 @@ public class SOCPlayerClient extends Panel
             if (! canAskHostingGames)
             {
                 // Just quit.
-                cli.getNet().putLeaveAll();
+                cli.getClient().getNet().putLeaveAll();
                 System.exit(0);
             }
         }
@@ -5549,10 +5724,10 @@ public class SOCPlayerClient extends Panel
      */
     private static class GameOptionsTimeoutTask extends TimerTask
     {
-        public SOCPlayerClient pcli;
+        public GameAwtDisplay pcli;
         public GameOptionServerSet srvOpts;
 
-        public GameOptionsTimeoutTask (SOCPlayerClient c, GameOptionServerSet opts)
+        public GameOptionsTimeoutTask (GameAwtDisplay c, GameOptionServerSet opts)
         {
             pcli = c;
             srvOpts = opts;
@@ -5566,7 +5741,7 @@ public class SOCPlayerClient extends Panel
         {
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
-            pcli.treater.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
+            pcli.getClient().treater.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
         }
 
     }  // GameOptionsTimeoutTask
@@ -5585,11 +5760,11 @@ public class SOCPlayerClient extends Panel
      */
     private static class GameOptionDefaultsTimeoutTask extends TimerTask
     {
-        public SOCPlayerClient pcli;
+        public GameAwtDisplay pcli;
         public GameOptionServerSet srvOpts;
         public boolean forPracticeServer;
 
-        public GameOptionDefaultsTimeoutTask (SOCPlayerClient c, GameOptionServerSet opts, boolean forPractice)
+        public GameOptionDefaultsTimeoutTask (GameAwtDisplay c, GameOptionServerSet opts, boolean forPractice)
         {
             pcli = c;
             srvOpts = opts;
@@ -5776,6 +5951,7 @@ public class SOCPlayerClient extends Panel
     public static class SOCApplet extends Applet
     {
         SOCPlayerClient client;
+        GameAwtDisplay gameDisplay;
         
         /**
          * Retrieve a parameter and translate to a hex value.
@@ -5808,8 +5984,8 @@ public class SOCPlayerClient extends Panel
         @Override
         public void start()
         {
-            if (!client.hasConnectOrPractice)
-                client.nick.requestFocus();
+            if (!gameDisplay.hasConnectOrPractice)
+                gameDisplay.nick.requestFocus();
         }
         
         /**
@@ -5818,7 +5994,9 @@ public class SOCPlayerClient extends Panel
         @Override
         public synchronized void init()
         {
-            client = new SOCPlayerClient();
+            gameDisplay = new GameAwtDisplay(false);
+            client = new SOCPlayerClient(gameDisplay);
+            gameDisplay.setClient(client);
             
             System.out.println("Java Settlers Client " + Version.version() +
                                ", build " + Version.buildnum() + ", " + Version.copyright());
@@ -5835,16 +6013,16 @@ public class SOCPlayerClient extends Panel
             if (intValue != -1)
                 setForeground(new Color(intValue));
 
-            client.initVisualElements(); // after the background is set
-            add(client);
+            gameDisplay.initVisualElements(); // after the background is set
+            add(gameDisplay);
 
             param = getParameter("suggestion");
             if (param != null)
-                client.channel.setText(param); // after visuals initialized
+                gameDisplay.channel.setText(param); // after visuals initialized
 
             param = getParameter("nickname");  // for use with dynamically-generated html
             if (param != null)
-                client.nick.setText(param);
+                gameDisplay.nick.setText(param);
 
             System.out.println("Getting host...");
             String host = getCodeBase().getHost();

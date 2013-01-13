@@ -21,6 +21,7 @@
  **/
 package soc.client;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
@@ -316,8 +317,9 @@ public class SOCPlayerInterface extends Frame
     protected Color[] playerColors, playerColorsGhost;
 
     /**
-     * the client that spawned us
+     * the display that spawned us
      */
+    protected GameAwtDisplay gameDisplay;
     protected SOCPlayerClient client;
 
     /**
@@ -428,12 +430,12 @@ public class SOCPlayerInterface extends Frame
      * create a new player interface
      *
      * @param title  title for this interface - game name
-     * @param cl     the player client that spawned us
+     * @param gd     the player display that spawned us
      * @param ga     the game associated with this interface
      */
-    public SOCPlayerInterface(String title, SOCPlayerClient cl, SOCGame ga)
+    public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga)
     {
-        super(TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + cl.getNickname() + "]"));
+        super(TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + gd.getNickname() + "]"));
         if (ga == null)
             // keep even though it is dead code
             throw new IllegalArgumentException("game is null");
@@ -441,7 +443,8 @@ public class SOCPlayerInterface extends Frame
         setResizable(true);
         layoutNotReadyYet = true;  // will set to false at end of doLayout
 
-        client = cl;
+        this.gameDisplay = gd;
+        client = gd.getClient();
         game = ga;
         game.setScenarioEventListener(this);
         clientListener = new ClientBridge(this);
@@ -669,7 +672,7 @@ public class SOCPlayerInterface extends Frame
         /** If player requests window close, ask if they're sure, leave game if so */
         if (firstCall)
         {
-            addWindowListener(new MyWindowAdapter(this));
+            addWindowListener(new PIWindowAdapter(gameDisplay, this));
         }
     }
 
@@ -761,7 +764,12 @@ public class SOCPlayerInterface extends Frame
      */
     public SOCPlayerClient getClient()
     {
-        return client;
+        return gameDisplay.getClient();
+    }
+    
+    public GameAwtDisplay getGameDisplay()
+    {
+        return gameDisplay;
     }
 
     /**
@@ -830,7 +838,7 @@ public class SOCPlayerInterface extends Frame
      */
     public Timer getEventTimer()
     {
-        return client.getEventTimer();
+        return gameDisplay.getEventTimer();
     }
 
     /**
@@ -1284,6 +1292,7 @@ public class SOCPlayerInterface extends Frame
      */
     public void leaveGame()
     {
+        gameDisplay.leaveGame(game);
         client.getGameManager().leaveGame(game);
         dispose();
     }
@@ -1392,7 +1401,7 @@ public class SOCPlayerInterface extends Frame
             boardResetRequester.resetBoardSetMessage(pleaseMsg);
 
             String requester = game.getPlayer(pnRequester).getName();
-            boardResetVoteDia = new ResetBoardVoteDialog(client, this, requester, gaOver);
+            boardResetVoteDia = new ResetBoardVoteDialog(gameDisplay, this, requester, gaOver);
             boardResetVoteDia.showInNewThread();
                // Separate thread so ours is not tied up; this allows server
                // messages to be received, and screen to refresh, if other
@@ -2139,7 +2148,7 @@ public class SOCPlayerInterface extends Frame
             showingPlayerDiscardOrPick_task = new SOCPIDiscardOrPickMsgTask(this, isDiscard);
 
             // Run once, after a brief delay in case only robots must discard.
-            client.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
+            gameDisplay.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
         }
     }
 
@@ -2561,7 +2570,7 @@ public class SOCPlayerInterface extends Frame
          */
         if (layoutNotReadyYet)
         {
-            client.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            gameDisplay.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
             layoutNotReadyYet = false;
             repaint();
         }
@@ -3209,7 +3218,7 @@ public class SOCPlayerInterface extends Frame
          * @param requester  Name of player requesting the reset
          * @param gameIsOver The game is over - "Reset" button should be default (if not over, "Continue" is default)
          */
-        protected ResetBoardVoteDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
+        protected ResetBoardVoteDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
             super(cli, gamePI, "Reset board of game "
                     + gamePI.getGame().getName() + "?",
@@ -3319,7 +3328,7 @@ public class SOCPlayerInterface extends Frame
          */
         protected ChooseMoveRobberOrPirateDialog()
         {
-            super(getClient(), SOCPlayerInterface.this,
+            super(getGameDisplay(), SOCPlayerInterface.this,
                 "Move robber or pirate?",
                 "Do you want to move the robber or the pirate ship?",
                 "Move Robber",
@@ -3421,7 +3430,7 @@ public class SOCPlayerInterface extends Frame
          */
         protected ChooseRobClothOrResourceDialog(final int vpn)
         {
-            super(getClient(), SOCPlayerInterface.this,
+            super(getGameDisplay(), SOCPlayerInterface.this,
                 "Rob cloth or resource?",
                 "Do you want to steal cloth or a resource from this player?",
                 "Steal Cloth",
@@ -3504,12 +3513,14 @@ public class SOCPlayerInterface extends Frame
      * @author jdmonin
      * @since 1.1.00
      */
-    private static class MyWindowAdapter extends WindowAdapter
+    private static class PIWindowAdapter extends WindowAdapter
     {
-        private SOCPlayerInterface pi;
+        private final GameAwtDisplay gd;
+        private final SOCPlayerInterface pi;
 
-        public MyWindowAdapter(SOCPlayerInterface spi)
+        public PIWindowAdapter(GameAwtDisplay gd, SOCPlayerInterface spi)
         {
+            this.gd = gd;
             pi = spi;
         }
 
@@ -3521,7 +3532,7 @@ public class SOCPlayerInterface extends Frame
         public void windowClosing(WindowEvent e)
         {
             if (pi.clientHandPlayerNum != -1)
-                SOCQuitConfirmDialog.createAndShow(pi.getClient(), pi);
+                SOCQuitConfirmDialog.createAndShow(gd, pi);
             else
                 pi.leaveGame();
         }

@@ -871,7 +871,7 @@ public class SOCHandPanel extends Panel
         }
         else if (target == QUIT)
         {
-            SOCQuitConfirmDialog.createAndShow(client, playerInterface);
+            SOCQuitConfirmDialog.createAndShow(playerInterface.getGameDisplay(), playerInterface);
         }
         else if (target == DONE)
         {
@@ -1027,7 +1027,7 @@ public class SOCHandPanel extends Panel
             }
         }
 
-        NotifyDialog.createAndShow(client, playerInterface, sb.toString(), null, true);
+        NotifyDialog.createAndShow(playerInterface.getGameDisplay(), playerInterface, sb.toString(), null, true);
     }
 
     /** required stub for MouseListener */

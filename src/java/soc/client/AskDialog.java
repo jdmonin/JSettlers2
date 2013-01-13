@@ -40,6 +40,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.StringTokenizer;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
 
 /**
  * This is the generic modal dialog to ask players a two- or three-choice question;
@@ -50,7 +51,7 @@ import java.util.StringTokenizer;
  * If title bar text contains \n, only its first line (before \n) is used.
  *<P>
  * To react to button presses, override the abstract methods
- * {@link #button1Chosen()}, {@link #button2Chosen()}, 
+ * {@link #button1Chosen()}, {@link #button2Chosen()},
  * {@link #windowCloseChosen()}, and (for a three-choice
  * question) override {@link #button3Chosen()}.
  *
@@ -60,7 +61,7 @@ public abstract class AskDialog extends Dialog
     implements ActionListener, WindowListener, KeyListener, MouseListener
 {
     /** Player client; passed to constructor, not null */
-    protected final SOCPlayerClient pcli;
+    protected final GameAwtDisplay pcli;
 
     /**
      * Player interface; passed to constructor; may be null if the
@@ -118,7 +119,7 @@ public abstract class AskDialog extends Dialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI,
+    public AskDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
@@ -138,7 +139,7 @@ public abstract class AskDialog extends Dialog
      * parentFr cannot be null; use {@link #getParentFrame(Component)} to find it.
      * @since 1.1.06
      */
-    protected AskDialog(SOCPlayerClient cli, Frame parentFr,
+    protected AskDialog(GameAwtDisplay cli, Frame parentFr,
         String titlebar, String prompt, String btnText,
         boolean hasDefault)
         throws IllegalArgumentException
@@ -166,7 +167,7 @@ public abstract class AskDialog extends Dialog
      * @throws IllegalArgumentException If both default1 and default2 are true,
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2.
      */
-    public AskDialog(SOCPlayerClient cli, Frame parentFr,
+    public AskDialog(GameAwtDisplay cli, Frame parentFr,
         String titlebar, String prompt, String choice1, String choice2,
         boolean default1, boolean default2)
         throws IllegalArgumentException
@@ -196,7 +197,7 @@ public abstract class AskDialog extends Dialog
      *    or if any of these is null: cli, gamePI, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI,
+    public AskDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
@@ -228,7 +229,7 @@ public abstract class AskDialog extends Dialog
      *    or if any of these is null: cli, parentFr, prompt, choice1, choice2,
      *    or if choice3 is null and defaultChoice is 3.
      */
-    public AskDialog(SOCPlayerClient cli, Frame parentFr,
+    public AskDialog(GameAwtDisplay cli, Frame parentFr,
         String titlebar, String prompt, String choice1, String choice2, String choice3,
         int defaultChoice)
         throws IllegalArgumentException
@@ -304,7 +305,7 @@ public abstract class AskDialog extends Dialog
                 promptLines = 1;
                 msg = new Label(prompt, Label.CENTER);
                 add(msg, BorderLayout.NORTH);
-                promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);                
+                promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
             }
         }
 
@@ -333,7 +334,7 @@ public abstract class AskDialog extends Dialog
             if (choice3But != null)
             {
                 pBtns.add(choice3But);
-                choice3But.addActionListener(this);            
+                choice3But.addActionListener(this);
             }
         }
 
@@ -410,7 +411,7 @@ public abstract class AskDialog extends Dialog
     {
         try
         {
-            Font bf = b.getFont();            
+            Font bf = b.getFont();
             if (bf == null)
                 bf = new Font("Dialog", Font.BOLD, 12);
             else
