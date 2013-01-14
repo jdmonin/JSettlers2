@@ -3872,7 +3872,10 @@ public class SOCPlayerClient
     protected void handleCLEARTRADEMSG(SOCClearTradeMsg mes)
     {
         SOCGame ga = games.get(mes.getGame());
-        SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
+        int pn = mes.getPlayerNumber();
+        SOCPlayer player = null;
+        if (pn != -1)
+            player = ga.getPlayer(pn);
         
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
         pcl.requestedTradeReset(player);
