@@ -1220,7 +1220,7 @@ public class SOCPlayerInterface extends Frame
             String name = cmd.substring(8);
             client.addToIgnoreList(name);
             print("* Ignoring " + name);
-            client.printIgnoreList(this);
+            gameDisplay.printIgnoreList(this);
 
             return true;
         }
@@ -1229,7 +1229,7 @@ public class SOCPlayerInterface extends Frame
             String name = cmd.substring(10);
             client.removeFromIgnoreList(name);
             print("* Unignoring " + name);
-            client.printIgnoreList(this);
+            gameDisplay.printIgnoreList(this);
 
             return true;
         }

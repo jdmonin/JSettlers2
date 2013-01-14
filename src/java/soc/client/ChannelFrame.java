@@ -193,7 +193,7 @@ public class ChannelFrame extends Frame
             if (s.length() > 0)
             {
                 tf.setText("");
-                cc.getClient().chSend(cname, s + "\n");
+                cc.chSend(cname, s + "\n");
 
                 history.setElementAt(s, history.size() - 1);
                 history.addElement("");

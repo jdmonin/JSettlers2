@@ -302,7 +302,8 @@ public class SOCPlayerClient
          * Assumes the dialog panels are all initialized.
          */
         void clickPracticeButton();
-
+        void practiceGameStarting();
+        
         void setMessage(String string);
 
         void showErrorDialog(String errMessage, String buttonText);
@@ -331,6 +332,11 @@ public class SOCPlayerClient
         void optionsRequested();
         void optionsReceived(GameOptionServerSet opts, boolean isPractice);
         void optionsReceived(GameOptionServerSet opts, boolean isPractice, boolean isDash, boolean hasAllNow);
+        
+        void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList);
+        void updateGameStats(String gameName, int[] scores, boolean[] robots);
+        boolean deleteFromGameList(String gameName, final boolean isPractice);
+        
     }
 
     /**
@@ -1840,6 +1846,366 @@ public class SOCPlayerClient
                 }
             }
         }
+        
+        /**
+         * add a new game to the initial window's list of games.
+         * If client can't join, also add to {@link #serverGames} as an unjoinable game.
+         *
+         * @param cannotJoin Can we not join this game?
+         * @param gameName the game name to add to the list;
+         *                 must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
+         * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
+         * @param addToSrvList Should this game be added to the list of remote-server games?
+         *                 Practice games should not be added.
+         */
+        public void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList)
+        {
+            if (addToSrvList)
+            {
+                if (client.serverGames == null)
+                    client.serverGames = new SOCGameList();
+                client.serverGames.addGame(gameName, gameOptsStr, cannotJoin);
+            }
+
+            if (cannotJoin)
+            {
+                // for display:
+                // "(cannot join) "     TODO color would be nice
+                gameName = GAMENAME_PREFIX_CANNOT_JOIN + gameName;
+            }
+
+            // String gameName = thing + STATSPREFEX + "-- -- -- --]";
+
+            if ((gmlist.getItemCount() > 0) && (gmlist.getItem(0).equals(" ")))
+            {
+                gmlist.replaceItem(gameName, 0);
+                gmlist.select(0);
+                jg.setEnabled(true);
+                gi.setEnabled((client.net.practiceServer != null)
+                    || (client.sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS));
+            }
+            else
+            {
+                gmlist.add(gameName, 0);
+            }
+        }
+
+        /**
+         * Update this game's stats in the game list display.
+         *
+         * @param gameName Name of game to update
+         * @param scores Each player position's score
+         * @param robots Is this position a robot?
+         * 
+         * @see soc.message.SOCGameStats
+         */
+        public void updateGameStats(String gameName, int[] scores, boolean[] robots)
+        {
+            //D.ebugPrintln("UPDATE GAME STATS FOR "+gameName);
+            String testString = gameName + STATSPREFEX;
+
+            for (int i = 0; i < gmlist.getItemCount(); i++)
+            {
+                if (gmlist.getItem(i).startsWith(testString))
+                {
+                    String updatedString = gameName + STATSPREFEX;
+
+                    for (int pn = 0; pn < (scores.length - 1); pn++)
+                    {
+                        if (scores[pn] != -1)
+                        {
+                            if (robots[pn])
+                            {
+                                updatedString += "#";
+                            }
+                            else
+                            {
+                                updatedString += "o";
+                            }
+
+                            updatedString += (scores[pn] + " ");
+                        }
+                        else
+                        {
+                            updatedString += "-- ";
+                        }
+                    }
+
+                    if (scores[scores.length - 1] != -1)
+                    {
+                        if (robots[scores.length - 1])
+                        {
+                            updatedString += "#";
+                        }
+                        else
+                        {
+                            updatedString += "o";
+                        }
+
+                        updatedString += (scores[scores.length - 1] + "]");
+                    }
+                    else
+                    {
+                        updatedString += "--]";
+                    }
+
+                    gmlist.replaceItem(updatedString, i);
+
+                    break;
+                }
+            }
+        }
+
+        /**
+         * delete a game from the list.
+         * If it's on the list, also remove from {@link #serverGames}.
+         *
+         * @param gameName  the game to remove
+         * @param isPractice   Game is practice, not at tcp server?
+         * @return true if deleted, false if not found in list
+         */
+        public boolean deleteFromGameList(String gameName, final boolean isPractice)
+        {
+            //String testString = gameName + STATSPREFEX;
+            String testString = gameName;
+
+            if (gmlist.getItemCount() == 1)
+            {
+                if (gmlist.getItem(0).startsWith(testString))
+                {
+                    gmlist.replaceItem(" ", 0);
+                    gmlist.deselect(0);
+
+                    if ((! isPractice) && (client.serverGames != null))
+                    {
+                        client.serverGames.deleteGame(gameName);  // may not be in there
+                    }
+                    return true;
+                }
+
+                return false;
+            }
+
+            boolean found = false;
+
+            for (int i = gmlist.getItemCount() - 1; i >= 0; i--)
+            {
+                if (gmlist.getItem(i).startsWith(testString))
+                {
+                    gmlist.remove(i);
+                    found = true;
+                }
+            }
+
+            if (gmlist.getSelectedIndex() == -1)
+            {
+                gmlist.select(gmlist.getItemCount() - 1);
+            }
+
+            if (found && (! isPractice) && (client.serverGames != null))
+            {
+                client.serverGames.deleteGame(gameName);  // may not be in there
+            }
+
+            return found;
+        }
+        
+        /**
+         * send a text message to a channel
+         *
+         * @param ch   the name of the channel
+         * @param mes  the message
+         */
+        public void chSend(String ch, String mes)
+        {
+            if (!doLocalCommand(ch, mes))
+            {
+                client.net.putNet(SOCTextMsg.toCmd(ch, client.nickname, mes));
+            }
+        }
+
+        /**
+         * Handle local client commands for channels.
+         *
+         * @param cmd  Local client command string, such as \ignore or \&shy;unignore
+         * @return true if a command was handled
+         */
+        public boolean doLocalCommand(String ch, String cmd)
+        {
+            ChannelFrame fr = channels.get(ch);
+
+            if (cmd.startsWith("\\ignore "))
+            {
+                String name = cmd.substring(8);
+                client.addToIgnoreList(name);
+                fr.print("* Ignoring " + name);
+                printIgnoreList(fr);
+
+                return true;
+            }
+            else if (cmd.startsWith("\\unignore "))
+            {
+                String name = cmd.substring(10);
+                client.removeFromIgnoreList(name);
+                fr.print("* Unignoring " + name);
+                printIgnoreList(fr);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /** Print the current chat ignorelist in a channel. */
+        protected void printIgnoreList(ChannelFrame fr)
+        {
+            fr.print("* Ignore list:");
+
+            for (String s : client.ignoreList)
+            {
+                fr.print("* " + s);
+            }
+        }
+
+        /** Print the current chat ignorelist in a playerinterface. */
+        protected void printIgnoreList(SOCPlayerInterface pi)
+        {
+            pi.print("* Ignore list:");
+
+            for (String s : client.ignoreList)
+            {
+                pi.print("* " + s);
+            }
+        }
+        
+        public void practiceGameStarting()
+        {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        }
+
+        /**
+         * Setup for locally hosting a TCP server.
+         * If needed, a {@link ClientNetwork#localTCPServer local server} and robots are started, and client connects to it.
+         * If parent is a Frame, set titlebar to show "server" and port#.
+         * Show port number in {@link #versionOrlocalTCPPortLabel}.
+         * If the {@link #localTCPServer} is already created, does nothing.
+         * If {@link #connected} already, does nothing.
+         *
+         * @param tport Port number to host on; must be greater than zero.
+         * @throws IllegalArgumentException If port is 0 or negative
+         */
+        public void startLocalTCPServer(final int tport)
+            throws IllegalArgumentException
+        {
+            if (client.net.localTCPServer != null)
+            {
+                return;  // Already set up
+            }
+            if (client.net.isConnected())
+            {
+                return;  // Already connected somewhere
+            }
+            if (tport < 1)
+            {
+                throw new IllegalArgumentException("Port must be positive: " + tport);
+            }
+
+            // May take a while to start server.
+            // At end of method, we'll clear this cursor.
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+            if (! client.net.initLocalServer(tport))
+            {
+                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                return;  // Unable to start local server, or bind to port
+            }
+
+            MouseAdapter mouseListener = new MouseAdapter()
+            {
+                /**
+                 * When the local-server info label is clicked,
+                 * show a popup with more info.
+                 * @since 1.1.12
+                 */
+                @Override
+                public void mouseClicked(MouseEvent e)
+                {
+                    NotifyDialog.createAndShow
+                        (GameAwtDisplay.this,
+                         null,
+                         "For other players to connect to your server,\n" +
+                                 "they need only your IP address and port number.\n" +
+                                 "No other server software install is needed.\n" +
+                                 "Make sure your firewall allows inbound traffic on " +
+                                 "port " + client.net.getLocalServerPort() + ".",
+                         "OK",
+                         true);
+                }
+
+                /**
+                 * Set the hand cursor when entering the local-server info label.
+                 * @since 1.1.12
+                 */
+                @Override
+                public void mouseEntered(MouseEvent e)
+                {
+                    if (e.getSource() == localTCPServerLabel)
+                        setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                }
+
+                /**
+                 * Clear the cursor when exiting the local-server info label.
+                 * @since 1.1.12
+                 */
+                @Override
+                public void mouseExited(MouseEvent e)
+                {
+                    if (e.getSource() == localTCPServerLabel)
+                        setCursor(Cursor.getDefaultCursor());
+                }
+            };
+            
+            // Set label
+            localTCPServerLabel.setText("Server is Running. (Click for info)");
+            localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
+            localTCPServerLabel.addMouseListener(mouseListener);
+            versionOrlocalTCPPortLabel.setText("Port: " + tport);
+            new AWTToolTip("You are running a server on TCP port " + tport
+                + ". Version " + Version.version()
+                + " bld " + Version.buildnum(),
+                versionOrlocalTCPPortLabel);
+            versionOrlocalTCPPortLabel.addMouseListener(mouseListener);
+
+            // Set titlebar, if present
+            {
+                Container parent = this.getParent();
+                if ((parent != null) && (parent instanceof Frame))
+                {
+                    try
+                    {
+                        ((Frame) parent).setTitle("JSettlers server " + Version.version()
+                            + " - port " + tport);
+                    } catch (Throwable t) {
+                        // no titlebar is fine
+                    }
+                }
+            }
+            
+            cardLayout.show(this, MESSAGE_PANEL);
+            // Connect to it
+            client.net.connect("localhost", tport);
+
+            // Ensure we can't "connect" to another, too
+            if (connectOrPracticePane != null)
+            {
+                connectOrPracticePane.startedLocalServer();
+            }
+
+            // Reset the cursor
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        }
     }
 
 
@@ -2774,8 +3140,8 @@ public class SOCPlayerClient
      */
     protected void handleDELETEGAME(SOCDeleteGame mes, final boolean isPractice)
     {
-        if (! deleteFromGameList(mes.getGame(), isPractice))
-            deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + mes.getGame(), isPractice);
+        if (! gameDisplay.deleteFromGameList(mes.getGame(), isPractice))
+            gameDisplay.deleteFromGameList(GAMENAME_PREFIX_CANNOT_JOIN + mes.getGame(), isPractice);
     }
 
     /**
@@ -2798,7 +3164,7 @@ public class SOCPlayerClient
         int[] scores = mes.getScores();
         
         // Update game list (initial window)
-        updateGameStats(ga, scores, mes.getRobotSeats());
+        gameDisplay.updateGameStats(ga, scores, mes.getRobotSeats());
         
         // If we're playing in a game, update the scores. (SOCPlayerInterface)
         // This is used to show the true scores, including hidden
@@ -3896,7 +4262,7 @@ public class SOCPlayerClient
             gname = gname.substring(1);
             canJoin = false;
         }
-        addToGameList(! canJoin, gname, opts, ! isPractice);
+        gameDisplay.addToGameList(! canJoin, gname, opts, ! isPractice);
     }
 
     /**
@@ -3928,7 +4294,7 @@ public class SOCPlayerClient
 
         for (String gaName : msgGames.getGameNames())
         {
-            addToGameList(msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
+            gameDisplay.addToGameList(msgGames.isUnjoinableGame(gaName), gaName, msgGames.getGameOptionsString(gaName), false);
         }
     }
 
@@ -4069,116 +4435,7 @@ public class SOCPlayerClient
         {
             gameName = gameName.substring(1);
         }
-        addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
-    }
-
-    /**
-     * add a new game to the initial window's list of games.
-     * If client can't join, also add to {@link #serverGames} as an unjoinable game.
-     *
-     * @param cannotJoin Can we not join this game?
-     * @param gameName the game name to add to the list;
-     *                 must not have the prefix {@link SOCGames#MARKER_THIS_GAME_UNJOINABLE}.
-     * @param gameOptsStr String of packed {@link SOCGameOption game options}, or null
-     * @param addToSrvList Should this game be added to the list of remote-server games?
-     *                 Practice games should not be added.
-     */
-    public void addToGameList(final boolean cannotJoin, String gameName, String gameOptsStr, final boolean addToSrvList)
-    {
-        if (addToSrvList)
-        {
-            if (serverGames == null)
-                serverGames = new SOCGameList();
-            serverGames.addGame(gameName, gameOptsStr, cannotJoin);
-        }
-
-        if (cannotJoin)
-        {
-            // for display:
-            // "(cannot join) "     TODO color would be nice
-            gameName = GAMENAME_PREFIX_CANNOT_JOIN + gameName;
-        }
-
-        // String gameName = thing + STATSPREFEX + "-- -- -- --]";
-
-        if ((gmlist.getItemCount() > 0) && (gmlist.getItem(0).equals(" ")))
-        {
-            gmlist.replaceItem(gameName, 0);
-            gmlist.select(0);
-            jg.setEnabled(true);
-            gi.setEnabled((net.practiceServer != null)
-                || (sVersion >= SOCNewGameWithOptions.VERSION_FOR_NEWGAMEWITHOPTIONS));
-        }
-        else
-        {
-            gmlist.add(gameName, 0);
-        }
-    }
-
-    /**
-     * Update this game's stats in the game list display.
-     *
-     * @param gameName Name of game to update
-     * @param scores Each player position's score
-     * @param robots Is this position a robot?
-     * 
-     * @see soc.message.SOCGameStats
-     */
-    public void updateGameStats(String gameName, int[] scores, boolean[] robots)
-    {
-        //D.ebugPrintln("UPDATE GAME STATS FOR "+gameName);
-        String testString = gameName + STATSPREFEX;
-
-        for (int i = 0; i < gmlist.getItemCount(); i++)
-        {
-            if (gmlist.getItem(i).startsWith(testString))
-            {
-                String updatedString = gameName + STATSPREFEX;
-
-                for (int pn = 0; pn < (scores.length - 1); pn++)
-                {
-                    if (scores[pn] != -1)
-                    {
-                        if (robots[pn])
-                        {
-                            updatedString += "#";
-                        }
-                        else
-                        {
-                            updatedString += "o";
-                        }
-
-                        updatedString += (scores[pn] + " ");
-                    }
-                    else
-                    {
-                        updatedString += "-- ";
-                    }
-                }
-
-                if (scores[scores.length - 1] != -1)
-                {
-                    if (robots[scores.length - 1])
-                    {
-                        updatedString += "#";
-                    }
-                    else
-                    {
-                        updatedString += "o";
-                    }
-
-                    updatedString += (scores[scores.length - 1] + "]");
-                }
-                else
-                {
-                    updatedString += "--]";
-                }
-
-                gmlist.replaceItem(updatedString, i);
-
-                break;
-            }
-        }
+        gameDisplay.addToGameList(hasUnjoinMarker, gameName, gameOptsStr, addToSrvList);
     }
     
     /** If we're playing in a game that's just finished, update the scores.
@@ -4205,74 +4462,6 @@ public class SOCPlayerClient
             scoresMap.put(ga.getPlayer(i), Integer.valueOf(scores[i]));
         }
         pcl.gameEnded(scoresMap);
-    }
-
-    /**
-     * delete a game from the list.
-     * If it's on the list, also remove from {@link #serverGames}.
-     *
-     * @param gameName  the game to remove
-     * @param isPractice   Game is practice, not at tcp server?
-     * @return true if deleted, false if not found in list
-     */
-    public boolean deleteFromGameList(String gameName, final boolean isPractice)
-    {
-        //String testString = gameName + STATSPREFEX;
-        String testString = gameName;
-
-        if (gmlist.getItemCount() == 1)
-        {
-            if (gmlist.getItem(0).startsWith(testString))
-            {
-                gmlist.replaceItem(" ", 0);
-                gmlist.deselect(0);
-
-                if ((! isPractice) && (serverGames != null))
-                {
-                    serverGames.deleteGame(gameName);  // may not be in there
-                }
-                return true;
-            }
-
-            return false;
-        }
-
-        boolean found = false;
-
-        for (int i = gmlist.getItemCount() - 1; i >= 0; i--)
-        {
-            if (gmlist.getItem(i).startsWith(testString))
-            {
-                gmlist.remove(i);
-                found = true;
-            }
-        }
-
-        if (gmlist.getSelectedIndex() == -1)
-        {
-            gmlist.select(gmlist.getItemCount() - 1);
-        }
-
-        if (found && (! isPractice) && (serverGames != null))
-        {
-            serverGames.deleteGame(gameName);  // may not be in there
-        }
-
-        return found;
-    }
-
-    /**
-     * send a text message to a channel
-     *
-     * @param ch   the name of the channel
-     * @param mes  the message
-     */
-    public void chSend(String ch, String mes)
-    {
-        if (!doLocalCommand(ch, mes))
-        {
-            net.putNet(SOCTextMsg.toCmd(ch, nickname, mes));
-        }
     }
 
     /**
@@ -4755,40 +4944,6 @@ public class SOCPlayerClient
     }  // nested class GameManager
 
     /**
-     * Handle local client commands for channels.
-     *
-     * @param cmd  Local client command string, such as \ignore or \&shy;unignore
-     * @return true if a command was handled
-     */
-    public boolean doLocalCommand(String ch, String cmd)
-    {
-        ChannelFrame fr = channels.get(ch);
-
-        if (cmd.startsWith("\\ignore "))
-        {
-            String name = cmd.substring(8);
-            addToIgnoreList(name);
-            fr.print("* Ignoring " + name);
-            printIgnoreList(fr);
-
-            return true;
-        }
-        else if (cmd.startsWith("\\unignore "))
-        {
-            String name = cmd.substring(10);
-            removeFromIgnoreList(name);
-            fr.print("* Unignoring " + name);
-            printIgnoreList(fr);
-
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /**
      * @return true if name is on the ignore list
      */
     protected boolean onIgnoreList(String name)
@@ -4834,28 +4989,6 @@ public class SOCPlayerClient
         ignoreList.removeElement(name);
     }
 
-    /** Print the current chat ignorelist in a channel. */
-    protected void printIgnoreList(ChannelFrame fr)
-    {
-        fr.print("* Ignore list:");
-
-        for (String s : ignoreList)
-        {
-            fr.print("* " + s);
-        }
-    }
-
-    /** Print the current chat ignorelist in a playerinterface. */
-    protected void printIgnoreList(SOCPlayerInterface pi)
-    {
-        pi.print("* Ignore list:");
-
-        for (String s : ignoreList)
-        {
-            pi.print("* " + s);
-        }
-    }
-
     /**
      * Create a game name, and start a practice game.
      * Assumes {@link #MAIN_PANEL} is initialized.
@@ -4885,131 +5018,9 @@ public class SOCPlayerClient
 
         // May take a while to start server & game.
         // The new-game window will clear this cursor.
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        gameDisplay.practiceGameStarting();
 
         net.startPracticeGame(practiceGameName, gameOpts);
-    }
-
-    /**
-     * Setup for locally hosting a TCP server.
-     * If needed, a {@link ClientNetwork#localTCPServer local server} and robots are started, and client connects to it.
-     * If parent is a Frame, set titlebar to show "server" and port#.
-     * Show port number in {@link #versionOrlocalTCPPortLabel}.
-     * If the {@link #localTCPServer} is already created, does nothing.
-     * If {@link #connected} already, does nothing.
-     *
-     * @param tport Port number to host on; must be greater than zero.
-     * @throws IllegalArgumentException If port is 0 or negative
-     */
-    public void startLocalTCPServer(final int tport)
-        throws IllegalArgumentException
-    {
-        if (net.localTCPServer != null)
-        {
-            return;  // Already set up
-        }
-        if (net.isConnected())
-        {
-            return;  // Already connected somewhere
-        }
-        if (tport < 1)
-        {
-            throw new IllegalArgumentException("Port must be positive: " + tport);
-        }
-
-        // May take a while to start server.
-        // At end of method, we'll clear this cursor.
-        setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
-        if (! net.initLocalServer(tport))
-        {
-            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-            return;  // Unable to start local server, or bind to port
-        }
-
-        MouseAdapter mouseListener = new MouseAdapter()
-        {
-            /**
-             * When the local-server info label is clicked,
-             * show a popup with more info.
-             * @since 1.1.12
-             */
-            @Override
-            public void mouseClicked(MouseEvent e)
-            {
-                NotifyDialog.createAndShow
-                    (SOCPlayerClient.this,
-                     null,
-                     "For other players to connect to your server,\n" +
-                             "they need only your IP address and port number.\n" +
-                             "No other server software install is needed.\n" +
-                             "Make sure your firewall allows inbound traffic on " +
-                             "port " + net.getLocalServerPort() + ".",
-                     "OK",
-                     true);
-            }
-
-            /**
-             * Set the hand cursor when entering the local-server info label.
-             * @since 1.1.12
-             */
-            @Override
-            public void mouseEntered(MouseEvent e)
-            {
-                if (e.getSource() == localTCPServerLabel)
-                    setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            }
-
-            /**
-             * Clear the cursor when exiting the local-server info label.
-             * @since 1.1.12
-             */
-            @Override
-            public void mouseExited(MouseEvent e)
-            {
-                if (e.getSource() == localTCPServerLabel)
-                    setCursor(Cursor.getDefaultCursor());
-            }
-        };
-        
-        // Set label
-        localTCPServerLabel.setText("Server is Running. (Click for info)");
-        localTCPServerLabel.setFont(getFont().deriveFont(Font.BOLD));
-        localTCPServerLabel.addMouseListener(mouseListener);
-        versionOrlocalTCPPortLabel.setText("Port: " + tport);
-        new AWTToolTip("You are running a server on TCP port " + tport
-            + ". Version " + Version.version()
-            + " bld " + Version.buildnum(),
-            versionOrlocalTCPPortLabel);
-        versionOrlocalTCPPortLabel.addMouseListener(mouseListener);
-
-        // Set titlebar, if present
-        {
-            Container parent = this.getParent();
-            if ((parent != null) && (parent instanceof Frame))
-            {
-                try
-                {
-                    ((Frame) parent).setTitle("JSettlers server " + Version.version()
-                        + " - port " + tport);
-                } catch (Throwable t) {
-                    // no titlebar is fine
-                }
-            }
-        }
-        
-        cardLayout.show(this, MESSAGE_PANEL);
-        // Connect to it
-        net.connect("localhost", tport);
-
-        // Ensure we can't "connect" to another, too
-        if (connectOrPracticePane != null)
-        {
-            connectOrPracticePane.startedLocalServer();
-        }
-
-        // Reset the cursor
-        setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     }
 
     /**

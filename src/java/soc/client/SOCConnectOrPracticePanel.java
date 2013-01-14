@@ -572,7 +572,7 @@ public class SOCConnectOrPracticePanel extends Panel
             // TODO show error?
             return;
         }
-        gd.getClient().startLocalTCPServer(srport);
+        gd.startLocalTCPServer(srport);
     }
 
     /** Hide fields used to start a server */
