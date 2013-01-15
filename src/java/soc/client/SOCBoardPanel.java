@@ -91,6 +91,9 @@ import java.util.Timer;
  */
 public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionListener
 {
+    //strings
+    private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
+    
     /**
      * Hex and port graphics are in this directory.
      * The rotated versions for the 6-player non-sea board are in <tt><i>IMAGEDIR</i>/rotat</tt>.
@@ -4167,19 +4170,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         final int no7roundsleft = game.getGameOptionIntValue("N7") - game.getRoundCount();
                         if (no7roundsleft == 0)
                         {
-                            topText = "Last round for \"No 7s\"";
+                            topText = /*I*/"Last round for \"No 7s\""/*18N*/;
                         } else if (no7roundsleft > 0)
                         {
                             if (playerInterface.clientIsCurrentPlayer()
                               && playerInterface.getClientHand().isClientAndCurrentlyCanRoll())
-                                topText = (1 + no7roundsleft) + " rounds left for \"No 7s\"";
+                                topText = /*I*/(1 + no7roundsleft) + " rounds left for \"No 7s\""/*18N*/;
                         }
                     }
                     break;
 
                 case SOCGame.SPECIAL_BUILDING:
                     mode = NONE;
-                    topText = "Special Building: " + player.getName();
+                    topText = /*I*/"Special Building: " + player.getName()/*18N*/;
                     break;
 
                 default:
@@ -4194,7 +4197,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                 if (game.isSpecialBuilding())
                 {
-                    topText = "Special Building: " + game.getPlayer(cpn).getName();
+                    topText = /*I*/"Special Building: " + game.getPlayer(cpn).getName()/*18N*/;
                 }
                 else if (game.isGameOptionSet("N7"))
                 {
@@ -4202,7 +4205,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     // Show if we're about to be able to roll a 7.  (1.1.09)
                     final int no7roundsleft = game.getGameOptionIntValue("N7") - game.getRoundCount();
                     if (no7roundsleft == 0)
-                        topText = "Last round for \"No 7s\"";
+                        /*I*/topText = "Last round for \"No 7s\""/*18N*/;
                 }
             }
         }
@@ -4674,7 +4677,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             && ((SOCBoardLarge) board).isHexInLandAreas
                                 (hexNum, ((SOCBoardLarge) board).getRobberExcludedLandAreas()))
                         {
-                            hoverTip.setHoverText("Cannot move the robber here.");
+                            hoverTip.setHoverText(/*I*/"Cannot move the robber here."/*18N*/);
                         } else {
                             hoverTip.setHoverText(null);  // clear any previous
                         }
@@ -6128,25 +6131,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     String portDesc = portDescAtNode(id);
                     if (portDesc != null)
                     {
-                        sb.append(portDesc);  // "3:1 Port", "2:1 Wood port"
+                        sb.append(portDesc);  // "game.port.three", "game.port.wood"
                         if (p.getType() == SOCPlayingPiece.CITY)
-                            sb.append(" city: ");
+                            sb.append(".city");
                         else
-                            sb.append(": ");  // port, not port city
+                            sb.append(".stlmt");  // port, not port city
                         hoverIsPort = true;
                     }
                     else
                     {
                         if (p.getType() == SOCPlayingPiece.CITY)
-                            sb.append("City: ");
+                            sb.append("game.city");
                         else
-                            sb.append("Settlement: ");
+                            sb.append("game.stlmt");
                     }
                     String plName = p.getPlayer().getName();
                     if (plName == null)
-                        plName = "unowned";
-                    sb.append(plName);
-                    setHoverText(sb.toString());
+                        plName = /*I*/"unowned"/*18N*/;
+                    setHoverText(strings.get(sb.toString(), plName, board.getPortTypeFromNodeCoord(id)));
                     hoverTextSet = true;
 
                     // If we're at the player's settlement, ready to upgrade to city
@@ -6181,7 +6183,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hoverIsPort = false;
                             hoverTextSet = true;
                             hoverCityID = 0;
-                            setHoverText("Village for cloth trade on " + vi.diceNum + " (" + vi.getCloth() + " cloth)");
+                            setHoverText(/*I*/"Village for cloth trade on " + vi.diceNum + " (" + vi.getCloth() + " cloth)"/*18N*/);
                         }
                     }
 
@@ -6199,7 +6201,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             }
                             else if (player.isPotentialSettlement(id))
                             {
-                                setHoverText("Not allowed to settle here");
+                                setHoverText(/*I*/"Not allowed to settle here"/*18N*/);
                                 hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
                                 hoverID = id;
                                 hoverIsPort = false;
@@ -6215,7 +6217,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         && player.isLegalSettlement(id)
                         && ! player.isPotentialSettlement(id))
                     {
-                        setHoverText("Initial placement not allowed here");
+                        setHoverText(/*I*/"Initial placement not allowed here"/*18N*/);
                         hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
                         hoverID = id;
                         hoverIsPort = false;
@@ -6234,7 +6236,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         String portDesc = portDescAtNode(id);
                         if (portDesc != null)
                         {
-                            setHoverText(portDesc);
+                            setHoverText(strings.get(portDesc, board.getPortTypeFromNodeCoord(id)));
                             hoverTextSet = true;
                             hoverMode = PLACE_INIT_SETTLEMENT;  // const used for hovering-at-port
                             hoverID = id;
@@ -6280,11 +6282,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         hoverID = id;
                         String plName = p.getPlayer().getName();
                         if (plName == null)
-                            plName = "unowned";
+                            plName = /*I*/"unowned"/*18N*/;
                         if (isRoad)
-                            setHoverText("Road: " + plName);
+                            setHoverText(/*I*/"Road: " + plName/*18N*/);
                         else
-                            setHoverText("Ship: " + plName);
+                            setHoverText(/*I*/"Ship: " + plName/*18N*/);
 
                         // Can the player move their ship?
                         if (modeAllowsHoverPieces && playerIsCurrent
@@ -6367,44 +6369,52 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverID = id;
 
                 {
-                    StringBuffer sb = new StringBuffer();
                     final int htype = board.getHexTypeFromCoord(id);
                     final int dicenum = board.getNumberOnHexFromCoord(id);
+                    
+                    StringBuffer key = new StringBuffer("game.hex.hoverformat");
+                    String hname = "";
+                    String addinfo = "";
+                    int hid = htype;
+                    boolean showDice = false;
+                    
                     switch (htype)
                     {
                     case SOCBoard.DESERT_HEX:
-                        sb.append("Desert");  break;
+                        hname = "game.hex.desert";  break;
                     case SOCBoard.CLAY_HEX:
-                        sb.append("Clay");    break;
+                        hname = "game.hex.clay";    break;
                     case SOCBoard.ORE_HEX:
-                        sb.append("Ore");     break;
+                        hname = "game.hex.ore";     break;
                     case SOCBoard.SHEEP_HEX:
-                        sb.append("Sheep");   break;
+                        hname = "game.hex.sheep";   break;
                     case SOCBoard.WHEAT_HEX:
-                        sb.append("Wheat");   break;
+                        hname = "game.hex.wheat";   break;
                     case SOCBoard.WOOD_HEX:
-                        sb.append("Wood");    break;
+                        hname = "game.hex.wood";    break;
                     case SOCBoard.WATER_HEX:
-                        sb.append("Water");   break;
+                        hname = "game.hex.water";   break;
 
                     case SOCBoardLarge.GOLD_HEX:
                         if (isLargeBoard)
-                            sb.append("Gold");
+                            hname = "game.hex.gold";
                         else
                             // GOLD_HEX is also MISC_PORT_HEX
-                            sb.append(portDescForType(SOCBoard.MISC_PORT));
+                            hid = SOCBoard.MISC_PORT;
+                            hname = portDescForType(hid);
                         break;
 
                     case SOCBoardLarge.FOG_HEX:
                         if (isLargeBoard)
                         {
                             if (game.isInitialPlacement())
-                                sb.append("Fog (place ships or settlements to reveal)");
+                                hname = "game.hex.fog.s";
                             else
-                                sb.append("Fog (place ships or roads to reveal)");
+                                hname = "game.hex.fog.r";
                         } else {
                             // FOG_HEX is also CLAY_PORT_HEX
-                            sb.append(portDescForType(SOCBoard.CLAY_PORT));
+                            hid = SOCBoard.CLAY_PORT;
+                            hname = portDescForType(hid);
                         }
                         break;
 
@@ -6416,63 +6426,56 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             String portDesc = null;
                             if ((htype >= SOCBoard.MISC_PORT_HEX) && (htype <= SOCBoard.WOOD_PORT_HEX))
                             {
-                                portDesc = portDescForType(htype - (SOCBoard.MISC_PORT_HEX - SOCBoard.MISC_PORT));
+                                hid = htype - (SOCBoard.MISC_PORT_HEX - SOCBoard.MISC_PORT);
+                                portDesc = portDescForType(hid);
                             }
                             if (portDesc != null)
                             {
-                                sb.append(portDesc);
+                                hname = portDesc;
                             } else {
-                                sb.append("Hex type ");
-                                sb.append(htype);
+                                hid = htype;
+                                hname = "game.hex.generic";
                             }
                         }
                     }
                     if (board.getRobberHex() == id)
                     {
-                        if (dicenum > 0)
-                        {
-                            sb.append(": ");
-                            sb.append(dicenum);
-                        }
-                        sb.append(" (ROBBER)");
+                        showDice = dicenum > 0;
+                        addinfo = "game.hex.addinfo.robber";
                     }
                     else if (board.getPreviousRobberHex() == id)
                     {
-                        if (dicenum > 0)
-                        {
-                            sb.append(": ");
-                            sb.append(dicenum);
-                        }
-                        sb.append(" (robber was here)");
+                        showDice = dicenum > 0;
+                        addinfo = "game.hex.addinfo.past.robber";
                     }
                     else if (isLargeBoard)
                     {
                         final SOCBoardLarge bl = (SOCBoardLarge) board;
                         if (bl.getPirateHex() == id)
                         {
-                            if (dicenum > 0)
-                            {
-                                sb.append(": ");
-                                sb.append(dicenum);
-                            }
-                            sb.append(" (PIRATE SHIP)");
+                            showDice = dicenum > 0;
+                            addinfo = "game.hex.addinfo.pirate";
                         }
                         else if (bl.getPreviousPirateHex() == id)
                         {
-                            if (dicenum > 0)
-                            {
-                                sb.append(": ");
-                                sb.append(dicenum);
-                            }
-                            sb.append(" (pirate was here)");
+                            showDice = dicenum > 0;
+                            addinfo = "game.hex.addinfo.past.pirate";
                         }
                         else if (bl.isHexInLandAreas(id, bl.getPlayerExcludedLandAreas()))
                         {
                             // Give the player an early warning, even if roads/ships aren't near this hex
-                            sb.append(" (cannot settle here)");
+                            addinfo = "game.hex.addinfo.cantsettle";
                         }
                     }
-                    setHoverText(sb.toString());
+                    hname = strings.get(hname, hid);
+                    if(showDice){
+                        key.append(".dice");
+                    }
+                    if(addinfo.length() != 0){
+                        key.append(".addi");
+                        addinfo = strings.get(addinfo);
+                    }
+                    setHoverText(strings.get(key.toString(), hname, dicenum, addinfo));
                 }
                 
                 return;  // <--- Early return: Found hex ---
@@ -6516,6 +6519,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *    Text format is "3:1 Port" or "2:1 Wood port".
          * @since 1.1.08
          */
+        //TODO i18n docu new return type, now returns locale
         public String portDescForType(final int portType)
         {
             if (portType == -1)
@@ -6525,32 +6529,32 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             switch (portType)
             {
             case SOCBoard.MISC_PORT:
-                portDesc = "3:1 Port";
+                portDesc = "game.port.three";
                 break;
 
             case SOCBoard.CLAY_PORT:
-                portDesc = "2:1 Clay port";
+                portDesc = "game.port.clay";
                 break;
 
             case SOCBoard.ORE_PORT:
-                portDesc = "2:1 Ore port";
+                portDesc = "game.port.ore";
                 break;
 
             case SOCBoard.SHEEP_PORT:
-                portDesc = "2:1 Sheep port";
+                portDesc = "game.port.sheep";
                 break;
 
             case SOCBoard.WHEAT_PORT:
-                portDesc = "2:1 Wheat port";
+                portDesc = "game.port.wheat";
                 break;
 
             case SOCBoard.WOOD_PORT:
-                portDesc = "2:1 Wood port";
+                portDesc = "game.port.wood";
                 break;
 
             default:
                 // Just in case
-                portDesc = "port type " + portType;
+                portDesc = "game.port.generic";
             }
 
             return portDesc;
@@ -6634,14 +6638,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         super ("JSettlers");
         bp = bpanel;
 
-        buildRoadItem = new MenuItem("Build Road");
-        buildSettleItem = new MenuItem("Build Settlement");
-        upgradeCityItem = new MenuItem("Upgrade to City");
+        buildRoadItem = new MenuItem(/*I*/"Build Road"/*18N*/);
+        buildSettleItem = new MenuItem(/*I*/"Build Settlement"/*18N*/);
+        upgradeCityItem = new MenuItem(/*I*/"Upgrade to City"/*18N*/);
         if (game.hasSeaBoard)
-            buildShipItem = new MenuItem("Build Ship");
+            buildShipItem = new MenuItem(/*I*/"Build Ship"/*18N*/);
         else
             buildShipItem = null;
-        cancelBuildItem = new MenuItem("Cancel build");
+        cancelBuildItem = new MenuItem(/*I*/"Cancel build"/*18N*/);
         portTradeSubmenu = null;
 
         add(buildRoadItem);
@@ -6684,7 +6688,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           if (buildShipItem != null)
           {
               buildShipItem.setEnabled(false);
-              buildShipItem.setLabel("Build Ship");
+              buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
           }
           cancelBuildItem.setEnabled(menuPlayerIsCurrent && game.canCancelBuildPiece(buildType));
 
@@ -6694,28 +6698,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           switch (buildType)
           {
           case SOCPlayingPiece.ROAD:
-              cancelBuildItem.setLabel("Cancel road");
+              cancelBuildItem.setLabel(/*I*/"Cancel road"/*18N*/);
               buildRoadItem.setEnabled(menuPlayerIsCurrent);
               hoverRoadID = hilightAt;
               break;
 
           case SOCPlayingPiece.SETTLEMENT:
-              cancelBuildItem.setLabel("Cancel settlement");
+              cancelBuildItem.setLabel(/*I*/"Cancel settlement"/*18N*/);
               buildSettleItem.setEnabled(menuPlayerIsCurrent);
               hoverSettlementID = hilightAt;
               break;
 
           case SOCPlayingPiece.CITY:
-              cancelBuildItem.setLabel("Cancel city upgrade");
+              cancelBuildItem.setLabel(/*I*/"Cancel city upgrade"/*18N*/);
               upgradeCityItem.setEnabled(menuPlayerIsCurrent);
               hoverCityID = hilightAt;
               break;
 
           case SOCPlayingPiece.SHIP:
               if (mode == MOVE_SHIP)
-                  cancelBuildItem.setLabel("Cancel ship move");
+                  cancelBuildItem.setLabel(/*I*/"Cancel ship move"/*18N*/);
               else
-                  cancelBuildItem.setLabel("Cancel ship");
+                  cancelBuildItem.setLabel(/*I*/"Cancel ship"/*18N*/);
               hoverShipID = hilightAt;
               break;
 
@@ -6745,7 +6749,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           isInitialPlacement = false;
           isShipMovable = false;
           cancelBuildItem.setEnabled(false);
-          cancelBuildItem.setLabel("Cancel build");
+          cancelBuildItem.setLabel(/*I*/"Cancel build"/*18N*/);
           if (portTradeSubmenu != null)
           {
               // Cleanup from last time
@@ -6800,7 +6804,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                       buildShipItem.setEnabled(hSh != 0);
                   if (! game.isDebugFreePlacement())
                   {
-                      cancelBuildItem.setLabel("Cancel settlement");  // Initial settlement
+                      cancelBuildItem.setLabel(/*I*/"Cancel settlement"/*18N*/);  // Initial settlement
                       cancelBuildItem.setEnabled(true);
                       cancelBuildType = SOCPlayingPiece.SETTLEMENT;
                   }
@@ -6810,7 +6814,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   if (game.isPractice || (playerInterface.getClient().sVersion >= SOCGame.VERSION_FOR_CANCEL_FREE_ROAD2))
                   {
                       cancelBuildItem.setEnabled(true);
-                      cancelBuildItem.setLabel("Skip road or ship");
+                      cancelBuildItem.setLabel(/*I*/"Skip road or ship"/*18N*/);
                   }
                   // Fall through to enable/disable building menu items
 
@@ -6836,7 +6840,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (buildShipItem != null)
               {
                   buildShipItem.setEnabled(false);
-                  buildShipItem.setLabel("Build Ship");
+                  buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
               }
               hoverRoadID = 0;
               hoverSettlementID = 0;
@@ -6869,10 +6873,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (isShipMovable)
                     {
                         hSh = -hSh;
-                        buildShipItem.setLabel("Move Ship");
+                        buildShipItem.setLabel(/*I*/"Move Ship"/*18N*/);
                         buildShipItem.setEnabled(true);  // trust the caller's game checks
                     } else {
-                        buildShipItem.setLabel("Build Ship");
+                        buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
                         buildShipItem.setEnabled
                         ( game.canPlaceShip(player, hSh) &&
                           (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
@@ -7019,7 +7023,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           
           if (! canBuild)
           {
-              playerInterface.print("Sorry, you cannot build there.");
+              playerInterface.print(/*I*/"Sorry, you cannot build there."/*18N*/);
               return;
           }
           
@@ -7085,7 +7089,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       private void tryMoveShip()
       {
-          playerInterface.print("Click the ship's new location.");
+          playerInterface.print(/*I*/"Click the ship's new location."/*18N*/);
           moveShip_fromEdge = hoverShipID;
           mode = MOVE_SHIP;
           hilight = 0;
@@ -7114,7 +7118,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         public ResourceTradeAllMenu(SOCBoardPanel bp, SOCHandPanel hp)
             throws IllegalStateException
         {
-            super(hp, "Trade Port");
+            super(hp, /*I*/"Trade Port"/*18N*/);
             bpanel = bp;
             SOCPlayerInterface pi = hp.getPlayerInterface();
             if (! pi.clientIsCurrentPlayer())
@@ -7331,12 +7335,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         protected MoveRobberConfirmDialog(SOCPlayer player, final int newRobHex)
         {
             super(playerInterface.getClient(), playerInterface,
-                ((newRobHex > 0) ? "Move robber to your hex?" : "Move pirate to your hex?"),
+                ((newRobHex > 0) ? /*I*/"Move robber to your hex?"/*18N*/ : /*I*/"Move pirate to your hex?"/*18N*/),
                 ((newRobHex > 0)
-                    ? "Are you sure you want to move the robber to your own hex?"
-                    : "Are you sure you want to move the pirate to your own hex?"),
-                ((newRobHex > 0) ? "Move Robber" : "Move Pirate"),
-                "Don't move there",
+                    ? /*I*/"Are you sure you want to move the robber to your own hex?"/*18N*/
+                    : /*I*/"Are you sure you want to move the pirate to your own hex?"/*18N*/),
+                ((newRobHex > 0) ? /*I*/"Move Robber"/*18N*/ : /*I*/"Move Pirate"/*18N*/),
+                /*I*/"Don't move there"/*18N*/,
                 null, 2);
             rdt = null;
             pl = player;
