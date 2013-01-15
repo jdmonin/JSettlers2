@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.game.SOCGameOption;
 import soc.game.SOCScenario;
 import soc.message.SOCMessage;
@@ -82,7 +83,7 @@ public class NewGameOptionsFrame extends Frame
     private static final String TXT_SERVER_TOO_OLD
         = "This server version does not support game options.";
 
-    private SOCPlayerClient cl;
+    private final GameAwtDisplay gameDisplay;
 
     /** should this be sent to the remote tcp server, or local practice server? */
     private final boolean forPractice;
@@ -148,12 +149,12 @@ public class NewGameOptionsFrame extends Frame
      *                 Null if server doesn't support game options.
      *                 Unknown options ({@link SOCGameOption#OTYPE_UNKNOWN}) will be removed.
      *                 If not <tt>readOnly</tt>, each option's {@link SOCGameOption#userChanged userChanged}
-     *                 flag will be cleared, to reset status from any previously shown NewGameOptionsFrame. 
+     *                 flag will be cleared, to reset status from any previously shown NewGameOptionsFrame.
      * @param forPractice Will this game be on local practice server, vs remote tcp server?
      * @param readOnly    Is this display-only (for use during a game), or can it be changed (making a new game)?
      */
     public NewGameOptionsFrame
-        (SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
+        (GameAwtDisplay gd, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         super( readOnly
                 ? ("Game info and options: " + gaName)
@@ -164,7 +165,8 @@ public class NewGameOptionsFrame extends Frame
 
         setLayout(new BorderLayout());
 
-        this.cl = cli;
+        this.gameDisplay = gd;
+        SOCPlayerClient cli = gd.getClient();
         this.opts = opts;
         this.forPractice = forPractice;
         this.readOnly = readOnly;
@@ -198,8 +200,8 @@ public class NewGameOptionsFrame extends Frame
          * complete - reset mouse cursor from hourglass to normal
          * (was set to hourglass before calling this constructor)
          */
-        cli.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-        cli.status.setText("");  // clear "Talking to server..."
+        gd.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+        gd.status.setText("");  // clear "Talking to server..."
     }
 
     /**
@@ -210,7 +212,7 @@ public class NewGameOptionsFrame extends Frame
      * @return the new frame
      */
     public static NewGameOptionsFrame createAndShow
-        (SOCPlayerClient cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
+        (GameAwtDisplay cli, String gaName, Hashtable<String, SOCGameOption> opts, boolean forPractice, boolean readOnly)
     {
         NewGameOptionsFrame ngof = new NewGameOptionsFrame(cli, gaName, opts, forPractice, readOnly);
         ngof.pack();
@@ -333,7 +335,7 @@ public class NewGameOptionsFrame extends Frame
      */
     private void initInterface_Options(Panel bp, GridBagLayout gbl, GridBagConstraints gbc)
     {
-        final boolean hideUnderscoreOpts = (! readOnly) && (! cl.nick.getText().equalsIgnoreCase("debug"));
+        final boolean hideUnderscoreOpts = (! readOnly) && (! gameDisplay.nick.getText().equalsIgnoreCase("debug"));
 
         Label L;
 
@@ -755,6 +757,7 @@ public class NewGameOptionsFrame extends Frame
             return;  // Not a valid game name
         }
 
+        SOCPlayerClient cl = gameDisplay.getClient();
         /**
          * Is this game name already used?
          * Always check remote server for the requested game name.
@@ -769,16 +772,16 @@ public class NewGameOptionsFrame extends Frame
             gameExists = gameExists || cl.serverGames.isGame(gmName);
         if (gameExists)
         {
-            NotifyDialog.createAndShow(cl, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
+            NotifyDialog.createAndShow(gameDisplay, this, SOCStatusMessage.MSG_SV_NEWGAME_ALREADY_EXISTS, null, true);
             return;
         }
 
-        if (cl.readValidNicknameAndPassword())
+        if (gameDisplay.readValidNicknameAndPassword())
         {
             if (readOptsValuesFromControls(checkOptionsMinVers))
             {
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));  // Immediate feedback in this frame
-                cl.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR, in main client frame
+                gameDisplay.askStartGameWithOptions(gmName, forPractice, opts);  // Also sets WAIT_CURSOR, in main client frame
             } else {
                 return;  // readOptsValues will put the err msg in dia's status line
             }
@@ -787,7 +790,7 @@ public class NewGameOptionsFrame extends Frame
             // so the user must have gone back and changed it.
             // Can't correct the problem from within this dialog, since the
             // nickname field (and hint message) is in SOCPlayerClient's panel.
-            NotifyDialog.createAndShow(cl, this, "Please go back and enter a valid nickname for your user.", null, true);
+            NotifyDialog.createAndShow(gameDisplay, this, "Please go back and enter a valid nickname for your user.", null, true);
             return;
         }
 
@@ -806,8 +809,8 @@ public class NewGameOptionsFrame extends Frame
     @Override
     public void dispose()
     {
-        if (this == cl.newGameOptsFrame)
-            cl.newGameOptsFrame = null;
+        if (this == gameDisplay.newGameOptsFrame)
+            gameDisplay.newGameOptsFrame = null;
         super.dispose();
     }
 
@@ -1348,7 +1351,7 @@ public class NewGameOptionsFrame extends Frame
          */
         public VersionConfirmDialog(NewGameOptionsFrame ngof, int minVers)
         {
-            super(cl, ngof, "Confirm options minimum version",
+            super(gameDisplay, ngof, "Confirm options minimum version",
                 "JSettlers " + Version.version(minVers) + " or newer is required for these game options.\nOlder clients won't be able to join.",
                 "Create with these options", "Change options", true, false);
         }

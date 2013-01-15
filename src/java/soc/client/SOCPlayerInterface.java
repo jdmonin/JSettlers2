@@ -21,16 +21,17 @@
  **/
 package soc.client;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.client.stats.SOCGameStatistics;
 import soc.debug.D;  // JM
 
-import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
+import soc.game.SOCResourceConstants;
 import soc.game.SOCRoad;
 import soc.game.SOCScenarioEventListener;
 import soc.game.SOCScenarioGameEvent;
@@ -38,8 +39,6 @@ import soc.game.SOCScenarioPlayerEvent;
 import soc.game.SOCSettlement;
 import soc.game.SOCShip;
 import soc.game.SOCVillage;
-import soc.message.SOCChoosePlayer;
-import soc.message.SOCPlayerElement;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -64,6 +63,10 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -314,8 +317,9 @@ public class SOCPlayerInterface extends Frame
     protected Color[] playerColors, playerColorsGhost;
 
     /**
-     * the client that spawned us
+     * the display that spawned us
      */
+    protected GameAwtDisplay gameDisplay;
     protected SOCPlayerClient client;
 
     /**
@@ -419,24 +423,31 @@ public class SOCPlayerInterface extends Frame
     protected SOCMonopolyDialog monopolyDialog;
 
     private SOCGameStatistics gameStats;
+    
+    private final ClientBridge clientListener;
 
     /**
      * create a new player interface
      *
      * @param title  title for this interface - game name
-     * @param cl     the player client that spawned us
+     * @param gd     the player display that spawned us
      * @param ga     the game associated with this interface
      */
-    public SOCPlayerInterface(String title, SOCPlayerClient cl, SOCGame ga)
+    public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga)
     {
-        super(TITLEBAR_GAME + title +
-              (ga.isPractice ? "" : " [" + cl.getNickname() + "]"));
+        super(TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + gd.getNickname() + "]"));
+        if (ga == null)
+            // keep even though it is dead code
+            throw new IllegalArgumentException("game is null");
+        
         setResizable(true);
         layoutNotReadyYet = true;  // will set to false at end of doLayout
 
-        client = cl;
+        this.gameDisplay = gd;
+        client = gd.getClient();
         game = ga;
         game.setScenarioEventListener(this);
+        clientListener = new ClientBridge(this);
         gameStats = new SOCGameStatistics(game);
         gameIsStarting = false;
         clientHand = null;
@@ -517,6 +528,14 @@ public class SOCPlayerInterface extends Frame
          * it will reset mouse cursor from WAIT_CURSOR to normal (WAIT_CURSOR is
          * set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
          */
+    }
+    
+    /**
+     * Provide access to the client listener in case this class does not directly implement it.
+     */
+    public PlayerClientListener getClientListener()
+    {
+        return clientListener;
     }
 
     /**
@@ -653,7 +672,7 @@ public class SOCPlayerInterface extends Frame
         /** If player requests window close, ask if they're sure, leave game if so */
         if (firstCall)
         {
-            addWindowListener(new MyWindowAdapter(this));
+            addWindowListener(new PIWindowAdapter(gameDisplay, this));
         }
     }
 
@@ -745,7 +764,12 @@ public class SOCPlayerInterface extends Frame
      */
     public SOCPlayerClient getClient()
     {
-        return client;
+        return gameDisplay.getClient();
+    }
+    
+    public GameAwtDisplay getGameDisplay()
+    {
+        return gameDisplay;
     }
 
     /**
@@ -814,7 +838,7 @@ public class SOCPlayerInterface extends Frame
      */
     public Timer getEventTimer()
     {
-        return client.getEventTimer();
+        return gameDisplay.getEventTimer();
     }
 
     /**
@@ -842,16 +866,16 @@ public class SOCPlayerInterface extends Frame
         (boolean isRoadNotArmy, SOCPlayer oldp, SOCPlayer newp)
     {
         // Update handpanels
-        final int updateType;
+        final PlayerClientListener.UpdateType updateType;
         if (isRoadNotArmy)
-            updateType = SOCHandPanel.LONGESTROAD;
+            updateType = PlayerClientListener.UpdateType.LongestRoad;
         else
-            updateType = SOCHandPanel.LARGESTARMY;
+            updateType = PlayerClientListener.UpdateType.LargestArmy;
 
         for (int i = 0; i < game.maxPlayers; i++)
         {
             hands[i].updateValue(updateType);
-            hands[i].updateValue(SOCHandPanel.VICTORYPOINTS);
+            hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);
         }
 
         // Check for and announce change in largest army, or longest road
@@ -1169,7 +1193,9 @@ public class SOCPlayerInterface extends Frame
                 }
             }
 
-            client.getGameManager().sendText(game, s + "\n");
+            String msg = s + '\n';
+            if (!doLocalCommand(msg))
+                client.getGameManager().sendText(game, msg);
 
             if (sOverflow != null)
             {
@@ -1180,12 +1206,93 @@ public class SOCPlayerInterface extends Frame
             }
         }
     }
+    
+    /**
+     * Handle local client commands for games.
+     *
+     * @param cmd  Local client command string, which starts with \
+     * @return true if a command was handled
+     */
+    private boolean doLocalCommand(String cmd)
+    {
+        if (cmd.startsWith("\\ignore "))
+        {
+            String name = cmd.substring(8);
+            client.addToIgnoreList(name);
+            print("* Ignoring " + name);
+            gameDisplay.printIgnoreList(this);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\unignore "))
+        {
+            String name = cmd.substring(10);
+            client.removeFromIgnoreList(name);
+            print("* Unignoring " + name);
+            gameDisplay.printIgnoreList(this);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clm-set "))
+        {
+            String name = cmd.substring(9).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_SETTLEMENT);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clm-road "))
+        {
+            String name = cmd.substring(10).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_ROAD);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clm-city "))
+        {
+            String name = cmd.substring(10).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LM_CITY);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clt-set "))
+        {
+            String name = cmd.substring(9).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_SETTLEMENT);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clt-road "))
+        {
+            String name = cmd.substring(10).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_ROAD);
+
+            return true;
+        }
+        else if (cmd.startsWith("\\clt-city "))
+        {
+            String name = cmd.substring(10).trim();
+            getBoardPanel().setOtherPlayer(game.getPlayer(name));
+            getBoardPanel().setMode(SOCBoardPanel.CONSIDER_LT_CITY);
+
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     /**
      * leave this game
      */
     public void leaveGame()
     {
+        gameDisplay.leaveGame(game);
         client.getGameManager().leaveGame(game);
         dispose();
     }
@@ -1294,7 +1401,7 @@ public class SOCPlayerInterface extends Frame
             boardResetRequester.resetBoardSetMessage(pleaseMsg);
 
             String requester = game.getPlayer(pnRequester).getName();
-            boardResetVoteDia = new ResetBoardVoteDialog(client, this, requester, gaOver);
+            boardResetVoteDia = new ResetBoardVoteDialog(gameDisplay, this, requester, gaOver);
             boardResetVoteDia.showInNewThread();
                // Separate thread so ours is not tied up; this allows server
                // messages to be received, and screen to refresh, if other
@@ -1556,7 +1663,7 @@ public class SOCPlayerInterface extends Frame
             game.checkForWinner();  // Assumes "current player" set to winner already, by SETTURN msg
         }
         for (int i = 0; i < finalScores.length; ++i)
-            hands[i].updateValue(SOCHandPanel.VICTORYPOINTS);  // Also disables buttons, etc.
+            hands[i].updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // Also disables buttons, etc.
         setTitle(TITLEBAR_GAME_OVER + game.getName() +
                  (game.isPractice ? "" : " [" + client.getNickname() + "]"));
         boardPanel.updateMode();
@@ -1880,7 +1987,7 @@ public class SOCPlayerInterface extends Frame
         case SOCPlayingPiece.ROAD:
             pp = new SOCRoad(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCPlayerElement.ROADS);
+            mesHp.updateValue(PlayerClientListener.UpdateType.Road);
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7])
                 boardPanel.flushBoardLayoutAndRepaint();
 
@@ -1889,20 +1996,20 @@ public class SOCPlayerInterface extends Frame
         case SOCPlayingPiece.SETTLEMENT:
             pp = new SOCSettlement(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCPlayerElement.SETTLEMENTS);
+            mesHp.updateValue(PlayerClientListener.UpdateType.Settlement);
 
             /**
              * if this is the second initial settlement, then update the resource display
              */
             if (mesHp.isClientPlayer())
             {
-                mesHp.updateValue(SOCPlayerElement.CLAY);
-                mesHp.updateValue(SOCPlayerElement.ORE);
-                mesHp.updateValue(SOCPlayerElement.SHEEP);
-                mesHp.updateValue(SOCPlayerElement.WHEAT);
-                mesHp.updateValue(SOCPlayerElement.WOOD);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Clay);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Ore);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Sheep);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Wheat);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Wood);
             } else {
-                mesHp.updateValue(SOCHandPanel.NUMRESOURCES);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Resources);
             }
 
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
@@ -1914,8 +2021,8 @@ public class SOCPlayerInterface extends Frame
         case SOCPlayingPiece.CITY:
             pp = new SOCCity(pl, coord, null);
             game.putPiece(pp);
-            mesHp.updateValue(SOCPlayerElement.SETTLEMENTS);
-            mesHp.updateValue(SOCPlayerElement.CITIES);
+            mesHp.updateValue(PlayerClientListener.UpdateType.Settlement);
+            mesHp.updateValue(PlayerClientListener.UpdateType.City);
 
             if (debugShowPotentials[4] || debugShowPotentials[5] || debugShowPotentials[7]
                 || debugShowPotentials[6])
@@ -1928,7 +2035,7 @@ public class SOCPlayerInterface extends Frame
             if (! isMove)
             {
                 game.putPiece(pp);
-                mesHp.updateValue(SOCPlayerElement.SHIPS);
+                mesHp.updateValue(PlayerClientListener.UpdateType.Ship);
             } else {
                 game.moveShip((SOCShip) pp, moveToCoord);
             }
@@ -1956,7 +2063,7 @@ public class SOCPlayerInterface extends Frame
             return;  // <--- Early return ---
         }
 
-        mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);
+        mesHp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
         boardPanel.repaint();
         buildingPanel.updateButtonStatus();
         if (game.isDebugFreePlacement() && game.isInitialPlacement())
@@ -1982,7 +2089,7 @@ public class SOCPlayerInterface extends Frame
      *
      * @param ga  Game
      * @param evt Event code
-     * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>  
+     * @param detail  Game piece, coordinate, or other data about the event, or null, depending on <tt>evt</tt>
      * @see #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)
      * @since 2.0.00
      */
@@ -1993,7 +2100,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Listener callback for per-player scenario events on the large sea board.
-     * For example, there might be an SVP awarded for settlements. 
+     * For example, there might be an SVP awarded for settlements.
      * @param ga  Game
      * @param pl  Player
      * @param evt  Event code
@@ -2016,8 +2123,8 @@ public class SOCPlayerInterface extends Frame
         {
             // assumes will never be reduced to 0 again
             //   so won't ever need to hide SVP counter
-            mesHp.updateValue(SOCHandPanel.SPECIALVICTORYPOINTS);
-            mesHp.updateValue(SOCHandPanel.VICTORYPOINTS);  // call after SVP, not before, in case ends the game
+            mesHp.updateValue(PlayerClientListener.UpdateType.SpecialVictoryPoints);
+            mesHp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // call after SVP, not before, in case ends the game
             // (This code also appears in SOCPlayerClient.handlePLAYERELEMENT)
         }
     }
@@ -2041,7 +2148,7 @@ public class SOCPlayerInterface extends Frame
             showingPlayerDiscardOrPick_task = new SOCPIDiscardOrPickMsgTask(this, isDiscard);
 
             // Run once, after a brief delay in case only robots must discard.
-            client.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
+            gameDisplay.getEventTimer().schedule(showingPlayerDiscardOrPick_task, 1000 /* ms */ );
         }
     }
 
@@ -2083,6 +2190,8 @@ public class SOCPlayerInterface extends Frame
             return;
         if (clientHandPlayerNum != rejoinPlayerNumber)
             return;
+        if (newGame == null)
+            throw new IllegalArgumentException("newGame is null");
 
         // Feedback: "busy" mouse cursor while clearing and re-laying out the components
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -2461,7 +2570,7 @@ public class SOCPlayerInterface extends Frame
          */
         if (layoutNotReadyYet)
         {
-            client.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            gameDisplay.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
             layoutNotReadyYet = false;
             repaint();
         }
@@ -2592,11 +2701,498 @@ public class SOCPlayerInterface extends Frame
      */
     public void mouseReleased(MouseEvent e) { }
 
+    protected boolean isClientPlayer(SOCPlayer p)
+    {
+        if (p == null)
+            return false;
+        int pn = p.getPlayerNumber();
+        return hands[pn].isClientPlayer();
+        //return p.getName().equals(client.getNickname());
+    }
+    
     //========================================================
     /**
      * Nested classes begin here
      */
     //========================================================
+    
+    private static class ClientBridge implements PlayerClientListener
+    {
+        final SOCPlayerInterface pi;
+        
+        public ClientBridge(SOCPlayerInterface pi)
+        {
+            this.pi = pi;
+        }
+        
+        public void diceRolled(SOCPlayer player, int roll)
+        {
+            pi.setTextDisplayRollExpected(roll);
+            pi.getBoardPanel().repaint();
+            
+            // only notify about valid rolls
+            if (roll >= 2 && roll <= 12 && player != null)
+            {
+                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, player));
+            }
+        }
+        
+        public void playerJoined(String nickname)
+        {
+            final String msg = "*** " + nickname + " has joined this game.\n";
+            pi.print(msg);
+            if ((pi.game != null) && (pi.game.getGameState() >= SOCGame.START1A))
+                pi.chatPrint(msg);
+        }
+        
+        public void playerLeft(String nickname, SOCPlayer player)
+        {
+            if (player != null)
+            {
+                //
+                //  This user was not a spectator.
+                //  Remove first from interface, then from game data.
+                //
+                pi.removePlayer(player.getPlayerNumber());
+            }
+            else if (pi.game.getGameState() >= SOCGame.START1A)
+            {
+                //  Spectator, game in progress.
+                //  Server prints it in the game text area,
+                //  and we also print in the chat area (less clutter there).
+                pi.chatPrint("* " + nickname + " left the game");
+            }
+        }
+        
+        public void playerSitdown(int seatNumber, String sitterNickname)
+        {
+            pi.addPlayer(sitterNickname, seatNumber);
+            
+            String nickname = pi.getClient().getNickname();
+
+            /**
+             * let the board panel & building panel find our player object if we sat down
+             */
+            if (nickname.equals(sitterNickname))
+            {
+                pi.getBoardPanel().setPlayer();
+                pi.getBuildingPanel().setPlayer();
+            }
+
+            /**
+             * update the hand panel's displayed values
+             */
+            final SOCHandPanel hp = pi.getPlayerHandPanel(seatNumber);
+            hp.updateValue(PlayerClientListener.UpdateType.Road);
+            hp.updateValue(PlayerClientListener.UpdateType.Settlement);
+            hp.updateValue(PlayerClientListener.UpdateType.City);
+            if (pi.game.hasSeaBoard)
+                hp.updateValue(PlayerClientListener.UpdateType.Ship);
+            hp.updateValue(PlayerClientListener.UpdateType.Knight);
+            hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
+            hp.updateValue(PlayerClientListener.UpdateType.LongestRoad);
+            hp.updateValue(PlayerClientListener.UpdateType.LargestArmy);
+
+            if (nickname.equals(sitterNickname))
+            {
+                hp.updateValue(PlayerClientListener.UpdateType.Clay);
+                hp.updateValue(PlayerClientListener.UpdateType.Ore);
+                hp.updateValue(PlayerClientListener.UpdateType.Sheep);
+                hp.updateValue(PlayerClientListener.UpdateType.Wheat);
+                hp.updateValue(PlayerClientListener.UpdateType.Wood);
+                hp.updateDevCards();
+            }
+            else
+            {
+                hp.updateValue(PlayerClientListener.UpdateType.Resources);
+                hp.updateValue(PlayerClientListener.UpdateType.DevCards);
+            }
+        }
+        
+        public void playerTurnSet(int seatNumber)
+        {
+            pi.updateAtTurn(seatNumber);
+        }
+        
+        public void playerPiecePlaced(SOCPlayer player, int coordinate, int pieceType)
+        {
+            pi.updateAtPutPiece(player.getPlayerNumber(), coordinate, pieceType, false, 0);
+        }
+        
+        public void playerPieceMoved(SOCPlayer player, int sourceCoordinate, int targetCoordinate, int pieceType)
+        {
+            pi.updateAtPutPiece(player.getPlayerNumber(),
+                                sourceCoordinate,
+                                pieceType,
+                                true,
+                                targetCoordinate);
+        }
+        
+        public void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription)
+        {
+            if (pi.getClientHand() == null)
+                return;  // not seated yet (joining game in progress)
+            pi.updateAtSVPText(player.getName(), numSvp, awardDescription);
+        }
+        
+        public void playerResourcesUpdated(SOCPlayer player)
+        {
+            SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
+            hpan.updateValue(PlayerClientListener.UpdateType.Resources);
+        }
+        
+        public void playerElementUpdated(SOCPlayer player, PlayerClientListener.UpdateType utype)
+        {
+            final SOCHandPanel hpan = player == null ? null : pi.getPlayerHandPanel(player.getPlayerNumber());  // null if no player
+            int hpanUpdateRsrcType = 0;  // If not 0, update this type's amount display
+
+            switch (utype)
+            {
+            case Road:
+                hpan.updateValue(utype);
+                break;
+
+            case Settlement:
+                hpan.updateValue(utype);
+                break;
+
+            case City:
+                hpan.updateValue(utype);
+                break;
+
+            case Ship:
+                hpan.updateValue(utype);
+                break;
+
+            case Knight:
+                // PLAYERELEMENT(NUMKNIGHTS) is sent after a Soldier card is played.
+                hpan.updateValue(utype);
+                break;
+
+            case Clay:
+                hpanUpdateRsrcType = SOCResourceConstants.CLAY;
+                break;
+
+            case Ore:
+                hpanUpdateRsrcType = SOCResourceConstants.ORE;
+                break;
+
+            case Sheep:
+                hpanUpdateRsrcType = SOCResourceConstants.SHEEP;
+                break;
+
+            case Wheat:
+                hpanUpdateRsrcType = SOCResourceConstants.WHEAT;
+                break;
+
+            case Wood:
+                hpanUpdateRsrcType = SOCResourceConstants.WOOD;
+                break;
+
+            case Unknown:
+                hpan.updateValue(PlayerClientListener.UpdateType.Resources);
+                break;
+
+            case SpecialVictoryPoints:
+                if (player.getSpecialVP() != 0)
+                {
+                    // assumes will never be reduced to 0 again
+                    hpan.updateValue(PlayerClientListener.UpdateType.SpecialVictoryPoints);
+                    hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // call after SVP, not before, in case ends the game
+                    // (This code also appears in SOCPlayerInterface.playerEvent)
+                }
+                break;
+
+            case Cloth:
+                if (player != null)
+                {
+                    hpan.updateValue(utype);
+                    hpan.updateValue(PlayerClientListener.UpdateType.VictoryPoints);  // 2 cloth = 1 VP
+                } else {
+                    pi.getBuildingPanel().updateClothCount();
+                }
+                break;
+
+            case Warship:
+                pi.updateAtPiecesChanged();
+                break;
+                
+            default:
+                System.out.println("Unhandled case in PlayerClientListener["+utype+"]");
+                break;
+            }
+
+            if (hpan == null)
+                return;  // <--- early return: not a per-player element ---
+
+            if (hpanUpdateRsrcType != 0)
+            {
+                if (hpan.isClientPlayer())
+                {
+                    hpan.updateValue(utype);
+                }
+                else
+                {
+                    hpan.updateValue(PlayerClientListener.UpdateType.Resources);
+                }
+            }
+
+            if (hpan.isClientPlayer() && (pi.getGame().getGameState() != SOCGame.NEW))
+            {
+                pi.getBuildingPanel().updateButtonStatus();
+            }
+        }
+        
+        public void requestedSpecialBuild(SOCPlayer player)
+        {
+            if (player.hasAskedSpecialBuild())
+                pi.print("* " + player.getName() + " wants to Special Build.");
+            if (pi.isClientPlayer(player))
+                pi.getBuildingPanel().updateButtonStatus();
+        }
+        
+        public void requestedGoldResourceSelect(SOCPlayer player, int countToSelect)
+        {
+            final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
+            hpan.updatePickGoldHexResources();
+        }
+        
+        public void playerDevCardUpdated(SOCPlayer player)
+        {
+            if (pi.isClientPlayer(player))
+            {
+                SOCHandPanel hp = pi.getClientHand();
+                hp.updateDevCards();
+                hp.updateValue(PlayerClientListener.UpdateType.VictoryPoints);
+            }
+            else
+            {
+                pi.getPlayerHandPanel(player.getPlayerNumber()).updateValue(PlayerClientListener.UpdateType.DevCards);
+            }
+        }
+        
+        public void playerFaceChanged(SOCPlayer player, int faceId)
+        {
+            pi.changeFace(player.getPlayerNumber(), faceId);
+        }
+        
+        public void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats)
+        {
+            pi.print("* Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)");
+            StringBuffer sb = new StringBuffer("* ");
+            int total = 0;
+            
+            PlayerClientListener.UpdateType[] types = {
+                PlayerClientListener.UpdateType.Clay,
+                PlayerClientListener.UpdateType.Ore,
+                PlayerClientListener.UpdateType.Sheep,
+                PlayerClientListener.UpdateType.Wheat,
+                PlayerClientListener.UpdateType.Wood
+            };
+            
+            for (PlayerClientListener.UpdateType t : types)
+            {
+                int value = stats.get(t).intValue();
+                total += value;
+                sb.append(value);
+                sb.append(", ");
+            }
+            // Remove the last comma-space
+            sb.delete(sb.length()-2, sb.length());
+            sb.append(". Total: ");
+            sb.append(total);
+            pi.print(sb.toString());
+        }
+        
+        public void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew)
+        {
+            pi.updateLongestLargest(false, old, potentialNew);
+        }
+        
+        public void longestRoadRefresh(SOCPlayer old, SOCPlayer potentialNew)
+        {
+            pi.updateLongestLargest(true, old, potentialNew);
+        }
+        
+        public void membersListed(Collection<String> names)
+        {
+            Vector<String> v = new Vector<String>(names);
+            pi.began(v);
+        }
+        
+        public void boardLayoutUpdated()
+        {
+            pi.updateAtNewBoard();
+        }
+        
+        public void boardUpdated()
+        {
+            pi.getBoardPanel().flushBoardLayoutAndRepaint();
+        }
+        
+        public void boardPotentialsUpdated()
+        {
+            pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
+        }
+        
+        public void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber)
+        {
+            pi.resetBoard(newGame, newSeatNumber, requestingPlayerNumber);
+        }
+        
+        public void boardResetVoteRequested(SOCPlayer requestor)
+        {
+            pi.resetBoardAskVote(requestor.getPlayerNumber());
+        }
+        
+        public void boardResetVoteCast(SOCPlayer voter, boolean vote)
+        {
+            pi.resetBoardVoted(voter.getPlayerNumber(), vote);
+        }
+        
+        public void boardResetVoteRejected()
+        {
+            pi.resetBoardRejected();
+        }
+        
+        public void seatLockUpdated()
+        {
+            for (int i = 0; i < pi.game.maxPlayers; i++)
+            {
+                pi.getPlayerHandPanel(i).updateSeatLockButton();
+                pi.getPlayerHandPanel(i).updateTakeOverButton();
+            }
+        }
+        
+        public void gameStarted()
+        {
+            pi.startGame();
+        }
+        
+        public void gameStateChanged(int gameState)
+        {
+            pi.updateAtGameState();
+        }
+        
+        public void gameEnded(Map<SOCPlayer, Integer> scores)
+        {
+            int[] scoresArray = new int[scores.size()];
+            for (Map.Entry<SOCPlayer, Integer> e : scores.entrySet())
+            {
+                scoresArray[e.getKey().getPlayerNumber()] = e.getValue().intValue();
+            }
+            
+            pi.updateAtOver(scoresArray);
+        }
+        
+        public void gameDisconnected(String errorMessage)
+        {
+            pi.over(errorMessage);
+        }
+        
+        public void messageBroadcast(String msg)
+        {
+            pi.chatPrint("::: " + msg + " :::");
+        }
+        
+        public void messageSent(String nickname, String message)
+        {
+            if (nickname.equals("Server"))
+            {
+                String starMesText = "* " + message;
+                pi.print(starMesText);
+                if (message.startsWith(">>>"))
+                    pi.chatPrint(starMesText);
+            }
+            else
+            {
+                if (!pi.getClient().onIgnoreList(nickname))
+                {
+                    pi.chatPrint(nickname + ": " + message);
+                }
+            }
+        }
+        
+        public void buildRequestCanceled(SOCPlayer player)
+        {
+            pi.getPlayerHandPanel(player.getPlayerNumber()).updateResourcesVP();
+            pi.getBoardPanel().updateMode();
+        }
+        
+        public void robberMoved()
+        {
+            pi.getBoardPanel().repaint();
+        }
+        
+        public void devCardDeckUpdated()
+        {
+            pi.updateDevCardCount();
+        }
+        
+        public void requestedDiscard(int countToDiscard)
+        {
+            pi.showDiscardOrGainDialog(countToDiscard, true);
+        }
+        
+        public void requestedResourceSelect(int countToDiscard)
+        {
+            pi.showDiscardOrGainDialog(countToDiscard, false);
+        }
+        
+        public void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed)
+        {
+            int[] pnums = new int[choices.size()];
+            int i = 0;
+            for (SOCPlayer p : choices)
+                pnums[i++] = p.getPlayerNumber();
+            pi.showChoosePlayerDialog(pnums.length, pnums, isNoneAllowed);
+        }
+        
+        public void requestedChooseRobResourceType(SOCPlayer player)
+        {
+            pi.showChooseRobClothOrResourceDialog(player.getPlayerNumber());
+        }
+        
+        public void requestedTrade(SOCPlayer offerer)
+        {
+            pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer();
+        }
+        
+        public void requestedTradeClear(SOCPlayer offerer)
+        {
+            if (offerer != null)
+            {
+                pi.getPlayerHandPanel(offerer.getPlayerNumber()).updateCurrentOffer();
+            }
+            else
+            {
+                for (int i = 0; i < pi.game.maxPlayers; ++i)
+                {
+                    pi.getPlayerHandPanel(i).updateCurrentOffer();
+                }
+            }
+        }
+        
+        public void requestedTradeRejection(SOCPlayer rejecter)
+        {
+            pi.getPlayerHandPanel(rejecter.getPlayerNumber()).rejectOfferShowNonClient();
+        }
+        
+        public void requestedTradeReset(SOCPlayer playerToReset)
+        {
+            pi.clearTradeMsg(playerToReset.getPlayerNumber());
+        }
+        
+        public void requestedDiceRoll()
+        {
+            pi.updateAtRollPrompt();
+        }
+        
+        public void debugFreePlaceModeToggled(boolean isEnabled)
+        {
+            pi.setDebugFreePlacementMode(isEnabled);
+        }
+    }
 
     /**
      * This is the modal dialog to vote on another player's board reset request.
@@ -2622,7 +3218,7 @@ public class SOCPlayerInterface extends Frame
          * @param requester  Name of player requesting the reset
          * @param gameIsOver The game is over - "Reset" button should be default (if not over, "Continue" is default)
          */
-        protected ResetBoardVoteDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
+        protected ResetBoardVoteDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, String requester, boolean gameIsOver)
         {
             super(cli, gamePI, "Reset board of game "
                     + gamePI.getGame().getName() + "?",
@@ -2732,7 +3328,7 @@ public class SOCPlayerInterface extends Frame
          */
         protected ChooseMoveRobberOrPirateDialog()
         {
-            super(getClient(), SOCPlayerInterface.this,
+            super(getGameDisplay(), SOCPlayerInterface.this,
                 "Move robber or pirate?",
                 "Do you want to move the robber or the pirate ship?",
                 "Move Robber",
@@ -2748,7 +3344,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button1Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, SOCChoosePlayer.CHOICE_MOVE_ROBBER);
+            pcli.getGameManager().chooseRobber(game);
         }
 
         /**
@@ -2758,7 +3354,7 @@ public class SOCPlayerInterface extends Frame
         @Override
         public void button2Chosen()
         {
-            pcli.getGameManager().choosePlayer(game, SOCChoosePlayer.CHOICE_MOVE_PIRATE);
+            pcli.getGameManager().choosePirate(game);
         }
 
         /**
@@ -2834,7 +3430,7 @@ public class SOCPlayerInterface extends Frame
          */
         protected ChooseRobClothOrResourceDialog(final int vpn)
         {
-            super(getClient(), SOCPlayerInterface.this,
+            super(getGameDisplay(), SOCPlayerInterface.this,
                 "Rob cloth or resource?",
                 "Do you want to steal cloth or a resource from this player?",
                 "Steal Cloth",
@@ -2917,12 +3513,14 @@ public class SOCPlayerInterface extends Frame
      * @author jdmonin
      * @since 1.1.00
      */
-    private static class MyWindowAdapter extends WindowAdapter
+    private static class PIWindowAdapter extends WindowAdapter
     {
-        private SOCPlayerInterface pi;
+        private final GameAwtDisplay gd;
+        private final SOCPlayerInterface pi;
 
-        public MyWindowAdapter(SOCPlayerInterface spi)
+        public PIWindowAdapter(GameAwtDisplay gd, SOCPlayerInterface spi)
         {
+            this.gd = gd;
             pi = spi;
         }
 
@@ -2934,7 +3532,7 @@ public class SOCPlayerInterface extends Frame
         public void windowClosing(WindowEvent e)
         {
             if (pi.clientHandPlayerNum != -1)
-                SOCQuitConfirmDialog.createAndShow(pi.getClient(), pi);
+                SOCQuitConfirmDialog.createAndShow(gd, pi);
             else
                 pi.leaveGame();
         }

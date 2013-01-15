@@ -19,6 +19,7 @@
  **/
 package soc.client;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.game.SOCGame;
 
 
@@ -38,7 +39,7 @@ class SOCQuitConfirmDialog extends AskDialog
      * @param gamePI   Current game's player interface
      * @throws IllegalArgumentException If cli or gamePI is null
      */
-    public static void createAndShow(SOCPlayerClient cli, SOCPlayerInterface gamePI)
+    public static void createAndShow(GameAwtDisplay cli, SOCPlayerInterface gamePI)
         throws IllegalArgumentException
     {
         if ((cli == null) || (gamePI == null))
@@ -58,7 +59,7 @@ class SOCQuitConfirmDialog extends AskDialog
      * @param gamePI   Current game's player interface
      * @param gameIsOver The game is over - "Quit" button should be default (if not over, Continue is default)
      */
-    protected SOCQuitConfirmDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI, boolean gameIsOver)
+    protected SOCQuitConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI, boolean gameIsOver)
     {
         super(cli, gamePI, "Really quit game "
                 + gamePI.getGame().getName() + "?",

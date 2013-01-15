@@ -21,6 +21,8 @@ package soc.client;
 
 import java.awt.Frame;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
+
 
 /**
  * This is the dialog to confirm when someone closes the client.
@@ -42,13 +44,13 @@ class SOCQuitAllConfirmDialog extends AskDialog
      *                 if we're hosting a local server but not actively playing
      * @throws IllegalArgumentException If cli or gameOrSelf is null
      */
-    public static void createAndShow(SOCPlayerClient cli, Frame gamePIOrSelf)
+    public static void createAndShow(GameAwtDisplay cli, Frame gamePIOrSelf)
         throws IllegalArgumentException
     {
         if ((cli == null) || (gamePIOrSelf == null))
             throw new IllegalArgumentException("no nulls");
 
-        boolean hasAny = cli.getNet().anyHostedActiveGames();
+        boolean hasAny = cli.getClient().getNet().anyHostedActiveGames();
         SOCQuitAllConfirmDialog qcd = new SOCQuitAllConfirmDialog(cli, gamePIOrSelf, hasAny);
         qcd.setVisible(true);
     }
@@ -63,7 +65,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
      * @param hostedServerActive Is client hosting a local server with games active?
      *                 Call {@link SOCPlayerClient#anyHostedActiveGames()} to determine.
      */
-    protected SOCQuitAllConfirmDialog(SOCPlayerClient cli, Frame gamePIOrSelf, boolean hostedServerActive)
+    protected SOCQuitAllConfirmDialog(GameAwtDisplay cli, Frame gamePIOrSelf, boolean hostedServerActive)
     {
         super(cli, gamePIOrSelf,
             (hostedServerActive ? "Shut down game server?" : "Really quit all games?"),
@@ -81,7 +83,7 @@ class SOCQuitAllConfirmDialog extends AskDialog
     @Override
     public void button1Chosen()
     {
-        pcli.getNet().putLeaveAll();
+        pcli.getClient().getNet().putLeaveAll();
         System.exit(0);
     }
 

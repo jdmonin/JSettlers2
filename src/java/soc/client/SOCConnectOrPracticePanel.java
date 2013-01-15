@@ -38,6 +38,7 @@ import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 
 import soc.client.SOCPlayerClient.ClientNetwork;
+import soc.client.SOCPlayerClient.GameAwtDisplay;
 import soc.util.Version;
 
 
@@ -51,8 +52,8 @@ import soc.util.Version;
 public class SOCConnectOrPracticePanel extends Panel
     implements ActionListener, KeyListener
 {
-    private SOCPlayerClient cl;
-    private ClientNetwork clientNetwork;
+    private final GameAwtDisplay gd;
+    private final ClientNetwork clientNetwork;
 
     /** Welcome message, or error after disconnect */
     private Label topText;
@@ -78,7 +79,7 @@ public class SOCConnectOrPracticePanel extends Panel
      * Do we have security to run a TCP server?
      * Determined by calling {@link #checkCanLaunchServer()}.
      */
-    private boolean canLaunchServer;
+    private final boolean canLaunchServer;
 
     private static final Color HEADER_LABEL_BG = new Color(220,255,220);
     private static final Color HEADER_LABEL_FG = new Color( 50, 80, 50);
@@ -86,13 +87,14 @@ public class SOCConnectOrPracticePanel extends Panel
     /**
      * Creates a new SOCConnectOrPracticePanel.
      *
-     * @param cli      Player client interface
+     * @param gd      Player client display
      */
-    public SOCConnectOrPracticePanel(SOCPlayerClient cli)
+    public SOCConnectOrPracticePanel(GameAwtDisplay gd)
     {
         super(new BorderLayout());
 
-        cl = cli;
+        this.gd = gd;
+        SOCPlayerClient cli = gd.getClient();
         clientNetwork = cli.getNet();
         canLaunchServer = checkCanLaunchServer();
 
@@ -230,7 +232,7 @@ public class SOCConnectOrPracticePanel extends Panel
 
         // Final assembly setup
         add(bp, BorderLayout.CENTER);
-        Label verl = new Label("JSettlers " + Version.version() + " build " + Version.buildnum());       
+        Label verl = new Label("JSettlers " + Version.version() + " build " + Version.buildnum());
         verl.setAlignment(Label.CENTER);
         verl.setForeground(new Color(252, 251, 243)); // off-white
         add(verl, BorderLayout.SOUTH);
@@ -274,7 +276,7 @@ public class SOCConnectOrPracticePanel extends Panel
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         gbl.setConstraints(conn_servhost, gbc);
         conn_servhost.addKeyListener(this);   // for ESC/ENTER
-        pconn.add(conn_servhost);        
+        pconn.add(conn_servhost);
 
         L = new Label("Port");
         gbc.gridwidth = 1;
@@ -439,7 +441,7 @@ public class SOCConnectOrPracticePanel extends Panel
         if (src == prac)
         {
             // Ask client to set up and start a practice game
-            cl.clickPracticeButton();
+            gd.clickPracticeButton();
             return;
         }
         
@@ -546,7 +548,7 @@ public class SOCConnectOrPracticePanel extends Panel
 
         // Copy fields, show MAIN_PANEL, and connect in client
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        cl.connect(cserv, cport, conn_user.getText(), conn_pass.getText());
+        gd.getClient().connect(cserv, cport, conn_user.getText(), conn_pass.getText());
     }
 
     /** Hide fields used to connect to server. Called by client after a network error. */
@@ -570,7 +572,7 @@ public class SOCConnectOrPracticePanel extends Panel
             // TODO show error?
             return;
         }
-        cl.startLocalTCPServer(srport);        
+        gd.startLocalTCPServer(srport);
     }
 
     /** Hide fields used to start a server */

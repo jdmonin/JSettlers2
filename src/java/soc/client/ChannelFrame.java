@@ -43,6 +43,8 @@ import java.awt.event.WindowEvent;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
+
 
 /** The chat channel window
  *  @version 2.0 (no GridbagLayout) with textwrapping and customized window
@@ -56,14 +58,14 @@ public class ChannelFrame extends Frame
     public Canvas cnvs;
     public int ncols;
     public int npix = 1;
-    SOCPlayerClient cc;
+    GameAwtDisplay cc;
     String cname;
     Vector<String> history = new Vector<String>();
     int historyCounter = 1;
     boolean down = false;
 
     /** build a frame with the given title, belonging to the given applet*/
-    public ChannelFrame(String t, SOCPlayerClient ccp)
+    public ChannelFrame(String t, GameAwtDisplay ccp)
     {
         super("Channel: " + t);
         setBackground(ccp.getBackground());
@@ -95,7 +97,7 @@ public class ChannelFrame extends Frame
         tf.addActionListener(new InputActionListener());
         tf.addKeyListener(new InputKeyListener());
         cnvs.addMouseListener(new DividerMouseListener());
-        addWindowListener(new MyWindowListener());
+        addWindowListener(new CFWindowListener());
     }
 
     /** add some text*/
@@ -278,11 +280,11 @@ public class ChannelFrame extends Frame
     }
 
     /** when the window is destroyed, tell the applet to leave the group */
-    private class MyWindowListener extends WindowAdapter
+    private class CFWindowListener extends WindowAdapter
     {
         public void windowClosing(WindowEvent e)
         {
-            cc.leaveChannel(cname);
+            cc.getClient().leaveChannel(cname);
             dispose();
         }
         public void windowOpened(WindowEvent e)
