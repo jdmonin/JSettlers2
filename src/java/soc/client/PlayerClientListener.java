@@ -49,7 +49,13 @@ public interface PlayerClientListener
      */
     void playerLeft(String nickname, SOCPlayer player);
     void playerSitdown(int seatNumber, String nickname);
+
+    /**
+     * Game's current player has changed. Update displays.
+     * @param seatNumber  New current player number
+     */
     void playerTurnSet(int seatNumber);
+
     /**
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
      */

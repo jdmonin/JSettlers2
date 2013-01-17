@@ -2,7 +2,8 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
- * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net> - GameStatistics, nested class refactoring, parameterize types
+ * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
+ *     - UI layer refactoring, GameStatistics, nested class refactoring, parameterize types
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -56,10 +57,10 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Hashtable;import java.util.List;
-
+import java.util.Hashtable;
 import java.util.EnumMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -379,16 +380,18 @@ public class SOCPlayerClient
 
     /**
      * A {@link GameDisplay} implementation for AWT.
+     *<P>
+     * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
      */
     public static class GameAwtDisplay extends Panel implements GameDisplay
     {
         private SOCPlayerClient client;
-        
+
         /**
          * the player interfaces for the games
          */
         private final Map<String, SOCPlayerInterface> playerInterfaces = new Hashtable<String, SOCPlayerInterface>();
-        
+
         /**
          * Task for timeout when asking remote server for {@link SOCGameOptionInfo game options info}.
          * Set up when sending {@link SOCGameOptionGetInfos GAMEOPTIONGETINFOS}.
@@ -839,7 +842,12 @@ public class SOCPlayerClient
             messageLabel.setText("Waiting to connect.");
             validate();
         }
-        
+
+        /**
+         * Connect and give feedback by showing {@link #MESSAGE_PANEL}.
+         * @param cpass Password text to put into that TextField
+         * @param cuser User nickname text to put into that TextField
+         */
         public void connect(String cpass, String cuser)
         {
             nick.setEditable(true);  // in case of reconnect. Will disable after starting or joining a game.
@@ -2079,7 +2087,12 @@ public class SOCPlayerClient
                 pi.print("* " + s);
             }
         }
-        
+
+        /**
+         * When a practice game is starting, it may take a while to start server & game.
+         * Set {@link Cursor#WAIT_CURSOR}.
+         * The new-game window will clear this cursor back to default.
+         */
         public void practiceGameStarting()
         {
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -3449,7 +3462,7 @@ public class SOCPlayerClient
             final int pn = mes.getPlayerNumber();
             final SOCPlayer pl = (pn != -1) ? ga.getPlayer(pn) : null;
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            PlayerClientListener.UpdateType utype = null;
+            PlayerClientListener.UpdateType utype = null;  // If not null, update this type's amount display
             final int etype = mes.getElementType();
 
             switch (etype)
