@@ -1119,6 +1119,7 @@ public class SOCHandPanel extends Panel
                 for (int i = cardList.getItemCount() - 1; i >= 0; --i)
                 {
                     item = cardList.getItem(i);
+                    //TODO Logic must be changed to allow i18n
                     if ((item != null) && (item.length() > 0)
                         && (item.indexOf("VP)") <= 0)
                         && ! item.startsWith("*NEW*"))
