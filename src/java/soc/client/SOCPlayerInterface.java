@@ -1859,6 +1859,8 @@ public class SOCPlayerInterface extends Frame
      * Update interface after game state has changed.
      * For example, if the client is current player, and state changed from PLAY to PLAY1,
      * (Dice has been rolled, or card played), enable the player's Done and Bank buttons.
+     * Or, if the player must discard resources or pick free resources from the gold hex,
+     * calls {@link #discardOrPickTimerSet(boolean)}.
      *<P>
      * Please call after {@link SOCGame#setGameState(int)}.
      * If the game is now starting, please call in this order:
@@ -2722,12 +2724,18 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Client Bridge to translate interface to SOCPlayerInterface methods.
+     * For most methods here, {@link PlayerClientListener} will have their javadoc.
+     * @author paulbilnoski
      * @since 2.0.00
      */
     private static class ClientBridge implements PlayerClientListener
     {
         final SOCPlayerInterface pi;
 
+        /**
+         * Create a new ClientBridge for this playerinterface and its {@link SOCGame}.
+         * @param pi  A player interface, already linked to a game
+         */
         public ClientBridge(SOCPlayerInterface pi)
         {
             this.pi = pi;
@@ -2963,7 +2971,7 @@ public class SOCPlayerInterface extends Frame
                 pi.getBuildingPanel().updateButtonStatus();
         }
 
-        public void requestedGoldResourceSelect(SOCPlayer player, int countToSelect)
+        public void requestedGoldResourceCountUpdated(SOCPlayer player, int countToSelect)
         {
             final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
             hpan.updatePickGoldHexResources();
@@ -3026,6 +3034,11 @@ public class SOCPlayerInterface extends Frame
             pi.updateLongestLargest(true, old, potentialNew);
         }
 
+        /**
+         * The current game members (players and observers) are listed, and the
+         * game is about to start.  Calls {@link SOCPlayerInterface#began(Vector)}.
+         * @param names  Game member names; to see if each is a player, call {@link SOCGame#getPlayer(String)}.
+         */
         public void membersListed(Collection<String> names)
         {
             Vector<String> v = new Vector<String>(names);
@@ -3212,7 +3225,8 @@ public class SOCPlayerInterface extends Frame
      * If game is over, buttons are Restart and No thanks; default Restart.
      * Start a new thread to show, so message treating can continue as other players vote.
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     protected static class ResetBoardVoteDialog extends AskDialog implements Runnable
     {
@@ -3589,6 +3603,8 @@ public class SOCPlayerInterface extends Frame
      * It's expected that after the player sends their first line of chat text,
      * the listeners will be removed so we don't have the overhead of
      * calling these methods.
+     * @author jdmonin
+     * @since 1.1.00
      */
     private static class SOCPITextfieldListener
         extends KeyAdapter implements TextListener, FocusListener
@@ -3662,6 +3678,8 @@ public class SOCPlayerInterface extends Frame
      * When timer fires, show discard message or picking-resource message
      * for any other player (not client player) who must discard or pick.
      * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
+     * @author jdmonin
+     * @since 1.1.00
      */
     private static class SOCPIDiscardOrPickMsgTask extends TimerTask
     {

@@ -2387,6 +2387,7 @@ public class SOCHandPanel extends Panel
      * Show the "discarding..." or "picking resources..." message in the trade panel.
      * Indicates discard on a 7, or picking resources on a gold hex.
      * Assumes player can't be discarding and asking for board-reset at same time.
+     * Not called for the client player, only for other players.
      *<P>
      * Normally, this will be cleared by {@link #updateValue(int)} for NUMRESOURCES,
      * because that's what the server sends all other players on the player's discard or pick.
@@ -2688,7 +2689,17 @@ public class SOCHandPanel extends Panel
             }
         }
     }
-    
+
+    /**
+     * This player must pick this many gold hex resources, or no longer needs to pick them.
+     * Called after {@link SOCPlayer#setNeedToPickGoldHexResources(int)}.
+     * Informational only: do not display a {@link SOCDiscardOrGainResDialog}.
+     *<P>
+     * "Clear" is handled here (has picked, numPick == 0, no longer needs to pick some).
+     * "Set" (numPick &gt; 0) is handled in {@link SOCPlayerInterface#updateAtGameState()}
+     * which will display "Picking resources..." in the handpanel for any non-client
+     * players who need to pick.
+     */
     public void updatePickGoldHexResources()
     {
         if (offerIsDiscardOrPickMessage && (0 == player.getNeedToPickGoldHexResources()))
