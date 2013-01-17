@@ -302,7 +302,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private static final int[] fortressX =
         //  left side        //  crenellations
         // right side        // entrance portal
-        { -13,-13, -7, -7,   -5, -5, -1, -1, 1,  1,  5, 5,      
+        { -13,-13, -7, -7,   -5, -5, -1, -1, 1,  1,  5, 5,
           7,  7, 13, 13,     3, 3, 1, -1, -3, -3 },
                                fortressY =
         {  11,-11,-11, -7,   -7,-10,-10, -7,-7,-10,-10,-7,
@@ -1134,7 +1134,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (bh < BOARDHEIGHT_VISUAL_MIN)
                     bh = BOARDHEIGHT_VISUAL_MIN;
                 if (bw < BOARDWIDTH_VISUAL_MIN)
-                    bw = BOARDWIDTH_VISUAL_MIN;                
+                    bw = BOARDWIDTH_VISUAL_MIN;
                 scaledPanelX = halfdeltaX * bw + PANELPAD_LBOARD_RT;
                 scaledPanelY = halfdeltaY * bh + 18;
             } else {
@@ -3359,7 +3359,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 for (SOCRoad r : pl.getRoads())
                 {
                     final boolean isShip = (r instanceof SOCShip);
-                    final boolean isWarship = isShip && (numWarships > 0); 
+                    final boolean isWarship = isShip && (numWarships > 0);
                     drawRoadOrShip(g, r.getCoordinates(), pn, false, ! isShip, isWarship);
                     if (isWarship)
                         --numWarships;  // this works since warships begin with player's 1st-placed ship in getRoads()
@@ -3572,7 +3572,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     }
                 }
 
-                // If board is narrower than panel, fill in with water 
+                // If board is narrower than panel, fill in with water
                 while (x < (panelMinBW - PANELPAD_LBOARD_RT))
                 {
                     final int hexCoord = rshift | c;
@@ -3615,7 +3615,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * For the {@link SOCGameOption#K_SC_PIRI _SC_PIRI} game scenario on {@link SOCBoardLarge},
-     * draw the path that the pirate fleet takes around the board. 
+     * draw the path that the pirate fleet takes around the board.
      * @param ppath  Path of hex coordinates
      */
     private final void drawBoardEmpty_drawPiratePath(Graphics g, final int[] ppath)
@@ -7334,7 +7334,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         protected MoveRobberConfirmDialog(SOCPlayer player, final int newRobHex)
         {
-            super(playerInterface.getClient(), playerInterface,
+            super(playerInterface.getGameDisplay(), playerInterface,
                 ((newRobHex > 0) ? /*I*/"Move robber to your hex?"/*18N*/ : /*I*/"Move pirate to your hex?"/*18N*/),
                 ((newRobHex > 0)
                     ? /*I*/"Are you sure you want to move the robber to your own hex?"/*18N*/

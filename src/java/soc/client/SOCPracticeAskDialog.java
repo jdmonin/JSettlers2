@@ -19,6 +19,8 @@
  **/
 package soc.client;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
+
 /**
  * This is the dialog to ask players if they want to join an
  * existing practice game, or start a new one.
@@ -34,7 +36,7 @@ class SOCPracticeAskDialog extends AskDialog
      * @param cli      Player client interface
      * @param gamePI   Current game's player interface
      */
-    public SOCPracticeAskDialog(SOCPlayerClient cli, SOCPlayerInterface gamePI)
+    public SOCPracticeAskDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
     {
         super(cli, gamePI, /*I*/"Practice game in progress"/*18N*/,
             /*I*/"A practice game is already being played."/*18N*/,

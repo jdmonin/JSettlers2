@@ -583,7 +583,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Create a new player for a new empty board.
-     *<P> 
+     *<P>
      * Unless {@link SOCGame#hasSeaBoard},
      * the player's possible placement locations will be
      * set from {@link SOCBoard#initPlayerLegalRoads()} and
@@ -1393,7 +1393,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param edgeFarNode  The unvisited node at the far end of <tt>fromEdge</tt>.
      *                  We'll examine this node and then continue to move along edges past it.
      *                  If the "facing direction" we're moving in is called "moveDir",
-     *                  then <tt>edgeFarNode</tt> = 
+     *                  then <tt>edgeFarNode</tt> =
      *                  {@link SOCBoardLarge#getAdjacentNodeToEdge(int, int)
      *                   board.getAdjacentNodeToEdge(edgeFirstShip.getCoordinates(), moveDir)}.
      * @param alreadyVisited   contains Integer edge coordinates as the segment is built;
@@ -1539,7 +1539,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     already.add(new Integer(node));
                     already.addAll(segment);
 
-                    encounteredSelf.add(already);                        
+                    encounteredSelf.add(already);
                 }
 
                 if (shipsFrom1 == null)
@@ -1729,7 +1729,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return whether this player has any unplayed dev cards
      * 
      * @see #getDevCards()
-     */     
+     */
     public boolean hasUnplayedDevCards()
     {
         return (0 < devCards.getNumUnplayed());
@@ -1797,7 +1797,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Set the number of Special Victory Points (SVPs) awarded to this player.
-     * For use at client based on messages from server. 
+     * For use at client based on messages from server.
      * @param svp the number of SVPs, or 0
      * @see #addSpecialVPInfo(int, String)
      * @since 2.0.00
@@ -1813,7 +1813,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * end of game, when they've been announced by server.
      * Special Victory Points (SVPs) are included, if the game scenario awards them.
      * Also includes any VP from {@link #getCloth() cloth}.
-     *  
+     * 
      * @return the number of publicly known victory points
      * @see #getTotalVP()
      * @see #getSpecialVP()
@@ -2138,7 +2138,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         if (isTempPiece)
                             throw new IllegalArgumentException("temporary fortress settlement");
                     } else {
-                        numPieces[SOCPlayingPiece.SETTLEMENT]--;                        
+                        numPieces[SOCPlayingPiece.SETTLEMENT]--;
                     }
                     putPiece_settlement_checkTradeRoutes((SOCSettlement) piece, board);
                     settlements.addElement((SOCSettlement) piece);
@@ -2184,7 +2184,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 && (newSettleArea != startingLandArea1) && (newSettleArea != startingLandArea2))
                             {
                                 putPiece_settlement_checkScenarioSVPs
-                                    ((SOCSettlement) piece, newSettleArea, isTempPiece);                            
+                                    ((SOCSettlement) piece, newSettleArea, isTempPiece);
                             }
                         }
                     }
@@ -2497,7 +2497,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * call {@link #calcLongestRoad2()} after this call.
      *<P>
      * For removing second initial settlement (state START2B),
-     *   will zero the player's resource cards. 
+     *   will zero the player's resource cards.
      *
      * @param piece         the piece placement to be undone.
      *
@@ -2521,7 +2521,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 //
                 // update the potential places to build roads/ships
-                // 
+                //
                 removePiece(piece, null);
             }
             else
@@ -2545,7 +2545,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                 //
                 // call updatePotentials
-                // on our roads/ships that are adjacent to 
+                // on our roads/ships that are adjacent to
                 // this edge
                 //
                 Vector<Integer> adjEdges = board.getAdjacentEdgesToEdge(pieceCoord);
@@ -2633,7 +2633,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             }  // if (ours)
 
             //
-            // update settlement potentials 
+            // update settlement potentials
             //
             undoPutPieceAuxSettlement(pieceCoord);
 
@@ -2938,7 +2938,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 {
                                     rnArr[j] = 0;
                                     break;
-                                }                            
+                                }
                         }
                     }
 
@@ -2990,7 +2990,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                              */
                             final int[] adjNodes = board.getAdjacentNodesToEdge_arr(adjEdgeID);
 
-                            for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni) 
+                            for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni)
                             {
                                 boolean blocked = false;  // Are we blocked in this node's direction?
                                 final int adjNode = adjNodes[ni];
@@ -3044,7 +3044,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 if (isPotentialRoad)
                                     potentialShips.add(adjEdge);
                                 else
-                                    potentialShips.remove(adjEdge);                                
+                                    potentialShips.remove(adjEdge);
                             }
                         }
                     }
@@ -3163,7 +3163,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             legalRoads.remove(idInt);
 
             potentialShips.remove(idInt);
-            legalShips.remove(idInt);                
+            legalShips.remove(idInt);
 
             if (ours)
             {
@@ -4087,6 +4087,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             potentialShips = null;
         }
         currentOffer = null;
+    }
+    
+    @Override
+    public String toString()
+    {
+        return "Player["+playerNumber+" "+name+"]";
     }
 
     /**

@@ -23,6 +23,8 @@ package soc.client;
 
 import java.awt.Frame;
 
+import soc.client.SOCPlayerClient.GameAwtDisplay;
+
 // TODO consider callback option; ActionListener
 
 /**
@@ -49,7 +51,7 @@ class NotifyDialog extends AskDialog
      * @param hasDefault  Button is default (responds to Enter)
      * @throws IllegalArgumentException If cli, promptText, or btnText is null
      */
-    public static void createAndShow(SOCPlayerClient cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
+    public static void createAndShow(GameAwtDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
         throws IllegalArgumentException
     {
         if (btnText == null)
@@ -70,7 +72,7 @@ class NotifyDialog extends AskDialog
      * @param hasDefault  Button is default (responds to Enter)
      * @throws IllegalArgumentException If cli or btnText is null
      */
-    protected NotifyDialog(SOCPlayerClient cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
+    protected NotifyDialog(GameAwtDisplay cli, Frame gamePI, String promptText, String btnText, boolean hasDefault)
     {
         super(cli,
        	     ((gamePI != null)

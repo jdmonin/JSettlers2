@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The maintainer of this program can be reached at jsettlers@nand.net 
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -280,11 +280,11 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             add(vpToWinLab);
             new AWTToolTip(TTIP_VP_TEXT, vpToWinLab);
 
-            vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner);        
+            vpToWin = new ColorSquare(ColorSquare.GREY, ga.vp_winner);
             vpToWin.setTooltipText(TTIP_VP_TEXT);
             add(vpToWin);
         } else {
-            vpToWinLab = null;    
+            vpToWinLab = null;
             vpToWin = null;
         }
 
@@ -478,7 +478,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         if ((maxPlayers <= 4) && ! pi.getGame().hasSeaBoard)
             curY += (lineH + 5);
 
-        // VP to Win label moves to make room for various buttons. 
+        // VP to Win label moves to make room for various buttons.
         if (vpToWin != null)
         {
             // #VP total to Win
@@ -533,7 +533,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (e.getSource() == gameInfoBut)
         {
-            NewGameOptionsFrame.createAndShow(pi.getClient(), game.getName(), game.getGameOptions(), false, true);
+            NewGameOptionsFrame.createAndShow(pi.getGameDisplay(), game.getName(), game.getGameOptions(), false, true);
             return;
         }
         if (e.getSource() == statsBut)
@@ -812,7 +812,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     /**
      * The board's general supply of cloth remaining has changed.
      * Update the display.  Used for scenario {@link SOCGameOption#K_SC_CLVI}.
-     * @since 2.0.00 
+     * @since 2.0.00
      */
     public void updateClothCount()
     {
