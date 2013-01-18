@@ -3205,7 +3205,8 @@ public class SOCPlayerInterface extends Frame
 
         public void requestedTradeReset(SOCPlayer playerToReset)
         {
-            pi.clearTradeMsg(playerToReset.getPlayerNumber());
+            final int pn = (playerToReset != null) ? playerToReset.getPlayerNumber() : -1;
+            pi.clearTradeMsg(pn);
         }
 
         public void requestedDiceRoll()
