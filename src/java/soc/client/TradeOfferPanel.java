@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2007-2009,2011,2012 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2007-2009,2011-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.client;
 
@@ -57,7 +57,18 @@ import java.awt.event.ActionListener;
  */
 public class TradeOfferPanel extends Panel
 {
+    /**
+     * Mode to show a trade offer, not a message.
+     * Made visible via {@link #setOffer(SOCTradeOffer)}.
+     * @see #MESSAGE_MODE
+     */
     public static final String OFFER_MODE = "offer";
+
+    /**
+     * Mode to show a message, not a trade offer.
+     * Made visible via {@link #setMessage(String)}.
+     * @see #OFFER_MODE
+     */
     public static final String MESSAGE_MODE = "message";
 
     /**
@@ -112,8 +123,15 @@ public class TradeOfferPanel extends Panel
     SOCHandPanel hp;
     SOCPlayerInterface pi;
 
+    /**
+     * Current mode: {@link #MESSAGE_MODE} to show {@link #messagePanel},
+     * or {@link #OFFER_MODE} to show {@link #offerPanel}.
+     */
     String mode;
+
+    /** Layout which shows either {@link #messagePanel} or {@link #offerPanel}. */
     CardLayout cardLayout;
+
     MessagePanel messagePanel;
     OfferPanel offerPanel;
 
@@ -159,7 +177,12 @@ public class TradeOfferPanel extends Panel
         counterCompactMode = false;
         counterHidesBalloonPoint = false;
     }
-    
+
+    /**
+     * Panel to show when in {@link TradeOfferPanel#MESSAGE_MODE MESSAGE_MODE},
+     * not {@link TradeOfferPanel#OFFER_MODE OFFER_MODE}.
+     * @see OfferPanel
+     */
     private class MessagePanel extends Panel
     {
         private SpeechBalloon balloon;
@@ -276,7 +299,12 @@ public class TradeOfferPanel extends Panel
         }
     }
 
-    /** Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)} */
+    /**
+     * Panel to show a trade offer when in {@link TradeOfferPanel#OFFER_MODE OFFER_MODE},
+     * not {@link TradeOfferPanel#MESSAGE_MODE}. 
+     * Contains both offer and counter-offer; see {@link #setCounterOfferVisible(boolean)}
+     * @see MessagePanel
+     */
     private class OfferPanel extends Panel implements ActionListener
     {
         /** Balloon to hold offer received */
@@ -291,7 +319,7 @@ public class TradeOfferPanel extends Panel
         /** "I Get" */
         Label getLab;
 
-        /** Offer's resources */
+        /** Offer's resources; counter-offer is {@link #counterOfferSquares}. */
         SquaresPanel squares;
         /** send button for counter-offer */
         Button offerBut;
@@ -302,7 +330,8 @@ public class TradeOfferPanel extends Panel
         ShadowedBox offerBox;
         Label counterOfferToWhom;
         boolean counterOffer_playerInit = false;
-        SquaresPanel offerSquares;
+        /** Counter-offer's resources; the main offer is {@link #squares}. */
+        SquaresPanel counterOfferSquares;
         Label giveLab2;
         Label getLab2;
         Button sendBut;
@@ -392,9 +421,9 @@ public class TradeOfferPanel extends Panel
             cancelBut.setVisible(false);
             add(cancelBut);
 
-            offerSquares = new SquaresPanel(true);
-            offerSquares.setVisible(false);
-            add(offerSquares);
+            counterOfferSquares = new SquaresPanel(true);
+            counterOfferSquares.setVisible(false);
+            add(counterOfferSquares);
 
             giveLab2 = new Label("Give Them: ");
             giveLab2.setVisible(false);
@@ -568,8 +597,8 @@ public class TradeOfferPanel extends Panel
                 counterOfferToWhom.setBounds(inset + 7, top + 28 + squaresHeight, w - 33, 12);
                 giveLab2.setBounds(inset, top + 28 + lineH + squaresHeight, giveW, lineH);
                 getLab2.setBounds(inset, top + 28 + 2*lineH + squaresHeight, giveW, lineH);
-                offerSquares.setLocation(inset + giveW, top + 28 + lineH + squaresHeight);
-                offerSquares.doLayout();
+                counterOfferSquares.setLocation(inset + giveW, top + 28 + lineH + squaresHeight);
+                counterOfferSquares.doLayout();
 
                 if (counterCompactMode)
                 {
@@ -652,7 +681,7 @@ public class TradeOfferPanel extends Panel
             }
             else if (target == CLEAR)
             {
-                offerSquares.setValues(zero, zero);
+                counterOfferSquares.setValues(zero, zero);
             }
             else if (target == SEND)
             {
@@ -666,7 +695,7 @@ public class TradeOfferPanel extends Panel
                     int[] get = new int[5];
                     int giveSum = 0;
                     int getSum = 0;
-                    offerSquares.getValues(give, get);
+                    counterOfferSquares.getValues(give, get);
                     
                     for (int i = 0; i < 5; i++)
                     {
@@ -747,9 +776,9 @@ public class TradeOfferPanel extends Panel
             if (! visible)
             {
                 // Clear counteroffer for next use
-                offerSquares.setValues(zero, zero);
+                counterOfferSquares.setValues(zero, zero);
             }
-            offerSquares.setVisible(visible);
+            counterOfferSquares.setVisible(visible);
 
             sendBut.setVisible(visible);
             clearBut.setVisible(visible);
@@ -799,6 +828,7 @@ public class TradeOfferPanel extends Panel
      * call {@link #clearOffer()}.
      *
      * @param  currentOffer the trade being proposed
+     * @see #setMessage(String)
      */
     public void setOffer(SOCTradeOffer currentOffer)
     {
@@ -814,7 +844,7 @@ public class TradeOfferPanel extends Panel
     public void clearOffer()
     {
         offerPanel.squares.setValues(zero, zero);
-        offerPanel.offerSquares.setValues(zero, zero);
+        offerPanel.counterOfferSquares.setValues(zero, zero);
         if (offerPanel.counterOfferMode)
         {
             offerPanel.counterOfferMode = false;
@@ -835,8 +865,8 @@ public class TradeOfferPanel extends Panel
     }
 
     /**
-     * Returns current mode of <code>TradeOfferPanel.OFFER_MODE</code>, or
-     * <code>TradeOfferPanel.MESSAGE_MODE</code>, which has been set by using
+     * Returns current mode of {@link #OFFER_MODE}, or {@link #MESSAGE_MODE},
+     * which has been set by using
      * {@link #setOffer} or {@link #setMessage}
      */
     public String getMode() {
