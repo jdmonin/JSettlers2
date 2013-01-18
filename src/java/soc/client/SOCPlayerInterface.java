@@ -887,7 +887,6 @@ public class SOCPlayerInterface extends Frame
             && ((null != oldp) || (null != newp)))
         {
             StringBuffer msgkey;
-            //TODO i18n take strings buffers
             if (isRoadNotArmy)
             {
                 if (game.hasSeaBoard)
