@@ -2735,7 +2735,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerJoined(String nickname)
         {
-            final String msg = "*** " + nickname + " has joined this game.\n";
+            final String msg = "*** " + /*I*/nickname + " has joined this game.\n"/*18N*/;
             pi.print(msg);
             if ((pi.game != null) && (pi.game.getGameState() >= SOCGame.START1A))
                 pi.chatPrint(msg);
@@ -2946,7 +2946,7 @@ public class SOCPlayerInterface extends Frame
         public void requestedSpecialBuild(SOCPlayer player)
         {
             if (player.hasAskedSpecialBuild())
-                pi.print("* " + player.getName() + " wants to Special Build.");
+                pi.print("* " + /*I*/player.getName() + " wants to Special Build."/*18N*/);
             if (pi.isClientPlayer(player))
                 pi.getBuildingPanel().updateButtonStatus();
         }
@@ -2978,7 +2978,7 @@ public class SOCPlayerInterface extends Frame
 
         public void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats)
         {
-            pi.print("* Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)");
+            pi.print("* "+/*I*/"Your resource rolls: (Clay, Ore, Sheep, Wheat, Wood)"/*18N*/);
             StringBuffer sb = new StringBuffer("* ");
             int total = 0;
 
@@ -3097,6 +3097,7 @@ public class SOCPlayerInterface extends Frame
 
         public void messageSent(String nickname, String message)
         {
+            //TODO i18n ??, format
             if (nickname.equals("Server"))
             {
                 String starMesText = "* " + message;
