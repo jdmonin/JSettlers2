@@ -1271,7 +1271,7 @@ public class SOCRobotBrain extends Thread
                                 handleDEVCARD(dcMes);
                             } else {
                                 // rejected by server, can't play our requested card
-                                rejectedPlayDevCardType = mes.getType();
+                                rejectedPlayDevCardType = dcMes.getCardType();
                                 waitingForGameState = false;
                                 expectPLACING_FREE_ROAD1 = false;
                                 expectWAITING_FOR_DISCOVERY = false;
