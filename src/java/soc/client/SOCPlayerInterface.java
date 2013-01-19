@@ -2064,8 +2064,7 @@ public class SOCPlayerInterface extends Frame
             return; // <--- Early return: Piece is part of board initial layout, not added during game ---
 
         default:
-            chatPrintDebug("* Unknown piece type " + pieceType + " at coord 0x" + coord);
-
+            chatPrintDebug("* Unknown piece type " + pieceType + " at coord 0x" + Integer.toHexString(coord));
             return;  // <--- Early return ---
         }
 
