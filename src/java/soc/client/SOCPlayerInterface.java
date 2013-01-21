@@ -1072,8 +1072,12 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
 
             if (s.length() > 100)
             {
-                sOverflow = s.substring(100);
-                s = s.substring(0, 100);
+                // wrap long line at a word if possible
+                int lastSpace = s.lastIndexOf(' ', 100);
+                if (lastSpace == -1)
+                    lastSpace = 100;
+                sOverflow = s.substring(lastSpace).trim();
+                s = s.substring(0, lastSpace).trim();
             }
             else if (s.length() == 0)
             {

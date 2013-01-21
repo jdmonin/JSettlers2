@@ -14,6 +14,7 @@ new features, until 2.0.00 is ready.
 
     > 1.1.18 (build OV20130xxx)
 - Reset board: Keep player chat text
+- Chat text field: Wrap long lines on word boundary if possible
 
     > 1.1.17 (build OV20121212)
 - Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece
