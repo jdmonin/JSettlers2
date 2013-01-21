@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1738,6 +1738,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
     /**
      * Handle board reset (new game with same players, same game name).
      * The reset message will be followed with others which will fill in the game state.
+     * Most GUI panels are destroyed and re-created.  Player chat text is kept.
      *
      * @param newGame New game object
      * @param rejoinPlayerNumber Sanity check - must be our correct player number in this game
@@ -1764,6 +1765,7 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             hands[i].disable();
             hands[i].destroy();
         }
+        final String prevChatText = chatDisplay.getText();
         clientHand = null;
         clientHandPlayerNum = -1;
         removeAll();  // old sub-components
@@ -1771,8 +1773,11 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
         // Clear from possible TITLEBAR_GAME_OVER
         setTitle(TITLEBAR_GAME + game.getName() +
                  (game.isPractice ? "" : " [" + client.getNickname() + "]"));
+
         validate();
         repaint();
+
+        chatDisplay.append(prevChatText);
         String requesterName = game.getPlayer(requesterNumber).getName();
         if (requesterName == null)
             requesterName = "player who left";

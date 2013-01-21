@@ -12,6 +12,9 @@ new features, until 2.0.00 is ready.
 
 
 
+    > 1.1.18 (build OV20130xxx)
+- Reset board: Keep player chat text
+
     > 1.1.17 (build OV20121212)
 - Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece
 - Road Building: While placing first free road, don't enable Cancel in popup menu
