@@ -1583,6 +1583,7 @@ public class SOCRobotBrain extends Thread
 
                     case SOCMessage.CHOOSEPLAYERREQUEST:
                         chooseRobberVictim(((SOCChoosePlayerRequest) mes).getChoices());
+                        counter = 0;
                         break;
 
                     case SOCMessage.ROBOTDISMISS:
@@ -3334,6 +3335,7 @@ public class SOCRobotBrain extends Thread
              */ 
             whatWeWantToBuild = null;
             buildingPlan.clear();
+            waitingForGameState = false;
         }
 
         /**
