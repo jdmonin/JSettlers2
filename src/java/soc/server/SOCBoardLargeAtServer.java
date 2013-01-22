@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -23,9 +23,11 @@ package soc.server;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import soc.game.SOCBoard;
@@ -680,6 +682,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 clumpsNotOK = false;
             }
 
+            if (shuffleLandHexes && ! clumpsNotOK)
+            {
+                // Separate adjacent gold hexes.  Does not change numPath or redHexes, only hexLayoutLg.
+                makeNewBoard_placeHexes_separateAdjacGolds(numPath);
+            }
+
             if (shuffleDiceNumbers && ! clumpsNotOK)
             {
                 // Separate adjacent "red numbers" (6s, 8s)
@@ -713,9 +721,212 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * For {@link #makeNewBoard(Hashtable)}, after placing
      * land hexes and dice numbers into {@link #hexLayoutLg},
+     * find and separate adjacent gold hexes.
+     *
+     * @param landHexCoords All land hex coordinates being shuffled, includes gold hexes and non-gold hexes
+     */
+    public void makeNewBoard_placeHexes_separateAdjacGolds(final int[] landHexCoords)
+    {
+        // map of gold hex coords to all their adjacent land hexes, if any;
+        // golds with no adjacent land are left out of the map.
+        HashMap<Integer, Vector<Integer>> goldAdjac = new HashMap<Integer, Vector<Integer>>();
+
+        // Find each gold hex's adjacent hexes:
+        for (int hex : landHexCoords)
+        {
+            if (GOLD_HEX != getHexTypeFromCoord(hex))
+                continue;
+
+            Vector<Integer> adjacLand = getAdjacentHexesToHex(hex, false);
+            if (adjacLand == null)
+                continue;  // no adjacents, ignore this GOLD_HEX; getAdjacentHexesToHex never returns an empty vector
+
+            goldAdjac.put(Integer.valueOf(hex), adjacLand);
+        }
+
+        if (goldAdjac.isEmpty())
+        {
+            return;  // <--- Early return: no gold hexes to check ---
+        }
+
+        // See if any adjacents are another gold hex:
+        // If so, add both to goldAdjacGold.
+        HashMap<Integer, List<Integer>> goldAdjacGold = new HashMap<Integer, List<Integer>>();
+        int maxAdjac = 0;
+        Integer maxHex = null;
+
+        for (Integer gHex : goldAdjac.keySet())
+        {
+            for (Integer adjHex : goldAdjac.get(gHex))
+            {
+                if (goldAdjac.containsKey(adjHex))
+                {
+                    int n = makeNewBoard_placeHexes_sepAdjGolds_addToAdjacList(goldAdjacGold, gHex, adjHex);
+                    if (n > maxAdjac)
+                    {
+                        maxAdjac = n;
+                        maxHex = gHex;
+                    }
+
+                    n = makeNewBoard_placeHexes_sepAdjGolds_addToAdjacList(goldAdjacGold, adjHex, gHex);
+                    if (n > maxAdjac)
+                    {
+                        maxAdjac = n;
+                        maxHex = adjHex;
+                    }
+                }
+            }
+        }
+
+        if (goldAdjacGold.isEmpty())
+        {
+            return;  // <--- Early return: no adjacent gold hexes ---
+        }
+
+        // Build a set of all the other (non-gold) land hexes that aren't adjacent to gold.
+        // Then, we'll swap out the gold hex that has the most adjacent golds, in case that
+        // was the middle one and no other golds are adjacent.
+
+        HashSet<Integer> nonAdjac = new HashSet<Integer>();
+        for (int hex : landHexCoords)
+        {
+            if (GOLD_HEX == getHexTypeFromCoord(hex))
+                continue;
+
+            final Integer hexInt = Integer.valueOf(hex);
+            boolean adjac = false;
+            for (Vector<Integer> goldAdjacList : goldAdjac.values())
+            {
+                if (goldAdjacList.contains(hexInt))
+                {
+                    adjac = true;
+                    break;
+                }
+            }
+
+            if (! adjac)
+                nonAdjac.add(hexInt);
+        }
+
+        if (nonAdjac.isEmpty())
+        {
+            return;  // <--- Early return: nowhere non-adjacent to swap it to
+        }
+
+        // pick a random nonAdjac, and swap with "middle" gold hex
+        makeNewBoard_placeHexes_sepAdjGolds_swapWithRandom
+            (maxHex, nonAdjac, goldAdjacGold);
+
+        // if any more, take care of them while we can
+        while (! (goldAdjacGold.isEmpty() || nonAdjac.isEmpty()))
+        {
+            // goldAdjacGold, goldAdjac, and nonAdjac are mutated by swapWithRandom,
+            // so we need a new iterator each time.
+
+            final Integer oneGold = goldAdjacGold.keySet().iterator().next();
+            makeNewBoard_placeHexes_sepAdjGolds_swapWithRandom
+                (oneGold, nonAdjac, goldAdjacGold);
+        }
+    }
+
+    /**
+     * Add hex1 to hex0's adjacency list in this map; create that list if needed.
+     * Used by makeNewBoard_placeHexes_separateAdjacGolds.
+     * @param goldAdjacGold  Map from gold hexes to their adjacent gold hexes
+     * @param hex0  Hex coordinate that will have a list of adjacents in <tt>goldAdjacGold</tt>
+     * @param hex1  Hex coordinate to add to <tt>hex0</tt>'s list
+     * @return length of hex0's list after adding hex1
+     */
+    private final int makeNewBoard_placeHexes_sepAdjGolds_addToAdjacList
+        (HashMap<Integer, List<Integer>> goldAdjacGold, final Integer hex0, Integer hex1)
+    {
+        List<Integer> al = goldAdjacGold.get(hex0);
+        if (al == null)
+        {
+            al = new ArrayList<Integer>();
+            goldAdjacGold.put(hex0, al);
+        }
+        al.add(hex1);
+        return al.size();
+    }
+
+    /**
+     * Swap this gold hex with a random non-adjacent hex in <tt>hexLayoutLg</tt>.
+     * Updates <tt>nonAdjac</tt> and <tt>goldAdjacGold</tt>.
+     * Used by makeNewBoard_placeHexes_separateAdjacGolds.
+     * @param goldHex  Coordinate of gold hex to swap
+     * @param nonAdjac  All land hexes not currently adjacent to a gold hex
+     * @param goldAdjacGold  Map of golds adjacent to each other
+     * @throws IllegalArgumentException  if goldHex coordinates aren't GOLD_HEX in hexLayoutLg when called
+     */
+    private final void makeNewBoard_placeHexes_sepAdjGolds_swapWithRandom
+        (final Integer goldHex, HashSet<Integer> nonAdjac, HashMap<Integer, List<Integer>> goldAdjacGold)
+        throws IllegalArgumentException
+    {
+        // get a random non-adjacent hex to swap with gold:
+        //    not efficient, but won't be called more than once or twice
+        final Integer nonAdjHex;
+        {
+            int n = nonAdjac.size();
+            Iterator<Integer> nai = nonAdjac.iterator();
+            if (n > 1)
+                for (n = rand.nextInt(n); n > 0; --n)
+                    nai.next();  // skip
+
+            nonAdjHex = nai.next();
+        }
+
+        // swap goldHex, nonAdjHex in hexLayoutLg:
+        {
+            int gr = goldHex >> 8,
+                gc = goldHex & 0xFF,
+                nr = nonAdjHex >> 8,
+                nc = nonAdjHex & 0xFF;
+            if (hexLayoutLg[gr][gc] != GOLD_HEX)
+                throw new IllegalArgumentException("goldHex coord not gold in hexLayoutLg: 0x" + Integer.toHexString(goldHex));
+            hexLayoutLg[gr][gc] = hexLayoutLg[nr][nc];  // gets non-adjacent's land hex type
+            hexLayoutLg[nr][nc] = GOLD_HEX;
+        }
+
+        // since it's gold now, remove nonAdjHex and its adjacents from nonAdjac:
+        nonAdjac.remove(nonAdjHex);
+        Vector<Integer> adjs = getAdjacentHexesToHex(nonAdjHex, false);
+        if (adjs != null)
+            for (Integer ahex : adjs)
+                nonAdjac.remove(ahex);
+
+        // Remove goldHex from goldAdjacGold (both directions):
+
+        // - as value: look for it in its own adjacents' adjacency lists
+        final List<Integer> adjacHexesToSwapped = goldAdjacGold.get(goldHex);
+        if (adjacHexesToSwapped != null)
+        {
+            for (Integer ahex : adjacHexesToSwapped)
+            {
+                List<Integer> adjacToAdjac = goldAdjacGold.get(ahex);
+                if (adjacToAdjac != null)
+                {
+                    adjacToAdjac.remove(goldHex);
+                    if (adjacToAdjac.isEmpty())
+                        goldAdjacGold.remove(ahex);  // ahex had no other adjacents
+                }
+            }
+        }       
+
+        // - as key: remove it from goldAdjacGold
+        goldAdjacGold.remove(goldHex);
+    }
+
+    /**
+     * For {@link #makeNewBoard(Hashtable)}, after placing
+     * land hexes and dice numbers into {@link SOCBoardLarge#hexLayoutLg hexLayoutLg}
+     * and {@link SOCBoardLarge#numberLayoutLg numberLayoutLg},
      * separate adjacent "red numbers" (6s, 8s)
      * and make sure gold hex dice aren't too frequent.
      * For algorithm details, see comments in this method.
+     *<P>
+     * Call after calling {@link #makeNewBoard_placeHexes_separateAdjacGolds(int[])}
+     * so that gold hexes will be in their final locations.
      *<P>
      * If using {@link #FOG_HEX}, no fog should be on the
      * board when calling this method: Don't call after
@@ -769,7 +980,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
         // Overall plan:
 
-        // Make an empty list swappedNums to hold all swaps, in case we undo them all and retry
+        // Make an empty list swappedNums to hold all dice-number swaps, in case we undo them all and retry
         // Duplicate redHexes in case we need to undo all swaps and retry
         //   (This can be deferred until adjacent redHexes are found)
         // numRetries = 0
@@ -810,7 +1021,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // - Go backwards through the list of swappedNums, reversing each swap
         // - Jump back to "Make sets otherCoastalHexes, otherHexes"
 
-        // Swapping Algorithm:
+        // Swapping Algorithm for dice numbers:
         //   Returns a triple for swap info (old location, swapped location, delta to index numbers),
         //   or nothing if we failed to swap.
         // - If otherCoastalHexes and otherHexes are empty:
@@ -1131,7 +1342,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }
 
     /**
-     * The swapping algorithm for {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList)}.
+     * The dice-number swapping algorithm for {@link #makeNewBoard_placeHexes_moveFrequentNumbers(int[], ArrayList)}.
      * If we can, pick a hex in otherCoastalHexes or otherHexes, swap and remove <tt>swaphex</tt>
      * from redHexes, then remove/add hexes from/to otherCoastalHexes, otherHexes, redHexes.
      * See comments for details.
