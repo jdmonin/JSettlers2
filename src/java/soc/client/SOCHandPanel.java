@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -880,7 +880,7 @@ public class SOCHandPanel extends Panel
         }
         else if (target == DONE_RESTART)
         {
-            playerInterface.resetBoardRequest();
+            playerInterface.resetBoardRequest(game.isPractice && ! game.isInitialPlacement());
         }
         else if (target == CLEAR)
         {

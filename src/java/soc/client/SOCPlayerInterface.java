@@ -44,6 +44,7 @@ import soc.game.SOCVillage;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.EventQueue;  // currently used for javadoc only
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
@@ -1313,9 +1314,24 @@ public class SOCPlayerInterface extends Frame
      *<P>
      * Board reset was added in version 1.1.00.  Older servers won't support it.
      * If this happens, give user a message.
+     *<P>
+     * Before resetting a practice game, have the user confirm the reset with a dialog box.
+     * This is to prevent surprises if they click the "Restart" button at the end of a practice game,
+     * which is the same button as the "Done" button at the end of a turn.
+     *
+     * @param confirmDialogFirst  If true, a practice game is over and the user should confirm the reset
+     *            with a dialog box created and shown here.  If the game is just starting, no need to confirm.
+     *            If true, assumes <tt>resetBoardRequest</tt> is being called from the AWT event thread.
      */
-    public void resetBoardRequest()
+    public void resetBoardRequest(final boolean confirmDialogFirst)
     {
+        if (confirmDialogFirst)
+        {
+            new ResetBoardConfirmDialog(gameDisplay, this).run();
+            return;
+            // ResetBoardConfirmDialog will call resetBoardRequest(false) if its Restart button is clicked
+        }
+
         if (client.getServerVersion(game) < 1100)
         {
             textDisplay.append("*** This server does not support board reset, server is too old.\n");
@@ -3537,6 +3553,65 @@ public class SOCPlayerInterface extends Frame
         }
 
     }  // nested class ChooseRobClothOrResourceDialog
+
+    /**
+     * This is the modal dialog to confirm resetting the board after a practice game.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    protected static class ResetBoardConfirmDialog extends AskDialog implements Runnable
+    {
+        /**
+         * Creates a new ResetBoardConfirmDialog.
+         * To display it from the AWT event thread, call {@link #run()}.
+         * To display it from another thread, call
+         * {@link EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         *
+         * @param cli      Player client interface
+         * @param gamePI   Current game's player interface
+         */
+        private ResetBoardConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
+        {
+            super(cli, gamePI, "Restart game?",
+                "Reset the board and start a new game?",
+                "Restart",
+                "Cancel",
+                null,
+                2);
+        }
+
+        /**
+         * React to the Restart button. (call playerInterface.resetBoardRequest)
+         */
+        @Override
+        public void button1Chosen()
+        {
+            pi.resetBoardRequest(false);
+        }
+
+        /**
+         * React to the Cancel button. (do nothing)
+         */
+        @Override
+        public void button2Chosen() {}
+
+        /**
+         * React to the dialog window closed by user. (do nothing)
+         */
+        @Override
+        public void windowCloseChosen() {}
+
+        /**
+         * In AWT event thread, show ourselves. Do not call directly unless on that thread;
+         * call {@link EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         */
+        public void run()
+        {
+            setVisible(true);
+        }
+
+    }  // nested class ResetBoardConfirmDialog
 
     /**
      * React to window closing or losing focus (deactivation).
