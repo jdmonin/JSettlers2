@@ -7867,6 +7867,7 @@ public class SOCServer extends Server
                         {
                             messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
                         } else {
+                            System.err.println("L7870: played soldier; clientVersionLowest = " + ga.clientVersionLowest);  // JM temp
                             messageToGameForVersions
                                 (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
                                  new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);

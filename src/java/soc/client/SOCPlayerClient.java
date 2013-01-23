@@ -3944,6 +3944,9 @@ public class SOCPlayerClient
 
             case SOCDevCard.PLAY:
                 player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
+                // JM temp debug:
+                if (ctype != mes.getCardType())
+                    System.out.println("L3947: play dev card type " + ctype + "; srv has " + mes.getCardType());
 
                 break;
 
