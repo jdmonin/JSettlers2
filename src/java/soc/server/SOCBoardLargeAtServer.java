@@ -857,7 +857,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param goldHex  Coordinate of gold hex to swap
      * @param nonAdjac  All land hexes not currently adjacent to a gold hex
      * @param goldAdjacGold  Map of golds adjacent to each other
-     * @throws IllegalArgumentException  if goldHex coordinates aren't GOLD_HEX in hexLayoutLg when called
+     * @throws IllegalArgumentException  if goldHex coordinates in hexLayoutLg aren't GOLD_HEX
      */
     private final void makeNewBoard_placeHexes_sepAdjGolds_swapWithRandom
         (final Integer goldHex, HashSet<Integer> nonAdjac, HashMap<Integer, List<Integer>> goldAdjacGold)
@@ -865,6 +865,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     {
         // get a random non-adjacent hex to swap with gold:
         //    not efficient, but won't be called more than once or twice
+        //    per board with adjacent golds. Most boards won't have any.
         final Integer nonAdjHex;
         {
             int n = nonAdjac.size();
@@ -884,7 +885,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 nc = nonAdjHex & 0xFF;
             if (hexLayoutLg[gr][gc] != GOLD_HEX)
                 throw new IllegalArgumentException("goldHex coord not gold in hexLayoutLg: 0x" + Integer.toHexString(goldHex));
-            hexLayoutLg[gr][gc] = hexLayoutLg[nr][nc];  // gets non-adjacent's land hex type
+            hexLayoutLg[gr][gc] = hexLayoutLg[nr][nc];  // gets nonAdjHex's land hex type
             hexLayoutLg[nr][nc] = GOLD_HEX;
         }
 
