@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
- * Portions of this file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -95,9 +95,11 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
     
     private class RollPanel extends JPanel
     {
-        // indexed by dice roll value, 0 and 1 are unused
+        /** Value counters backing {@link #displays}; indexed by dice roll value, 0 and 1 are unused */
         int[] values;
+        /** One element per player number in game; vacant seats' checkboxes are hidden */
         List<JCheckBox> playerEnabled;
+        /** Displays the amounts in {@link #values} */
         private RollBar[] displays;
         
         public RollPanel()
@@ -159,10 +161,13 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             selectPanel.add(all);
             
             playerEnabled = new ArrayList<JCheckBox>();
-            for (SOCPlayer p : players)
+            for (int pn = 0; pn < pi.getGame().maxPlayers; ++pn)
             {
-                JCheckBox cb = new JCheckBox(p.getName(), true);
-                cb.addActionListener(new CheckActionListener());
+                JCheckBox cb = new JCheckBox(players[pn].getName(), true);
+                if (pi.getGame().isSeatVacant(pn))
+                    cb.setVisible(false);  // hidden but still present in playerEnabled at playerNumber
+                else
+                    cb.addActionListener(new CheckActionListener());
                 selectPanel.add(cb);
                 playerEnabled.add(cb);
             }
