@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -52,7 +52,8 @@ public class SOCChangeFace extends SOCMessage
      *
      * @param ga  the name of the game
      * @param pn  the number of the changing player
-     * @param id  the id of the face image
+     * @param id  the id of the face image;
+     *            1 and higher are human face images, 0 is the default robot, -1 is the smarter robot.
      */
     public SOCChangeFace(String ga, int pn, int id)
     {
@@ -79,7 +80,8 @@ public class SOCChangeFace extends SOCMessage
     }
 
     /**
-     * @return the id of the face image
+     * @return the id of the face image;
+     * 1 and higher are human face images, 0 is the default robot, -1 is the smarter robot.
      */
     public int getFaceId()
     {

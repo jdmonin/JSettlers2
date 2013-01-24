@@ -7867,6 +7867,7 @@ public class SOCServer extends Server
                         {
                             messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
                         } else {
+                            System.err.println("L7870: played soldier; clientVersionLowest = " + ga.clientVersionLowest);  // JM temp
                             messageToGameForVersions
                                 (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
                                  new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);
@@ -9780,7 +9781,6 @@ public class SOCServer extends Server
         {
             Date now = new Date();
             Date gstart = ga.getStartTime();
-            final String gLengthMsg;
             if (gstart != null)
             {
                 StringBuffer sb = new StringBuffer();  // game duration
@@ -9799,15 +9799,11 @@ public class SOCServer extends Server
                     sb.append(gameSeconds);
                     sb.append(" seconds");
                 }
-                gLengthMsg = sb.toString();
-                messageToGame(gname, gLengthMsg);
                 messageFormatToGame
                     (gname, true, "This game was {0} rounds, and took {1}.",
                      ga.getRoundCount(), sb);
 
                 // Ignore possible "1 minutes"; that game is too short to worry about.
-            } else {
-                gLengthMsg = null;
             }
 
             /**

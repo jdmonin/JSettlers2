@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -89,11 +89,14 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *
      * <h3>Current Game Scenarios:</h3>
      *<UL>
+     *<LI> {@link #K_SC_4ISL SC_4ISL}  The Four Islands (Six on the 6-player board)
      *<LI> {@link #K_SC_FOG  SC_FOG}   A hex has been revealed from behind fog:
      *                                  {@link SOCScenarioGameEvent#SGE_FOG_HEX_REVEALED}
+     *<LI> {@link #K_SC_TTD  SC_TTD}   Through The Desert
      *<LI> {@link #K_SC_CLVI SC_CLVI}  Cloth trade with neutral {@link SOCVillage villages}
      *<LI> {@link #K_SC_PIRI SC_PIRI}  Pirate Islands and {@link SOCFortress fortresses}
      *</UL>
+     *  (See each scenario name field's javadoc for more details.)
      *
      * <h3>If you want to add a game scenario:</h3>
      *<UL>
@@ -161,6 +164,11 @@ public class SOCScenario implements Cloneable, Comparable<Object>
              "Some land hexes initially hidden by fog",
              "_SC_FOG=t,PLL=t,VP=t12"));
 
+        allSc.put(K_SC_TTD, new SOCScenario
+            (K_SC_TTD, 2000, 2000,
+             "Through The Desert",
+             "_SC_SEAC=t,PLL=t,VP=t12"));
+
         allSc.put(K_SC_CLVI, new SOCScenario
             (K_SC_CLVI, 2000, 2000,
              "Cloth Trade with neutral villages",
@@ -181,7 +189,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
     /**
      * Scenario key <tt>SC_4ISL</tt> for The Four Islands.
-     * No main option or special rules.
+     * No main option or special rules, only a board layout and SVP.
      */
     public static final String K_SC_4ISL = "SC_4ISL";
 
@@ -190,6 +198,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * Main option is {@link SOCGameOption#K_SC_FOG}.
      */
     public static final String K_SC_FOG = "SC_FOG";
+
+    /**
+     * Scenario key <tt>SC_TTD</tt> for Through The Desert.
+     * No main option or special rules, only a board layout and SVP.
+     */
+    public static final String K_SC_TTD = "SC_TTD";
 
     /**
      * Scenario key <tt>SC_CLVI</tt> for {@link SOCScenarioPlayerEvent#CLOTH_TRADE_ESTABLISHED_VILLAGE}:

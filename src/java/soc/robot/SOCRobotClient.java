@@ -52,6 +52,10 @@ import java.util.Vector;
  *<P>
  * Once connected, messages from the server are processed in {@link #treat(SOCMessage)}.
  * For each game this robot client plays, there is a {@link SOCRobotBrain}.
+ *<P>
+ * The built-in robots must be the same version as the server, to simplify things.
+ * Third-party bots might be based on this code and be other versions, to simplify their maintenance.
+ * The {@link soc.message.SOCImARobot IMAROBOT} connect message gives the bot's class name.
  *
  * @author Robert S Thomas
  */
@@ -439,7 +443,7 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * join game authorization
              */
             case SOCMessage.JOINGAMEAUTH:
-                handleJOINGAMEAUTH((SOCJoinGameAuth) mes);
+                handleJOINGAMEAUTH((SOCJoinGameAuth) mes, (sLocal != null));
 
                 break;
 
@@ -885,15 +889,17 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     /**
      * handle the "join game authorization" message
      * @param mes  the message
+     * @param isPractice Is the server local for practice, or remote?
      */
     @Override
-    protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes)
+    protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
     {
         gamesPlayed++;
 
         final String gaName = mes.getGame();
 
         SOCGame ga = new SOCGame(gaName, true, gameOptions.get(gaName));
+        ga.isPractice = isPractice;
         games.put(gaName, ga);
 
         CappedQueue<SOCMessage> brainQ = new CappedQueue<SOCMessage>();
@@ -1525,6 +1531,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * handle board reset
      * (new game with same players, same game name).
      * Destroy old Game object.
+     * Unlike <tt>SOCDisplaylessPlayerClient.handleRESETBOARDAUTH</tt>, don't call {@link SOCGame#resetAsCopy()}.
+     *<P>
      * Take robotbrain out of old game, don't yet put it in new game.
      * Let server know we've done so, by sending LEAVEGAME via {@link #leaveGame(SOCGame, String, boolean)}.
      * Server will soon send a JOINGAMEREQUEST if we should join the new game.
@@ -1532,7 +1540,6 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
      * @param mes  the message
      *
      * @see soc.server.SOCServer#resetBoardAndNotify(String, int)
-     * @see soc.game.SOCGame#resetAsCopy()
      * @see #handleJOINGAMEREQUEST(SOCJoinGameRequest)
      */
     @Override

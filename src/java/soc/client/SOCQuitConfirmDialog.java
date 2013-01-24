@@ -1,8 +1,8 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007,2008,2010 Jeremy D Monin <jeremy@nand.net>
- * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
+ * This file copyright (C) 2007,2008,2010,2013 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -100,7 +100,7 @@ class SOCQuitConfirmDialog extends AskDialog
     @Override
     public void button3Chosen()
     {
-        pi.resetBoardRequest();
+        pi.resetBoardRequest(false);
     }
 
     /**

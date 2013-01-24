@@ -385,6 +385,7 @@ public class SOCPlayerClient
      * A {@link GameDisplay} implementation for AWT.
      *<P>
      * Before v2.0.00, most of these fields and methods were part of the main {@link SOCPlayerClient} class.
+     * @since 2.0.00
      */
     public static class GameAwtDisplay extends Panel implements GameDisplay
     {
@@ -2230,6 +2231,7 @@ public class SOCPlayerClient
     /**
      * Nested class for processing incoming messages (treating).
      * @author paulbilnoski
+     * @since 2.0.00
      */
     private class MessageTreater
     {
@@ -3559,7 +3561,7 @@ public class SOCPlayerClient
                 
             case SOCPlayerElement.NUM_PICK_GOLD_HEX_RESOURCES:
                 SOCDisplaylessPlayerClient.handlePLAYERELEMENT_simple(mes, ga, pl, pn);
-                pcl.requestedGoldResourceSelect(pl, 0);
+                pcl.requestedGoldResourceCountUpdated(pl, 0);
                 break;
 
             case SOCPlayerElement.SCENARIO_SVP:
@@ -3945,6 +3947,9 @@ public class SOCPlayerClient
 
             case SOCDevCard.PLAY:
                 player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
+                // JM temp debug:
+                if (ctype != mes.getCardType())
+                    System.out.println("L3947: play dev card type " + ctype + "; srv has " + mes.getCardType());
 
                 break;
 
@@ -4503,6 +4508,7 @@ public class SOCPlayerClient
     /**
      * Nested class for processing outgoing messages (putting).
      * @author paulbilnoski
+     * @since 2.0.00
      */
     public static class GameManager
     {
@@ -5172,7 +5178,8 @@ public class SOCPlayerClient
      *<br>
      * Network shutdown is {@link #disconnect()} or {@link #dispose()}.
      *
-     * @author Paul Bilnoski <paul@bilnoski.net>
+     * @author Paul Bilnoski &lt;paul@bilnoski.net&gt;
+     * @since 2.0.00
      */
     public static class ClientNetwork
     {
@@ -5624,6 +5631,8 @@ public class SOCPlayerClient
         /**
          * For practice games, reader thread to get messages from the
          * practice server to be treated and reacted to.
+         * @author jdmonin
+         * @since 1.1.00
          */
         class SOCPlayerLocalStringReader implements Runnable
         {
@@ -5753,6 +5762,7 @@ public class SOCPlayerClient
      * When timer fires, assume no more options will be received.
      * Call {@link SOCPlayerClient#handleGAMEOPTIONINFO(SOCGameOptionInfo, boolean) handleGAMEOPTIONINFO("-",false)}
      * to trigger end-of-list behavior at client.
+     * @author jdmonin
      * @since 1.1.07
      */
     private static class GameOptionsTimeoutTask extends TimerTask
@@ -5789,6 +5799,7 @@ public class SOCPlayerClient
      *<P>
      * When timer fires, assume no defaults will be received.
      * Display the new-game dialog.
+     * @author jdmonin
      * @since 1.1.07
      */
     private static class GameOptionDefaultsTimeoutTask extends TimerTask
@@ -5847,6 +5858,7 @@ public class SOCPlayerClient
      *<LI> Once  <tt>newGameWaitingForOpts</tt> == false, show the {@link NewGameOptionsFrame}.
      *</OL>
      *
+     * @author jdmonin
      * @since 1.1.07
      */
     public static class GameOptionServerSet
@@ -5981,6 +5993,11 @@ public class SOCPlayerClient
 
     }  // class GameOptionServerSet
 
+    /**
+     * Applet methods to display the main screen (list of games), separated out from main GUI class.
+     * @author paulbilnoski
+     * @since 2.0.00
+     */
     public static class SOCApplet extends Applet
     {
         SOCPlayerClient client;

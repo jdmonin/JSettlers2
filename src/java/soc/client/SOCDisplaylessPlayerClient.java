@@ -386,7 +386,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * join game authorization
              */
             case SOCMessage.JOINGAMEAUTH:
-                handleJOINGAMEAUTH((SOCJoinGameAuth) mes);
+                handleJOINGAMEAUTH((SOCJoinGameAuth) mes, (sLocal != null));
 
                 break;
 
@@ -830,8 +830,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
     /**
      * handle the "join game authorization" message
      * @param mes  the message
+     * @param isPractice Is the server local for practice, or remote?
      */
-    protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes)
+    protected void handleJOINGAMEAUTH(SOCJoinGameAuth mes, final boolean isPractice)
     {
         gotPassword = true;
 
@@ -839,6 +840,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         if (ga != null)
         {
+            ga.isPractice = isPractice;
             games.put(mes.getGame(), ga);
         }
     }
@@ -2151,6 +2153,10 @@ public class SOCDisplaylessPlayerClient implements Runnable
     {
         if ((! ga.isPractice) && (sVersion < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
         {
+            // Unlikely; the displayless client is currently used for SOCRobotClient,
+            // and the built-in robots must be the same version as the server.
+            // This code is here for a third-party bot or other user of displayless.
+
             if (dc == SOCDevCardConstants.KNIGHT)
                 dc = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
             else if (dc == SOCDevCardConstants.UNKNOWN)

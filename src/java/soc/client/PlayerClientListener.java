@@ -2,6 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  *
  * This file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
+ * Portions of this file Copyright (C) 2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +32,10 @@ import soc.game.SOCPlayer;
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
  * This presents the facade of the UI to the networking layer.
+ * The game data ({@link SOCGame}, {@link SOCPlayer} methods) will be updated before
+ * these methods are called, so you can call game-object methods for more details on the new event.
+ * @author paulbilnoski
+ * @since 2.0.00
  */
 public interface PlayerClientListener
 {
@@ -40,14 +45,28 @@ public interface PlayerClientListener
      * @param result The sum of the dice rolled. May be <tt>-1</tt> for some game events.
      */
     void diceRolled(SOCPlayer player, int result);
-    
+
+    /**
+     * A client (us or someone else) has joined the game.
+     * They will be an observer until {@link #playerSitdown(int, String)} is called,
+     * then they will be an active player. 
+     * @param nickname  New client's player/observer name
+     */
     void playerJoined(String nickname);
     
     /**
+     * A client player or observer is leaving the game.
      * @param nickname The player name. Will not be {@code null}
      * @param player May be {@code null} if the current player is an observer.
      */
     void playerLeft(String nickname, SOCPlayer player);
+
+    /**
+     * A client has sat down to become an active player.
+     * {@link #playerJoined(String)} was called earlier on this client.
+     * @param seatNumber  New player's playerNumber in the game
+     * @param nickname  New player's name
+     */
     void playerSitdown(int seatNumber, String nickname);
 
     /**
@@ -57,34 +76,83 @@ public interface PlayerClientListener
     void playerTurnSet(int seatNumber);
 
     /**
+     * A player has placed a piece on the board.
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
      */
     void playerPiecePlaced(SOCPlayer player, int coordinate, int pieceType);
-    
+
     /**
+     * A player has moved a piece on the board.
+     * Most pieces are not movable.  {@link SOCShip} can sometimes be moved.
+     * Not used when the robber or pirate is moved; see {@link #robberMoved()}.
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
      */
     void playerPieceMoved(SOCPlayer player, int sourceCoordinate, int targetCoordinate, int pieceType);
+
     /**
+     * A player has been awarded Special Victory Point(s).
      * @param player The player awarded special victory points. Will not be {@code null}
      * @param numSvp The count of how many new special victory points were awarded
      * @param awardDescription A user-display message describing the reason for the award
      */
     void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription);
-    void playerDevCardUpdated(SOCPlayer player);
-    void playerFaceChanged(SOCPlayer player, int faceId);
-    
+
     /**
+     * A player is drawing or playing a development card.
+     * @param player  The player
+     */
+    void playerDevCardUpdated(SOCPlayer player);
+
+    /**
+     * A player has changed their face icon.
+     * @param player  The player
+     * @param faceId  New face icon number;
+     *            1 and higher are human face images, 0 is the default robot, -1 is the smarter robot.
+     */
+    void playerFaceChanged(SOCPlayer player, int faceId);
+
+    /**
+     * Update one part of the player's status, such as their number of settlements remaining.
      * @param player May be {@code null}
      * @param utype The type of element to update
      */
     void playerElementUpdated(SOCPlayer player, UpdateType utype);
+
+    /**
+     * A player's total resource count has been updated.
+     * @param player  The player
+     */
     void playerResourcesUpdated(SOCPlayer player);
+
+    /**
+     * A player's game stats, such as resource totals received from dice rolls, should be displayed.
+     * Called at end of game, or when the player uses the *STATS* command.
+     * @param stats  Player statistic details
+     */
     void playerStats(EnumMap<PlayerClientListener.UpdateType, Integer> stats);
-    
+
+    /**
+     * The game requests that the client player discard a particular number of resource cards.
+     * @param countToDiscard  Must choose and discard this many cards
+     */
     void requestedDiscard(int countToDiscard);
+
+    /**
+     * The client player gets some free resources of their choice.
+     * Used with "Year of Plenty"/"Discovery" cards, and the Gold Hex.
+     * @param countToSelect  Must choose this many resources
+     * @see #requestedGoldResourceCountUpdated(SOCPlayer, int)
+     */
     void requestedResourceSelect(int countToSelect);
-    void requestedGoldResourceSelect(SOCPlayer player, int countToSelect);
+
+    /**
+     * This player must pick this many gold-hex resources, or no longer needs to pick them.
+     * Informational only: do not ask the client player to pick resources,
+     * {@link #requestedResourceSelect(int)} is used for that.
+     * @param player  The player
+     * @param countToSelect  Number of free resources they must pick, or 0 if they've just picked them
+     */
+    void requestedGoldResourceCountUpdated(SOCPlayer player, int countToSelect);
     void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
     void requestedChooseRobResourceType(SOCPlayer player);
     void requestedTrade(SOCPlayer offerer);
@@ -99,12 +167,17 @@ public interface PlayerClientListener
     void requestedTradeReset(SOCPlayer playerToReset);
     void requestedSpecialBuild(SOCPlayer player);
     void requestedDiceRoll();
-    
+
     /** The largest army might have changed, so update */
     void largestArmyRefresh(SOCPlayer old, SOCPlayer potentialNew);
+
     /** The longest road might have changed, so update */
     void longestRoadRefresh(SOCPlayer old, SOCPlayer potentialNew);
-    
+
+    /**
+     * The current game members (players and observers) are listed, and the game is about to start.
+     * @param names  Game member names; to see if each is a player, call {@link SOCGame#getPlayer(String)}.
+     */
     void membersListed(Collection<String> names);
     void boardLayoutUpdated();
     void boardUpdated();
@@ -132,7 +205,10 @@ public interface PlayerClientListener
     void buildRequestCanceled(SOCPlayer player);
     
     void debugFreePlaceModeToggled(boolean isEnabled);
-    
+
+    /**
+     * Player data update types for {@link PlayerClientListener#playerElementUpdated(SOCPlayer, UpdateType)}.
+     */
     enum UpdateType
     {
         Clay,
@@ -157,4 +233,5 @@ public interface PlayerClientListener
         LongestRoad,
         LargestArmy
     }
+
 }

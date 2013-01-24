@@ -46,7 +46,11 @@ For more informaiton about the board coordinates, see the dissertation appendix 
 or javadocs in soc.game.SOCBoard, and src/docs/hexcoord.gif and hexcoord-6player.gif.
 
 The client's structure was refactored in 2.0 by Paul Bilnoski.  Paul's description of this work:
-Added two major new pieces of API: PlayerClientListener and GameDisplay. These are spliced between the SOCPlayerClient and AWT UI code, primarly found in SOCPlayerInterface. The APIs are used by the player client abstract network communication away from the UI - to communicate with the UI about network events received and receive events to send to the server. Some of it is done using inner classes and interfaces which should be split out into an improved package structure.
+Added two major new pieces of API: PlayerClientListener and GameDisplay. These are spliced between the
+SOCPlayerClient and AWT UI code, primarly found in SOCPlayerInterface. The APIs are used by the player client
+abstract network communication away from the UI - to communicate with the UI about network events received and
+receive events to send to the server. Some of it is done using inner classes and interfaces which should be
+split out into an improved package structure.
 
 
 Tips for Debugging

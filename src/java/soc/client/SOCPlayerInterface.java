@@ -44,6 +44,7 @@ import soc.game.SOCVillage;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.EventQueue;  // currently used for javadoc only
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
@@ -1136,8 +1137,12 @@ public class SOCPlayerInterface extends Frame
 
             if (s.length() > 100)
             {
-                sOverflow = s.substring(100);
-                s = s.substring(0, 100);
+                // wrap long line at a word if possible
+                int lastSpace = s.lastIndexOf(' ', 100);
+                if (lastSpace == -1)
+                    lastSpace = 100;
+                sOverflow = s.substring(lastSpace).trim();
+                s = s.substring(0, lastSpace).trim();
             }
             else if (s.length() == 0)
             {
@@ -1307,9 +1312,24 @@ public class SOCPlayerInterface extends Frame
      *<P>
      * Board reset was added in version 1.1.00.  Older servers won't support it.
      * If this happens, give user a message.
+     *<P>
+     * Before resetting a practice game, have the user confirm the reset with a dialog box.
+     * This is to prevent surprises if they click the "Restart" button at the end of a practice game,
+     * which is the same button as the "Done" button at the end of a turn.
+     *
+     * @param confirmDialogFirst  If true, a practice game is over and the user should confirm the reset
+     *            with a dialog box created and shown here.  If the game is just starting, no need to confirm.
+     *            If true, assumes <tt>resetBoardRequest</tt> is being called from the AWT event thread.
      */
-    public void resetBoardRequest()
+    public void resetBoardRequest(final boolean confirmDialogFirst)
     {
+        if (confirmDialogFirst)
+        {
+            new ResetBoardConfirmDialog(gameDisplay, this).run();
+            return;
+            // ResetBoardConfirmDialog will call resetBoardRequest(false) if its Restart button is clicked
+        }
+
         if (client.getServerVersion(game) < 1100)
         {
             textDisplay.append("*** "+/*I*/"This server does not support board reset, server is too old."/*18N*/+"\n");
@@ -1846,6 +1866,8 @@ public class SOCPlayerInterface extends Frame
      * Update interface after game state has changed.
      * For example, if the client is current player, and state changed from PLAY to PLAY1,
      * (Dice has been rolled, or card played), enable the player's Done and Bank buttons.
+     * Or, if the player must discard resources or pick free resources from the gold hex,
+     * calls {@link #discardOrPickTimerSet(boolean)}.
      *<P>
      * Please call after {@link SOCGame#setGameState(int)}.
      * If the game is now starting, please call in this order:
@@ -2049,8 +2071,7 @@ public class SOCPlayerInterface extends Frame
             return; // <--- Early return: Piece is part of board initial layout, not added during game ---
 
         default:
-            chatPrintDebug("* Unknown piece type " + pieceType + " at coord 0x" + coord);
-
+            chatPrintDebug("* Unknown piece type " + pieceType + " at coord 0x" + Integer.toHexString(coord));
             return;  // <--- Early return ---
         }
 
@@ -2710,12 +2731,18 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Client Bridge to translate interface to SOCPlayerInterface methods.
+     * For most methods here, {@link PlayerClientListener} will have their javadoc.
+     * @author paulbilnoski
      * @since 2.0.00
      */
     private static class ClientBridge implements PlayerClientListener
     {
         final SOCPlayerInterface pi;
 
+        /**
+         * Create a new ClientBridge for this playerinterface and its {@link SOCGame}.
+         * @param pi  A player interface, already linked to a game
+         */
         public ClientBridge(SOCPlayerInterface pi)
         {
             this.pi = pi;
@@ -2951,7 +2978,7 @@ public class SOCPlayerInterface extends Frame
                 pi.getBuildingPanel().updateButtonStatus();
         }
 
-        public void requestedGoldResourceSelect(SOCPlayer player, int countToSelect)
+        public void requestedGoldResourceCountUpdated(SOCPlayer player, int countToSelect)
         {
             final SOCHandPanel hpan = pi.getPlayerHandPanel(player.getPlayerNumber());
             hpan.updatePickGoldHexResources();
@@ -3014,6 +3041,11 @@ public class SOCPlayerInterface extends Frame
             pi.updateLongestLargest(true, old, potentialNew);
         }
 
+        /**
+         * The current game members (players and observers) are listed, and the
+         * game is about to start.  Calls {@link SOCPlayerInterface#began(Vector)}.
+         * @param names  Game member names; to see if each is a player, call {@link SOCGame#getPlayer(String)}.
+         */
         public void membersListed(Collection<String> names)
         {
             Vector<String> v = new Vector<String>(names);
@@ -3181,7 +3213,8 @@ public class SOCPlayerInterface extends Frame
 
         public void requestedTradeReset(SOCPlayer playerToReset)
         {
-            pi.clearTradeMsg(playerToReset.getPlayerNumber());
+            final int pn = (playerToReset != null) ? playerToReset.getPlayerNumber() : -1;
+            pi.clearTradeMsg(pn);
         }
 
         public void requestedDiceRoll()
@@ -3201,7 +3234,8 @@ public class SOCPlayerInterface extends Frame
      * If game is over, buttons are Restart and No thanks; default Restart.
      * Start a new thread to show, so message treating can continue as other players vote.
      *
-     * @author Jeremy D Monin <jeremy@nand.net>
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 1.1.00
      */
     protected static class ResetBoardVoteDialog extends AskDialog implements Runnable
     {
@@ -3510,6 +3544,65 @@ public class SOCPlayerInterface extends Frame
     }  // nested class ChooseRobClothOrResourceDialog
 
     /**
+     * This is the modal dialog to confirm resetting the board after a practice game.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    protected static class ResetBoardConfirmDialog extends AskDialog implements Runnable
+    {
+        /**
+         * Creates a new ResetBoardConfirmDialog.
+         * To display it from the AWT event thread, call {@link #run()}.
+         * To display it from another thread, call
+         * {@link EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         *
+         * @param cli      Player client interface
+         * @param gamePI   Current game's player interface
+         */
+        private ResetBoardConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
+        {
+            super(cli, gamePI, /*I*/"Restart game?"/*18N*/,
+                /*I*/"Reset the board and start a new game?"/*18N*/,
+                /*I*/"Restart"/*18N*/,
+                /*I*/"Cancel"/*18N*/,
+                null,
+                2);
+        }
+
+        /**
+         * React to the Restart button. (call playerInterface.resetBoardRequest)
+         */
+        @Override
+        public void button1Chosen()
+        {
+            pi.resetBoardRequest(false);
+        }
+
+        /**
+         * React to the Cancel button. (do nothing)
+         */
+        @Override
+        public void button2Chosen() {}
+
+        /**
+         * React to the dialog window closed by user. (do nothing)
+         */
+        @Override
+        public void windowCloseChosen() {}
+
+        /**
+         * In AWT event thread, show ourselves. Do not call directly unless on that thread;
+         * call {@link EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         */
+        public void run()
+        {
+            setVisible(true);
+        }
+
+    }  // nested class ResetBoardConfirmDialog
+
+    /**
      * React to window closing or losing focus (deactivation).
      * @author jdmonin
      * @since 1.1.00
@@ -3578,6 +3671,8 @@ public class SOCPlayerInterface extends Frame
      * It's expected that after the player sends their first line of chat text,
      * the listeners will be removed so we don't have the overhead of
      * calling these methods.
+     * @author jdmonin
+     * @since 1.1.00
      */
     private static class SOCPITextfieldListener
         extends KeyAdapter implements TextListener, FocusListener
@@ -3651,6 +3746,8 @@ public class SOCPlayerInterface extends Frame
      * When timer fires, show discard message or picking-resource message
      * for any other player (not client player) who must discard or pick.
      * @see SOCPlayerInterface#discardOrPickTimerSet(boolean)
+     * @author jdmonin
+     * @since 1.1.00
      */
     private static class SOCPIDiscardOrPickMsgTask extends TimerTask
     {
