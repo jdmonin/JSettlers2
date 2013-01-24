@@ -3573,10 +3573,10 @@ public class SOCPlayerInterface extends Frame
          */
         private ResetBoardConfirmDialog(GameAwtDisplay cli, SOCPlayerInterface gamePI)
         {
-            super(cli, gamePI, "Restart game?",
-                "Reset the board and start a new game?",
-                "Restart",
-                "Cancel",
+            super(cli, gamePI, /*I*/"Restart game?"/*18N*/,
+                /*I*/"Reset the board and start a new game?"/*18N*/,
+                /*I*/"Restart"/*18N*/,
+                /*I*/"Cancel"/*18N*/,
                 null,
                 2);
         }
