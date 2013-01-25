@@ -1821,6 +1821,8 @@ public class SOCPlayerInterface extends Frame
      * @param pnums   the player ids of those players; length of this
      *                array may be larger than count (may be {@link SOCGame#maxPlayers}).
      *                Only the first <tt>count</tt> elements will be used.
+     *                If <tt>allowChooseNone</tt>, pnums.length must be at least <tt>count + 1</tt>
+     *                to leave room for "no player".
      * @param allowChooseNone  if true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
      * @see SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)
      * @see #showChooseRobClothOrResourceDialog(int)
@@ -3183,13 +3185,13 @@ public class SOCPlayerInterface extends Frame
             pi.showDiscardOrGainDialog(countToDiscard, false);
         }
 
-        public void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed)
+        public void requestedChoosePlayer(final List<SOCPlayer> choices, final boolean isNoneAllowed)
         {
-            int[] pnums = new int[choices.size()];
+            int[] pnums = new int[choices.size() + (isNoneAllowed ? 1 : 0)];
             int i = 0;
             for (SOCPlayer p : choices)
                 pnums[i++] = p.getPlayerNumber();
-            pi.showChoosePlayerDialog(pnums.length, pnums, isNoneAllowed);
+            pi.showChoosePlayerDialog(choices.size(), pnums, isNoneAllowed);
         }
 
         public void requestedChooseRobResourceType(SOCPlayer player)
