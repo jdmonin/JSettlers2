@@ -6,7 +6,7 @@
  This file is part of Java Settlers - An online multiplayer version of the game Settlers of Catan
 
  Copyright (C) 2004-2005 Chadwick A McHenry (mchenryc@acm.org)
- Portions of this file Copyright (C) 2007-2012 Jeremy D Monin (jdmonin@nand.net)
+ Portions of this file Copyright (C) 2007-2013 Jeremy D Monin (jdmonin@nand.net)
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -39,8 +39,8 @@
   <property name="versionnum" value="2000" />
   <!-- maximum recent version number to not warn during new game creation; -->
   <!-- should be a version released more than a year ago. -->
-  <property name="versionnumMaxNoWarn" value="1108" />
-  <property name="copyright" value="2001-2004 Robb Thomas, portions 2007-2012 Jeremy D Monin and contributors" />
+  <property name="versionnumMaxNoWarn" value="1110" />
+  <property name="copyright" value="2001-2004 Robb Thomas, portions 2007-2013 Jeremy D Monin and contributors" />
   <property name="url"       value="http://nand.net/jsettlers/devel/" />
 
   <!-- **** See build.properties for client/server startup arguments **** -->
