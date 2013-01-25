@@ -682,34 +682,34 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
                 try
                 {
-                // place the land hexes
-                hexLayoutLg[r][c] = landHexType[i];
+                    // place the land hexes
+                    hexLayoutLg[r][c] = landHexType[i];
 
-                // place the robber on the desert
-                if (landHexType[i] == DESERT_HEX)
-                {
-                    setRobberHex(numPath[i], false);
-                    numberLayoutLg[r][c] = -1;
-                    // TODO do we want to not set robberHex? or a specific point?
-                }
-                else if (landHexType[i] == WATER_HEX)
-                {
-                    numberLayoutLg[r][c] = 0;  // Fog Island's landarea has some water shuffled in
-                }
-                else if (landHexType[i] == FOG_HEX)
-                {
-                    throw new IllegalArgumentException("landHexType can't contain FOG_HEX");
-                }
-                else if (cnt < number.length)
-                {
-                    // place the numbers
-                    final int diceNum = number[cnt];
-                    numberLayoutLg[r][c] = diceNum;
-                    cnt++;
+                    // place the robber on the desert
+                    if (landHexType[i] == DESERT_HEX)
+                    {
+                        setRobberHex(numPath[i], false);
+                        numberLayoutLg[r][c] = -1;
+                        // TODO do we want to not set robberHex? or a specific point?
+                    }
+                    else if (landHexType[i] == WATER_HEX)
+                    {
+                        numberLayoutLg[r][c] = 0;  // Fog Island's landarea has some water shuffled in
+                    }
+                    else if (landHexType[i] == FOG_HEX)
+                    {
+                        throw new IllegalArgumentException("landHexType can't contain FOG_HEX");
+                    }
+                    else if (cnt < number.length)
+                    {
+                        // place the numbers
+                        final int diceNum = number[cnt];
+                        numberLayoutLg[r][c] = diceNum;
+                        cnt++;
 
-                    if (shuffleDiceNumbers && ((diceNum == 6) || (diceNum == 8)))
-                        redHexes.add(numPath[i]);
-                }
+                        if (shuffleDiceNumbers && ((diceNum == 6) || (diceNum == 8)))
+                            redHexes.add(numPath[i]);
+                    }
 
                 } catch (Exception ex) {
                     throw new IllegalArgumentException
@@ -963,7 +963,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                         goldAdjacGold.remove(ahex);  // ahex had no other adjacents
                 }
             }
-        }       
+        }
 
         // - as key: remove it from goldAdjacGold
         goldAdjacGold.remove(goldHex);
@@ -2726,7 +2726,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x000D, 0x000C, 0x0003, 0x0009,
         0x0E0D, 0x0E0C, 0x0E03, 0x0E09
     }};
- 
+
 
     ////////////////////////////////////////////
     //
