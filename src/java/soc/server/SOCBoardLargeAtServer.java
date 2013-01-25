@@ -22,6 +22,7 @@
 package soc.server;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -233,6 +234,44 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             }
             PORT_LOC_FACING_ISLANDS = null;
             PORTS_TYPES_ISLANDS = null;
+        }
+        else if ((optSC != null) && optSC.getStringValue().equals(SOCScenario.K_SC_TTD))
+        {
+            // Through The Desert
+            final int idx = (maxPl > 4) ? 2 : (maxPl > 3) ? 1 : 0;  // 6-player, 4, or 3-player board
+
+            // Land Area count varies by number of players;
+            // 2 + number of small islands.  Array length has + 1 for unused landAreasLegalNodes[0].
+            landAreasLegalNodes = new HashSet[1 + 2 + (TTDESERT_LANDHEX_RANGES_SMALL[idx].length / 2)];
+
+            // - Desert strip (not part of any landarea)
+            {
+                final int[] desertLandHexCoords = TTDESERT_LANDHEX_COORD_DESERT[idx];
+                final int[] desertDiceNum = new int[desertLandHexCoords.length];  // all 0
+                final int[] desertLandhexType = new int[desertLandHexCoords.length];
+                Arrays.fill(desertLandhexType, DESERT_HEX);
+
+                makeNewBoard_placeHexes
+                    (desertLandhexType, desertLandHexCoords, desertDiceNum,
+                     false, false, 0, null);
+            }
+
+            // - Main island (landarea 1 and 2)
+            makeNewBoard_placeHexes
+                (TTDESERT_LANDHEX_TYPE_MAIN[idx], TTDESERT_LANDHEX_COORD_MAIN[idx], TTDESERT_DICENUM_MAIN[idx],
+                 true, true, TTDESERT_LANDHEX_RANGES_MAIN[idx], opt_breakClumps);
+
+            // - Small islands (LA 3 to n)
+            makeNewBoard_placeHexes
+                (TTDESERT_LANDHEX_TYPE_SMALL[idx], TTDESERT_LANDHEX_COORD_SMALL[idx], TTDESERT_DICENUM_SMALL[idx],
+                 true, true, TTDESERT_LANDHEX_RANGES_SMALL[idx], null);
+
+            pirateHex = TTDESERT_PIRATE_HEX[idx];
+
+            PORTS_TYPES_MAINLAND = TTDESERT_PORT_TYPE[idx];
+            PORTS_TYPES_ISLANDS = null;
+            PORT_LOC_FACING_MAINLAND = TTDESERT_PORT_EDGE_FACING[idx];
+            PORT_LOC_FACING_ISLANDS = null;
         }
         else if ((optSC != null) && optSC.getStringValue().equals(SOCScenario.K_SC_PIRI))
         {
@@ -667,6 +706,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                     if (shuffleDiceNumbers && ((diceNum == 6) || (diceNum == 8)))
                         redHexes.add(numPath[i]);
                 }
+
             }  // for (i in landHex)
 
             if (shuffleLandHexes && checkClumps)
@@ -1616,6 +1656,15 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                     heightWidth = FOG_ISL_BOARDSIZE_6PL;
                 else
                     heightWidth = FOG_ISL_BOARDSIZE_4PL;
+            }
+            else if (sc.equals(SOCScenario.K_SC_TTD))
+            {
+                if (maxPlayers == 6)
+                    heightWidth = TTDESERT_BOARDSIZE[2];
+                else if (maxPlayers >= 4)
+                    heightWidth = TTDESERT_BOARDSIZE[1];
+                else
+                    heightWidth = TTDESERT_BOARDSIZE[0];
             }
             else if (sc.equals(SOCScenario.K_SC_PIRI))
             {
@@ -2666,6 +2715,280 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x0E0D, 0x0E0C, 0x0E03, 0x0E09
     }};
  
+
+    ////////////////////////////////////////////
+    //
+    // Through The Desert scenario Layout (SC_TTD)
+    //   Has 3-player, 4-player, 6-player versions;
+    //   each array here uses index [0] for 3-player, [1] for 4-player, [2] for 6-player.
+    //
+
+    /**
+     * Through The Desert: Board size for 3, 4, 6 players: Each is 0xrrcc (max row, max col).
+     */
+    private static final int TTDESERT_BOARDSIZE[] = { 0x1010, 0x1012, 0x1016 };
+
+    /**
+     * Through The Desert: Starting pirate sea hex coordinate for 3, 4, 6 players.
+     */
+    private static final int TTDESERT_PIRATE_HEX[] = { 0x070D, 0x070F, 0x0D10 };
+
+    /**
+     * Through The Desert: Land hex types for the main island (land areas 1, 2). These will be shuffled.
+     * The main island also includes 3 or 5 deserts that aren't shuffled, so they aren't in this array.
+     * @see #TTDESERT_LANDHEX_COORD_MAIN
+     */
+    private static final int TTDESERT_LANDHEX_TYPE_MAIN[][] =
+    {{
+        // 3-player: 17 (14+3) hexes
+        CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX,
+        GOLD_HEX
+    }, {
+        // 4-player: 20 (17+3) hexes
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX,
+        GOLD_HEX
+    }, {
+        // 6-player: 30 (21+9) hexes
+        CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX, CLAY_HEX,
+        ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX, ORE_HEX,
+        SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX, WOOD_HEX,
+        GOLD_HEX
+    }};
+
+    /**
+     * Through The Desert: Land Area 1, 2: Land hex coordinates for the main island,
+     * excluding its desert strip but including the small fertile area on the desert's far side.
+     * Landarea 1 is most of the island.
+     * Landarea 2 is the small fertile strip.
+     * @see #TTDESERT_LANDHEX_COORD_DESERT
+     * @see #TTDESERT_LANDHEX_COORD_SMALL
+     */
+    private static final int TTDESERT_LANDHEX_COORD_MAIN[][] =
+    {{
+        // 3-player: 14 hexes; 6 rows, hex centers on columns 2-8
+        0x0307, 0x0506, 0x0508, 0x0705, 0x0707,
+        0x0902, 0x0904, 0x0906, 0x0908,
+        0x0B03, 0x0B05, 0x0B07, 0x0D04, 0x0D06,
+        // Past the desert:
+        0x0104, 0x0303, 0x0502
+    }, {
+        // 4-player: 17 hexes; 7 rows, columns 2-A
+        0x0108, 0x0307, 0x0309,
+        0x0506, 0x0508, 0x050A,
+        0x0705, 0x0707, 0x0709,
+        0x0902, 0x0904, 0x0906, 0x0908,
+        0x0B03, 0x0B05, 0x0B07, 0x0D06,
+        // Past the desert:
+        0x0104, 0x0303, 0x0502
+    }, {
+        // 6-player: 21 hexes; 5 rows, columns 2-F
+        0x0508, 0x050A, 0x050C, 0x050E,
+        0x0703, 0x0705, 0x0707, 0x0709, 0x070B, 0x070D, 0x070F,
+        0x0902, 0x0904, 0x0906, 0x0908, 0x090A, 0x090C, 0x090E,
+        0x0B03, 0x0B05, 0x0D04,
+        // Past the desert:
+        0x0305, 0x0303, 0x0104, 0x0106, 0x0108, /* 1-hex gap, */ 0x010C, 0x010E, 0x0110, 0x0112
+    }};
+
+    /**
+     * Through The Desert: Land Areas 1, 2:
+     * Hex counts and Land area numbers for the main island, excluding its desert,
+     * within {@link #TTDESERT_LANDHEX_COORD_MAIN}.
+     * Allows us to shuffle them all together within {@link #TTDESERT_LANDHEX_TYPE_MAIN}.
+     * Dice numbers are {@link #TTDESERT_DICENUM_MAIN}.
+     * Landarea 1 is most of the island.
+     * Landarea 2 is the small fertile strip on the other side of the desert.
+     */
+    private static final int TTDESERT_LANDHEX_RANGES_MAIN[][] =
+    {{
+        // 3 players
+        1, TTDESERT_LANDHEX_COORD_MAIN[0].length - 3,
+        2, 3
+    }, {
+        // 4 players
+        1, TTDESERT_LANDHEX_COORD_MAIN[1].length - 3,
+        2, 3
+    }, {
+        // 6 players
+        1, TTDESERT_LANDHEX_COORD_MAIN[2].length - 9,
+        2, 9
+    }};
+
+    /**
+     * Through The Desert: Land hex coordinates for the strip of desert hexes on the main island.
+     * @see #TTDESERT_LANDHEX_COORD_MAIN
+     */
+    private static final int TTDESERT_LANDHEX_COORD_DESERT[][] =
+    {{ 0x0106, 0x0305, 0x0504 },  // 3-player
+     { 0x0106, 0x0305, 0x0504 },  // 4-player same as 3-player
+     { 0x0307, 0x0309, 0x030B, 0x030D, 0x030F }  // 6-player
+    };
+
+    /**
+     * Through The Desert: Dice numbers for hexes on the large island. Will be shuffled.
+     * NumPath is {@link #TTDESERT_LANDHEX_COORD_MAIN}.
+     * @see #TTDESERT_DICENUM_SMALL
+     */
+    private static final int TTDESERT_DICENUM_MAIN[][] =
+    {{
+        // 3 players
+        2, 3, 4, 4, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11
+    }, {
+        // 4 players
+        3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12
+    }, {
+        // 6 players
+        2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5,
+        6, 6, 6, 6, 8, 8, 9, 9, 9, 10, 10, 10,
+        11, 11, 11, 12, 12, 12
+    }};
+
+    /**
+     * Through The Desert: Port edges and facings on the main island.
+     * Clockwise, starting at northwest corner of island.
+     * Each port has 2 elements: Edge coordinate (0xRRCC), Port Facing.
+     *<P>
+     * Port Facing is the direction from the port edge, to the land hex touching it
+     * which will have 2 nodes where a port settlement/city can be built.
+     *<P>
+     * Each port's type will be {@link #TTDESERT_PORT_TYPE}[i][j].
+     */
+    private static final int TTDESERT_PORT_EDGE_FACING[][] =
+    {{
+        // 3 players
+        0x0207, FACING_SW,  0x0808, FACING_SW,  0x0A08, FACING_NW,
+        0x0D07, FACING_W,   0x0E04, FACING_NW,  0x0D03, FACING_E,
+        0x0A01, FACING_NE,  0x0803, FACING_SE
+    }, {
+        // 4 players
+        0x0109, FACING_W,   0x040A, FACING_SW,  0x060A, FACING_NW,
+        0x0A08, FACING_NW,  0x0D07, FACING_W,   0x0E05, FACING_NE,
+        0x0C03, FACING_NW,  0x0B02, FACING_E,   0x0704, FACING_E
+    }, {
+        // 6 players
+        0x0B02, FACING_E,   0x0800, FACING_SE,  0x0601, FACING_SE,
+        0x0605, FACING_SE,  0x050F, FACING_W,   0x080F, FACING_NW,
+        0x0A0D, FACING_NE,  0x0A09, FACING_NE,  0x0A06, FACING_NW,
+        0x0C05, FACING_NW,  0x0E03, FACING_NE
+    }};
+
+    /**
+     * Through The Desert: Port types on the main island.  Will be shuffled.
+     * The small islands have no ports.
+     * Each port's edge and facing will be {@link #TTDESERT_PORT_EDGE_FACING}[i][j].
+     */
+    private static final int TTDESERT_PORT_TYPE[][] =
+    {{
+        // 3 players:
+        MISC_PORT, MISC_PORT, MISC_PORT,
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT
+    }, {
+        // 4 players:
+        MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT,
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT
+    }, {
+        // 6 players:
+        MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT, MISC_PORT,
+        CLAY_PORT, ORE_PORT, SHEEP_PORT, SHEEP_PORT, WHEAT_PORT, WOOD_PORT
+    }};
+
+    /**
+     * Through The Desert: Hex land types on the several small islands.
+     * Coordinates for these islands are {@link #TTDESERT_LANDHEX_COORD_SMALL}.
+     */
+    private static final int TTDESERT_LANDHEX_TYPE_SMALL[][] =
+    {{
+        // 3 players
+        ORE_HEX, ORE_HEX, SHEEP_HEX, WHEAT_HEX, GOLD_HEX
+    }, {
+        // 4 players
+        CLAY_HEX, ORE_HEX, ORE_HEX, SHEEP_HEX,
+        WHEAT_HEX, WHEAT_HEX, GOLD_HEX
+    }, {
+        // 6 players
+        ORE_HEX, SHEEP_HEX, SHEEP_HEX, WHEAT_HEX, WHEAT_HEX,
+        WOOD_HEX, GOLD_HEX, GOLD_HEX
+    }};
+
+    /**
+     * Through The Desert: Land Areas 3 to n:
+     * Hex counts and Land area numbers for each of the small "foreign" islands, one per island,
+     * within {@link #TTDESERT_LANDHEX_COORD_SMALL}.
+     * Allows us to shuffle them all together within {@link #TTDESERT_LANDHEX_TYPE_SMALL}.
+     * Dice numbers are {@link #TTDESERT_DICENUM_SMALL}.
+     * Total land area count for this layout varies, will be 2 + (<tt>TTDESERT_LANDHEX_RANGES_SMALL[i].length</tt> / 2).
+     */
+    private static final int TTDESERT_LANDHEX_RANGES_SMALL[][] =
+    {{
+        // 3 players
+        3, 2,  // landarea 3 is an island with 2 hexes (see TTDESERT_LANDHEX_COORD_SMALL)
+        4, 1,  // landarea 4
+        5, 2   // landarea 5
+    }, {
+        // 4 players
+        3, 3,
+        4, 2,
+        5, 2
+    }, {
+        // 6 players
+        3, 2,
+        4, 1,
+        5, 4,
+        6, 1
+    }};
+
+    /**
+     * Through The Desert: Land Areas 3 to n:
+     * Land hex coordinates for all of the small "foreign" islands, one LA per island.
+     * Hex types for these islands are {@link #TTDESERT_LANDHEX_TYPE_SMALL}.
+     * Dice numbers are {@link #TTDESERT_DICENUM_SMALL}.
+     * Land area numbers are split up via {@link #TTDESERT_LANDHEX_RANGES_SMALL}.
+     */
+    private static final int TTDESERT_LANDHEX_COORD_SMALL[][] =
+    {{
+        // 3 players
+        0x010A, 0x030B,  // landarea 3 is an island with 2 hexes (see TTDESERT_LANDHEX_RANGES_SMALL)
+        0x070B,          // landarea 4
+        0x0B0B, 0x0D0A   // landarea 5
+    }, {
+        // 4 players
+        0x010C, 0x030D, 0x050E,
+        0x090C, 0x090E,
+        0x0D0A, 0x0D0C
+    }, {
+        // 6 players
+        0x0D08, 0x0D0A,
+        0x0D0E,
+        0x0D12, 0x0B11, 0x0B13, 0x0914,
+        0x0514
+    }};
+
+    /**
+     * Through The Desert: Dice numbers for all the small islands ({@link #TTDESERT_LANDHEX_COORD_SMALL}).
+     * @see #TTDESERT_DICENUM_MAIN
+     */
+    private static final int TTDESERT_DICENUM_SMALL[][] =
+    {{
+        // 3 players
+        5, 5, 8, 9, 11
+    }, {
+        // 4 players
+        2, 3, 4, 5, 6, 9, 12
+    }, {
+        // 6 players
+        2, 3, 4, 8, 8, 9, 10, 11
+    }};
+
 
     ////////////////////////////////////////////
     //
