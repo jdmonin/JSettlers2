@@ -300,6 +300,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         }
         else if (! hasScenarioFog)
         {
+            // This is the example fallback layout.
+
             landAreasLegalNodes = new HashSet[5];  // hardcoded max number of land areas
             // TODO revisit, un-hardcode, when we have multiple scenarios
             // TODO maxPlayers 6 doesn't have its own board layout yet here
@@ -678,6 +680,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 final int r = numPath[i] >> 8,
                           c = numPath[i] & 0xFF;
 
+                try
+                {
                 // place the land hexes
                 hexLayoutLg[r][c] = landHexType[i];
 
@@ -705,6 +709,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
                     if (shuffleDiceNumbers && ((diceNum == 6) || (diceNum == 8)))
                         redHexes.add(numPath[i]);
+                }
+
+                } catch (Exception ex) {
+                    throw new IllegalArgumentException
+                        ("Problem placing numPath[" + i + "] at 0x"
+                         + Integer.toHexString(numPath[i])
+                         + " [" + r + "][" + c + "]" + ": " + ex.toString(), ex);
                 }
 
             }  // for (i in landHex)
@@ -1568,9 +1579,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         if (landAreaNumber != 0)
         {
             if ((landAreasLegalNodes == null)
-                || (landAreaNumber >= landAreasLegalNodes.length)
-                || (landAreasLegalNodes[landAreaNumber] != null))
-                throw new IllegalStateException();
+                || (landAreaNumber >= landAreasLegalNodes.length))
+                throw new IllegalStateException("landarea " + landAreaNumber + " out of range");
+            if (landAreasLegalNodes[landAreaNumber] != null)
+                throw new IllegalStateException("landarea " + landAreaNumber + " already has landAreasLegalNodes");
             landAreasLegalNodes[landAreaNumber] = new HashSet<Integer>();
         }
 
