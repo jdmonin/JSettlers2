@@ -69,6 +69,10 @@ import soc.util.IntTriple;
  * once for each land area.  In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
+ * It's also possible for an island to have more than one landarea (as in scenario SC_TTD).
+ * In this case you should have a border zone of hexes with no landarea, because the landareas
+ * are tracked by their hexes' nodes, not by the hexes, and a node can't be in multiple LAs.
+ *<P>
  * <H3> To Add a New Board:</H3>
  * To add a new board, you'll need to declare all parts of its layout, recognize its
  * scenario or game option in makeNewBoard, and call methods to set up the structure.
@@ -2847,17 +2851,18 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     };
 
     /**
-     * Through The Desert: Dice numbers for hexes on the large island. Will be shuffled.
+     * Through The Desert: Dice numbers for hexes on the main island,
+     * including the strip of land past the desert.  Will be shuffled.
      * NumPath is {@link #TTDESERT_LANDHEX_COORD_MAIN}.
      * @see #TTDESERT_DICENUM_SMALL
      */
     private static final int TTDESERT_DICENUM_MAIN[][] =
     {{
         // 3 players
-        2, 3, 4, 4, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11
+        2, 3, 3, 4, 4, 4, 5, 6, 6, 6, 8, 8, 9, 9, 10, 10, 11
     }, {
         // 4 players
-        3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12
+        3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 8, 9, 9, 10, 10, 10, 11, 11, 11, 12
     }, {
         // 6 players
         2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5,
