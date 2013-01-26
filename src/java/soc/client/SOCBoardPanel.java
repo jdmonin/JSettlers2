@@ -6120,6 +6120,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 
                 // Is anything there?
                 SOCPlayingPiece p = board.settlementAtNode(id);
+                if (p == null)
+                    p = game.getFortress(id);  // pirate fortress (scenario option _SC_PIRI) or null
+
                 if (p != null)
                 {
                     hoverMode = PLACE_SETTLEMENT;
@@ -6127,27 +6130,34 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     hoverID = id;
 
                     StringBuffer sb = new StringBuffer();
-                    String portDesc = portDescAtNode(id);
-                    if (portDesc != null)
+                    if (p instanceof SOCFortress)
                     {
-                        sb.append(portDesc);  // "3:1 Port", "2:1 Wood port"
-                        if (p.getType() == SOCPlayingPiece.CITY)
-                            sb.append(" city: ");
+                        sb.append("Pirate Fortress: ");
+                    } else {
+                        String portDesc = portDescAtNode(id);
+                        if (portDesc != null)
+                        {
+                            sb.append(portDesc);  // "3:1 Port", "2:1 Wood port"
+                            if (p.getType() == SOCPlayingPiece.CITY)
+                                sb.append(" city: ");
+                            else
+                                sb.append(": ");  // port, not port city
+                            hoverIsPort = true;
+                        }
                         else
-                            sb.append(": ");  // port, not port city
-                        hoverIsPort = true;
-                    }
-                    else
-                    {
-                        if (p.getType() == SOCPlayingPiece.CITY)
-                            sb.append("City: ");
-                        else
-                            sb.append("Settlement: ");
+                        {
+                            if (p.getType() == SOCPlayingPiece.CITY)
+                                sb.append("City: ");
+                            else
+                                sb.append("Settlement: ");
+                        }
                     }
                     String plName = p.getPlayer().getName();
                     if (plName == null)
                         plName = "unowned";
                     sb.append(plName);
+                    if (p instanceof SOCFortress)
+                        sb.append(" must defeat to win");
                     setHoverText(sb.toString());
                     hoverTextSet = true;
 
