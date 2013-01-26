@@ -5053,6 +5053,31 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, get the Pirate Fortress
+     * at this node location, if any.  A player must defeat 'their' fortress to win.
+     * @param  node  Coordinate to check for fortress
+     * @return  Fortress at that location, or null if none or if <tt>_SC_PIRI</tt> not active.
+     *          If the player has already defeated their fortress, this will return null, like
+     *          {@link SOCPlayer#getFortress()}; use {@link SOCBoard#settlementAtNode(int)} to
+     *          get the settlement that it's converted into after defeat.
+     * @since 2.0.00
+     */
+    public SOCFortress getFortress(final int node)
+    {
+        if (! isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            return null;
+
+        for (int i = 0; i < maxPlayers; ++i)
+        {
+            final SOCFortress pf = players[i].getFortress();
+            if ((pf != null) && (node == pf.getCoordinates()))
+                return pf;
+        }
+
+        return null;
+    }
+
+    /**
      * Does the current or most recent robbery use the pirate ship, not the robber?
      * If true, victims will be based on adjacent ships, not settlements/cities.
      * @return true for pirate ship, false for robber
