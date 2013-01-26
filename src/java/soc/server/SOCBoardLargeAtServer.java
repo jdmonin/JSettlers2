@@ -760,7 +760,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             if (shuffleLandHexes && ! clumpsNotOK)
             {
                 // Separate adjacent gold hexes.  Does not change numPath or redHexes, only hexLayoutLg.
-                makeNewBoard_placeHexes_separateAdjacGolds(numPath, landAreaPathRanges, scen);
+                //   In scenario SC_TTD, this also makes sure the main island's only GOLD_HEX is placed
+                //   within landarea 2 (the small strip past the desert).
+                makeNewBoard_placeHexes_arrangeGolds(numPath, landAreaPathRanges, scen);
             }
 
             if (shuffleDiceNumbers && ! clumpsNotOK)
@@ -796,7 +798,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * For {@link #makeNewBoard(Hashtable)}, after placing
      * land hexes and dice numbers into {@link #hexLayoutLg},
-     * find and separate adjacent gold hexes.
+     * fine-tune the randomized gold hex placement:
+     *<UL>
+     * <LI> Find and separate adjacent gold hexes.
+     * <LI> For scenario {@link SOCScenario#K_SC_TTD SC_TTD}, ensure the main island's only <tt>GOLD_HEX</tt>
+     *      is placed in land area 2, the small strip of land past the desert.
+     *</UL>
      *
      * @param landHexCoords All land hex coordinates being shuffled, includes gold hexes and non-gold hexes
      * @param landAreaPathRanges  <tt>numPath[]</tt>'s Land Area Numbers, and the size of each land area;
@@ -805,7 +812,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * @param scen     Game scenario, such as {@link SOCScenario#K_SC_4ISL}, or "";
      *                 some scenarios might want special distribution of certain hex types.
      */
-    public void makeNewBoard_placeHexes_separateAdjacGolds
+    private final void makeNewBoard_placeHexes_arrangeGolds
         (final int[] landHexCoords, final int[] landAreaPathRanges, final String scen)
     {
         // map of gold hex coords to all their adjacent land hexes, if any;
@@ -825,9 +832,50 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             goldAdjac.put(Integer.valueOf(hex), adjacLand);
         }
 
-        if (goldAdjac.isEmpty())
+        // Scenario SC_TTD: Special handling for the main island's only gold hex:
+        // Make sure that gold's in landarea 2 (small strip past the desert).
+        // (For the main island, landAreaPathRanges[] contains landarea 1 and landarea 2.)
+        if (scen.equals(SOCScenario.K_SC_TTD)
+            && (landAreaPathRanges != null) && (landAreaPathRanges[0] == 1))
         {
-            return;  // <--- Early return: no gold hexes to check ---
+            if ((goldAdjac.size() != 1) || (landAreaPathRanges.length != 4))
+                throw new IllegalArgumentException("SC_TTD: Main island should have 1 gold hex, 2 landareas");
+
+            final int goldHex = (Integer) (goldAdjac.keySet().toArray()[0]);
+
+            boolean foundInLA2 = false;
+            // Search landarea 2 within landHexCoords[] for gold hex coord;
+            // landAreaPathRanges[1] == size of LA1 == index of first hex of LA2 within landHexCoords[]
+            for (int i = landAreaPathRanges[1]; i < landHexCoords.length; ++i)
+            {
+                if (landHexCoords[i] == goldHex)
+                {
+                    foundInLA2 = true;
+                    break;
+                }
+            }
+
+            if (! foundInLA2)
+            {
+                // The gold is in landarea 1. Pick a random non-gold hex in landarea 2, and swap hexLayoutLg values.
+
+                final int i = landAreaPathRanges[1] + rand.nextInt(landAreaPathRanges[3]);  // ranges[3] == size of LA2
+                final int nonGoldHex = landHexCoords[i];
+
+                final int gr = goldHex >> 8,
+                          gc = goldHex & 0xFF,
+                          nr = nonGoldHex >> 8,
+                          nc = nonGoldHex & 0xFF;
+                hexLayoutLg[gr][gc] = hexLayoutLg[nr][nc];
+                hexLayoutLg[nr][nc] = GOLD_HEX;
+            }
+
+            // Will always return from method just past here, because goldAdjac.size is 1.
+        }
+
+        if (goldAdjac.size() < 2)
+        {
+            return;  // <--- Early return: no adjacent gold hexes to check ---
         }
 
         // See if any adjacents are another gold hex:
@@ -842,14 +890,14 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             {
                 if (goldAdjac.containsKey(adjHex))
                 {
-                    int n = makeNewBoard_placeHexes_sepAdjGolds_addToAdjacList(goldAdjacGold, gHex, adjHex);
+                    int n = makeNewBoard_placeHexes_arrGolds_addToAdjacList(goldAdjacGold, gHex, adjHex);
                     if (n > maxAdjac)
                     {
                         maxAdjac = n;
                         maxHex = gHex;
                     }
 
-                    n = makeNewBoard_placeHexes_sepAdjGolds_addToAdjacList(goldAdjacGold, adjHex, gHex);
+                    n = makeNewBoard_placeHexes_arrGolds_addToAdjacList(goldAdjacGold, adjHex, gHex);
                     if (n > maxAdjac)
                     {
                         maxAdjac = n;
@@ -895,7 +943,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         }
 
         // pick a random nonAdjac, and swap with "middle" gold hex
-        makeNewBoard_placeHexes_sepAdjGolds_swapWithRandom
+        makeNewBoard_placeHexes_arrGolds_swapWithRandom
             (maxHex, nonAdjac, goldAdjacGold);
 
         // if any more, take care of them while we can
@@ -905,20 +953,20 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             // so we need a new iterator each time.
 
             final Integer oneGold = goldAdjacGold.keySet().iterator().next();
-            makeNewBoard_placeHexes_sepAdjGolds_swapWithRandom
+            makeNewBoard_placeHexes_arrGolds_swapWithRandom
                 (oneGold, nonAdjac, goldAdjacGold);
         }
     }
 
     /**
      * Add hex1 to hex0's adjacency list in this map; create that list if needed.
-     * Used by makeNewBoard_placeHexes_separateAdjacGolds.
+     * Used by makeNewBoard_placeHexes_arrangeGolds.
      * @param goldAdjacGold  Map from gold hexes to their adjacent gold hexes
      * @param hex0  Hex coordinate that will have a list of adjacents in <tt>goldAdjacGold</tt>
      * @param hex1  Hex coordinate to add to <tt>hex0</tt>'s list
      * @return length of hex0's list after adding hex1
      */
-    private final int makeNewBoard_placeHexes_sepAdjGolds_addToAdjacList
+    private final int makeNewBoard_placeHexes_arrGolds_addToAdjacList
         (HashMap<Integer, List<Integer>> goldAdjacGold, final Integer hex0, Integer hex1)
     {
         List<Integer> al = goldAdjacGold.get(hex0);
@@ -934,13 +982,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * Swap this gold hex with a random non-adjacent hex in <tt>hexLayoutLg</tt>.
      * Updates <tt>nonAdjac</tt> and <tt>goldAdjacGold</tt>.
-     * Used by makeNewBoard_placeHexes_separateAdjacGolds.
+     * Used by makeNewBoard_placeHexes_arrangeGolds.
      * @param goldHex  Coordinate of gold hex to swap
      * @param nonAdjac  All land hexes not currently adjacent to a gold hex
      * @param goldAdjacGold  Map of golds adjacent to each other
      * @throws IllegalArgumentException  if goldHex coordinates in hexLayoutLg aren't GOLD_HEX
      */
-    private final void makeNewBoard_placeHexes_sepAdjGolds_swapWithRandom
+    private final void makeNewBoard_placeHexes_arrGolds_swapWithRandom
         (final Integer goldHex, HashSet<Integer> nonAdjac, HashMap<Integer, List<Integer>> goldAdjacGold)
         throws IllegalArgumentException
     {
@@ -1007,8 +1055,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * and make sure gold hex dice aren't too frequent.
      * For algorithm details, see comments in this method.
      *<P>
-     * Call after calling {@link #makeNewBoard_placeHexes_separateAdjacGolds(int[])}
-     * so that gold hexes will be in their final locations.
+     * Call {@link #makeNewBoard_placeHexes_arrangeGolds(int[], int[], String)} before this
+     * method, not after, so that gold hexes will already be in their final locations.
      *<P>
      * If using {@link #FOG_HEX}, no fog should be on the
      * board when calling this method: Don't call after
@@ -2854,6 +2902,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * Through The Desert: Land hex types for the main island (land areas 1, 2). These will be shuffled.
      * The main island also includes 3 or 5 deserts that aren't shuffled, so they aren't in this array.
+     *<P>
+     * The main island has just 1 <tt>GOLD_HEX</tt>, which will always be placed in landarea 2,
+     * the small strip of land past the desert.  This is handled by
+     * {@link #makeNewBoard_placeHexes_arrangeGolds(int[], int[], String)}.
+     *
      * @see #TTDESERT_LANDHEX_COORD_MAIN
      */
     private static final int TTDESERT_LANDHEX_TYPE_MAIN[][] =
