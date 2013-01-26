@@ -157,6 +157,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * @since 2.0.00
      * @see #deltaY
      * @see #halfdeltaX
+     * @see #HALF_HEXHEIGHT
      */
     private static final int halfdeltaY = 23;
 
@@ -247,7 +248,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * coordinates for drawing the playing pieces
      */
     /***  road looks like "|" along left edge of hex ***/
-    private static final int[] vertRoadX = { -2,  3,  3, -2, -2 };  // center is (x=0.5, y=32)
+    private static final int[] vertRoadX = { -2,  3,  3, -2, -2 };  // center is (x=0.5, y=32 == HALF_HEXHEIGHT)
     private static final int[] vertRoadY = { 17, 17, 47, 47, 17 };
 
     /***  road looks like "/" along upper-left edge of hex ***/
@@ -274,7 +275,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Ship.
-     * Center is (x=0.5, y=32).
+     * Center is (x=0.5, y=32 == {@link #HALF_HEXHEIGHT}).
      * @see #warshipX
      * @since 2.0.00
      */
@@ -285,7 +286,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Warship for scenario <tt>SC_PIRI</tt>.
-     * Center is (x=0.5, y=32).
+     * Center is (x=0.5, y=32 == {@link #HALF_HEXHEIGHT}).
      * Design is based on the normal ship ({@link #shipX}, {@link #shipY})
      * with a second sail and a taller hull.
      * @since 2.0.00
@@ -459,8 +460,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * are plotted against a hex of this size.
      * @see #deltaX
      * @see #deltaY
+     * @see #HALF_HEXHEIGHT
      */
     private static final int HEXWIDTH = 55, HEXHEIGHT = 64;
+
+    /**
+     * Half of {@link #HEXHEIGHT}, in unscaled internal pixels, for use with various board graphics.
+     * Also == {@link #halfdeltaY} + 9.
+     * @since 2.0.00
+     */
+    private static final int HALF_HEXHEIGHT = 32;
 
     /**
      * Diameter and font size (unscaled internal-pixels) for dice number circles on hexes.
@@ -2499,11 +2508,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         if (isLargeBoard)
         {
             hx = halfdeltaX * (hexID & 0xFF);
-            hy = halfdeltaY * (hexID >> 8) + 32;  // 32 == halfdeltaY + 9
+            hy = halfdeltaY * (hexID >> 8) + HALF_HEXHEIGHT;  // HALF_HEXHEIGHT == halfdeltaY + 9
         } else {
             int hexNum = hexIDtoNum[hexID];
             hx = hexX[hexNum] + halfdeltaX;
-            hy = hexY[hexNum] + 32;  // 32 == halfdeltaY + 9
+            hy = hexY[hexNum] + HALF_HEXHEIGHT;
         }
 
         if (isRotated)
@@ -3621,7 +3630,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         int hc = ppath[ppath.length - 1];
         int r = hc >> 8, c = hc & 0xFF;
-        int yprev = scaleToActualY(r * halfdeltaY + 32),  // 32 == halfdeltaY + 9
+        int yprev = scaleToActualY(r * halfdeltaY + HALF_HEXHEIGHT),  // HALF_HEXHEIGHT == halfdeltaY + 9
             xprev = scaleToActualX(c * halfdeltaX);
 
         Stroke prevStroke;
@@ -3642,7 +3651,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             hc = ppath[i];
             r = hc >> 8; c = hc & 0xFF;
-            int y = scaleToActualY(r * halfdeltaY + 32),
+            int y = scaleToActualY(r * halfdeltaY + HALF_HEXHEIGHT),
                 x = scaleToActualX(c * halfdeltaX);
             g.drawLine(xprev, yprev, x, y);
             xprev = x; yprev = y;
