@@ -1841,14 +1841,22 @@ public class SOCServer extends Server
         {
         case SVP_SETTLED_ANY_NEW_LANDAREA:
             {
-                updatePlayerSVPPendingMessage(ga, pl, 1, "growing past the main island");
+                final String newSettleEventStr =
+                    (playerEvent_newSettlementIsByShip(ga, (SOCSettlement) obj))
+                    ? "growing past the main island"
+                    : "growing to a new area";
+                updatePlayerSVPPendingMessage(ga, pl, 1, newSettleEventStr);
                 // TODO adjust wording
             }
             break;
 
         case SVP_SETTLED_EACH_NEW_LANDAREA:
             {
-                updatePlayerSVPPendingMessage(ga, pl, 2, "settling a new island");
+                final String newSettleEventStr =
+                    (playerEvent_newSettlementIsByShip(ga, (SOCSettlement) obj))
+                    ? "settling a new island"
+                    : "settling a new area";
+                updatePlayerSVPPendingMessage(ga, pl, 2, newSettleEventStr);
                 sendPlayerEventsBitmask = false;
                 final int las = pl.getScenarioSVPLandAreas();
                 if (las != 0)
@@ -1890,6 +1898,39 @@ public class SOCServer extends Server
             ga.pendingMessagesOut.add(new SOCPlayerElement
                 (gaName, pn, SOCPlayerElement.SET,
                  SOCPlayerElement.SCENARIO_PLAYEREVENTS_BITMASK, pl.getScenarioPlayerEvents()));
+    }
+
+    /**
+     * For Special VP player events, check if a new settlement was apparently reached by land or sea.
+     * Most new LandAreas are on other islands, but a few (SC_TTD) are on the main island.
+     * @param ga  Game with this new settlement
+     * @param se  Newly placed settlement to check, passed to
+     *     {@link #playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}
+     * @return  Does the new settlement have more adjacent ships than roads?
+     * @since 2.0.00
+     */
+    private final boolean playerEvent_newSettlementIsByShip(final SOCGame ga, final SOCSettlement se)
+    {
+        if (se == null)
+            return true;  // shouldn't happen, but fail gracefully; most new areas are on new islands
+
+        final SOCBoard board = ga.getBoard();
+        Vector<Integer> seEdges = board.getAdjacentEdgesToNode(se.getCoordinates());
+
+        int shipCount = 0, roadCount = 0;
+        for (int edge : seEdges)
+        {
+            SOCRoad pp = board.roadAtEdge(edge);
+            if (pp == null)
+                continue;
+
+            if (pp.isRoadNotShip())
+                ++roadCount;
+            else
+                ++shipCount;
+        }
+
+        return (shipCount > roadCount);
     }
 
     /**
