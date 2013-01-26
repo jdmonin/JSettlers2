@@ -420,6 +420,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             return;  // <--- Early return: No ports to place ---
         }
 
+        // check port locations & facings, make sure no overlap with land hexes
+        makeNewBoard_checkPortLocationsConsistent(PORT_LOC_FACING_MAINLAND);
+        if (PORT_LOC_FACING_ISLANDS != null)
+            makeNewBoard_checkPortLocationsConsistent(PORT_LOC_FACING_ISLANDS);
+
         // copy and shuffle the ports, and check vs game option BC
         int[] portTypes_main = new int[PORTS_TYPES_MAINLAND.length];
         int[] portTypes_islands;
@@ -1548,6 +1553,82 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }
 
     /**
+     * For {@link #makeNewBoard(Hashtable)}, check port locations and facings, and make sure
+     * no port overlaps with a land hex.  Each port's edge coordinate has 2 valid perpendicular
+     * facing directions, and ports should be on a land/water edge, facing the land side.
+     * Call this method after placing all land hexes.
+     * @param portsLocFacing  Array of port location edges and "port facing" directions
+     *            ({@link SOCBoard#FACING_NE FACING_NE} = 1, etc), such as {@link #PORT_EDGE_FACING_MAINLAND}.
+     *            Each port has 2 consecutive elements: Edge coordinate (0xRRCC), Port Facing (towards land).
+     * @throws IllegalArgumentException  If a port's facing direction isn't possible,
+     *            or its location causes its water portion to "overlap" land.
+     *            Stops with the first error, doesn't keep checking other ports afterwards.
+     *            The detail string will be something like:<BR>
+     *            Inconsistent layout: Port at index 2 edge 0x803 covers up land hex 0x703 <BR>
+     *            Inconsistent layout: Port at index 2 edge 0x803 faces water, not land, hex 0x904 <BR>
+     *            Inconsistent layout: Port at index 2 edge 0x802 facing should be NE or SW, not 3
+     */
+    private final void makeNewBoard_checkPortLocationsConsistent
+        (final int[] portsLocFacing)
+        throws IllegalArgumentException
+    {
+        String err = null;
+
+        int i = 0;
+        while (i < portsLocFacing.length)
+        {
+            final int portEdge = portsLocFacing[i++];
+            int portFacing = portsLocFacing[i++];
+
+            // make sure port facing direction makes sense for this type of edge
+            {
+                final int r = (portEdge >> 8),
+                          c = (portEdge & 0xFF);
+
+                // "|" if r is odd
+                if ((r%2) == 1)
+                {
+                    if ((portFacing != FACING_E) && (portFacing != FACING_W))
+                        err = " facing should be E or W";
+                }
+
+                // "/" if (s,c) is even,odd or odd,even
+                else if ((c % 2) != ((r/2) % 2))
+                {
+                    if ((portFacing != FACING_NW) && (portFacing != FACING_SE))
+                        err = " facing should be NW or SE";
+                }
+                else
+                {
+                    // "\" if (s,c) is odd,odd or even,even
+                    if ((portFacing != FACING_NE) && (portFacing != FACING_SW))
+                        err = " facing should be NE or SW";
+                }
+
+                if (err != null)
+                    err += ", not " + portFacing;
+            }
+
+            // check edge's land hex in Port Facing direction
+            int hex = getAdjacentHexToEdge(portEdge, portFacing);
+            if ((err == null) && (hex == 0) || (getHexTypeFromCoord(hex) == WATER_HEX))
+                err = " faces water, not land, hex 0x" + Integer.toHexString(hex);
+
+            // facing + 3 rotates to "sea" direction from the port's edge
+            portFacing += 3;
+            if (portFacing > 6)
+                portFacing -= 6;
+            hex = getAdjacentHexToEdge(portEdge, portFacing);
+            if ((err == null) && (hex != 0) && (getHexTypeFromCoord(hex) != WATER_HEX))
+                  err = " covers up land hex 0x" + Integer.toHexString(hex);
+
+            if (err != null)
+                throw new IllegalArgumentException
+                  ("Inconsistent layout: Port at index " + (i-2) + " edge 0x" + Integer.toHexString(portEdge) + err);
+        }
+    }
+
+    /**
      * Calculate the board's legal settlement/city nodes, based on land hexes.
      * All corners of these hexes are legal for settlements/cities.
      * Called from {@link #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)}.
@@ -1737,9 +1818,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * My sample board layout: Main island's ports, clockwise from its northwest.
-     * Each port has 2 elements.
-     * First: Coordinate, in hex: 0xRRCC.
-     * Second: Facing.
+     * Each port has 2 consecutive elements.
+     * First: Port edge coordinate, in hex: 0xRRCC.
+     * Second: Port Facing direction: {@link SOCBoard#FACING_E FACING_E}, etc.
      *<P>
      * Port Facing is the direction from the port edge, to the land hex touching it
      * which will have 2 nodes where a port settlement/city can be built.
