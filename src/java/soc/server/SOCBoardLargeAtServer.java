@@ -2974,8 +2974,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         0x0C03, FACING_NW,  0x0B02, FACING_E,   0x0704, FACING_E
     }, {
         // 6 players
-        0x0B02, FACING_E,   0x0800, FACING_SE,  0x0601, FACING_SE,
-        0x0605, FACING_SE,  0x050F, FACING_W,   0x080F, FACING_NW,
+        0x0B02, FACING_E,   0x0801, FACING_SE,  0x0602, FACING_SE,
+        0x0606, FACING_SE,  0x050F, FACING_W,   0x080F, FACING_NW,
         0x0A0D, FACING_NE,  0x0A09, FACING_NE,  0x0A06, FACING_NW,
         0x0C05, FACING_NW,  0x0E03, FACING_NE
     }};
