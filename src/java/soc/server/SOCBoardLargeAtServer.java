@@ -601,6 +601,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *                    Index 0 is the first landAreaNumber, index 1 is the length of that land area (number of hexes).
      *                    Index 2 is the next landAreaNumber, index 3 is that one's length, etc.
      *                    The sum of those lengths must equal <tt>numPath.length</tt>.
+     *                    Use landarea number 0 for hexes which will not have a land area.
      * @param optBC    Game option "BC" from the options for this board, or <tt>null</tt>.
      * @param scen     Game scenario, such as {@link SOCScenario#K_SC_4ISL}, or "";
      *                 some scenarios might want special distribution of certain hex types.
