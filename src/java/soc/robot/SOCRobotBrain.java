@@ -361,7 +361,8 @@ public class SOCRobotBrain extends Thread
     protected boolean expectPLACING_SHIP;
 
     /**
-     * true if we're expecting the PLACING_ROBBER state
+     * True if we're expecting the PLACING_ROBBER state.
+     * {@link #playKnightCard()} sets this field and {@link #waitingForGameState}.
      */
     protected boolean expectPLACING_ROBBER;
 
@@ -1518,11 +1519,7 @@ public class SOCRobotBrain extends Thread
                                             /**
                                              * play a knight card
                                              */
-                                            expectPLACING_ROBBER = true;
-                                            waitingForGameState = true;
-                                            counter = 0;
-                                            client.playDevCard(game, SOCDevCardConstants.KNIGHT);
-                                            pause(1500);
+                                            playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
                                         }
                                     }
                                 }
@@ -2095,6 +2092,21 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Play a Knight card.
+     * Sets {@link #expectPLACING_ROBBER}, {@link #waitingForGameState}.
+     * Calls {@link SOCRobotClient#playDevCard(SOCGame, int) client.playDevCard}({@link SOCDevCardConstants#KNIGHT KNIGHT}).
+     * @since 2.0.00
+     */
+    private void playKnightCard()
+    {
+        expectPLACING_ROBBER = true;
+        waitingForGameState = true;
+        counter = 0;
+        client.playDevCard(game, SOCDevCardConstants.KNIGHT);
+        pause(1500);
+    }
+
+    /**
      * On our turn, ask client to roll dice or play a knight;
      * on other turns, update flags to expect dice result.
      *<P>
@@ -2121,11 +2133,7 @@ public class SOCRobotBrain extends Thread
                     && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT)
                     && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
                 {
-                    expectPLACING_ROBBER = true;
-                    waitingForGameState = true;
-                    counter = 0;
-                    client.playDevCard(game, SOCDevCardConstants.KNIGHT);
-                    pause(1500);
+                    playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
                 }
                 else
                 {
