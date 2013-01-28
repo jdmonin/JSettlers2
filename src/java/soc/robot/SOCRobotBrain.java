@@ -2493,6 +2493,7 @@ public class SOCRobotBrain extends Thread
         case SOCGame.PLACING_ROAD:        // has given location -> is bad location
         case SOCGame.PLACING_SETTLEMENT:
         case SOCGame.PLACING_CITY:
+        case SOCGame.PLACING_SHIP:
         case SOCGame.PLACING_FREE_ROAD1:  // JM TODO how to break out?
         case SOCGame.PLACING_FREE_ROAD2:  // JM TODO how to break out?
         case SOCGame.SPECIAL_BUILDING:
@@ -2516,7 +2517,8 @@ public class SOCRobotBrain extends Thread
                 cancelWrongPiecePlacement(mes);
             } else {
                 // Should not occur
-                D.ebugPrintln("Unexpected CANCELBUILDREQUEST at state " + gstate);
+                System.err.println
+                    ("L2521 SOCRobotBrain: " + client.getNickname() + ": Unhandled CANCELBUILDREQUEST at state " + gstate);
             }
 
         }  // switch (gameState)
