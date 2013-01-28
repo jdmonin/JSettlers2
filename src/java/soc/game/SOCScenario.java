@@ -122,6 +122,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *   Typical changes to a game scenario would be:
      *<UL>
      *<LI> Change the {@link #scDesc description}
+     *<LI> Change the {@link #scLongDesc long description}
      *<LI> Change the {@link #scOpts options}
      *</UL>
      *   Things you can't change about a scenario, because inconsistencies would occur:
@@ -157,26 +158,36 @@ public class SOCScenario implements Cloneable, Comparable<Object>
         allSc.put(K_SC_4ISL, new SOCScenario
             (K_SC_4ISL, 2000, 2000,
              "The Four Islands",
+             null,
              "_SC_SEAC=t,PLL=t,VP=t12"));
 
         allSc.put(K_SC_FOG, new SOCScenario
             (K_SC_FOG, 2000, 2000,
              "Some land hexes initially hidden by fog",
+             "When you build a ship or road to a foggy hex, it is revealed and you are given its resource as a reward.",
              "_SC_FOG=t,PLL=t,VP=t12"));
 
         allSc.put(K_SC_TTD, new SOCScenario
             (K_SC_TTD, 2000, 2000,
              "Through The Desert",
+             null,
              "_SC_SEAC=t,PLL=t,VP=t12"));
 
         allSc.put(K_SC_CLVI, new SOCScenario
             (K_SC_CLVI, 2000, 2000,
              "Cloth Trade with neutral villages",
+             "The small villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
+             + "build ships to a village. Each player to reach a village get 1 cloth when it's reached, and 1 more "
+             + "whenever its number is rolled, until the village runs out.",
              "_SC_CLVI=t,PLL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
         allSc.put(K_SC_PIRI, new SOCScenario
             (K_SC_PIRI, 2000, 2000,
              "Pirate Islands and Fortresses",
+             "A pirate fleet circulates, stealing resources from weak players with adjacent settlements/cities until "
+             + "the player upgrades their ships to warships.  To win, you must build ships directly to the Fortress "
+             + "with your color, and defeat it 3 times using warships.  Also, ship routes can't branch in different "
+             + "directions, only extend from their ends.",
              "_SC_PIRI=t,PLL=t,VP=t10"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
         return allSc;
@@ -260,8 +271,18 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     /**
      * Descriptive text for the scenario. Must not contain the network delimiter
      * characters {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char}.
+     * Must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
      */
     public String scDesc;
+
+    /**
+     * Detailed text for the scenario description and special rules, or null.  Shown as a reminder at start of a game.
+     * Must not contain network delimiter character {@link SOCMessage#sep_char}; {@link SOCMessage#sep2_char} is okay.
+     * Must pass {@link SOCMessage#isSingleLineAndSafe(String, boolean) SOCMessage.isSingleLineAndSafe(String, true)}.
+     * Don't include the description of any scenario game option, such as {@link SOCGameOption#K_SC_SANY};
+     * those will be taken from {@link SOCGameOption#optDesc} and shown in the reminder message.
+     */
+    public final String scLongDesc;
 
     /**
      * Create a new unknown scenario ({@link #isUnknown}).
@@ -274,7 +295,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     public SOCScenario(String key)
         throws IllegalArgumentException
     {
-        this(true, key, Integer.MAX_VALUE, 0, "", "");
+        this(true, key, Integer.MAX_VALUE, 0, "", null, "");
     }
 
     /**
@@ -289,16 +310,18 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @param desc    Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param longDesc  Longer descriptive text, or null; see {@link #scLongDesc} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @throws IllegalArgumentException if key length is > 8 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 2000 but not -1
      */
-    public SOCScenario(String key, int minVers, int lastModVers, final String desc, final String opts)
+    public SOCScenario
+        (String key, int minVers, int lastModVers, final String desc, final String longDesc, final String opts)
         throws IllegalArgumentException
     {
-	this(false, key, minVers, lastModVers, desc, opts);
+	this(false, key, minVers, lastModVers, desc, longDesc, opts);
     }
 
     /**
@@ -314,6 +337,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      * @param desc Descriptive brief text, to appear in the scenarios dialog.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *             and must evaluate true from {@link SOCMessage#isSingleLineAndSafe(String)}.
+     * @param longDesc  Longer descriptive text, or null; see {@link #scLongDesc} for requirements.
      * @param opts Scenario's {@link SOCGameOption}s, as a formatted string
      *             from {@link SOCGameOption#packOptionsToString(Hashtable, boolean)}.
      * @throws IllegalArgumentException
@@ -324,7 +348,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      */
     protected SOCScenario
         (final boolean unknown, final String key, final int minVers, final int lastModVers,
-         final String desc, final String opts)
+         final String desc, final String longDesc, final String opts)
         throws IllegalArgumentException
     {
 	// validate & set scenario properties:
@@ -339,6 +363,13 @@ public class SOCScenario implements Cloneable, Comparable<Object>
             throw new IllegalArgumentException("lastModVers " + lastModVers + " for key " + key);
         if (! SOCMessage.isSingleLineAndSafe(desc))
             throw new IllegalArgumentException("desc fails isSingleLineAndSafe");
+        if (longDesc != null)
+        {
+            if (! SOCMessage.isSingleLineAndSafe(longDesc, true))
+                throw new IllegalArgumentException("longDesc fails isSingleLineAndSafe");
+            if (longDesc.contains(SOCMessage.sep))
+                throw new IllegalArgumentException("longDesc contains " + SOCMessage.sep);
+        }
         if (opts == null)
             throw new IllegalArgumentException("opts null");
 
@@ -348,6 +379,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 	lastModVersion = lastModVers;
         scOpts = opts;
 	scDesc = desc;
+	scLongDesc = longDesc;
     }
 
     /**
