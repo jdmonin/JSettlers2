@@ -4056,7 +4056,7 @@ public class SOCGame implements Serializable, Cloneable
 
         currentRoll.update(die1, die2);  // also clears currentRoll.cloth (SC_CLVI)
 
-        int sc_piri_pnGainsGold = -1;  // If a player wins against pirate fleet attack, that player number (SC_PIRI)
+        boolean sc_piri_plGainsGold = false;  // Has a player won against pirate fleet attack? (SC_PIRI)
         if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
         {
             /**
@@ -4076,15 +4076,20 @@ public class SOCGame implements Serializable, Cloneable
                 currentRoll.sc_piri_fleetAttackRsrcs = robberResult.sc_piri_loot;
                 if (currentRoll.sc_piri_fleetAttackRsrcs.contains(SOCResourceConstants.GOLD_LOCAL))
                 {
+                    final SOCPlayer plGold = currentRoll.sc_piri_fleetAttackVictim;  // won't be null
+                    plGold.setNeedToPickGoldHexResources(1 + plGold.getNeedToPickGoldHexResources());
+
                     if (currentDice == 7)
                     {
                         // Need to set this state only on 7, to pick _before_ discards.  On any other
                         // dice roll, the free pick here will be combined with the usual roll-result gold picks.
                         oldGameState = PLAY;
                         gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+
                         return currentRoll;  // <--- Early return: Wait to pick, then come back & discard ---
+
                     } else {
-                        sc_piri_pnGainsGold = currentRoll.sc_piri_fleetAttackVictim.getPlayerNumber();
+                        sc_piri_plGainsGold = true;
                     }
                 }
             } else {
@@ -4117,11 +4122,11 @@ public class SOCGame implements Serializable, Cloneable
                         anyGoldHex = true;
                 }
             }
-            if (sc_piri_pnGainsGold != -1)
+
+            if (sc_piri_plGainsGold)
             {
-                SOCPlayer pl = players[sc_piri_pnGainsGold];
-                pl.setNeedToPickGoldHexResources(1 + pl.getNeedToPickGoldHexResources());
                 anyGoldHex = true;
+                // this 1 gold was already added to that player's getNeedToPickGoldHexResources
             }
 
             /**
