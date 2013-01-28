@@ -64,16 +64,16 @@ public interface PlayerClientListener
     /**
      * A client has sat down to become an active player.
      * {@link #playerJoined(String)} was called earlier on this client.
-     * @param seatNumber  New player's playerNumber in the game
+     * @param playerNumber  New player's playerNumber in the game
      * @param nickname  New player's name
      */
-    void playerSitdown(int seatNumber, String nickname);
+    void playerSitdown(int playerNumber, String nickname);
 
     /**
      * Game's current player has changed. Update displays.
-     * @param seatNumber  New current player number
+     * @param playerNumber  New current player number whose turn it is.
      */
-    void playerTurnSet(int seatNumber);
+    void playerTurnSet(int playerNumber);
 
     /**
      * A player has placed a piece on the board.

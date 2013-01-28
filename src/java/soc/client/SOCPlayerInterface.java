@@ -2801,9 +2801,9 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-        public void playerSitdown(int seatNumber, String sitterNickname)
+        public void playerSitdown(int playerNumber, String sitterNickname)
         {
-            pi.addPlayer(sitterNickname, seatNumber);
+            pi.addPlayer(sitterNickname, playerNumber);
 
             String nickname = pi.getClient().getNickname();
 
@@ -2819,7 +2819,7 @@ public class SOCPlayerInterface extends Frame
             /**
              * update the hand panel's displayed values
              */
-            final SOCHandPanel hp = pi.getPlayerHandPanel(seatNumber);
+            final SOCHandPanel hp = pi.getPlayerHandPanel(playerNumber);
             hp.updateValue(PlayerClientListener.UpdateType.Road);
             hp.updateValue(PlayerClientListener.UpdateType.Settlement);
             hp.updateValue(PlayerClientListener.UpdateType.City);
@@ -2850,9 +2850,9 @@ public class SOCPlayerInterface extends Frame
          * Game's current player has changed. Update displays.
          * Repaint board panel, update buttons' status, etc.
          */
-        public void playerTurnSet(int seatNumber)
+        public void playerTurnSet(int playerNumber)
         {
-            pi.updateAtTurn(seatNumber);
+            pi.updateAtTurn(playerNumber);
         }
 
         public void playerPiecePlaced(SOCPlayer player, int coordinate, int pieceType)
