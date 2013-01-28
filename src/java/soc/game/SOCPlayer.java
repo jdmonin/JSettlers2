@@ -2073,7 +2073,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Put a piece into play.
-     * Update potential piece lists.
+     * {@link #updatePotentials(SOCPlayingPiece) Update potential} piece lists.
      * For roads, update {@link #roadNodes} and {@link #roadNodeGraph}.
      * Does not update longest road; instead, {@link SOCGame#putPiece(SOCPlayingPiece)}
      * calls {@link #calcLongestRoad2()}.
@@ -3128,6 +3128,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * this player can play further pieces, after a
      * piece has just been played, or after another
      * player's adjacent piece has been removed.
+     *<P>
+     * <b>Special case:</b> In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * ship routes can't branch in different directions, only extend from their ends.
+     * So when a ship is placed to extend a sea route, this method will remove
+     * nearby potential ships which would now be side branches.
      *
      * @param piece         a piece that has just been played
      *          or our piece adjacent to another player's

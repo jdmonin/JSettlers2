@@ -215,6 +215,12 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     /**
      * Scenario key <tt>SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
      * Main option is {@link SOCGameOption#K_SC_PIRI}.
+     *<P>
+     * A pirate fleet circulates on a predefined path, stealing resources from weak players with
+     * adjacent settlements/cities until the player upgrades their ships to warships.  To win,
+     * the player must build ships directly to the Fortress with their color, and defeat it several
+     * times using warships.  Also, ship routes can't branch in different directions in this scenario,
+     * only extend from their ends.
      */
     public static final String K_SC_PIRI = "SC_PIRI";
 
