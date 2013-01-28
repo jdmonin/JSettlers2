@@ -1296,13 +1296,14 @@ public class SOCGame implements Serializable, Cloneable
      * add a new player
      *
      * @param name  the player's name; must pass {@link SOCMessage#isSingleLineAndSafe(String)}.
-     * @param pn    the player's number
+     * @param pn    the player's requested player number; the seat number at which they would sit
      * @throws IllegalStateException if player is already sitting in
      *              another seat in this game, or if there are no open seats
      *              (based on seats[] == OCCUPIED, and game option "PL" or MAXPLAYERS)
      *               via {@link #getAvailableSeatCount()}
      * @throws IllegalArgumentException if name fails {@link SOCMessage#isSingleLineAndSafe(String)}.
      *           This exception was added in 1.1.07.
+     * @see #isSeatVacant(int)
      */
     public void addPlayer(final String name, final int pn)
         throws IllegalStateException, IllegalArgumentException

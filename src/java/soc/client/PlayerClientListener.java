@@ -64,7 +64,8 @@ public interface PlayerClientListener
     /**
      * A client has sat down to become an active player.
      * {@link #playerJoined(String)} was called earlier on this client.
-     * @param playerNumber  New player's playerNumber in the game
+     * {@link SOCGame#addPlayer(String, int)} has just been called.
+     * @param playerNumber  New player's playerNumber in the game; the seat number they've sat down at
      * @param nickname  New player's name
      */
     void playerSitdown(int playerNumber, String nickname);
