@@ -441,7 +441,8 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Create and show a new player interface.
-     * If the game options have a {@link SOCScenario} description, it will be shown in a popup.
+     * If the game options have a {@link SOCScenario} description, it will be shown now in a popup
+     * by {@link #showScenarioInfoDialog()}.
      *
      * @param title  title for this interface - game name
      * @param gd     the player display that spawned us
@@ -538,10 +539,11 @@ public class SOCPlayerInterface extends Frame
         repaint();
 
         /**
-         * init is almost complete - when window appears and doLayout is called,
+         * init is almost complete - when window appears and doLayout() is called,
          * it will reset mouse cursor from WAIT_CURSOR to normal (WAIT_CURSOR is
          * set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
-         * Then, if the game has any scenario description, it will be shown once in a popup.
+         * Then, if the game has any scenario description, it will be shown once in a popup
+         * via showScenarioInfoDialog().
          */
     }
     
@@ -1876,6 +1878,52 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * If this game has a scenario (game option {@code "SC"}), show the scenario
+     * description, special rules, and number of victory points to win.
+     * Shown automatically when the SOCPlayerInterface is first shown.
+     * @since 2.0.00
+     */
+    public void showScenarioInfoDialog()
+    {
+        final String gameSc = game.getGameOptionStringValue("SC");
+        if (gameSc != null)
+        {
+            SOCScenario sc = SOCScenario.getScenario(gameSc);
+            if (sc != null)
+            {
+                // TODO also check game for any other _SC_ game opts
+
+                StringBuilder sb = new StringBuilder();
+                sb.append(/*I*/"Game Scenario: "/*18N*/);
+                sb.append(sc.scDesc);
+                sb.append('\n');
+
+                if (sc.scLongDesc != null)
+                {
+                    sb.append('\n');
+                    sb.append(sc.scLongDesc);
+                    // TODO word wrap
+                }
+
+                if (game.vp_winner != SOCGame.VP_WINNER_STANDARD)
+                {
+                    sb.append('\n');
+                    sb.append(/*I*/"Victory Points to win: "/*18N*/);
+                    sb.append(game.vp_winner);
+                }
+                final String scenStr = sb.toString();
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        NotifyDialog.createAndShow(getGameDisplay(), SOCPlayerInterface.this, scenStr, null, true);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
      * Update interface after the server sends us a new board layout.
      * Call after setting game data and board data.
      * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}.
@@ -2371,7 +2419,7 @@ public class SOCPlayerInterface extends Frame
      * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
      * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
      * On first call, if the game options have a {@link SOCScenario} with any long description,
-     * it will be shown in a popup.
+     * it will be shown in a popup via {@link #showScenarioInfoDialog()}.
      */
     @Override
     public void doLayout()
@@ -2619,43 +2667,7 @@ public class SOCPlayerInterface extends Frame
 
         if (! didGameScenarioPopupCheck)
         {
-            final String gameSc = game.getGameOptionStringValue("SC");
-            if (gameSc != null)
-            {
-                SOCScenario sc = SOCScenario.getScenario(gameSc);
-                if (sc != null)
-                {
-                    // TODO also check game for any other _SC_ game opts
-
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(/*I*/"Game Scenario: "/*18N*/);
-                    sb.append(sc.scDesc);
-                    sb.append('\n');
-
-                    if (sc.scLongDesc != null)
-                    {
-                        sb.append('\n');
-                        sb.append(sc.scLongDesc);
-                        // TODO word wrap
-                    }
-
-                    if (game.vp_winner != SOCGame.VP_WINNER_STANDARD)
-                    {
-                        sb.append('\n');
-                        sb.append(/*I*/"Victory Points to win: "/*18N*/);
-                        sb.append(game.vp_winner);
-                    }
-                    final String scenStr = sb.toString();
-                    EventQueue.invokeLater(new Runnable()
-                    {
-                        public void run()
-                        {
-                            NotifyDialog.createAndShow(getGameDisplay(), SOCPlayerInterface.this, scenStr, null, true);
-                        }
-                    });
-                }
-            }
-
+            showScenarioInfoDialog();
             didGameScenarioPopupCheck = true;
         }
     }
