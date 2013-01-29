@@ -108,6 +108,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *<LI> If your scenario requires new {@link SOCGameOption}s to change the rules or game behavior,
      *   create and test those; scenario game options all start with "_SC_".
      *   See {@link SOCGameOption#initAllOptions()} for details.
+     *   If the new scenario has a new game option just for itself, instead of a reusable one like {@code _SC_SANY},
+     *   the option name is "_" + scenario name: {@code _SC_PIRI} for scenario {@code SC_PIRI}.
      *<LI> Add the scenario's key to the list of "game scenario keynames"
      *   as a public static final String, such as {@link #K_SC_FOG}.
      *   Put a short description in the javadoc there, and the list in this javadoc.

@@ -292,6 +292,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
                 // TODO no robot players for DH
 
         // Game scenario options (rules and events)
+
+        //      I18N note: SOCPlayerInterface.showScenarioInfoDialog() assumes these
+        //      all start with the text "Scenarios: "; when localizing, be sure to
+        //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
+
         opt.put(K_SC_SANY, new SOCGameOption
                 (K_SC_SANY, 2000, 2000, false, true, "Scenarios: SVP for your first settlement on any island"));
         opt.put(K_SC_SEAC, new SOCGameOption

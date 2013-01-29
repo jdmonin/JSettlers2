@@ -76,6 +76,8 @@ import java.util.Vector;
  *<P>
  * The {@link SOCGame#hasSeaBoard large sea board} features scenario events.
  * To listen for these, call {@link #setScenarioEventListener(SOCScenarioEventListener)}.
+ * If the game has a scenario, its {@link SOCGameOption}s will include {@code "SC"}, possibly along with
+ * other options whose key names start with {@code "_SC_"}.
  *
  * @author Robert S. Thomas
  */
