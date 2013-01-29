@@ -1891,8 +1891,6 @@ public class SOCPlayerInterface extends Frame
             SOCScenario sc = SOCScenario.getScenario(gameSc);
             if (sc != null)
             {
-                // TODO also check game for any other _SC_ game opts
-
                 StringBuilder sb = new StringBuilder();
                 sb.append(/*I*/"Game Scenario: "/*18N*/);
                 sb.append(sc.scDesc);
@@ -1903,6 +1901,28 @@ public class SOCPlayerInterface extends Frame
                     sb.append('\n');
                     sb.append(sc.scLongDesc);
                     // TODO word wrap
+                }
+
+                // Check game for any other _SC_ game opts in effect:
+
+                final String scenOptName = "_" + sc.scKey;  // "_SC_CLVI"
+                final String optDescScenPrefix = /*I*/"Scenarios: "/*18N*/;
+                //      I18N note: showScenarioInfoDialog() assumes these scenario game options
+                //      all start with the text "Scenarios: "; when localizing, be sure to
+                //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
+
+                for (SOCGameOption sgo : game.getGameOptions().values())
+                {
+                    if (sgo.optKey.equals(scenOptName))
+                        continue;  // scenario's dedicated game option; we already showed its name from scDesc
+                    if (! sgo.optKey.startsWith("_SC_"))
+                        continue;
+
+                    String optDesc = sgo.optDesc;
+                    if (optDesc.startsWith(optDescScenPrefix))
+                        optDesc = optDesc.substring(optDescScenPrefix.length()).trim();
+                    sb.append('\n');
+                    sb.append(optDesc);
                 }
 
                 if (game.vp_winner != SOCGame.VP_WINNER_STANDARD)
