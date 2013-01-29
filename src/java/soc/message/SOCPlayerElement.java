@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -135,6 +135,8 @@ public class SOCPlayerElement extends SOCMessage
      * See SOCPlayer.getNumWarships() for details.
      * This element can be {@link #SET} or {@link #GAIN}ed.  For clarity, if the number of
      * warships decreases, send {@link #SET}, never send {@link #LOSE}.
+     * {@link #GAIN} is sent only in response to a player's successful
+     * {@link SOCPlayDevCardRequest} to convert a ship to a warship.
      *<P>
      * If a player is joining a game in progress, the <tt>PLAYERELEMENT(SCENARIO_WARSHIP_COUNT)</tt>
      * message is sent to their client only after sending their SOCShip piece positions.

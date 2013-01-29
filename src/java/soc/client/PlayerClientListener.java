@@ -53,7 +53,7 @@ public interface PlayerClientListener
      * @param nickname  New client's player/observer name
      */
     void playerJoined(String nickname);
-    
+
     /**
      * A client player or observer is leaving the game.
      * @param nickname The player name. Will not be {@code null}
@@ -64,16 +64,17 @@ public interface PlayerClientListener
     /**
      * A client has sat down to become an active player.
      * {@link #playerJoined(String)} was called earlier on this client.
-     * @param seatNumber  New player's playerNumber in the game
+     * {@link SOCGame#addPlayer(String, int)} has just been called.
+     * @param playerNumber  New player's playerNumber in the game; the seat number they've sat down at
      * @param nickname  New player's name
      */
-    void playerSitdown(int seatNumber, String nickname);
+    void playerSitdown(int playerNumber, String nickname);
 
     /**
      * Game's current player has changed. Update displays.
-     * @param seatNumber  New current player number
+     * @param playerNumber  New current player number whose turn it is.
      */
-    void playerTurnSet(int seatNumber);
+    void playerTurnSet(int playerNumber);
 
     /**
      * A player has placed a piece on the board.
@@ -153,14 +154,24 @@ public interface PlayerClientListener
      * @param countToSelect  Number of free resources they must pick, or 0 if they've just picked them
      */
     void requestedGoldResourceCountUpdated(SOCPlayer player, int countToSelect);
+
+    /**
+     * This player must choose a player for robbery.
+     * @param choices   The potential victim players to choose from
+     * @param isNoneAllowed  If true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
+     * @see SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)
+     */
     void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed);
+
     void requestedChooseRobResourceType(SOCPlayer player);
     void requestedTrade(SOCPlayer offerer);
+
     /**
      * @param offerer May be {@code null}
      */
     void requestedTradeClear(SOCPlayer offerer);
     void requestedTradeRejection(SOCPlayer rejecter);
+
     /**
      * @param playerToReset May be {@code null} to clear all seats
      */
@@ -189,8 +200,9 @@ public interface PlayerClientListener
     void robberMoved();
     void devCardDeckUpdated();
     void seatLockUpdated();
-    
+
     void gameStarted();
+
     /**
      * @param gameState One of the codes from SOCGame, such as {@link soc.game.SOCGame#NEW}
      */

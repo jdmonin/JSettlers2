@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * This file copyright (C) 2003-2004  Robert S. Thomas
- * Portions of this file copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +30,7 @@ import java.util.Vector;
 
 import soc.disableDebug.D;
 import soc.game.SOCBoard;
+import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
@@ -1283,12 +1284,62 @@ public class SOCRobotDM
       Iterator<SOCPossibleRoad> posRoadsIter = ourPlayerTracker.getPossibleRoads().values().iterator();
       while (posRoadsIter.hasNext()) {
 	SOCPossibleRoad posRoad = posRoadsIter.next();
+	if (! posRoad.isRoadNotShip())
+	    continue;  // ignore ships in this loop
+
 	if ((posRoad.getNecessaryRoads().isEmpty()) &&
 	    (!threatenedRoads.contains(posRoad)) &&
 	    (!goodRoads.contains(posRoad))) {
 	  goodRoads.addElement(posRoad);
 	}
       }
+    }
+
+    ///
+    /// and collect ships we can build now
+    /// (if the pirate is adjacent, can't build there right now)
+    ///
+    if (ourPlayerData.getNumPieces(SOCPlayingPiece.SHIP) > 0)
+    {
+        final SOCBoard board = game.getBoard();
+        final int pirateHex =
+            (board instanceof SOCBoardLarge)
+            ? ((SOCBoardLarge) board).getPirateHex()
+            : 0;
+        final int[] pirateEdges =
+            (pirateHex != 0)
+            ? ((SOCBoardLarge) board).getAdjacentEdgesToHex(pirateHex)
+            : null;
+
+        Iterator<SOCPossibleRoad> posRoadsIter = ourPlayerTracker.getPossibleRoads().values().iterator();
+        while (posRoadsIter.hasNext())
+        {
+            final SOCPossibleRoad posRoad = posRoadsIter.next();
+            if (posRoad.isRoadNotShip())
+                continue;  // ignore roads in this loop, we want ships
+
+            if (posRoad.getNecessaryRoads().isEmpty() &&
+                (! threatenedRoads.contains(posRoad)) &&
+                (! goodRoads.contains(posRoad)))
+            {
+                boolean edgeOK = true;
+                if (pirateEdges != null)
+                {
+                    final int edge = posRoad.getCoordinates();
+                    for (int i = 0; i < pirateEdges.length; ++i)
+                    {
+                        if (edge == pirateEdges[i])
+                        {
+                            edgeOK = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (edgeOK)
+                    goodRoads.addElement(posRoad);
+            }
+        }
     }
 
     /*

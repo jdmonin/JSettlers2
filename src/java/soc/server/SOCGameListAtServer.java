@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -261,8 +261,9 @@ public class SOCGameListAtServer extends SOCGameList
         if (isGame(gaName))
             return null;
 
-        // Make sure server games have SOCBoardLargeAtServer, for makeNewBoard
-        if (SOCGame.boardFactory == null)
+        // Make sure server games have SOCBoardLargeAtServer, for makeNewBoard.
+        // Double-check class in case server is started at client after a client SOCGame.
+        if ((SOCGame.boardFactory == null) || ! (SOCGame.boardFactory instanceof SOCBoardLargeAtServer))
             SOCGame.boardFactory = new SOCBoardLargeAtServer.BoardFactoryAtServer();
 
         Vector<StringConnection> members = new Vector<StringConnection>();

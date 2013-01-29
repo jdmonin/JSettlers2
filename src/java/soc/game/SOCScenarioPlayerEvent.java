@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,6 +48,9 @@ public enum SOCScenarioPlayerEvent
      * Special victory point awarded for first settlement in any land area past the starting land area.
      * Once per player per game (not once per player in each other land area).
      * Game option {@link SOCGameOption#K_SC_SANY _SC_SANY}.
+     *<P>
+     * The new {@link SOCSettlement} will be passed as <tt>obj</tt> to
+     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}.
      */
     SVP_SETTLED_ANY_NEW_LANDAREA(0x01),
 
@@ -55,6 +58,9 @@ public enum SOCScenarioPlayerEvent
      * 2 SVP awarded each time player settles in another new land area past the starting land area.
      * Once per area per player per game.
      * Game option {@link SOCGameOption#K_SC_SEAC _SC_SEAC}.
+     *<P>
+     * The new {@link SOCSettlement} will be passed as <tt>obj</tt> to
+     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}.
      *<P>
      * Because there can be many land areas, this event flag isn't part of
      * {@link SOCPlayer#getScenarioPlayerEvents()}; instead see

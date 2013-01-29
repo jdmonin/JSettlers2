@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -43,14 +43,13 @@ import soc.util.IntPair;
  * Calling board methods won't change the game state.
  *<P>
  * To create a new board, use subclass <tt>soc.server.SOCBoardLargeAtServer</tt>.
+ * See that class's javadoc, and its <tt>makeNewBoard(Hashtable)</tt> javadoc, for more details.
  *<P>
  * On this large sea board, there can optionally be multiple "land areas"
  * (groups of islands, or subsets of islands), if {@link #getLandAreasLegalNodes()} != null.
  * Land areas are groups of nodes on land; call {@link #getNodeLandArea(int)} to find a node's land area number.
  * The starting land area is {@link #getStartingLandArea()}, if players must start in a certain area.
- * During board setup, {@link #makeNewBoard(Hashtable)} calls
- * {@link #makeNewBoard_placeHexes(int[], int[], int[], int, SOCGameOption)}
- * once for each land area.  In some game scenarios, players and the robber can be
+ * In some game scenarios, players and the robber can be
  * {@link #getPlayerExcludedLandAreas() excluded} from placing in some land areas.
  *<P>
  * Server and client must be 2.0.00 or newer ({@link #VERSION_FOR_ENCODING_LARGE}).
@@ -432,7 +431,7 @@ public class SOCBoardLarge extends SOCBoard
      * based on {@link #nodesOnLand}.
      * Calculated in {@link #initLegalRoadsFromLandNodes()},
      * after {@link #nodesOnLand} is filled by
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
+     * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      * Used by {@link #initPlayerLegalRoads()}.
      */
     protected HashSet<Integer> legalRoadEdges;
@@ -442,7 +441,7 @@ public class SOCBoardLarge extends SOCBoard
      * based on {@link #hexLayoutLg}.
      * Calculated in {@link #initLegalShipEdges()},
      * after {@link #hexLayoutLg} is filled by
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
+     * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      * Used by {@link #initPlayerLegalShips()}.
      * Updated in {@link #revealFogHiddenHex(int, int, int)} for {@link SOCBoard#WATER_HEX WATER_HEX}.
      */
@@ -641,7 +640,7 @@ public class SOCBoardLarge extends SOCBoard
      * are established from land hexes, fill {@link #legalRoadEdges}.
      * Not iterative; clears all previous legal roads.
      * Call this only after the very last call to
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
+     * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      *<P>
      * Called at server and at client.
      */
@@ -700,7 +699,7 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * Not iterative; clears all previous legal ship edges.
      * Call this only after the very last call to
-     * {@link #makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)}.
+     * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      *<P>
      * Called at server and at client.
      */

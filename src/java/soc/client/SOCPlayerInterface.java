@@ -34,6 +34,7 @@ import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
 import soc.game.SOCRoad;
+import soc.game.SOCScenario;
 import soc.game.SOCScenarioEventListener;
 import soc.game.SOCScenarioGameEvent;
 import soc.game.SOCScenarioPlayerEvent;
@@ -44,7 +45,7 @@ import soc.game.SOCVillage;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.EventQueue;  // currently used for javadoc only
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
@@ -135,6 +136,16 @@ public class SOCPlayerInterface extends Frame
      * @since 1.1.06
      */
     private boolean layoutNotReadyYet;
+
+    /**
+     * True if we've already shown {@link #game}'s scenario's
+     * descriptive text in a popup window when the client joined,
+     * or if the game has no scenario.
+     * Checked in {@link #doLayout()}.
+     * Shown just once, not shown again at {@link #resetBoard(SOCGame, int, int)}.
+     * @since 2.0.00
+     */
+    private boolean didGameScenarioPopupCheck;
 
     //========================================================
     /**
@@ -432,7 +443,8 @@ public class SOCPlayerInterface extends Frame
     private final ClientBridge clientListener;
 
     /**
-     * create a new player interface
+     * Create and show a new player interface.
+     * If the game options have a {@link SOCScenario} description, it will be shown in a popup.
      *
      * @param title  title for this interface - game name
      * @param gd     the player display that spawned us
@@ -532,6 +544,7 @@ public class SOCPlayerInterface extends Frame
          * init is almost complete - when window appears and doLayout is called,
          * it will reset mouse cursor from WAIT_CURSOR to normal (WAIT_CURSOR is
          * set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
+         * Then, if the game has any scenario description, it will be shown once in a popup.
          */
     }
     
@@ -1808,6 +1821,8 @@ public class SOCPlayerInterface extends Frame
      * @param pnums   the player ids of those players; length of this
      *                array may be larger than count (may be {@link SOCGame#maxPlayers}).
      *                Only the first <tt>count</tt> elements will be used.
+     *                If <tt>allowChooseNone</tt>, pnums.length must be at least <tt>count + 1</tt>
+     *                to leave room for "no player".
      * @param allowChooseNone  if true, player can choose to rob no one (game scenario <tt>SC_PIRI</tt>)
      * @see SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)
      * @see #showChooseRobClothOrResourceDialog(int)
@@ -2343,6 +2358,8 @@ public class SOCPlayerInterface extends Frame
      * Arrange the custom layout. If a player sits down in a 6-player game, will need to
      * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
      * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
+     * On first call, if the game options have a {@link SOCScenario} with any long description,
+     * it will be shown in a popup.
      */
     @Override
     public void doLayout()
@@ -2587,6 +2604,48 @@ public class SOCPlayerInterface extends Frame
             layoutNotReadyYet = false;
             repaint();
         }
+
+        if (! didGameScenarioPopupCheck)
+        {
+            final String gameSc = game.getGameOptionStringValue("SC");
+            if (gameSc != null)
+            {
+                SOCScenario sc = SOCScenario.getScenario(gameSc);
+                if (sc != null)
+                {
+                    // TODO also check game for any other _SC_ game opts
+
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(/*I*/"Game Scenario: "/*18N*/);
+                    sb.append(sc.scDesc);
+                    sb.append('\n');
+
+                    if (sc.scLongDesc != null)
+                    {
+                        sb.append('\n');
+                        sb.append(sc.scLongDesc);
+                        // TODO word wrap
+                    }
+
+                    if (game.vp_winner != SOCGame.VP_WINNER_STANDARD)
+                    {
+                        sb.append('\n');
+                        sb.append(/*I*/"Victory Points to win: "/*18N*/);
+                        sb.append(game.vp_winner);
+                    }
+                    final String scenStr = sb.toString();
+                    EventQueue.invokeLater(new Runnable()
+                    {
+                        public void run()
+                        {
+                            NotifyDialog.createAndShow(getGameDisplay(), SOCPlayerInterface.this, scenStr, null, true);
+                        }
+                    });
+                }
+            }
+
+            didGameScenarioPopupCheck = true;
+        }
     }
 
     /**
@@ -2787,9 +2846,9 @@ public class SOCPlayerInterface extends Frame
             }
         }
 
-        public void playerSitdown(int seatNumber, String sitterNickname)
+        public void playerSitdown(int playerNumber, String sitterNickname)
         {
-            pi.addPlayer(sitterNickname, seatNumber);
+            pi.addPlayer(sitterNickname, playerNumber);
 
             String nickname = pi.getClient().getNickname();
 
@@ -2805,7 +2864,7 @@ public class SOCPlayerInterface extends Frame
             /**
              * update the hand panel's displayed values
              */
-            final SOCHandPanel hp = pi.getPlayerHandPanel(seatNumber);
+            final SOCHandPanel hp = pi.getPlayerHandPanel(playerNumber);
             hp.updateValue(PlayerClientListener.UpdateType.Road);
             hp.updateValue(PlayerClientListener.UpdateType.Settlement);
             hp.updateValue(PlayerClientListener.UpdateType.City);
@@ -2836,9 +2895,9 @@ public class SOCPlayerInterface extends Frame
          * Game's current player has changed. Update displays.
          * Repaint board panel, update buttons' status, etc.
          */
-        public void playerTurnSet(int seatNumber)
+        public void playerTurnSet(int playerNumber)
         {
-            pi.updateAtTurn(seatNumber);
+            pi.updateAtTurn(playerNumber);
         }
 
         public void playerPiecePlaced(SOCPlayer player, int coordinate, int pieceType)
@@ -3172,13 +3231,13 @@ public class SOCPlayerInterface extends Frame
             pi.showDiscardOrGainDialog(countToDiscard, false);
         }
 
-        public void requestedChoosePlayer(List<SOCPlayer> choices, boolean isNoneAllowed)
+        public void requestedChoosePlayer(final List<SOCPlayer> choices, final boolean isNoneAllowed)
         {
-            int[] pnums = new int[choices.size()];
+            int[] pnums = new int[choices.size() + (isNoneAllowed ? 1 : 0)];
             int i = 0;
             for (SOCPlayer p : choices)
                 pnums[i++] = p.getPlayerNumber();
-            pi.showChoosePlayerDialog(pnums.length, pnums, isNoneAllowed);
+            pi.showChoosePlayerDialog(choices.size(), pnums, isNoneAllowed);
         }
 
         public void requestedChooseRobResourceType(SOCPlayer player)

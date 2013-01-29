@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -2073,7 +2073,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
     /**
      * Put a piece into play.
-     * Update potential piece lists.
+     * {@link #updatePotentials(SOCPlayingPiece) Update potential} piece lists.
      * For roads, update {@link #roadNodes} and {@link #roadNodeGraph}.
      * Does not update longest road; instead, {@link SOCGame#putPiece(SOCPlayingPiece)}
      * calls {@link #calcLongestRoad2()}.
@@ -2460,7 +2460,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 // Notify (server or GUI)
                 game.scenarioEventListener.playerEvent
-                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, null);
+                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_ANY_NEW_LANDAREA, true, newSettle);
             }
         }
 
@@ -2476,7 +2476,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             {
                 // Notify (server or GUI)
                 game.scenarioEventListener.playerEvent
-                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, null);
+                    (game, this, SOCScenarioPlayerEvent.SVP_SETTLED_EACH_NEW_LANDAREA, true, newSettle);
             }
         }
     }
@@ -3128,6 +3128,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * this player can play further pieces, after a
      * piece has just been played, or after another
      * player's adjacent piece has been removed.
+     *<P>
+     * <b>Special case:</b> In game scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * ship routes can't branch in different directions, only extend from their ends.
+     * So when a ship is placed to extend a sea route, this method will remove
+     * nearby potential ships which would now be side branches.
      *
      * @param piece         a piece that has just been played
      *          or our piece adjacent to another player's

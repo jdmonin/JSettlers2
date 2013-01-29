@@ -361,7 +361,15 @@ public class SOCRobotBrain extends Thread
     protected boolean expectPLACING_SHIP;
 
     /**
-     * true if we're expecting the PLACING_ROBBER state
+     * True if we're expecting the PLACING_ROBBER state.
+     * {@link #playKnightCard()} sets this field and {@link #waitingForGameState}.
+     *<P>
+     * In scenario {@link _SC_PIRI}, this flag is also used when we've just played
+     * a "Convert to Warship" card (Knight/Soldier card) and we're waiting for the
+     * server response.  The response won't be a GAMESTATE(PLACING_SOLDIER) message,
+     * it will either be PLAYERLEMENT(GAIN, SCENARIO_WARSHIP_COUNT) or DEVCARD(CANNOT_PLAY).
+     * Since this situation is otherwise the same as playing a Knight/Soldier, we use
+     * this same waiting flags.
      */
     protected boolean expectPLACING_ROBBER;
 
@@ -448,6 +456,12 @@ public class SOCRobotBrain extends Thread
      *<P>
      * For example, when playing a {@link SOCDevCard}, set true and also set
      * an "expect" flag ({@link #expectPLACING_ROBBER}, {@link #expectWAITING_FOR_DISCOVERY}, etc).
+     *<P>
+     * <b>Special case:</b><br>
+     * In scenario {@link _SC_PIRI}, this flag is also set when we've just played
+     * a "Convert to Warship" card (Knight/Soldier card), although the server won't
+     * respond with a GAMESTATE message; see {@link #expectPLACING_ROBBER} javadoc.
+     *
      * @see #rejectedPlayDevCardType
      */
     protected boolean waitingForGameState;
@@ -1512,17 +1526,14 @@ public class SOCRobotBrain extends Thread
                                               + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.NEW, SOCDevCardConstants.KNIGHT)
                                               + ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT))
                                               >= larmySize)
-                                            && (ourPlayerData.getDevCards().getAmount(SOCDevCardSet.OLD, SOCDevCardConstants.KNIGHT) > 0)
+                                            && game.canPlayKnight(ourPlayerNumber)  // has an old KNIGHT devcard, etc
                                             && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT))
                                         {
                                             /**
                                              * play a knight card
+                                             * (or, in scenario _SC_PIRI, a Convert to Warship card)
                                              */
-                                            expectPLACING_ROBBER = true;
-                                            waitingForGameState = true;
-                                            counter = 0;
-                                            client.playDevCard(game, SOCDevCardConstants.KNIGHT);
-                                            pause(1500);
+                                            playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
                                         }
                                     }
                                 }
@@ -2095,6 +2106,22 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
+     * Play a Knight card.
+     * In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, play a "Convert to Warship" card.
+     * Sets {@link #expectPLACING_ROBBER}, {@link #waitingForGameState}.
+     * Calls {@link SOCRobotClient#playDevCard(SOCGame, int) client.playDevCard}({@link SOCDevCardConstants#KNIGHT KNIGHT}).
+     * @since 2.0.00
+     */
+    private void playKnightCard()
+    {
+        expectPLACING_ROBBER = true;
+        waitingForGameState = true;
+        counter = 0;
+        client.playDevCard(game, SOCDevCardConstants.KNIGHT);
+        pause(1500);
+    }
+
+    /**
      * On our turn, ask client to roll dice or play a knight;
      * on other turns, update flags to expect dice result.
      *<P>
@@ -2121,11 +2148,7 @@ public class SOCRobotBrain extends Thread
                     && (rejectedPlayDevCardType != SOCDevCardConstants.KNIGHT)
                     && ! ourPlayerData.getNumbers().hasNoResourcesForHex(game.getBoard().getRobberHex()))
                 {
-                    expectPLACING_ROBBER = true;
-                    waitingForGameState = true;
-                    counter = 0;
-                    client.playDevCard(game, SOCDevCardConstants.KNIGHT);
-                    pause(1500);
+                    playKnightCard();  // sets expectPLACING_ROBBER, waitingForGameState
                 }
                 else
                 {
@@ -2470,6 +2493,7 @@ public class SOCRobotBrain extends Thread
         case SOCGame.PLACING_ROAD:        // has given location -> is bad location
         case SOCGame.PLACING_SETTLEMENT:
         case SOCGame.PLACING_CITY:
+        case SOCGame.PLACING_SHIP:
         case SOCGame.PLACING_FREE_ROAD1:  // JM TODO how to break out?
         case SOCGame.PLACING_FREE_ROAD2:  // JM TODO how to break out?
         case SOCGame.SPECIAL_BUILDING:
@@ -2493,7 +2517,8 @@ public class SOCRobotBrain extends Thread
                 cancelWrongPiecePlacement(mes);
             } else {
                 // Should not occur
-                D.ebugPrintln("Unexpected CANCELBUILDREQUEST at state " + gstate);
+                System.err.println
+                    ("L2521 SOCRobotBrain: " + client.getNickname() + ": Unhandled CANCELBUILDREQUEST at state " + gstate);
             }
 
         }  // switch (gameState)
@@ -3092,6 +3117,15 @@ public class SOCRobotBrain extends Thread
             handlePLAYERELEMENT_numRsrc
                 (mes, pl, SOCResourceConstants.UNKNOWN, "UNKNOWN");
             break;
+
+        case SOCPlayerElement.SCENARIO_WARSHIP_COUNT:
+            if (expectPLACING_ROBBER && (mes.getAction() == SOCPlayerElement.GAIN))
+            {
+                // warship card successfully played; clear the flag fields
+                expectPLACING_ROBBER = false;
+                waitingForGameState = false;
+            }
+            // fall through to default, so handlePLAYERELEMENT_simple will update game data
 
         default:
             // handle ASK_SPECIAL_BUILD, NUM_PICK_GOLD_HEX_RESOURCES, SCENARIO_CLOTH_COUNT, etc;

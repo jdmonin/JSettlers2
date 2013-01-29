@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011,2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -527,9 +527,12 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     /**
      * Scenario key <tt>_SC_PIRI</tt> for Pirate Islands and {@link SOCFortress fortresses}.
      * Fortresses and player warships are in a game only if this option is set.
+     * For more details and special rules see {@link SOCScenario#K_SC_PIRI}.
      * @since 2.0.00
      */
     public static final String K_SC_PIRI = "_SC_PIRI";
+
+    // -- End of scenario flag keynames --
 
     // If you create a new option type,
     // please update parseOptionsToHash(), packOptionsToString(),
