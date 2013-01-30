@@ -1355,24 +1355,23 @@ public class SOCPlayerTracker
             for (Integer edge : board.getAdjacentEdgesToNode(settlementCoords))
             {
                 // TODO remove these debug prints soon
-                System.err.println("L1348: examine edge 0x"
-                    + Integer.toHexString(edge) + " for placed settle 0x"
-                    + Integer.toHexString(settlementCoords));
+                //System.err.println("L1348: examine edge 0x"
+                //    + Integer.toHexString(edge) + " for placed settle 0x"
+                //    + Integer.toHexString(settlementCoords));
 
                 SOCPossibleRoad pRoad = possibleRoads.get(edge);
                 if (pRoad != null)
                 {
-                    if (pRoad.isRoadNotShip())
-                        System.err.println("  -> already possible road");
-                    else
-                        System.err.println("  -> already possible ship");
+                    //if (pRoad.isRoadNotShip())
+                    //    System.err.println("  -> already possible road");
+                    //else
+                    //    System.err.println("  -> already possible ship");
                     continue;  // already a possible road or ship
                 }
 
                 SOCRoad road = board.roadAtEdge(edge);
                 if (road != null)
                 {
-                    System.err.println("  -> something already built");
                     if (road.isRoadNotShip())
                         settleAlreadyHasRoad = true;
                     continue;  // something's already there
