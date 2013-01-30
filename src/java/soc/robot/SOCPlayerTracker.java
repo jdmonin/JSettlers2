@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -42,8 +42,6 @@ import soc.util.CutoffExceededException;
 import soc.util.Pair;
 import soc.util.Queue;
 
-import java.text.DecimalFormat;
-
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -57,8 +55,9 @@ import java.util.Vector;
  * This class is used by the SOCRobotBrain to track
  * strategic planning information such as
  * possible building spots for itself and other players.
+ * Also used for prediction of other players' possible upcoming moves.
  *<P>
- * Some users: {@link SOCRobotDM#planStuff(int)},
+ * Some users of this class are: {@link SOCRobotDM#planStuff(int)},
  * and many callers of {@link #getWinGameETA()}
  *<P>
  *
@@ -111,6 +110,8 @@ public class SOCPlayerTracker
      * Key = {@link Integer} node coordinate, value = {@link SOCPossibleSettlement}.
      * Expanded in {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)}
      * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
+     * Also updated in {@link #addNewSettlement(SOCSettlement, HashMap)},
+     * {@link #cancelWrongSettlement(SOCSettlement)}, a few other places.
      */
     protected TreeMap<Integer, SOCPossibleSettlement> possibleSettlements;
 
@@ -677,7 +678,6 @@ public class SOCPlayerTracker
             // If true, this edge transitions
             // between ships <-> roads, at a
             // coastal settlement
-            //
             boolean edgeRequiresCoastalSettlement = false;
 
             if ((! edgeIsPotentialRoute)
