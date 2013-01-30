@@ -1162,7 +1162,18 @@ public class SOCPlayerTracker
     }
 
     /**
-     * add one of our settlements
+     * Add one of our settlements, and newly possible pieces from it.
+     * Adds a new possible city; removes conflicting possible settlements (ours or other players).
+     * On the large Sea board, if this is a coastal settlement, adds newly possible ships, and if
+     * we've just settled a new island, newly possible roads, because the coastal settlement is
+     * a roads {@literal <->} ships transition.
+     *<P>
+     * Called in 2 different conditions:
+     *<UL>
+     * <LI> To track an actual (not possible) settlement that's just been placed
+     * <LI> To see the effects of trying to placing a possible settlement, in a copy of the PlayerTracker
+     *      ({@link #tryPutPiece(SOCPlayingPiece, SOCGame, HashMap)})
+     *</UL>
      *
      * @param settlement  the new settlement
      * @param trackers    player trackers for all of the players
@@ -1173,7 +1184,7 @@ public class SOCPlayerTracker
         D.ebugPrintln("$$$ addOurNewSettlement : " + settlement);
         SOCBoard board = player.getGame().getBoard();
 
-        Integer settlementCoords = new Integer(settlement.getCoordinates());
+        final Integer settlementCoords = new Integer(settlement.getCoordinates());
 
         /**
          * add a new possible city
@@ -1307,6 +1318,7 @@ public class SOCPlayerTracker
 
                 /**
                  * take out the trash
+                 * (no-longer-possible settlements, roads that support it)
                  */
                 D.ebugPrintln("$$$ removing trash for " + tracker.getPlayer().getPlayerNumber());
 
@@ -1321,6 +1333,78 @@ public class SOCPlayerTracker
                 }
 
                 trash.removeAllElements();
+            }
+        }
+
+        /**
+         * add possible road-ship transitions made possible by the new settlement
+         */
+        if (board instanceof SOCBoardLarge)
+        {
+            boolean settleAlreadyHasRoad = false;
+            Vector<SOCPossibleRoad> possibleNewIslandRoads = null;
+
+            for (Integer edge : board.getAdjacentEdgesToNode(settlementCoords))
+            {
+                // TODO remove these debug prints soon
+                System.err.println("L1348: examine edge 0x"
+                    + Integer.toHexString(edge) + " for placed settle 0x"
+                    + Integer.toHexString(settlementCoords));
+
+                SOCPossibleRoad pRoad = possibleRoads.get(edge);
+                if (pRoad != null)
+                {
+                    if (pRoad.isRoadNotShip())
+                        System.err.println("  -> already possible road");
+                    else
+                        System.err.println("  -> already possible ship");
+                    continue;  // already a possible road or ship
+                }
+
+                SOCRoad road = board.roadAtEdge(edge);
+                if (road != null)
+                {
+                    System.err.println("  -> something already built");
+                    if (road.isRoadNotShip())
+                        settleAlreadyHasRoad = true;
+                    continue;  // something's already there
+                }
+
+                // TODO what if isEdgeCoastline -- for now, until we can model that & add both potentials, assume road
+
+                if (player.isPotentialRoad(edge))
+                {
+                    // Probably won't happen (usually added elsewhere),
+                    // but could on a new island's first settlement
+                    if (settleAlreadyHasRoad)
+                        continue;
+                    if (possibleNewIslandRoads == null)
+                        possibleNewIslandRoads = new Vector<SOCPossibleRoad>();
+                    possibleNewIslandRoads.add(new SOCPossibleRoad(player, edge, new Vector<SOCPossibleRoad>()));
+                }
+                else if (player.isPotentialShip(edge))
+                {
+                    // A way out to a new island
+                    possibleRoads.put(edge, new SOCPossibleShip(player, edge, new Vector<SOCPossibleRoad>()));
+                    System.err.println("L1383: new possible ship at edge 0x"
+                        + Integer.toHexString(edge) + " from coastal settle 0x"
+                        + Integer.toHexString(settlementCoords));
+                }
+            }
+
+            if ((possibleNewIslandRoads != null) && (! settleAlreadyHasRoad)
+                && ! player.getGame().isInitialPlacement())
+            {
+                // only add new possible roads if we're on a new island
+                // (that is, the newly placed settlement has no adjacent roads already).
+                // (Make sure this isn't initial placement, where nothing has adjacent roads)
+                for (SOCPossibleRoad pr : possibleNewIslandRoads)
+                {
+                    possibleRoads.put(Integer.valueOf(pr.getCoordinates()), pr);
+                    System.err.println("L1396: new possible road at edge 0x"
+                        + Integer.toHexString(pr.getCoordinates()) + " from coastal settle 0x"
+                        + Integer.toHexString(settlementCoords));
+                }
             }
         }
     }
