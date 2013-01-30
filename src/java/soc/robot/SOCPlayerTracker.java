@@ -90,6 +90,13 @@ public class SOCPlayerTracker
     static protected int EXPAND_LEVEL = 1;
 
     /**
+     * Ship expansion level to add to {@link #EXPAND_LEVEL} for
+     * {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
+     * @since 2.0.00
+     */
+    static protected int EXPAND_LEVEL_SHIP_EXTRA = 1;
+
+    /**
      * Road expansion level for {@link #updateLRPotential(SOCPossibleRoad, SOCPlayer, SOCRoad, int, int)};
      * how far away to look for possible future roads
      * (level of recursion).
@@ -1341,6 +1348,7 @@ public class SOCPlayerTracker
          */
         if (board instanceof SOCBoardLarge)
         {
+            Vector<SOCPossibleRoad> roadsToExpand = null;
             boolean settleAlreadyHasRoad = false;
             Vector<SOCPossibleRoad> possibleNewIslandRoads = null;
 
@@ -1385,10 +1393,15 @@ public class SOCPlayerTracker
                 else if (player.isPotentialShip(edge))
                 {
                     // A way out to a new island
-                    possibleRoads.put(edge, new SOCPossibleShip(player, edge, new Vector<SOCPossibleRoad>()));
+                    SOCPossibleShip newPS = new SOCPossibleShip(player, edge, new Vector<SOCPossibleRoad>());
+                    possibleRoads.put(edge, newPS);
                     System.err.println("L1383: new possible ship at edge 0x"
                         + Integer.toHexString(edge) + " from coastal settle 0x"
                         + Integer.toHexString(settlementCoords));
+                    if (roadsToExpand == null)
+                        roadsToExpand = new Vector<SOCPossibleRoad>();
+                    roadsToExpand.addElement(newPS);
+                    newPS.setExpandedFlag();
                 }
             }
 
@@ -1404,7 +1417,25 @@ public class SOCPlayerTracker
                     System.err.println("L1396: new possible road at edge 0x"
                         + Integer.toHexString(pr.getCoordinates()) + " from coastal settle 0x"
                         + Integer.toHexString(settlementCoords));
+                    if (roadsToExpand == null)
+                        roadsToExpand = new Vector<SOCPossibleRoad>();
+                    roadsToExpand.addElement(pr);
+                    pr.setExpandedFlag();
                 }
+            }
+
+            if (roadsToExpand != null)
+            {
+                //
+                // expand possible ships/roads that we've added
+                //
+                SOCPlayer dummy = new SOCPlayer(player);
+                for (SOCPossibleRoad expandPR : roadsToExpand)
+                {
+                    final int expand = EXPAND_LEVEL + (expandPR.isRoadNotShip() ? 0 : EXPAND_LEVEL_SHIP_EXTRA);
+                    expandRoadOrShip(expandPR, player, dummy, trackers, expand);
+                }
+                dummy.destroyPlayer();
             }
         }
     }
