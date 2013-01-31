@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file copyright (C) 2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -117,6 +117,8 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     }
 
     /**
+     * Get the shortest road path to this settlement; some bots don't use this.
+     * See {@link #setRoadPath(Stack)} for details.
      * @return the shortest road path to this settlement
      */
     Stack<SOCPossibleRoad> getRoadPath()
@@ -125,6 +127,12 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
     }
 
     /**
+     * Shortest road/ship path to this settlement.
+     * Calculated from {@link #getNecessaryRoads()} by
+     * {@link SOCRobotDM#scoreSettlementsForDumb(int, SOCBuildingSpeedEstimate)}.
+     * The bots with {@link SOCRobotDM#SMART_STRATEGY} won't calculate this;
+     * instead, they pick roads/ships with 0 {@link #getNecessaryRoads()},
+     * and iteratively simulate building other things after picking such a road.
      * @param path  a stack containing the shortest road path to this settlement
      */
     void setRoadPath(Stack<SOCPossibleRoad> path)

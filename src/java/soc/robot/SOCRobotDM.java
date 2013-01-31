@@ -116,14 +116,27 @@ public class SOCRobotDM
    * {@link #ourPlayerData}'s building plan; a stack of {@link SOCPossiblePiece}.
    * Same Stack as {@link SOCRobotBrain#getBuildingPlan()}.
    * May include {@link SOCPossibleCard} to be bought.
+   * Filled each turn by {@link #planStuff(int)}.
+   * Emptied by {@link SOCRobotBrain}.
    */
   protected Stack<SOCPossiblePiece> buildingPlan;
 
   protected SOCGame game;
   protected Vector<SOCPossibleRoad> threatenedRoads;
 
-  /** {@link SOCPossibleRoad}s and/or subclass {@link SOCPossibleShip}s */
+  /**
+   * A road or ship ({@link SOCPossibleRoad} and/or subclass {@link SOCPossibleShip})
+   * we could build this turn; its {@link SOCPossibleRoad#getNecessaryRoads()} is empty.
+   * Built in {@link #smartGameStrategy(int[])}.
+   */
   protected Vector<SOCPossibleRoad> goodRoads;
+
+  /**
+   * A road or ship we could build this turn, chosen
+   * from {@link #threatenedRoads} or {@link #goodRoads}
+   * in {@link #smartGameStrategy(int[])}.
+   * If we want to build this soon, it will be added to {@link #buildingPlan}.
+   */
   protected SOCPossibleRoad favoriteRoad;
 
   /** Threatened settlements, as calculated by {@link #scorePossibleSettlements(int, int)} */
@@ -240,6 +253,7 @@ public class SOCRobotDM
 
   /**
    * make some building plans.
+   * Called as needed by {@link SOCRobotBrain} and related strategy classes.
    * Sets {@link #buildingPlan}, {@link #favoriteSettlement}, etc.
    * Calls either {@link #smartGameStrategy(int[])} or {@link #dumbFastGameStrategy(int[])}.
    * Both of these will check whether this is our normal turn, or if
@@ -509,6 +523,11 @@ public class SOCRobotDM
    *<P>
    * For example, if {@link #favoriteSettlement} is chosen,
    * it's chosen from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}.
+   *<P>
+   * Possible cities and settlements are looked at first.
+   * (If one is chosen, its {@link SOCPossibleSettlement#getNecessaryRoads()}
+   * will also be chosen here.)  Then, Knights or Dev Cards.
+   * Only then would roads or ships be looked at, for Longest Route. 
    *
    * @param buildingETAs  the etas for building something
    */
@@ -918,6 +937,9 @@ public class SOCRobotDM
    * score all possible settlements by getting their speedup total
    * calculate ETA by finding shortest path and then using a
    * SOCBuildingSpeedEstimate to find the ETA
+   *<P>
+   * Each {@link SOCPossibleSettlement#getRoadPath()} is calculated
+   * here from its {@link SOCPossibleSettlement#getNecessaryRoads()}.
    *
    * @param settlementETA  eta for building a settlement from now
    */
@@ -1735,7 +1757,7 @@ public class SOCRobotDM
 
 
   /**
-   * Score possible settlements for smartStrategy,
+   * Score possible settlements for for the smart game strategy ({@link #SMART_STRATEGY}),
    * from {@link #ourPlayerTracker}{@link SOCPlayerTracker#getPossibleSettlements() .getPossibleSettlements()}
    * into {@link #threatenedSettlements} and {@link #goodSettlements};
    * calculate those settlements' {@link SOCPossiblePiece#getScore()}s
