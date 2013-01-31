@@ -836,10 +836,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int ptrOldX, ptrOldY;
     
     /**
-     * (tooltip) Hover text.  Its mode uses boardpanel mode
-     * constants: Will be NONE, PLACE_ROAD, PLACE_SETTLEMENT,
-     *   PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
+     * (tooltip) Hover text for info on pieces/parts of the board. Its mode uses boardpanel mode constants.
      * Also contains "hovering" road/settlement/city near mouse pointer.
+     * @see #hilight
      */
     private BoardToolTip hoverTip;
 
@@ -911,6 +910,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Check {@link #player}.{@link SOCPlayer#isPotentialRoad(int) isPotentialRoad(hilight)}
      * first, then {@link SOCPlayer#isPotentialShip(int) .isPotentialShip}.
      * Player can right-click to build an initial ship along a coastal edge.
+     *<P>
+     * Hilight is drawn in {@link #drawBoard(Graphics)}. Value updated in {@link #mouseMoved(MouseEvent)}.
+     * Cleared in {@link #clearModeAndHilight(int)}.
+     *
+     * @see #hoverTip
      */
     private int hilight;
 
@@ -3285,7 +3289,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * draw the whole board, including pieces and tooltip if applicable.
+     * Draw the whole board, including pieces and tooltip ({@link #hilight}, {@link #hoverTip}) if applicable.
      * The basic board without pieces is drawn just once, then buffered.
      * If the board layout changes (at start of game, for example),
      * call {@link #flushBoardLayoutAndRepaint()} to clear the buffered copy.
@@ -4428,9 +4432,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
+     * Based on the board's current {@link #mode}, update the hovering 'hilight' piece ({@link #hilight}}.
+     * Trigger a {@link #repaint()} if the mouse moved or the hilight changes.
      */
     public void mouseMoved(MouseEvent e)
     {
@@ -5303,6 +5306,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * <b>Note:</b> For the 6-player board, edge 0x00 is a valid edge that
      * can be built on.  It is found here as -1, since a value of 0 marks an
      * invalid edge.
+     *<P>
+     * <b>Note:</b> For {@link SOCBoardLarge}, the 'sea' side of a coastal edge
+     * is returned as the negative value of its edge coordinate, if {@code checkCoastal} is set.
      *
      * @param x  x coordinate, in unscaled board, not actual pixels;
      *           use {@link #scaleFromActualX(int)} to convert
@@ -5312,7 +5318,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *           Ignored unless {@link #isLargeBoard}.
      *           Returns positive edge for non-coastal sea edges.
      * @return the coordinates of the edge, or 0 if none; -1 for the 6-player
-     *     board's valid edge 0x00
+     *     board's valid edge 0x00; -edge for the sea side of a coastal edge on the large board
+     *     if {@code checkCoastal}.
      */
     private final int findEdge(int x, int y, final boolean checkCoastal)
     {
@@ -5773,6 +5780,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
 
 
+    /**
+     * (tooltip) Hover text for info on pieces/parts of the board.
+     * Its mode uses boardpanel mode constants: Will be NONE, PLACE_ROAD,
+     * PLACE_SETTLEMENT, PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
+     * Also contains "hovering" road/settlement/city near mouse pointer,
+     * distinct from {@link SOCBoardPanel#hilight}.
+     *
+     * @author jdmonin
+     * @since 1.1.00
+     */
     protected class BoardToolTip
     {
         private SOCBoardPanel bpanel;
@@ -5783,6 +5800,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /** Uses board mode constants: Will be {@link SOCBoardPanel#NONE NONE},
          *  {@link SOCBoardPanel#PLACE_ROAD PLACE_ROAD}, PLACE_SHIP, PLACE_SETTLEMENT,
          *  PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
+         *  Updated in {@link #handleHover(int, int)}.
          */
         private int hoverMode;
 
