@@ -98,13 +98,13 @@ public class SOCPlayerInterface extends Frame
     implements ActionListener, MouseListener, SOCScenarioEventListener
 {
     /**
-     * System property os.name; For use by {@link #isPlatformWindows}.
+     * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
      * @since 1.1.08
      */
     private final static String SOCPI_osName = System.getProperty("os.name");
 
     /**
-     * Are we running on the Windows platform, according to {@link #osName}?
+     * Are we running on the Windows platform, according to {@link #SOCPI_osName}?
      * @since 1.1.08
      */
     private final static boolean SOCPI_isPlatformWindows = (SOCPI_osName != null) && (SOCPI_osName.toLowerCase().indexOf("windows") != -1);
@@ -446,14 +446,11 @@ public class SOCPlayerInterface extends Frame
      *
      * @param title  title for this interface - game name
      * @param gd     the player display that spawned us
-     * @param ga     the game associated with this interface
+     * @param ga     the game associated with this interface; must not be {@code null}
      */
     public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga)
     {
         super(TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + gd.getNickname() + "]"));
-        if (ga == null)
-            // keep even though it is dead code
-            throw new IllegalArgumentException("game is null");
         
         setResizable(true);
         layoutNotReadyYet = true;  // will set to false at end of doLayout
@@ -1900,7 +1897,6 @@ public class SOCPlayerInterface extends Frame
                 {
                     sb.append('\n');
                     sb.append(sc.scLongDesc);
-                    // TODO word wrap
                 }
 
                 // Check game for any other _SC_ game opts in effect:
