@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -56,7 +56,7 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  * {@link #windowCloseChosen()}, and (for a three-choice
  * question) override {@link #button3Chosen()}.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
 public abstract class AskDialog extends Dialog
     implements ActionListener, WindowListener, KeyListener, MouseListener
@@ -110,7 +110,7 @@ public abstract class AskDialog extends Dialog
      * @param gamePI   Current game's player interface;
      *                 Cannot be null, use the other constructor if not asking
      *                 about a specific game.
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -158,7 +158,7 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface
      * @param parentFr SOCPlayerClient or other parent frame
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -187,7 +187,7 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface
      * @param gamePI   Current game's player interface
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -218,7 +218,7 @@ public abstract class AskDialog extends Dialog
      *
      * @param cli      Player client interface
      * @param parentFr SOCPlayerClient or other parent frame
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null.
      *              Can be multi-line, use "\n" within your string to separate them.
      * @param choice1  First choice button text
@@ -622,9 +622,9 @@ public abstract class AskDialog extends Dialog
     }
 
     /**
-     * Extract the first line (up to \n) if f is multi-line.
+     * Extract the first line (up to \n) if {@code f} is multi-line.
      * @param f  A string, possibly containing \n. Should not start with \n.
-     * @return  f's first line, or all of f if no \n
+     * @return  {@code f}'s first line, or all of {@code f} if no \n
      * @since 1.1.07
      */
     public static String firstLine(String f)
