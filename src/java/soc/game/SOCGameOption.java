@@ -302,7 +302,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         opt.put(K_SC_SEAC, new SOCGameOption
                 (K_SC_SEAC, 2000, 2000, false, true, "Scenarios: 2 SVP for your first settlement on each island"));
         opt.put(K_SC_FOG, new SOCGameOption
-                (K_SC_FOG, 2000, 2000, false, true, "Scenarios: Some land hexes initially hidden by fog"));
+                (K_SC_FOG, 2000, 2000, false, true, "Scenarios: Some hexes initially hidden by fog"));
         opt.put(K_SC_0RVP, new SOCGameOption
                 (K_SC_0RVP, 2000, 2000, false, true, "Scenarios: No longest trade route VP (no Longest Road)"));
         opt.put(K_SC_3IP, new SOCGameOption

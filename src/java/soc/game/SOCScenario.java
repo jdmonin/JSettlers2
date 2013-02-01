@@ -165,8 +165,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
         allSc.put(K_SC_FOG, new SOCScenario
             (K_SC_FOG, 2000, 2000,
-             "Some land hexes initially hidden by fog",
-             "When you build a ship or road to a foggy hex, it is revealed and you are given its resource as a reward.",
+             "Some hexes initially hidden by fog",
+             "When you build a ship or road to a foggy hex, that hex is revealed. Unless it's water, you are given its resource as a reward.",
              "_SC_FOG=t,PLL=t,VP=t12"));
 
         allSc.put(K_SC_TTD, new SOCScenario
