@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -112,6 +112,14 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     private Label sbLab;
     private boolean sbIsHilight;  // Yellow, not grey, when true
 
+    /**
+     * "Game Info" window, from {@link #gameInfoBut} click, or null.
+     * Tracked to prevent showing more than 1.
+     * @since 2.0.00
+     */
+    private NewGameOptionsFrame ngof;
+
+    /** Our parent window */
     SOCPlayerInterface pi;
 
     /**
@@ -531,7 +539,11 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (e.getSource() == gameInfoBut)
         {
-            NewGameOptionsFrame.createAndShow(pi.getGameDisplay(), game.getName(), game.getGameOptions(), false, true);
+            if ((ngof != null) && ngof.isVisible())
+                ngof.setVisible(true);
+            else
+                ngof = NewGameOptionsFrame.createAndShow
+                    (pi.getGameDisplay(), game.getName(), game.getGameOptions(), false, true);
             return;
         }
         if (e.getSource() == statsBut)
