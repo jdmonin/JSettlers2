@@ -6578,6 +6578,8 @@ public class SOCGame implements Serializable, Cloneable
         cp.isPractice = isPractice;
         cp.ownerName = ownerName;
         cp.scenarioEventListener = scenarioEventListener;
+        cp.clientVersionLowest = clientVersionLowest;
+        cp.clientVersionHighest = clientVersionHighest;
 
         // Game min-version from options
         cp.clientVersionMinRequired = clientVersionMinRequired;
