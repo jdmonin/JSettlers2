@@ -19,7 +19,6 @@
  **/
 package soc.client;
 
-import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Component;
@@ -28,9 +27,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
-import java.awt.GridLayout;
 import java.awt.Label;
-import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -40,6 +37,12 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.StringTokenizer;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
 
@@ -70,8 +73,29 @@ public abstract class AskDialog extends Dialog
      */
     protected SOCPlayerInterface pi;
 
-    /** Prompt message Label, or Panel for multi-line prompt, or null */
+    /** Prompt message Label, or Panel for multi-line prompt ({@link #isMsgMultiLine}), or null */
     protected Component msg;
+
+    /**
+     * Button area, for resizing multi-line dialog height in {@link #checkSizeAndFocus()}.
+     * @since 2.0.00 
+     */
+    protected final JPanel pBtns;
+
+    /**
+     * Is the prompt multi-line?
+     * If so, assume it might be larger than usual, and adjust height
+     * when {@link #checkSizeAndFocus()} is called.
+     * @since 2.0.00
+     */
+    protected final boolean isMsgMultiLine;
+
+    /**
+     * Has {@link #checkSizeAndFocus()} already set the size
+     * of a multi-line dialog?
+     * @since 2.0.00
+     */
+    private boolean isSizeCheckedAlready;
 
     /** Button for first choice.
      *
@@ -269,45 +293,61 @@ public abstract class AskDialog extends Dialog
             choice3But = null;
         }
         choiceDefault = defaultChoice;
-        setLayout (new BorderLayout());
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         int promptMultiLine = prompt.indexOf("\n");
         int promptMaxWid;
         int promptLines = 1;
         if (promptMultiLine == -1)
         {
+            isMsgMultiLine = false;
             msg = new Label(prompt, Label.CENTER);
-            add(msg, BorderLayout.NORTH);
+            add(msg);
             promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
         } else {
             promptMaxWid = 0;
             try
             {
+                // Try to get maximum width of each line, in case they're all short,
+                // and also use JTextArea to do automatic wrapping of long lines.
+
                 StringTokenizer st = new StringTokenizer(prompt, "\n");
-                Panel pmsg = new Panel();
-                msg = pmsg;
-                pmsg.setLayout(new GridLayout(0, 1));
                 Font ourfont = getFont();
                 FontMetrics fm = ourfont != null ? getFontMetrics(getFont()) : null;
-                for (int i = 0; st.hasMoreTokens(); ++i)
+                if (fm != null)
                 {
-                    String promptline = st.nextToken();
-                    pmsg.add(new Label(promptline, Label.CENTER));
-                    ++promptLines;
-                    if (fm != null)
+                    while (st.hasMoreTokens())
                     {
+                        final String promptline = st.nextToken();
                         int mwid = fm.stringWidth(promptline);
                         if (mwid > promptMaxWid)
                             promptMaxWid = mwid;
                     }
                 }
-                add (pmsg, BorderLayout.NORTH);
+
+                JTextArea pmsg = new JTextArea(prompt);
+                pmsg.setEditable(false);
+                pmsg.setLineWrap(true);
+                pmsg.setWrapStyleWord(true);
+                pmsg.setBackground(getBackground());  // setOpaque(false) still gives white bg
+                JScrollPane pScroll = new JScrollPane(pmsg);
+                pScroll.setOpaque(false);
+                pScroll.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                msg = pScroll;
+                add(pScroll);
+
+                final int maxWid80pct = (4 * parentFr.getWidth()) / 5;
+                if (promptMaxWid > maxWid80pct)
+                    promptMaxWid = maxWid80pct;  // text must wrap, it's too wide otherwise
+
             } catch (Throwable t) {
-                promptLines = 1;
+                // fallback to 1 long line
                 msg = new Label(prompt, Label.CENTER);
-                add(msg, BorderLayout.NORTH);
+                add(msg);
                 promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
+                promptMultiLine = -1;  // force msgIsMultiLine to be false
             }
+            isMsgMultiLine = (promptMultiLine != -1);
         }
 
         wantW = 6 + promptMaxWid;
@@ -315,15 +355,21 @@ public abstract class AskDialog extends Dialog
             wantW = 280;
         if ((choice3 != null) && (wantW < (280+80)))
             wantW = (280 + 80);
-        wantH = 25 + 2 * ColorSquare.HEIGHT + (promptLines * getFontMetrics(msg.getFont()).getHeight());
+        wantH = 41 + (promptLines * getFontMetrics(msg.getFont()).getHeight());  // includes assumed button height
         padW = 0;  // Won't be able to call getInsets and know the values, until windowOpened()
         padH = 0;
-        setSize(wantW + 6, wantH + 20);
+        if (isMsgMultiLine)
+        {
+            // to be adjusted in windowOpened()
+            setSize(wantW + 6, wantH + 20);
+        }
         setLocation(150, 100);
 
-        Panel pBtns = new Panel();
+        pBtns = new JPanel();
         pBtns.setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));  // horiz border 3 pixels
-
+        pBtns.setBorder
+            (BorderFactory.createEmptyBorder(ColorSquare.HEIGHT / 2, 0, ColorSquare.HEIGHT / 2, 0));  // vert border
+        
         pBtns.add(choice1But);
         choice1But.addActionListener(this);
 
@@ -339,7 +385,7 @@ public abstract class AskDialog extends Dialog
             }
         }
 
-        add(pBtns, BorderLayout.CENTER);
+        add(pBtns);
 
         // Now that we've added buttons to the dialog layout,
         // we can get their font and adjust style of default button.
@@ -368,6 +414,12 @@ public abstract class AskDialog extends Dialog
             if (choice3But != null)
                 choice3But.addKeyListener(this);
         }
+
+        if (! isMsgMultiLine)
+        {
+            validate();
+            pack();
+        }
     }
 
     /**
@@ -380,12 +432,18 @@ public abstract class AskDialog extends Dialog
         padH = getInsets().top + getInsets().bottom;
         if ((padW > 0) || (padH > 0))
         {
-            setSize(wantW + padW, wantH + padH);
-            validate();
+            if (isMsgMultiLine && ! isSizeCheckedAlready)
+            {
+                wantH = 12 + msg.getPreferredSize().height + pBtns.getPreferredSize().height;
+                setSize(wantW + padW + 20, wantH + padH);
+                validate();
+                isSizeCheckedAlready = true;
+            }
         }
 
         if (didReqFocus)
             return;
+
         switch (choiceDefault)
         {
         case 1:

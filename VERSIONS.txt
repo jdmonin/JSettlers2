@@ -29,6 +29,7 @@ new features, until 2.0.00 is ready.
 - Major client refactoring (separate UI from network interface) thanks to Paul Bilnoski;
     Paul's UI split preserves the spirit and flow of the code, with a more logical layered structure.
 - Minor refactoring
+- Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 
 
 
