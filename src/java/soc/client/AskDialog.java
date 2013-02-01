@@ -27,7 +27,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
-import java.awt.Label;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -40,9 +39,12 @@ import java.util.StringTokenizer;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
 
@@ -61,9 +63,15 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
+@SuppressWarnings("serial")
 public abstract class AskDialog extends Dialog
     implements ActionListener, WindowListener, KeyListener, MouseListener
 {
+    /**
+     * Border width around {@link #msg}.
+     */
+    private static final int MSG_BORDER = 5;
+
     /** Player client; passed to constructor, not null */
     protected final GameAwtDisplay pcli;
 
@@ -74,7 +82,7 @@ public abstract class AskDialog extends Dialog
     protected SOCPlayerInterface pi;
 
     /** Prompt message Label, or Panel for multi-line prompt ({@link #isMsgMultiLine}), or null */
-    protected Component msg;
+    protected JComponent msg;
 
     /**
      * Button area, for resizing multi-line dialog height in {@link #checkSizeAndFocus()}.
@@ -301,7 +309,8 @@ public abstract class AskDialog extends Dialog
         if (promptMultiLine == -1)
         {
             isMsgMultiLine = false;
-            msg = new Label(prompt, Label.CENTER);
+            msg = new JLabel(prompt, SwingConstants.CENTER);
+            msg.setAlignmentX(Component.CENTER_ALIGNMENT);
             add(msg);
             promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
         } else {
@@ -332,7 +341,6 @@ public abstract class AskDialog extends Dialog
                 pmsg.setBackground(getBackground());  // setOpaque(false) still gives white bg
                 JScrollPane pScroll = new JScrollPane(pmsg);
                 pScroll.setOpaque(false);
-                pScroll.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
                 msg = pScroll;
                 add(pScroll);
 
@@ -342,15 +350,17 @@ public abstract class AskDialog extends Dialog
 
             } catch (Throwable t) {
                 // fallback to 1 long line
-                msg = new Label(prompt, Label.CENTER);
+                msg = new JLabel(prompt, SwingConstants.CENTER);
+                msg.setAlignmentX(Component.CENTER_ALIGNMENT);
                 add(msg);
                 promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
                 promptMultiLine = -1;  // force msgIsMultiLine to be false
             }
             isMsgMultiLine = (promptMultiLine != -1);
         }
+        msg.setBorder(BorderFactory.createEmptyBorder(MSG_BORDER, MSG_BORDER, MSG_BORDER, MSG_BORDER));
 
-        wantW = 6 + promptMaxWid;
+        wantW = (2 * MSG_BORDER) + promptMaxWid;
         if (wantW < 280)
             wantW = 280;
         if ((choice3 != null) && (wantW < (280+80)))
