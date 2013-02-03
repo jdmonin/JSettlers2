@@ -269,9 +269,18 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             if (value > 0)
             {
                 Font BAR_FONT = new Font("SansSerif", Font.PLAIN, 12);
-                g.setColor(Color.CYAN);
+                final int fHeight = 2 + g.getFontMetrics(BAR_FONT).getAscent();
+                final int y;
+                if (h < fHeight)
+                {
+                    g.setColor(Color.BLACK);  // visible against light background
+                    y = sz.height - h - 2;    // positioned above value bar
+                } else {
+                    g.setColor(Color.CYAN);   // visible against dark-blue value bar
+                    y = sz.height - 2;        // positioned at bottom of value bar
+                }
                 g.setFont(BAR_FONT);
-                g.drawString(String.valueOf(value), 2, sz.height - 2);
+                g.drawString(String.valueOf(value), 2, y);
             }
         }
     }
