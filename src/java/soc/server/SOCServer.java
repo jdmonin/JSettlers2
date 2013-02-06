@@ -10595,6 +10595,7 @@ public class SOCServer extends Server
 
     /**
      * if all the players stayed for the whole game,
+     * or if the game has any human players,
      * record the scores in the database.
      * Called only if property <tt>jsettlers.db.save.games</tt>
      * is true. ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES})
@@ -10607,7 +10608,8 @@ public class SOCServer extends Server
             return;
 
         //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
-        if (! ((ga.getGameState() == SOCGame.OVER) && ga.allOriginalPlayers()))
+        if (! ((ga.getGameState() == SOCGame.OVER)
+               && (ga.allOriginalPlayers() || ga.hasHumanPlayers())))
             return;
         
         try
