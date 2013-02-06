@@ -1215,10 +1215,31 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return allOriginalPlayers
+     * @see #hasHumanPlayers()
      */
     public boolean allOriginalPlayers()
     {
         return allOriginalPlayers;
+    }
+
+    /**
+     * Does this game contain any human players?
+     * @return  True if at least one non-vacant seat has
+     *          a human player (! {@link SOCPlayer#isRobot()}).
+     * @see #allOriginalPlayers()
+     * @since 1.1.18
+     */
+    public boolean hasHumanPlayers()
+    {
+        for (int i = 0; i < maxPlayers; ++i)
+        {
+            if (isSeatVacant(i))
+                continue;
+            if (! players[i].isRobot())
+                return true;
+        }
+
+        return false;
     }
 
     /**
