@@ -6800,6 +6800,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               portTradeSubmenu = null;
           }
 
+          boolean didEnableDisable = true;  // don't go through both sets of menu item enable/disable statements
+
           menuPlayerIsCurrent = (player != null) && playerInterface.clientIsCurrentPlayer();
 
           if (menuPlayerIsCurrent)
@@ -6869,6 +6871,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   break;
 
               default:
+                  didEnableDisable = false;  // must still check enable/disable
                   if (gs < SOCGame.PLAY1)
                       menuPlayerIsCurrent = false;  // Not in a state to place items
               }
@@ -6897,33 +6900,36 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (! isInitialPlacement)
               {
                   final boolean debugPP = game.isDebugFreePlacement();
-                  buildRoadItem.setEnabled
-                      ( player.isPotentialRoad(hR) &&
-                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
-                                 : game.couldBuildRoad(cpn)) );
-                  buildSettleItem.setEnabled
-                      ( player.canPlaceSettlement(hSe) &&
-                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
-                                 : game.couldBuildSettlement(cpn)) );
-                  upgradeCityItem.setEnabled
-                      ( player.isPotentialCity(hC) &&
-                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.CITY) > 0)
-                                 : game.couldBuildCity(cpn)) );
-                  if (buildShipItem != null)
+                  if (debugPP || ! didEnableDisable)
                   {
-                    isShipMovable = (hSh < 0);
-                    if (isShipMovable)
-                    {
-                        hSh = -hSh;
-                        buildShipItem.setLabel("Move Ship");
-                        buildShipItem.setEnabled(true);  // trust the caller's game checks
-                    } else {
-                        buildShipItem.setLabel("Build Ship");
-                        buildShipItem.setEnabled
-                        ( game.canPlaceShip(player, hSh) &&
-                          (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
-                                   : game.couldBuildShip(cpn)) );
-                    }
+                      buildRoadItem.setEnabled
+                          ( player.isPotentialRoad(hR) &&
+                            (debugPP ? (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
+                                     : game.couldBuildRoad(cpn)) );
+                      buildSettleItem.setEnabled
+                          ( player.canPlaceSettlement(hSe) &&
+                            (debugPP ? (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
+                                     : game.couldBuildSettlement(cpn)) );
+                      upgradeCityItem.setEnabled
+                          ( player.isPotentialCity(hC) &&
+                            (debugPP ? (player.getNumPieces(SOCPlayingPiece.CITY) > 0)
+                                     : game.couldBuildCity(cpn)) );
+                      if (buildShipItem != null)
+                      {
+                        isShipMovable = (hSh < 0);
+                        if (isShipMovable)
+                        {
+                            hSh = -hSh;
+                            buildShipItem.setLabel("Move Ship");
+                            buildShipItem.setEnabled(true);  // trust the caller's game checks
+                        } else {
+                            buildShipItem.setLabel("Build Ship");
+                            buildShipItem.setEnabled
+                            ( game.canPlaceShip(player, hSh) &&
+                              (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
+                                       : game.couldBuildShip(cpn)) );
+                        }
+                      }
                   }
               }
               hoverRoadID = hR;
@@ -6988,7 +6994,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
       /**
        * Send message to server to request placing this piece, if allowable.
-       * If not initial placement, set up a reaction to send the 2nd message (putpiece).
+       * If not initial placement or free placement, also sets up a reaction to send the 2nd message (putpiece)
        * when server says it's OK to build.
        * Assumes player is current, and player is non-null, when called.
        *
@@ -7005,9 +7011,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           String btarget;    // button name on buildpanel
           
           // If we're in initial placement, or cancel/build during game,
-          // or debugPP, then send putpiece right now.
+          // or debugPP, or free-road placement, then send putpiece right now.
           // Otherwise, multi-phase send.
-          final boolean sendNow = isInitialPlacement || wantsCancel || debugPP;
+          final int gstate = game.getGameState();
+          final boolean sendNow = isInitialPlacement || wantsCancel || debugPP
+              || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2);
           
           // Note that if we're in gameplay have clicked the "buy road" button
           // and trying to place it, game.couldBuildRoad will be false because
