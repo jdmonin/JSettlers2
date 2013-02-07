@@ -4918,18 +4918,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             case MOVE_SHIP:
-                if (moveShip_fromEdge != 0)
-                {
-                    if (game.canMoveShip(playerNumber, moveShip_fromEdge, hilight) != null)
-                    {
-                        client.getGameManager().movePieceRequest
-                            (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, hilight);
-                        clearModeAndHilight(SOCPlayingPiece.SHIP);
-                    }
-                    moveShip_fromEdge = 0;
-                } else {
-                    clearModeAndHilight(SOCPlayingPiece.SHIP);  // exit the mode, since can't move from 0
-                }
+                // check and move ship to hilight from fromEdge; also sets moveShip_fromEdge = 0, calls clearModeAndHilight.
+                tryMoveShipToHilight();
                 break;
 
             case PLACE_INIT_SETTLEMENT:
@@ -5253,6 +5243,28 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             buildReqTimerTask = null;
         }
         hoverTip.hideHoverAndPieces();  // Reset hover state
+    }
+
+    /**
+     * Check and move ship from {@link #moveShip_fromEdge} to {@link #hilight}.  Also sets moveShip_fromEdge = 0,
+     * calls {@link #clearModeAndHilight(int) clearModeAndHilight}({@link SOCPlayingPiece#SHIP}).
+     * Called from mouse click or popup menu.
+     * Note that if {@link #hilight} != 0, then {@link SOCGame#canMoveShip(int, int, int) SOCGame.canMoveShip}
+     * ({@link #playerNumber}, {@link #moveShip_fromEdge}, {@link #hilight}) has probably already been called.
+     * @since 2.0.00
+     */
+    private final void tryMoveShipToHilight()
+    {
+        if (moveShip_fromEdge != 0)
+        {
+            if (game.canMoveShip(playerNumber, moveShip_fromEdge, hilight) != null)
+            {
+                playerInterface.getClient().getGameManager().movePieceRequest
+                    (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, hilight);
+            }
+            moveShip_fromEdge = 0;
+        }
+        clearModeAndHilight(SOCPlayingPiece.SHIP);  // exit the mode
     }
 
     /**
