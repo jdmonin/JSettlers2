@@ -52,12 +52,13 @@ public class SOCPossibleSettlement extends SOCPossiblePiece
      *
      * @param pl  the owner
      * @param co  coordinates;
-     * @param nr  necessaryRoads;
+     * @param nr  necessaryRoads, or {@code null} to create a new empty Vector here
      */
     public SOCPossibleSettlement(SOCPlayer pl, int co, Vector<SOCPossibleRoad> nr)
     {
         if (nr == null)
-            throw new IllegalArgumentException("nr null");
+            nr = new Vector<SOCPossibleRoad>();
+
         pieceType = SOCPossiblePiece.SETTLEMENT;
         player = pl;
         coord = co;

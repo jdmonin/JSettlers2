@@ -649,7 +649,7 @@ public class SOCPlayerTracker
                     // else, add new possible settlement
                     //
                     //D.ebugPrintln("$$$ adding new possible settlement at "+Integer.toHexString(adjNode.intValue()));
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), new Vector<SOCPossibleRoad>());
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), null);
                     newPosSet.setNumberOfNecessaryRoads(0);
                     possibleSettlements.put(adjNode, newPosSet);
                     updateSettlementConflicts(newPosSet, trackers);
@@ -753,9 +753,9 @@ public class SOCPlayerTracker
                         roadsBetween = 0;
                     }
                     if (isRoad)
-                        newPR = new SOCPossibleRoad(player, edge, new Vector<SOCPossibleRoad>());
+                        newPR = new SOCPossibleRoad(player, edge, null);
                     else
-                        newPR = new SOCPossibleShip(player, edge, new Vector<SOCPossibleRoad>());
+                        newPR = new SOCPossibleShip(player, edge, null);
                     newPR.setNumberOfNecessaryRoads(roadsBetween);  // 0 unless requires settlement
                     newPossibleRoads.addElement(newPR);
                     roadsToExpand.addElement(newPR);
@@ -1387,12 +1387,12 @@ public class SOCPlayerTracker
                         continue;
                     if (possibleNewIslandRoads == null)
                         possibleNewIslandRoads = new Vector<SOCPossibleRoad>();
-                    possibleNewIslandRoads.add(new SOCPossibleRoad(player, edge, new Vector<SOCPossibleRoad>()));
+                    possibleNewIslandRoads.add(new SOCPossibleRoad(player, edge, null));
                 }
                 else if (player.isPotentialShip(edge))
                 {
                     // A way out to a new island
-                    SOCPossibleShip newPS = new SOCPossibleShip(player, edge, new Vector<SOCPossibleRoad>());
+                    SOCPossibleShip newPS = new SOCPossibleShip(player, edge, null);
                     possibleRoads.put(edge, newPS);
                     System.err.println("L1383: new possible ship at edge 0x"
                         + Integer.toHexString(edge) + " from coastal settle 0x"

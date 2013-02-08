@@ -1224,7 +1224,7 @@ public class SOCRobotDM
       {
           coordA = ((NodeLenVis<?>)cur.getA()).node;
           coordB = ((NodeLenVis<?>)parent.getA()).node;
-          posRoad = new SOCPossibleRoad(pl, board.getEdgeBetweenAdjacentNodes(coordA, coordB), new Vector<SOCPossibleRoad>());
+          posRoad = new SOCPossibleRoad(pl, board.getEdgeBetweenAdjacentNodes(coordA, coordB), null);
           temp.push(posRoad);
           cur = parent;
           parent = (Pair) parent.getB();
