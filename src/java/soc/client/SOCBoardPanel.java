@@ -5252,7 +5252,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Note that if {@link #hilight} != 0, then {@link SOCGame#canMoveShip(int, int, int) SOCGame.canMoveShip}
      * ({@link #playerNumber}, {@link #moveShip_fromEdge}, {@link #hilight}) has probably already been called.
      * @since 2.0.00
-     * @see BoardPopupMenu#tryMoveShip()
+     * @see BoardPopupMenu#tryMoveShipFromHere()
      */
     private final void tryMoveShipToHilight()
     {
@@ -7008,7 +7008,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (mode == MOVE_SHIP)
                   tryMoveShipToHilight();
               else if (isShipMovable)
-                  tryMoveShip();
+                  tryMoveShipFromHere();
               else
                   tryBuild(SOCPlayingPiece.SHIP);
           }
@@ -7128,6 +7128,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           {
               // No building-panel or server request necessary
               clearModeAndHilight(SOCPlayingPiece.SHIP);
+              playerInterface.print(/*I*/"Canceled moving the ship."/*18N*/);
               return;
           }
 
@@ -7162,7 +7163,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        * @since 2.0.00
        * @see SOCBoardPanel#tryMoveShipToHilight()
        */
-      private void tryMoveShip()
+      private void tryMoveShipFromHere()
       {
           playerInterface.print("Click the ship's new location.");
           moveShip_fromEdge = hoverShipID;
