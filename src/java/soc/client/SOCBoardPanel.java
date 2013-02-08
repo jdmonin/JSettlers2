@@ -4231,7 +4231,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         setSuperimposedTopText(topText);  // usually null
         updateHoverTipToMode();
     }
-    
+
+    /**
+     * Update {@link #hoverTip} based on {@link #mode}.
+     * Might or might not repaint board:
+     * Calls {@link BoardToolTip#setOffsetX(int)} or {@link BoardToolTip#setHoverText(String)}.
+     */
     protected void updateHoverTipToMode()
     {
         if ((mode == NONE) || (mode == TURN_STARTING) || (mode == GAME_OVER))
@@ -4249,6 +4254,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Set board mode to {@link #NONE}, no hilight, usually from a piece-placement mode.
+     * Calls {@link #updateHoverTipToMode()} and repaints the board.
      *
      * @param ptype Piece type to clear, like {@link SOCPlayingPiece#ROAD}, or -1 for robber.
      *              Used to avoid race condition during initial placement,
@@ -4306,6 +4312,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hilight = 0;
             hilightIsShip = false;
             moveShip_fromEdge = 0;
+            repaint();
         }
         updateHoverTipToMode();
     }
