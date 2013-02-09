@@ -114,8 +114,8 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
     /**
      * "Game Info" window, from {@link #gameInfoBut} click, or null.
-     * Tracked to prevent showing more than 1.
-     * @since 2.0.00
+     * Tracked to prevent showing more than 1 at a time.
+     * @since 1.1.18
      */
     private NewGameOptionsFrame ngof;
 
@@ -544,6 +544,7 @@ public class SOCBuildingPanel extends Panel implements ActionListener
             else
                 ngof = NewGameOptionsFrame.createAndShow
                     (pi.getGameDisplay(), game.getName(), game.getGameOptions(), false, true);
+
             return;
         }
         if (e.getSource() == statsBut)

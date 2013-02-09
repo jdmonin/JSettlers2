@@ -17,13 +17,9 @@ new features, until 2.0.00 is ready.
 - "House rules" dev card types (New game option "DH")
 - Game options dialog: Set maxplayers to 6 when Use Large Board is set, unless user changed max pl manually
 - New Game options: Popup if old versions can't play: Default to Create, not Change Options
-- Reset board: Keep player chat text
-- Reset board: Confirm before restarting after end of a practice game
-- 6-player board: Chat ease of use: Focus on text input field when the game chat is made larger by mouse movement
 - More efficient game-setup messages over network
 - Client sends server its locale, to support future i18n localization
 - Applet class is now soc.client.SOCPlayerClient.SOCApplet
-- In-game "Game Info" button: If an info window's already visible, show it instead of making another one
 - Game option key names can now be longer (8 characters)
 - Some game options are meant to be set by the server during game creation, not requested by the client.
   Their option keynames all start with '_' and are hidden in the New Game options window.
@@ -34,6 +30,14 @@ new features, until 2.0.00 is ready.
 - Popups (AskDialog, etc) layout fine-tuned, can wrap multi-line text
 
 
+
+    > 1.1.18 (build OV20130xxx)
+- Reset board: Keep player chat text
+- Reset board: Confirm before restarting after end of a practice game
+- 6-player board: Chat ease of use: Focus cursor on text input field when the game chat is made larger by mouse movement
+- Chat text field: Wrap long lines on word boundary if possible
+- In-game "Game Info" button: If an info window's already visible, show it instead of making another one
+- If saving completed games to db, save if any human players, even if not original players
 
     > 1.1.17 (build OV20121212)
 - Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece

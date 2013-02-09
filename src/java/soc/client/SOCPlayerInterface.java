@@ -3648,7 +3648,7 @@ public class SOCPlayerInterface extends Frame
      * This is the modal dialog to confirm resetting the board after a practice game.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
-     * @since 2.0.00
+     * @since 1.1.18
      */
     protected static class ResetBoardConfirmDialog extends AskDialog implements Runnable
     {
