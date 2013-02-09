@@ -2,7 +2,7 @@
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
  * Portions of this file Copyright (C) 2005 Chadwick A McHenry <mchenryc@acm.org>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -8943,6 +8943,7 @@ public class SOCServer extends Server
 
     /**
      * if all the players stayed for the whole game,
+     * or if the game has any human players,
      * record the scores in the database.
      * Called only if property <tt>jsettlers.db.save.games</tt>
      * is true. ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES})
@@ -8955,7 +8956,8 @@ public class SOCServer extends Server
             return;
 
         //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
-        if (! ((ga.getGameState() == SOCGame.OVER) && ga.allOriginalPlayers()))
+        if (! ((ga.getGameState() == SOCGame.OVER)
+                && (ga.allOriginalPlayers() || ga.hasHumanPlayers())))
             return;
 
         try
