@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2009-2011 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009-2011,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,6 +59,9 @@ import soc.util.Version;
  * Prompt for name and options.
  *<P>
  * Also used for showing a game's options (read-only) during game play.
+ *<P>
+ * If this window already exists and you'd like to make it topmost,
+ * call {@link #show()} or {@link #setVisible(boolean)} instead of {@link #requestFocus()}.
  *
  * @author Jeremy D Monin <jeremy@nand.net>
  * @since 1.1.07
@@ -637,6 +640,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Show the window, and request focus on game name textfield.
+     * To make this window topmost, call {@code show()} instead of {@link #requestFocus()}.
      */
     public void show()
     {
