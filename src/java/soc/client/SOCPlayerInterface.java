@@ -2115,6 +2115,9 @@ public class SOCPlayerInterface extends Frame implements ActionListener, MouseLi
             chatDisplay.setBounds(x, i.top + 4 + h, w, cdh);
             h += cdh;
             textInput.setBounds(x, i.top + 4 + h, w, tfh);
+
+            // focus here for easier chat typing
+            textInput.requestFocusInWindow();
         } else {
             // standard size
             textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);

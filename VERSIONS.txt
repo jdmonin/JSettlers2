@@ -15,6 +15,7 @@ new features, until 2.0.00 is ready.
     > 1.1.18 (build OV20130xxx)
 - Reset board: Keep player chat text
 - Reset board: Confirm before restarting after end of a practice game
+- 6-player board: Chat ease of use: Focus cursor on text input field when the game chat is made larger by mouse movement
 - Chat text field: Wrap long lines on word boundary if possible
 - In-game "Game Options" button: If an info window's already visible, show it instead of making another one
 
