@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -3129,7 +3129,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         setSuperimposedTopText(topText);  // usually null
         updateHoverTipToMode();
     }
-    
+
+    /**
+     * Update {@link #hoverTip} based on {@link #mode}.
+     * Might or might not repaint board:
+     * Calls {@link BoardToolTip#setOffsetX(int)} or {@link BoardToolTip#setHoverText(String)}.
+     */
     protected void updateHoverTipToMode()
     {
         if ((mode == NONE) || (mode == TURN_STARTING) || (mode == GAME_OVER))            
@@ -3147,6 +3152,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Set board mode to {@link #NONE}, no hilight, usually from a piece-placement mode.
+     * Calls {@link #updateHoverTipToMode()} and repaints the board.
      *
      * @param ptype Piece type to clear, like {@link SOCPlayingPiece#ROAD}, or -1 for robber.
      *              Used to avoid race condition during initial placement,
@@ -3193,6 +3199,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             mode = NONE;
             hilight = 0;
+            repaint();
         }
         updateHoverTipToMode();
     }
