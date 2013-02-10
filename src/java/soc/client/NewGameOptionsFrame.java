@@ -26,6 +26,7 @@ import java.awt.Choice;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -706,7 +707,16 @@ public class NewGameOptionsFrame extends Frame
     {
         super.setVisible(b);
         if (b)
-            gameName.requestFocus();
+        {
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    toFront();  // needed on win32 at least
+                    gameName.requestFocus();
+                }
+            });
+        }
     }
 
     /** React to button clicks */
