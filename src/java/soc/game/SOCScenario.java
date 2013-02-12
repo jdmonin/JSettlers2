@@ -386,6 +386,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     }
 
     /**
+     * Get all known scenario objects, mapping from their key names (such as {@link #K_SC_4ISL SC_4ISL}).
      * @return a deep copy of all known scenario objects
      * @see #addKnownScenario(SOCScenario)
      */
@@ -437,6 +438,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     }
 
     /**
+     * Get the scenario information about this known scenario.
+     * @param key  Scenario key name, such as {@link #K_SC_4ISL SC_4ISL}, from {@link #getAllKnownScenarios()}
      * @return information about a known scenario, or null if none with that key
      */
     public static SOCScenario getScenario(String key)
