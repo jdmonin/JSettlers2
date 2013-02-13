@@ -72,7 +72,7 @@ public abstract class AskDialog extends Dialog
      */
     private static final int MSG_BORDER = 5;
 
-    /** Player client; passed to constructor, not null */
+    /** Player client; passed to constructor, not null; used for actions in subclasses when dialog buttons are chosen */
     protected final GameAwtDisplay pcli;
 
     /**
@@ -138,7 +138,7 @@ public abstract class AskDialog extends Dialog
     /**
      * Creates a new AskDialog with two buttons, about a specific game.
      *
-     * @param cli      Player client interface
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen.
      * @param gamePI   Current game's player interface;
      *                 Cannot be null, use the other constructor if not asking
      *                 about a specific game.
@@ -188,7 +188,7 @@ public abstract class AskDialog extends Dialog
     /**
      * Creates a new AskDialog with two buttons, not about a specific game.
      *
-     * @param cli      Player client interface
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param parentFr SOCPlayerClient or other parent frame
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null
@@ -217,7 +217,7 @@ public abstract class AskDialog extends Dialog
      * Creates a new AskDialog with three buttons, about a specific game.
      * Also can create with two.
      *
-     * @param cli      Player client interface
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param gamePI   Current game's player interface
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null
@@ -248,7 +248,7 @@ public abstract class AskDialog extends Dialog
      * Creates a new AskDialog with one, two, or three buttons, not about
      * a specific game.
      *
-     * @param cli      Player client interface
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param parentFr SOCPlayerClient or other parent frame
      * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null.
