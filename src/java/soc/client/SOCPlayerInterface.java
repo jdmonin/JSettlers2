@@ -780,7 +780,11 @@ public class SOCPlayerInterface extends Frame
     {
         return gameDisplay.getClient();
     }
-    
+
+    /**
+     * @return the game display associated with this interface
+     * @since 2.0.00
+     */
     public GameAwtDisplay getGameDisplay()
     {
         return gameDisplay;
@@ -1882,61 +1886,8 @@ public class SOCPlayerInterface extends Frame
      */
     public void showScenarioInfoDialog()
     {
-        final String gameSc = game.getGameOptionStringValue("SC");
-        if (gameSc != null)
-        {
-            SOCScenario sc = SOCScenario.getScenario(gameSc);
-            if (sc != null)
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.append(/*I*/"Game Scenario: "/*18N*/);
-                sb.append(sc.scDesc);
-                sb.append('\n');
-
-                if (sc.scLongDesc != null)
-                {
-                    sb.append('\n');
-                    sb.append(sc.scLongDesc);
-                }
-
-                // Check game for any other _SC_ game opts in effect:
-
-                final String scenOptName = "_" + sc.scKey;  // "_SC_CLVI"
-                final String optDescScenPrefix = /*I*/"Scenarios: "/*18N*/;
-                //      I18N note: showScenarioInfoDialog() assumes these scenario game options
-                //      all start with the text "Scenarios: "; when localizing, be sure to
-                //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
-
-                for (SOCGameOption sgo : game.getGameOptions().values())
-                {
-                    if (sgo.optKey.equals(scenOptName))
-                        continue;  // scenario's dedicated game option; we already showed its name from scDesc
-                    if (! sgo.optKey.startsWith("_SC_"))
-                        continue;
-
-                    String optDesc = sgo.optDesc;
-                    if (optDesc.startsWith(optDescScenPrefix))
-                        optDesc = optDesc.substring(optDescScenPrefix.length()).trim();
-                    sb.append('\n');
-                    sb.append(optDesc);
-                }
-
-                if (game.vp_winner != SOCGame.VP_WINNER_STANDARD)
-                {
-                    sb.append('\n');
-                    sb.append(/*I*/"Victory Points to win: "/*18N*/);
-                    sb.append(game.vp_winner);
-                }
-                final String scenStr = sb.toString();
-                EventQueue.invokeLater(new Runnable()
-                {
-                    public void run()
-                    {
-                        NotifyDialog.createAndShow(getGameDisplay(), SOCPlayerInterface.this, scenStr, null, true);
-                    }
-                });
-            }
-        }
+        NewGameOptionsFrame.showScenarioInfoDialog
+            (game.getGameOptionStringValue("SC"), game.getGameOptions(), game.vp_winner, getGameDisplay(), this);
     }
 
     /**
