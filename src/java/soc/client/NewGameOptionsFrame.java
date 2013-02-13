@@ -73,7 +73,8 @@ import soc.util.Version;
  * but it's presented as a checkbox and {@link Choice}.
  *<P>
  * This class also contains the "Scenario Info" popup window, called from
- * {@link SOCPlayerInterface} when first joining a game with a scenario.
+ * this dialog's Scenario Info button, and from {@link SOCPlayerInterface}
+ * when first joining a game with a scenario.
  * See {@link #showScenarioInfoDialog(String, Hashtable, int, GameAwtDisplay, Frame)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
@@ -131,6 +132,21 @@ public class NewGameOptionsFrame extends Frame
       * Used to quickly find an option's associated checkbox.
       */
     private Hashtable<String, Checkbox> boolOptCheckboxes;
+
+    /**
+     * Scenario choice dropdown, if {@link #opts} contains the {@code "SC"} game option, or null.
+     * When an item is selected, {@link #itemStateChanged(ItemEvent)} reacts specially for this control
+     * to update {@code "SC"} within {@link #opts} and enable/disable {@link #scenInfo}.
+     * @since 2.0.00
+     */
+    private Choice scenChoice;
+
+    /**
+     * Scenario Info button, for info window about {@link #scenChoice}'s selected scenario, or null.
+     * @see #clickScenarioInfo()
+     * @since 2.0.00
+     */
+    private Button scenInfo;
 
     /** create is null if readOnly */
     private Button create;
@@ -429,6 +445,10 @@ public class NewGameOptionsFrame extends Frame
      * Set up one game option in one line of the panel.
      * Based on the option type, create the appropriate AWT component
      * and call {@link #initInterface_Opt1(SOCGameOption, Component, boolean, boolean, Panel, GridBagLayout, GridBagConstraints)}.
+     *<P>
+     * Special handling: Scenario (option {@code "SC"}) gets a checkbox, label, dropdown, and a second line with
+     * an Info button. (Sets {@link #scenChoice}, {@link #scenInfo}).
+     *
      * @param op  Option data
      * @param bp  Add to this panel
      * @param gbl Use this layout
@@ -460,8 +480,33 @@ public class NewGameOptionsFrame extends Frame
                 op.setBoolValue(true);
             }
 
+            scenChoice = ch;
             initInterface_Opt1(op, ch, true, true, bp, gbl, gbc);
                 // adds ch, and a checkbox which will toggle this OTYPE_STR's op.boolValue
+
+            if ((! readOnly) || opts.containsKey("SC"))
+            {
+                // 2nd line: right-justified "Scenario Info..." button
+
+                Label blank = new Label();
+                gbc.gridwidth = 1;
+                gbl.setConstraints(blank, gbc);
+                add(blank);
+                scenInfo = new Button(/*I*/"Scenario Info..."/*18N*/);
+                scenInfo.addActionListener(this);
+                scenInfo.addKeyListener(this);
+                scenInfo.setEnabled(sel != 0);  // disable if "(none)" is selected scenario option
+
+                gbc.gridwidth = GridBagConstraints.REMAINDER;
+                final int oldAnchor = gbc.anchor, oldFill = gbc.fill;
+                gbc.fill = GridBagConstraints.NONE;
+                gbc.anchor = GridBagConstraints.EAST;
+                gbl.setConstraints(scenInfo, gbc);
+                bp.add(scenInfo);
+                gbc.fill = oldFill;
+                gbc.anchor = oldAnchor;
+            }
+
             return;
         }
 
@@ -742,6 +787,11 @@ public class NewGameOptionsFrame extends Frame
                 clickCancel();
                 return;
             }
+            else if (src == scenInfo)
+            {
+                clickScenarioInfo();
+                return;
+            }
 
         }  // try
         catch(Throwable thr)
@@ -819,6 +869,24 @@ public class NewGameOptionsFrame extends Frame
     private void clickCancel()
     {
         dispose();
+    }
+
+    /**
+     * The "Scenario Info" button was clicked.
+     * Reads the current scenario, if any, from {@link #scenChoice}.
+     * Calls {@link #showScenarioInfoDialog(String, Hashtable, int, GameAwtDisplay, Frame)}.
+     * @since 2.0.00
+     */
+    private void clickScenarioInfo()
+    {
+        if (scenChoice == null)
+            return;  // should not happen, scenChoice is created before scenInfo
+
+        final String scKey = scenarioKeyFromDisplayText(scenChoice.getSelectedItem());
+        if (scKey.length() == 0)
+            return;
+
+        showScenarioInfoDialog(scKey, null, SOCGame.VP_WINNER_STANDARD, gameDisplay, this);
     }
 
     /** Dismiss the frame, and clear client's {@link SOCPlayerClient#newGameOptsFrame}
@@ -1108,6 +1176,9 @@ public class NewGameOptionsFrame extends Frame
                 } else {
                     opt.setStringValue("");
                 }
+
+                if (scenInfo != null)
+                    scenInfo.setEnabled(wantsSet);
             }
 
             if (wantsSet != cb.getState())
