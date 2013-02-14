@@ -128,7 +128,6 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
-     *<LI> DH  Dev Cards for house rules (swap/destroy)
      *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
@@ -287,9 +286,16 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         final SOCGameOption sc = new SOCGameOption
                 ("SC", 2000, 2000, 8, false, true, "Game Scenario: #");
         opt.put("SC", sc);
+
+        // Not Implemented: DH:
+        /*
         opt.put("DH", new SOCGameOption
                 ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
                 // TODO no robot players for DH
+         *
+         * Game opt "DH" was suggested by a contributor, who would implement it.
+         * For now that keyname is reserved for when this happens. 
+         */
 
         // Game scenario options (rules and events)
 
