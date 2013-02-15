@@ -8702,6 +8702,13 @@ public class SOCServer extends Server
                     // announce end of game
                     sendGameState(ga, false);
                 }
+                else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                {
+                    // If ship placement reveals a gold hex in _SC_FOG,
+                    // the player gets to pick a free resource.
+                    sendGameState(ga, false);
+                    sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
+                }
             }
         }
         if (denyRequest)

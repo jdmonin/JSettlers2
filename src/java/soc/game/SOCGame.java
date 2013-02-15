@@ -2242,7 +2242,8 @@ public class SOCGame implements Serializable, Cloneable
      * If a {@link SOCBoard#WATER_HEX} is revealed, updates players' legal ship edges.
      *
      * @param hexCoord  Coordinate of the hex to reveal
-     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
+     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)},
+     *                    from {@link SOCBoardLarge#revealFogHiddenHexPrep(int)}
      * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
      * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
      * @throws IllegalStateException if <tt>! game.{@link #hasSeaBoard}</tt>
@@ -2864,6 +2865,16 @@ public class SOCGame implements Serializable, Cloneable
             }
             break;
 
+        case PLAY1:
+            // PLAY1 is the gamestate when moveShip calls putPiece.
+            // In scenario _SC_FOG, moving a ship might reveal a gold hex.
+            if (needToPickFromGold)
+            {
+                oldGameState = PLAY1;
+                gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+            }
+            break;
+
         case PLACING_ROAD:
         case PLACING_SETTLEMENT:
         case PLACING_CITY:
@@ -3056,6 +3067,11 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
+     *<P>
+     * <B>Scenario option {@link SOCGameOption#K_SC_FOG _SC_FOG}:</B><br>
+     * moveShip's caller should check {@link SOCPlayer#getNeedToPickGoldHexResources()} != 0.
+     * Revealing a gold hex from fog will set that player field and also
+     * sets gamestate to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      *
      * @param sh the ship to move on the board; its coordinate must be
      *           the edge to move from. Must not be a temporary ship.
