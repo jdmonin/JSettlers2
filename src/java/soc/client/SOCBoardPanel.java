@@ -3349,11 +3349,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
         }
 
-        if (gameState != SOCGame.NEW)
-        {
-            drawArrow(g, game.getCurrentPlayerNumber(), game.getCurrentDice());
-        }
-
         /**
          * draw the roads and ships
          */
@@ -3400,6 +3395,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         for (SOCCity c : board.getCities())
         {
             drawCity(g, c.getCoordinates(), c.getPlayerNumber(), false);
+        }
+
+        /**
+         * draw the current-player arrow after ("above") pieces,
+         * but below any hilighted piece, in case of overlap at
+         * edge of board. More likely on 6-player board for the
+         * two players whose handpanels are vertically centered.
+         */
+        if (gameState != SOCGame.NEW)
+        {
+            drawArrow(g, game.getCurrentPlayerNumber(), game.getCurrentDice());
         }
 
         if (player != null)
