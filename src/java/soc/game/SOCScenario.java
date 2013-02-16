@@ -189,8 +189,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
              "Pirate Islands and Fortresses",
              "A pirate fleet circulates, stealing resources from weak players with adjacent settlements/cities until "
              + "the player upgrades their ships to warships.  To win, you must build ships directly to the Fortress "
-             + "with your color, and defeat it 3 times using warships.  Also, ship routes can't branch in different "
-             + "directions, only extend from their ends.",
+             + "with your color, which the pirates have captured from you, and defeat it 3 times using warships.  "
+             + "So, ship routes can't branch in different directions, only extend from their ends.",
              "_SC_PIRI=t,PLL=t,VP=t10"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
         return allSc;

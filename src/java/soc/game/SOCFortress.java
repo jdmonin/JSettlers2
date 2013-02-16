@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,6 +28,8 @@ package soc.game;
  * there and its {@link #getStrength()} is 0.  At that time it becomes a {@link SOCSettlement}.
  * New fortresses cannot be built after the game starts.
  * So, {@link SOCGame#putPiece(SOCPlayingPiece) game.putPiece(SOCFortress)} assumes initial placement.
+ *<P>
+ * For details of fortress recapture / conquest, see {@link SOCGame#attackPirateFortress(SOCShip)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00

@@ -74,9 +74,20 @@ public enum SOCScenarioPlayerEvent
      * Once per player per game, although the player is free to make routes to other villages.
      * This event flag doesn't immediately give the player an SVP;
      * players gain VP by having pairs of cloth.
-     * Villages are in a game only if option {@link SOCGameOption#K_SC_CLVI} is set.
+     *<P>
+     * Villages are in a game only if scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI} is set.
      */
-    CLOTH_TRADE_ESTABLISHED_VILLAGE(0x04);
+    CLOTH_TRADE_ESTABLISHED_VILLAGE(0x04),
+
+    /**
+     * Player's corresponding pirate fortress ({@link SOCFortress}) has been recaptured.
+     * Scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     *<P>
+     * The fortress has now been recaptured as a settlement owned by the player.
+     * The new {@link SOCSettlement} will be passed as {@code obj} to
+     * {@link SOCScenarioEventListener#playerEvent(SOCGame, SOCPlayer, SOCScenarioPlayerEvent, boolean, Object)}.
+     */
+    PIRI_FORTRESS_RECAPTURED(0x08);
 
     /**
      * Value for sending event codes over a network.

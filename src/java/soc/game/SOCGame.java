@@ -812,7 +812,7 @@ public class SOCGame implements Serializable, Cloneable
     private RollResult currentRoll;
 
     /**
-     * The most recent {@link #moveRobber(int, int)} result.
+     * The most recent {@link #moveRobber(int, int)} or {@link #movePirate(int, int)} result.
      * Used at server only.
      * @since 2.0.00
      */
@@ -2868,6 +2868,9 @@ public class SOCGame implements Serializable, Cloneable
         case PLAY1:
             // PLAY1 is the gamestate when moveShip calls putPiece.
             // In scenario _SC_FOG, moving a ship might reveal a gold hex.
+            // In scenario _SC_PIRI, PLAY1 is the gamestate when a SOCFortress is conquered
+            //   and the replacement SOCSettlement is placed by attackPirateFortress.
+            //   No special action is needed here.
             if (needToPickFromGold)
             {
                 oldGameState = PLAY1;
@@ -4992,6 +4995,169 @@ public class SOCGame implements Serializable, Cloneable
             return false;
         final SOCPlayer pl = players[pn];
         return (pl.getCloth() > 0) && (pl.getResources().getTotal() > 0);
+    }
+
+    /**
+     * Can the current player attack their pirate fortress, and try to conquer and recapture it?
+     * This method is validation before calling {@link #attackPirateFortress(SOCShip)}.
+     *<P>
+     * To attack, game state must be {@link #PLAY1}.
+     * The current player must have a {@link SOCPlayer#getFortress()} != {@code null},
+     * and a ship on an edge adjacent to that {@link SOCFortress}'s node.
+     *<P>
+     * Used with scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     *
+     * @return Current player's ship adjacent to their {@link SOCFortress}, or {@code null} if they can't attack
+     * @since 2.0.00
+     */
+    public SOCShip canAttackPirateFortress()
+    {
+        if (gameState != PLAY1)
+            return null;
+
+        final SOCPlayer currPlayer = players[currentPlayerNumber];
+        SOCFortress fort = currPlayer.getFortress(); 
+        if (fort == null)   // will be null unless _SC_PIRI; will be null if already recaptured by player
+            return null;
+
+        // Look for player's ship at edge adjacent to pirate fortress;
+        // start with most recently placed ship
+        final int[] edges = board.getAdjacentEdgesToNode_arr(fort.getCoordinates());
+        Vector<SOCRoad> roadsAndShips = currPlayer.getRoads();
+        for (int i = roadsAndShips.size() - 1; i >= 0; --i)
+        {
+            SOCRoad rs = roadsAndShips.get(i);
+            if (! (rs instanceof SOCShip))
+                continue;
+
+            final int rsCoord = rs.getCoordinates();
+            for (int j = 0; j < edges.length; ++j)
+                if (rsCoord == edges[j])
+                    return (SOCShip) rs;  // <--- found adjacent ship ---
+        }
+
+        return null;
+    }
+
+    /**
+     * The current player has built boats to their pirate fortress, and attacks now to try to conquer and recapture it.
+     * This can happen at most once per turn: Attacking the fortress always ends the player's turn.
+     * Assumes {@link #canAttackPirateFortress()} called first, to validate and get the {@code adjacent} ship.
+     *<P>
+     * The player's fleet strength ({@link SOCPlayer#getNumWarships()}) will be compared to a pirate defense
+     * strength of 1 to 6 (random).  Players lose 1 ship on a tie, 2 ships if defeated by the pirates.
+     *<P>
+     * If the player wins, the {@link SOCFortress} strength is reduced by 1.  After several wins, its strength is 0 and
+     * the fortress is recaptured, becoming a {@link SOCSettlement} for the player.  This method will fire a
+     * {@link SOCScenarioPlayerEvent#PIRI_FORTRESS_RECAPTURED} to announce this to any listener.
+     *<P>
+     * Used with scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     *
+     * @param adjacent  The current player's ship adjacent to their {@link SOCFortress},
+     *     from {@link #canAttackPirateFortress()}; unless player wins, this ship will be lost to the pirates.
+     * @return  Results array, whose length depends on the number of ships lost by the player to the pirates' defense.<BR>
+     *     results[0] is the pirate defense strength rolled here.<BR>
+     *     results[1] is the new strength of the pirate fortress; if 0, the player has recaptured it.
+     *     <UL>
+     *     <LI> If the player wins, they lose no ships.
+     *          Array length is 2.
+     *     <LI> If the player ties the pirates, they lose their 1 adjacent ship.
+     *          Array length is 3; results[2] is {@code adjacent}'s coordinates.
+     *     <LI> If the player loses to the pirates, they lose their 2 ships closest to the pirate fortress.
+     *          Array length is 4; results[2] and results[3] are the lost ship coordinates.
+     *     </UL>
+     * @since 2.0.00
+     */
+    public int[] attackPirateFortress(final SOCShip adjacent)
+    {
+        SOCPlayer currPlayer = players[currentPlayerNumber];
+        final int nWarships = currPlayer.getNumWarships();
+        SOCFortress fort = currPlayer.getFortress();  // not null if caller validated with canAttackPirateFortress
+
+        final int pirStrength = 1 + rand.nextInt(6);
+
+        final int nShipsLost;
+        if (nWarships < pirStrength)
+            nShipsLost = 2;
+        else if (nWarships == pirStrength)
+            nShipsLost = 1;
+        else
+        {
+            // player won, reduce fortress strength
+            nShipsLost = 0;
+            final int newFortStrength = fort.getStrength() - 1;
+            fort.setStrength(newFortStrength);
+
+            if (newFortStrength == 0)
+            {
+                // Fortress defeated: Convert to a settlement
+                final SOCSettlement recaptSettle = new SOCSettlement(currPlayer, fort.getCoordinates(), board);
+                putPiece(recaptSettle);
+                //  game.putPiece will call currPlayer.putPiece, which will set player's fortress field = null.
+
+                // Fire the scenario player event, with the resulting SOCSettlement
+                if (scenarioEventListener != null)
+                    scenarioEventListener.playerEvent
+                        (this, currPlayer, SOCScenarioPlayerEvent.PIRI_FORTRESS_RECAPTURED, true, recaptSettle);
+
+                // Have all other players' fortresses also been conquered?
+                boolean stillHasFortress = false;
+                for (int pn = 0; pn < maxPlayers; ++pn)
+                {
+                    if ((pn == currentPlayerNumber) || isSeatVacant(pn))
+                        continue;
+
+                    if (players[pn].getFortress() != null)
+                    {
+                        stillHasFortress = true;
+                        break;
+                    }
+                }
+
+                if (! stillHasFortress)
+                {
+                    // TODO: All fortresses defeated. pirate fleet goes away; and trigger a further scenario game event.
+                }
+            }
+        }
+
+        // Remove player's lost ships, if any,
+        // and build our results array
+        int[] retval = new int[2 + nShipsLost];
+        retval[0] = pirStrength;
+        retval[1] = fort.getStrength();
+        if (nShipsLost > 0)
+        {
+            final int shipEdge = adjacent.getCoordinates();
+            retval[2] = shipEdge;
+            undoPutPieceCommon(adjacent, false);
+
+            if (nShipsLost > 1)
+            {
+                // find player's newest-placed ship adjacent to shipEdge;
+                // it will also be lost
+                final Vector<Integer> adjacEdges = board.getAdjacentEdgesToEdge(shipEdge);
+                Vector<SOCRoad> roadsAndShips = currPlayer.getRoads();
+                for (int i = roadsAndShips.size() - 1; i >= 0; --i)
+                {
+                    SOCRoad rs = roadsAndShips.get(i);
+                    if (! (rs instanceof SOCShip))
+                        continue;
+
+                    final int rsCoord = rs.getCoordinates();
+                    if (! adjacEdges.contains(Integer.valueOf(rsCoord)))
+                        continue;
+
+                    retval[3] = rsCoord;
+                    undoPutPieceCommon(rs, false);
+                    break;
+                }
+            }
+        }
+
+        // TODO end player's turn too
+
+        return retval;
     }
 
     /**
