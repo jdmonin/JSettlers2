@@ -3362,6 +3362,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
                 final SOCPlayer pl = game.getPlayer(pn);
+
+                // count warships here, for efficiency, instead of calling SOCGame.isShipWarship for each one
                 int numWarships = pl.getNumWarships();
                 for (SOCRoad r : pl.getRoads())
                 {
@@ -6338,12 +6340,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverIsShipMovable = false;
 
                 // Is anything there?
-                SOCPlayingPiece p = board.roadAtEdge(id);
+                final SOCRoad p = board.roadAtEdge(id);
                 if (p != null)
                 {
                     if (! hoverTextSet)
                     {
-                        final boolean isRoad = (p.getType() == SOCPlayingPiece.ROAD);
+                        final boolean isRoad = p.isRoadNotShip();
                         if (isRoad)
                             hoverMode = PLACE_ROAD;
                         else
@@ -6354,9 +6356,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         if (plName == null)
                             plName = "unowned";
                         if (isRoad)
+                        {
                             setHoverText("Road: " + plName);
-                        else
-                            setHoverText("Ship: " + plName);
+                        } else {
+                            // Scenario _SC_PIRI has warships; check class just in case.
+                            final boolean isWarship = (p instanceof SOCShip) && game.isShipWarship((SOCShip) p);
+                            if (isWarship)
+                                setHoverText(/*I*/"Warship: "/*18N*/ + plName);
+                            else
+                                setHoverText("Ship: " + plName);
+                        }
 
                         // Can the player move their ship?
                         if (modeAllowsHoverPieces && playerIsCurrent
