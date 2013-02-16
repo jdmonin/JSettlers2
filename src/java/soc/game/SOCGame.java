@@ -5855,6 +5855,7 @@ public class SOCGame implements Serializable, Cloneable
      * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
      * can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
      * sets gameState to PLAY or PLAY1 as if the free road was placed.
+     * In v2.0.00 and newer, can similarly call {@link #cancelBuildShip(int)} in that state.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
@@ -5919,9 +5920,9 @@ public class SOCGame implements Serializable, Cloneable
      * a player is UNbuying a ship; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
      *<P>
-     * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
-     * can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2};
+     * Can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2};
      * sets gameState to PLAY or PLAY1 as if the free ship was placed.
+     * Can similarly call {@link #cancelBuildRoad(int)} in that state.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
@@ -5943,6 +5944,59 @@ public class SOCGame implements Serializable, Cloneable
         else
             gameState = SPECIAL_BUILDING;
         return true;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, is this ship upgraded to a warship?
+     * Counts down {@code sh}'s player's {@link SOCPlayer#getNumWarships()}
+     * while it looks for {@code sh} among the ships from {@link SOCPlayer#getRoads()},
+     * which is in the same chronological order as warship conversions.
+     * (Those are the ships heading out to sea starting at the player's coastal settlement.)
+     *
+     * @param sh  A ship whose player is in this game
+     * @return  True if {@link SOCPlayer#getRoads()} contains, among its
+     *          first {@link SOCPlayer#getNumWarships()} ships, a ship
+     *          located at {@link SOCShip#getCoordinates() sh.getCoordinates()},
+     *          and the scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} is set.
+     * @see #playKnight()
+     * @since 2.0.00
+     */
+    public boolean isShipWarship(final SOCShip sh)
+    {
+        if (! isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            return false;
+
+        final int node = sh.getCoordinates();
+        final SOCPlayer pl = sh.getPlayer();
+
+        // Count down the player's warships to see if sh is among them.
+        // This works since warships in getRoads() begin with player's 1st-placed ship.
+
+        int numWarships = pl.getNumWarships();
+        if (0 == numWarships)
+            return false;  // <--- early return: no warships ---
+
+        for (SOCRoad rship : pl.getRoads())
+        {
+            if (! (rship instanceof SOCShip))
+                continue;
+
+            final boolean isWarship = (numWarships > 0);
+            if (node == rship.getCoordinates())
+            {
+                return isWarship;  // <--- early return: coordinates match ---
+            }
+
+            if (isWarship)
+            {
+                --numWarships;
+
+                if (0 == numWarships)
+                    return false;  // <--- early return: no more warships ---
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -6115,7 +6169,9 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * <b>In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> instead the player
      * converts a normal ship to a warship.  There is no robber piece in this scenario.
-     * Call {@link SOCPlayer#getNumWarships()} afterwards.
+     * Call {@link SOCPlayer#getNumWarships()} afterwards to get the current player's new count.
+     * Ships are converted in the chronological order they're placed, out to sea from the
+     * player's coastal settlement; see {@link #isShipWarship(SOCShip)}.
      */
     public void playKnight()
     {

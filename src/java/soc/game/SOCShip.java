@@ -29,7 +29,8 @@ package soc.game;
  * Ships can be moved any turn after the turn they're placed, until {@link #isClosed()} is true.
  *<P>
  * In scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
- * <tt>SOCShip</tt> has no "isWarship" field; see {@link SOCPlayer#getNumWarships()} for details.
+ * {@code SOCShip} has no "isWarship" field: Ships are converted to warships in the
+ * chronological order they're placed; see {@link SOCGame#isShipWarship(SOCShip)}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
