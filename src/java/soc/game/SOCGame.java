@@ -5956,16 +5956,12 @@ public class SOCGame implements Serializable, Cloneable
      * @param sh  A ship whose player is in this game
      * @return  True if {@link SOCPlayer#getRoads()} contains, among its
      *          first {@link SOCPlayer#getNumWarships()} ships, a ship
-     *          located at {@link SOCShip#getCoordinates() sh.getCoordinates()},
-     *          and the scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI} is set.
+     *          located at {@link SOCShip#getCoordinates() sh.getCoordinates()}.
      * @see #playKnight()
      * @since 2.0.00
      */
     public boolean isShipWarship(final SOCShip sh)
     {
-        if (! isGameOptionSet(SOCGameOption.K_SC_PIRI))
-            return false;
-
         final int node = sh.getCoordinates();
         final SOCPlayer pl = sh.getPlayer();
 
