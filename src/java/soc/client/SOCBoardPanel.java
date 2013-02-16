@@ -6339,20 +6339,20 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverShipID = 0;
                 hoverIsShipMovable = false;
 
-                // Is anything there?
-                final SOCRoad p = board.roadAtEdge(id);
-                if (p != null)
+                // Is a road or ship there?
+                final SOCRoad rs = board.roadAtEdge(id);
+                if (rs != null)
                 {
                     if (! hoverTextSet)
                     {
-                        final boolean isRoad = p.isRoadNotShip();
+                        final boolean isRoad = rs.isRoadNotShip();
                         if (isRoad)
                             hoverMode = PLACE_ROAD;
                         else
                             hoverMode = PLACE_SHIP;
-                        hoverPiece = p;
+                        hoverPiece = rs;
                         hoverID = id;
-                        String plName = p.getPlayer().getName();
+                        String plName = rs.getPlayer().getName();
                         if (plName == null)
                             plName = "unowned";
                         if (isRoad)
@@ -6360,7 +6360,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             setHoverText("Road: " + plName);
                         } else {
                             // Scenario _SC_PIRI has warships; check class just in case.
-                            final boolean isWarship = (p instanceof SOCShip) && game.isShipWarship((SOCShip) p);
+                            final boolean isWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
                             if (isWarship)
                                 setHoverText(/*I*/"Warship: "/*18N*/ + plName);
                             else
@@ -6370,7 +6370,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         // Can the player move their ship?
                         if (modeAllowsHoverPieces && playerIsCurrent
                              && (! isRoad)
-                             && (p.getPlayer() == player)
+                             && (rs.getPlayer() == player)
                              && (game.canMoveShip(playerNumber, hoverID) != null))
                         {
                             hoverIsShipMovable = true;
