@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -59,6 +59,7 @@ import java.util.StringTokenizer;
  *      can be played eventually within this server framework.
  * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version.
  *      Do not add if (TODO what instead??) extends SOCMessageTemplateMs or SOCMessageTemplateMi
+ * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
  * <LI> Extend the SOCMessage class, including the required parseDataStr method.
  *      ({@link SOCRevealFogHex} and {@link SOCSetTurn} are good example subclasses.)
  *      Template parent-classes can help; the example subclasses extend them.
@@ -66,7 +67,6 @@ import java.util.StringTokenizer;
  *      Set <tt>serialVersionUID</tt> to the version it's added in.
  *      for example, if adding for version 1.1.09:
  *      <code> private static final long serialVersionUID = 1109L;</code>
- * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
  * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServer.processCommand.
  *      Note the JSettlers version with a comment.
  *      <P>
@@ -208,42 +208,46 @@ public abstract class SOCMessage implements Serializable, Cloneable
     /** @since 1.1.13 */
     public static final int TIMINGPING = 1088;  // robot timing ping, 20111011, v1.1.13
 
+    /** {@link SOCSimpleRequest} - Generic message type for simple requests by players.
+     *  @since 1.1.18 */
+    public static final int SIMPLEREQUEST = 1089;  // simple player requests, 20130217, v1.1.18
+
     /** Ask server to move a piece to another location.
      *  Server replies with {@link #MOVEPIECE} if okay.
      *  @since 2.0.00 */
-    public static final int MOVEPIECEREQUEST = 1089;  // move piece request, 20111203, v2.0.00
+    public static final int MOVEPIECEREQUEST = 1090;  // move piece request, 20111203, v2.0.00
 
     /** Move a piece to another location; server reply to {@link #MOVEPIECEREQUEST}.
      *  @since 2.0.00 */
-    public static final int MOVEPIECE = 1090;  // move piece, 20111203, v2.0.00
+    public static final int MOVEPIECE = 1091;  // move piece, 20111203, v2.0.00
 
     /** Ask client to pick this many resources,
      *  when they have a settlement or city next to a gold hex.
      *  Client replies with {@link #PICKRESOURCES}.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCESREQUEST = 1091;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCESREQUEST = 1092;  // gold hex resources, 20120112, v2.0.00
 
     /** Client reply to {@link #PICKRESOURCESREQUEST}.
      *  Has picked these resource types/counts.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCES = 1092;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCES = 1093;  // gold hex resources, 20120112, v2.0.00
 
     /** Reveal a hidden hex on the board; server to all clients in game.
      *  @since 2.0.00 */
-    public static final int REVEALFOGHEX = 1093;  // fog hexes, 20121108, v2.0.00
+    public static final int REVEALFOGHEX = 1094;  // fog hexes, 20121108, v2.0.00
 
     /** Update the value(s) of a piece on the board.
      *  @since 2.0.00 */
-    public static final int PIECEVALUE = 1094;  // cloth villages scenario, 20121115, v2.0.00
+    public static final int PIECEVALUE = 1095;  // cloth villages scenario, 20121115, v2.0.00
 
     /** Legal road or ship edges for the large sea board.
      *  @since 2.0.00 */
-    public static final int LEGALEDGES = 1095;  // large sea board, 20121216, v2.0.00 
+    public static final int LEGALEDGES = 1096;  // large sea board, 20121216, v2.0.00 
 
     /** Text that a player has been awarded Special Victory Point(s).
      *  The server will also send a {@link SOCPlayerElement} with the SVP total.
      *  @since 2.0.00 */
-    public static final int SVPTEXTMSG = 1096;  // SVP text messages, 20121221, v2.0.00 
+    public static final int SVPTEXTMSG = 1097;  // SVP text messages, 20121221, v2.0.00 
 
 
     /////////////////////////////////////////
@@ -811,6 +815,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case TIMINGPING:        // robot timing ping, 20111011, v1.1.13
                 return SOCTimingPing.parseDataStr(data);
+
+            case SIMPLEREQUEST:  // simple player requests, 20130217, v1.1.18
+                return SOCSimpleRequest.parseDataStr(data);
 
             case MOVEPIECEREQUEST:  // move piece request, 20111203, v2.0.00
                 return SOCMovePieceRequest.parseDataStr(data);
