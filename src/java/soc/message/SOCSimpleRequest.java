@@ -34,6 +34,7 @@ import java.util.StringTokenizer;
  * <LI> If client can't do this request now, server responds to client only with: (-1, typecode, value1b, value2b).
  *      The meaning of the response's optional {@code value1b} and {@code value2b} are typecode-specific and
  *      might not be the same as {@code value1} or {@code value2}.
+ *      If the server is too old to understand this request type, it will respond with (-1, typecode, 0, 0).
  * <LI> If client is permitted to do the request, server's response would depend on the request type.
  *      One option would be to announce the client's request to all players in game,
  *      or take some game action and announce the results using other message types.

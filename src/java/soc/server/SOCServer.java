@@ -3874,6 +3874,13 @@ public class SOCServer extends Server
                     break;
 
                 /**
+                 * Generic simple request from a player.
+                 * Added 2013-02-17 for v1.1.18.
+                 */
+                case SOCMessage.SIMPLEREQUEST:
+                    handleSIMPLEREQUEST(c, (SOCSimpleRequest) mes);
+
+                /**
                  * Asking to move a previous piece (a ship) somewhere else on the board.
                  * Added 2011-12-04 for v2.0.00.
                  */
@@ -8181,6 +8188,34 @@ public class SOCServer extends Server
         }
 
         ga.releaseMonitor();
+    }
+
+    /**
+     * Handle the "simple request" message.
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.1.18
+     */
+    private void handleSIMPLEREQUEST(StringConnection c, SOCSimpleRequest mes)
+    {
+        if (c == null)
+            return;
+
+        final String gaName = mes.getGame();
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+        final int pn = mes.getPlayerNumber();
+        final int reqtype = mes.getRequestType();
+
+        switch(reqtype)
+        {
+            default:
+                // deny unknown types
+                c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+                System.err.println
+                    ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
+        }
     }
 
     /**
