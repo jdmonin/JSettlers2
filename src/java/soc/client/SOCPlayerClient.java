@@ -2748,6 +2748,14 @@ public class SOCPlayerClient
                 break;
 
             /**
+             * generic 'simple request' response from the server.
+             * Added 2013-02-19 for v1.1.18.
+             */
+            case SOCMessage.SIMPLEREQUEST:
+                handleSIMPLEREQUEST((SOCSimpleRequest) mes);
+                break;
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2011-12-05 for v2.0.00.
              */
@@ -4354,6 +4362,26 @@ public class SOCPlayerClient
             return;  // Not one of our games
 
         pcl.debugFreePlaceModeToggled(mes.getCoordinates() == 1);
+    }
+
+    /**
+     * Handle server responses from the "simple request" handler.
+     * @since 1.1.18
+     */
+    private final void handleSIMPLEREQUEST(SOCSimpleRequest mes)
+    {
+        final String gaName = mes.getGame();
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;  // Not one of our games
+
+        switch (mes.getRequestType())
+        {
+        default:
+            // unknown type
+            System.err.println
+                ("handleSIMPLEREQUEST: Unknown type " + mes.getRequestType() + " in game " + gaName);
+        }
     }
 
     /**
