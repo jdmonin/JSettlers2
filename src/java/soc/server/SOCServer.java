@@ -8210,11 +8210,56 @@ public class SOCServer extends Server
 
         switch(reqtype)
         {
-            default:
-                // deny unknown types
-                c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
-                System.err.println
-                    ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
+        case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
+            {
+                final int cpn = ga.getCurrentPlayerNumber();
+
+                final SOCShip adjac = ga.canAttackPirateFortress();
+                if ((adjac == null) || (adjac.getPlayerNumber() != cpn))
+                {
+                    c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+                    return;  // <--- early return: deny ---
+                }
+
+                final SOCPlayer cp = ga.getPlayer(cpn);
+                final int prevNumWarships = cp.getNumWarships();  // in case some are lost, we'll announce that
+                final SOCFortress fort = cp.getFortress();
+
+                final int[] res = ga.attackPirateFortress(adjac);
+
+                if (res.length > 1)
+                {
+                    // lost 1 or 2 ships adjacent to fortress.  res[1] == adjac.coordinate
+
+                    messageToGame(gaName, new SOCRemovePiece(gaName, adjac));
+                    if (res.length > 2)
+                        messageToGame(gaName, new SOCRemovePiece(gaName, cpn, SOCPlayingPiece.SHIP, res[2]));
+
+                    final int n = cp.getNumWarships();
+                    if (n != prevNumWarships)
+                        messageToGame(gaName, new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, n));
+                } else {
+                    // player won
+
+                    final int fortStrength = fort.getStrength();
+                    messageToGame(gaName, new SOCPieceValue(gaName, fort.getCoordinates(), fortStrength, 0));
+                    if (0 == fortStrength)
+                        messageToGame(gaName, new SOCPutPiece
+                            (gaName, cpn, SOCPlayingPiece.SETTLEMENT, fort.getCoordinates()));
+                }
+
+                messageToGame(gaName, new SOCPirateFortressAttackResult(gaName, res[0], res.length - 1));
+
+                // TODO check for end of player's turn
+            }
+            break;
+
+        default:
+            // deny unknown types
+            c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+            System.err.println
+                ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
         }
     }
 
