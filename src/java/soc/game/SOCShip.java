@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2011-2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2011-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003 Robert S. Thomas
  *
  * This program is free software; you can redistribute it and/or
@@ -25,10 +25,14 @@ package soc.game;
  * A ship playing piece, on the large sea board ({@link SOCBoardLarge}).
  * To simplify some game code, ships are a subclass of roads.
  *<P>
+ * Ships are open until their route has a settlement or city on both ends. 
+ * Ships can be moved any turn after the turn they're placed, until {@link #isClosed()} is true.
+ *<P>
  * In scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
- * <tt>SOCShip</tt> has no "isWarship" field; see {@link SOCPlayer#getNumWarships()} for details.
+ * {@code SOCShip} has no "isWarship" field: Ships are converted to warships in the
+ * chronological order they're placed; see {@link SOCGame#isShipWarship(SOCShip)}.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
  */
 public class SOCShip extends SOCRoad

@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net> - GameStatisticsFrame
  *
  * This program is free software; you can redistribute it and/or
@@ -37,6 +37,8 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.JFrame;   // for GameStatisticsFrame
 
@@ -46,7 +48,8 @@ import javax.swing.JFrame;   // for GameStatisticsFrame
  * to build things, and it allows the player to build.
  * Sits within a game's {@link SOCPlayerInterface} frame.
  */
-public class SOCBuildingPanel extends Panel implements ActionListener
+public class SOCBuildingPanel extends Panel
+    implements ActionListener, WindowListener
 {
     static final String ROAD = /*I*/"road"/*18N*/;
     static final String STLMT = /*I*/"stlmt"/*18N*/;
@@ -112,6 +115,14 @@ public class SOCBuildingPanel extends Panel implements ActionListener
     private Label sbLab;
     private boolean sbIsHilight;  // Yellow, not grey, when true
 
+    /**
+     * "Game Info" window, from {@link #gameInfoBut} click, or null.
+     * Tracked to prevent showing more than 1 at a time.
+     * @since 1.1.18
+     */
+    private NewGameOptionsFrame ngof;
+
+    /** Our parent window */
     SOCPlayerInterface pi;
 
     /**
@@ -533,7 +544,15 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         if (e.getSource() == gameInfoBut)
         {
-            NewGameOptionsFrame.createAndShow(pi.getGameDisplay(), game.getName(), game.getGameOptions(), false, true);
+            if ((ngof != null) && ngof.isVisible())
+            {
+                ngof.setVisible(true);  // method override also requests topmost/focus
+            } else {
+                ngof = NewGameOptionsFrame.createAndShow
+                    (pi.getGameDisplay(), game.getName(), game.getGameOptions(), false, true);
+                ngof.addWindowListener(this);  // drop ngof reference when window is closed
+            }
+
             return;
         }
         if (e.getSource() == statsBut)
@@ -837,5 +856,34 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         player = game.getPlayer(pi.getClient().getNickname());
     }
+
+    /**
+     * If our "Game Info" window ({@link NewGameOptionsFrame}) is closed,
+     * drop our reference to it so it can be gc'd.
+     * @since 1.1.18
+     */
+    public void windowClosed(WindowEvent e)
+    {
+        if (e.getWindow() == ngof)
+            ngof = null;
+    }
+
+    /** Required stub for {@link WindowListener} */
+    public void windowClosing(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowOpened(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowIconified(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowDeiconified(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowActivated(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowDeactivated(WindowEvent e) {}
 
 }

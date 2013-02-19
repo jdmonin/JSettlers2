@@ -3874,6 +3874,13 @@ public class SOCServer extends Server
                     break;
 
                 /**
+                 * Generic simple request from a player.
+                 * Added 2013-02-17 for v1.1.18.
+                 */
+                case SOCMessage.SIMPLEREQUEST:
+                    handleSIMPLEREQUEST(c, (SOCSimpleRequest) mes);
+
+                /**
                  * Asking to move a previous piece (a ship) somewhere else on the board.
                  * Added 2011-12-04 for v2.0.00.
                  */
@@ -8184,6 +8191,34 @@ public class SOCServer extends Server
     }
 
     /**
+     * Handle the "simple request" message.
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.1.18
+     */
+    private void handleSIMPLEREQUEST(StringConnection c, SOCSimpleRequest mes)
+    {
+        if (c == null)
+            return;
+
+        final String gaName = mes.getGame();
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+        final int pn = mes.getPlayerNumber();
+        final int reqtype = mes.getRequestType();
+
+        switch(reqtype)
+        {
+            default:
+                // deny unknown types
+                c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+                System.err.println
+                    ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
+        }
+    }
+
+    /**
      * handle "change face" message
      *
      * @param c  the connection
@@ -8701,6 +8736,13 @@ public class SOCServer extends Server
                 {
                     // announce end of game
                     sendGameState(ga, false);
+                }
+                else if (ga.getGameState() == SOCGame.WAITING_FOR_PICK_GOLD_RESOURCE)
+                {
+                    // If ship placement reveals a gold hex in _SC_FOG,
+                    // the player gets to pick a free resource.
+                    sendGameState(ga, false);
+                    sendGameState_sendGoldPickAnnounceText(ga, gaName, c, null);
                 }
             }
         }
@@ -10595,6 +10637,7 @@ public class SOCServer extends Server
 
     /**
      * if all the players stayed for the whole game,
+     * or if the game has any human players,
      * record the scores in the database.
      * Called only if property <tt>jsettlers.db.save.games</tt>
      * is true. ({@link SOCDBHelper#PROP_JSETTLERS_DB_SAVE_GAMES})
@@ -10607,7 +10650,8 @@ public class SOCServer extends Server
             return;
 
         //D.ebugPrintln("allOriginalPlayers for "+ga.getName()+" : "+ga.allOriginalPlayers());
-        if (! ((ga.getGameState() == SOCGame.OVER) && ga.allOriginalPlayers()))
+        if (! ((ga.getGameState() == SOCGame.OVER)
+               && (ga.allOriginalPlayers() || ga.hasHumanPlayers())))
             return;
         
         try

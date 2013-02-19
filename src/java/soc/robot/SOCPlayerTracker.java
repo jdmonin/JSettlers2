@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -42,8 +42,6 @@ import soc.util.CutoffExceededException;
 import soc.util.Pair;
 import soc.util.Queue;
 
-import java.text.DecimalFormat;
-
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -57,8 +55,9 @@ import java.util.Vector;
  * This class is used by the SOCRobotBrain to track
  * strategic planning information such as
  * possible building spots for itself and other players.
+ * Also used for prediction of other players' possible upcoming moves.
  *<P>
- * Some users: {@link SOCRobotDM#planStuff(int)},
+ * Some users of this class are: {@link SOCRobotDM#planStuff(int)},
  * and many callers of {@link #getWinGameETA()}
  *<P>
  *
@@ -91,6 +90,13 @@ public class SOCPlayerTracker
     static protected int EXPAND_LEVEL = 1;
 
     /**
+     * Ship expansion level to add to {@link #EXPAND_LEVEL} for
+     * {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
+     * @since 2.0.00
+     */
+    static protected int EXPAND_LEVEL_SHIP_EXTRA = 1;
+
+    /**
      * Road expansion level for {@link #updateLRPotential(SOCPossibleRoad, SOCPlayer, SOCRoad, int, int)};
      * how far away to look for possible future roads
      * (level of recursion).
@@ -111,6 +117,8 @@ public class SOCPlayerTracker
      * Key = {@link Integer} node coordinate, value = {@link SOCPossibleSettlement}.
      * Expanded in {@link #addOurNewRoadOrShip(SOCRoad, HashMap, int)}
      * via {@link #expandRoadOrShip(SOCPossibleRoad, SOCPlayer, SOCPlayer, HashMap, int)}.
+     * Also updated in {@link #addNewSettlement(SOCSettlement, HashMap)},
+     * {@link #cancelWrongSettlement(SOCSettlement)}, a few other places.
      */
     protected TreeMap<Integer, SOCPossibleSettlement> possibleSettlements;
 
@@ -641,7 +649,7 @@ public class SOCPlayerTracker
                     // else, add new possible settlement
                     //
                     //D.ebugPrintln("$$$ adding new possible settlement at "+Integer.toHexString(adjNode.intValue()));
-                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), new Vector<SOCPossibleRoad>());
+                    SOCPossibleSettlement newPosSet = new SOCPossibleSettlement(player, adjNode.intValue(), null);
                     newPosSet.setNumberOfNecessaryRoads(0);
                     possibleSettlements.put(adjNode, newPosSet);
                     updateSettlementConflicts(newPosSet, trackers);
@@ -677,7 +685,6 @@ public class SOCPlayerTracker
             // If true, this edge transitions
             // between ships <-> roads, at a
             // coastal settlement
-            //
             boolean edgeRequiresCoastalSettlement = false;
 
             if ((! edgeIsPotentialRoute)
@@ -746,9 +753,9 @@ public class SOCPlayerTracker
                         roadsBetween = 0;
                     }
                     if (isRoad)
-                        newPR = new SOCPossibleRoad(player, edge, new Vector<SOCPossibleRoad>());
+                        newPR = new SOCPossibleRoad(player, edge, null);
                     else
-                        newPR = new SOCPossibleShip(player, edge, new Vector<SOCPossibleRoad>());
+                        newPR = new SOCPossibleShip(player, edge, null);
                     newPR.setNumberOfNecessaryRoads(roadsBetween);  // 0 unless requires settlement
                     newPossibleRoads.addElement(newPR);
                     roadsToExpand.addElement(newPR);
@@ -1162,7 +1169,18 @@ public class SOCPlayerTracker
     }
 
     /**
-     * add one of our settlements
+     * Add one of our settlements, and newly possible pieces from it.
+     * Adds a new possible city; removes conflicting possible settlements (ours or other players).
+     * On the large Sea board, if this is a coastal settlement, adds newly possible ships, and if
+     * we've just settled a new island, newly possible roads, because the coastal settlement is
+     * a roads {@literal <->} ships transition.
+     *<P>
+     * Called in 2 different conditions:
+     *<UL>
+     * <LI> To track an actual (not possible) settlement that's just been placed
+     * <LI> To see the effects of trying to placing a possible settlement, in a copy of the PlayerTracker
+     *      ({@link #tryPutPiece(SOCPlayingPiece, SOCGame, HashMap)})
+     *</UL>
      *
      * @param settlement  the new settlement
      * @param trackers    player trackers for all of the players
@@ -1173,7 +1191,7 @@ public class SOCPlayerTracker
         D.ebugPrintln("$$$ addOurNewSettlement : " + settlement);
         SOCBoard board = player.getGame().getBoard();
 
-        Integer settlementCoords = new Integer(settlement.getCoordinates());
+        final Integer settlementCoords = new Integer(settlement.getCoordinates());
 
         /**
          * add a new possible city
@@ -1307,6 +1325,7 @@ public class SOCPlayerTracker
 
                 /**
                  * take out the trash
+                 * (no-longer-possible settlements, roads that support it)
                  */
                 D.ebugPrintln("$$$ removing trash for " + tracker.getPlayer().getPlayerNumber());
 
@@ -1321,6 +1340,101 @@ public class SOCPlayerTracker
                 }
 
                 trash.removeAllElements();
+            }
+        }
+
+        /**
+         * add possible road-ship transitions made possible by the new settlement
+         */
+        if (board instanceof SOCBoardLarge)
+        {
+            Vector<SOCPossibleRoad> roadsToExpand = null;
+            boolean settleAlreadyHasRoad = false;
+            Vector<SOCPossibleRoad> possibleNewIslandRoads = null;
+
+            for (Integer edge : board.getAdjacentEdgesToNode(settlementCoords))
+            {
+                // TODO remove these debug prints soon
+                //System.err.println("L1348: examine edge 0x"
+                //    + Integer.toHexString(edge) + " for placed settle 0x"
+                //    + Integer.toHexString(settlementCoords));
+
+                SOCPossibleRoad pRoad = possibleRoads.get(edge);
+                if (pRoad != null)
+                {
+                    //if (pRoad.isRoadNotShip())
+                    //    System.err.println("  -> already possible road");
+                    //else
+                    //    System.err.println("  -> already possible ship");
+                    continue;  // already a possible road or ship
+                }
+
+                SOCRoad road = board.roadAtEdge(edge);
+                if (road != null)
+                {
+                    if (road.isRoadNotShip())
+                        settleAlreadyHasRoad = true;
+                    continue;  // something's already there
+                }
+
+                // TODO what if isEdgeCoastline -- for now, until we can model that & add both potentials, assume road
+
+                if (player.isPotentialRoad(edge))
+                {
+                    // Probably won't happen (usually added elsewhere),
+                    // but could on a new island's first settlement
+                    if (settleAlreadyHasRoad)
+                        continue;
+                    if (possibleNewIslandRoads == null)
+                        possibleNewIslandRoads = new Vector<SOCPossibleRoad>();
+                    possibleNewIslandRoads.add(new SOCPossibleRoad(player, edge, null));
+                }
+                else if (player.isPotentialShip(edge))
+                {
+                    // A way out to a new island
+                    SOCPossibleShip newPS = new SOCPossibleShip(player, edge, null);
+                    possibleRoads.put(edge, newPS);
+                    System.err.println("L1383: new possible ship at edge 0x"
+                        + Integer.toHexString(edge) + " from coastal settle 0x"
+                        + Integer.toHexString(settlementCoords));
+                    if (roadsToExpand == null)
+                        roadsToExpand = new Vector<SOCPossibleRoad>();
+                    roadsToExpand.addElement(newPS);
+                    newPS.setExpandedFlag();
+                }
+            }
+
+            if ((possibleNewIslandRoads != null) && (! settleAlreadyHasRoad)
+                && ! player.getGame().isInitialPlacement())
+            {
+                // only add new possible roads if we're on a new island
+                // (that is, the newly placed settlement has no adjacent roads already).
+                // (Make sure this isn't initial placement, where nothing has adjacent roads)
+                for (SOCPossibleRoad pr : possibleNewIslandRoads)
+                {
+                    possibleRoads.put(Integer.valueOf(pr.getCoordinates()), pr);
+                    System.err.println("L1396: new possible road at edge 0x"
+                        + Integer.toHexString(pr.getCoordinates()) + " from coastal settle 0x"
+                        + Integer.toHexString(settlementCoords));
+                    if (roadsToExpand == null)
+                        roadsToExpand = new Vector<SOCPossibleRoad>();
+                    roadsToExpand.addElement(pr);
+                    pr.setExpandedFlag();
+                }
+            }
+
+            if (roadsToExpand != null)
+            {
+                //
+                // expand possible ships/roads that we've added
+                //
+                SOCPlayer dummy = new SOCPlayer(player);
+                for (SOCPossibleRoad expandPR : roadsToExpand)
+                {
+                    final int expand = EXPAND_LEVEL + (expandPR.isRoadNotShip() ? 0 : EXPAND_LEVEL_SHIP_EXTRA);
+                    expandRoadOrShip(expandPR, player, dummy, trackers, expand);
+                }
+                dummy.destroyPlayer();
             }
         }
     }

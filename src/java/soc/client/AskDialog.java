@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas
- * This file copyright (C) 2007-2010 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2007-2010,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -19,7 +19,6 @@
  **/
 package soc.client;
 
-import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Color;
 import java.awt.Component;
@@ -28,9 +27,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Frame;
-import java.awt.GridLayout;
-import java.awt.Label;
-import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -40,6 +36,15 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.StringTokenizer;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 
 import soc.client.SOCPlayerClient.GameAwtDisplay;
 
@@ -56,12 +61,18 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  * {@link #windowCloseChosen()}, and (for a three-choice
  * question) override {@link #button3Chosen()}.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  */
+@SuppressWarnings("serial")
 public abstract class AskDialog extends Dialog
     implements ActionListener, WindowListener, KeyListener, MouseListener
 {
-    /** Player client; passed to constructor, not null */
+    /**
+     * Border width around {@link #msg}.
+     */
+    private static final int MSG_BORDER = 5;
+
+    /** Player client; passed to constructor, not null; used for actions in subclasses when dialog buttons are chosen */
     protected final GameAwtDisplay pcli;
 
     /**
@@ -70,8 +81,29 @@ public abstract class AskDialog extends Dialog
      */
     protected SOCPlayerInterface pi;
 
-    /** Prompt message Label, or Panel for multi-line prompt, or null */
-    protected Component msg;
+    /** Prompt message Label, or Panel for multi-line prompt ({@link #isMsgMultiLine}), or null */
+    protected JComponent msg;
+
+    /**
+     * Button area, for resizing multi-line dialog height in {@link #checkSizeAndFocus()}.
+     * @since 2.0.00 
+     */
+    protected final JPanel pBtns;
+
+    /**
+     * Is the prompt multi-line?
+     * If so, assume it might be larger than usual, and adjust height
+     * when {@link #checkSizeAndFocus()} is called.
+     * @since 2.0.00
+     */
+    protected final boolean isMsgMultiLine;
+
+    /**
+     * Has {@link #checkSizeAndFocus()} already set the size
+     * of a multi-line dialog?
+     * @since 2.0.00
+     */
+    private boolean isSizeCheckedAlready;
 
     /** Button for first choice.
      *
@@ -106,11 +138,11 @@ public abstract class AskDialog extends Dialog
     /**
      * Creates a new AskDialog with two buttons, about a specific game.
      *
-     * @param cli      Player client interface
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen.
      * @param gamePI   Current game's player interface;
      *                 Cannot be null, use the other constructor if not asking
      *                 about a specific game.
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -156,9 +188,9 @@ public abstract class AskDialog extends Dialog
     /**
      * Creates a new AskDialog with two buttons, not about a specific game.
      *
-     * @param cli      Player client interface
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param parentFr SOCPlayerClient or other parent frame
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -185,9 +217,9 @@ public abstract class AskDialog extends Dialog
      * Creates a new AskDialog with three buttons, about a specific game.
      * Also can create with two.
      *
-     * @param cli      Player client interface
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param gamePI   Current game's player interface
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null
      * @param choice1  First choice button text
      * @param choice2  Second choice button text
@@ -216,9 +248,9 @@ public abstract class AskDialog extends Dialog
      * Creates a new AskDialog with one, two, or three buttons, not about
      * a specific game.
      *
-     * @param cli      Player client interface
+     * @param cli      Player client interface; will be used for actions in subclasses when dialog buttons are chosen 
      * @param parentFr SOCPlayerClient or other parent frame
-     * @param titlebar Title bar text
+     * @param titlebar Title bar text; if text contains \n, only the portion before \n is used
      * @param prompt   Prompting text shown above buttons, or null.
      *              Can be multi-line, use "\n" within your string to separate them.
      * @param choice1  First choice button text
@@ -269,61 +301,85 @@ public abstract class AskDialog extends Dialog
             choice3But = null;
         }
         choiceDefault = defaultChoice;
-        setLayout (new BorderLayout());
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         int promptMultiLine = prompt.indexOf("\n");
         int promptMaxWid;
         int promptLines = 1;
         if (promptMultiLine == -1)
         {
-            msg = new Label(prompt, Label.CENTER);
-            add(msg, BorderLayout.NORTH);
+            isMsgMultiLine = false;
+            msg = new JLabel(prompt, SwingConstants.CENTER);
+            msg.setAlignmentX(Component.CENTER_ALIGNMENT);
+            add(msg);
             promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
         } else {
             promptMaxWid = 0;
             try
             {
+                // Try to get maximum width of each line, in case they're all short,
+                // and also use JTextArea to do automatic wrapping of long lines.
+
                 StringTokenizer st = new StringTokenizer(prompt, "\n");
-                Panel pmsg = new Panel();
-                msg = pmsg;
-                pmsg.setLayout(new GridLayout(0, 1));
                 Font ourfont = getFont();
                 FontMetrics fm = ourfont != null ? getFontMetrics(getFont()) : null;
-                for (int i = 0; st.hasMoreTokens(); ++i)
+                if (fm != null)
                 {
-                    String promptline = st.nextToken();
-                    pmsg.add(new Label(promptline, Label.CENTER));
-                    ++promptLines;
-                    if (fm != null)
+                    while (st.hasMoreTokens())
                     {
+                        final String promptline = st.nextToken();
                         int mwid = fm.stringWidth(promptline);
                         if (mwid > promptMaxWid)
                             promptMaxWid = mwid;
                     }
                 }
-                add (pmsg, BorderLayout.NORTH);
-            } catch (Throwable t) {
-                promptLines = 1;
-                msg = new Label(prompt, Label.CENTER);
-                add(msg, BorderLayout.NORTH);
-                promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
-            }
-        }
 
-        wantW = 6 + promptMaxWid;
+                JTextArea pmsg = new JTextArea(prompt);
+                pmsg.setEditable(false);
+                pmsg.setLineWrap(true);
+                pmsg.setWrapStyleWord(true);
+                pmsg.setBackground(getBackground());  // setOpaque(false) still gives white bg
+                JScrollPane pScroll = new JScrollPane(pmsg);
+                pScroll.setOpaque(false);
+                msg = pScroll;
+                add(pScroll);
+
+                final int maxWid80pct = (4 * parentFr.getWidth()) / 5;
+                if (promptMaxWid > maxWid80pct)
+                    promptMaxWid = maxWid80pct;  // text must wrap, it's too wide otherwise
+
+            } catch (Throwable t) {
+                // fallback to 1 long line
+                msg = new JLabel(prompt, SwingConstants.CENTER);
+                msg.setAlignmentX(Component.CENTER_ALIGNMENT);
+                add(msg);
+                promptMaxWid = getFontMetrics(msg.getFont()).stringWidth(prompt);
+                promptMultiLine = -1;  // force msgIsMultiLine to be false
+            }
+            isMsgMultiLine = (promptMultiLine != -1);
+        }
+        msg.setBorder(BorderFactory.createEmptyBorder(MSG_BORDER, MSG_BORDER, MSG_BORDER, MSG_BORDER));
+
+        wantW = (2 * MSG_BORDER) + promptMaxWid;
         if (wantW < 280)
             wantW = 280;
         if ((choice3 != null) && (wantW < (280+80)))
             wantW = (280 + 80);
-        wantH = 25 + 2 * ColorSquare.HEIGHT + (promptLines * getFontMetrics(msg.getFont()).getHeight());
+        wantH = 41 + (promptLines * getFontMetrics(msg.getFont()).getHeight());  // includes assumed button height
         padW = 0;  // Won't be able to call getInsets and know the values, until windowOpened()
         padH = 0;
-        setSize(wantW + 6, wantH + 20);
+        if (isMsgMultiLine)
+        {
+            // to be adjusted in windowOpened()
+            setSize(wantW + 6, wantH + 20);
+        }
         setLocation(150, 100);
 
-        Panel pBtns = new Panel();
+        pBtns = new JPanel();
         pBtns.setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));  // horiz border 3 pixels
-
+        pBtns.setBorder
+            (BorderFactory.createEmptyBorder(ColorSquare.HEIGHT / 2, 0, ColorSquare.HEIGHT / 2, 0));  // vert border
+        
         pBtns.add(choice1But);
         choice1But.addActionListener(this);
 
@@ -339,7 +395,7 @@ public abstract class AskDialog extends Dialog
             }
         }
 
-        add(pBtns, BorderLayout.CENTER);
+        add(pBtns);
 
         // Now that we've added buttons to the dialog layout,
         // we can get their font and adjust style of default button.
@@ -368,6 +424,12 @@ public abstract class AskDialog extends Dialog
             if (choice3But != null)
                 choice3But.addKeyListener(this);
         }
+
+        if (! isMsgMultiLine)
+        {
+            validate();
+            pack();
+        }
     }
 
     /**
@@ -380,12 +442,18 @@ public abstract class AskDialog extends Dialog
         padH = getInsets().top + getInsets().bottom;
         if ((padW > 0) || (padH > 0))
         {
-            setSize(wantW + padW, wantH + padH);
-            validate();
+            if (isMsgMultiLine && ! isSizeCheckedAlready)
+            {
+                wantH = 12 + msg.getPreferredSize().height + pBtns.getPreferredSize().height;
+                setSize(wantW + padW + 20, wantH + padH);
+                validate();
+                isSizeCheckedAlready = true;
+            }
         }
 
         if (didReqFocus)
             return;
+
         switch (choiceDefault)
         {
         case 1:
@@ -622,9 +690,9 @@ public abstract class AskDialog extends Dialog
     }
 
     /**
-     * Extract the first line (up to \n) if f is multi-line.
+     * Extract the first line (up to \n) if {@code f} is multi-line.
      * @param f  A string, possibly containing \n. Should not start with \n.
-     * @return  f's first line, or all of f if no \n
+     * @return  {@code f}'s first line, or all of {@code f} if no \n
      * @since 1.1.07
      */
     public static String firstLine(String f)

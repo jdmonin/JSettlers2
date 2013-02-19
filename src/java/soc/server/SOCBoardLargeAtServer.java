@@ -624,6 +624,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         final boolean checkClumps = (optBC != null) && optBC.getBoolValue();
         final int clumpSize = checkClumps ? optBC.getIntValue() : 0;
         boolean clumpsNotOK = checkClumps;
+        final boolean hasRobber = ! SOCScenario.K_SC_PIRI.equals(scen);  // all other known scenarios have a robber
 
         // Validate landAreaPathRanges lengths within numPath
         if ((landAreaPathRanges == null) || ((landAreaPathRanges.length % 2) != 0))
@@ -713,7 +714,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                     // place the robber on the desert
                     if (landHexType[i] == DESERT_HEX)
                     {
-                        setRobberHex(numPath[i], false);
+                        if (hasRobber)
+                            setRobberHex(numPath[i], false);
                         numberLayoutLg[r][c] = -1;
                         // TODO do we want to not set robberHex? or a specific point?
                     }

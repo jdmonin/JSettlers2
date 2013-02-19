@@ -3964,9 +3964,8 @@ public class SOCPlayerClient
                 break;
             }
 
-            SOCPlayer ourPlayerData = ga.getPlayer(nickname);
             PlayerClientListener pcl = clientListeners.get(mes.getGame());
-            pcl.playerDevCardUpdated(ourPlayerData);
+            pcl.playerDevCardUpdated(player);
         }
     }
 

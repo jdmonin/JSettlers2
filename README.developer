@@ -1,4 +1,4 @@
-README.developer - Notes and current status of 2012 JSettlers development
+README.developer - Notes and current status of 2013 JSettlers development
 	(version 2.0.xx, beta server running at nand.net)
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
@@ -113,7 +113,7 @@ See below for how to set up the coding style in Eclipse.
 
 In my Eclipse project, I've created these debug/run configurations for testing:
 
-Java applet: soc.client.SOCPlayerClient.SOCApplet
+Java applet: soc.client.SOCPlayerClient$SOCApplet
    width 600, height 340
    parameters: PORT = 44203
 
@@ -385,7 +385,7 @@ Then: git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'
 You can also see an overview of commit comments in the git log
 histories of src/java/resources/version.info.in and VERSIONS.txt.
 
-The github repo contains the full JSettlers2 CVS history formerly hosted at
+The github repo includes the full JSettlers2 CVS history formerly hosted at
 http://sourceforge.net/projects/jsettlers2/develop through 2012-09-28.
 The old old source history from Robert S Thomas (2004-2005) can be found at
 http://sourceforge.net/projects/jsettlers/develop .

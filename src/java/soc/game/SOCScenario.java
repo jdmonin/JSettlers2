@@ -108,6 +108,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
      *<LI> If your scenario requires new {@link SOCGameOption}s to change the rules or game behavior,
      *   create and test those; scenario game options all start with "_SC_".
      *   See {@link SOCGameOption#initAllOptions()} for details.
+     *   If the new scenario has a new game option just for itself, instead of a reusable one like {@code _SC_SANY},
+     *   the option name is "_" + scenario name: {@code _SC_PIRI} for scenario {@code SC_PIRI}.
      *<LI> Add the scenario's key to the list of "game scenario keynames"
      *   as a public static final String, such as {@link #K_SC_FOG}.
      *   Put a short description in the javadoc there, and the list in this javadoc.
@@ -163,8 +165,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
 
         allSc.put(K_SC_FOG, new SOCScenario
             (K_SC_FOG, 2000, 2000,
-             "Some land hexes initially hidden by fog",
-             "When you build a ship or road to a foggy hex, it is revealed and you are given its resource as a reward.",
+             "Some hexes initially hidden by fog",
+             "When you build a ship or road to a foggy hex, that hex is revealed. Unless it's water, you are given its resource as a reward.",
              "_SC_FOG=t,PLL=t,VP=t12"));
 
         allSc.put(K_SC_TTD, new SOCScenario
@@ -178,7 +180,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
              "Cloth Trade with neutral villages",
              "The small villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
              + "build ships to a village. Each player to reach a village get 1 cloth when it's reached, and 1 more "
-             + "whenever its number is rolled, until the village runs out.",
+             + "whenever its number is rolled, until the village runs out. You can't move the robber until you've "
+             + "reached a village.",
              "_SC_CLVI=t,PLL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
         allSc.put(K_SC_PIRI, new SOCScenario
@@ -186,8 +189,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
              "Pirate Islands and Fortresses",
              "A pirate fleet circulates, stealing resources from weak players with adjacent settlements/cities until "
              + "the player upgrades their ships to warships.  To win, you must build ships directly to the Fortress "
-             + "with your color, and defeat it 3 times using warships.  Also, ship routes can't branch in different "
-             + "directions, only extend from their ends.",
+             + "with your color, which the pirates have captured from you, and defeat it 3 times using warships.  "
+             + "So, ship routes can't branch in different directions, only extend from their ends.",
              "_SC_PIRI=t,PLL=t,VP=t10"));  // win condition: 10 VP _and_ defeat a pirate fortress
 
         return allSc;
@@ -383,6 +386,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     }
 
     /**
+     * Get all known scenario objects, mapping from their key names (such as {@link #K_SC_4ISL SC_4ISL}).
      * @return a deep copy of all known scenario objects
      * @see #addKnownScenario(SOCScenario)
      */
@@ -434,6 +438,8 @@ public class SOCScenario implements Cloneable, Comparable<Object>
     }
 
     /**
+     * Get the scenario information about this known scenario.
+     * @param key  Scenario key name, such as {@link #K_SC_4ISL SC_4ISL}, from {@link #getAllKnownScenarios()}
      * @return information about a known scenario, or null if none with that key
      */
     public static SOCScenario getScenario(String key)

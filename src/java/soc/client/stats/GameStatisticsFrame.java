@@ -42,6 +42,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
 import soc.client.SOCPlayerInterface;
+import soc.game.SOCGame;
 import soc.game.SOCPlayer;
 
 public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Listener
@@ -121,12 +122,16 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
                 int r = 0;
                 StringBuilder sb = new StringBuilder();
                 sb.append("Roll: ").append(i).append("<br/>");
-                for (SOCPlayer p : pi.getGame().getPlayers())
+                final SOCGame ga = pi.getGame();
+                for (SOCPlayer p : ga.getPlayers())
                 {
-                    int pid = p.getPlayerNumber();
-                    if (!playerEnabled.get(pid).isSelected())
-                        continue;
-                    Integer v = stats.getRollCount(i, pid);
+                    final int pn = p.getPlayerNumber();
+                    if (ga.isSeatVacant(pn))
+                        continue;  // player name is null
+                    if (! playerEnabled.get(pn).isSelected())
+                        continue;  // not showing player's stats
+
+                    final Integer v = stats.getRollCount(i, pn);
                     if (v != null)
                     {
                         sb.append(p.getName()).append(": ").append(v.intValue()).append("<br/>");
@@ -269,9 +274,18 @@ public class GameStatisticsFrame extends JFrame implements SOCGameStatistics.Lis
             if (value > 0)
             {
                 Font BAR_FONT = new Font("SansSerif", Font.PLAIN, 12);
-                g.setColor(Color.CYAN);
+                final int fHeight = 2 + g.getFontMetrics(BAR_FONT).getAscent();
+                final int y;
+                if (h < fHeight)
+                {
+                    g.setColor(Color.BLACK);  // visible against light background
+                    y = sz.height - h - 2;    // positioned above value bar
+                } else {
+                    g.setColor(Color.CYAN);   // visible against dark-blue value bar
+                    y = sz.height - 2;        // positioned at bottom of value bar
+                }
                 g.setFont(BAR_FONT);
-                g.drawString(String.valueOf(value), 2, sz.height - 2);
+                g.drawString(String.valueOf(value), 2, y);
             }
         }
     }

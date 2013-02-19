@@ -101,13 +101,13 @@ public class SOCPlayerInterface extends Frame
     private static final soc.util.SOCStringManager strings = soc.util.SOCStringManager.getClientManager();
 
     /**
-     * System property os.name; For use by {@link #isPlatformWindows}.
+     * System property os.name; For use by {@link #SOCPI_isPlatformWindows}.
      * @since 1.1.08
      */
     private final static String SOCPI_osName = System.getProperty("os.name");
 
     /**
-     * Are we running on the Windows platform, according to {@link #osName}?
+     * Are we running on the Windows platform, according to {@link #SOCPI_osName}?
      * @since 1.1.08
      */
     private final static boolean SOCPI_isPlatformWindows = (SOCPI_osName != null) && (SOCPI_osName.toLowerCase().indexOf("windows") != -1);
@@ -444,18 +444,16 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Create and show a new player interface.
-     * If the game options have a {@link SOCScenario} description, it will be shown in a popup.
+     * If the game options have a {@link SOCScenario} description, it will be shown now in a popup
+     * by {@link #showScenarioInfoDialog()}.
      *
      * @param title  title for this interface - game name
      * @param gd     the player display that spawned us
-     * @param ga     the game associated with this interface
+     * @param ga     the game associated with this interface; must not be {@code null}
      */
     public SOCPlayerInterface(String title, GameAwtDisplay gd, SOCGame ga)
     {
         super(/*I*/TITLEBAR_GAME + title + (ga.isPractice ? "" : " [" + gd.getNickname() + "]")/*18N*/);
-        if (ga == null)
-            // keep even though it is dead code
-            throw new IllegalArgumentException("game is null");
         
         setResizable(true);
         layoutNotReadyYet = true;  // will set to false at end of doLayout
@@ -541,10 +539,11 @@ public class SOCPlayerInterface extends Frame
         repaint();
 
         /**
-         * init is almost complete - when window appears and doLayout is called,
+         * init is almost complete - when window appears and doLayout() is called,
          * it will reset mouse cursor from WAIT_CURSOR to normal (WAIT_CURSOR is
          * set in SOCPlayerClient.startPracticeGame or .guardedActionPerform).
-         * Then, if the game has any scenario description, it will be shown once in a popup.
+         * Then, if the game has any scenario description, it will be shown once in a popup
+         * via showScenarioInfoDialog().
          */
     }
     
@@ -784,7 +783,11 @@ public class SOCPlayerInterface extends Frame
     {
         return gameDisplay.getClient();
     }
-    
+
+    /**
+     * @return the game display associated with this interface
+     * @since 2.0.00
+     */
     public GameAwtDisplay getGameDisplay()
     {
         return gameDisplay;
@@ -1863,6 +1866,18 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * If this game has a scenario (game option {@code "SC"}), show the scenario
+     * description, special rules, and number of victory points to win.
+     * Shown automatically when the SOCPlayerInterface is first shown.
+     * @since 2.0.00
+     */
+    public void showScenarioInfoDialog()
+    {
+        NewGameOptionsFrame.showScenarioInfoDialog
+            (game.getGameOptionStringValue("SC"), game.getGameOptions(), game.vp_winner, getGameDisplay(), this);
+    }
+
+    /**
      * Update interface after the server sends us a new board layout.
      * Call after setting game data and board data.
      * Calls {@link SOCBoardPanel#flushBoardLayoutAndRepaint()}.
@@ -2359,7 +2374,7 @@ public class SOCPlayerInterface extends Frame
      * {@link #invalidate()} and call this again, because {@link SOCHandPanel} sizes will change.
      * Also, on first call, resets mouse cursor to normal, in case it was WAIT_CURSOR.
      * On first call, if the game options have a {@link SOCScenario} with any long description,
-     * it will be shown in a popup.
+     * it will be shown in a popup via {@link #showScenarioInfoDialog()}.
      */
     @Override
     public void doLayout()
@@ -2574,6 +2589,9 @@ public class SOCPlayerInterface extends Frame
             chatDisplay.setBounds(x, i.top + 4 + h, w, cdh);
             h += cdh;
             textInput.setBounds(x, i.top + 4 + h, w, tfh);
+
+            // focus here for easier chat typing
+            textInput.requestFocusInWindow();
         } else {
             // standard size
             textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);
@@ -2607,43 +2625,7 @@ public class SOCPlayerInterface extends Frame
 
         if (! didGameScenarioPopupCheck)
         {
-            final String gameSc = game.getGameOptionStringValue("SC");
-            if (gameSc != null)
-            {
-                SOCScenario sc = SOCScenario.getScenario(gameSc);
-                if (sc != null)
-                {
-                    // TODO also check game for any other _SC_ game opts
-
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(/*I*/"Game Scenario: "/*18N*/);
-                    sb.append(sc.scDesc);
-                    sb.append('\n');
-
-                    if (sc.scLongDesc != null)
-                    {
-                        sb.append('\n');
-                        sb.append(sc.scLongDesc);
-                        // TODO word wrap
-                    }
-
-                    if (game.vp_winner != SOCGame.VP_WINNER_STANDARD)
-                    {
-                        sb.append('\n');
-                        sb.append(/*I*/"Victory Points to win: "/*18N*/);
-                        sb.append(game.vp_winner);
-                    }
-                    final String scenStr = sb.toString();
-                    EventQueue.invokeLater(new Runnable()
-                    {
-                        public void run()
-                        {
-                            NotifyDialog.createAndShow(getGameDisplay(), SOCPlayerInterface.this, scenStr, null, true);
-                        }
-                    });
-                }
-            }
-
+            showScenarioInfoDialog();
             didGameScenarioPopupCheck = true;
         }
     }
@@ -3606,7 +3588,7 @@ public class SOCPlayerInterface extends Frame
      * This is the modal dialog to confirm resetting the board after a practice game.
      *
      * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
-     * @since 2.0.00
+     * @since 1.1.18
      */
     protected static class ResetBoardConfirmDialog extends AskDialog implements Runnable
     {

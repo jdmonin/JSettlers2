@@ -128,7 +128,6 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> NT  No trading allowed
      *<LI> VP  Victory points (10-15)
      *<LI> SC  Game Scenario (optional groups of rules; see {@link SOCScenario})
-     *<LI> DH  Dev Cards for house rules (swap/destroy)
      *<LI> _BHW  Board height and width, if not default, for {@link SOCBoardLarge}: 0xRRCC
      *</UL>
      *  * Grouping: PLB is 3 characters, not 2, and its first 2 characters match an
@@ -287,17 +286,29 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         final SOCGameOption sc = new SOCGameOption
                 ("SC", 2000, 2000, 8, false, true, "Game Scenario: #");
         opt.put("SC", sc);
+
+        // Not Implemented: DH:
+        /*
         opt.put("DH", new SOCGameOption
                 ("DH", 2000, 2000, false, true, "Experimental: Dev Cards for house rules (swap/destroy)"));
                 // TODO no robot players for DH
+         *
+         * Game opt "DH" was suggested by a contributor, who would implement it.
+         * For now that keyname is reserved for when this happens. 
+         */
 
         // Game scenario options (rules and events)
+
+        //      I18N note: SOCPlayerInterface.showScenarioInfoDialog() assumes these
+        //      all start with the text "Scenarios: "; when localizing, be sure to
+        //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
+
         opt.put(K_SC_SANY, new SOCGameOption
                 (K_SC_SANY, 2000, 2000, false, true, "Scenarios: SVP for your first settlement on any island"));
         opt.put(K_SC_SEAC, new SOCGameOption
                 (K_SC_SEAC, 2000, 2000, false, true, "Scenarios: 2 SVP for your first settlement on each island"));
         opt.put(K_SC_FOG, new SOCGameOption
-                (K_SC_FOG, 2000, 2000, false, true, "Scenarios: Some land hexes initially hidden by fog"));
+                (K_SC_FOG, 2000, 2000, false, true, "Scenarios: Some hexes initially hidden by fog"));
         opt.put(K_SC_0RVP, new SOCGameOption
                 (K_SC_0RVP, 2000, 2000, false, true, "Scenarios: No longest trade route VP (no Longest Road)"));
         opt.put(K_SC_3IP, new SOCGameOption

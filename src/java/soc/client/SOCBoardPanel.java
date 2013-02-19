@@ -839,10 +839,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     private int ptrOldX, ptrOldY;
     
     /**
-     * (tooltip) Hover text.  Its mode uses boardpanel mode
-     * constants: Will be NONE, PLACE_ROAD, PLACE_SETTLEMENT,
-     *   PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
+     * (tooltip) Hover text for info on pieces/parts of the board. Its mode uses boardpanel mode constants.
      * Also contains "hovering" road/settlement/city near mouse pointer.
+     * @see #hilight
      */
     private BoardToolTip hoverTip;
 
@@ -914,6 +913,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * Check {@link #player}.{@link SOCPlayer#isPotentialRoad(int) isPotentialRoad(hilight)}
      * first, then {@link SOCPlayer#isPotentialShip(int) .isPotentialShip}.
      * Player can right-click to build an initial ship along a coastal edge.
+     *<P>
+     * Hilight is drawn in {@link #drawBoard(Graphics)}. Value updated in {@link #mouseMoved(MouseEvent)}.
+     * Cleared in {@link #clearModeAndHilight(int)}.
+     *
+     * @see #hoverTip
      */
     private int hilight;
 
@@ -3288,7 +3292,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * draw the whole board, including pieces and tooltip if applicable.
+     * Draw the whole board, including pieces and tooltip ({@link #hilight}, {@link #hoverTip}) if applicable.
      * The basic board without pieces is drawn just once, then buffered.
      * If the board layout changes (at start of game, for example),
      * call {@link #flushBoardLayoutAndRepaint()} to clear the buffered copy.
@@ -3348,11 +3352,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             }
         }
 
-        if (gameState != SOCGame.NEW)
-        {
-            drawArrow(g, game.getCurrentPlayerNumber(), game.getCurrentDice());
-        }
-
         /**
          * draw the roads and ships
          */
@@ -3366,6 +3365,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             for (int pn = 0; pn < game.maxPlayers; ++pn)
             {
                 final SOCPlayer pl = game.getPlayer(pn);
+
+                // count warships here, for efficiency, instead of calling SOCGame.isShipWarship for each one
                 int numWarships = pl.getNumWarships();
                 for (SOCRoad r : pl.getRoads())
                 {
@@ -3399,6 +3400,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         for (SOCCity c : board.getCities())
         {
             drawCity(g, c.getCoordinates(), c.getPlayerNumber(), false);
+        }
+
+        /**
+         * draw the current-player arrow after ("above") pieces,
+         * but below any hilighted piece, in case of overlap at
+         * edge of board. More likely on 6-player board for the
+         * two players whose handpanels are vertically centered.
+         */
+        if (gameState != SOCGame.NEW)
+        {
+            drawArrow(g, game.getCurrentPlayerNumber(), game.getCurrentDice());
         }
 
         if (player != null)
@@ -4230,7 +4242,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         setSuperimposedTopText(topText);  // usually null
         updateHoverTipToMode();
     }
-    
+
+    /**
+     * Update {@link #hoverTip} based on {@link #mode}.
+     * Might or might not repaint board:
+     * Calls {@link BoardToolTip#setOffsetX(int)} or {@link BoardToolTip#setHoverText(String)}.
+     */
     protected void updateHoverTipToMode()
     {
         if ((mode == NONE) || (mode == TURN_STARTING) || (mode == GAME_OVER))
@@ -4248,6 +4265,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Set board mode to {@link #NONE}, no hilight, usually from a piece-placement mode.
+     * Calls {@link #updateHoverTipToMode()} and repaints the board.
      *
      * @param ptype Piece type to clear, like {@link SOCPlayingPiece#ROAD}, or -1 for robber.
      *              Used to avoid race condition during initial placement,
@@ -4305,6 +4323,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hilight = 0;
             hilightIsShip = false;
             moveShip_fromEdge = 0;
+            repaint();
         }
         updateHoverTipToMode();
     }
@@ -4431,9 +4450,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
-     * DOCUMENT ME!
-     *
-     * @param e DOCUMENT ME!
+     * Based on the board's current {@link #mode}, update the hovering 'hilight' piece ({@link #hilight}}.
+     * Trigger a {@link #repaint()} if the mouse moved or the hilight changes.
      */
     public void mouseMoved(MouseEvent e)
     {
@@ -4523,7 +4541,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 edgeNum = findEdge(xb, yb, true);
                 final boolean hasShips = (player != null) && (player.getNumPieces(SOCPlayingPiece.SHIP) > 0);
                 final boolean canPlaceShip =
-                    (hasShips) ? game.canPlaceShip(player, edgeNum) : false;
+                    hasShips && game.canPlaceShip(player, Math.abs(edgeNum));
+
+                if ((mode == PLACE_FREE_ROAD_OR_SHIP) && canPlaceShip
+                    && (edgeNum > 0) && (player.getNumPieces(SOCPlayingPiece.ROAD) == 0))
+                {
+                    edgeNum = -edgeNum;  // force ship (not road) if we have no roads remaining to freely place 
+                }
+
                 boolean isShip;
                 if (edgeNum < 0)
                 {
@@ -4911,18 +4936,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 break;
 
             case MOVE_SHIP:
-                if (moveShip_fromEdge != 0)
-                {
-                    if (game.canMoveShip(playerNumber, moveShip_fromEdge, hilight) != null)
-                    {
-                        client.getGameManager().movePieceRequest
-                            (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, hilight);
-                        clearModeAndHilight(SOCPlayingPiece.SHIP);
-                    }
-                    moveShip_fromEdge = 0;
-                } else {
-                    clearModeAndHilight(SOCPlayingPiece.SHIP);  // exit the mode, since can't move from 0
-                }
+                // check and move ship to hilight from fromEdge; also sets moveShip_fromEdge = 0, calls clearModeAndHilight.
+                tryMoveShipToHilight();
                 break;
 
             case PLACE_INIT_SETTLEMENT:
@@ -5249,6 +5264,29 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * Check and move ship from {@link #moveShip_fromEdge} to {@link #hilight}.  Also sets moveShip_fromEdge = 0,
+     * calls {@link #clearModeAndHilight(int) clearModeAndHilight}({@link SOCPlayingPiece#SHIP}).
+     * Called from mouse click or popup menu.
+     * Note that if {@link #hilight} != 0, then {@link SOCGame#canMoveShip(int, int, int) SOCGame.canMoveShip}
+     * ({@link #playerNumber}, {@link #moveShip_fromEdge}, {@link #hilight}) has probably already been called.
+     * @since 2.0.00
+     * @see BoardPopupMenu#tryMoveShipFromHere()
+     */
+    private final void tryMoveShipToHilight()
+    {
+        if (moveShip_fromEdge != 0)
+        {
+            if (game.canMoveShip(playerNumber, moveShip_fromEdge, hilight) != null)
+            {
+                playerInterface.getClient().getGameManager().movePieceRequest
+                    (game, playerNumber, SOCPlayingPiece.SHIP, moveShip_fromEdge, hilight);
+            }
+            moveShip_fromEdge = 0;
+        }
+        clearModeAndHilight(SOCPlayingPiece.SHIP);  // exit the mode
+    }
+
+    /**
      * Text to be displayed as 2 lines superimposed over the
      * center of the board graphic (during game setup).
      * Either text2, or both, can be null to display nothing.
@@ -5306,6 +5344,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      * <b>Note:</b> For the 6-player board, edge 0x00 is a valid edge that
      * can be built on.  It is found here as -1, since a value of 0 marks an
      * invalid edge.
+     *<P>
+     * <b>Note:</b> For {@link SOCBoardLarge}, the 'sea' side of a coastal edge
+     * is returned as the negative value of its edge coordinate, if {@code checkCoastal} is set.
      *
      * @param x  x coordinate, in unscaled board, not actual pixels;
      *           use {@link #scaleFromActualX(int)} to convert
@@ -5315,7 +5356,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *           Ignored unless {@link #isLargeBoard}.
      *           Returns positive edge for non-coastal sea edges.
      * @return the coordinates of the edge, or 0 if none; -1 for the 6-player
-     *     board's valid edge 0x00
+     *     board's valid edge 0x00; -edge for the sea side of a coastal edge on the large board
+     *     if {@code checkCoastal}.
      */
     private final int findEdge(int x, int y, final boolean checkCoastal)
     {
@@ -5776,6 +5818,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
 
 
+    /**
+     * (tooltip) Hover text for info on pieces/parts of the board.
+     * Its mode uses boardpanel mode constants: Will be NONE, PLACE_ROAD,
+     * PLACE_SETTLEMENT, PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
+     * Also contains "hovering" road/settlement/city near mouse pointer,
+     * distinct from {@link SOCBoardPanel#hilight}.
+     *
+     * @author jdmonin
+     * @since 1.1.00
+     */
     protected class BoardToolTip
     {
         private SOCBoardPanel bpanel;
@@ -5786,6 +5838,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         /** Uses board mode constants: Will be {@link SOCBoardPanel#NONE NONE},
          *  {@link SOCBoardPanel#PLACE_ROAD PLACE_ROAD}, PLACE_SHIP, PLACE_SETTLEMENT,
          *  PLACE_ROBBER for hex, or PLACE_INIT_SETTLEMENT for port.
+         *  Updated in {@link #handleHover(int, int)}.
          */
         private int hoverMode;
 
@@ -6283,31 +6336,38 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverShipID = 0;
                 hoverIsShipMovable = false;
 
-                // Is anything there?
-                SOCPlayingPiece p = board.roadAtEdge(id);
-                if (p != null)
+                // Is a road or ship there?
+                final SOCRoad rs = board.roadAtEdge(id);
+                if (rs != null)
                 {
                     if (! hoverTextSet)
                     {
-                        final boolean isRoad = (p.getType() == SOCPlayingPiece.ROAD);
+                        final boolean isRoad = rs.isRoadNotShip();
                         if (isRoad)
                             hoverMode = PLACE_ROAD;
                         else
                             hoverMode = PLACE_SHIP;
-                        hoverPiece = p;
+                        hoverPiece = rs;
                         hoverID = id;
-                        String plName = p.getPlayer().getName();
+                        String plName = rs.getPlayer().getName();
                         if (plName == null)
                             plName = /*I*/"unowned"/*18N*/;
                         if (isRoad)
+                        {
                             setHoverText(/*I*/"Road: " + plName/*18N*/);
-                        else
-                            setHoverText(/*I*/"Ship: " + plName/*18N*/);
+                        } else {
+                            // Scenario _SC_PIRI has warships; check class just in case.
+                            final boolean isWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
+                            if (isWarship)
+                                setHoverText(/*I*/"Warship: "/*18N*/ + plName);
+                            else
+                                setHoverText(/*I*/"Ship: " + plName/*18N*/);
+                        }
 
                         // Can the player move their ship?
                         if (modeAllowsHoverPieces && playerIsCurrent
                              && (! isRoad)
-                             && (p.getPlayer() == player)
+                             && (rs.getPlayer() == player)
                              && (game.canMoveShip(playerNumber, hoverID) != null))
                         {
                             hoverIsShipMovable = true;
@@ -6703,8 +6763,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           upgradeCityItem.setEnabled(false);
           if (buildShipItem != null)
           {
-              buildShipItem.setEnabled(false);
-              buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
+              if (mode == MOVE_SHIP)
+              {
+                  buildShipItem.setEnabled((hilightAt != 0) && (hilightAt != moveShip_fromEdge));
+                  buildShipItem.setLabel(/*I*/"Move Ship"/*18N*/);                  
+              } else {
+                  buildShipItem.setEnabled(false);
+                  buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
+              }
           }
           cancelBuildItem.setEnabled(menuPlayerIsCurrent && game.canCancelBuildPiece(buildType));
 
@@ -6733,9 +6799,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
           case SOCPlayingPiece.SHIP:
               if (mode == MOVE_SHIP)
+              {
                   cancelBuildItem.setLabel(/*I*/"Cancel ship move"/*18N*/);
-              else
+                  cancelBuildItem.setEnabled(true);
+              } else {
                   cancelBuildItem.setLabel(/*I*/"Cancel ship"/*18N*/);
+              }
               hoverShipID = hilightAt;
               break;
 
@@ -6773,6 +6842,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               portTradeSubmenu.destroy();
               portTradeSubmenu = null;
           }
+
+          boolean didEnableDisable = true;  // don't go through both sets of menu item enable/disable statements
 
           menuPlayerIsCurrent = (player != null) && playerInterface.clientIsCurrentPlayer();
 
@@ -6843,6 +6914,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   break;
 
               default:
+                  didEnableDisable = false;  // must still check enable/disable
                   if (gs < SOCGame.PLAY1)
                       menuPlayerIsCurrent = false;  // Not in a state to place items
               }
@@ -6871,33 +6943,36 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (! isInitialPlacement)
               {
                   final boolean debugPP = game.isDebugFreePlacement();
-                  buildRoadItem.setEnabled
-                      ( player.isPotentialRoad(hR) &&
-                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
-                                 : game.couldBuildRoad(cpn)) );
-                  buildSettleItem.setEnabled
-                      ( player.canPlaceSettlement(hSe) &&
-                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
-                                 : game.couldBuildSettlement(cpn)) );
-                  upgradeCityItem.setEnabled
-                      ( player.isPotentialCity(hC) &&
-                        (debugPP ? (player.getNumPieces(SOCPlayingPiece.CITY) > 0)
-                                 : game.couldBuildCity(cpn)) );
-                  if (buildShipItem != null)
+                  if (debugPP || ! didEnableDisable)
                   {
-                    isShipMovable = (hSh < 0);
-                    if (isShipMovable)
-                    {
-                        hSh = -hSh;
-                        buildShipItem.setLabel(/*I*/"Move Ship"/*18N*/);
-                        buildShipItem.setEnabled(true);  // trust the caller's game checks
-                    } else {
-                        buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
-                        buildShipItem.setEnabled
-                        ( game.canPlaceShip(player, hSh) &&
-                          (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
-                                   : game.couldBuildShip(cpn)) );
-                    }
+                      buildRoadItem.setEnabled
+                          ( player.isPotentialRoad(hR) &&
+                            (debugPP ? (player.getNumPieces(SOCPlayingPiece.ROAD) > 0)
+                                     : game.couldBuildRoad(cpn)) );
+                      buildSettleItem.setEnabled
+                          ( player.canPlaceSettlement(hSe) &&
+                            (debugPP ? (player.getNumPieces(SOCPlayingPiece.SETTLEMENT) > 0)
+                                     : game.couldBuildSettlement(cpn)) );
+                      upgradeCityItem.setEnabled
+                          ( player.isPotentialCity(hC) &&
+                            (debugPP ? (player.getNumPieces(SOCPlayingPiece.CITY) > 0)
+                                     : game.couldBuildCity(cpn)) );
+                      if (buildShipItem != null)
+                      {
+                        isShipMovable = (hSh < 0);
+                        if (isShipMovable)
+                        {
+                            hSh = -hSh;
+                            buildShipItem.setLabel(/*I*/"Move Ship"/*18N*/);
+                            buildShipItem.setEnabled(true);  // trust the caller's game checks
+                        } else {
+                            buildShipItem.setLabel(/*I*/"Build Ship"/*18N*/);
+                            buildShipItem.setEnabled
+                            ( game.canPlaceShip(player, hSh) &&
+                              (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
+                                       : game.couldBuildShip(cpn)) );
+                        }
+                      }
                   }
               }
               hoverRoadID = hR;
@@ -6951,8 +7026,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               tryBuild(SOCPlayingPiece.CITY);
           else if ((target == buildShipItem) && (target != null))
           {
-              if (isShipMovable)
-                  tryMoveShip();
+              if (mode == MOVE_SHIP)
+                  tryMoveShipToHilight();
+              else if (isShipMovable)
+                  tryMoveShipFromHere();
               else
                   tryBuild(SOCPlayingPiece.SHIP);
           }
@@ -6962,7 +7039,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
       /**
        * Send message to server to request placing this piece, if allowable.
-       * If not initial placement, set up a reaction to send the 2nd message (putpiece).
+       * If not initial placement or free placement, also sets up a reaction to send the 2nd message (putpiece)
        * when server says it's OK to build.
        * Assumes player is current, and player is non-null, when called.
        *
@@ -6979,9 +7056,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           String btarget;    // button name on buildpanel
           
           // If we're in initial placement, or cancel/build during game,
-          // or debugPP, then send putpiece right now.
+          // or debugPP, or free-road placement, then send putpiece right now.
           // Otherwise, multi-phase send.
-          final boolean sendNow = isInitialPlacement || wantsCancel || debugPP;
+          final int gstate = game.getGameState();
+          final boolean sendNow = isInitialPlacement || wantsCancel || debugPP
+              || (gstate == SOCGame.PLACING_FREE_ROAD1) || (gstate == SOCGame.PLACING_FREE_ROAD2);
           
           // Note that if we're in gameplay have clicked the "buy road" button
           // and trying to place it, game.couldBuildRoad will be false because
@@ -7070,6 +7149,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           {
               // No building-panel or server request necessary
               clearModeAndHilight(SOCPlayingPiece.SHIP);
+              playerInterface.print(/*I*/"Canceled moving the ship."/*18N*/);
               return;
           }
 
@@ -7102,8 +7182,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        *
        * @param ptype Piece type, like {@link SOCPlayingPiece#ROAD}
        * @since 2.0.00
+       * @see SOCBoardPanel#tryMoveShipToHilight()
        */
-      private void tryMoveShip()
+      private void tryMoveShipFromHere()
       {
           playerInterface.print(/*I*/"Click the ship's new location."/*18N*/);
           moveShip_fromEdge = hoverShipID;

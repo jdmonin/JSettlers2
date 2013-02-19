@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * This file copyright (C) 2009,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012-2013 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -33,7 +33,7 @@ import soc.client.SOCPlayerClient.GameAwtDisplay;
  * anything, until the user dismisses it.  At that point it only disappears.
  * A callback can be added later if needed.
  *
- * @author Jeremy D Monin <jeremy@nand.net>
+ * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.06
  */
 class NotifyDialog extends AskDialog
@@ -46,7 +46,8 @@ class NotifyDialog extends AskDialog
      * @param cli      Player client interface
      * @param gamePI   Current game's player interface, or another Frame for our parent window,
      *                 or null to look for cli's Frame as parent
-     * @param promptText  Prompt text appearing above button
+     * @param promptText  Prompt text appearing above button; also used for the dialog title
+     *                 (if multiple lines, first line is title)
      * @param btnText  Button text, or null for "OK"
      * @param hasDefault  Button is default (responds to Enter)
      * @throws IllegalArgumentException If cli, promptText, or btnText is null
@@ -67,7 +68,8 @@ class NotifyDialog extends AskDialog
      * @param cli      Player client interface
      * @param gamePI   Current game's player interface, or another Frame for our parent window,
      *                 or null to look for cli's Frame as parent
-     * @param promptText  Prompt text appearing above button
+     * @param promptText  Prompt text appearing above button; also used for the dialog title
+     *                 (if multiple lines, first line is title)
      * @param btnText  Button text
      * @param hasDefault  Button is default (responds to Enter)
      * @throws IllegalArgumentException If cli or btnText is null

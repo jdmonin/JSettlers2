@@ -1012,9 +1012,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * the number of {@link SOCShip}s that have been converted to warships
      * to defend against the pirate fleet and attack the {@link SOCFortress}.
      *<P>
-     * {@link SOCShip} has no "isWarship" field; the player's first <tt>numWarships</tt>
+     * {@link SOCShip} has no "isWarship" field; the player's first {@code numWarships}
      * ships within {@link #getRoads()} are the warships, because those are the ships
      * heading out to sea starting at the player's settlement, placed chronologically.
+     * See {@link SOCGame#isShipWarship(SOCShip)} for details.
      * @since 2.0.00
      */
     public int getNumWarships()

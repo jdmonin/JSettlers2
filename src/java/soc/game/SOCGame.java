@@ -76,6 +76,8 @@ import java.util.Vector;
  *<P>
  * The {@link SOCGame#hasSeaBoard large sea board} features scenario events.
  * To listen for these, call {@link #setScenarioEventListener(SOCScenarioEventListener)}.
+ * If the game has a scenario, its {@link SOCGameOption}s will include {@code "SC"}, possibly along with
+ * other options whose key names start with {@code "_SC_"}.
  *
  * @author Robert S. Thomas
  */
@@ -810,7 +812,7 @@ public class SOCGame implements Serializable, Cloneable
     private RollResult currentRoll;
 
     /**
-     * The most recent {@link #moveRobber(int, int)} result.
+     * The most recent {@link #moveRobber(int, int)} or {@link #movePirate(int, int)} result.
      * Used at server only.
      * @since 2.0.00
      */
@@ -1213,10 +1215,31 @@ public class SOCGame implements Serializable, Cloneable
 
     /**
      * @return allOriginalPlayers
+     * @see #hasHumanPlayers()
      */
     public boolean allOriginalPlayers()
     {
         return allOriginalPlayers;
+    }
+
+    /**
+     * Does this game contain any human players?
+     * @return  True if at least one non-vacant seat has
+     *          a human player (! {@link SOCPlayer#isRobot()}).
+     * @see #allOriginalPlayers()
+     * @since 1.1.18
+     */
+    public boolean hasHumanPlayers()
+    {
+        for (int i = 0; i < maxPlayers; ++i)
+        {
+            if (isSeatVacant(i))
+                continue;
+            if (! players[i].isRobot())
+                return true;
+        }
+
+        return false;
     }
 
     /**
@@ -2219,7 +2242,8 @@ public class SOCGame implements Serializable, Cloneable
      * If a {@link SOCBoard#WATER_HEX} is revealed, updates players' legal ship edges.
      *
      * @param hexCoord  Coordinate of the hex to reveal
-     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)}
+     * @param hexType   Revealed hex type, same value as {@link #getHexTypeFromCoord(int)},
+     *                    from {@link SOCBoardLarge#revealFogHiddenHexPrep(int)}
      * @param diceNum   Revealed hex dice number, same value as {@link #getNumberOnHexFromCoord(int)}, or 0
      * @throws IllegalArgumentException if <tt>hexCoord</tt> isn't currently a {@link #FOG_HEX}
      * @throws IllegalStateException if <tt>! game.{@link #hasSeaBoard}</tt>
@@ -2841,6 +2865,19 @@ public class SOCGame implements Serializable, Cloneable
             }
             break;
 
+        case PLAY1:
+            // PLAY1 is the gamestate when moveShip calls putPiece.
+            // In scenario _SC_FOG, moving a ship might reveal a gold hex.
+            // In scenario _SC_PIRI, PLAY1 is the gamestate when a SOCFortress is conquered
+            //   and the replacement SOCSettlement is placed by attackPirateFortress.
+            //   No special action is needed here.
+            if (needToPickFromGold)
+            {
+                oldGameState = PLAY1;
+                gameState = WAITING_FOR_PICK_GOLD_RESOURCE;
+            }
+            break;
+
         case PLACING_ROAD:
         case PLACING_SETTLEMENT:
         case PLACING_CITY:
@@ -3033,6 +3070,11 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * During {@link #isDebugFreePlacement()}, the gamestate is not changed,
      * unless the current player gains enough points to win.
+     *<P>
+     * <B>Scenario option {@link SOCGameOption#K_SC_FOG _SC_FOG}:</B><br>
+     * moveShip's caller should check {@link SOCPlayer#getNeedToPickGoldHexResources()} != 0.
+     * Revealing a gold hex from fog will set that player field and also
+     * sets gamestate to {@link #WAITING_FOR_PICK_GOLD_RESOURCE}.
      *
      * @param sh the ship to move on the board; its coordinate must be
      *           the edge to move from. Must not be a temporary ship.
@@ -4956,6 +4998,169 @@ public class SOCGame implements Serializable, Cloneable
     }
 
     /**
+     * Can the current player attack their pirate fortress, and try to conquer and recapture it?
+     * This method is validation before calling {@link #attackPirateFortress(SOCShip)}.
+     *<P>
+     * To attack, game state must be {@link #PLAY1}.
+     * The current player must have a {@link SOCPlayer#getFortress()} != {@code null},
+     * and a ship on an edge adjacent to that {@link SOCFortress}'s node.
+     *<P>
+     * Used with scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     *
+     * @return Current player's ship adjacent to their {@link SOCFortress}, or {@code null} if they can't attack
+     * @since 2.0.00
+     */
+    public SOCShip canAttackPirateFortress()
+    {
+        if (gameState != PLAY1)
+            return null;
+
+        final SOCPlayer currPlayer = players[currentPlayerNumber];
+        SOCFortress fort = currPlayer.getFortress(); 
+        if (fort == null)   // will be null unless _SC_PIRI; will be null if already recaptured by player
+            return null;
+
+        // Look for player's ship at edge adjacent to pirate fortress;
+        // start with most recently placed ship
+        final int[] edges = board.getAdjacentEdgesToNode_arr(fort.getCoordinates());
+        Vector<SOCRoad> roadsAndShips = currPlayer.getRoads();
+        for (int i = roadsAndShips.size() - 1; i >= 0; --i)
+        {
+            SOCRoad rs = roadsAndShips.get(i);
+            if (! (rs instanceof SOCShip))
+                continue;
+
+            final int rsCoord = rs.getCoordinates();
+            for (int j = 0; j < edges.length; ++j)
+                if (rsCoord == edges[j])
+                    return (SOCShip) rs;  // <--- found adjacent ship ---
+        }
+
+        return null;
+    }
+
+    /**
+     * The current player has built boats to their pirate fortress, and attacks now to try to conquer and recapture it.
+     * This can happen at most once per turn: Attacking the fortress always ends the player's turn.
+     * Assumes {@link #canAttackPirateFortress()} called first, to validate and get the {@code adjacent} ship.
+     *<P>
+     * The player's fleet strength ({@link SOCPlayer#getNumWarships()}) will be compared to a pirate defense
+     * strength of 1 to 6 (random).  Players lose 1 ship on a tie, 2 ships if defeated by the pirates.
+     *<P>
+     * If the player wins, the {@link SOCFortress} strength is reduced by 1.  After several wins, its strength is 0 and
+     * the fortress is recaptured, becoming a {@link SOCSettlement} for the player.  This method will fire a
+     * {@link SOCScenarioPlayerEvent#PIRI_FORTRESS_RECAPTURED} to announce this to any listener.
+     *<P>
+     * Used with scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     *
+     * @param adjacent  The current player's ship adjacent to their {@link SOCFortress},
+     *     from {@link #canAttackPirateFortress()}; unless player wins, this ship will be lost to the pirates.
+     * @return  Results array, whose length depends on the number of ships lost by the player to the pirates' defense.<BR>
+     *     results[0] is the pirate defense strength rolled here.<BR>
+     *     results[1] is the new strength of the pirate fortress; if 0, the player has recaptured it.
+     *     <UL>
+     *     <LI> If the player wins, they lose no ships.
+     *          Array length is 2.
+     *     <LI> If the player ties the pirates, they lose their 1 adjacent ship.
+     *          Array length is 3; results[2] is {@code adjacent}'s coordinates.
+     *     <LI> If the player loses to the pirates, they lose their 2 ships closest to the pirate fortress.
+     *          Array length is 4; results[2] and results[3] are the lost ship coordinates.
+     *     </UL>
+     * @since 2.0.00
+     */
+    public int[] attackPirateFortress(final SOCShip adjacent)
+    {
+        SOCPlayer currPlayer = players[currentPlayerNumber];
+        final int nWarships = currPlayer.getNumWarships();
+        SOCFortress fort = currPlayer.getFortress();  // not null if caller validated with canAttackPirateFortress
+
+        final int pirStrength = 1 + rand.nextInt(6);
+
+        final int nShipsLost;
+        if (nWarships < pirStrength)
+            nShipsLost = 2;
+        else if (nWarships == pirStrength)
+            nShipsLost = 1;
+        else
+        {
+            // player won, reduce fortress strength
+            nShipsLost = 0;
+            final int newFortStrength = fort.getStrength() - 1;
+            fort.setStrength(newFortStrength);
+
+            if (newFortStrength == 0)
+            {
+                // Fortress defeated: Convert to a settlement
+                final SOCSettlement recaptSettle = new SOCSettlement(currPlayer, fort.getCoordinates(), board);
+                putPiece(recaptSettle);
+                //  game.putPiece will call currPlayer.putPiece, which will set player's fortress field = null.
+
+                // Fire the scenario player event, with the resulting SOCSettlement
+                if (scenarioEventListener != null)
+                    scenarioEventListener.playerEvent
+                        (this, currPlayer, SOCScenarioPlayerEvent.PIRI_FORTRESS_RECAPTURED, true, recaptSettle);
+
+                // Have all other players' fortresses also been conquered?
+                boolean stillHasFortress = false;
+                for (int pn = 0; pn < maxPlayers; ++pn)
+                {
+                    if ((pn == currentPlayerNumber) || isSeatVacant(pn))
+                        continue;
+
+                    if (players[pn].getFortress() != null)
+                    {
+                        stillHasFortress = true;
+                        break;
+                    }
+                }
+
+                if (! stillHasFortress)
+                {
+                    // TODO: All fortresses defeated. pirate fleet goes away; and trigger a further scenario game event.
+                }
+            }
+        }
+
+        // Remove player's lost ships, if any,
+        // and build our results array
+        int[] retval = new int[2 + nShipsLost];
+        retval[0] = pirStrength;
+        retval[1] = fort.getStrength();
+        if (nShipsLost > 0)
+        {
+            final int shipEdge = adjacent.getCoordinates();
+            retval[2] = shipEdge;
+            undoPutPieceCommon(adjacent, false);
+
+            if (nShipsLost > 1)
+            {
+                // find player's newest-placed ship adjacent to shipEdge;
+                // it will also be lost
+                final Vector<Integer> adjacEdges = board.getAdjacentEdgesToEdge(shipEdge);
+                Vector<SOCRoad> roadsAndShips = currPlayer.getRoads();
+                for (int i = roadsAndShips.size() - 1; i >= 0; --i)
+                {
+                    SOCRoad rs = roadsAndShips.get(i);
+                    if (! (rs instanceof SOCShip))
+                        continue;
+
+                    final int rsCoord = rs.getCoordinates();
+                    if (! adjacEdges.contains(Integer.valueOf(rsCoord)))
+                        continue;
+
+                    retval[3] = rsCoord;
+                    undoPutPieceCommon(rs, false);
+                    break;
+                }
+            }
+        }
+
+        // TODO end player's turn too
+
+        return retval;
+    }
+
+    /**
      * Get the players who have settlements or cities on this hex.
      * @return a list of {@link SOCPlayer players} touching a hex
      *   with settlements/cities, or an empty Vector if none.
@@ -5816,6 +6021,7 @@ public class SOCGame implements Serializable, Cloneable
      * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
      * can also use to skip placing the second free road in {@link #PLACING_FREE_ROAD2};
      * sets gameState to PLAY or PLAY1 as if the free road was placed.
+     * In v2.0.00 and newer, can similarly call {@link #cancelBuildShip(int)} in that state.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
@@ -5880,9 +6086,9 @@ public class SOCGame implements Serializable, Cloneable
      * a player is UNbuying a ship; return resources, set gameState PLAY1
      * (or SPECIAL_BUILDING)
      *<P>
-     * In version 1.1.17 and newer ({@link #VERSION_FOR_CANCEL_FREE_ROAD2}),
-     * can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2};
+     * Can also use to skip placing the second free ship in {@link #PLACING_FREE_ROAD2};
      * sets gameState to PLAY or PLAY1 as if the free ship was placed.
+     * Can similarly call {@link #cancelBuildRoad(int)} in that state.
      *
      * @param pn  the number of the player
      * @return  true if resources were returned (false if {@link #PLACING_FREE_ROAD2})
@@ -5904,6 +6110,55 @@ public class SOCGame implements Serializable, Cloneable
         else
             gameState = SPECIAL_BUILDING;
         return true;
+    }
+
+    /**
+     * For scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, is this ship upgraded to a warship?
+     * Counts down {@code sh}'s player's {@link SOCPlayer#getNumWarships()}
+     * while it looks for {@code sh} among the ships from {@link SOCPlayer#getRoads()},
+     * which is in the same chronological order as warship conversions.
+     * (Those are the ships heading out to sea starting at the player's coastal settlement.)
+     *
+     * @param sh  A ship whose player is in this game
+     * @return  True if {@link SOCPlayer#getRoads()} contains, among its
+     *          first {@link SOCPlayer#getNumWarships()} ships, a ship
+     *          located at {@link SOCShip#getCoordinates() sh.getCoordinates()}.
+     * @see #playKnight()
+     * @since 2.0.00
+     */
+    public boolean isShipWarship(final SOCShip sh)
+    {
+        final int node = sh.getCoordinates();
+        final SOCPlayer pl = sh.getPlayer();
+
+        // Count down the player's warships to see if sh is among them.
+        // This works since warships in getRoads() begin with player's 1st-placed ship.
+
+        int numWarships = pl.getNumWarships();
+        if (0 == numWarships)
+            return false;  // <--- early return: no warships ---
+
+        for (SOCRoad rship : pl.getRoads())
+        {
+            if (! (rship instanceof SOCShip))
+                continue;
+
+            final boolean isWarship = (numWarships > 0);
+            if (node == rship.getCoordinates())
+            {
+                return isWarship;  // <--- early return: coordinates match ---
+            }
+
+            if (isWarship)
+            {
+                --numWarships;
+
+                if (0 == numWarships)
+                    return false;  // <--- early return: no more warships ---
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -6076,7 +6331,9 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * <b>In scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI},</b> instead the player
      * converts a normal ship to a warship.  There is no robber piece in this scenario.
-     * Call {@link SOCPlayer#getNumWarships()} afterwards.
+     * Call {@link SOCPlayer#getNumWarships()} afterwards to get the current player's new count.
+     * Ships are converted in the chronological order they're placed, out to sea from the
+     * player's coastal settlement; see {@link #isShipWarship(SOCShip)}.
      */
     public void playKnight()
     {
@@ -6576,6 +6833,8 @@ public class SOCGame implements Serializable, Cloneable
         cp.isPractice = isPractice;
         cp.ownerName = ownerName;
         cp.scenarioEventListener = scenarioEventListener;
+        cp.clientVersionLowest = clientVersionLowest;
+        cp.clientVersionHighest = clientVersionHighest;
 
         // Game min-version from options
         cp.clientVersionMinRequired = clientVersionMinRequired;
