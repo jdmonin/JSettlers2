@@ -221,33 +221,37 @@ public abstract class SOCMessage implements Serializable, Cloneable
      *  @since 2.0.00 */
     public static final int MOVEPIECE = 1091;  // move piece, 20111203, v2.0.00
 
+    /** {@link SOCRemovePiece} - Remove a piece from the board; currently used only with ships.
+     *  @since 2.0.00 */
+    public static final int REMOVEPIECE = 1092;  // pirate islands scenario, 20130218, v2.0.00
+
     /** Ask client to pick this many resources,
      *  when they have a settlement or city next to a gold hex.
      *  Client replies with {@link #PICKRESOURCES}.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCESREQUEST = 1092;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCESREQUEST = 1093;  // gold hex resources, 20120112, v2.0.00
 
     /** Client reply to {@link #PICKRESOURCESREQUEST}.
      *  Has picked these resource types/counts.
      *  @since 2.0.00 */
-    public static final int PICKRESOURCES = 1093;  // gold hex resources, 20120112, v2.0.00
+    public static final int PICKRESOURCES = 1094;  // gold hex resources, 20120112, v2.0.00
 
     /** Reveal a hidden hex on the board; server to all clients in game.
      *  @since 2.0.00 */
-    public static final int REVEALFOGHEX = 1094;  // fog hexes, 20121108, v2.0.00
+    public static final int REVEALFOGHEX = 1095;  // fog hexes, 20121108, v2.0.00
 
     /** Update the value(s) of a piece on the board.
      *  @since 2.0.00 */
-    public static final int PIECEVALUE = 1095;  // cloth villages scenario, 20121115, v2.0.00
+    public static final int PIECEVALUE = 1096;  // cloth villages scenario, 20121115, v2.0.00
 
     /** Legal road or ship edges for the large sea board.
      *  @since 2.0.00 */
-    public static final int LEGALEDGES = 1096;  // large sea board, 20121216, v2.0.00 
+    public static final int LEGALEDGES = 1097;  // large sea board, 20121216, v2.0.00 
 
     /** Text that a player has been awarded Special Victory Point(s).
      *  The server will also send a {@link SOCPlayerElement} with the SVP total.
      *  @since 2.0.00 */
-    public static final int SVPTEXTMSG = 1097;  // SVP text messages, 20121221, v2.0.00 
+    public static final int SVPTEXTMSG = 1098;  // SVP text messages, 20121221, v2.0.00 
 
 
     /////////////////////////////////////////
@@ -263,6 +267,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int VERSION = 9998;   // cli-serv versioning, 20080807, v1.1.00
 
     public static final int SERVERPING = 9999;  // available in all versions
+
+    /** {@link SOCPirateFortressAttackResult} - Results of an attack on the player's Pirate Fortress.
+     *  @since 2.0.00  */
+    public static final int PIRATEFORTRESSATTACKRESULT = 10001;  // pirate islands scenario, 20130218, v2.0.00
 
     /**
      * Token separators. At most one SEP per message; multiple SEP2 are allowed after SEP.
@@ -816,7 +824,7 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case TIMINGPING:        // robot timing ping, 20111011, v1.1.13
                 return SOCTimingPing.parseDataStr(data);
 
-            case SIMPLEREQUEST:  // simple player requests, 20130217, v1.1.18
+            case SIMPLEREQUEST:     // simple player requests, 20130217, v1.1.18
                 return SOCSimpleRequest.parseDataStr(data);
 
             case MOVEPIECEREQUEST:  // move piece request, 20111203, v2.0.00
@@ -824,6 +832,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case MOVEPIECE:         // move piece announcement, 20111203, v2.0.00
                 return SOCMovePiece.parseDataStr(data);
+
+            case REMOVEPIECE:       // pirate islands scenario, 20130218, v2.0.00
+                return SOCRemovePiece.parseDataStr(data);
 
             case PICKRESOURCESREQUEST:  // gold hex resources, 20120112, v2.0.00
                 return SOCPickResourcesRequest.parseDataStr(data);
@@ -842,6 +853,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case SVPTEXTMSG:        // SVP text messages, 20121221, v2.0.00
                 return SOCSVPTextMessage.parseDataStr(data);
+
+            case PIRATEFORTRESSATTACKRESULT:  // pirate islands scenario, 20130218, v2.0.00
+                return SOCPirateFortressAttackResult.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);

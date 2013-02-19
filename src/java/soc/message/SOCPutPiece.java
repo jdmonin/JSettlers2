@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2010,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2010,2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,9 @@ import java.util.StringTokenizer;
  * Also used when joining a new game or a game in progress, to send the game state so far.
  * Some game scenarios use {@link soc.game.SOCVillage villages} which aren't owned by any player;
  * their {@link #getPlayerNumber()} is -1 in this message.
+ *<P>
+ * The messages similar but opposite to this one are {@link SOCCancelBuildRequest}
+ * and the very-limited {@link SOCRemovePiece}.
  *
  * @author Robert S Thomas
  */
@@ -119,15 +122,15 @@ public class SOCPutPiece extends SOCMessage
      *
      * PUTPIECE sep game sep2 playerNumber sep2 pieceType sep2 coordinates
      *
-     * @param na  the name of the game
-     * @param pt  type of playing piece
+     * @param ga  the name of the game
      * @param pn  player number, or -1 for non-player-owned {@link soc.game.SOCPlayingPiece#VILLAGE}
+     * @param pt  type of playing piece
      * @param co  coordinates
      * @return the command string
      */
-    public static String toCmd(String na, int pn, int pt, int co)
+    public static String toCmd(String ga, int pn, int pt, int co)
     {
-        return PUTPIECE + sep + na + sep2 + pn + sep2 + pt + sep2 + co;
+        return PUTPIECE + sep + ga + sep2 + pn + sep2 + pt + sep2 + co;
     }
 
     /**

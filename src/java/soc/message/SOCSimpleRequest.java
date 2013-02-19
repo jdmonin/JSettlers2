@@ -50,6 +50,14 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     private static final long serialVersionUID = 1118L;
 
     /**
+     * The current player wants to attack their pirate fortress (scenario _SC_PIRI).
+     * Value1 and value2 are unused.  If client can attack, server responds with
+     * {@link SOCPirateFortressAttackResult} and related messages (see that class' javadoc).
+     * @since 2.0.00
+     */
+    public static final int SC_PIRI_FORT_ATTACK = 1000;
+
+    /**
      * Create a SOCSimpleRequest message.
      *
      * @param ga  the name of the game
