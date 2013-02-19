@@ -2135,6 +2135,32 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * A player's piece has been removed from the board.
+     * Updates game state and refreshes the board display by calling {@link #updateAtPiecesChanged()}.
+     *<P>
+     * Currently, only ships can be removed, in game scenario {@code _SC_PIRI}.
+     * Other {@code pieceType}s are ignored.
+     *
+     * @param player  Player who owns the ship
+     * @param pieceCoordinate  Ship's node coordinate
+     * @param pieceType  The piece type identifier {@link SOCPlayingPiece#SHIP}
+     * @since 2.0.00
+     */
+    public void updateAtPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType)
+    {
+        switch (pieceType)
+        {
+        case SOCPlayingPiece.SHIP:
+            game.removeShip(new SOCShip(player, pieceCoordinate, null));
+            updateAtPiecesChanged();
+            break;
+
+        default:
+            System.err.println("PI.updateAtPieceRemoved called for un-handled type " + pieceType);
+        }
+    }
+
+    /**
      * Listener callback for scenario events on the large sea board which affect the game or board,
      * not a specific player. For example, a hex might be revealed from fog.
      *<P>
@@ -2906,6 +2932,11 @@ public class SOCPlayerInterface extends Frame
                                 pieceType,
                                 true,
                                 targetCoordinate);
+        }
+
+        public void playerPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType)
+        {
+            pi.updateAtPieceRemoved(player, pieceCoordinate, pieceType);
         }
 
         public void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription)

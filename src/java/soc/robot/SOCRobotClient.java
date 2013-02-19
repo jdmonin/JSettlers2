@@ -743,6 +743,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
+             * remove a piece (a ship) from the board in certain scenarios.
+             * Added 2013-02-19 for v2.0.00.
+             */
+            case SOCMessage.REMOVEPIECE:
+                super.handleREMOVEPIECE((SOCRemovePiece) mes);
+                break;
+
+            /**
              * reveal a hidden hex on the board.
              * Added 2012-11-08 for v2.0.00.
              */

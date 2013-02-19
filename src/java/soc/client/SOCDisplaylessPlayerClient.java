@@ -704,6 +704,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 break;
 
             /**
+             * remove a piece (a ship) from the board in certain scenarios.
+             * Added 2013-02-19 for v2.0.00.
+             */
+            case SOCMessage.REMOVEPIECE:
+                handleREMOVEPIECE((SOCRemovePiece) mes);
+                break;
+
+            /**
              * reveal a hidden hex on the board.
              * Added 2012-11-08 for v2.0.00.
              */
@@ -1843,6 +1851,35 @@ public class SOCDisplaylessPlayerClient implements Runnable
             (ga.getPlayer(mes.getPlayerNumber()), mes.getFromCoord(), null);
         ga.moveShip(sh, mes.getToCoord());
 
+    }
+
+    /**
+     * A player's piece (a ship) has been removed from the board. Updates game state.
+     *<P>
+     * Currently, only ships can be removed, in game scenario {@code _SC_PIRI}.
+     * Other {@code pieceType}s are ignored.
+     * @since 2.0.00
+     */
+    protected void handleREMOVEPIECE(SOCRemovePiece mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        SOCPlayer player = ga.getPlayer(mes.getParam1());
+        final int pieceType = mes.getParam2();
+        final int pieceCoordinate = mes.getParam3();
+
+        switch (pieceType)
+        {
+        case SOCPlayingPiece.SHIP:
+            ga.removeShip(new SOCShip(player, pieceCoordinate, null));
+            break;
+
+        default:
+            System.err.println("Displayless.updateAtPieceRemoved called for un-handled type " + pieceType);
+        }
     }
 
     /**

@@ -2764,6 +2764,14 @@ public class SOCPlayerClient
                 break;
 
             /**
+             * remove a piece (a ship) from the board in certain scenarios.
+             * Added 2013-02-19 for v2.0.00.
+             */
+            case SOCMessage.REMOVEPIECE:
+                handleREMOVEPIECE((SOCRemovePiece) mes);
+                break;
+
+            /**
              * pick resources to gain from the gold hex.
              * Added 2012-01-12 for v2.0.00.
              */
@@ -4413,6 +4421,24 @@ public class SOCPlayerClient
             return;
         SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
         pcl.playerPieceMoved(player, mes.getFromCoord(), mes.getToCoord(), mes.getPieceType());
+    }
+
+    /**
+     * Handle removing a piece (a ship) from the board in certain scenarios.
+     * @since 2.0.00
+     */
+    private final void handleREMOVEPIECE(SOCRemovePiece mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;
+        SOCPlayer player = ga.getPlayer(mes.getParam1());
+        pcl.playerPieceRemoved(player, mes.getParam3(), mes.getParam2());
     }
 
     /**

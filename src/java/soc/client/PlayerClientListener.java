@@ -91,6 +91,16 @@ public interface PlayerClientListener
     void playerPieceMoved(SOCPlayer player, int sourceCoordinate, int targetCoordinate, int pieceType);
 
     /**
+     * A player's piece has been removed from the board.
+     * Updates game state and refreshes the game board display.
+     * Currently, only ships can be removed, in game scenario {@code _SC_PIRI}.
+     * @param player  Player who owns the ship
+     * @param pieceCoordinate  Ship's node coordinate
+     * @param pieceType  The piece type identifier {@link SOCPlayingPiece#SHIP}
+     */
+    void playerPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType);
+
+    /**
      * A player has been awarded Special Victory Point(s).
      * @param player The player awarded special victory points. Will not be {@code null}
      * @param numSvp The count of how many new special victory points were awarded
