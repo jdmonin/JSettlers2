@@ -215,7 +215,20 @@ public interface PlayerClientListener
     void messageSent(String nickname, String message);
     
     void buildRequestCanceled(SOCPlayer player);
-    
+
+    /**
+     * In scenario _SC_PIRI, present the server's response to a Pirate Fortress Attack request from the
+     * current player (the client or another player), which may be: Rejected, Lost, Tied, or Won.
+     *<P>
+     * This will be called only after other game pieces are updated (fortress strength, player's ships lost).
+     *
+     * @param wasRejected  True if the server rejected our player's request to attack
+     * @param defStrength  Pirate defense strength, unless {@code wasRejected}
+     * @param resultShipsLost  Result and number of ships lost by the player:
+     *            0 if player won (or if rejected); 1 if tied; 2 if player lost to the pirates.
+     */
+    void scen_SC_PIRI_pirateFortressAttackResult(boolean wasRejected, int defStrength, int resultShipsLost);
+
     void debugFreePlaceModeToggled(boolean isEnabled);
 
     /**

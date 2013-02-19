@@ -3204,6 +3204,75 @@ public class SOCPlayerInterface extends Frame
             pi.getBoardPanel().updateMode();
         }
 
+        public void scen_SC_PIRI_pirateFortressAttackResult
+            (final boolean wasRejected, final int defStrength, final int resultShipsLost)
+        {
+            if (wasRejected)
+            {
+                pi.print( /*I*/"* You cannot attack the pirate fortress right now."/*18N*/ );
+                return;
+            }
+
+            final SOCGame ga = pi.getGame();
+            final SOCPlayer cpl = ga.getPlayer(ga.getCurrentPlayerNumber());
+            final SOCFortress fort = cpl.getFortress();
+            final String cplName = cpl.getName();
+            // TODO I18N including player name, strength
+            pi.print( "* " + cplName + /*I*/" has attacked a pirate fortress (defense strength "/*18N*/
+                + defStrength + ").");
+
+            // TODO I18N including player name, result, etc
+            String resDesc;
+            switch (resultShipsLost)
+            {
+            case 0:  resDesc = "wins!";  break;
+            case 1:  resDesc = "ties, and loses 1 ship.";  break;
+            default: resDesc = "loses, and loses 2 ships.";  break;
+                // case 2 is "default" so resDesc is always set for compiler
+            }
+            resDesc = cplName + ' ' + resDesc;  // 'Player 2 wins!'
+            pi.print("* " + resDesc);
+
+            // TODO I18N including player name, number of attacks
+            final String resDesc2;
+            if (resultShipsLost == 0)
+            {
+                if (fort == null)
+                {
+                    // defeated and recaptured
+                    resDesc2 = cplName + " has recaptured the fortress as a settlement.";
+                } else {
+                    // still needs to attack
+                    resDesc2 = "The pirate fortress will be defeated after " + fort.getStrength() + " more attack(s)."; 
+                }
+                pi.print("* " + resDesc2);
+            } else {
+                resDesc2 = null;
+            }
+
+            if (pi.clientIsCurrentPlayer() || (fort == null))
+            {
+                // popup if player is our client, or if recaptured
+                StringBuffer sb = new StringBuffer( /*I*/"Pirate Fortress attack results:\n"/*18N*/ );
+                sb.append(resDesc);
+                if (resDesc2 != null)
+                {
+                    sb.append('\n');
+                    sb.append(resDesc2);
+                }
+
+                final String s = sb.toString();
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        NotifyDialog.createAndShow(pi.getGameDisplay(), pi, s, null, true);
+                    }
+                });
+
+            }
+        }
+
         public void robberMoved()
         {
             pi.getBoardPanel().repaint();

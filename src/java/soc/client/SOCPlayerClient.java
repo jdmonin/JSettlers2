@@ -2795,6 +2795,14 @@ public class SOCPlayerClient
                 handleSVPTEXTMSG((SOCSVPTextMessage) mes);
                 break;
 
+            /**
+             * Present the server's response to a Pirate Fortress Attack request.
+             * Added 2013-02-19 for v2.0.00.
+             */
+            case SOCMessage.PIRATEFORTRESSATTACKRESULT:
+                handlePIRATEFORTRESSATTACKRESULT((SOCPirateFortressAttackResult) mes);
+                break;
+
             }  // switch (mes.getType())
         }
         catch (Exception e)
@@ -4377,6 +4385,11 @@ public class SOCPlayerClient
 
         switch (mes.getRequestType())
         {
+        case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
+            // was rejected
+            pcl.scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
+            break;
+
         default:
             // unknown type
             System.err.println
@@ -4461,6 +4474,19 @@ public class SOCPlayerClient
         if (pcl == null)
             return;
         pcl.playerSVPAwarded(pl, mes.svp, mes.desc);
+    }
+
+    /**
+     * Present the server's response to a Pirate Fortress Attack request.
+     * @see SOCPirateFortressAttackResult
+     * @since 2.0.00
+     */
+    private void handlePIRATEFORTRESSATTACKRESULT(final SOCPirateFortressAttackResult mes)
+    {
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;  // Not one of our games
+        pcl.scen_SC_PIRI_pirateFortressAttackResult(false, mes.getParam1(), mes.getParam2());
     }
 
     }  // nested class MessageTreater
