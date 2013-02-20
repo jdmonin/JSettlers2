@@ -28,7 +28,9 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -1900,7 +1902,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Update a village piece's value on the board (cloth remaining).
+     * Update a village piece's value on the board (cloth remaining) in _SC_CLVI,
+     * or a pirate fortress's strength in _SC_PIRI.
      * @since 2.0.00
      */
     protected void handlePIECEVALUE(final SOCPieceValue mes)
@@ -1912,8 +1915,21 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (! ga.hasSeaBoard)
             return;  // should not happen
 
-        SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(mes.getParam1());
-        vi.setCloth(mes.getParam2());
+        final int coord = mes.getParam1();
+        final int pv = mes.getParam2();
+
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        {
+            SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(coord);
+            if (vi != null)
+                vi.setCloth(pv);
+        }
+        else if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            SOCFortress fort = ga.getFortress(coord);
+            if (fort != null)
+                fort.setStrength(pv);
+        }
     }
 
     /**
