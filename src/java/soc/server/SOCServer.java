@@ -3879,6 +3879,7 @@ public class SOCServer extends Server
                  */
                 case SOCMessage.SIMPLEREQUEST:
                     handleSIMPLEREQUEST(c, (SOCSimpleRequest) mes);
+                    break;
 
                 /**
                  * Asking to move a previous piece (a ship) somewhere else on the board.
