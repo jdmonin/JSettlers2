@@ -4701,6 +4701,19 @@ public class SOCPlayerClient
     }
 
     /**
+     * The player wants to attack their pirate fortress, in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}. 
+     * @param pl  the current player
+     * @since 2.0.00
+     */
+    public void scen_SC_PIRI_attackPirateFortressRequest(final SOCPlayer pl)
+    {
+        final SOCGame ga = pl.getGame();
+        put(SOCSimpleRequest.toCmd
+                (ga.getName(), pl.getPlayerNumber(), SOCSimpleRequest.SC_PIRI_FORT_ATTACK, 0, 0),
+            ga.isPractice);
+    }
+
+    /**
      * send a text message to the people in the game
      *
      * @param ga   the game

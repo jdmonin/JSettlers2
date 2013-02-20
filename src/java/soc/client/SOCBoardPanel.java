@@ -5173,6 +5173,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             
         default:  // NONE, GAME_FORMING, PLACE_ROBBER, etc
 
+            if ((hoverTip.hoverPiece != null) && (hoverTip.hoverPiece instanceof SOCFortress))
+            {
+                popupMenu.showAtPirateFortress(x, y, (SOCFortress) (hoverTip.hoverPiece));
+                return;  // <--- early return: special case: fortress (_SC_PIRI) ---
+            }
+
             // Along coastline, can build either road or ship
             final int hilightRoad, hilightShip;
             if (game.hasSeaBoard &&
@@ -6688,8 +6694,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       /** hover road edge ID, or 0, at menu-show time */
       private int hoverRoadID;
 
-      /** hover settlement or city node ID, or 0, at menu-show time */
-      private int hoverSettlementID, hoverCityID;
+      /**
+       * hover settlement node ID, or 0, at menu-show time.
+       * As a special case in the _SC_PIRI scenario, hoverSettlementID == -1 indicates any pirate Fortress;
+       * {@link #buildSettleItem}'s text will be "Attack Fortress" instead of "Build Settlement";
+       * menu item will be disabled unless it's player's own fortress and {@link SOCGame#canAttackPirateFortress()}.
+       */
+      private int hoverSettlementID;
+
+      /** hover city node ID, or 0, at menu-show time */
+      private int hoverCityID;
 
       /**
        * hover ship edge ID, or 0, at menu-show time.
@@ -6755,6 +6769,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           wantsCancel = true;
           cancelBuildType = buildType;
           hoverRoadID = 0;
+          if (hoverSettlementID == -1)
+          {
+              // restore label after previous popup's "Attack Fortress" label for _SC_PIRI
+              buildSettleItem.setLabel( /*I*/"Build Settlement"/*18N*/ );
+          }
           hoverSettlementID = 0;
           hoverCityID = 0;
           hoverShipID = 0;
@@ -6842,6 +6861,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               remove(portTradeSubmenu);
               portTradeSubmenu.destroy();
               portTradeSubmenu = null;
+          }
+          if (hoverSettlementID == -1)
+          {
+              // Restore label after previous popup's "Attack Fortress" label for _SC_PIRI
+              buildSettleItem.setLabel( /*I*/"Build Settlement"/*18N*/ );
           }
 
           boolean didEnableDisable = true;  // don't go through both sets of menu item enable/disable statements
@@ -6932,6 +6956,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                   buildShipItem.setLabel("Build Ship");
               }
               hoverRoadID = 0;
+              if (hoverSettlementID == -1)
+              {
+                  // restore label after previous popup's "Attack Fortress" label for _SC_PIRI
+                  buildSettleItem.setLabel( /*I*/"Build Settlement"/*18N*/ );
+              }
               hoverSettlementID = 0;
               hoverCityID = 0;
               hoverShipID = 0;
@@ -7011,6 +7040,48 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           super.show(bp, x, y);
       }
 
+      /** Custom show method for hovering at a pirate fortress ({@link SOCFortress}),
+       *  giving the options to attack if it's our player's;
+       *  for scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+       *
+       * @param x   Mouse x-position
+       * @param y   Mouse y-position
+       * @param ft  Fortress being hovered at (our player's or otherwise), or null
+       * @since 2.0.00
+       */
+      public void showAtPirateFortress(final int x, final int y, SOCFortress ft)
+      {
+          final boolean settleItemWasFortress = (hoverSettlementID == -1);
+          menuPlayerIsCurrent = (player != null) && playerInterface.clientIsCurrentPlayer();
+          wantsCancel = false;
+          cancelBuildType = 0;
+          hoverRoadID = 0;
+          hoverSettlementID = (ft != null) ? -1 : 0;
+          hoverCityID = 0;
+          hoverShipID = 0;
+
+          buildRoadItem.setEnabled(false);
+          if (hoverSettlementID == -1)
+          {
+              buildSettleItem.setLabel( /*I*/"Attack Fortress"/*18N*/ );
+              buildSettleItem.setEnabled
+                  (menuPlayerIsCurrent && (ft.getPlayerNumber() == playerNumber)
+                   && (game.canAttackPirateFortress() != null));
+          }
+          else if (settleItemWasFortress)
+          {
+              // Restore label after previous popup's "Attack Fortress" label for _SC_PIRI
+              buildSettleItem.setLabel( /*I*/"Build Settlement"/*18N*/ );
+              buildSettleItem.setEnabled(false);
+          }
+          upgradeCityItem.setEnabled(false);
+          buildShipItem.setEnabled(false);
+          cancelBuildItem.setEnabled(false);
+          isInitialPlacement = false;
+
+          super.show(bp, x, y);
+      }
+
       /** Handling the menu items **/
       public void actionPerformed(ActionEvent e)
       {
@@ -7022,7 +7093,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           if (target == buildRoadItem)
               tryBuild(SOCPlayingPiece.ROAD);
           else if (target == buildSettleItem)
-              tryBuild(SOCPlayingPiece.SETTLEMENT);
+          {
+              if (hoverSettlementID != -1)
+                  tryBuild(SOCPlayingPiece.SETTLEMENT);
+              else
+                  tryAttackPirateFortress();
+          }
           else if (target == upgradeCityItem)
               tryBuild(SOCPlayingPiece.CITY);
           else if ((target == buildShipItem) && (target != null))
@@ -7139,7 +7215,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           playerInterface.getBuildingPanel().clickBuildingButton
               (game, btarget, true);
       }
-      
+
+      /**
+       * Ask to attack our player's pirate fortress, in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+       * @since 2.0.00
+       */
+      public void tryAttackPirateFortress()
+      {
+          if (game.canAttackPirateFortress() != null)
+              playerInterface.getClient().getGameManager().scen_SC_PIRI_attackPirateFortressRequest(player);
+          else
+              playerInterface.getClientListener().scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
+      }
+
       /**
        * Cancel placing a building piece, or cancel moving a ship.
        * Calls {@link SOCBuildingPanel#clickBuildingButton(SOCGame, String, boolean)}.

@@ -3285,6 +3285,9 @@ public class SOCPlayerInterface extends Frame
             {
                 // popup if player is our client, or if recaptured
                 StringBuffer sb = new StringBuffer( /*I*/"Pirate Fortress attack results:\n"/*18N*/ );
+                sb.append( /*I*/"Defense strength: "/*18N*/ );
+                sb.append(defStrength);
+                sb.append('\n');
                 sb.append(resDesc);
                 if (resDesc2 != null)
                 {
