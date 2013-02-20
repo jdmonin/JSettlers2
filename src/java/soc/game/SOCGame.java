@@ -1111,7 +1111,8 @@ public class SOCGame implements Serializable, Cloneable
             else
                 maxPlayers = 4;
             vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
-            hasScenarioWinCondition = isGameOptionSet(op, SOCGameOption.K_SC_CLVI);
+            hasScenarioWinCondition = isGameOptionSet(op, SOCGameOption.K_SC_CLVI)
+                || isGameOptionSet(op, SOCGameOption.K_SC_PIRI);
         } else {
             maxPlayers = 4;
             hasSeaBoard = false;
@@ -6681,6 +6682,12 @@ public class SOCGame implements Serializable, Cloneable
 
         if ((players[pn].getTotalVP() >= vp_winner))
         {
+            if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            {
+                if (null != players[pn].getFortress())
+                    return;  // <--- can't win without defeating pirate fortress ---
+            }
+
             gameState = OVER;
             playerWithWin = pn;
             return;
