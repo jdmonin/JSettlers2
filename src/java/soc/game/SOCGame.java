@@ -1126,6 +1126,8 @@ public class SOCGame implements Serializable, Cloneable
             // At server, createBoard might add "_BHW" to op if SOCBoardLarge with non-default size.
             // op won't be null because SOCBoardLarge requires game opt "PLL".
 
+        opts = op;
+
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
         seatLocks = new boolean[maxPlayers];
@@ -1158,7 +1160,6 @@ public class SOCGame implements Serializable, Cloneable
         if (hasSeaBoard)
             placedShipsThisTurn = new Vector<Integer>();
 
-        opts = op;
         if (op == null)
         {
             clientVersionMinRequired = -1;
