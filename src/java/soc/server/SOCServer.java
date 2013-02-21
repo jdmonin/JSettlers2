@@ -5054,6 +5054,7 @@ public class SOCServer extends Server
      *       older clients get NEWGAME, won't see the options
      *  <LI> send JOINGAMEAUTH to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean, boolean)}
      *  <LI> send game status details to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean, boolean)}
+     *       -- If the game is already in progress, this will include all pieces on the board, and the rest of game state.
      *</UL>
      *
      * @param c connection requesting the game, must not be null
@@ -9044,10 +9045,19 @@ public class SOCServer extends Server
 
             // _SC_PIRI: special-case piece not part of getPieces
             {
-                final SOCPlayingPiece piece = pl.getFortress();
+                final SOCFortress piece = pl.getFortress();
                 if (piece != null)
+                {
+                    final int coord = piece.getCoordinates(),
+                              str   = piece.getStrength();
+
                     messageToGameWithMon
-                        (gameName, new SOCPutPiece(gameName, i, piece.getType(), piece.getCoordinates()));
+                        (gameName, new SOCPutPiece(gameName, i, piece.getType(), coord));
+
+                    if (str != SOCFortress.STARTING_STRENGTH)
+                        messageToGameWithMon
+                            (gameName, new SOCPieceValue(gameName, coord, str, 0));
+                }
             }
 
             // _SC_PIRI: for display, send count of warships only after SOCShip pieces are sent
