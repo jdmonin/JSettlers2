@@ -610,6 +610,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             numPieces[SOCPlayingPiece.SHIP] = 15;
         else
             numPieces[SOCPlayingPiece.SHIP] = 0;
+
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            --numPieces[SOCPlayingPiece.SETTLEMENT];  // Pirate Fortress is a captured settlement
+
         pieces = new Vector<SOCPlayingPiece>(24);
         roads = new Vector<SOCRoad>(15);
         settlements = new Vector<SOCSettlement>(5);
