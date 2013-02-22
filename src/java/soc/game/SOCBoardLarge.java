@@ -61,6 +61,10 @@ import soc.util.IntPair;
  * but check {@link SOCRoad#isRoadNotShip()} to differentiate.
  * You cannot place both a road and a ship on the same coastal edge coordinate.
  *<P>
+ * Some scenarios may add other "layout parts" related to their scenario board layout.
+ * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path the pirate fleet follows.
+ * See {@link #getAddedLayoutPart(String)}, {@link #setAddedLayoutPart(String, int[])}.
+ *<P>
  * <h4> Geometry/Navigation methods: </h4>
  *<br><table border=1>
  *<TR><td>&nbsp;</td><td colspan=3>Adjacent to a:</td></TR>

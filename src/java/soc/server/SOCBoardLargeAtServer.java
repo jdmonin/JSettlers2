@@ -93,6 +93,10 @@ import soc.util.IntTriple;
  * <LI> If multiple Land Areas, its land area ranges within the array of land hex coordinates
  *</UL>
  * &nbsp; * Some "land areas" may include water hexes, to vary the coastline from game to game. <BR>
+ *<P>
+ * Some scenarios may add other "layout parts" related to their scenario board layout.
+ * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path the pirate fleet follows.
+ * See {@link SOCBoardLarge#getAddedLayoutPart(String)}, {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
