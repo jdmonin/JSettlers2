@@ -433,6 +433,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * The game is over.  A player has accumulated enough ({@link #vp_winner}) victory points,
      * or all players have left the game.
+     * @see #checkForWinner()
      */
     public static final int OVER = 1000; // The game is over
 
@@ -6667,6 +6668,8 @@ public class SOCGame implements Serializable, Cloneable
      *     less than half the {@link SOCVillage}s have cloth remaining.  The player
      *     with the most VP wins; if tied, the tied player with the most cloth wins.
      *     The winner is not necessarily the current player.
+     *<LI> Scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI} requires the player to
+     *     defeat and recapture 'their' pirate fortress to win.
      *</UL>
      *
      * @see #getGameState()
@@ -6683,7 +6686,7 @@ public class SOCGame implements Serializable, Cloneable
 
         if ((players[pn].getTotalVP() >= vp_winner))
         {
-            if (isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            if (hasScenarioWinCondition && isGameOptionSet(SOCGameOption.K_SC_PIRI))
             {
                 if (null != players[pn].getFortress())
                     return;  // <--- can't win without defeating pirate fortress ---
