@@ -1857,6 +1857,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * place each player's initial pieces.  Otherwise do nothing.
+     *<P>
+     * This is called before {@link SOCServer#getBoardLayoutMessage}.  So,
+     * if needed, it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
      */
     public static void startGame_putInitPieces(SOCGame ga)
     {
@@ -1867,7 +1870,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         ga.setGameState(SOCGame.READY);  // prevent ga.putPiece from advancing turn
 
         final int[] inits = (ga.maxPlayers > 4) ? PIR_ISL_INIT_PIECES[1] : PIR_ISL_INIT_PIECES[0];
-        SOCBoard board = ga.getBoard();
+        int[] possiLoneSettles = new int[ga.maxPlayers];  // lone possible-settlement node on the way to the island.
+            // vacant players will get 0 here, will not get free settlement, ship, or pirate fortress.
+        SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
 
         int i = 0;  // iterate out here, to avoid spacing gaps from vacant players
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
@@ -1879,8 +1884,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             ga.putPiece(new SOCSettlement(pl, inits[i], board));  ++i;
             ga.putPiece(new SOCShip(pl, inits[i], board));  ++i;
             ga.putPiece(new SOCFortress(pl, inits[i], board));  ++i;
-            ++i;  // TODO handle possible-settlement node
+            possiLoneSettles[pn] = inits[i];  ++i;
         }
+        board.setAddedLayoutPart("PS", possiLoneSettles);
 
         ga.setGameState(gstate);
     }
