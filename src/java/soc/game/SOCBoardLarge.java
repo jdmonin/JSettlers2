@@ -897,6 +897,11 @@ public class SOCBoardLarge extends SOCBoard
      * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
      * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
      * Please treat the returned value as read-only.
+     * The layout part keys are documented at {@link soc.message.SOCBoardLayout2}.
+     *<P>
+     * Added during {@code SOCBoardLargeAtServer.makeNewBoard}
+     * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}.
+     *
      * @return  The added layout parts, or null if none
      * @see #getAddedLayoutPart(String)
      */
@@ -924,7 +929,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set all the "added layout parts", for use at client.
-     * Should be set only during <tt>SOCBoardLargeAtServer.makeNewBoard</tt>, not changed afterwards.
+     * See {@link #setAddedLayoutPart(String, int[])} for details about the added layout parts.
      * @param adds  Added parts, or null if none
      * @see #setAddedLayoutPart(String, int[])
      */
@@ -938,7 +943,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set one "added layout part" by its key name.
-     * Should be set only during <tt>SOCBoardLargeAtServer.makeNewBoard</tt>, not changed afterwards.
+     * Should be set only during {@code SOCBoardLargeAtServer.makeNewBoard}
+     * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}, not changed afterwards.
+     * Document the new {@code key} at {@link soc.message.SOCBoardLayout2}.
      * @param key  Key name (short and uppercase)
      * @param v    Value (typically a list of coordinates)
      * @see #setAddedLayoutParts(HashMap)
