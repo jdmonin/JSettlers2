@@ -3464,6 +3464,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @param legalLandAreaNodes If non-null and <tt>setLegalsToo</tt>,
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
+     * @see #addLegalSettlement(int)
      */
     public void setPotentialAndLegalSettlements
         (Collection<Integer> psList, final boolean setLegalsToo, final HashSet<Integer>[] legalLandAreaNodes)
@@ -3485,6 +3486,19 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             legalRoads = game.getBoard().initPlayerLegalRoads();
             legalShips = ((SOCBoardLarge) game.getBoard()).initPlayerLegalShips();
         }
+    }
+
+    /**
+     * Add this node to the player's legal settlement coordinates, for future possible placement.
+     * Used in some scenarios when {@link SOCGame#hasSeaBoard} to add a location
+     * after calling {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}.
+     * @param node  A node coordinate to add
+     * @since 2.0.00
+     * @see #isLegalSettlement(int)
+     */
+    public void addLegalSettlement(final int node)
+    {
+        legalSettlements.add(Integer.valueOf(node));
     }
 
     /**

@@ -55,9 +55,9 @@ import soc.game.SOCBoardLarge;  // for javadocs
  * A few game scenarios in jsettlers v2.0.00 may add other parts; see {@link #getAddedParts()}.
  *<UL>
  *<LI> CV: Cloth Village layout, for {@code _SC_CLVI}, from {@link SOCBoardLarge#getVillageAndClothLayout()}
- *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link SOCBoardLarge#movePirateHexAlongPath(int)}
- *<LI> PS: Each player's additional Potential Settlement location, for {@code _SC_PIRI}: Node coordinates,
+ *<LI> LS: Each player's lone additional Legal Settlement location, for {@code _SC_PIRI}: Node coordinates,
  *            one per player number, for the player's lone build location on the way to the pirate fortress. 
+ *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link SOCBoardLarge#movePirateHexAlongPath(int)}
  *</UL>
  *<P>
  * Board layout parts by board encoding version:
@@ -65,7 +65,7 @@ import soc.game.SOCBoardLarge;  // for javadocs
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
  *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL. <BR>
- *         Sometimes (for game scenarios) one or more of: PX, RX, CV, PP, PS. <BR>
+ *         Sometimes (for game scenarios) one or more of: PX, RX, CV, LS, PP. <BR>
  *         LH is null before makeNewBoard is called.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.

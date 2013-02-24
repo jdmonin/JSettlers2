@@ -1884,9 +1884,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             ga.putPiece(new SOCSettlement(pl, inits[i], board));  ++i;
             ga.putPiece(new SOCShip(pl, inits[i], board));  ++i;
             ga.putPiece(new SOCFortress(pl, inits[i], board));  ++i;
-            possiLoneSettles[pn] = inits[i];  ++i;
+            possiLoneSettles[pn] = inits[i];  ga.getPlayer(pn).addLegalSettlement(inits[i]);  ++i;
         }
-        board.setAddedLayoutPart("PS", possiLoneSettles);
+        board.setAddedLayoutPart("LS", possiLoneSettles);
 
         ga.setGameState(gstate);
     }
