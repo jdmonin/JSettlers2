@@ -6257,16 +6257,25 @@ public class SOCServer extends Server
 
                 /**
                  * Send roll results and then text to client.
-                 * Client expects to see DiceResult first, then text message;
-                 * to reduce visual clutter, SOCPlayerInterface.print
-                 * expects text message to follow a certain format.
+                 * Note that only the total is sent, not the 2 individual dice.
+                 * (Only the _SC_PIRI scenario cares about them indivdually, and
+                 * in that case it prints the result when needed.)
+                 *
                  * If a 7 is rolled, sendGameState will also say who must discard
                  * (in a GAMETEXTMSG).
                  * If a gold hex is rolled, sendGameState will also say who
                  * must pick resources to gain (in a GAMETEXTMSG).
                  */
                 messageToGame(gn, new SOCDiceResult(gn, ga.getCurrentDice()));
-                messageToGame(gn, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + ".");
+                if (ga.clientVersionLowest < SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD)
+                {
+                    // backwards-compat: this text message is redundant to v2.0.00 and newer clients
+                    // because they print the roll results from SOCDiceResult.
+                    messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
+                        new SOCGameTextMsg
+                            (gn, SERVERNAME, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
+                        true);
+                }
                 sendGameState(ga);  // For 7, give visual feedback before sending discard request
 
                 if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
