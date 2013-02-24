@@ -1296,6 +1296,28 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
+     * Add one legal settlement location to each player.
+     * The new location is alone by itself, outside of the other Land Areas where they can place.
+     * Used in some scenarios ({@link SOCScenario#K_SC_PIRI _SC_PIRI}) when {@link SOCGame#hasSeaBoard}.
+     * @param ga  Game, to get players; {@link SOCBoard} doesn't keep a reference to its game
+     * @param ls  Each player's lone settlement node coordinate to add, indexed by player number,
+     *            or {@code null} to do nothing.  If an element is 0, nothing is added for that player.
+     * @throws IllegalArgumentException if {@code ls.length} != {@link SOCGame#maxPlayers ga.maxPlayers}
+     */
+    public void addLoneLegalSettlements(SOCGame ga, final int[] ls)
+        throws IllegalArgumentException
+    {
+        if (ls == null)
+            return;
+        if (ls.length != ga.maxPlayers)
+            throw new IllegalArgumentException();
+
+        for (int pn = 0; pn < ls.length; ++pn)
+            if (ls[pn] != 0)
+                ga.getPlayer(pn).addLegalSettlement(ls[pn]);
+    }
+
+    /**
      * Get the village and cloth layout, for sending from server to client
      * for scenario game option {@link SOCGameOption#K_SC_CLVI}.
      *<P>

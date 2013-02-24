@@ -3368,6 +3368,9 @@ public class SOCPlayerClient
             x = mes.getIntArrayPart("CV");
             if (x != null)
                 ((SOCBoardLarge) bd).setVillageAndClothLayout(x);
+            x = mes.getIntArrayPart("LS");
+            if (x != null)
+                ((SOCBoardLarge) bd).addLoneLegalSettlements(ga, x);
 
             HashMap<String, int[]> others = mes.getAddedParts();
             if (others != null)
