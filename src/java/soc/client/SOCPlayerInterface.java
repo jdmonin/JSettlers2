@@ -402,20 +402,6 @@ public class SOCPlayerInterface extends Frame
     private boolean needRepaintBorders;
 
     /**
-     * To reduce text clutter: server has just sent a dice result message.
-     * If the next text message from server is the roll,
-     *   replace: * It's Player's turn to roll the dice. \n * Player rolled a 4 and a 5.
-     *   with:    * It's Player's turn to roll. Rolled a 9.
-     *<P>
-     * Set to 0 at most times.
-     * Set to the roll result when roll text is expected.
-     * Will be cleared to 0 in {@link #print(String)}.
-     * Whenever this field is nonzero, textmessages from the server
-     * will be scanned for " rolled a ".
-     */
-    protected int textDisplayRollExpected;
-    
-    /**
      * The dialog for getting what resources the player wants to discard or gain.
      */
     protected SOCDiscardOrGainResDialog discardOrGainDialog;
@@ -588,7 +574,6 @@ public class SOCPlayerInterface extends Frame
         add(textDisplay);
         if (is6player)
             textDisplay.addMouseListener(this);
-        textDisplayRollExpected = 0;
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
         chatDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
@@ -1115,23 +1100,26 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * To reduce text clutter: server has just sent a dice result message.
-     * If the next text message from server is the roll,
-     *   replace: * It's Player's turn to roll the dice. \n * Player rolled a 4 and a 5.
-     *   with:    * It's Player's turn to roll. Rolled a 9.
-     *<P>
-     * Set to 0 at most times.
-     * Set to the roll result when roll text is expected.
-     * Will be cleared to 0 in {@link #print(String)}.
-     *<P>
-     * Whenever this field is nonzero, textmessages from the server
-     * will be scanned for " rolled a ".
+     * Server has just sent a dice result message.
+     * Call this after updating game state with the roll result.
+     * Show the dice result in the game text panel and on the board.
      *
-     * @param roll The expected roll result, or 0.
+     * @param cp   Current player who rolled
+     * @param roll The roll result, or 0
+     * @since 2.0.00
      */
-    public void setTextDisplayRollExpected(int roll)
+    public void showDiceResult(final SOCPlayer cp, final int roll)
     {
-        textDisplayRollExpected = roll;
+        if (roll > 0)
+            print("* " + /*I*/"Rolled a "/*18N*/ + roll);  // i18n: parameterize
+
+        boardPanel.repaint();
+
+        // only update stats for valid rolls
+        if ((roll >= 2) && (roll <= 12) && (cp != null))
+        {
+            gameStats.diceRolled(new SOCGameStatistics.DiceRollEvent(roll, cp));
+        }
     }
 
     /**
@@ -1466,50 +1454,6 @@ public class SOCPlayerInterface extends Frame
      */
     public void print(String s)
     {
-        if (textDisplayRollExpected > 0)
-        {
-            /*
-             * Special case: Roll message.  Reduce clutter.
-             * Instead of printing this message verbatim,
-             * change the textDisplay contents (if matching):
-             *   replace: * It's Player's turn to roll the dice. \n * Player rolled a 4 and a 5.
-             *   with:    * It's Player's turn to roll. Rolled a 9.
-             * 
-             * JM 2009-05-21: Don't edit existing text on Mac OS X 10.5; it can lead to a GUI hang/race condition.
-             *   Instead just print the total rolled.
-             */
-
-            if (s.startsWith("* ") && (s.indexOf(" rolled a ") > 0))
-            {
-                String currentText = textDisplay.getText();
-                int L = currentText.length();
-                int i = currentText.lastIndexOf("'s turn to roll the dice.");
-                                                // 25 chars: length of match text
-                                                //  9 chars: length of " the dice"
-                if ((i > 0) && (30 > (L - i)))
-                {
-                    if (! SnippingTextArea.isJavaOnOSX105)
-                    {
-                        String rollText = ". Rolled a " + textDisplayRollExpected;
-                        currentText = currentText.substring(0, i+15)
-                            + rollText + currentText.substring(i+15+9);
-                        textDisplay.setText(currentText);
-                        //textDisplay.replaceRange(rollText, i+15, i+15+9);
-                        //textDisplay.replaceRange(rollText, i+5, i+5+9);
-                        //textDisplay.insert(rollText, 10); // i+5); // +15);
-                    } else {
-                        String rollText = "* Rolled a " + textDisplayRollExpected + ".\n";
-                        textDisplay.append(rollText);
-                    }
-                    textDisplayRollExpected = 0;
-
-                    return;  // <--- Early return ---
-                }
-            }
-
-            textDisplayRollExpected = 0;  // Reset for next call
-        }
-
         StringTokenizer st = new StringTokenizer(s, "\n", false);
         while (st.hasMoreElements())
         {
@@ -2827,16 +2771,13 @@ public class SOCPlayerInterface extends Frame
             this.pi = pi;
         }
 
+        /**
+         * Show a dice roll result.
+         * Call this after updating game state with the roll result.
+         */
         public void diceRolled(SOCPlayer player, int roll)
         {
-            pi.setTextDisplayRollExpected(roll);
-            pi.getBoardPanel().repaint();
-            
-            // only notify about valid rolls
-            if (roll >= 2 && roll <= 12 && player != null)
-            {
-                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, player));
-            }
+            pi.showDiceResult(player, roll);
         }
 
         public void playerJoined(String nickname)

@@ -41,6 +41,7 @@ public interface PlayerClientListener
 {
     /**
      * Receive a notification that the current player has rolled the dice.
+     * Call this after updating game state with the roll result.
      * @param player May be {@code null} if the current player was null when the dice roll was received from the server.
      * @param result The sum of the dice rolled. May be <tt>-1</tt> for some game events.
      */
