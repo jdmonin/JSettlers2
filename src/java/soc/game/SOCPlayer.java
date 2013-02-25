@@ -321,6 +321,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     private HashSet<Integer> legalSettlements;
 
     /**
+     * The most recently added node from {@link #addLegalSettlement(int)}, or 0.
+     * @since 2.0.00
+     */
+    private int addedLegalSettlement;
+
+    /**
      * a list of edges where it is legal to place a ship.
      * an edge is legal if a ship could eventually be
      * placed there.
@@ -565,6 +571,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         potentialSettlements = new HashSet<Integer>(player.potentialSettlements);
         potentialCities = new HashSet<Integer>(player.potentialCities);
         potentialShips = new HashSet<Integer>(player.potentialShips);
+        addedLegalSettlement = player.addedLegalSettlement;
 
         if (player.currentOffer != null)
         {
@@ -3492,13 +3499,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Add this node to the player's legal settlement coordinates, for future possible placement.
      * Used in some scenarios when {@link SOCGame#hasSeaBoard} to add a location
      * after calling {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}.
+     * This would be a lone location beyond the usual starting/legal LandAreas on the scenario's board.
      * @param node  A node coordinate to add
      * @since 2.0.00
      * @see #isLegalSettlement(int)
+     * @see #getAddedLegalSettlement()
      */
     public void addLegalSettlement(final int node)
     {
         legalSettlements.add(Integer.valueOf(node));
+        addedLegalSettlement = node;
     }
 
     /**
@@ -3560,10 +3570,25 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * @return true if this edge is a legal settlement
      * @param node        the coordinates of a node on the board
      * @since 2.0.00
+     * @see #getAddedLegalSettlement()
      */
     public boolean isLegalSettlement(final int node)
     {
         return legalSettlements.contains(Integer.valueOf(node));
+    }
+
+    /**
+     * Get the legal-settlement location, if any, added by {@link #addLegalSettlement(int)}.
+     *<P>
+     * That method could be called multiple times, but only the most recently added node
+     * is returned by this method.
+     *
+     * @return  Legal settlement node added by {@link #addLegalSettlement(int)}, or 0
+     * @since 2.0.00
+     */
+    public int getAddedLegalSettlement()
+    {
+        return addedLegalSettlement;
     }
 
     /**
