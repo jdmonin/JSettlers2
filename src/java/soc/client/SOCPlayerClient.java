@@ -3224,8 +3224,13 @@ public class SOCPlayerClient
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        if (pcl != null)
-            pcl.messageSent(mes.getNickname(), mes.getText());
+        if (pcl == null)
+            return;
+
+        String fromNickname = mes.getNickname();
+        if (fromNickname.equals(SOCGameTextMsg.SERVERNAME))
+            fromNickname = null;
+        pcl.messageSent(fromNickname, mes.getText());
     }
 
     /**

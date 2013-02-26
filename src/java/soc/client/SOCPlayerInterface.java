@@ -3154,7 +3154,7 @@ public class SOCPlayerInterface extends Frame
 
         public void messageSent(String nickname, String message)
         {
-            if (nickname.equals("Server"))
+            if (nickname == null)
             {
                 String starMesText = "* " + message;
                 pi.print(starMesText);

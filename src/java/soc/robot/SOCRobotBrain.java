@@ -1401,7 +1401,8 @@ public class SOCRobotBrain extends Thread
                         }
                     }
 
-                    if (waitingForTradeMsg && (mesType == SOCMessage.GAMETEXTMSG) && (((SOCGameTextMsg) mes).getNickname().equals(SOCServer.SERVERNAME)))
+                    if (waitingForTradeMsg && (mesType == SOCMessage.GAMETEXTMSG)
+                        && (((SOCGameTextMsg) mes).getNickname().equals(SOCGameTextMsg.SERVERNAME)))
                     {
                         //
                         // This might be the trade message we've been waiting for
@@ -1412,7 +1413,8 @@ public class SOCRobotBrain extends Thread
                         }
                     }
 
-                    if (waitingForDevCard && (mesType == SOCMessage.GAMETEXTMSG) && (((SOCGameTextMsg) mes).getNickname().equals(SOCServer.SERVERNAME)))
+                    if (waitingForDevCard && (mesType == SOCMessage.GAMETEXTMSG)
+                        && (((SOCGameTextMsg) mes).getNickname().equals(SOCGameTextMsg.SERVERNAME)))
                     {
                         //
                         // This might be the dev card message we've been waiting for

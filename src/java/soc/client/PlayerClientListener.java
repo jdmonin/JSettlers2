@@ -223,6 +223,12 @@ public interface PlayerClientListener
     void gameDisconnected(String errorMessage);
 
     void messageBroadcast(String message);
+
+    /**
+     * A game text message was received from server, or a chat message from another player.
+     * @param nickname  Player's nickname, or {@code null} for messages from the server itself
+     * @param message  Message text
+     */
     void messageSent(String nickname, String message);
     
     void buildRequestCanceled(SOCPlayer player);
