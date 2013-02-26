@@ -25,7 +25,7 @@ import java.util.StringTokenizer;
 
 /**
  * This message contains a text message for a SoC game.
- * Seen by {@link soc.server.SOCServer#SERVERNAME server} or by
+ * Seen by {@link soc.server.SOCServer server} or by
  * human players on-screen, occasionally parsed by robots
  * if they're expecting something.
  *<P>
@@ -40,6 +40,15 @@ import java.util.StringTokenizer;
 public class SOCGameTextMsg extends SOCMessage
     implements SOCMessageForGame
 {
+    /**
+     * {@code "Server"}, the reserved nickname used when sending game text messages
+     * from the server itself, not chat messages from players.
+     *<P>
+     * Moved here in v2.0.00; previously declared in SOCServer and a string literal at clients.
+     * @since 2.0.00
+     */
+    public static final String SERVERNAME = "Server";
+
     /**
      * Version number (2000) where the server no longer sends dice roll results as a game text message.
      *<P>
@@ -66,7 +75,7 @@ public class SOCGameTextMsg extends SOCMessage
     private String game;
 
     /**
-     * Nickname of sender
+     * Nickname of sender, or {@link #SERVERNAME}
      */
     private String nickname;
 
@@ -79,7 +88,7 @@ public class SOCGameTextMsg extends SOCMessage
      * Create a GameTextMsg message.
      *
      * @param ga  name of game
-     * @param nn  nickname of sender; announcements from the server (not from a player) use {@code "Server"}
+     * @param nn  nickname of sender; announcements from the server (not from a player) use {@link #SERVERNAME}
      * @param tm  text message
      */
     public SOCGameTextMsg(String ga, String nn, String tm)
@@ -99,7 +108,8 @@ public class SOCGameTextMsg extends SOCMessage
     }
 
     /**
-     * @return the nickname
+     * Get the player's nickname for a chat message, or the server for game announcement text
+     * @return the player's nickname, or {@link #SERVERNAME} 
      */
     public String getNickname()
     {

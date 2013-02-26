@@ -199,7 +199,7 @@ public class SOCServer extends Server
     /**
      * Name used when sending messages from the server.
      */
-    public static final String SERVERNAME = "Server";
+    public static final String SERVERNAME = SOCGameTextMsg.SERVERNAME;  // "Server"
 
     /**
      * Minimum required client version, to connect and play a game.
