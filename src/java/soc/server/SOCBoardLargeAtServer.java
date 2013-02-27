@@ -427,8 +427,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // Add villages, if the scenario does that
         opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
         if ((opt != null) && opt.getBoolValue())
+        {
             setVillageAndClothLayout(SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE);
                 // also sets board's "general supply"
+
+            setAddedLayoutPart("CV", SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE);
+        }
 
         if (PORTS_TYPES_MAINLAND == null)
         {

@@ -190,14 +190,13 @@ public class SOCBoardLayout2 extends SOCMessage
      * @param ph   the pirate hex, or 0
      * @param px   the player exclusion land areas, or null, from {@link SOCBoardLarge#getPlayerExcludedLandAreas()}
      * @param rx   the robber exclusion land areas, or null, from {@link SOCBoardLarge#getRobberExcludedLandAreas()}
-     * @param cv   the cloth villages, or null, from {@link SOCBoardLarge#getVillageAndClothLayout()}
      * @param other  any other layout parts to add, or null; see {@link #getAddedParts()}.
-     *             Please be sure that none of the keys conflict with ones already listed in the class javadoc.
+     *             Please make sure that new keys don't conflict with ones already listed in the class javadoc.
      */
     public SOCBoardLayout2
         (final String ga, final int bef,
-         int[] lh, int[] pl, int rh, int ph, int[] px, int[] rx, int[] cv,
-         Map<String, int[]> other)
+         final int[] lh, final int[] pl, final int rh, final int ph, final int[] px, final int[] rx,
+         final Map<String, int[]> other)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -215,8 +214,6 @@ public class SOCBoardLayout2 extends SOCMessage
             layoutParts.put("PX", px);
         if (rx != null)
             layoutParts.put("RX", rx);
-        if (cv != null)
-            layoutParts.put("CV", cv);
 
         if (other != null)
             layoutParts.putAll(other);
