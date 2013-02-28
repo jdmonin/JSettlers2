@@ -4374,7 +4374,8 @@ public class SOCServer extends Server
         // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK, "Debugging is On.  Welcome to Java Settlers of Catan!"));            
+                    (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers,
+                     "Debugging is On.  Welcome to Java Settlers of Catan!"));                    
 
         // This client version is OK to connect
         return true;

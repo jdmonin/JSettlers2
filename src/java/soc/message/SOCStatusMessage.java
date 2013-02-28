@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2009-2010,2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2009-2010,2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,17 +29,21 @@ package soc.message;
  * Also used in {@link soc.client.SOCAccountClient SOCAccountClient}
  * to tell the user if their change was made successfully.
  *<P>
- * <b>Added in Version 1.1.06:</b>
+ * <b>Added in Version 1.1.06:</b><br>
  * Status value parameter (nonnegative integer).
  * For backwards compatibility, the status value (integer {@link #getStatusValue()} ) is not sent
  * as a parameter, if it is 0.  (In JSettlers older than 1.1.06, it
  * is always 0.)  Earlier versions simply printed the entire message as text,
  * without trying to parse anything.
  *<P>
+ * <b>"Debug Is On" notification:</b><br>
  * In version 1.1.17 and newer, a server with debug commands enabled will send
  * a STATUSMESSAGE right after sending its {@link SOCVersion VERSION}, which will include text
- * such as "debug is on" or "debugging on".  It won't send a status value, because
- * older client versions might treat it as generic failure and disconnect. 
+ * such as "debug is on" or "debugging on".  It won't send a nonzero status value, because
+ * older client versions might treat it as generic failure and disconnect.
+ *<P>
+ * In version 2.0.00 and newer, the server's "debug is on" status is {@link #SV_OK_DEBUG_MODE_ON}.
+ * Older clients are sent {@link #SV_OK}, and the status text to older clients must include the word "debug".
  *
  * @author Robert S. Thomas
  */
@@ -171,6 +175,13 @@ public class SOCStatusMessage extends SOCMessage
      */
     public static final int SV_NEWCHANNEL_TOO_MANY_CREATED = 15;
 
+    /**
+     * Client has connected successfully ({@link #SV_OK}) and the server's Debug Mode is on.
+     * Versions older than 2.0.00 get {@link #SV_OK} instead; see {@link #toCmd(int, int, String)}.
+     * @since 2.0.00
+     */
+    public static final int SV_OK_DEBUG_MODE_ON = 16;
+
     // IF YOU ADD A STATUS VALUE:
     // Be sure to update statusValidAtVersion().
 
@@ -286,6 +297,8 @@ public class SOCStatusMessage extends SOCMessage
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
+     *            Remember that not all client versions recognize every status;
+     *            see {@link #statusValidAtVersion(int, int)}.
      * @param st  the status message text.
      *            If sv is nonzero, you may embed {@link SOCMessage#sep2} characters
      *            in your string, and they will be passed on for the receiver to parse.
@@ -311,6 +324,9 @@ public class SOCStatusMessage extends SOCMessage
      *            Calls {@link #statusValidAtVersion(int, int)}.
      *            if sv isn't recognized in that version, will send
      *            {@link #SV_NOT_OK_GENERIC} instead.
+     *<P>
+     *            If {@link #SV_OK_DEBUG_MODE_ON} isn't recognized in {@code cliVers},
+     *            will send {@link #SV_OK} instead.
      *
      * @param sv  the status value; if 0 or less, is not output.
      *            Should be a constant such as {@link #SV_OK}.
@@ -325,7 +341,9 @@ public class SOCStatusMessage extends SOCMessage
     {
         if (! statusValidAtVersion(sv, cliVers))
         {
-            if (cliVers >= 1106)
+            if (sv == SV_OK_DEBUG_MODE_ON)
+                sv = SV_OK;
+            else if (cliVers >= 1106)
                 sv = SV_NOT_OK_GENERIC;
             else
                 sv = SV_OK;
@@ -358,9 +376,11 @@ public class SOCStatusMessage extends SOCMessage
             {
             if (cliVersion < 1106)
                 return (statusValue == 0);
+            else if (cliVersion < 2000)
+                return (statusValue < SV_OK_DEBUG_MODE_ON);
             else
                 // newer; check vs highest constant that we know
-                return (statusValue <= SV_NEWCHANNEL_TOO_MANY_CREATED);
+                return (statusValue <= SV_OK_DEBUG_MODE_ON);
             }
         }
     }

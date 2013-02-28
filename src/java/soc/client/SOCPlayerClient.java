@@ -314,7 +314,14 @@ public class SOCPlayerClient
         void enableOptions();
 
         void showVersion(int versionNumber, String versionString, String buildString);
-        void showStatus(String statusText);
+
+        /**
+         * Show server welcome banner or status text.
+         * If status during initial connect includes warning that the server's in Debug Mode, show that.
+         * @param statusText  Status message text from server
+         * @param debugWarn   True if server has Debug Mode active
+         */
+        void showStatus(String statusText, boolean debugWarn);
 
         void channelJoined(String channelName);
         void channelJoined(String channelName, String nickname);
@@ -1571,13 +1578,13 @@ public class SOCPlayerClient
                 gi.setEnabled(false);  // server too old for options, so don't use that button
         }
 
-        public void showStatus(String statusText)
+        public void showStatus(final String statusText, final boolean debugWarn)
         {
             status.setText(statusText);
 
             // If warning about debug during initial connect, show that.
             // That status message would be sent after VERSION.
-            if (statusText.toLowerCase().contains("debug"))
+            if (debugWarn)
                 versionOrlocalTCPPortLabel.setText
                     (versionOrlocalTCPPortLabel.getText() + ", debug is on");
 
@@ -2917,10 +2924,11 @@ public class SOCPlayerClient
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isPractice)
     {
         System.err.println("L2045 statusmsg at " + System.currentTimeMillis());
+        final int sv = mes.getStatusValue();
         final String statusText = mes.getStatus();
-        gameDisplay.showStatus(statusText);
+        gameDisplay.showStatus(statusText, (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON));
 
-        if (mes.getStatusValue() == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
+        if (sv == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
         {
             // Extract game name and failing game-opt keynames,
             // and pop up an error message window.

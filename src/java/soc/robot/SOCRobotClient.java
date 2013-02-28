@@ -884,7 +884,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     @Override
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
-        final int sv = mes.getStatusValue();
+        int sv = mes.getStatusValue();
+        if (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON)
+            sv = 0;
         if ((sv != 0) || ! printedInitialWelcome)
         {
             System.err.println("Robot " + getNickname() + ": Status "
