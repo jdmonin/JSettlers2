@@ -5893,7 +5893,8 @@ public class SOCPlayerClient
         {
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
-            pcli.getClient().treater.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
+            pcli.getClient().treater.handleGAMEOPTIONINFO
+                (new SOCGameOptionInfo(new SOCGameOption("-"), Version.versionNumber()), false);
         }
 
     }  // GameOptionsTimeoutTask

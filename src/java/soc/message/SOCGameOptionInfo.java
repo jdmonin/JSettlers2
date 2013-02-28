@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -57,7 +57,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * GAMEOPTIONINFO named "-" with type OTYPE_UNKNOWN.
      */
     public static final SOCGameOptionInfo OPTINFO_NO_MORE_OPTS
-        = new SOCGameOptionInfo(new SOCGameOption("-"));
+        = new SOCGameOptionInfo(new SOCGameOption("-"), 0);
 
     /**
      * symbol to represent a null or empty string value,
@@ -67,8 +67,14 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 
     protected SOCGameOption opt = null;
 
-    /** Constructor for server to tell client about a game option */
-    public SOCGameOptionInfo(SOCGameOption op)
+    /**
+     * Constructor for server to tell client about a game option.
+     * The client's version is used to make sure the message format can be understood
+     * at the client, by omitting fields and flags added after the client's version.
+     * @param op  Option to send
+     * @param cliVers  Client's version number; 1107 is version 1.1.07
+     */
+    public SOCGameOptionInfo(final SOCGameOption op, final int cliVers)
     {
         // OTYPE_*
         super(GAMEOPTIONINFO, null,
@@ -95,7 +101,11 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         } else {
             pa[9] = Integer.toString(op.getIntValue());
         }
-        pa[10] = (op.dropIfUnused ? "t" : "f");  // before v2.0.00, client ignores this flag for OTYPE_INT, OTYPE_ENUM 
+        if (cliVers < 2000)
+            pa[10] = (op.hasFlag(SOCGameOption.FLAG_DROP_IF_UNUSED) ? "t" : "f");
+        else
+            pa[10] = Integer.toString(op.optFlags);
+
         pa[11] = op.optDesc;
 
         // for OTYPE_ENUM, _ENUMBOOL, pa[12+] are the enum choices' string values
@@ -118,7 +128,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
      * pa[7] = maxIntValue
      * pa[8] = boolValue ('t' or 'f'; current, not default)
      * pa[9] = intValue (current, not default) or stringvalue
-     * pa[10] = dropIfUnused ('t' or 'f')
+     * pa[10] = optFlags as integer -- before v2.0.00, only FLAG_DROP_IF_UNUSED ('t' or 'f')
      * pa[11] = optDesc (displayed text) if present; required for all but OTYPE_UNKNOWN
      * pa[12] and beyond, if present = each enum choice's text </pre>
      *
@@ -157,7 +167,13 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    ival_cur = Integer.parseInt(pa[9]);
 	    sval_cur = null;
 	}
-        final boolean skip_def = (pa[10].equals("t"));
+	final int opt_flags;
+	if (pa[10].equals("t"))
+	    opt_flags = SOCGameOption.FLAG_DROP_IF_UNUSED;
+	else if (pa[10].equals("f") || (pa[10].length() == 0))
+	    opt_flags = 0;
+	else
+	    opt_flags = Integer.parseInt(pa[10]);
 
         if ((pa.length != 11) && (pa.length != 12)
               && (otyp != SOCGameOption.OTYPE_ENUM)
@@ -171,17 +187,17 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    break;
 
 	case SOCGameOption.OTYPE_BOOL:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, skip_def, pa[11]);
+	    opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, opt_flags, pa[11]);
 	    opt.setBoolValue(bval_cur);
 	    break;
 
 	case SOCGameOption.OTYPE_INT:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, skip_def, pa[11]);
+	    opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, ival_min, ival_max, opt_flags, pa[11]);
 	    opt.setIntValue(ival_cur);
 	    break;
 
 	case SOCGameOption.OTYPE_INTBOOL:
-	    opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, ival_min, ival_max, skip_def, pa[11]);
+	    opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, ival_min, ival_max, opt_flags, pa[11]);
 	    opt.setBoolValue(bval_cur);
 	    opt.setIntValue(ival_cur);
 	    break;
@@ -190,7 +206,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
 	    {
 		String[] choices = new String[ival_max];
 		System.arraycopy(pa, 12, choices, 0, ival_max);
-	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, skip_def, choices, pa[11]);
+	        opt = new SOCGameOption(pa[0], oversmin, oversmod, ival_def, choices, opt_flags, pa[11]);
 	        opt.setIntValue(ival_cur);
             }
 	    break;
@@ -199,7 +215,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
             {
                 String[] choices = new String[ival_max];
                 System.arraycopy(pa, 12, choices, 0, ival_max);
-                opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, choices, skip_def, pa[11]);
+                opt = new SOCGameOption(pa[0], oversmin, oversmod, bval_def, ival_def, choices, opt_flags, pa[11]);
                 opt.setBoolValue(bval_cur);
                 opt.setIntValue(ival_cur);
             }
@@ -208,7 +224,7 @@ public class SOCGameOptionInfo extends SOCMessageTemplateMs
         case SOCGameOption.OTYPE_STR:
 	case SOCGameOption.OTYPE_STRHIDE:
 	    opt = new SOCGameOption
-		(pa[0], oversmin, oversmod, ival_max, (otyp == SOCGameOption.OTYPE_STRHIDE), skip_def, pa[11]);
+		(pa[0], oversmin, oversmod, ival_max, (otyp == SOCGameOption.OTYPE_STRHIDE), opt_flags, pa[11]);
 	    opt.setStringValue(sval_cur);
 	    break;
 

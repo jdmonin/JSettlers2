@@ -8633,7 +8633,7 @@ public class SOCServer extends Server
                     opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
                 }
 
-                c.put(new SOCGameOptionInfo(opt).toCmd());
+                c.put(new SOCGameOptionInfo(opt, cliVers).toCmd());
             }
         }
 
