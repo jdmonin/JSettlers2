@@ -2926,7 +2926,14 @@ public class SOCPlayerClient
         System.err.println("L2045 statusmsg at " + System.currentTimeMillis());
         final int sv = mes.getStatusValue();
         final String statusText = mes.getStatus();
-        gameDisplay.showStatus(statusText, (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON));
+
+        final boolean srvDebugMode;
+        if (isPractice || (sVersion >= 2000))
+            srvDebugMode = (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON);
+        else
+            srvDebugMode = statusText.toLowerCase().contains("debug");
+
+        gameDisplay.showStatus(statusText, srvDebugMode);
 
         if (sv == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
         {
