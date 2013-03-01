@@ -9870,7 +9870,7 @@ public class SOCServer extends Server
                          devCardType < SOCDevCardConstants.MAXPLUSONE;
                          devCardType++)
                 {
-                    if (! SOCDevCardSet.isVPCard(devCardType))
+                    if (! SOCDevCard.isVPCard(devCardType))
                         continue;
 
                     if ((devCards.getAmount(SOCDevCardSet.OLD, devCardType) > 0) || (devCards.getAmount(SOCDevCardSet.NEW, devCardType) > 0))
