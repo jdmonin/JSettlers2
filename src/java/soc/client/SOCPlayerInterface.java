@@ -66,6 +66,7 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
@@ -1446,11 +1447,24 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Print formatted text (with placeholders) in the text window, followed by a new line (<tt>'\n'</tt>). Equivalent to
+     * {@link #print(String) print}({@link MessageFormat#format(String, Object...) MessageFormat.format}({@code s, args})).
+     *
+     * @param s  String with placeholders, such as "{0} wants to Special Build."
+     * @param args  Arguments to fill into {@code s}'s placeholders
+     * @since 2.0.00
+     */
+    public void printFormat(final String s, final Object ... args)
+    {
+        print(MessageFormat.format(s, args));
+    }
+
+    /**
      * print text in the text window, followed by a new line (<tt>'\n'</tt>).
-     * For dice-roll message, combine lines to reduce clutter.
      *
      * @param s  the text; you don't need to include "\n".
      * @see #chatPrint(String)
+     * @see #printFormat(String, Object...)
      */
     public void print(String s)
     {
@@ -2998,7 +3012,7 @@ public class SOCPlayerInterface extends Frame
         public void requestedSpecialBuild(SOCPlayer player)
         {
             if (player.hasAskedSpecialBuild())
-                pi.print("* " + player.getName() + " wants to Special Build.");
+                pi.printFormat(/*I*/"* {0} wants to Special Build."/*18N*/, player.getName());
             if (pi.isClientPlayer(player))
                 pi.getBuildingPanel().updateButtonStatus();
         }
