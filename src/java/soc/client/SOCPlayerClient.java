@@ -2619,8 +2619,8 @@ public class SOCPlayerClient
             /**
              * a dev card action, either draw, play, or add to hand
              */
-            case SOCMessage.DEVCARD:
-                handleDEVCARD(isPractice, (SOCDevCard) mes);
+            case SOCMessage.DEVCARDACTION:
+                handleDEVCARDACTION(isPractice, (SOCDevCardAction) mes);
 
                 break;
 
@@ -3965,7 +3965,7 @@ public class SOCPlayerClient
      * handle the "development card action" message
      * @param mes  the message
      */
-    protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
+    protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
     {
         SOCGame ga = games.get(mes.getGame());
 
@@ -3985,12 +3985,12 @@ public class SOCPlayerClient
 
             switch (mes.getAction())
             {
-            case SOCDevCard.DRAW:
+            case SOCDevCardAction.DRAW:
                 player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
 
-            case SOCDevCard.PLAY:
+            case SOCDevCardAction.PLAY:
                 player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
                 // JM temp debug:
                 if (ctype != mes.getCardType())
@@ -3998,12 +3998,12 @@ public class SOCPlayerClient
 
                 break;
 
-            case SOCDevCard.ADDOLD:
+            case SOCDevCardAction.ADDOLD:
                 player.getDevCards().add(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
-            case SOCDevCard.ADDNEW:
+            case SOCDevCardAction.ADDNEW:
                 player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;

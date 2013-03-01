@@ -26,9 +26,9 @@ import java.util.StringTokenizer;
 /**
  * This message from client means that a player wants to play a development card.
  * If client player can play it, server will respond to all players with
- * {@link SOCDevCard}({@link SOCDevCard#PLAY PLAY}), {@link SOCSetPlayedDevCard},
+ * {@link SOCDevCardAction}({@link SOCDevCardAction#PLAY PLAY}), {@link SOCSetPlayedDevCard},
  * and other messages.  Otherwise, server will send human players a {@link SOCGameTextMsg}
- * or send robots a {@link SOCDevCard}({@link SOCDevCard#CANNOT_PLAY CANNOT_PLAY}).
+ * or send robots a {@link SOCDevCardAction}({@link SOCDevCardAction#CANNOT_PLAY CANNOT_PLAY}).
  *<P>
  * Note that in v2.0.00, the {@link #getDevCard()} value for <tt>SOCDevCardConstants.KNIGHT</tt>
  * was changed.  This class doesn't handle the translation from old clients

@@ -679,8 +679,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * a dev card action: either draw, play, or add to hand,
              * or we cannot play our requested dev card.
              */
-            case SOCMessage.DEVCARD:
-                handlePutBrainQ((SOCDevCard) mes);
+            case SOCMessage.DEVCARDACTION:
+                handlePutBrainQ((SOCDevCardAction) mes);
 
                 break;
 

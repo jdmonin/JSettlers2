@@ -46,7 +46,7 @@ import soc.message.SOCCancelBuildRequest;
 import soc.message.SOCChoosePlayer;
 import soc.message.SOCChoosePlayerRequest;
 import soc.message.SOCClearOffer;
-import soc.message.SOCDevCard;
+import soc.message.SOCDevCardAction;
 import soc.message.SOCDevCardCount;
 import soc.message.SOCDiceResult;
 import soc.message.SOCDiscardRequest;
@@ -367,7 +367,7 @@ public class SOCRobotBrain extends Thread
      * In scenario {@link _SC_PIRI}, this flag is also used when we've just played
      * a "Convert to Warship" card (Knight/Soldier card) and we're waiting for the
      * server response.  The response won't be a GAMESTATE(PLACING_SOLDIER) message,
-     * it will either be PLAYERLEMENT(GAIN, SCENARIO_WARSHIP_COUNT) or DEVCARD(CANNOT_PLAY).
+     * it will either be PLAYERLEMENT(GAIN, SCENARIO_WARSHIP_COUNT) or DEVCARDACTION(CANNOT_PLAY).
      * Since this situation is otherwise the same as playing a Knight/Soldier, we use
      * this same waiting flags.
      */
@@ -454,7 +454,7 @@ public class SOCRobotBrain extends Thread
      * This is set after a robot action or requested action is sent to server,
      * or just before ending our turn (which also sets {@link #waitingForOurTurn} == true).
      *<P>
-     * For example, when playing a {@link SOCDevCard}, set true and also set
+     * For example, when playing a {@link SOCDevCardAction}, set true and also set
      * an "expect" flag ({@link #expectPLACING_ROBBER}, {@link #expectWAITING_FOR_DISCOVERY}, etc).
      *<P>
      * <b>Special case:</b><br>
@@ -1277,12 +1277,12 @@ public class SOCRobotBrain extends Thread
                         game.setNumDevCards(((SOCDevCardCount) mes).getNumDevCards());
                         break;
 
-                    case SOCMessage.DEVCARD:
+                    case SOCMessage.DEVCARDACTION:
                         {
-                            SOCDevCard dcMes = (SOCDevCard) mes;
-                            if (dcMes.getAction() != SOCDevCard.CANNOT_PLAY)
+                            SOCDevCardAction dcMes = (SOCDevCardAction) mes;
+                            if (dcMes.getAction() != SOCDevCardAction.CANNOT_PLAY)
                             {
-                                handleDEVCARD(dcMes);
+                                handleDEVCARDACTION(dcMes);
                             } else {
                                 // rejected by server, can't play our requested card
                                 rejectedPlayDevCardType = dcMes.getCardType();
@@ -2744,30 +2744,30 @@ public class SOCRobotBrain extends Thread
     }
 
     /**
-     * Handle a DEVCARD for this game.
+     * Handle a DEVCARDACTION for this game.
      * No brain-specific action.
      * @since 1.1.08
      */
-    private void handleDEVCARD(SOCDevCard mes)
+    private void handleDEVCARDACTION(SOCDevCardAction mes)
     {
         SOCDevCardSet plCards = game.getPlayer(mes.getPlayerNumber()).getDevCards();
         final int cardType = mes.getCardType();
 
         switch (mes.getAction())
         {
-        case SOCDevCard.DRAW:
+        case SOCDevCardAction.DRAW:
             plCards.add(1, SOCDevCardSet.NEW, cardType);
             break;
 
-        case SOCDevCard.PLAY:
+        case SOCDevCardAction.PLAY:
             plCards.subtract(1, SOCDevCardSet.OLD, cardType);
             break;
 
-        case SOCDevCard.ADDOLD:
+        case SOCDevCardAction.ADDOLD:
             plCards.add(1, SOCDevCardSet.OLD, cardType);
             break;
 
-        case SOCDevCard.ADDNEW:
+        case SOCDevCardAction.ADDNEW:
             plCards.add(1, SOCDevCardSet.NEW, cardType);
             break;
         }

@@ -627,8 +627,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             /**
              * a dev card action, either draw, play, or add to hand
              */
-            case SOCMessage.DEVCARD:
-                handleDEVCARD((sLocal != null), (SOCDevCard) mes);
+            case SOCMessage.DEVCARDACTION:
+                handleDEVCARDACTION((sLocal != null), (SOCDevCardAction) mes);
 
                 break;
 
@@ -1638,7 +1638,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *                only to local, or remote.
      * @param mes  the message
      */
-    protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
+    protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
     {
         SOCGame ga = games.get(mes.getGame());
 
@@ -1657,22 +1657,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             switch (mes.getAction())
             {
-            case SOCDevCard.DRAW:
+            case SOCDevCardAction.DRAW:
                 player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
 
-            case SOCDevCard.PLAY:
+            case SOCDevCardAction.PLAY:
                 player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
-            case SOCDevCard.ADDOLD:
+            case SOCDevCardAction.ADDOLD:
                 player.getDevCards().add(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
-            case SOCDevCard.ADDNEW:
+            case SOCDevCardAction.ADDNEW:
                 player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
