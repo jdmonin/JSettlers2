@@ -376,6 +376,8 @@ public abstract class AskDialog extends Dialog
         setLocation(150, 100);
 
         pBtns = new JPanel();
+        pBtns.setOpaque(true);
+        pBtns.setBackground(getBackground());  // setOpaque(false) would still give gray bg on win32
         pBtns.setLayout(new FlowLayout(FlowLayout.CENTER, 3, 0));  // horiz border 3 pixels
         pBtns.setBorder
             (BorderFactory.createEmptyBorder(ColorSquare.HEIGHT / 2, 0, ColorSquare.HEIGHT / 2, 0));  // vert border
