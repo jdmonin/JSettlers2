@@ -1942,7 +1942,7 @@ public class SOCPlayerInterface extends Frame
             break;
 
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
-            new ChooseMoveRobberOrPirateDialog().showInNewThread();
+            java.awt.EventQueue.invokeLater(new ChooseMoveRobberOrPirateDialog());
             break;
 
         default:
@@ -3456,7 +3456,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Modal dialog to ask whether to move the robber or the pirate ship.
-     * Start a new thread to show, so message treating can continue while the dialog is showing.
+     * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
      * When the choice is made, calls {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)}
      * with {@link SOCChoosePlayer#CHOICE_MOVE_ROBBER CHOICE_MOVE_ROBBER}
      * or {@link SOCChoosePlayer#CHOICE_MOVE_PIRATE CHOICE_MOVE_PIRATE}.
@@ -3468,12 +3468,10 @@ public class SOCPlayerInterface extends Frame
     {
         private static final long serialVersionUID = 2000L;
 
-        /** Runs in own thread, to not tie up client's message-treater thread. */
-        private Thread rdt;
-
         /**
          * Creates a new ChooseMoveRobberOrPirateDialog.
-         * To display the dialog, call {@link #showInNewThread()}.
+         * To display the dialog without tying up the client's message-treater thread,
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
         protected ChooseMoveRobberOrPirateDialog()
         {
@@ -3483,7 +3481,6 @@ public class SOCPlayerInterface extends Frame
                 "Move Robber",
                 "Move Pirate",
                 null, 1);
-            rdt = null;
         }
 
         /**
@@ -3513,32 +3510,8 @@ public class SOCPlayerInterface extends Frame
         public void windowCloseChosen() { button1Chosen(); }
 
         /**
-         * Make a new thread and show() in that thread.
-         * Keep track of the thread, in case we need to dispose of it.
-         */
-        public void showInNewThread()
-        {
-            rdt = new Thread(this);
-            rdt.setDaemon(true);
-            rdt.setName("ChooseMoveRobberOrPirateDialog");
-            rdt.start();  // run method will show the dialog
-        }
-
-        @Override
-        public void dispose()
-        {
-            if (rdt != null)
-            {
-                //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
-                rdt.stop();
-                rdt = null;
-            }
-            super.dispose();
-        }
-
-        /**
-         * In new thread, show ourselves. Do not call
-         * directly; call {@link #showInNewThread()}.
+         * In the AWT event thread, show ourselves. Do not call directly;
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
         public void run()
         {
