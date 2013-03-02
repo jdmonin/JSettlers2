@@ -5114,6 +5114,7 @@ public class SOCGame implements Serializable, Cloneable
                 final SOCSettlement recaptSettle = new SOCSettlement(currPlayer, fort.getCoordinates(), board);
                 putPiece(recaptSettle);
                 //  game.putPiece will call currPlayer.putPiece, which will set player's fortress field = null.
+                //  game.putPiece will also call checkForWinner, and may set gamestate to OVER.
 
                 // Fire the scenario player event, with the resulting SOCSettlement
                 if (scenarioEventListener != null)
@@ -5174,7 +5175,8 @@ public class SOCGame implements Serializable, Cloneable
             }
         }
 
-        // TODO end player's turn too
+        // Attacking the pirate fortress ends the player's turn.
+        endTurn();
 
         return retval;
     }

@@ -8279,11 +8279,16 @@ public class SOCServer extends Server
 
                 messageToGame(gaName, new SOCPirateFortressAttackResult(gaName, res[0], res.length - 1));
 
-                // TODO check for end of player's turn
-
-                final int gstate = ga.getGameState();
-                if (gstate != prevState)
-                    sendGameState(ga);  // might be OVER, if player won
+                // check for end of player's turn
+                if (! checkTurn(c, ga))
+                {
+                    endGameTurn(ga, cp, false);
+                } else {
+                    // still player's turn, even if they won
+                    final int gstate = ga.getGameState();
+                    if (gstate != prevState)
+                        sendGameState(ga);  // might be OVER, if player won
+                }
             }
             break;
 
@@ -9081,12 +9086,10 @@ public class SOCServer extends Server
                     final int coord = piece.getCoordinates(),
                               str   = piece.getStrength();
 
-                    messageToGameWithMon
-                        (gameName, new SOCPutPiece(gameName, i, piece.getType(), coord));
+                    c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), coord));
 
                     if (str != SOCFortress.STARTING_STRENGTH)
-                        messageToGameWithMon
-                            (gameName, new SOCPieceValue(gameName, coord, str, 0));
+                        c.put(SOCPieceValue.toCmd(gameName, coord, str, 0));
                 }
             }
 
