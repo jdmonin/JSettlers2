@@ -180,7 +180,7 @@ public class SOCScenario implements Cloneable, Comparable<Object>
              "Cloth Trade with neutral villages",
              "The small villages give you Cloth; every 2 cloth you have is 1 extra Victory Point. To gain cloth, "
              + "build ships to a village. Each player to reach a village get 1 cloth when it's reached, and 1 more "
-             + "whenever its number is rolled, until the village runs out. You can't move the robber until you've "
+             + "whenever its number is rolled, until the village runs out. You can't move the pirate until you've "
              + "reached a village.",
              "_SC_CLVI=t,PLL=t,VP=t14,_SC_3IP=t,_SC_0RVP=t"));
 
