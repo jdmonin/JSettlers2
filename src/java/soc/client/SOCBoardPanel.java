@@ -7259,9 +7259,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       public void tryAttackPirateFortress()
       {
+          // Clear the hovering tooltip at fortress, for when the result dialog pops up
+          hoverTip.setHoverText_modeChangedOrMouseMoved = true;
+          hoverTip.setHoverText(null);
+
+          // Validate and make the request
           if (game.canAttackPirateFortress() != null)
               playerInterface.getClient().getGameManager().scen_SC_PIRI_attackPirateFortressRequest(player);
           else
+              // can't attack, cancel the request
               playerInterface.getClientListener().scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
       }
 
