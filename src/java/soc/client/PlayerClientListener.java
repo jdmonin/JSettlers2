@@ -28,6 +28,7 @@ import java.util.Map;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
 
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
@@ -203,6 +204,16 @@ public interface PlayerClientListener
     void membersListed(Collection<String> names);
     void boardLayoutUpdated();
     void boardUpdated();
+
+    /**
+     * A playing piece's value was updated:
+     * {@code _SC_CLVI} village cloth count, or
+     * {@code _SC_PIRI} pirate fortress strength.
+     * Repaint that piece (if needed) on the board.
+     * @param piece  Piece that was updated, includes its new value
+     */
+    void pieceValueUpdated(SOCPlayingPiece piece);
+
     void boardPotentialsUpdated();
     void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber);
     void boardResetVoteRequested(SOCPlayer requestor);

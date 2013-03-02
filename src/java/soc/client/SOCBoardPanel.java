@@ -1810,6 +1810,43 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * A playing piece's value was updated:
+     * {@code _SC_CLVI} village cloth count, or
+     * {@code _SC_PIRI} pirate fortress strength.
+     * Repaint that piece (if needed) on the board.
+     * @param piece  Piece that was updated, includes its new value
+     * @since 2.0.00
+     */
+    public void pieceValueUpdated(final SOCPlayingPiece piece)
+    {
+        if (piece instanceof SOCFortress)
+        {
+            final int pn = piece.getPlayerNumber();
+
+            // repaint this piece in the AWT thread
+            java.awt.EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
+                    if (ibuf != null)
+                        drawFortress(ibuf.getGraphics(), (SOCFortress) piece, pn, false);
+                    drawFortress(getGraphics(), (SOCFortress) piece, pn, false);
+                }
+            });
+        }
+        else if (piece instanceof SOCVillage)
+        {
+            // no update needed; village cloth count is handled in tooltip hover
+        }
+        else
+        {
+            // generic catch-all for future piece types: just repaint the board.
+            flushBoardLayoutAndRepaint();
+        }
+    }
+
+    /**
      * Clear the board layout (as rendered in the
      * empty-board buffer) and trigger a repaint.
      * @since 1.1.08

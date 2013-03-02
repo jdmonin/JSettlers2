@@ -3100,6 +3100,11 @@ public class SOCPlayerInterface extends Frame
             pi.getBoardPanel().flushBoardLayoutAndRepaint();
         }
 
+        public void pieceValueUpdated(final SOCPlayingPiece piece)
+        {
+            pi.getBoardPanel().pieceValueUpdated(piece);
+        }
+
         public void boardPotentialsUpdated()
         {
             pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
