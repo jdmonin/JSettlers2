@@ -886,35 +886,34 @@ public class SOCPlayerInterface extends Frame
         if ((newp != oldp)
             && ((null != oldp) || (null != newp)))
         {
-            StringBuffer msgbuf;
+            final String changedObj;  // what was changed?
             if (isRoadNotArmy)
             {
                 if (game.hasSeaBoard)
-                    msgbuf = new StringBuffer("Longest trade route was ");
+                    changedObj = /*I*/"Longest trade route"/*18N*/;
                 else
-                    msgbuf = new StringBuffer("Longest road was ");
+                    changedObj = /*I*/"Longest road"/*18N*/;
             } else {
-                msgbuf = new StringBuffer("Largest army was ");
+                changedObj = /*I*/"Largest army"/*18N*/;
             }
 
+            final String msg;  // full sentence with change and players
             if (newp != null)
             {
                 if (oldp != null)
                 {
-                    msgbuf.append("taken from ");
-                    msgbuf.append(oldp.getName());
-                    msgbuf.append(" by ");
+                    msg = MessageFormat.format
+                        (/*I*/"* {0} was taken from {1} by {2}."/*18N*/, changedObj, oldp.getName(), newp.getName());
                 } else {
-                    msgbuf.append("taken by ");
+                    msg = MessageFormat.format
+                        (/*I*/"* {0} was taken by {1}."/*18N*/, changedObj, newp.getName());
                 }
-                msgbuf.append(newp.getName());
             } else {
-                msgbuf.append("lost by ");
-                msgbuf.append(oldp.getName());
+                msg = MessageFormat.format
+                    (/*I*/"* {0} was lost by {1}."/*18N*/, changedObj, oldp.getName());
             }
 
-            msgbuf.append('.');
-            print(msgbuf.toString());
+            print(msg);
         }
     }
 
@@ -1112,7 +1111,7 @@ public class SOCPlayerInterface extends Frame
     public void showDiceResult(final SOCPlayer cp, final int roll)
     {
         if (roll > 0)
-            print("* " + /*I*/"Rolled a "/*18N*/ + roll);  // i18n: parameterize
+            printFormat(/*I*/"* Rolled a {0}."/*18N*/, Integer.toString(roll));
 
         boardPanel.repaint();
 
@@ -3203,33 +3202,33 @@ public class SOCPlayerInterface extends Frame
             final SOCPlayer cpl = ga.getPlayer(ga.getCurrentPlayerNumber());
             final SOCFortress fort = cpl.getFortress();
             final String cplName = cpl.getName();
-            // TODO I18N including player name, strength
-            pi.print( "* " + cplName + /*I*/" has attacked a pirate fortress (defense strength "/*18N*/
-                + defStrength + ").");
+            pi.printFormat( /*I*/"* {0} has attacked a pirate fortress (defense strength {1})."/*18N*/,
+                cplName, Integer.toString(defStrength));
 
-            // TODO I18N including player name, result, etc
-            String resDesc;
+            String resDesc;  // used for game text print and popup window
             switch (resultShipsLost)
             {
-            case 0:  resDesc = "wins!";  break;
-            case 1:  resDesc = "ties, and loses 1 ship.";  break;
-            default: resDesc = "loses, and loses 2 ships.";  break;
+            case 0:  resDesc = /*I*/"{0} wins!"/*18N*/;  break;
+            case 1:  resDesc = /*I*/"{0} ties, and loses 1 ship."/*18N*/;  break;
+            default: resDesc = /*I*/"{0} loses, and loses 2 ships."/*18N*/;  break;
                 // case 2 is "default" so resDesc is always set for compiler
             }
-            resDesc = cplName + ' ' + resDesc;  // 'Player 2 wins!'
+            resDesc = MessageFormat.format(resDesc, cplName);  // 'Player 2 wins!'
             pi.print("* " + resDesc);
 
-            // TODO I18N including player name, number of attacks
             final String resDesc2;
             if (resultShipsLost == 0)
             {
                 if (fort == null)
                 {
                     // defeated and recaptured
-                    resDesc2 = cplName + " has recaptured the fortress as a settlement.";
+                    resDesc2 = MessageFormat.format
+                        ( /*I*/"{0} has recaptured the fortress as a settlement."/*18N*/, cplName);
                 } else {
                     // still needs to attack
-                    resDesc2 = "The pirate fortress will be defeated after " + fort.getStrength() + " more attack(s)."; 
+                    resDesc2 = MessageFormat.format
+                        ( /*I*/"The pirate fortress will be defeated after {0} more attack(s)."/*18N*/,
+                         Integer.toString(fort.getStrength()));
                 }
                 pi.print("* " + resDesc2);
             } else {
