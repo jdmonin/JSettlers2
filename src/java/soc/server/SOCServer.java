@@ -8233,6 +8233,7 @@ public class SOCServer extends Server
                     return;  // <--- early return: deny ---
                 }
 
+                final int prevState = ga.getGameState();
                 final SOCPlayer cp = ga.getPlayer(cpn);
                 final int prevNumWarships = cp.getNumWarships();  // in case some are lost, we'll announce that
                 final SOCFortress fort = cp.getFortress();
@@ -8264,6 +8265,10 @@ public class SOCServer extends Server
                 messageToGame(gaName, new SOCPirateFortressAttackResult(gaName, res[0], res.length - 1));
 
                 // TODO check for end of player's turn
+
+                final int gstate = ga.getGameState();
+                if (gstate != prevState)
+                    sendGameState(ga);  // might be OVER, if player won
             }
             break;
 
