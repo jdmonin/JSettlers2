@@ -7134,7 +7134,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               if (hoverSettlementID != -1)
                   tryBuild(SOCPlayingPiece.SETTLEMENT);
               else
-                  tryAttackPirateFortress();
+                  confirmAttackPirateFortress();
           }
           else if (target == upgradeCityItem)
               tryBuild(SOCPlayingPiece.CITY);
@@ -7254,15 +7254,27 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       }
 
       /**
-       * Ask to attack our player's pirate fortress, in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+       * Confirm with the user that they want to atack the pirate fortress and end their turn,
+       * in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.  If confirmed, will call
+       * {@link #tryAttackPirateFortress()}.
+       * @since 2.0.00
+       */
+      public void confirmAttackPirateFortress()
+      {
+          // Clear the hovering tooltip at fortress, since dialog will change our mouse focus
+          hoverTip.setHoverText_modeChangedOrMouseMoved = true;
+          hoverTip.setHoverText(null);
+
+          java.awt.EventQueue.invokeLater(new ConfirmAttackPirateFortressDialog());
+      }
+
+      /**
+       * Send request to server to attack our player's pirate fortress,
+       * in scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
        * @since 2.0.00
        */
       public void tryAttackPirateFortress()
       {
-          // Clear the hovering tooltip at fortress, for when the result dialog pops up
-          hoverTip.setHoverText_modeChangedOrMouseMoved = true;
-          hoverTip.setHoverText(null);
-
           // Validate and make the request
           if (game.canAttackPirateFortress() != null)
               playerInterface.getClient().getGameManager().scen_SC_PIRI_attackPirateFortressRequest(player);
@@ -7640,5 +7652,71 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         }
 
     }  // nested class MoveRobberConfirmDialog
+
+    /**
+     * Modal dialog to confirm the player wants to attack the pirate fortress and end their turn.
+     * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
+     * When the choice is made, calls {@link SOCBoardPanel.BoardPopupMenu#tryAttackPirateFortress()}.
+     *
+     * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
+     * @since 2.0.00
+     */
+    private class ConfirmAttackPirateFortressDialog extends AskDialog implements Runnable
+    {
+        private static final long serialVersionUID = 2000L;
+
+        /**
+         * Creates a new ConfirmAttackPirateFortressDialog.
+         * To display the dialog without tying up the client's message-treater thread,
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         */
+        protected ConfirmAttackPirateFortressDialog()
+        {
+            super(playerInterface.getGameDisplay(), playerInterface,
+                "Attack and end turn?",
+                "Attacking the fortress will end your turn. Are you sure?",
+                "Confirm Attack",
+                "Cancel",
+                null, 2);
+        }
+
+        /**
+         * React to the Confirm Attack button.
+         * Call {@link SOCBoardPanel.BoardPopupMenu#tryAttackPirateFortress()}.
+         */
+        @Override
+        public void button1Chosen()
+        {
+            popupMenu.tryAttackPirateFortress();
+        }
+
+        /**
+         * React to the Cancel button, do nothing.
+         */
+        @Override
+        public void button2Chosen() {}
+
+        /**
+         * React to the dialog window closed by user. (Default is Cancel)
+         */
+        @Override
+        public void windowCloseChosen() { button2Chosen(); }
+
+        /**
+         * In the AWT event thread, show ourselves. Do not call directly;
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
+         */
+        public void run()
+        {
+            try
+            {
+                setVisible(true);
+            }
+            catch (Throwable e) {
+                e.printStackTrace();
+            }
+        }
+
+    }  // nested class ConfirmAttackPirateFortressDialog
 
 }  // class SOCBoardPanel
