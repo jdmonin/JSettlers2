@@ -4514,7 +4514,13 @@ public class SOCPlayerClient
         {
             SOCFortress fort = ga.getFortress(coord);
             if (fort != null)
+            {
                 fort.setStrength(pv);
+
+                PlayerClientListener pcl = clientListeners.get(gaName);
+                if (pcl != null)
+                    pcl.pieceValueUpdated(fort);
+            }
         }
     }
 
