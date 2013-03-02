@@ -1674,7 +1674,7 @@ public class SOCServer extends Server
             {
                 gameList.releaseMonitorForGame(gm);
                 ga.takeMonitor();
-                endGameTurn(ga, null);
+                endGameTurn(ga, null, true);
                 ga.releaseMonitor();
                 gameList.takeMonitorForGame(gm);
             } else {
@@ -2056,7 +2056,7 @@ public class SOCServer extends Server
      * Does not send gameState, which may have changed; see
      * {@link SOCGame#discardOrGainPickRandom(SOCResourceSet, int, boolean, SOCResourceSet, Random)}
      *<P>
-     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
+     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} does:
      * <UL>
      * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
      * <LI> gamelist.takeMonitorForGame is NOT called, we do NOT have that monitor
@@ -5558,6 +5558,11 @@ public class SOCServer extends Server
 
     /**
      * handle "put piece" message
+     *<P>
+     * Because the current player changes during initial placement,
+     * this method has a simplified version of some of the logic from
+     * {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} to detect and
+     * announce the new turn.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -6662,7 +6667,7 @@ public class SOCServer extends Server
                 {
                     sendGameState(ga);  // if state is WAITING_FOR_CHOICE (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
                 } else {
-                    endGameTurn(ga, player);  // already did ga.takeMonitor()
+                    endGameTurn(ga, player, true);  // already did ga.takeMonitor()
                 }
             }
             else
@@ -6794,7 +6799,7 @@ public class SOCServer extends Server
                     }
                 } else {
                     // force-end game turn
-                    endGameTurn(ga, player);  // already did ga.takeMonitor()
+                    endGameTurn(ga, player, true);  // locking: already did ga.takeMonitor()
                 }
             }
             else
@@ -6859,7 +6864,7 @@ public class SOCServer extends Server
                 SOCPlayer pl = ga.getPlayer(plName);
                 if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
                 {
-                    endGameTurn(ga, pl);
+                    endGameTurn(ga, pl, true);
                 }
                 else
                 {
@@ -6882,6 +6887,8 @@ public class SOCServer extends Server
     /**
      * Pre-checking already done, end the current player's turn in this game.
      * Alter game state and send messages to players.
+     * (Clear all the Ask Special Building, Reset Board Request, and Trade Offer flags; send Game State; send Turn).
+     *<P>
      * Calls {@link SOCGame#endTurn()}, which may also end the game.
      * On the 6-player board, this may begin the {@link SOCGame#SPECIAL_BUILDING Special Building Phase},
      * or end a player's placements during that phase.
@@ -6897,22 +6904,28 @@ public class SOCServer extends Server
      *<P>
      * As a special case, endTurn is used to begin the Special Building Phase during the
      * start of a player's own turn, if permitted.  (Added in 1.1.09)
+     *<P>
+     * A simplified version of this logic (during initial placement) is used in
+     * {@link #handlePUTPIECE(StringConnection, SOCPutPiece)}.
      *
      * @param ga Game to end turn
      * @param pl Current player in <tt>ga</tt>, or null. Not needed except in SPECIAL_BUILDING.
      *           If null, will be determined within this method.
+     * @param callEndTurn  Almost always true; if false, don't call {@link SOCGame#endTurn()}
+     *           because it was called before calling this method.
+     *           If false, be sure to set {@code pl} to the player whose turn it was before {@code endTurn()} was called.
      */
-    private void endGameTurn(SOCGame ga, SOCPlayer pl)
+    private void endGameTurn(SOCGame ga, SOCPlayer pl, final boolean callEndTurn)
     {
         final String gname = ga.getName();
 
         if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
         {
-            final int cpn = ga.getCurrentPlayerNumber();
             if (pl == null)
-                pl = ga.getPlayer(cpn);
+                pl = ga.getPlayer(ga.getCurrentPlayerNumber());
             pl.setAskedSpecialBuild(false);
-            messageToGame(gname, new SOCPlayerElement(gname, cpn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
+            messageToGame(gname, new SOCPlayerElement
+                    (gname, pl.getPlayerNumber(), SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
         }
 
         boolean hadBoardResetRequest = (-1 != ga.getResetVoteRequester());
@@ -6920,9 +6933,11 @@ public class SOCServer extends Server
         /**
          * End the Turn:
          */
-
-        ga.endTurn();  // May set state to OVER, if new player has enough points to win.
-                       // May begin or continue the Special Building Phase.
+        if (callEndTurn)
+        {
+            ga.endTurn();  // May set state to OVER, if new player has enough points to win.
+                           // May begin or continue the Special Building Phase.
+        }
 
         /**
          * Send the results out:
@@ -6966,13 +6981,13 @@ public class SOCServer extends Server
     /**
      * Try to force-end the current player's turn in this game.
      * Alter game state and send messages to players.
-     * Will call {@link #endGameTurn(SOCGame, SOCPlayer)} if appropriate.
+     * Will call {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} if appropriate.
      * Will send gameState and current player (turn) to clients.
      *<P>
      * If the current player has lost connection, send the {@link SOCLeaveGame LEAVEGAME}
      * message out <b>before</b> calling this method.
      *<P>
-     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
+     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} does:
      * <UL>
      * <LI> ga.canEndTurn already called, returned false
      * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
@@ -7093,7 +7108,7 @@ public class SOCServer extends Server
          * players to send discard messages, and afterwards this turn can end.
          */
         if (ga.canEndTurn(cpn))
-            endGameTurn(ga, null);  // could force gamestate to OVER, if a client leaves
+            endGameTurn(ga, null, true);  // could force gamestate to OVER, if a client leaves
         else
             sendGameState(ga, false);
 
@@ -7586,7 +7601,7 @@ public class SOCServer extends Server
                     {
                         ga.askSpecialBuild(pn, true);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
-                        endGameTurn(ga, player);  // triggers start of SBP
+                        endGameTurn(ga, player, true);  // triggers start of SBP
                     } catch (IllegalStateException e) {
                         messageToPlayer(c, gaName, "You can't ask to build now.");
                         sendDenyReply = true;
