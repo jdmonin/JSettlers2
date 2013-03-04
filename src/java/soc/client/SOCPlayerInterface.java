@@ -1574,7 +1574,7 @@ public class SOCPlayerInterface extends Frame
         if (members == null)
             return;
         int numObservers = 0;
-        StringBuffer obs = null;    //TODO i18n string buffer
+        StringBuffer obs = null;
         for (int i = members.size() - 1; i >= 0; --i)
         {
             String mname = members.elementAt(i);
@@ -3170,7 +3170,7 @@ public class SOCPlayerInterface extends Frame
 
         public void messageSent(String nickname, String message)
         {
-            //TODO i18n ??, format
+            //TODO i18n That part belongs to the server strings
             if (nickname.equals("Server"))
             {
                 String starMesText = "* " + message;

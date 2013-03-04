@@ -486,7 +486,7 @@ public class TradeOfferPanel extends Panel
         
             SOCGame ga = hp.getGame();
             final int maxChars = ((ga.maxPlayers > 4) || ga.hasSeaBoard) ? 30 : 25;
-            //TODO: i18n word order?
+            //TODO i18n Consider word order of the phase: not always is firstly the phrase, then the names
             String names1 = /*I*/"Offered to: "/*18N*/;
             String names2 = null;
 

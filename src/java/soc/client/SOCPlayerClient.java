@@ -1431,7 +1431,7 @@ public class SOCPlayerClient
                 System.err.println("      Got all opts,defaults? " + client.tcpServGameOpts.allOptionsReceived + " " + client.tcpServGameOpts.defaultsReceived);
                 client.net.putNet(askMsg);
                 System.out.flush();  // for debug print output (temporary)
-                status.setText("Talking to server...");
+                status.setText(/*I*/"Talking to server..."/*18N*/);
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 System.err.println("L1320 askStartGameWithOptions done at " + System.currentTimeMillis());
                 System.err.println("      sent: " + client.net.lastMessage_N);
@@ -1582,7 +1582,7 @@ public class SOCPlayerClient
             //TODO i18n logic should be changed
             if (statusText.toLowerCase().contains("debug"))
                 versionOrlocalTCPPortLabel.setText
-                    (versionOrlocalTCPPortLabel.getText() + ", debug is on");
+                    (/*I*/versionOrlocalTCPPortLabel.getText() + ", debug is on"/*18N*/);
 
             // If was trying to join a game, reset cursor from WAIT_CURSOR.
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));

@@ -6595,7 +6595,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *    Text format is "3:1 Port" or "2:1 Wood port".
          * @since 1.1.08
          */
-        //TODO i18n docu new return type, now returns locale
+        //TODO i18n add documentation: new return type, now returns locale
         public String portDescForType(final int portType)
         {
             if (portType == -1)
