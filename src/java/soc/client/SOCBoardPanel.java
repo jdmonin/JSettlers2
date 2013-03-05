@@ -5036,7 +5036,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (cliAdjacent)
                     {
                         // ask player to confirm first
-                        new MoveRobberConfirmDialog(player, hilight).showInNewThread();
+                        java.awt.EventQueue.invokeLater(new MoveRobberConfirmDialog(player, hilight));
                     }
                     else
                     {
@@ -5068,7 +5068,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (cliAdjacent)
                     {
                         // ask player to confirm first
-                        new MoveRobberConfirmDialog(player, -hilight).showInNewThread();
+                        java.awt.EventQueue.invokeLater(new MoveRobberConfirmDialog(player, -hilight));
                     }
                     else
                     {
@@ -7547,25 +7547,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Modal dialog to confirm moving the robber next to our own settlement or city.
-     * Start a new thread to show, so message treating can continue while the dialog is showing.
+     * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
      * If the move is confirmed, call playerClient.moveRobber and clearModeAndHilight.
      *
      * @author Jeremy D Monin <jeremy@nand.net>
+     * @since 1.1.11
      */
     protected class MoveRobberConfirmDialog extends AskDialog implements Runnable
     {
         /** prevent serializable warning */
-        private static final long serialVersionUID = 1110L;
-
-        /** Runs in own thread, to not tie up client's message-treater thread which initially shows the dialog. */
-        private Thread rdt;
+        private static final long serialVersionUID = 2000L;
 
         private final SOCPlayer pl;
         private final int robHex;
 
         /**
          * Creates a new MoveRobberConfirmDialog.
-         * To display the dialog, call {@link #showInNewThread()}.
+         * To display the dialog without tying up the client's message-treater thread,
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          *
          * @param cli     Player client interface
          * @param gamePI  Current game's player interface
@@ -7583,7 +7582,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 ((newRobHex > 0) ? "Move Robber" : "Move Pirate"),
                 "Don't move there",
                 null, 2);
-            rdt = null;
             pl = player;
             robHex = newRobHex;
         }
@@ -7612,43 +7610,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         public void windowCloseChosen() {}
 
         /**
-         * Make a new thread and show() in that thread.
-         * Keep track of the thread, in case we need to dispose of it.
-         * As noted in {@link #rdt} javadoc, the dialog runs in its
-         * own thread, to not tie up the client's message-treater thread
-         * which initially shows the dialog.
-         */
-        public void showInNewThread()
-        {
-            rdt = new Thread(this);
-            rdt.setDaemon(true);
-            rdt.setName("MoveRobberConfirmDialog");
-            rdt.start();  // run method will show the dialog
-        }
-
-        @Override
-        public void dispose()
-        {
-            if (rdt != null)
-            {
-                //FIXME: stop this thread internally
-                //rdt.stop();
-                rdt = null;
-            }
-            super.dispose();
-        }
-
-        /**
-         * In new thread, show ourselves. Do not call
-         * directly; call {@link #showInNewThread()}.
+         * In the AWT event thread, show ourselves. Do not call directly;
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
         public void run()
         {
-            try
-            {
-                setVisible(true);
-            }
-            catch (ThreadDeath e) {}
+            setVisible(true);
         }
 
     }  // nested class MoveRobberConfirmDialog
