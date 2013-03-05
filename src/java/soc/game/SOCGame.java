@@ -5176,7 +5176,8 @@ public class SOCGame implements Serializable, Cloneable
         }
 
         // Attacking the pirate fortress ends the player's turn.
-        endTurn();
+        if (gameState < OVER)
+            endTurn();
 
         return retval;
     }
