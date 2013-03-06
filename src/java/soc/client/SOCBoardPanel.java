@@ -417,7 +417,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Move a previously-placed ship on the large sea board.
-     * Also set {@link #moveShip_fromEdge}.
+     * Also set {@link #moveShip_fromEdge} and {@link #moveShip_isWarship}.
      * @since 2.0.00
      */
     private final static int MOVE_SHIP = 15;
@@ -927,9 +927,19 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * During {@link #MOVE_SHIP} mode, the edge coordinate
      * from which we're moving the ship.  0 otherwise.
+     * The hovering "move-to" location under the mouse pointer is {@link #hilight}.
+     * @see #moveShip_isWarship
      * @since 2.0.00
      */
     private int moveShip_fromEdge;
+
+    /**
+     * During {@link #MOVE_SHIP} mode, true if the ship being moved
+     * is a warship in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}.
+     * @see #moveShip_fromEdge
+     * @since 2.0.00
+     */
+    private boolean moveShip_isWarship;
 
     /**
      * Map grid sectors (from unscaled on-screen coordinates) to hex edges.
@@ -3459,7 +3469,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
         case MOVE_SHIP:
             if (moveShip_fromEdge != 0)
-                drawRoadOrShip(g, moveShip_fromEdge, -1, false, false, false);
+                drawRoadOrShip(g, moveShip_fromEdge, -1, false, false, moveShip_isWarship);
             // fall through to road modes, to draw new location (hilight)
 
         case PLACE_ROAD:
@@ -3469,7 +3479,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             if (hilight != 0)
             {
                 drawRoadOrShip
-                    (g, hilight, playerNumber, true, ! hilightIsShip, false);
+                    (g, hilight, playerNumber, true, ! hilightIsShip, (moveShip_isWarship && (moveShip_fromEdge != 0)));
             }
             break;
 
@@ -5904,6 +5914,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          *<P>
          *  If both {@link #hoverRoadID} and <tt>hoverShipID</tt> are non-zero, they must be the same coordinate,
          *  never different non-zero values.
+         *<P>
+         * When setting this field, also set or clear {@link #hoverIsWarship}.
          * @since 2.0.00
          */
         int hoverShipID;
@@ -5920,6 +5932,13 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          * @since 2.0.00
          */
         private boolean hoverIsShipMovable;
+
+        /**
+         * Is hover a warship owned by our player, for scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}?
+         * If true, {@link #hoverShipID} is also set.
+         * @since 2.0.00
+         */
+        private boolean hoverIsWarship;
 
         /** Mouse position */
         private int mouseX, mouseY;
@@ -6078,6 +6097,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             hoverShipID = 0;
             hoverIsPort = false;
             hoverIsShipMovable = false;
+            hoverIsWarship = false;
             hoverText = null;
             setHoverText_modeChangedOrMouseMoved = false;
             bpanel.repaint();
@@ -6097,7 +6117,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
                 if (hoverShipID != 0)
                 {
-                    drawRoadOrShip(g, hoverShipID, playerNumber, true, false, false);
+                    drawRoadOrShip(g, hoverShipID, playerNumber, true, false, hoverIsWarship);
                 }
                 if (hoverSettlementID != 0)
                 {
@@ -6381,6 +6401,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 hoverRoadID = 0;
                 hoverShipID = 0;
                 hoverIsShipMovable = false;
+                hoverIsWarship = false;
 
                 // Is a road or ship there?
                 final SOCRoad rs = board.roadAtEdge(id);
@@ -6398,13 +6419,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                         String plName = rs.getPlayer().getName();
                         if (plName == null)
                             plName = "unowned";
+
                         if (isRoad)
                         {
                             setHoverText("Road: " + plName);
                         } else {
                             // Scenario _SC_PIRI has warships; check class just in case.
-                            final boolean isWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
-                            if (isWarship)
+                            hoverIsWarship = (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
+                            if (hoverIsWarship)
                                 setHoverText(/*I*/"Warship: "/*18N*/ + plName);
                             else
                                 setHoverText("Ship: " + plName);
@@ -6755,6 +6777,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
        */
       private boolean isShipMovable;
 
+      /**
+       * True if the ship is a warship, at menu-show time
+       * (scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
+       * {@link #hoverShipID} must be != 0.
+       * @since 2.0.00
+       */
+      private boolean isShipWarship;
+
       /** Will this be for initial placement (send putpiece right away),
        *  or for placement during game (send build, receive gamestate, send putpiece)?
        */
@@ -6859,8 +6889,11 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
               {
                   cancelBuildItem.setLabel("Cancel ship move");
                   cancelBuildItem.setEnabled(true);
+                  final SOCRoad rs = player.getRoadOrShip(hilightAt);
+                  isShipWarship = (rs != null) && (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
               } else {
                   cancelBuildItem.setLabel("Cancel ship");
+                  isShipWarship = false;
               }
               hoverShipID = hilightAt;
               break;
@@ -6890,6 +6923,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
           wantsCancel = false;
           isInitialPlacement = false;
           isShipMovable = false;
+          isShipWarship = false;
           cancelBuildItem.setEnabled(false);
           cancelBuildItem.setLabel("Cancel build");
           if (portTradeSubmenu != null)
@@ -7032,12 +7066,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                             hSh = -hSh;
                             buildShipItem.setLabel("Move Ship");
                             buildShipItem.setEnabled(true);  // trust the caller's game checks
+                            final SOCRoad rs = player.getRoadOrShip(hSh);
+                            isShipWarship = (rs != null) && (rs instanceof SOCShip) && game.isShipWarship((SOCShip) rs);
                         } else {
                             buildShipItem.setLabel("Build Ship");
                             buildShipItem.setEnabled
                             ( game.canPlaceShip(player, hSh) &&
                               (debugPP ? (player.getNumPieces(SOCPlayingPiece.SHIP) > 0)
                                        : game.couldBuildShip(cpn)) );
+                            isShipWarship = false;
                         }
                       }
                   }
@@ -7332,6 +7369,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
       {
           playerInterface.print("Click the ship's new location.");
           moveShip_fromEdge = hoverShipID;
+          moveShip_isWarship = hoverTip.hoverIsWarship;
           mode = MOVE_SHIP;
           hilight = 0;
           hoverTip.hideHoverAndPieces();  // calls repaint
