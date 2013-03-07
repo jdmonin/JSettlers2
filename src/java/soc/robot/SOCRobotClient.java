@@ -679,8 +679,8 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              * a dev card action: either draw, play, or add to hand,
              * or we cannot play our requested dev card.
              */
-            case SOCMessage.DEVCARD:
-                handlePutBrainQ((SOCDevCard) mes);
+            case SOCMessage.DEVCARDACTION:
+                handlePutBrainQ((SOCDevCardAction) mes);
 
                 break;
 
@@ -740,6 +740,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
              */
             case SOCMessage.PICKRESOURCESREQUEST:
                 handlePutBrainQ((SOCPickResourcesRequest) mes);
+                break;
+
+            /**
+             * remove a piece (a ship) from the board in certain scenarios.
+             * Added 2013-02-19 for v2.0.00.
+             */
+            case SOCMessage.REMOVEPIECE:
+                super.handleREMOVEPIECE((SOCRemovePiece) mes);
                 break;
 
             /**
@@ -876,7 +884,9 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
     @Override
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes)
     {
-        final int sv = mes.getStatusValue();
+        int sv = mes.getStatusValue();
+        if (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON)
+            sv = 0;
         if ((sv != 0) || ! printedInitialWelcome)
         {
             System.err.println("Robot " + getNickname() + ": Status "

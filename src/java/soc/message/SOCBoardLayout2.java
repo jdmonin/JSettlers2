@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009-2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2003  Robert S. Thomas
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
@@ -51,16 +51,21 @@ import soc.game.SOCBoardLarge;  // for javadocs
  *         areas are sent to the client via {@link SOCPotentialSettlements}.
  *<LI> PX: Players are excluded from settling these land area numbers (usually none)
  *<LI> RX: Robber is excluded from these land area numbers (usually none)
- *<LI> CV: Cloth Village layout (usually none), from {@link SOCBoardLarge#getVillageAndClothLayout()}
  *</UL>
  * A few game scenarios in jsettlers v2.0.00 may add other parts; see {@link #getAddedParts()}.
+ *<UL>
+ *<LI> CV: Cloth Village layout, for {@code _SC_CLVI}, from {@link SOCBoardLarge#getVillageAndClothLayout()}
+ *<LI> LS: Each player's lone additional Legal Settlement location, for {@code _SC_PIRI}: Node coordinates,
+ *            one per player number, for the player's lone build location on the way to the pirate fortress. 
+ *<LI> PP: Pirate fleet Path, for {@code _SC_PIRI}; hex coordinates for {@link SOCBoardLarge#movePirateHexAlongPath(int)}
+ *</UL>
  *<P>
  * Board layout parts by board encoding version:
  *<UL>
  *<LI> v1: HL, NL, RH
  *<LI> v2: HL, NL, RH, maybe PL
- *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL.
- *         Sometimes (for game scenarios) one or more of: PX, RX, CV.
+ *<LI> v3: LH, maybe PL, maybe RH, maybe PH, never HL or NL. <BR>
+ *         Sometimes (for game scenarios) one or more of: PX, RX, CV, LS, PP. <BR>
  *         LH is null before makeNewBoard is called.
  *</UL>
  * Unlike {@link SOCBoardLayout}, dice numbers here equal the actual rolled numbers.
@@ -185,14 +190,13 @@ public class SOCBoardLayout2 extends SOCMessage
      * @param ph   the pirate hex, or 0
      * @param px   the player exclusion land areas, or null, from {@link SOCBoardLarge#getPlayerExcludedLandAreas()}
      * @param rx   the robber exclusion land areas, or null, from {@link SOCBoardLarge#getRobberExcludedLandAreas()}
-     * @param cv   the cloth villages, or null, from {@link SOCBoardLarge#getVillageAndClothLayout()}
      * @param other  any other layout parts to add, or null; see {@link #getAddedParts()}.
-     *             Please be sure that none of the keys conflict with ones already listed in the class javadoc.
+     *             Please make sure that new keys don't conflict with ones already listed in the class javadoc.
      */
     public SOCBoardLayout2
         (final String ga, final int bef,
-         int[] lh, int[] pl, int rh, int ph, int[] px, int[] rx, int[] cv,
-         Map<String, int[]> other)
+         final int[] lh, final int[] pl, final int rh, final int ph, final int[] px, final int[] rx,
+         final Map<String, int[]> other)
     {
         messageType = BOARDLAYOUT2;
         game = ga;
@@ -210,8 +214,6 @@ public class SOCBoardLayout2 extends SOCMessage
             layoutParts.put("PX", px);
         if (rx != null)
             layoutParts.put("RX", rx);
-        if (cv != null)
-            layoutParts.put("CV", cv);
 
         if (other != null)
             layoutParts.putAll(other);

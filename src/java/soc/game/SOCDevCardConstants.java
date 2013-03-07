@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2009,2012 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2009,2012-2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Skylar Bolton <iiagrer@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.game;
 
@@ -26,6 +26,9 @@ package soc.game;
  * This is a list of constants for representing
  * types of development cards in Settlers of Catan.
  *<P>
+ * To instantiate a single card using these types, use {@link SOCDevCard}.
+ * To track a player's set of cards, use {@link SOCDevCardSet}.
+ *<P>
  * {@link #UNKNOWN} is the lowest card type value, lower than
  * the lowest "known" {@link #MIN_KNOWN}. {@link #MAXPLUSONE} is
  * one past the highest card type value.
@@ -33,7 +36,8 @@ package soc.game;
  * If you add values here, be sure to update javadocs at
  * server.giveDevCard,  .handleGAMETEXTMSG and .sendGameStateOVER ,
  * and handpanel.updateDevCards .
- * If you add VP card types, update {@link SOCDevCardSet#isVPCard(int)}.
+ * If you add VP card types, update {@link SOCDevCard#isVPCard(int)}
+ * and {@link SOCDevCardSet#getNumVPCards()}.
  *<P>
  * In version 2.0.00, the values for {@link #KNIGHT} and {@link #UNKNOWN}
  * were swapped to make room for new card types.  For compatibility with
@@ -59,7 +63,7 @@ public interface SOCDevCardConstants
     public static final int KNIGHT_FOR_VERS_1_X = 0;
 
     /**
-     * Minimum valid card type constant ({@link #UKNOWN}).
+     * Minimum valid card type constant ({@link #UNKNOWN}).
      * Lower than {@link #MIN_KNOWN}.
      */
     public static final int MIN = 0;

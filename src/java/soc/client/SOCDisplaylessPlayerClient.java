@@ -28,7 +28,9 @@ import soc.game.SOCBoardLarge;
 import soc.game.SOCCity;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
+import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
 import soc.game.SOCPlayingPiece;
 import soc.game.SOCResourceConstants;
@@ -625,8 +627,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             /**
              * a dev card action, either draw, play, or add to hand
              */
-            case SOCMessage.DEVCARD:
-                handleDEVCARD((sLocal != null), (SOCDevCard) mes);
+            case SOCMessage.DEVCARDACTION:
+                handleDEVCARDACTION((sLocal != null), (SOCDevCardAction) mes);
 
                 break;
 
@@ -701,6 +703,14 @@ public class SOCDisplaylessPlayerClient implements Runnable
              */
             case SOCMessage.MOVEPIECE:
                 handleMOVEPIECE((SOCMovePiece) mes);
+                break;
+
+            /**
+             * remove a piece (a ship) from the board in certain scenarios.
+             * Added 2013-02-19 for v2.0.00.
+             */
+            case SOCMessage.REMOVEPIECE:
+                handleREMOVEPIECE((SOCRemovePiece) mes);
                 break;
 
             /**
@@ -993,6 +1003,9 @@ public class SOCDisplaylessPlayerClient implements Runnable
             x = mes.getIntArrayPart("CV");
             if (x != null)
                 ((SOCBoardLarge) bd).setVillageAndClothLayout(x);
+            x = mes.getIntArrayPart("LS");
+            if (x != null)
+                ((SOCBoardLarge) bd).addLoneLegalSettlements(ga, x);
 
             HashMap<String, int[]> others = mes.getAddedParts();
             if (others != null)
@@ -1625,7 +1638,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
      *                only to local, or remote.
      * @param mes  the message
      */
-    protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
+    protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
     {
         SOCGame ga = games.get(mes.getGame());
 
@@ -1644,22 +1657,22 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
             switch (mes.getAction())
             {
-            case SOCDevCard.DRAW:
+            case SOCDevCardAction.DRAW:
                 player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
 
-            case SOCDevCard.PLAY:
+            case SOCDevCardAction.PLAY:
                 player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
-            case SOCDevCard.ADDOLD:
+            case SOCDevCardAction.ADDOLD:
                 player.getDevCards().add(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
-            case SOCDevCard.ADDNEW:
+            case SOCDevCardAction.ADDNEW:
                 player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
@@ -1846,6 +1859,35 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
+     * A player's piece (a ship) has been removed from the board. Updates game state.
+     *<P>
+     * Currently, only ships can be removed, in game scenario {@code _SC_PIRI}.
+     * Other {@code pieceType}s are ignored.
+     * @since 2.0.00
+     */
+    protected void handleREMOVEPIECE(SOCRemovePiece mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        SOCPlayer player = ga.getPlayer(mes.getParam1());
+        final int pieceType = mes.getParam2();
+        final int pieceCoordinate = mes.getParam3();
+
+        switch (pieceType)
+        {
+        case SOCPlayingPiece.SHIP:
+            ga.removeShip(new SOCShip(player, pieceCoordinate, null));
+            break;
+
+        default:
+            System.err.println("Displayless.updateAtPieceRemoved called for un-handled type " + pieceType);
+        }
+    }
+
+    /**
      * Reveal a hidden hex on the board.
      * @since 2.0.00
      */
@@ -1863,7 +1905,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
     }
 
     /**
-     * Update a village piece's value on the board (cloth remaining).
+     * Update a village piece's value on the board (cloth remaining) in _SC_CLVI,
+     * or a pirate fortress's strength in _SC_PIRI.
      * @since 2.0.00
      */
     protected void handlePIECEVALUE(final SOCPieceValue mes)
@@ -1875,8 +1918,21 @@ public class SOCDisplaylessPlayerClient implements Runnable
         if (! ga.hasSeaBoard)
             return;  // should not happen
 
-        SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(mes.getParam1());
-        vi.setCloth(mes.getParam2());
+        final int coord = mes.getParam1();
+        final int pv = mes.getParam2();
+
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        {
+            SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(coord);
+            if (vi != null)
+                vi.setCloth(pv);
+        }
+        else if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            SOCFortress fort = ga.getFortress(coord);
+            if (fort != null)
+                fort.setStrength(pv);
+        }
     }
 
     /**

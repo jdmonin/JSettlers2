@@ -61,6 +61,10 @@ import soc.util.IntPair;
  * but check {@link SOCRoad#isRoadNotShip()} to differentiate.
  * You cannot place both a road and a ship on the same coastal edge coordinate.
  *<P>
+ * Some scenarios may add other "layout parts" related to their scenario board layout.
+ * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path the pirate fleet follows.
+ * See {@link #getAddedLayoutPart(String)}, {@link #setAddedLayoutPart(String, int[])}.
+ *<P>
  * <h4> Geometry/Navigation methods: </h4>
  *<br><table border=1>
  *<TR><td>&nbsp;</td><td colspan=3>Adjacent to a:</td></TR>
@@ -893,6 +897,11 @@ public class SOCBoardLarge extends SOCBoard
      * For example, scenario {@link SOCScenario#K_SC_PIRI SC_PIRI} adds
      * <tt>"PP" = { 0x..., 0x... }</tt> for the fixed Pirate Path.
      * Please treat the returned value as read-only.
+     * The layout part keys are documented at {@link soc.message.SOCBoardLayout2}.
+     *<P>
+     * Added during {@code SOCBoardLargeAtServer.makeNewBoard}
+     * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}.
+     *
      * @return  The added layout parts, or null if none
      * @see #getAddedLayoutPart(String)
      */
@@ -920,7 +929,7 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set all the "added layout parts", for use at client.
-     * Should be set only during <tt>SOCBoardLargeAtServer.makeNewBoard</tt>, not changed afterwards.
+     * See {@link #setAddedLayoutPart(String, int[])} for details about the added layout parts.
      * @param adds  Added parts, or null if none
      * @see #setAddedLayoutPart(String, int[])
      */
@@ -934,7 +943,9 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * Set one "added layout part" by its key name.
-     * Should be set only during <tt>SOCBoardLargeAtServer.makeNewBoard</tt>, not changed afterwards.
+     * Should be set only during {@code SOCBoardLargeAtServer.makeNewBoard}
+     * or {@code SOCBoardLargeAtServer.startGame_putInitPieces}, not changed afterwards.
+     * Document the new {@code key} at {@link soc.message.SOCBoardLayout2}.
      * @param key  Key name (short and uppercase)
      * @param v    Value (typically a list of coordinates)
      * @see #setAddedLayoutParts(HashMap)
@@ -1282,6 +1293,28 @@ public class SOCBoardLarge extends SOCBoard
         default:
             super.putPiece(pp);
         }
+    }
+
+    /**
+     * Add one legal settlement location to each player.
+     * The new location is alone by itself, outside of the other Land Areas where they can place.
+     * Used in some scenarios ({@link SOCScenario#K_SC_PIRI _SC_PIRI}) when {@link SOCGame#hasSeaBoard}.
+     * @param ga  Game, to get players; {@link SOCBoard} doesn't keep a reference to its game
+     * @param ls  Each player's lone settlement node coordinate to add, indexed by player number,
+     *            or {@code null} to do nothing.  If an element is 0, nothing is added for that player.
+     * @throws IllegalArgumentException if {@code ls.length} != {@link SOCGame#maxPlayers ga.maxPlayers}
+     */
+    public void addLoneLegalSettlements(SOCGame ga, final int[] ls)
+        throws IllegalArgumentException
+    {
+        if (ls == null)
+            return;
+        if (ls.length != ga.maxPlayers)
+            throw new IllegalArgumentException();
+
+        for (int pn = 0; pn < ls.length; ++pn)
+            if (ls[pn] != 0)
+                ga.getPlayer(pn).addLegalSettlement(ls[pn]);
     }
 
     /**

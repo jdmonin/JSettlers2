@@ -144,7 +144,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
     public static final int BUILDREQUEST = 1043;
     public static final int CANCELBUILDREQUEST = 1044;
     public static final int BUYCARDREQUEST = 1045;
-    public static final int DEVCARD = 1046;
+    /** {@link SOCDevCardAction} message; before v2.0.00, this type was {@code DEVCARD} (class name {@code SOCDevCard}). */
+    public static final int DEVCARDACTION = 1046;
     public static final int DEVCARDCOUNT = 1047;
     public static final int SETPLAYEDDEVCARD = 1048;
     public static final int PLAYDEVCARDREQUEST = 1049;
@@ -695,8 +696,8 @@ public abstract class SOCMessage implements Serializable, Cloneable
             case BUYCARDREQUEST:
                 return SOCBuyCardRequest.parseDataStr(data);
 
-            case DEVCARD:
-                return SOCDevCard.parseDataStr(data);
+            case DEVCARDACTION:
+                return SOCDevCardAction.parseDataStr(data);
 
             case DEVCARDCOUNT:
                 return SOCDevCardCount.parseDataStr(data);

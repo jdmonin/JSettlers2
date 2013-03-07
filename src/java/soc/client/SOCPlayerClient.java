@@ -74,6 +74,7 @@ import soc.game.SOCBoard;
 import soc.game.SOCBoardLarge;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
+import soc.game.SOCFortress;
 import soc.game.SOCGame;
 import soc.game.SOCGameOption;
 import soc.game.SOCPlayer;
@@ -316,7 +317,14 @@ public class SOCPlayerClient
         void enableOptions();
 
         void showVersion(int versionNumber, String versionString, String buildString);
-        void showStatus(String statusText);
+
+        /**
+         * Show server welcome banner or status text.
+         * If status during initial connect includes warning that the server's in Debug Mode, show that.
+         * @param statusText  Status message text from server
+         * @param debugWarn   True if server has Debug Mode active
+         */
+        void showStatus(String statusText, boolean debugWarn);
 
         void channelJoined(String channelName);
         void channelJoined(String channelName, String nickname);
@@ -1573,14 +1581,13 @@ public class SOCPlayerClient
                 gi.setEnabled(false);  // server too old for options, so don't use that button
         }
 
-        public void showStatus(String statusText)
+        public void showStatus(final String statusText, final boolean debugWarn)
         {
             status.setText(statusText);
 
             // If warning about debug during initial connect, show that.
             // That status message would be sent after VERSION.
-            //TODO i18n logic should be changed
-            if (statusText.toLowerCase().contains("debug"))
+            if (debugWarn)
                 versionOrlocalTCPPortLabel.setText
                     (/*I*/versionOrlocalTCPPortLabel.getText() + ", debug is on"/*18N*/);
 
@@ -2616,8 +2623,8 @@ public class SOCPlayerClient
             /**
              * a dev card action, either draw, play, or add to hand
              */
-            case SOCMessage.DEVCARD:
-                handleDEVCARD(isPractice, (SOCDevCard) mes);
+            case SOCMessage.DEVCARDACTION:
+                handleDEVCARDACTION(isPractice, (SOCDevCardAction) mes);
 
                 break;
 
@@ -2753,11 +2760,27 @@ public class SOCPlayerClient
                 break;
 
             /**
+             * generic 'simple request' response from the server.
+             * Added 2013-02-19 for v1.1.18.
+             */
+            case SOCMessage.SIMPLEREQUEST:
+                handleSIMPLEREQUEST((SOCSimpleRequest) mes);
+                break;
+
+            /**
              * move a previous piece (a ship) somewhere else on the board.
              * Added 2011-12-05 for v2.0.00.
              */
             case SOCMessage.MOVEPIECE:
                 handleMOVEPIECE((SOCMovePiece) mes);
+                break;
+
+            /**
+             * remove a piece (a ship) from the board in certain scenarios.
+             * Added 2013-02-19 for v2.0.00.
+             */
+            case SOCMessage.REMOVEPIECE:
+                handleREMOVEPIECE((SOCRemovePiece) mes);
                 break;
 
             /**
@@ -2790,6 +2813,14 @@ public class SOCPlayerClient
              */
             case SOCMessage.SVPTEXTMSG:
                 handleSVPTEXTMSG((SOCSVPTextMessage) mes);
+                break;
+
+            /**
+             * Present the server's response to a Pirate Fortress Attack request.
+             * Added 2013-02-19 for v2.0.00.
+             */
+            case SOCMessage.PIRATEFORTRESSATTACKRESULT:
+                handlePIRATEFORTRESSATTACKRESULT((SOCPirateFortressAttackResult) mes);
                 break;
 
             }  // switch (mes.getType())
@@ -2898,10 +2929,18 @@ public class SOCPlayerClient
     protected void handleSTATUSMESSAGE(SOCStatusMessage mes, final boolean isPractice)
     {
         System.err.println("L2045 statusmsg at " + System.currentTimeMillis());
+        final int sv = mes.getStatusValue();
         final String statusText = mes.getStatus();
-        gameDisplay.showStatus(statusText);
 
-        if (mes.getStatusValue() == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
+        final boolean srvDebugMode;
+        if (isPractice || (sVersion >= 2000))
+            srvDebugMode = (sv == SOCStatusMessage.SV_OK_DEBUG_MODE_ON);
+        else
+            srvDebugMode = statusText.toLowerCase().contains("debug");
+
+        gameDisplay.showStatus(statusText, srvDebugMode);
+
+        if (sv == SOCStatusMessage.SV_NEWGAME_OPTION_VALUE_TOONEW)
         {
             // Extract game name and failing game-opt keynames,
             // and pop up an error message window.
@@ -3202,8 +3241,13 @@ public class SOCPlayerClient
     protected void handleGAMETEXTMSG(SOCGameTextMsg mes)
     {
         PlayerClientListener pcl = clientListeners.get(mes.getGame());
-        if (pcl != null)
-            pcl.messageSent(mes.getNickname(), mes.getText());
+        if (pcl == null)
+            return;
+
+        String fromNickname = mes.getNickname();
+        if (fromNickname.equals(SOCGameTextMsg.SERVERNAME))
+            fromNickname = null;
+        pcl.messageSent(fromNickname, mes.getText());
     }
 
     /**
@@ -3346,6 +3390,9 @@ public class SOCPlayerClient
             x = mes.getIntArrayPart("CV");
             if (x != null)
                 ((SOCBoardLarge) bd).setVillageAndClothLayout(x);
+            x = mes.getIntArrayPart("LS");
+            if (x != null)
+                ((SOCBoardLarge) bd).addLoneLegalSettlements(ga, x);
 
             HashMap<String, int[]> others = mes.getAddedParts();
             if (others != null)
@@ -3920,7 +3967,7 @@ public class SOCPlayerClient
      * handle the "development card action" message
      * @param mes  the message
      */
-    protected void handleDEVCARD(final boolean isPractice, SOCDevCard mes)
+    protected void handleDEVCARDACTION(final boolean isPractice, final SOCDevCardAction mes)
     {
         SOCGame ga = games.get(mes.getGame());
 
@@ -3940,12 +3987,12 @@ public class SOCPlayerClient
 
             switch (mes.getAction())
             {
-            case SOCDevCard.DRAW:
+            case SOCDevCardAction.DRAW:
                 player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
 
-            case SOCDevCard.PLAY:
+            case SOCDevCardAction.PLAY:
                 player.getDevCards().subtract(1, SOCDevCardSet.OLD, ctype);
                 // JM temp debug:
                 if (ctype != mes.getCardType())
@@ -3953,12 +4000,12 @@ public class SOCPlayerClient
 
                 break;
 
-            case SOCDevCard.ADDOLD:
+            case SOCDevCardAction.ADDOLD:
                 player.getDevCards().add(1, SOCDevCardSet.OLD, ctype);
 
                 break;
 
-            case SOCDevCard.ADDNEW:
+            case SOCDevCardAction.ADDNEW:
                 player.getDevCards().add(1, SOCDevCardSet.NEW, ctype);
 
                 break;
@@ -4361,6 +4408,31 @@ public class SOCPlayerClient
     }
 
     /**
+     * Handle server responses from the "simple request" handler.
+     * @since 1.1.18
+     */
+    private final void handleSIMPLEREQUEST(SOCSimpleRequest mes)
+    {
+        final String gaName = mes.getGame();
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;  // Not one of our games
+
+        switch (mes.getRequestType())
+        {
+        case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
+            // was rejected
+            pcl.scen_SC_PIRI_pirateFortressAttackResult(true, 0, 0);
+            break;
+
+        default:
+            // unknown type
+            System.err.println
+                ("handleSIMPLEREQUEST: Unknown type " + mes.getRequestType() + " in game " + gaName);
+        }
+    }
+
+    /**
      * Handle moving a piece (a ship) around on the board.
      * @since 2.0.00
      */
@@ -4376,6 +4448,24 @@ public class SOCPlayerClient
             return;
         SOCPlayer player = ga.getPlayer(mes.getPlayerNumber());
         pcl.playerPieceMoved(player, mes.getFromCoord(), mes.getToCoord(), mes.getPieceType());
+    }
+
+    /**
+     * Handle removing a piece (a ship) from the board in certain scenarios.
+     * @since 2.0.00
+     */
+    private final void handleREMOVEPIECE(SOCRemovePiece mes)
+    {
+        final String gaName = mes.getGame();
+        SOCGame ga = games.get(gaName);
+        if (ga == null)
+            return;  // Not one of our games
+
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;
+        SOCPlayer player = ga.getPlayer(mes.getParam1());
+        pcl.playerPieceRemoved(player, mes.getParam3(), mes.getParam2());
     }
 
     /**
@@ -4401,7 +4491,8 @@ public class SOCPlayerClient
     }
 
     /**
-     * Update a village piece's value on the board (cloth remaining).
+     * Update a village piece's value on the board (cloth remaining) in _SC_CLVI,
+     * or a pirate fortress's strength in _SC_PIRI.
      * @since 2.0.00
      */
     protected void handlePIECEVALUE(final SOCPieceValue mes)
@@ -4413,8 +4504,27 @@ public class SOCPlayerClient
         if (! ga.hasSeaBoard)
             return;  // should not happen
 
-        SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(mes.getParam1());
-        vi.setCloth(mes.getParam2());
+        final int coord = mes.getParam1();
+        final int pv = mes.getParam2();
+
+        if (ga.isGameOptionSet(SOCGameOption.K_SC_CLVI))
+        {
+            SOCVillage vi = ((SOCBoardLarge) (ga.getBoard())).getVillageAtNode(coord);
+            if (vi != null)
+                vi.setCloth(pv);
+        }
+        else if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        {
+            SOCFortress fort = ga.getFortress(coord);
+            if (fort != null)
+            {
+                fort.setStrength(pv);
+
+                PlayerClientListener pcl = clientListeners.get(gaName);
+                if (pcl != null)
+                    pcl.pieceValueUpdated(fort);
+            }
+        }
     }
 
     /**
@@ -4437,6 +4547,19 @@ public class SOCPlayerClient
         if (pcl == null)
             return;
         pcl.playerSVPAwarded(pl, mes.svp, mes.desc);
+    }
+
+    /**
+     * Present the server's response to a Pirate Fortress Attack request.
+     * @see SOCPirateFortressAttackResult
+     * @since 2.0.00
+     */
+    private void handlePIRATEFORTRESSATTACKRESULT(final SOCPirateFortressAttackResult mes)
+    {
+        PlayerClientListener pcl = clientListeners.get(mes.getGame());
+        if (pcl == null)
+            return;  // Not one of our games
+        pcl.scen_SC_PIRI_pirateFortressAttackResult(false, mes.getParam1(), mes.getParam2());
     }
 
     }  // nested class MessageTreater
@@ -4622,6 +4745,19 @@ public class SOCPlayerClient
     public void moveRobber(SOCGame ga, SOCPlayer pl, int coord)
     {
         put(SOCMoveRobber.toCmd(ga.getName(), pl.getPlayerNumber(), coord), ga.isPractice);
+    }
+
+    /**
+     * The player wants to attack their pirate fortress, in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}. 
+     * @param pl  the current player
+     * @since 2.0.00
+     */
+    public void scen_SC_PIRI_attackPirateFortressRequest(final SOCPlayer pl)
+    {
+        final SOCGame ga = pl.getGame();
+        put(SOCSimpleRequest.toCmd
+                (ga.getName(), pl.getPlayerNumber(), SOCSimpleRequest.SC_PIRI_FORT_ATTACK, 0, 0),
+            ga.isPractice);
     }
 
     /**
@@ -5783,7 +5919,8 @@ public class SOCPlayerClient
         {
             pcli.gameOptsTask = null;  // Clear reference to this soon-to-expire obj
             srvOpts.noMoreOptions(false);
-            pcli.getClient().treater.handleGAMEOPTIONINFO(new SOCGameOptionInfo(new SOCGameOption("-")), false);
+            pcli.getClient().treater.handleGAMEOPTIONINFO
+                (new SOCGameOptionInfo(new SOCGameOption("-"), Version.versionNumber()), false);
         }
 
     }  // GameOptionsTimeoutTask

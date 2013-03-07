@@ -164,23 +164,11 @@ public class SOCDevCardSet implements Serializable, Cloneable
     }
 
     /**
-     * Is this card type a Victory Point card?
-     * @param ctype  A constant such as {@link SOCDevCardConstants#TOW}
-     *               or {@link SOCDevCardConstants#ROADS}
-     * @return  True for VP types, false otherwise
-     * @since 2.0.00
-     */
-    public static boolean isVPCard(final int ctype)
-    {
-        return (ctype >= SOCDevCardConstants.CAP) && (ctype <= SOCDevCardConstants.TOW);
-    }
-
-    /**
      * @return the number of victory point cards in
      *         this set
      * @see #getNumUnplayed()
      * @see #getTotal()
-     * @see #isVPCard(int)
+     * @see SOCDevCard#isVPCard(int)
      */
     public int getNumVPCards()
     {

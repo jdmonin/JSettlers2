@@ -93,6 +93,10 @@ import soc.util.IntTriple;
  * <LI> If multiple Land Areas, its land area ranges within the array of land hex coordinates
  *</UL>
  * &nbsp; * Some "land areas" may include water hexes, to vary the coastline from game to game. <BR>
+ *<P>
+ * Some scenarios may add other "layout parts" related to their scenario board layout.
+ * For example, scenario {@code _SC_PIRI} adds {@code "PP"} for the path the pirate fleet follows.
+ * See {@link SOCBoardLarge#getAddedLayoutPart(String)}, {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
  *
  * @author Jeremy D Monin &lt;jeremy@nand.net&gt;
  * @since 2.0.00
@@ -423,8 +427,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // Add villages, if the scenario does that
         opt = (opts != null ? opts.get(SOCGameOption.K_SC_CLVI) : null);
         if ((opt != null) && opt.getBoolValue())
+        {
             setVillageAndClothLayout(SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE);
                 // also sets board's "general supply"
+
+            setAddedLayoutPart("CV", SCEN_CLOTH_VILLAGE_AMOUNTS_NODES_DICE);
+        }
 
         if (PORTS_TYPES_MAINLAND == null)
         {
@@ -1853,6 +1861,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * place each player's initial pieces.  Otherwise do nothing.
+     *<P>
+     * This is called before {@link SOCServer#getBoardLayoutMessage}.  So,
+     * if needed, it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
      */
     public static void startGame_putInitPieces(SOCGame ga)
     {
@@ -1863,7 +1874,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         ga.setGameState(SOCGame.READY);  // prevent ga.putPiece from advancing turn
 
         final int[] inits = (ga.maxPlayers > 4) ? PIR_ISL_INIT_PIECES[1] : PIR_ISL_INIT_PIECES[0];
-        SOCBoard board = ga.getBoard();
+        int[] possiLoneSettles = new int[ga.maxPlayers];  // lone possible-settlement node on the way to the island.
+            // vacant players will get 0 here, will not get free settlement, ship, or pirate fortress.
+        SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
 
         int i = 0;  // iterate out here, to avoid spacing gaps from vacant players
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
@@ -1875,8 +1888,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             ga.putPiece(new SOCSettlement(pl, inits[i], board));  ++i;
             ga.putPiece(new SOCShip(pl, inits[i], board));  ++i;
             ga.putPiece(new SOCFortress(pl, inits[i], board));  ++i;
-            ++i;  // TODO handle possible-settlement node
+            possiLoneSettles[pn] = inits[i];  ga.getPlayer(pn).addLegalSettlement(inits[i]);  ++i;
         }
+        board.setAddedLayoutPart("LS", possiLoneSettles);
 
         ga.setGameState(gstate);
     }

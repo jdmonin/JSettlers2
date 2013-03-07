@@ -111,7 +111,6 @@ public class SOCGameStatistics
     {
         try
         {
-            System.out.println(evt.player.getName()+" rolled a "+evt.roll);
             rolls.rollCounts[evt.player.getPlayerNumber()].incrementAndGet(evt.roll);
             fire();
         }

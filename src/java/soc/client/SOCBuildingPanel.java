@@ -282,7 +282,7 @@ public class SOCBuildingPanel extends Panel
             // shipBut, cloth already null
         }
 
-        if (ga.hasSeaBoard || (ga.vp_winner != 10))
+        if (ga.hasSeaBoard || (ga.vp_winner != 10))  // 10, not SOCGame.VP_WINNER_STANDARD, in case someone changes that
         {
             final String TTIP_VP_TEXT = /*I*/"Victory Points total needed to win the game"/*18N*/;
 

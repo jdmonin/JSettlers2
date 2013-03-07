@@ -100,6 +100,38 @@ import soc.message.SOCMessage;
 public class SOCGameOption implements Cloneable, Comparable<Object>
 {
     /**
+     * {@link #optFlags} bitfield constant to indicate option should be dropped if unset/default.
+     * If this option's value is the default, then server should not add it to game options
+     * or send over the network (to reduce overhead).
+     * Only recommended if game behavior without the option is well-established
+     * (for example, trading is allowed unless option NT is present).
+     *<P>
+     *<b>Details:</b><BR>
+     * Should the server drop this option from game options, and not send over
+     * the network, if the value is false or blank?
+     * (Meaning not set (false) for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
+     * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE};
+     * {@link #defaultIntValue} for {@link #OTYPE_INT} or {@link #OTYPE_ENUM})
+     *<P>
+     * Only recommended for seldom-used options.
+     * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)}.
+     * Once this flag is set for an option, it should not be un-set if the
+     * option is changed in a later version.
+     *<P>
+     * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
+     * boolean values are checked against defaults.
+     *<P>
+     * This flag is ignored at the client when asking to create a new game:
+     * <tt>NewGameOptionsFrame</tt> sends all options it has displayed, even those
+     * which would be dropped because they're unused and they have this flag.
+     *<P>
+     * Recognized in v1.1.07 and newer.
+     * This is the only flag recognized by clients older than v2.0.00.
+     * Clients older than v2.0.00 also ignores this flag for {@link #OTYPE_INT}, {@link #OTYPE_ENUM}.
+     */
+    public static final int FLAG_DROP_IF_UNUSED = 0x01;  // OTYPE_* - mention in javadoc how this applies to the new type
+
+    /**
      * Set of "known options".
      * allOptions must never be null, because other places assume it is filled.
      */
@@ -228,7 +260,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *<LI> {@link #optKey name key}
      *<LI> {@link #optType}
      *<LI> {@link #minVersion}
-     *<LI> {@link #dropIfUnused} flag
+     *<LI> {@link #optFlags} such as {@link #FLAG_DROP_IF_UNUSED} -- newly defined flags could maybe be added,
+     *     if old versions can safely ignore them, but a flag can't be removed from an option in a later version.
      *<LI> For {@link #OTYPE_ENUM} and {@link #OTYPE_ENUMBOOL}, you can't remove options or change
      *     the meaning of current ones, because this would mean that the option's intValue (sent over
      *     the network) would mean different things to different-versioned clients in the game.
@@ -263,28 +296,29 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         Hashtable<String, SOCGameOption> opt = new Hashtable<String, SOCGameOption>();
 
         final SOCGameOption pl = new SOCGameOption
-                ("PL", -1, 1108, 4, 2, 6, false, "Maximum # players");
+                ("PL", -1, 1108, 4, 2, 6, 0, "Maximum # players");
         opt.put("PL", pl);
         final SOCGameOption plb = new SOCGameOption
-                ("PLB", 1108, 1113, false, true, "Use 6-player board");
+                ("PLB", 1108, 1113, false, FLAG_DROP_IF_UNUSED, "Use 6-player board");
         opt.put("PLB", plb);
         // TODO PLL for SOCBoardLarge: Decide final name
         opt.put("PLL", new SOCGameOption
-                ("PLL", 2000, 2000, false, true, "Experimental: Use large board"));
+                ("PLL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Experimental: Use large board"));
         opt.put("_BHW", new SOCGameOption
-                ("_BHW", 2000, 2000, 0, 0, 0xFFFF, true, "Large board's height and width (0xRRCC) if not default"));
+                ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED,
+                 "Large board's height and width (0xRRCC) if not default"));
         opt.put("RD", new SOCGameOption
-                ("RD", -1, 1107, false, false, "Robber can't return to the desert"));
+                ("RD", -1, 1107, false, 0, "Robber can't return to the desert"));
         opt.put("N7", new SOCGameOption
-                ("N7", -1, 1107, false, 7, 1, 999, false, "Roll no 7s during first # rounds"));
+                ("N7", -1, 1107, false, 7, 1, 999, 0, "Roll no 7s during first # rounds"));
         opt.put("BC", new SOCGameOption
-                ("BC", -1, 1107, true, 4, 3, 9, false, "Break up clumps of # or more same-type hexes/ports"));
+                ("BC", -1, 1107, true, 4, 3, 9, 0, "Break up clumps of # or more same-type hexes/ports"));
         opt.put("NT", new SOCGameOption
-                ("NT", 1107, 1107, false, true, "No trading allowed between players"));
+                ("NT", 1107, 1107, false, FLAG_DROP_IF_UNUSED, "No trading allowed between players"));
         opt.put("VP", new SOCGameOption
-                ("VP", -1, 1114, false, 10, 10, 15, true, "Victory points to win: #"));
+                ("VP", -1, 1114, false, 10, 10, 15, FLAG_DROP_IF_UNUSED, "Victory points to win: #"));
         final SOCGameOption sc = new SOCGameOption
-                ("SC", 2000, 2000, 8, false, true, "Game Scenario: #");
+                ("SC", 2000, 2000, 8, false, FLAG_DROP_IF_UNUSED, "Game Scenario: #");
         opt.put("SC", sc);
 
         // Not Implemented: DH:
@@ -304,19 +338,26 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         //      keep a consistent prefix that showScenarioInfoDialog() knows to look for.
 
         opt.put(K_SC_SANY, new SOCGameOption
-                (K_SC_SANY, 2000, 2000, false, true, "Scenarios: SVP for your first settlement on any island"));
+                (K_SC_SANY, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: SVP for your first settlement on any island"));
         opt.put(K_SC_SEAC, new SOCGameOption
-                (K_SC_SEAC, 2000, 2000, false, true, "Scenarios: 2 SVP for your first settlement on each island"));
+                (K_SC_SEAC, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: 2 SVP for your first settlement on each island"));
         opt.put(K_SC_FOG, new SOCGameOption
-                (K_SC_FOG, 2000, 2000, false, true, "Scenarios: Some hexes initially hidden by fog"));
+                (K_SC_FOG, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: Some hexes initially hidden by fog"));
         opt.put(K_SC_0RVP, new SOCGameOption
-                (K_SC_0RVP, 2000, 2000, false, true, "Scenarios: No longest trade route VP (no Longest Road)"));
+                (K_SC_0RVP, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: No longest trade route VP (no Longest Road)"));
         opt.put(K_SC_3IP, new SOCGameOption
-                (K_SC_3IP, 2000, 2000, false, true, "Scenarios: Third initial settlement"));
+                (K_SC_3IP, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: Third initial settlement"));
         opt.put(K_SC_CLVI, new SOCGameOption
-                (K_SC_CLVI, 2000, 2000, false, true, "Scenarios: Cloth Trade with neutral villages"));
+                (K_SC_CLVI, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: Cloth Trade with neutral villages"));
         opt.put(K_SC_PIRI, new SOCGameOption
-                (K_SC_PIRI, 2000, 2000, false, true, "Scenarios: Pirate Islands and fortresses"));
+                (K_SC_PIRI, 2000, 2000, false, FLAG_DROP_IF_UNUSED,
+                 "Scenarios: Pirate Islands and fortresses"));
 
         // NEW_OPTION - Add opt.put here at end of list, and update the
         //       list of "current known options" in javadoc just above.
@@ -591,25 +632,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public final int lastModVersion;
 
     /**
-     * Should the server drop this option from game options, and not send over
-     * the network (to reduce overhead), if the value is un-set or blank?
-     * (Meaning not set (false) for {@link #OTYPE_BOOL}, {@link #OTYPE_ENUMBOOL}
-     * or {@link #OTYPE_INTBOOL}; blank for {@link #OTYPE_STR} or {@link #OTYPE_STRHIDE};
-     * {@link #defaultIntValue} for {@link #OTYPE_INT} or {@link #OTYPE_ENUM})
-     *<P>
-     * Only recommended for seldom-used options.
-     * The removal is done in {@link #adjustOptionsToKnown(Hashtable, Hashtable, boolean)}.
-     * Once this flag is set for an option, it should not be un-set if the
-     * option is changed in a later version.
-     *<P>
-     * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
-     * boolean values are checked against defaults.
-     *<P>
-     * This flag is ignored at the client when asking to create a new game:
-     * <tt>NewGameOptionsFrame</tt> sends all options it has displayed, even those
-     * which would be dropped because they're unused and they have this flag.
+     * Sum of all of option's flags, if any, such as {@link #FLAG_DROP_IF_UNUSED}.
+     * @since 2.0.00
      */
-    public final boolean dropIfUnused;  // OTYPE_* - mention in javadoc if this applies to the new type.
+    public final int optFlags;
 
     /**
      * Default value for boolean part of this option, if any
@@ -679,10 +705,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
      *        or if minVers or lastModVers is under 1000 but not -1
      */
-    public SOCGameOption(String key)
+    public SOCGameOption(final String key)
         throws IllegalArgumentException
     {
-        this(OTYPE_UNKNOWN, key, Integer.MAX_VALUE, Integer.MAX_VALUE, false, 0, 0, 0, false, null, key);
+        this(OTYPE_UNKNOWN, key, Integer.MAX_VALUE, Integer.MAX_VALUE, false, 0, 0, 0, null, 0, key);
     }
 
     /**
@@ -693,27 +719,25 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param minVers Minimum client version if this option is set (is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default value (true if set, false if not set)
-     * @param dropIfUnused If this option's value is unset, should server not add it to game options
-     *           or send over the network (to reduce overhead)?
-     *           Only recommended if game behavior without the option is well-established
-     *           (for example, trading is allowed unless option NT is present).
+     * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
+     *                Remember that older clients won't recognize some gameoption flags.
      * @param desc    Descriptive brief text, to appear in the options dialog
      * @throws IllegalArgumentException if key length is > 3 or not alphanumeric,
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
-    public SOCGameOption(String key, int minVers, int lastModVers,
-        boolean defaultValue, boolean dropIfUnused, String desc)
+    public SOCGameOption(final String key, final int minVers, final int lastModVers,
+        final boolean defaultValue, final int flags, final String desc)
         throws IllegalArgumentException
     {
-	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, dropIfUnused, null, desc);
+	this(OTYPE_BOOL, key, minVers, lastModVers, defaultValue, 0, 0, 0, null, flags, desc);
     }
 
     /**
      * Create a new integer game option ({@link #OTYPE_INT}).
      *<P>
-     * If {@link #dropIfUnused} is true, the option will be dropped if == {@link #defaultIntValue}.<BR>
-     * Before v2.0.00, there was no dropIfUnused parameter for integer options.
+     * If {@link #FLAG_DROP_IF_UNUSED} is set, the option will be dropped if == {@link #defaultIntValue}.<BR>
+     * Before v2.0.00, there was no dropIfUnused flag for integer options.
      *
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
@@ -723,11 +747,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param minValue Minimum permissible value
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
-     * @param dropIfUnused If this option's value is the default,
-     *           should server not add it to game options
-     *           or send over the network (to reduce overhead)?
-     *           Only recommended for seldom-used options, or if game behavior without the option is well-established
-     *           (for example, board size is a known default if option _BHW is dropped).
+     * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
+     *                Remember that older clients won't recognize some gameoption flags.
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the int value goes.
      *             If no placeholder is found, the value text field appears at left,
@@ -739,11 +760,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
         final int defaultValue, final int minValue, final int maxValue,
-        final boolean dropIfUnused, final String desc)
+        final int flags, final String desc)
         throws IllegalArgumentException
     {
 	this(OTYPE_INT, key, minVers, lastModVers, false, defaultValue,
-	     minValue, maxValue, dropIfUnused, null, desc);
+	     minValue, maxValue, null, flags, desc);
     }
 
     /**
@@ -757,11 +778,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param minValue Minimum permissible value
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
-     * @param dropIfUnused If this option's bool value is unset, and its int value is the default,
-     *           should server not add it to game options
-     *           or send over the network (to reduce overhead)?
-     *           Only recommended if game behavior without the option is well-established
-     *           (for example, trading is allowed unless option NT is present).
+     * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
+     *                Remember that older clients won't recognize some gameoption flags.
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
      * @throws IllegalArgumentException if defaultIntValue < minValue or is > maxValue,
@@ -769,30 +787,29 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
-    public SOCGameOption(String key, int minVers, int lastModVers, boolean defaultBoolValue, int defaultIntValue,
-        int minValue, int maxValue, boolean dropIfUnused, String desc)
+    public SOCGameOption(final String key, final int minVers, final int lastModVers,
+        final boolean defaultBoolValue, final int defaultIntValue,
+        final int minValue, final int maxValue, final int flags, final String desc)
         throws IllegalArgumentException
     {
 	this(OTYPE_INTBOOL, key, minVers, lastModVers, defaultBoolValue, defaultIntValue,
-	     minValue, maxValue, dropIfUnused, null, desc);
+	     minValue, maxValue, null, flags, desc);
     }
 
     /**
      * Create a new enumerated game option ({@link #OTYPE_ENUM}).
      * The {@link #minIntValue} will be 1, {@link #maxIntValue} will be enumVals.length.
      *<P>
-     * If {@link #dropIfUnused} is true, the option will be dropped if == {@link #defaultIntValue}.<BR>
-     * Before v2.0.00, there was no dropIfUnused parameter for enum options.
+     * If {@link #FLAG_DROP_IF_UNUSED} is set, the option will be dropped if == {@link #defaultIntValue}.<BR>
+     * Before v2.0.00, there was no dropIfUnused flag for enum options.
      *
      * @param key     Alphanumeric 2-character code for this option;
      *                see {@link #isAlphanumericUpcaseAscii(String)} for format.
      * @param minVers Minimum client version if this option is set (boolean is true), or -1
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param defaultValue Default int value, in range 1 - n (n == number of possible values)
-     * @param dropIfUnused If this option's value is the default,
-     *           should server not add it to game options
-     *           or send over the network (to reduce overhead)?
-     *           Only recommended for seldom-used options, or if game behavior without the option is well-established.
+     * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
+     *                Remember that older clients won't recognize some gameoption flags.
      * @param enumVals text to display for each possible choice of this option.
      *                Please see the explanation at {@link #initAllOptions()} about
      *                changing or adding to enumVals in later versions.
@@ -806,11 +823,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *        or if minVers or lastModVers is under 1000 but not -1
      */
     public SOCGameOption(final String key, final int minVers, final int lastModVers,
-        final int defaultValue, final boolean dropIfUnused, final String[] enumVals, final String desc)
+        final int defaultValue, final String[] enumVals, final int flags, final String desc)
         throws IllegalArgumentException
     {
         this(OTYPE_ENUM, key, minVers, lastModVers, false, defaultValue,
-             1, enumVals.length, dropIfUnused, enumVals, desc);
+             1, enumVals.length, enumVals, flags, desc);
     }
 
     /**
@@ -824,11 +841,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param defaultBoolValue Default value (true if set, false if not set)
      * @param defaultIntValue Default int value, in range 1 - n (n == number of possible values)
      * @param enumVals text to display for each possible choice of this option
-     * @param dropIfUnused If this option's bool value is unset, and its int value is the default,
-     *           should server not add it to game options
-     *           or send over the network (to reduce overhead)?
-     *           Only recommended if game behavior without the option is well-established
-     *           (for example, trading is allowed unless option NT is present).
+     * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
+     *                Remember that older clients won't recognize some gameoption flags.
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the enum's popup-menu goes.
      *             If no placeholder is found, the value field appears at left,
@@ -838,13 +852,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
-    public SOCGameOption(String key, int minVers, int lastModVers, boolean defaultBoolValue,
-        int defaultIntValue, String[] enumVals, boolean dropIfUnused, String desc)
+    public SOCGameOption(final String key, final int minVers, final int lastModVers, final boolean defaultBoolValue,
+        final int defaultIntValue, final String[] enumVals, final int flags, final String desc)
         throws IllegalArgumentException
     {
         this(OTYPE_ENUMBOOL, key, minVers, lastModVers,
              defaultBoolValue, defaultIntValue,
-             1, enumVals.length, dropIfUnused, enumVals, desc);
+             1, enumVals.length, enumVals, flags, desc);
     }
 
     /**
@@ -856,9 +870,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param lastModVers Last-modified version for this option, or version which added it
      * @param maxLength   Maximum length, between 1 and 255 (for network bandwidth conservation)
      * @param hideTyping  Should type be {@link #OTYPE_STRHIDE} instead of {@link #OTYPE_STR}?
-     * @param dropIfUnused If this option's value is blank, should
-     *           server not add it to game options
-     *           or send over the network (to reduce overhead)?
+     * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
+     *                Remember that older clients won't recognize some gameoption flags.
      * @param desc Descriptive brief text, to appear in the options dialog; may
      *             contain a placeholder character '#' where the text value goes.
      *             If no placeholder is found, the value text field appears at left,
@@ -868,13 +881,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      *        or if desc contains {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
      *        or if minVers or lastModVers is under 1000 but not -1
      */
-    public SOCGameOption(String key, int minVers, int lastModVers,
-	int maxLength, boolean hideTyping, boolean dropIfUnused, String desc)
+    public SOCGameOption(final String key, final int minVers, final int lastModVers,
+	final int maxLength, final boolean hideTyping, final int flags, final String desc)
         throws IllegalArgumentException
     {
 	this( (hideTyping ? OTYPE_STRHIDE : OTYPE_STR ),
 	     key, minVers, lastModVers, false, 0,
-	     0, maxLength, dropIfUnused, null, desc);
+	     0, maxLength, null, flags, desc);
 	if ((maxLength < 1) || (maxLength > 255))
 	    throw new IllegalArgumentException("maxLength");
     }
@@ -896,11 +909,10 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param minValue Minimum permissible value
      * @param maxValue Maximum permissible value; the width of the options-dialog
      *                 value field is based on the number of digits in maxValue.
-     * @param dropIfUnused If this option's value is blank or unset, should
-     *                 server not add it to game options?
-     *                 See {@link #dropIfUnused} javadoc for more details.
      * @param enumVals Possible choice texts for {@link #OTYPE_ENUM} or {@link #OTYPE_ENUMBOOL}, or null;
      *                 value(s) must pass same checks as desc.
+     * @param flags   Option flags such as {@link #FLAG_DROP_IF_UNUSED}, or 0;
+     *                Remember that older clients won't recognize some gameoption flags.
      * @param desc Descriptive brief text, to appear in the options dialog; should
      *             contain a placeholder character '#' where the int value goes.
      *             Desc must not contain {@link SOCMessage#sep_char} or {@link SOCMessage#sep2_char},
@@ -913,12 +925,11 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      */
     protected SOCGameOption(int otype, String key, int minVers, int lastModVers,
         boolean defaultBoolValue, int defaultIntValue,
-        int minValue, int maxValue, boolean dropIfUnused,
-        String[] enumVals, String desc)
+        final int minValue, final int maxValue,
+        final String[] enumVals, final int flags, final String desc)
         throws IllegalArgumentException
     {
 	// validate & set option properties:
-
         final int L = key.length(); 
         if ((L > 3) && ! key.startsWith("DEBUG"))
         {
@@ -946,7 +957,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 	this.defaultIntValue = defaultIntValue;
 	minIntValue = minValue;
 	maxIntValue = maxValue;
-	this.dropIfUnused = dropIfUnused;
+	optFlags = flags;
         this.enumVals = enumVals;
 	optDesc = desc;
 
@@ -983,8 +994,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         this(enumOpt.optType, enumOpt.optKey, enumOpt.minVersion, enumOpt.lastModVersion,
              enumOpt.defaultBoolValue,
              enumOpt.defaultIntValue <= keptEnumVals.length ? enumOpt.defaultIntValue : keptEnumVals.length,
-             1, keptEnumVals.length, enumOpt.dropIfUnused,
-             keptEnumVals, enumOpt.optDesc);
+             1, keptEnumVals.length, keptEnumVals, enumOpt.optFlags, enumOpt.optDesc);
     }
 
     /**
@@ -1003,8 +1013,8 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         this(intOpt.optType, intOpt.optKey, intOpt.minVersion, intOpt.lastModVersion,
              intOpt.defaultBoolValue,
              intOpt.defaultIntValue <= maxIntValue ? intOpt.defaultIntValue : maxIntValue,
-             intOpt.minIntValue, maxIntValue, intOpt.dropIfUnused,
-             null, intOpt.optDesc);
+             intOpt.minIntValue, maxIntValue,
+             null, intOpt.optFlags, intOpt.optDesc);
     }
 
     /**
@@ -1124,13 +1134,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
         case OTYPE_INT:
         case OTYPE_ENUM:
-            if (dropIfUnused && (intValue == defaultIntValue))
+            if (hasFlag(FLAG_DROP_IF_UNUSED) && (intValue == defaultIntValue))
                 return -1;  // Option not set: any client version is OK
             break;
 
         case OTYPE_STR:
         case OTYPE_STRHIDE:
-            if (dropIfUnused && ((strValue == null) || (strValue.length() == 0)))
+            if (hasFlag(FLAG_DROP_IF_UNUSED) && ((strValue == null) || (strValue.length() == 0)))
                 return -1;  // Option not set: any client version is OK
             break;
         }
@@ -1828,7 +1838,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * If any are above/below maximum/minimum, clip to the max/min value in knownOpts.
      * If any are unknown, return a description. Will still check (and clip) the known ones.
      * If any options are default, and unset/blank, and
-     * their {@link #dropIfUnused} flag is set, remove them from newOpts.
+     * their {@link #FLAG_DROP_IF_UNUSED} flag is set, remove them from newOpts.
      * For {@link #OTYPE_INTBOOL} and {@link #OTYPE_ENUMBOOL}, both the integer and
      * boolean values are checked against defaults.
      *<P>
@@ -2009,7 +2019,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 			    op.setIntValue(iv);
 			}
 
-                        if (knownOp.dropIfUnused
+                        if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED)
                             && (iv == knownOp.defaultIntValue))
                         {
                             // ignore boolValue unless also boolean-type: OTYPE_INTBOOL and OTYPE_ENUMBOOL.
@@ -2020,13 +2030,13 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 		    break;
 
 		case OTYPE_BOOL:
-                    if (knownOp.dropIfUnused && ! op.boolValue)
+                    if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED) && ! op.boolValue)
                         ikv.remove();
 		    break;
 
                 case OTYPE_STR:
                 case OTYPE_STRHIDE:
-                    if (knownOp.dropIfUnused &&
+                    if (knownOp.hasFlag(FLAG_DROP_IF_UNUSED) &&
                           ((op.strValue == null) || (op.strValue.length() == 0)))
                         ikv.remove();
                     break;
@@ -2222,6 +2232,17 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         else if (refreshList.contains(this))
             return;
         refreshList.addElement(this);
+    }
+
+    /**
+     * Does this game option have these specified flag(s)?
+     * @param flagMask  Option flag such as {@link #FLAG_DROP_IF_UNUSED}, or multiple flags added together
+     * @return  True if {@link #optFlags} contains all flags in {@code flagMask}
+     * @since 2.0.00
+     */
+    public final boolean hasFlag(final int flagMask)
+    {
+        return ((optFlags & flagMask) == flagMask);
     }
 
     /**

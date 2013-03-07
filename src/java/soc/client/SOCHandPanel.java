@@ -24,6 +24,7 @@ package soc.client;
 import soc.disableDebug.D;
 
 import soc.game.SOCBoard;
+import soc.game.SOCDevCard;
 import soc.game.SOCDevCardConstants;
 import soc.game.SOCDevCardSet;
 import soc.game.SOCGame;
@@ -264,8 +265,11 @@ public class SOCHandPanel extends Panel
     /** Soldier/Knight count */
     protected ColorSquare knightsSq;
     protected Label knightsLab;
-    /** Player's development cards */
+    /** Player's development card names, from {@link #cardListItems}; updated frequently by {@link #updateDevCards()} */
     protected List cardList;
+    /** Player's development cards for {@link #cardList}; updated frequently by {@link #updateDevCards()} */
+    private ArrayList<SOCDevCard> cardListItems;
+        // eventually, cardListItems should be refactored into SOCPlayer.
     protected Button playCardBut;
     /** Trade offer resource squares; visible only for client's own player */
     protected SquaresPanel sqPanel;
@@ -596,6 +600,7 @@ public class SOCHandPanel extends Panel
 
         //cardLab = new Label("Cards:");
         //add(cardLab);
+        cardListItems = new ArrayList<SOCDevCard>();
         cardList = new List(0, false);
         cardList.addActionListener(this);  // double-click support
         add(cardList);
@@ -1081,6 +1086,7 @@ public class SOCHandPanel extends Panel
         //TODO Logic must be changed to allow i18n
         String item;
         int itemNum;  // Which one to play from list?
+        SOCDevCard itemCard = null;
 
         setRollPrompt(null, false);  // Clear prompt if Play Card clicked (instead of Roll clicked)
         if (playerIsCurrent && player.hasPlayedDevCard())
@@ -1102,6 +1108,7 @@ public class SOCHandPanel extends Panel
                 itemNum = 0;
                 if (item.length() == 0)
                     return;
+                itemCard = cardListItems.get(0);
             } else {
                 /**
                  * No card selected, multiple are in the list.
@@ -1114,49 +1121,74 @@ public class SOCHandPanel extends Panel
                 for (int i = cardList.getItemCount() - 1; i >= 0; --i)
                 {
                     item = cardList.getItem(i);
-                    if ((item != null) && (item.length() > 0)
-                        && (item.indexOf("VP)") <= 0)
-                        && ! item.startsWith("*NEW*"))
+                    if ((item != null) && (item.length() > 0))
                     {
-                        // Non-VP non-new card found
-                        if (itemNum == -1)
+                        SOCDevCard dev = cardListItems.get(i);
+                        if (! (dev.isVPCard() || dev.isNew()))
                         {
-                            itemNum = i;
-                            itemNumText = item;
-                        } else if (! item.equals(itemNumText))
-                        {
-                            itemNum = -1;  // More than one found,
-                            break;         // stop looking.
+                            // Non-VP non-new card found
+                            if (itemCard == null)
+                            {
+                                itemNum = i;
+                                itemNumText = item;
+                                itemCard = dev;
+                            }
+                            else if (itemCard.ctype != dev.ctype)
+                            {
+                                itemNum = -1;  // More than one found, and they aren't the same type;
+                                break;         // we can't auto-pick among them, so stop looking through the list.
+                            }
                         }
                     }
                 }
-                if (itemNum == -1)
+                if ((itemNum == -1) || (itemCard == null))
                 {
                     playerInterface.print("* "+/*I*/"Please click a card first to select it."/*18N*/);
                     return;
                 }
                 item = itemNumText;
             }
+        } else {
+            // get selected item's Card object
+            if (itemNum < cardListItems.size())
+                itemCard = cardListItems.get(itemNum);
         }
 
         // At this point, itemNum is the index of the card we want,
         // and item is its text string.
+        // itemCard is its SOCDevCard object (card type and new/old flag).
 
-        if (! playerIsCurrent)
+        if ((! playerIsCurrent) || (itemCard == null))
         {
             return;  // <--- Early Return: Not current player ---
         }
 
-        int cardTypeToPlay = -1;
-        if (item.equals("Soldier"))
+        if (itemCard.isVPCard())
         {
+            playerInterface.print("*** You secretly played this VP card when you bought it.");
+            itemNum = cardList.getSelectedIndex();
+            if (itemNum >= 0)
+                cardList.deselect(itemNum);
+
+            return;  // <--- Early Return: Can't play a VP card ---
+        }
+
+        int cardTypeToPlay = -1;
+
+        switch (itemCard.ctype)
+        {
+        case SOCDevCardConstants.KNIGHT:
             if (game.canPlayKnight(playerNumber))
             {
                 cardTypeToPlay = SOCDevCardConstants.KNIGHT;
             }
-        }
-        else if (item.equals("Road Building"))
-        {
+            else if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            {
+                playerInterface.print("* You cannot convert a ship to a warship right now.");   
+            }
+            break;
+
+        case SOCDevCardConstants.ROADS:
             if (game.canPlayRoadBuilding(playerNumber))
             {
                 cardTypeToPlay = SOCDevCardConstants.ROADS;
@@ -1165,39 +1197,25 @@ public class SOCHandPanel extends Panel
             {
                 playerInterface.print("* You have no roads left to place.");
             }
-                
-        }
-        else if (item.equals("Year of Plenty"))
-        {
+            break;
+
+        case SOCDevCardConstants.DISC:
             if (game.canPlayDiscovery(playerNumber))
             {
                 cardTypeToPlay = SOCDevCardConstants.DISC;
             }
-        }
-        else if (item.equals("Monopoly"))
-        {
+            break;
+
+        case SOCDevCardConstants.MONO:
             if (game.canPlayMonopoly(playerNumber))
             {
                 cardTypeToPlay = SOCDevCardConstants.MONO;
             }
-        }
-        else if (item.equals("Warship"))
-        {
-            if (game.canPlayKnight(playerNumber))
-                cardTypeToPlay = SOCDevCardConstants.KNIGHT;
-            else
-                playerInterface.print("* You cannot convert a ship to a warship right now.");
-        }
-        else if (item.indexOf("VP)") > 0)
-        {
-            playerInterface.print("*** You secretly played this VP card when you bought it.");
-            itemNum = cardList.getSelectedIndex();
-            if (itemNum >= 0)
-                cardList.deselect(itemNum);
-        }
-        else
-        {
-            playerInterface.print("L1198 internal error: Unknown card type " + item);
+            break;
+
+        default:
+            playerInterface.print("L1198 internal error: Unknown card type " + itemCard.ctype + ": " + item);
+
         }
 
         if (cardTypeToPlay != -1)
@@ -1900,6 +1918,8 @@ public class SOCHandPanel extends Panel
     /**
      * Update the displayed list of player's development cards,
      * and enable or disable the "Play Card" button.
+     *<P>
+     * Updates {@link #cardList} and {@link #cardListItems} to keep them in sync.
      */
     public void updateDevCards()
     {
@@ -1930,6 +1950,7 @@ public class SOCHandPanel extends Panel
         synchronized (cardList.getTreeLock())
         {
             cardList.removeAll();
+            cardListItems.clear();
 
             // add items to the list for each new and old card, of each type
             for (int i = 0; i < cardTypes.length; i++)
@@ -1942,12 +1963,14 @@ public class SOCHandPanel extends Panel
                 for (int j = 0; j < numOld; j++)
                 {
                     cardList.add(cardNames[i]);
+                    cardListItems.add(new SOCDevCard(cardTypes[i], false));
                 }
                 for (int j = 0; j < numNew; j++)
                 {
-                    // VP cards (starting at 4) are valid immidiately
-                    String prefix = (i < 4) ? "*NEW* " : "";
+                    // VP cards are valid immediately, so don't mark them new
+                    String prefix = (SOCDevCard.isVPCard(i)) ? "" : /*I*/"*NEW* "/*18N*/;
                     cardList.add(prefix + cardNames[i]);
+                    cardListItems.add(new SOCDevCard(cardTypes[i], true));
                 }
             }
         }

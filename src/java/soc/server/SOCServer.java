@@ -199,7 +199,7 @@ public class SOCServer extends Server
     /**
      * Name used when sending messages from the server.
      */
-    public static final String SERVERNAME = "Server";
+    public static final String SERVERNAME = SOCGameTextMsg.SERVERNAME;  // "Server"
 
     /**
      * Minimum required client version, to connect and play a game.
@@ -1674,7 +1674,7 @@ public class SOCServer extends Server
             {
                 gameList.releaseMonitorForGame(gm);
                 ga.takeMonitor();
-                endGameTurn(ga, null);
+                endGameTurn(ga, null, true);
                 ga.releaseMonitor();
                 gameList.takeMonitorForGame(gm);
             } else {
@@ -2056,7 +2056,7 @@ public class SOCServer extends Server
      * Does not send gameState, which may have changed; see
      * {@link SOCGame#discardOrGainPickRandom(SOCResourceSet, int, boolean, SOCResourceSet, Random)}
      *<P>
-     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
+     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} does:
      * <UL>
      * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
      * <LI> gamelist.takeMonitorForGame is NOT called, we do NOT have that monitor
@@ -3879,6 +3879,7 @@ public class SOCServer extends Server
                  */
                 case SOCMessage.SIMPLEREQUEST:
                     handleSIMPLEREQUEST(c, (SOCSimpleRequest) mes);
+                    break;
 
                 /**
                  * Asking to move a previous piece (a ship) somewhere else on the board.
@@ -4373,7 +4374,8 @@ public class SOCServer extends Server
         // This will be displayed in the client's status line (v1.1.17 and newer).
         if (allowDebugUser)
             c.put(SOCStatusMessage.toCmd
-                    (SOCStatusMessage.SV_OK, "Debugging is On.  Welcome to Java Settlers of Catan!"));            
+                    (SOCStatusMessage.SV_OK_DEBUG_MODE_ON, cvers,
+                     "Debugging is On.  Welcome to Java Settlers of Catan!"));                    
 
         // This client version is OK to connect
         return true;
@@ -5053,6 +5055,7 @@ public class SOCServer extends Server
      *       older clients get NEWGAME, won't see the options
      *  <LI> send JOINGAMEAUTH to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean, boolean)}
      *  <LI> send game status details to requesting client, via {@link #joinGame(SOCGame, StringConnection, boolean, boolean)}
+     *       -- If the game is already in progress, this will include all pieces on the board, and the rest of game state.
      *</UL>
      *
      * @param c connection requesting the game, must not be null
@@ -5555,6 +5558,11 @@ public class SOCServer extends Server
 
     /**
      * handle "put piece" message
+     *<P>
+     * Because the current player changes during initial placement,
+     * this method has a simplified version of some of the logic from
+     * {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} to detect and
+     * announce the new turn.
      *
      * @param c  the connection that sent the message
      * @param mes  the messsage
@@ -6255,16 +6263,25 @@ public class SOCServer extends Server
 
                 /**
                  * Send roll results and then text to client.
-                 * Client expects to see DiceResult first, then text message;
-                 * to reduce visual clutter, SOCPlayerInterface.print
-                 * expects text message to follow a certain format.
+                 * Note that only the total is sent, not the 2 individual dice.
+                 * (Only the _SC_PIRI scenario cares about them indivdually, and
+                 * in that case it prints the result when needed.)
+                 *
                  * If a 7 is rolled, sendGameState will also say who must discard
                  * (in a GAMETEXTMSG).
                  * If a gold hex is rolled, sendGameState will also say who
                  * must pick resources to gain (in a GAMETEXTMSG).
                  */
                 messageToGame(gn, new SOCDiceResult(gn, ga.getCurrentDice()));
-                messageToGame(gn, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + ".");
+                if (ga.clientVersionLowest < SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD)
+                {
+                    // backwards-compat: this text message is redundant to v2.0.00 and newer clients
+                    // because they print the roll results from SOCDiceResult.
+                    messageToGameForVersions(ga, 0, SOCGameTextMsg.VERSION_FOR_DICE_RESULT_INSTEAD - 1,
+                        new SOCGameTextMsg
+                            (gn, SERVERNAME, plName + " rolled a " + roll.diceA + " and a " + roll.diceB + "."), // I18N
+                        true);
+                }
                 sendGameState(ga);  // For 7, give visual feedback before sending discard request
 
                 if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
@@ -6650,7 +6667,7 @@ public class SOCServer extends Server
                 {
                     sendGameState(ga);  // if state is WAITING_FOR_CHOICE (_SC_PIRI), also sends CHOOSEPLAYERREQUEST
                 } else {
-                    endGameTurn(ga, player);  // already did ga.takeMonitor()
+                    endGameTurn(ga, player, true);  // already did ga.takeMonitor()
                 }
             }
             else
@@ -6782,7 +6799,7 @@ public class SOCServer extends Server
                     }
                 } else {
                     // force-end game turn
-                    endGameTurn(ga, player);  // already did ga.takeMonitor()
+                    endGameTurn(ga, player, true);  // locking: already did ga.takeMonitor()
                 }
             }
             else
@@ -6847,7 +6864,7 @@ public class SOCServer extends Server
                 SOCPlayer pl = ga.getPlayer(plName);
                 if ((pl != null) && ga.canEndTurn(pl.getPlayerNumber()))
                 {
-                    endGameTurn(ga, pl);
+                    endGameTurn(ga, pl, true);
                 }
                 else
                 {
@@ -6870,6 +6887,8 @@ public class SOCServer extends Server
     /**
      * Pre-checking already done, end the current player's turn in this game.
      * Alter game state and send messages to players.
+     * (Clear all the Ask Special Building, Reset Board Request, and Trade Offer flags; send Game State; send Turn).
+     *<P>
      * Calls {@link SOCGame#endTurn()}, which may also end the game.
      * On the 6-player board, this may begin the {@link SOCGame#SPECIAL_BUILDING Special Building Phase},
      * or end a player's placements during that phase.
@@ -6885,22 +6904,28 @@ public class SOCServer extends Server
      *<P>
      * As a special case, endTurn is used to begin the Special Building Phase during the
      * start of a player's own turn, if permitted.  (Added in 1.1.09)
+     *<P>
+     * A simplified version of this logic (during initial placement) is used in
+     * {@link #handlePUTPIECE(StringConnection, SOCPutPiece)}.
      *
      * @param ga Game to end turn
      * @param pl Current player in <tt>ga</tt>, or null. Not needed except in SPECIAL_BUILDING.
      *           If null, will be determined within this method.
+     * @param callEndTurn  Almost always true; if false, don't call {@link SOCGame#endTurn()}
+     *           because it was called before calling this method.
+     *           If false, be sure to set {@code pl} to the player whose turn it was before {@code endTurn()} was called.
      */
-    private void endGameTurn(SOCGame ga, SOCPlayer pl)
+    private void endGameTurn(SOCGame ga, SOCPlayer pl, final boolean callEndTurn)
     {
         final String gname = ga.getName();
 
         if (ga.getGameState() == SOCGame.SPECIAL_BUILDING)
         {
-            final int cpn = ga.getCurrentPlayerNumber();
             if (pl == null)
-                pl = ga.getPlayer(cpn);
+                pl = ga.getPlayer(ga.getCurrentPlayerNumber());
             pl.setAskedSpecialBuild(false);
-            messageToGame(gname, new SOCPlayerElement(gname, cpn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
+            messageToGame(gname, new SOCPlayerElement
+                    (gname, pl.getPlayerNumber(), SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 0));
         }
 
         boolean hadBoardResetRequest = (-1 != ga.getResetVoteRequester());
@@ -6908,9 +6933,11 @@ public class SOCServer extends Server
         /**
          * End the Turn:
          */
-
-        ga.endTurn();  // May set state to OVER, if new player has enough points to win.
-                       // May begin or continue the Special Building Phase.
+        if (callEndTurn)
+        {
+            ga.endTurn();  // May set state to OVER, if new player has enough points to win.
+                           // May begin or continue the Special Building Phase.
+        }
 
         /**
          * Send the results out:
@@ -6954,13 +6981,13 @@ public class SOCServer extends Server
     /**
      * Try to force-end the current player's turn in this game.
      * Alter game state and send messages to players.
-     * Will call {@link #endGameTurn(SOCGame, SOCPlayer)} if appropriate.
+     * Will call {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} if appropriate.
      * Will send gameState and current player (turn) to clients.
      *<P>
      * If the current player has lost connection, send the {@link SOCLeaveGame LEAVEGAME}
      * message out <b>before</b> calling this method.
      *<P>
-     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer)} does:
+     * Assumes, as {@link #endGameTurn(SOCGame, SOCPlayer, boolean)} does:
      * <UL>
      * <LI> ga.canEndTurn already called, returned false
      * <LI> ga.takeMonitor already called (not the same as {@link SOCGameList#takeMonitorForGame(String)})
@@ -7039,19 +7066,19 @@ public class SOCServer extends Server
             {
                 if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
                     card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
-                messageToPlayer(c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, card));
+                messageToPlayer(c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, card));
             }
             if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
             {
                 messageToGameExcept
-                    (gaName, c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                    (gaName, c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
             } else {
                 messageToGameForVersionsExcept
                     (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                     c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                     c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
                 messageToGameForVersionsExcept
                     (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                     c, new SOCDevCard(gaName, cpn, SOCDevCard.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
+                     c, new SOCDevCardAction(gaName, cpn, SOCDevCardAction.ADDOLD, SOCDevCardConstants.UNKNOWN), true);
             }
             messageFormatToGame(gaName, true, "{0}''s just-played development card was returned.", plName);
         }
@@ -7081,7 +7108,7 @@ public class SOCServer extends Server
          * players to send discard messages, and afterwards this turn can end.
          */
         if (ga.canEndTurn(cpn))
-            endGameTurn(ga, null);  // could force gamestate to OVER, if a client leaves
+            endGameTurn(ga, null, true);  // could force gamestate to OVER, if a client leaves
         else
             sendGameState(ga, false);
 
@@ -7574,7 +7601,7 @@ public class SOCServer extends Server
                     {
                         ga.askSpecialBuild(pn, true);
                         messageToGame(gaName, new SOCPlayerElement(gaName, pn, SOCPlayerElement.SET, SOCPlayerElement.ASK_SPECIAL_BUILD, 1));
-                        endGameTurn(ga, player);  // triggers start of SBP
+                        endGameTurn(ga, player, true);  // triggers start of SBP
                     } catch (IllegalStateException e) {
                         messageToPlayer(c, gaName, "You can't ask to build now.");
                         sendDenyReply = true;
@@ -7788,18 +7815,18 @@ public class SOCServer extends Server
                     gameList.releaseMonitorForGame(gaName);
                     if ((card == SOCDevCardConstants.KNIGHT) && (c.getVersion() < SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
                         card = SOCDevCardConstants.KNIGHT_FOR_VERS_1_X;
-                    messageToPlayer(c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, card));
+                    messageToPlayer(c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, card));
 
                     if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                     {
-                        messageToGameExcept(gaName, c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                        messageToGameExcept(gaName, c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     } else {
                         messageToGameForVersionsExcept
                             (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                             c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
+                             c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X), true);
                         messageToGameForVersionsExcept
                             (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                             c, new SOCDevCard(gaName, pn, SOCDevCard.DRAW, SOCDevCardConstants.UNKNOWN), true);
+                             c, new SOCDevCardAction(gaName, pn, SOCDevCardAction.DRAW, SOCDevCardConstants.UNKNOWN), true);
                     }
                     messageFormatToGame(gaName, true, "{0} bought a development card.", (String) c.getData());
 
@@ -7913,15 +7940,15 @@ public class SOCServer extends Server
                         messageFormatToGame(gaName, false, cardplayed, player.getName());
                         if (ga.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES)
                         {
-                            messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT));
+                            messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT));
                         } else {
                             System.err.println("L7870: played soldier; clientVersionLowest = " + ga.clientVersionLowest);  // JM temp
                             messageToGameForVersions
                                 (ga, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                                 new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);
+                                 new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), false);
                             messageToGameForVersions
                                 (ga, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                                 new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.KNIGHT), false);
+                                 new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.KNIGHT), false);
                         }
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         messageToGameWithMon
@@ -7947,7 +7974,7 @@ public class SOCServer extends Server
                     {
                         ga.playRoadBuilding();
                         gameList.takeMonitorForGame(gaName);
-                        messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.ROADS));
+                        messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.ROADS));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         messageFormatToGame(gaName, false, "{0} played a Road Building card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
@@ -7980,7 +8007,7 @@ public class SOCServer extends Server
                     {
                         ga.playDiscovery();
                         gameList.takeMonitorForGame(gaName);
-                        messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.DISC));
+                        messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.DISC));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         messageFormatToGame(gaName, false, "{0} played a Year of Plenty card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
@@ -7999,7 +8026,7 @@ public class SOCServer extends Server
                     {
                         ga.playMonopoly();
                         gameList.takeMonitorForGame(gaName);
-                        messageToGameWithMon(gaName, new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.MONO));
+                        messageToGameWithMon(gaName, new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.MONO));
                         messageToGameWithMon(gaName, new SOCSetPlayedDevCard(gaName, pn, true));
                         messageFormatToGame(gaName, false, "{0} played a Monopoly card.", player.getName());
                         gameList.releaseMonitorForGame(gaName);
@@ -8038,7 +8065,7 @@ public class SOCServer extends Server
                 if ((scd == null) || ! scd.isRobot)
                     messageToPlayer(c, gaName, denyText);
                 else
-                    messageToPlayer(c, new SOCDevCard(gaName, -1, SOCDevCard.CANNOT_PLAY, mes.getDevCard()));
+                    messageToPlayer(c, new SOCDevCardAction(gaName, -1, SOCDevCardAction.CANNOT_PLAY, mes.getDevCard()));
             }
         }
         catch (Exception e)
@@ -8210,11 +8237,66 @@ public class SOCServer extends Server
 
         switch(reqtype)
         {
-            default:
-                // deny unknown types
-                c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
-                System.err.println
-                    ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
+        case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
+            {
+                final int cpn = ga.getCurrentPlayerNumber();
+
+                final SOCShip adjac = ga.canAttackPirateFortress();
+                if ((adjac == null) || (adjac.getPlayerNumber() != cpn))
+                {
+                    c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+                    return;  // <--- early return: deny ---
+                }
+
+                final int prevState = ga.getGameState();
+                final SOCPlayer cp = ga.getPlayer(cpn);
+                final int prevNumWarships = cp.getNumWarships();  // in case some are lost, we'll announce that
+                final SOCFortress fort = cp.getFortress();
+
+                final int[] res = ga.attackPirateFortress(adjac);
+
+                if (res.length > 1)
+                {
+                    // lost 1 or 2 ships adjacent to fortress.  res[1] == adjac.coordinate
+
+                    messageToGame(gaName, new SOCRemovePiece(gaName, adjac));
+                    if (res.length > 2)
+                        messageToGame(gaName, new SOCRemovePiece(gaName, cpn, SOCPlayingPiece.SHIP, res[2]));
+
+                    final int n = cp.getNumWarships();
+                    if (n != prevNumWarships)
+                        messageToGame(gaName, new SOCPlayerElement
+                            (gaName, cpn, SOCPlayerElement.SET, SOCPlayerElement.SCENARIO_WARSHIP_COUNT, n));
+                } else {
+                    // player won
+
+                    final int fortStrength = fort.getStrength();
+                    messageToGame(gaName, new SOCPieceValue(gaName, fort.getCoordinates(), fortStrength, 0));
+                    if (0 == fortStrength)
+                        messageToGame(gaName, new SOCPutPiece
+                            (gaName, cpn, SOCPlayingPiece.SETTLEMENT, fort.getCoordinates()));
+                }
+
+                messageToGame(gaName, new SOCPirateFortressAttackResult(gaName, res[0], res.length - 1));
+
+                // check for end of player's turn
+                if (! checkTurn(c, ga))
+                {
+                    endGameTurn(ga, cp, false);
+                } else {
+                    // still player's turn, even if they won
+                    final int gstate = ga.getGameState();
+                    if (gstate != prevState)
+                        sendGameState(ga);  // might be OVER, if player won
+                }
+            }
+            break;
+
+        default:
+            // deny unknown types
+            c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+            System.err.println
+                ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
         }
     }
 
@@ -8577,7 +8659,7 @@ public class SOCServer extends Server
                     opt = SOCGameOption.trimEnumForVersion(opt, cliVers);
                 }
 
-                c.put(new SOCGameOptionInfo(opt).toCmd());
+                c.put(new SOCGameOptionInfo(opt, cliVers).toCmd());
             }
         }
 
@@ -8998,10 +9080,17 @@ public class SOCServer extends Server
 
             // _SC_PIRI: special-case piece not part of getPieces
             {
-                final SOCPlayingPiece piece = pl.getFortress();
+                final SOCFortress piece = pl.getFortress();
                 if (piece != null)
-                    messageToGameWithMon
-                        (gameName, new SOCPutPiece(gameName, i, piece.getType(), piece.getCoordinates()));
+                {
+                    final int coord = piece.getCoordinates(),
+                              str   = piece.getStrength();
+
+                    c.put(SOCPutPiece.toCmd(gameName, i, piece.getType(), coord));
+
+                    if (str != SOCFortress.STARTING_STRENGTH)
+                        c.put(SOCPieceValue.toCmd(gameName, coord, str, 0));
+                }
             }
 
             // _SC_PIRI: for display, send count of warships only after SOCShip pieces are sent
@@ -9070,7 +9159,7 @@ public class SOCServer extends Server
                 unknownType = SOCDevCardConstants.UNKNOWN;
             else
                 unknownType = SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X;
-            final String cardUnknownCmd = SOCDevCard.toCmd(gameName, i, SOCDevCard.ADDOLD, unknownType);
+            final String cardUnknownCmd = SOCDevCardAction.toCmd(gameName, i, SOCDevCardAction.ADDOLD, unknownType);
             for (int j = 0; j < numDevCards; j++)
             {
                 c.put(cardUnknownCmd);
@@ -9298,9 +9387,9 @@ public class SOCServer extends Server
         /**
          * remove the unknown cards
          */
-        final SOCDevCard cardUnknown = (cliVersionNew)
-            ? new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN)
-            : new SOCDevCard(gaName, pn, SOCDevCard.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
+        final SOCDevCardAction cardUnknown = (cliVersionNew)
+            ? new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN)
+            : new SOCDevCardAction(gaName, pn, SOCDevCardAction.PLAY, SOCDevCardConstants.UNKNOWN_FOR_VERS_1_X);
         for (int i = 0; i < devCards.getTotal(); i++)
         {
             messageToPlayer(c, cardUnknown);
@@ -9311,7 +9400,7 @@ public class SOCServer extends Server
          */
         for (int dcAge = SOCDevCardSet.NEW; dcAge >= SOCDevCardSet.OLD; --dcAge)
         {
-            final int addCmd = (dcAge == SOCDevCardSet.NEW) ? SOCDevCard.ADDNEW : SOCDevCard.ADDOLD;
+            final int addCmd = (dcAge == SOCDevCardSet.NEW) ? SOCDevCardAction.ADDNEW : SOCDevCardAction.ADDOLD;
 
             /**
              * loop for all known card types
@@ -9321,11 +9410,11 @@ public class SOCServer extends Server
                 int cardAmt = devCards.getAmount(dcAge, dcType);
                 if (cardAmt > 0)
                 {
-                    SOCDevCard addMsg;
+                    SOCDevCardAction addMsg;
                     if (cliVersionNew || (dcType != SOCDevCardConstants.KNIGHT))
-                        addMsg = new SOCDevCard(gaName, pn, addCmd, dcType);
+                        addMsg = new SOCDevCardAction(gaName, pn, addCmd, dcType);
                     else
-                        addMsg = new SOCDevCard(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
+                        addMsg = new SOCDevCardAction(gaName, pn, addCmd, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X);
 
                     for ( ; cardAmt > 0; --cardAmt)
                         messageToPlayer(c, addMsg);
@@ -9804,7 +9893,7 @@ public class SOCServer extends Server
                          devCardType < SOCDevCardConstants.MAXPLUSONE;
                          devCardType++)
                 {
-                    if (! SOCDevCardSet.isVPCard(devCardType))
+                    if (! SOCDevCard.isVPCard(devCardType))
                         continue;
 
                     if ((devCards.getAmount(SOCDevCardSet.OLD, devCardType) > 0) || (devCards.getAmount(SOCDevCardSet.NEW, devCardType) > 0))
@@ -10572,7 +10661,7 @@ public class SOCServer extends Server
             return new SOCBoardLayout2
                 (ga.getName(), bef, bl.getLandHexLayout(), board.getPortsLayout(),
                  robber, bl.getPirateHex(), bl.getPlayerExcludedLandAreas(), bl.getRobberExcludedLandAreas(),
-                 bl.getVillageAndClothLayout(), bl.getAddedLayoutParts());
+                 bl.getAddedLayoutParts());
 
         default:
             throw new IllegalArgumentException("unknown board encoding v" + bef);
@@ -11009,14 +11098,14 @@ public class SOCServer extends Server
         String outMes = "### " + name + " gets a " + cardType + " card.";
         if ((cardType != SOCDevCardConstants.KNIGHT) || (game.clientVersionLowest >= SOCDevCardConstants.VERSION_FOR_NEW_TYPES))
         {
-            messageToGame(game.getName(), new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, cardType));
+            messageToGame(game.getName(), new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, cardType));
         } else {
             messageToGameForVersions
                 (game, -1, SOCDevCardConstants.VERSION_FOR_NEW_TYPES - 1,
-                 new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), true);
+                 new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT_FOR_VERS_1_X), true);
             messageToGameForVersions
                 (game, SOCDevCardConstants.VERSION_FOR_NEW_TYPES, Integer.MAX_VALUE,
-                 new SOCDevCard(game.getName(), pnum, SOCDevCard.DRAW, SOCDevCardConstants.KNIGHT), true);
+                 new SOCDevCardAction(game.getName(), pnum, SOCDevCardAction.DRAW, SOCDevCardConstants.KNIGHT), true);
         }
         messageToGame(game.getName(), outMes);
     }

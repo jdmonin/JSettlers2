@@ -28,6 +28,7 @@ import java.util.Map;
 
 import soc.game.SOCGame;
 import soc.game.SOCPlayer;
+import soc.game.SOCPlayingPiece;
 
 /**
  * A listener on the {@link SOCPlayerClient} to decouple the presentation from the networking.
@@ -41,6 +42,7 @@ public interface PlayerClientListener
 {
     /**
      * Receive a notification that the current player has rolled the dice.
+     * Call this after updating game state with the roll result.
      * @param player May be {@code null} if the current player was null when the dice roll was received from the server.
      * @param result The sum of the dice rolled. May be <tt>-1</tt> for some game events.
      */
@@ -89,6 +91,16 @@ public interface PlayerClientListener
      * @param pieceType A piece type identifier, such as {@link SOCPlayingPiece#CITY}
      */
     void playerPieceMoved(SOCPlayer player, int sourceCoordinate, int targetCoordinate, int pieceType);
+
+    /**
+     * A player's piece has been removed from the board.
+     * Updates game state and refreshes the game board display.
+     * Currently, only ships can be removed, in game scenario {@code _SC_PIRI}.
+     * @param player  Player who owns the ship
+     * @param pieceCoordinate  Ship's node coordinate
+     * @param pieceType  The piece type identifier {@link SOCPlayingPiece#SHIP}
+     */
+    void playerPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType);
 
     /**
      * A player has been awarded Special Victory Point(s).
@@ -192,6 +204,16 @@ public interface PlayerClientListener
     void membersListed(Collection<String> names);
     void boardLayoutUpdated();
     void boardUpdated();
+
+    /**
+     * A playing piece's value was updated:
+     * {@code _SC_CLVI} village cloth count, or
+     * {@code _SC_PIRI} pirate fortress strength.
+     * Repaint that piece (if needed) on the board.
+     * @param piece  Piece that was updated, includes its new value
+     */
+    void pieceValueUpdated(SOCPlayingPiece piece);
+
     void boardPotentialsUpdated();
     void boardReset(SOCGame newGame, int newSeatNumber, int requestingPlayerNumber);
     void boardResetVoteRequested(SOCPlayer requestor);
@@ -212,10 +234,29 @@ public interface PlayerClientListener
     void gameDisconnected(String errorMessage);
 
     void messageBroadcast(String message);
+
+    /**
+     * A game text message was received from server, or a chat message from another player.
+     * @param nickname  Player's nickname, or {@code null} for messages from the server itself
+     * @param message  Message text
+     */
     void messageSent(String nickname, String message);
     
     void buildRequestCanceled(SOCPlayer player);
-    
+
+    /**
+     * In scenario _SC_PIRI, present the server's response to a Pirate Fortress Attack request from the
+     * current player (the client or another player), which may be: Rejected, Lost, Tied, or Won.
+     *<P>
+     * This will be called only after other game pieces are updated (fortress strength, player's ships lost).
+     *
+     * @param wasRejected  True if the server rejected our player's request to attack
+     * @param defStrength  Pirate defense strength, unless {@code wasRejected}
+     * @param resultShipsLost  Result and number of ships lost by the player:
+     *            0 if player won (or if rejected); 1 if tied; 2 if player lost to the pirates.
+     */
+    void scen_SC_PIRI_pirateFortressAttackResult(boolean wasRejected, int defStrength, int resultShipsLost);
+
     void debugFreePlaceModeToggled(boolean isEnabled);
 
     /**

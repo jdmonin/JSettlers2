@@ -433,6 +433,7 @@ public class SOCGame implements Serializable, Cloneable
     /**
      * The game is over.  A player has accumulated enough ({@link #vp_winner}) victory points,
      * or all players have left the game.
+     * @see #checkForWinner()
      */
     public static final int OVER = 1000; // The game is over
 
@@ -1111,7 +1112,8 @@ public class SOCGame implements Serializable, Cloneable
             else
                 maxPlayers = 4;
             vp_winner = getGameOptionIntValue(op, "VP", VP_WINNER_STANDARD, true);
-            hasScenarioWinCondition = isGameOptionSet(op, SOCGameOption.K_SC_CLVI);
+            hasScenarioWinCondition = isGameOptionSet(op, SOCGameOption.K_SC_CLVI)
+                || isGameOptionSet(op, SOCGameOption.K_SC_PIRI);
         } else {
             maxPlayers = 4;
             hasSeaBoard = false;
@@ -1124,6 +1126,8 @@ public class SOCGame implements Serializable, Cloneable
         board = boardFactory.createBoard(op, hasSeaBoard, maxPlayers);
             // At server, createBoard might add "_BHW" to op if SOCBoardLarge with non-default size.
             // op won't be null because SOCBoardLarge requires game opt "PLL".
+
+        opts = op;
 
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
@@ -1157,7 +1161,6 @@ public class SOCGame implements Serializable, Cloneable
         if (hasSeaBoard)
             placedShipsThisTurn = new Vector<Integer>();
 
-        opts = op;
         if (op == null)
         {
             clientVersionMinRequired = -1;
@@ -3087,6 +3090,22 @@ public class SOCGame implements Serializable, Cloneable
         SOCShip sh2 = new SOCShip(sh.getPlayer(), toEdge, board);
         putPiece(sh2);  // calls checkForWinner, etc
         movedShipThisTurn = true;
+    }
+
+    /**
+     * Remove this ship from the board and update all related game state.
+     * Used in scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}
+     * by {@link #attackPirateFortress(SOCShip)} and at the client.
+     *<P>
+     * Calls {@link #undoPutPieceCommon(SOCPlayingPiece) undoPutPieceCommon(sh, false)}.
+     * Not for use with temporary pieces.
+     *
+     * @param sh  the ship to remove
+     * @since 2.0.00
+     */
+    public void removeShip(SOCShip sh)
+    {
+        undoPutPieceCommon(sh, false);
     }
 
     /**
@@ -5044,6 +5063,8 @@ public class SOCGame implements Serializable, Cloneable
      * This can happen at most once per turn: Attacking the fortress always ends the player's turn.
      * Assumes {@link #canAttackPirateFortress()} called first, to validate and get the {@code adjacent} ship.
      *<P>
+     * Before calling, call {@link SOCPlayer#getFortress()} so that you can get its new strength afterwards.
+     *<P>
      * The player's fleet strength ({@link SOCPlayer#getNumWarships()}) will be compared to a pirate defense
      * strength of 1 to 6 (random).  Players lose 1 ship on a tie, 2 ships if defeated by the pirates.
      *<P>
@@ -5057,14 +5078,13 @@ public class SOCGame implements Serializable, Cloneable
      *     from {@link #canAttackPirateFortress()}; unless player wins, this ship will be lost to the pirates.
      * @return  Results array, whose length depends on the number of ships lost by the player to the pirates' defense.<BR>
      *     results[0] is the pirate defense strength rolled here.<BR>
-     *     results[1] is the new strength of the pirate fortress; if 0, the player has recaptured it.
      *     <UL>
      *     <LI> If the player wins, they lose no ships.
-     *          Array length is 2.
+     *          Array length is 1.
      *     <LI> If the player ties the pirates, they lose their 1 adjacent ship.
-     *          Array length is 3; results[2] is {@code adjacent}'s coordinates.
+     *          Array length is 2; results[1] is {@code adjacent}'s coordinates.
      *     <LI> If the player loses to the pirates, they lose their 2 ships closest to the pirate fortress.
-     *          Array length is 4; results[2] and results[3] are the lost ship coordinates.
+     *          Array length is 3; results[1] is {@code adjacent}'s coordinates, results[2] is the other lost ship's coord.
      *     </UL>
      * @since 2.0.00
      */
@@ -5094,6 +5114,7 @@ public class SOCGame implements Serializable, Cloneable
                 final SOCSettlement recaptSettle = new SOCSettlement(currPlayer, fort.getCoordinates(), board);
                 putPiece(recaptSettle);
                 //  game.putPiece will call currPlayer.putPiece, which will set player's fortress field = null.
+                //  game.putPiece will also call checkForWinner, and may set gamestate to OVER.
 
                 // Fire the scenario player event, with the resulting SOCSettlement
                 if (scenarioEventListener != null)
@@ -5123,14 +5144,13 @@ public class SOCGame implements Serializable, Cloneable
 
         // Remove player's lost ships, if any,
         // and build our results array
-        int[] retval = new int[2 + nShipsLost];
+        int[] retval = new int[1 + nShipsLost];
         retval[0] = pirStrength;
-        retval[1] = fort.getStrength();
         if (nShipsLost > 0)
         {
             final int shipEdge = adjacent.getCoordinates();
-            retval[2] = shipEdge;
-            undoPutPieceCommon(adjacent, false);
+            retval[1] = shipEdge;
+            removeShip(adjacent);
 
             if (nShipsLost > 1)
             {
@@ -5148,14 +5168,15 @@ public class SOCGame implements Serializable, Cloneable
                     if (! adjacEdges.contains(Integer.valueOf(rsCoord)))
                         continue;
 
-                    retval[3] = rsCoord;
-                    undoPutPieceCommon(rs, false);
+                    retval[2] = rsCoord;
+                    removeShip((SOCShip) rs);
                     break;
                 }
             }
         }
 
-        // TODO end player's turn too
+        // Attacking the pirate fortress ends the player's turn.
+        endTurn();
 
         return retval;
     }
@@ -6649,6 +6670,8 @@ public class SOCGame implements Serializable, Cloneable
      *     less than half the {@link SOCVillage}s have cloth remaining.  The player
      *     with the most VP wins; if tied, the tied player with the most cloth wins.
      *     The winner is not necessarily the current player.
+     *<LI> Scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI} requires the player to
+     *     defeat and recapture 'their' pirate fortress to win.
      *</UL>
      *
      * @see #getGameState()
@@ -6665,6 +6688,12 @@ public class SOCGame implements Serializable, Cloneable
 
         if ((players[pn].getTotalVP() >= vp_winner))
         {
+            if (hasScenarioWinCondition && isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            {
+                if (null != players[pn].getFortress())
+                    return;  // <--- can't win without defeating pirate fortress ---
+            }
+
             gameState = OVER;
             playerWithWin = pn;
             return;

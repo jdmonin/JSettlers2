@@ -66,6 +66,7 @@ import java.awt.event.TextListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
@@ -405,20 +406,6 @@ public class SOCPlayerInterface extends Frame
     private boolean needRepaintBorders;
 
     /**
-     * To reduce text clutter: server has just sent a dice result message.
-     * If the next text message from server is the roll,
-     *   replace: * It's Player's turn to roll the dice. \n * Player rolled a 4 and a 5.
-     *   with:    * It's Player's turn to roll. Rolled a 9.
-     *<P>
-     * Set to 0 at most times.
-     * Set to the roll result when roll text is expected.
-     * Will be cleared to 0 in {@link #print(String)}.
-     * Whenever this field is nonzero, textmessages from the server
-     * will be scanned for " rolled a ".
-     */
-    protected int textDisplayRollExpected;
-    
-    /**
      * The dialog for getting what resources the player wants to discard or gain.
      */
     protected SOCDiscardOrGainResDialog discardOrGainDialog;
@@ -591,7 +578,6 @@ public class SOCPlayerInterface extends Frame
         add(textDisplay);
         if (is6player)
             textDisplay.addMouseListener(this);
-        textDisplayRollExpected = 0;
 
         chatDisplay = new SnippingTextArea("", 40, 80, TextArea.SCROLLBARS_VERTICAL_ONLY, 100);
         chatDisplay.setFont(new Font("SansSerif", Font.PLAIN, 10));
@@ -903,30 +889,34 @@ public class SOCPlayerInterface extends Frame
         if ((newp != oldp)
             && ((null != oldp) || (null != newp)))
         {
-            StringBuffer msgkey;
+            final String changedObj;  // what was changed?
             if (isRoadNotArmy)
             {
                 if (game.hasSeaBoard)
-                    msgkey = new StringBuffer("game.route.longest");
+                    changedObj = /*I*/"Longest trade route"/*18N*/;
                 else
-                    msgkey = new StringBuffer("game.road.longest");
+                    changedObj = /*I*/"Longest road"/*18N*/;
             } else {
-                msgkey = new StringBuffer("game.army.largest");
+                changedObj = /*I*/"Largest army"/*18N*/;
             }
 
+            final String msg;  // full sentence with change and players
             if (newp != null)
             {
                 if (oldp != null)
                 {
-                    msgkey.append(".taken");
+                    msg = MessageFormat.format
+                        (/*I*/"* {0} was taken from {1} by {2}."/*18N*/, changedObj, oldp.getName(), newp.getName());
                 } else {
-                    msgkey.append(".first");
+                    msg = MessageFormat.format
+                        (/*I*/"* {0} was taken by {1}."/*18N*/, changedObj, newp.getName());
                 }
             } else {
-                msgkey.append(".lost");
+                msg = MessageFormat.format
+                    (/*I*/"* {0} was lost by {1}."/*18N*/, changedObj, oldp.getName());
             }
-            
-            print(strings.get(msgkey.toString(), oldp.getName(), newp.getName()));
+
+            print(msg);
         }
     }
 
@@ -1113,23 +1103,26 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
-     * To reduce text clutter: server has just sent a dice result message.
-     * If the next text message from server is the roll,
-     *   replace: * It's Player's turn to roll the dice. \n * Player rolled a 4 and a 5.
-     *   with:    * It's Player's turn to roll. Rolled a 9.
-     *<P>
-     * Set to 0 at most times.
-     * Set to the roll result when roll text is expected.
-     * Will be cleared to 0 in {@link #print(String)}.
-     *<P>
-     * Whenever this field is nonzero, textmessages from the server
-     * will be scanned for " rolled a ".
+     * Server has just sent a dice result message.
+     * Call this after updating game state with the roll result.
+     * Show the dice result in the game text panel and on the board.
      *
-     * @param roll The expected roll result, or 0.
+     * @param cp   Current player who rolled
+     * @param roll The roll result, or 0
+     * @since 2.0.00
      */
-    public void setTextDisplayRollExpected(int roll)
+    public void showDiceResult(final SOCPlayer cp, final int roll)
     {
-        textDisplayRollExpected = roll;
+        if (roll > 0)
+            printFormat(/*I*/"* Rolled a {0}."/*18N*/, Integer.toString(roll));
+
+        boardPanel.repaint();
+
+        // only update stats for valid rolls
+        if ((roll >= 2) && (roll <= 12) && (cp != null))
+        {
+            gameStats.diceRolled(new SOCGameStatistics.DiceRollEvent(roll, cp));
+        }
     }
 
     /**
@@ -1456,59 +1449,27 @@ public class SOCPlayerInterface extends Frame
     }
 
     /**
+     * Print formatted text (with placeholders) in the text window, followed by a new line (<tt>'\n'</tt>). Equivalent to
+     * {@link #print(String) print}({@link MessageFormat#format(String, Object...) MessageFormat.format}({@code s, args})).
+     *
+     * @param s  String with placeholders, such as "{0} wants to Special Build."
+     * @param args  Arguments to fill into {@code s}'s placeholders
+     * @since 2.0.00
+     */
+    public void printFormat(final String s, final Object ... args)
+    {
+        print(MessageFormat.format(s, args));
+    }
+
+    /**
      * print text in the text window, followed by a new line (<tt>'\n'</tt>).
-     * For dice-roll message, combine lines to reduce clutter.
      *
      * @param s  the text; you don't need to include "\n".
      * @see #chatPrint(String)
+     * @see #printFormat(String, Object...)
      */
     public void print(String s)
     {
-        if (textDisplayRollExpected > 0)
-        {
-            /*
-             * Special case: Roll message.  Reduce clutter.
-             * Instead of printing this message verbatim,
-             * change the textDisplay contents (if matching):
-             *   replace: * It's Player's turn to roll the dice. \n * Player rolled a 4 and a 5.
-             *   with:    * It's Player's turn to roll. Rolled a 9.
-             * 
-             * JM 2009-05-21: Don't edit existing text on Mac OS X 10.5; it can lead to a GUI hang/race condition.
-             *   Instead just print the total rolled.
-             */
-            
-            //TODO i18n logic must be changed to allow i18n
-            if (s.startsWith("* ") && (s.indexOf(" rolled a ") > 0))
-            {
-                String currentText = textDisplay.getText();
-                int L = currentText.length();
-                int i = currentText.lastIndexOf("'s turn to roll the dice.");
-                                                // 25 chars: length of match text
-                                                //  9 chars: length of " the dice"
-                if ((i > 0) && (30 > (L - i)))
-                {
-                    if (! SnippingTextArea.isJavaOnOSX105)
-                    {
-                        String rollText = ". Rolled a " + textDisplayRollExpected;
-                        currentText = currentText.substring(0, i+15)
-                            + rollText + currentText.substring(i+15+9);
-                        textDisplay.setText(currentText);
-                        //textDisplay.replaceRange(rollText, i+15, i+15+9);
-                        //textDisplay.replaceRange(rollText, i+5, i+5+9);
-                        //textDisplay.insert(rollText, 10); // i+5); // +15);
-                    } else {
-                        String rollText = "* Rolled a " + textDisplayRollExpected + ".\n";
-                        textDisplay.append(rollText);
-                    }
-                    textDisplayRollExpected = 0;
-
-                    return;  // <--- Early return ---
-                }
-            }
-
-            textDisplayRollExpected = 0;  // Reset for next call
-        }
-
         StringTokenizer st = new StringTokenizer(s, "\n", false);
         while (st.hasMoreElements())
         {
@@ -1972,7 +1933,7 @@ public class SOCPlayerInterface extends Frame
             break;
 
         case SOCGame.WAITING_FOR_ROBBER_OR_PIRATE:
-            new ChooseMoveRobberOrPirateDialog().showInNewThread();
+            java.awt.EventQueue.invokeLater(new ChooseMoveRobberOrPirateDialog());
             break;
 
         default:
@@ -2118,6 +2079,32 @@ public class SOCPlayerInterface extends Frame
         if (newLongestRoadPlayer != oldLongestRoadPlayer)
         {
             updateLongestLargest(true, oldLongestRoadPlayer, newLongestRoadPlayer);
+        }
+    }
+
+    /**
+     * A player's piece has been removed from the board.
+     * Updates game state and refreshes the board display by calling {@link #updateAtPiecesChanged()}.
+     *<P>
+     * Currently, only ships can be removed, in game scenario {@code _SC_PIRI}.
+     * Other {@code pieceType}s are ignored.
+     *
+     * @param player  Player who owns the ship
+     * @param pieceCoordinate  Ship's node coordinate
+     * @param pieceType  The piece type identifier {@link SOCPlayingPiece#SHIP}
+     * @since 2.0.00
+     */
+    public void updateAtPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType)
+    {
+        switch (pieceType)
+        {
+        case SOCPlayingPiece.SHIP:
+            game.removeShip(new SOCShip(player, pieceCoordinate, null));
+            updateAtPiecesChanged();
+            break;
+
+        default:
+            System.err.println("PI.updateAtPieceRemoved called for un-handled type " + pieceType);
         }
     }
 
@@ -2789,16 +2776,13 @@ public class SOCPlayerInterface extends Frame
             this.pi = pi;
         }
 
+        /**
+         * Show a dice roll result.
+         * Call this after updating game state with the roll result.
+         */
         public void diceRolled(SOCPlayer player, int roll)
         {
-            pi.setTextDisplayRollExpected(roll);
-            pi.getBoardPanel().repaint();
-            
-            // only notify about valid rolls
-            if (roll >= 2 && roll <= 12 && player != null)
-            {
-                pi.getGameStats().diceRolled(new SOCGameStatistics.DiceRollEvent(roll, player));
-            }
+            pi.showDiceResult(player, roll);
         }
 
         public void playerJoined(String nickname)
@@ -2894,6 +2878,11 @@ public class SOCPlayerInterface extends Frame
                                 pieceType,
                                 true,
                                 targetCoordinate);
+        }
+
+        public void playerPieceRemoved(SOCPlayer player, int pieceCoordinate, int pieceType)
+        {
+            pi.updateAtPieceRemoved(player, pieceCoordinate, pieceType);
         }
 
         public void playerSVPAwarded(SOCPlayer player, int numSvp, String awardDescription)
@@ -3014,7 +3003,7 @@ public class SOCPlayerInterface extends Frame
         public void requestedSpecialBuild(SOCPlayer player)
         {
             if (player.hasAskedSpecialBuild())
-                pi.print("* " + /*I*/player.getName() + " wants to Special Build."/*18N*/);
+                pi.printFormat(/*I*/"* {0} wants to Special Build."/*18N*/, player.getName());
             if (pi.isClientPlayer(player))
                 pi.getBuildingPanel().updateButtonStatus();
         }
@@ -3103,6 +3092,11 @@ public class SOCPlayerInterface extends Frame
             pi.getBoardPanel().flushBoardLayoutAndRepaint();
         }
 
+        public void pieceValueUpdated(final SOCPlayingPiece piece)
+        {
+            pi.getBoardPanel().pieceValueUpdated(piece);
+        }
+
         public void boardPotentialsUpdated()
         {
             pi.getBoardPanel().flushBoardLayoutAndRepaintIfDebugShowPotentials();
@@ -3170,8 +3164,7 @@ public class SOCPlayerInterface extends Frame
 
         public void messageSent(String nickname, String message)
         {
-            //TODO i18n That part belongs to the server strings
-            if (nickname.equals("Server"))
+            if (nickname == null)
             {
                 String starMesText = "* " + message;
                 pi.print(starMesText);
@@ -3191,6 +3184,78 @@ public class SOCPlayerInterface extends Frame
         {
             pi.getPlayerHandPanel(player.getPlayerNumber()).updateResourcesVP();
             pi.getBoardPanel().updateMode();
+        }
+
+        public void scen_SC_PIRI_pirateFortressAttackResult
+            (final boolean wasRejected, final int defStrength, final int resultShipsLost)
+        {
+            if (wasRejected)
+            {
+                pi.print( /*I*/"* You cannot attack the pirate fortress right now."/*18N*/ );
+                return;
+            }
+
+            final SOCGame ga = pi.getGame();
+            final SOCPlayer cpl = ga.getPlayer(ga.getCurrentPlayerNumber());
+            final SOCFortress fort = cpl.getFortress();
+            final String cplName = cpl.getName();
+            pi.printFormat( /*I*/"* {0} has attacked a pirate fortress (defense strength {1})."/*18N*/,
+                cplName, Integer.toString(defStrength));
+
+            String resDesc;  // used for game text print and popup window
+            switch (resultShipsLost)
+            {
+            case 0:  resDesc = /*I*/"{0} wins!"/*18N*/;  break;
+            case 1:  resDesc = /*I*/"{0} ties, and loses 1 ship."/*18N*/;  break;
+            default: resDesc = /*I*/"{0} loses, and loses 2 ships."/*18N*/;  break;
+                // case 2 is "default" so resDesc is always set for compiler
+            }
+            resDesc = MessageFormat.format(resDesc, cplName);  // 'Player 2 wins!'
+            pi.print("* " + resDesc);
+
+            final String resDesc2;
+            if (resultShipsLost == 0)
+            {
+                if (fort == null)
+                {
+                    // defeated and recaptured
+                    resDesc2 = MessageFormat.format
+                        ( /*I*/"{0} has recaptured the fortress as a settlement."/*18N*/, cplName);
+                } else {
+                    // still needs to attack
+                    resDesc2 = MessageFormat.format
+                        ( /*I*/"The pirate fortress will be defeated after {0} more attack(s)."/*18N*/,
+                         Integer.toString(fort.getStrength()));
+                }
+                pi.print("* " + resDesc2);
+            } else {
+                resDesc2 = null;
+            }
+
+            if (pi.clientIsCurrentPlayer() || (fort == null))
+            {
+                // popup if player is our client, or if recaptured
+                StringBuffer sb = new StringBuffer( /*I*/"Pirate Fortress attack results:\n"/*18N*/ );
+                sb.append( /*I*/"Defense strength: "/*18N*/ );
+                sb.append(defStrength);
+                sb.append('\n');
+                sb.append(resDesc);
+                if (resDesc2 != null)
+                {
+                    sb.append('\n');
+                    sb.append(resDesc2);
+                }
+
+                final String s = sb.toString();
+                EventQueue.invokeLater(new Runnable()
+                {
+                    public void run()
+                    {
+                        NotifyDialog.createAndShow(pi.getGameDisplay(), pi, s, null, true);
+                    }
+                });
+
+            }
         }
 
         public void robberMoved()
@@ -3383,7 +3448,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Modal dialog to ask whether to move the robber or the pirate ship.
-     * Start a new thread to show, so message treating can continue while the dialog is showing.
+     * Use the AWT event thread to show, so message treating can continue while the dialog is showing.
      * When the choice is made, calls {@link SOCPlayerClient.GameManager#choosePlayer(SOCGame, int)}
      * with {@link SOCChoosePlayer#CHOICE_MOVE_ROBBER CHOICE_MOVE_ROBBER}
      * or {@link SOCChoosePlayer#CHOICE_MOVE_PIRATE CHOICE_MOVE_PIRATE}.
@@ -3395,12 +3460,10 @@ public class SOCPlayerInterface extends Frame
     {
         private static final long serialVersionUID = 2000L;
 
-        /** Runs in own thread, to not tie up client's message-treater thread. */
-        private Thread rdt;
-
         /**
          * Creates a new ChooseMoveRobberOrPirateDialog.
-         * To display the dialog, call {@link #showInNewThread()}.
+         * To display the dialog without tying up the client's message-treater thread,
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
         protected ChooseMoveRobberOrPirateDialog()
         {
@@ -3410,7 +3473,6 @@ public class SOCPlayerInterface extends Frame
                 /*I*/"Move Robber"/*18N*/,
                 /*I*/"Move Pirate"/*18N*/,
                 null, 1);
-            rdt = null;
         }
 
         /**
@@ -3440,32 +3502,8 @@ public class SOCPlayerInterface extends Frame
         public void windowCloseChosen() { button1Chosen(); }
 
         /**
-         * Make a new thread and show() in that thread.
-         * Keep track of the thread, in case we need to dispose of it.
-         */
-        public void showInNewThread()
-        {
-            rdt = new Thread(this);
-            rdt.setDaemon(true);
-            rdt.setName("ChooseMoveRobberOrPirateDialog");
-            rdt.start();  // run method will show the dialog
-        }
-
-        @Override
-        public void dispose()
-        {
-            if (rdt != null)
-            {
-                //FIXME: Thread#stop is unsafe, need to tell the thread to internally terminate
-                rdt.stop();
-                rdt = null;
-            }
-            super.dispose();
-        }
-
-        /**
-         * In new thread, show ourselves. Do not call
-         * directly; call {@link #showInNewThread()}.
+         * In the AWT event thread, show ourselves. Do not call directly;
+         * call {@link java.awt.EventQueue#invokeLater(Runnable) EventQueue.invokeLater(thisDialog)}.
          */
         public void run()
         {
