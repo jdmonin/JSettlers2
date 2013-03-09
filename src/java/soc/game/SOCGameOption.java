@@ -132,6 +132,15 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public static final int FLAG_DROP_IF_UNUSED = 0x01;  // OTYPE_* - mention in javadoc how this applies to the new type
 
     /**
+     * {@link #optFlags} bitfield constant to indicate option is an internal property.
+     * Set if the purpose of this option is to hold information about the option's game or its board.
+     * The user shouldn't be able to set this option when creating this game,
+     * and it should be hidden not shown in the Game Options window during play ({@code NewGameOptionsFrame}).
+     * @since 2.0.00
+     */
+    public static final int FLAG_INTERNAL_GAME_PROPERTY = 0x02;  // NEW_OPTION - decide if this applies to your option
+
+    /**
      * Set of "known options".
      * allOptions must never be null, because other places assume it is filled.
      */
@@ -305,7 +314,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
         opt.put("PLL", new SOCGameOption
                 ("PLL", 2000, 2000, false, FLAG_DROP_IF_UNUSED, "Experimental: Use large board"));
         opt.put("_BHW", new SOCGameOption
-                ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED,
+                ("_BHW", 2000, 2000, 0, 0, 0xFFFF, FLAG_DROP_IF_UNUSED | FLAG_INTERNAL_GAME_PROPERTY,
                  "Large board's height and width (0xRRCC) if not default"));
         opt.put("RD", new SOCGameOption
                 ("RD", -1, 1107, false, 0, "Robber can't return to the desert"));
