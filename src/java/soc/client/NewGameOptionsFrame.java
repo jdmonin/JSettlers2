@@ -352,6 +352,8 @@ public class NewGameOptionsFrame extends Frame
      * which are set at the server during game creation.  When the options are shown read-only
      * during a game, these options are shown and not hidden.
      *<P>
+     * Options which have {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} are always hidden.
+     *<P>
      * This is called from constructor, so this is a new NGOF being shown.
      * If not read-only, clear {@link SOCGameOption#userChanged} flag for
      * each option in {@link #opts}.
@@ -412,6 +414,10 @@ public class NewGameOptionsFrame extends Frame
                 opts.remove(op.optKey);
                 continue;  // <-- Removed, Go to next entry --
             }
+
+            if (0 != (op.optFlags & SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
+                continue;  // <-- Don't show internal-property options
+
             if (hideUnderscoreOpts && (op.optKey.charAt(0) == '_'))
                 continue;  // <-- Don't show options starting with '_'
 
