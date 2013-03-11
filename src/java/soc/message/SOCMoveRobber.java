@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * Copyright (C) 2003  Robert S. Thomas
- * Portions of this file Copyright (C) 2010-2011 Jeremy D Monin <jeremy@nand.net>
+ * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
+ * Portions of this file Copyright (C) 2010-2011,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * The author of this program can be reached at thomas@infolab.northwestern.edu
+ * The maintainer of this program can be reached at jsettlers@nand.net
  **/
 package soc.message;
 
@@ -33,7 +33,8 @@ import java.util.StringTokenizer;
  * should only call {@link soc.game.SOCBoard#setRobberHex(int, boolean)}
  * and not {@link soc.game.SOCGame#moveRobber(int, int)}.
  *<P>
- * Once the robber or the pirate is placed on the board, it cannot be taken off the board.
+ * Once the robber is placed on the board, it cannot be taken off the board.
+ * The pirate can be taken off by sending {@code coordinate = 0}.
  *<P>
  * This message uses positive coordinates when moving the robber, and negative
  * when moving the pirate.  Moving the pirate to hex 0x0104 is done with a
@@ -94,7 +95,7 @@ public class SOCMoveRobber extends SOCMessage
 
     /**
      * Get the robber or pirate's new location.
-     * @return the hex coordinates: positive for robber, negative for pirate
+     * @return the hex coordinates: positive for robber, negative or 0 for pirate
      */
     public int getCoordinates()
     {
@@ -162,7 +163,7 @@ public class SOCMoveRobber extends SOCMessage
     public String toString()
     {
         String s = "SOCMoveRobber:game=" + game + "|playerNumber=" + playerNumber + "|coord="
-            + ((coordinates > 0)
+            + ((coordinates >= 0)
               ? Integer.toHexString(coordinates)
               : ("-" + Integer.toHexString(- coordinates)));
         return s;

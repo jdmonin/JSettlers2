@@ -1537,7 +1537,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
              * the robber moved without seeing if something was stolen.
              */
             final int newHex = mes.getCoordinates();
-            if (newHex >= 0)
+            if (newHex > 0)
                 ga.getBoard().setRobberHex(newHex, true);
             else
                 ((SOCBoardLarge) ga.getBoard()).setPirateHex(-newHex, true);

@@ -4849,7 +4849,7 @@ public class SOCGame implements Serializable, Cloneable
      * @param ph  the pirate's new hex coordinate; should be a water hex
      * @param pirFleetStrength  Pirate fleet strength, or -1 if not scenario _SC_PIRI
      * @return  see {@link #movePirate(int, int)}
-     * @throws IllegalArgumentException if <tt>ph</tt> &lt;= 0
+     * @throws IllegalArgumentException if <tt>ph</tt> &lt; 0
      * @since 2.0.00
      */
     private SOCMoveRobberResult movePirate(final int pn, final int ph, final int pirFleetStrength)
@@ -5362,9 +5362,15 @@ public class SOCGame implements Serializable, Cloneable
                 // If more than 1 player, no one is attacked by the pirates.
                 // Resource counts don't matter.
 
-                candidates = getPlayersOnHex(((SOCBoardLarge) board).getPirateHex());
-                if (candidates.size() > 1)
-                    candidates.clear();
+                final int ph = ((SOCBoardLarge) board).getPirateHex();
+                if (ph != 0)
+                {
+                    candidates = getPlayersOnHex(ph);
+                    if (candidates.size() > 1)
+                        candidates.clear();
+                } else {
+                    candidates = new Vector<SOCPlayer>();
+                }
                 return candidates;  // <--- Early return: Special for scenario ---
 
             } else {

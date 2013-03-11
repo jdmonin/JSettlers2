@@ -974,23 +974,27 @@ public class SOCBoardLarge extends SOCBoard
     }
 
     /**
-     * Set where the pirate is.
+     * Set where the pirate is, or take the pirate off the board.
      *<P>
      * For scenario {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the
      * server should call {@link #movePirateHexAlongPath(int)}
      * instead of directly calling this method.
+     *<P>
+     * Currently, the only scenario that removes the pirate from
+     * the board is {@code _SC_PIRI}.
      *
-     * @param ph  the new pirate hex coordinate; must be &gt; 0, not validated beyond that
+     * @param ph  the new pirate hex coordinate, or 0 to take the pirate off the board;
+     *            must be &gt;= 0, not validated beyond that
      * @param rememberPrevious  Should we remember the old pirate hex?
      * @see #getPirateHex()
      * @see #getPreviousPirateHex()
      * @see #setRobberHex(int, boolean)
-     * @throws IllegalArgumentException if <tt>ph</tt> &lt;= 0
+     * @throws IllegalArgumentException if <tt>ph</tt> &lt; 0
      */
     public void setPirateHex(final int ph, final boolean rememberPrevious)
         throws IllegalArgumentException
     {
-        if (ph <= 0)
+        if (ph < 0)
             throw new IllegalArgumentException();
         if (rememberPrevious)
             prevPirateHex = pirateHex;
