@@ -2585,11 +2585,12 @@ public class SOCServer extends Server
      * @param takeMon Should this method take and release
      *                game's monitor via {@link SOCGameList#takeMonitorForGame(String)} ?
      *                True unless caller already holds that monitor.
-     * @param txt the message text to send. If
+     * @param txt the message text to send, to be formatted as in {@link MessageFormat}:
+     *            Placeholders for {@code args} are <tt>"{0}"</tt> etc, single-quotes must be doubled.  If
      *            text begins with ">>>", the client should consider this
      *            an urgent message, and draw the user's attention in some way.
      *            (See {@link #messageToGameUrgent(String, String)})
-     * @param args  Any parameters within <tt>, to be formatted as in {@link MessageFormat}
+     * @param args  Any parameters within {@code txt}'s placeholders
      * @see #messageToGame(String, String)
      * @since 2.0.00
      */

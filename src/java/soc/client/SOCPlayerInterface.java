@@ -1449,7 +1449,7 @@ public class SOCPlayerInterface extends Frame
      * Print formatted text (with placeholders) in the text window, followed by a new line (<tt>'\n'</tt>). Equivalent to
      * {@link #print(String) print}({@link MessageFormat#format(String, Object...) MessageFormat.format}({@code s, args})).
      *
-     * @param s  String with placeholders, such as "{0} wants to Special Build."
+     * @param s  String with placeholders, such as "{0} wants to Special Build.". Single quotes must be doubled.
      * @param args  Arguments to fill into {@code s}'s placeholders
      * @since 2.0.00
      */
