@@ -589,6 +589,14 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     protected final int panelMinBW, panelMinBH;
 
     /**
+     * Scaled (actual) panel margin on left, in pixels, for narrow boards, if board's unscaled
+     * width is less than {@link #panelMinBW}.  Will be 0 if board is rotated.
+     * Never less than 0.  Used only when {@link #isLargeBoard}, otherwise 0.
+     * @since 2.0.00
+     */
+    protected int panelMarginX;
+
+    /**
      * The board is currently scaled larger than
      * {@link #panelMinBW} x {@link #panelMinBH} pixels.
      * Use {@link #scaleToActualX(int)}, {@link #scaleFromActualX(int)},
@@ -1926,6 +1934,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         isScaled = ((scaledPanelX != minSize.width) || (scaledPanelY != minSize.height));
         scaledAt = System.currentTimeMillis();
         isScaledOrRotated = (isScaled || isRotated);
+        if (isRotated)
+        {
+            panelMarginX = 0;
+        } else {
+            final int hexesWidth = halfdeltaX * board.getBoardWidth();
+            panelMarginX = scaleToActualX(panelMinBW - hexesWidth) / 2;  // take half, to center
+            if (panelMarginX < (halfdeltaX / 2))  // also if negative (larger than panelMinBW)
+                panelMarginX = 0;
+        }
 
         /**
          * Off-screen buffer is now the wrong size.
@@ -3370,7 +3387,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         g.setPaintMode();
         g.drawImage(ebb, 0, 0, this);
 
-        int gameState = game.getGameState();
+        if (panelMarginX != 0)
+            g.translate(panelMarginX, 0);
+
+        final int gameState = game.getGameState();
 
         if (board.getRobberHex() != -1)
         {
@@ -3446,6 +3466,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             drawCity(g, c.getCoordinates(), c.getPlayerNumber(), false);
         }
 
+        if (panelMarginX != 0)
+            g.translate(-panelMarginX, 0);
+
         /**
          * draw the current-player arrow after ("above") pieces,
          * but below any hilighted piece, in case of overlap at
@@ -3459,6 +3482,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         if (player != null)
         {
+        if (panelMarginX != 0)
+            g.translate(panelMarginX, 0);
+
         /**
          * Draw the hilight when in interactive mode;
          * No hilight when null player (before game started).
@@ -3551,6 +3577,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             break;
 
         }  // switch
+
+        if (panelMarginX != 0)
+            g.translate(-panelMarginX, 0);
+
         }  // if (player != null)
 
         if (superText1 != null)
@@ -3572,6 +3602,10 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *<P>
      * For scenario option {@link SOCGameOption#K_SC_CLVI _SC_CLVI},
      * <tt>drawBoardEmpty</tt> draws the board's {@link SOCVillage}s.
+     *<P>
+     * If {@link #panelMarginX} != 0, do not translate {@code g} before calling.
+     * This method will internally translate.
+     *
      * @param g Graphics, typically from {@link #emptyBoardBuffer}
      * @since 1.1.08
      * @see SOCPlayerInterface#updateAtNewBoard()
@@ -3620,11 +3654,25 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (((r/2) % 2) == 1)
                 {
                     c = 1;  // odd hex rows start at 1
-                    x = 0;
+                    x = panelMarginX;
                 } else {
                     c = 2;  // top row, even rows start at 2
-                    x = halfdeltaX;
+                    x = halfdeltaX + panelMarginX;
                 }
+
+                if (panelMarginX != 0)
+                {
+                    // If board is narrow and has left margin, fill in with water
+                    int xleft = x, cleft = c;
+                    while (xleft >= 0)
+                    {
+                        final int hexCoord = rshift | cleft;
+                        drawHex(g, xleft, y, SOCBoard.WATER_HEX, -1, hexCoord);
+                        cleft -= 2;
+                        xleft -= deltaX;
+                    }
+                }
+
                 for (; c < bw; c += 2, x += deltaX)
                 {
                     final int hexCoord = rshift | c;
@@ -3649,6 +3697,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
+            if (panelMarginX != 0)
+                g.translate(panelMarginX, 0);
+
             // For scenario _SC_PIRI, check for the Pirate Path
             final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
             if (ppath != null)
@@ -3666,6 +3717,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // check debugShowPotentials[0 - 9]
             drawBoardEmpty_drawDebugShowPotentials(g);
+
+            if (panelMarginX != 0)
+                g.translate(-panelMarginX, 0);
         }
 
         if (scaledMissedImage)
@@ -4023,6 +4077,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Scale x-array from internal to actual screen-pixel coordinates.
      * If not isScaled, do nothing.
+     *<P>
+     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}. 
      *
      * @param xa Int array to be scaled; each member is an x-coordinate.
      *
@@ -4055,6 +4111,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Scale x-coordinate from internal to actual screen-pixel coordinates.
      * If not isScaled, return input.
+     *<P>
+     * This method only scales; does <em>not</em> translate to right by {@link #panelMarginX}. 
      *
      * @param x x-coordinate to be scaled
      */
@@ -4083,6 +4141,8 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * Convert an x-coordinate from actual-scaled to internal-scaled coordinates.
      * If not isScaled, return input.
+     *<P>
+     * This method only scales; does <em>not</em> translate to left by {@link #panelMarginX}. 
      *
      * @param x x-coordinate to be scaled
      */
@@ -4505,12 +4565,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         int xb, yb;
         if (isScaled)
         {
-            xb = scaleFromActualX(x);
+            xb = scaleFromActualX(x - panelMarginX);
             yb = scaleFromActualY(y);
         }
         else
         {
-            xb = x;
+            xb = x - panelMarginX;
             yb = y;
         }
         if (isRotated)
@@ -6108,6 +6168,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
         {
             if (playerNumber != -1)
             {
+                if (panelMarginX != 0)
+                    g.translate(panelMarginX, 0);
+
                 if (hoverRoadID != 0)
                 {
                     if (! hoverIsShipMovable)
@@ -6127,6 +6190,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     drawCity(g, hoverCityID, playerNumber, true);
                 }
+
+                if (panelMarginX != 0)
+                    g.translate(-panelMarginX, 0);
             }
             String ht = hoverText;  // cache against last-minute change in another thread
             if (ht == null)
@@ -6191,7 +6257,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 setHoverText_modeChangedOrMouseMoved = true;
             }
 
-            int xb = x, yb = y;  // internal board coordinates
+            int xb = x - panelMarginX, yb = y;  // internal board coordinates
             if (isScaledOrRotated)
             {
                 if (isScaled)
