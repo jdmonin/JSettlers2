@@ -66,11 +66,19 @@ public enum SOCScenarioGameEvent
      *<P>
      * Checked in private method <tt>SOCGame.checkForWinner_SC_CLVI()</tt>
      */
-    SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY(0x02);
+    SGE_CLVI_WIN_VILLAGE_CLOTH_EMPTY(0x02),
+
+    /**
+     * The last pirate fortress was recaptured by the current player,
+     * and the pirate fleet defeated and removed from the board.
+     * Triggered by game on server only, not sent to client.
+     */
+    SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED(0);
 
     /**
      * Value for sending event codes over a network.
      * Each event code must be a different bit. (0x01, 0x02, 0x04, etc)
+     * Not all events are sent over a network; local-only events can use 0 for their {@code flagValue}.
      */
     public final int flagValue;
 

@@ -518,7 +518,8 @@ public class SOCBoardLarge extends SOCBoard
 
     /**
      * the hex coordinate that the pirate is in, or 0; placed in {@link #makeNewBoard(Hashtable)}.
-     * Once the pirate is placed on the board, it cannot be removed (cannot become 0 again).
+     * Once the pirate is placed on the board, it cannot be removed (cannot become 0 again) except
+     * in scenario {@link SOCGameOption#K_SC_PIRI}.
      */
     protected int pirateHex;
 

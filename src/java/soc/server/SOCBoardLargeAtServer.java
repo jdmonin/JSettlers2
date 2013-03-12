@@ -134,8 +134,11 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * For game scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * move the pirate fleet's position along its path.
      * Calls {@link SOCBoardLarge#setPirateHex(int, boolean) setPirateHex(newHex, true)}.
+     *<P>
+     * If the pirate fleet is already defeated (all fortresses recaptured), returns 0.
+     *
      * @param numSteps  Number of steps to move along the path
-     * @return  new pirate hex coordinate
+     * @return  new pirate hex coordinate, or 0
      * @throws IllegalStateException if this board doesn't have layout part "PP" for the Pirate Path.
      */
     @Override
@@ -145,6 +148,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         final int[] path = getAddedLayoutPart("PP");
         if (path == null)
             throw new IllegalStateException();
+        if (pirateHex == 0)
+            return 0;  // fleet already defeated (all fortresses recaptured)
         int i = piratePathIndex + numSteps;
         while (i >= path.length)
             i -= path.length;

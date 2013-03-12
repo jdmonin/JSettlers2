@@ -1799,6 +1799,14 @@ public class SOCServer extends Server
             }
             break;
 
+        case SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED:
+            {
+                final String gaName = ga.getName();
+                messageToGame(gaName, /*I*/"All pirate fortresses have been recaptured, the pirate fleet is defeated."/*18N*/);
+                messageToGame(gaName, new SOCMoveRobber(gaName, ga.getCurrentPlayerNumber(), 0));
+            }
+            break;
+
         }
     }
 

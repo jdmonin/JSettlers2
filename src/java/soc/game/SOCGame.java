@@ -4124,11 +4124,15 @@ public class SOCGame implements Serializable, Cloneable
             /**
              * Move the pirate fleet along their path.
              * Copy pirate fleet attack results to currentRoll.
+             * If the pirate fleet is already defeated, do nothing.
              */
             final int numSteps = (die1 < die2) ? die1 : die2;
             final int newPirateHex = ((SOCBoardLarge) board).movePirateHexAlongPath(numSteps);
             oldGameState = gameState;
-            movePirate(currentPlayerNumber, newPirateHex, numSteps);
+            if (newPirateHex != 0)
+                movePirate(currentPlayerNumber, newPirateHex, numSteps);
+            else
+                robberResult.victims = null;
 
             final Vector<SOCPlayer> victims = robberResult.victims;
             if ((victims != null) && (victims.size() == 1))
@@ -5128,7 +5132,8 @@ public class SOCGame implements Serializable, Cloneable
                     if ((pn == currentPlayerNumber) || isSeatVacant(pn))
                         continue;
 
-                    if (players[pn].getFortress() != null)
+                    final SOCFortress pfort = players[pn].getFortress();
+                    if ((pfort != null) && (pfort.getStrength() > 0))
                     {
                         stillHasFortress = true;
                         break;
@@ -5137,7 +5142,11 @@ public class SOCGame implements Serializable, Cloneable
 
                 if (! stillHasFortress)
                 {
-                    // TODO: All fortresses defeated. pirate fleet goes away; and trigger a further scenario game event.
+                    // All fortresses defeated. pirate fleet goes away; trigger a further scenario game event for that.
+                    ((SOCBoardLarge) board).setPirateHex(0, true);
+                    if (scenarioEventListener != null)
+                        scenarioEventListener.gameEvent
+                            (this, SOCScenarioGameEvent.SGE_PIRI_LAST_FORTRESS_FLEET_DEFEATED, null);
                 }
             }
         }
