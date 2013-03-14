@@ -3654,6 +3654,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
         } else {
 
+            if (panelMarginX != 0)
+                g.translate(panelMarginX, 0);
+
             // Large Board has a rectangular array of hexes.
             // (r,c) are board coordinates.
             // (x,y) are pixel coordinates.
@@ -3668,17 +3671,17 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 if (((r/2) % 2) == 1)
                 {
                     c = 1;  // odd hex rows start at 1
-                    x = panelMarginX;
+                    x = 0;
                 } else {
                     c = 2;  // top row, even rows start at 2
-                    x = halfdeltaX + panelMarginX;
+                    x = halfdeltaX;
                 }
 
                 if (panelMarginX != 0)
                 {
                     // If board is narrow and has left margin, fill in with water
                     int xleft = x, cleft = c;
-                    while (xleft >= 0)
+                    while (xleft >= -panelMarginX)  // xleft >= 0 after g.translate
                     {
                         final int hexCoord = rshift | cleft;
                         drawHex(g, xleft, y, SOCBoard.WATER_HEX, -1, hexCoord);
@@ -3710,9 +3713,6 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     x += deltaX;
                 }
             }
-
-            if (panelMarginX != 0)
-                g.translate(panelMarginX, 0);
 
             // For scenario _SC_PIRI, check for the Pirate Path
             // Draw path only if the pirate fleet is still on the board
