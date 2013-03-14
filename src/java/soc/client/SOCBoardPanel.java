@@ -590,8 +590,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
     /**
      * Scaled (actual) panel margin on left, in pixels, for narrow boards, if board's unscaled
-     * width is less than {@link #panelMinBW}.  Will be 0 if board is rotated.
-     * Never less than 0.  Used only when {@link #isLargeBoard}, otherwise 0.
+     * width is less than {@link #panelMinBW}.
+     * Used only when {@link #isLargeBoard} and not {@link #isRotated}, otherwise 0.
+     * Never less than 0.
      * @since 2.0.00
      */
     protected int panelMarginX;
@@ -1839,6 +1840,15 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     {
         if (piece instanceof SOCFortress)
         {
+            final SOCFortress fort = (SOCFortress) piece;
+
+            if ((0 == fort.getStrength()) && (0 == ((SOCBoardLarge) board).getPirateHex()))
+            {
+                // All players have recaptured their fortresses: The pirate fleet & path is removed.
+                flushBoardLayoutAndRepaint();
+                return;  // <--- Early return: repaint whole board ---
+            }
+
             final int pn = piece.getPlayerNumber();
 
             // repaint this piece in the AWT thread
@@ -1848,8 +1858,12 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 {
                     Image ibuf = buffer;  // Local var in case field becomes null in other thread during paint
                     if (ibuf != null)
-                        drawFortress(ibuf.getGraphics(), (SOCFortress) piece, pn, false);
-                    drawFortress(getGraphics(), (SOCFortress) piece, pn, false);
+                        drawFortress(ibuf.getGraphics(), fort, pn, false);
+                    Graphics bpanG = getGraphics();
+                    if (bpanG != null)
+                        drawFortress(bpanG, fort, pn, false);
+                    else
+                        repaint();
                 }
             });
         }
@@ -3701,8 +3715,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 g.translate(panelMarginX, 0);
 
             // For scenario _SC_PIRI, check for the Pirate Path
+            // Draw path only if the pirate fleet is still on the board
             final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
-            if (ppath != null)
+            if ((ppath != null) && (0 != ((SOCBoardLarge) board).getPirateHex()))
                 drawBoardEmpty_drawPiratePath(g, ppath);
 
             drawPorts_LargeBoard(g);
@@ -5462,6 +5477,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      *           use {@link #scaleFromActualX(int)} to convert
      * @param y  y coordinate, in unscaled board, not actual pixels
      * @param checkCoastal  If true, check for coastal edges for ship placement:
+     *           Mouse could be over the land half or the sea half of the edge's graphical area.
      *           Return positive edge coordinate for land, negative edge for sea.
      *           Ignored unless {@link #isLargeBoard}.
      *           Returns positive edge for non-coastal sea edges.
