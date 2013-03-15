@@ -2915,45 +2915,45 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                      * remove the nodes this road/ship touches from the roadNodes list
                      */
                     {
-                    Collection<Integer> nodes = board.getAdjacentNodesToEdge(pieceCoord);
-                    int i = 0;
+                        Collection<Integer> nodes = board.getAdjacentNodesToEdge(pieceCoord);
+                        int i = 0;
 
-                    for (Integer node : nodes)
-                    {
-                        edgeNodeCoords[i] = node.intValue();
-                        i++;
-
-                        /**
-                         * only remove a node if none of our roads/ships are touching it
-                         */
-                        Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(node.intValue());
-                        boolean match = false;
-
-                        for (SOCRoad rd : roads)
+                        for (Integer node : nodes)
                         {
-                            final int rdEdge = rd.getCoordinates();
+                            edgeNodeCoords[i] = node.intValue();
+                            i++;
 
-                            for (Integer adjEdgeObj : adjEdges)
+                            /**
+                             * only remove a node if none of our roads/ships are touching it
+                             */
+                            Collection<Integer> adjEdges = board.getAdjacentEdgesToNode(node.intValue());
+                            boolean match = false;
+
+                            for (SOCRoad rd : roads)
                             {
-                                if (rdEdge == adjEdgeObj)
+                                final int rdEdge = rd.getCoordinates();
+
+                                for (Integer adjEdgeObj : adjEdges)
                                 {
-                                    match = true;
+                                    if (rdEdge == adjEdgeObj)
+                                    {
+                                        match = true;
+                                        break;
+                                    }
+                                }
+
+                                if (match)
+                                {
                                     break;
                                 }
                             }
 
-                            if (match)
+                            if (! match)
                             {
-                                break;
+                                roadNodes.removeElement(node);
+                                potentialSettlements.remove(node);
                             }
                         }
-
-                        if (! match)
-                        {
-                            roadNodes.removeElement(node);
-                            potentialSettlements.remove(node);
-                        }
-                    }
                     }
 
                     /**
@@ -3032,75 +3032,72 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                     for (Integer adjEdge : adjEdgesEnum)
                     {
-                        final int adjEdgeID = adjEdge.intValue();
-
                         if (! potentialRoads.contains(adjEdge))
                             continue;
 
+                        boolean isPotentialRoad = false;  // or, isPotentialShip
+
+                        /**
+                         * check each adjacent node for blocking
+                         * settlements or cities
+                         */
+                        final int adjEdgeID = adjEdge.intValue();
+                        final int[] adjNodes = board.getAdjacentNodesToEdge_arr(adjEdgeID);
+
+                        for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni)
                         {
-                            boolean isPotentialRoad = false;  // or, isPotentialShip
-
-                            /**
-                             * check each adjacent node for blocking
-                             * settlements or cities
-                             */
-                            final int[] adjNodes = board.getAdjacentNodesToEdge_arr(adjEdgeID);
-
-                            for (int ni = 0; (ni < 2) && ! isPotentialRoad; ++ni)
+                            boolean blocked = false;  // Are we blocked in this node's direction?
+                            final int adjNode = adjNodes[ni];
+                            final SOCPlayingPiece aPiece = board.settlementAtNode(adjNode);
+                            if ((aPiece != null)
+                                && (aPiece.getPlayerNumber() != playerNumber))
                             {
-                                boolean blocked = false;  // Are we blocked in this node's direction?
-                                final int adjNode = adjNodes[ni];
-                                final SOCPlayingPiece aPiece = board.settlementAtNode(adjNode);
-                                if ((aPiece != null)
-                                    && (aPiece.getPlayerNumber() != playerNumber))
-                                {
-                                    /**
-                                     * we're blocked, don't bother checking adjacent edges
-                                     */
-                                    blocked = true;
-                                }
+                                /**
+                                 * we're blocked, don't bother checking adjacent edges
+                                 */
+                                blocked = true;
+                            }
 
-                                if (! blocked)
-                                {
-                                    Collection<Integer> adjAdjEdgesEnum = board.getAdjacentEdgesToNode(adjNode);
+                            if (! blocked)
+                            {
+                                Collection<Integer> adjAdjEdgesEnum = board.getAdjacentEdgesToNode(adjNode);
 
-                                    for (Integer adjAdjEdgesObj : adjAdjEdgesEnum)
+                                for (Integer adjAdjEdgesObj : adjAdjEdgesEnum)
+                                {
+                                    final int adjAdjEdge = adjAdjEdgesObj.intValue();
+
+                                    if (adjAdjEdge != adjEdgeID)
                                     {
-                                        final int adjAdjEdge = adjAdjEdgesObj.intValue();
-
-                                        if (adjAdjEdge != adjEdgeID)
+                                        for (SOCRoad ourRoad : roads)
                                         {
-                                            for (SOCRoad ourRoad : roads)
+                                            if (ourRoad.getCoordinates() == adjAdjEdge)
                                             {
-                                                if (ourRoad.getCoordinates() == adjAdjEdge)
-                                                {
-                                                    /**
-                                                     * we're still connected
-                                                     */
-                                                    isPotentialRoad = true;
-                                                    break;
-                                                }
+                                                /**
+                                                 * we're still connected
+                                                 */
+                                                isPotentialRoad = true;
+                                                break;
                                             }
                                         }
-
-                                        if (isPotentialRoad)
-                                            break;  // no need to keep looking at adjacent edges
                                     }
+
+                                    if (isPotentialRoad)
+                                        break;  // no need to keep looking at adjacent edges
                                 }
                             }
+                        }
 
-                            if (ptype == SOCPlayingPiece.ROAD)
-                            {
-                                if (isPotentialRoad)
-                                    potentialRoads.add(adjEdge);
-                                else
-                                    potentialRoads.remove(adjEdge);
-                            } else {
-                                if (isPotentialRoad)
-                                    potentialShips.add(adjEdge);
-                                else
-                                    potentialShips.remove(adjEdge);
-                            }
+                        if (ptype == SOCPlayingPiece.ROAD)
+                        {
+                            if (isPotentialRoad)
+                                potentialRoads.add(adjEdge);
+                            else
+                                potentialRoads.remove(adjEdge);
+                        } else {
+                            if (isPotentialRoad)
+                                potentialShips.add(adjEdge);
+                            else
+                                potentialShips.remove(adjEdge);
                         }
                     }
 
