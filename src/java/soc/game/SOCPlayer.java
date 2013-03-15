@@ -2909,16 +2909,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     roads.removeElement(p);
                     numPieces[ptype]++;
 
+                    int[] edgeNodeCoords = new int[2];  // will hold edge's adjacent nodes
+
                     /**
                      * remove the nodes this road/ship touches from the roadNodes list
                      */
+                    {
                     Collection<Integer> nodes = board.getAdjacentNodesToEdge(pieceCoord);
-                    int[] nodeCoords = new int[2];
                     int i = 0;
 
                     for (Integer node : nodes)
                     {
-                        nodeCoords[i] = node.intValue();
+                        edgeNodeCoords[i] = node.intValue();
                         i++;
 
                         /**
@@ -2929,14 +2931,13 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                         for (SOCRoad rd : roads)
                         {
+                            final int rdEdge = rd.getCoordinates();
+
                             for (Integer adjEdgeObj : adjEdges)
                             {
-                                final int adjEdge = adjEdgeObj.intValue();
-
-                                if (adjEdge == rd.getCoordinates())
+                                if (rdEdge == adjEdgeObj)
                                 {
                                     match = true;
-
                                     break;
                                 }
                             }
@@ -2947,23 +2948,24 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             }
                         }
 
-                        if (!match)
+                        if (! match)
                         {
                             roadNodes.removeElement(node);
                             potentialSettlements.remove(node);
                         }
+                    }
                     }
 
                     /**
                      * remove this road/ship from the graph of nodes connected by roads/ships
                      */
                     {
-                        final int node0 = nodeCoords[0],
-                                  node1 = nodeCoords[1];
+                        final int node0 = edgeNodeCoords[0],
+                                  node1 = edgeNodeCoords[1];
                         final Integer node0Int = new Integer(node0),
                                       node1Int = new Integer(node1);
 
-                        // roadNodeGraph[node0][node1]
+                        // check roadNodeGraph[node0][node1]
                         int[] rnArr = roadNodeGraph.get(node0Int);
                         if (rnArr != null)
                         {
@@ -2975,7 +2977,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                 }
                         }
 
-                        // roadNodeGraph[node1][node0]
+                        // check roadNodeGraph[node1][node0]
                         rnArr = roadNodeGraph.get(node1Int);
                         if (rnArr != null)
                         {
@@ -3032,7 +3034,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     {
                         final int adjEdgeID = adjEdge.intValue();
 
-                        if (potentialRoads.contains(adjEdge))
+                        if (! potentialRoads.contains(adjEdge))
+                            continue;
+
                         {
                             boolean isPotentialRoad = false;  // or, isPotentialShip
 
@@ -3056,7 +3060,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                     blocked = true;
                                 }
 
-                                if (!blocked)
+                                if (! blocked)
                                 {
                                     Collection<Integer> adjAdjEdgesEnum = board.getAdjacentEdgesToNode(adjNode);
 
@@ -3074,7 +3078,6 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                                                      * we're still connected
                                                      */
                                                     isPotentialRoad = true;
-
                                                     break;
                                                 }
                                             }
