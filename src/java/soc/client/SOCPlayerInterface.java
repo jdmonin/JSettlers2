@@ -413,11 +413,6 @@ public class SOCPlayerInterface extends Frame
     protected SOCChoosePlayerDialog choosePlayerDialog;
 
     /**
-     * the dialog for choosing 2 resources to discover
-     */
-    protected SOCDiscoveryDialog discoveryDialog;
-
-    /**
      * the dialog for choosing a resource to monopolize
      */
     protected SOCMonopolyDialog monopolyDialog;
@@ -1775,6 +1770,7 @@ public class SOCPlayerInterface extends Frame
 
     /**
      * Show the discard dialog or the gain-resources dialog.
+     * Used for discards, gold hexes, and the Discovery/Year of Plenty dev card.
      *
      * @param nd  the number of resources to discard or gain
      * @param isDiscard  True for discard (after 7), false for gain (after gold hex)
@@ -1815,15 +1811,6 @@ public class SOCPlayerInterface extends Frame
     public void showChooseRobClothOrResourceDialog(final int vpn)
     {
         new ChooseRobClothOrResourceDialog(vpn).showInNewThread();
-    }
-
-    /**
-     * show the Discovery dialog box
-     */
-    public void showDiscoveryDialog()
-    {
-        discoveryDialog = new SOCDiscoveryDialog(this);
-        discoveryDialog.setVisible(true);
     }
 
     /**
@@ -1934,7 +1921,7 @@ public class SOCPlayerInterface extends Frame
         switch (gs)
         {
         case SOCGame.WAITING_FOR_DISCOVERY:
-            showDiscoveryDialog();
+            showDiscardOrGainDialog(2, false);
             break;
 
         case SOCGame.WAITING_FOR_MONOPOLY:

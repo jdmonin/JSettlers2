@@ -4833,6 +4833,8 @@ public class SOCPlayerClient
 
     /**
      * The user has picked these resources to gain from the gold hex.
+     * Or, in game state {@link SOCGame#WAITING_FOR_DISCOVERY}, has picked these
+     * 2 free resources from a Discovery/Year of Plenty card.
      *
      * @param ga  the game
      * @param rs  The resources to pick
@@ -4840,7 +4842,10 @@ public class SOCPlayerClient
      */
     public void pickResources(SOCGame ga, SOCResourceSet rs)
     {
-        put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
+        if (ga.getGameState() != SOCGame.WAITING_FOR_DISCOVERY)
+            put(SOCPickResources.toCmd(ga.getName(), rs), ga.isPractice);
+        else
+            put(SOCDiscoveryPick.toCmd(ga.getName(), rs), ga.isPractice);
     }
 
     /**
