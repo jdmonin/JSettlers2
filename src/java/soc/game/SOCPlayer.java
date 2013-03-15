@@ -3032,7 +3032,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                     for (Integer adjEdge : adjEdgesEnum)
                     {
-                        if (! potentialRoads.contains(adjEdge))
+                        if (! (potentialRoads.contains(adjEdge) || potentialShips.contains(adjEdge)))
                             continue;
 
                         boolean isPotentialRoad = false;  // or, isPotentialShip
@@ -3089,12 +3089,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
                         if (ptype == SOCPlayingPiece.ROAD)
                         {
-                            if (isPotentialRoad)
+                            if (isPotentialRoad && legalRoads.contains(adjEdge))
                                 potentialRoads.add(adjEdge);
                             else
                                 potentialRoads.remove(adjEdge);
                         } else {
-                            if (isPotentialRoad)
+                            if (isPotentialRoad && legalShips.contains(adjEdge))
                                 potentialShips.add(adjEdge);
                             else
                                 potentialShips.remove(adjEdge);
