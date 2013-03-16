@@ -116,6 +116,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Create a new Settlers of Catan Board, with the v3 encoding.
      * Called by {@link SOCBoardLargeAtServer.BoardFactoryAtServer#createBoard(Hashtable, boolean, int)}
      * to get the right board size and layout based on game options and optional {@link SOCScenario}.
+     * The layout contents are set up in {@link #makeNewBoard(Hashtable)}.
+     *
      * @param gameOpts  if game has options, hashtable of {@link SOCGameOption}; otherwise null.
      * @param maxPlayers Maximum players; must be 4 or 6
      * @param boardHeightWidth  Board's height and width.
@@ -300,7 +302,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         else if (scen.equals(SOCScenario.K_SC_PIRI))
         {
             // Pirate Islands
-            landAreasLegalNodes = new HashSet[3];
+            landAreasLegalNodes = new HashSet[2];
             final int idx = (maxPl > 4) ? 1 : 0;  // 4-player or 6-player board
 
             // - Large starting island
@@ -309,9 +311,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                  false, false, 1, opt_breakClumps, scen);
 
             // - Pirate islands
+            //  (LA # 0: Player can't place there except at their Lone Settlement coordinate within "LS".)
             makeNewBoard_placeHexes
                 (PIR_ISL_LANDHEX_TYPE_PIRI[idx], PIR_ISL_LANDHEX_COORD_PIRI[idx], PIR_ISL_DICENUM_PIRI[idx],
-                 false, false, 2, opt_breakClumps, scen);
+                 false, false, 0, opt_breakClumps, scen);
 
             pirateHex = PIR_ISL_PIRATE_HEX[idx];
 
@@ -1866,6 +1869,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * place each player's initial pieces.  Otherwise do nothing.
+     * Also calls each player's {@link SOCPlayer#addLegalSettlement(int)}
+     * for their Lone Settlement location (adds layout part "LS").
      *<P>
      * This is called before {@link SOCServer#getBoardLayoutMessage}.  So,
      * if needed, it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
@@ -2709,6 +2714,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     // Pirate Island scenario Layout (_SC_PIRI)
     //   Has 4-player, 6-player versions;
     //   each array here uses index [0] for 4-player, [1] for 6-player.
+    //   LA#1 is starting land area.  Pirate Islands have no land area,
+    //   the player can place 1 lone settlement (added layout part "LS")
+    //   at a coordinate within PIR_ISL_INIT_PIECES.
     //
 
     /**
@@ -2884,7 +2892,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Each player has 4 elements, starting at index <tt>4 * playerNumber</tt>:
      * Initial settlement node, initial ship edge, pirate fortress node,
      * and the node on the pirate island where they are allowed to build
-     * a settlement on the way to the fortress.
+     * a settlement on the way to the fortress (layout part "LS").
      */
     private static final int PIR_ISL_INIT_PIECES[][] =
     {{
