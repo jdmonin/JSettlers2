@@ -2860,9 +2860,9 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     /**
      * draw a settlement
      */
-    private final void drawSettlement(Graphics g, int nodeNum, int pn, boolean isHilight)
+    private final void drawSettlement(Graphics g, int nodeNum, int pn, boolean isHilight, final boolean outlineOnly)
     {
-        drawSettlementOrCity(g, nodeNum, pn, isHilight, false);
+        drawSettlementOrCity(g, nodeNum, pn, isHilight, outlineOnly, false);
     }
 
     /**
@@ -2870,15 +2870,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
      */
     private final void drawCity(Graphics g, int nodeNum, int pn, boolean isHilight)
     {
-        drawSettlementOrCity(g, nodeNum, pn, isHilight, true);
+        drawSettlementOrCity(g, nodeNum, pn, isHilight, false, true);
     }
 
     /**
      * draw a settlement or city; they have the same logic for determining (x,y) from nodeNum.
+     * @param outlineOnly  If set for settlement, draw only the outline, not the filled polygon.  Ignored when {@code isCity}.
      * @since 1.1.08
      */
     private final void drawSettlementOrCity
-        (Graphics g, final int nodeNum, final int pn, final boolean isHilight, final boolean isCity)
+        (Graphics g, final int nodeNum, final int pn, final boolean isHilight, final boolean outlineOnly, final boolean isCity)
     {
         int hx, hy;
 
@@ -2982,13 +2983,16 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
             g.translate(-hx, -hy);
         } else {
             // settlement
-            if (isHilight)
-                g.setColor(playerInterface.getPlayerColor(pn, true));
-            else
-                g.setColor(playerInterface.getPlayerColor(pn));
             g.translate(hx, hy);
-            g.fillPolygon(scaledSettlementX, scaledSettlementY, 6);
-            if (isHilight)
+            if (! outlineOnly)
+            {
+                if (isHilight)
+                    g.setColor(playerInterface.getPlayerColor(pn, true));
+                else
+                    g.setColor(playerInterface.getPlayerColor(pn));
+                g.fillPolygon(scaledSettlementX, scaledSettlementY, 6);
+            }
+            if (isHilight || outlineOnly)
                 g.setColor(playerInterface.getPlayerColor(pn, false));
             else
                 g.setColor(Color.black);
@@ -3469,7 +3473,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
          */
         for (SOCSettlement s : board.getSettlements())
         {
-            drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), false);
+            drawSettlement(g, s.getCoordinates(), s.getPlayerNumber(), false, false);
         }
 
         /**
@@ -3528,7 +3532,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawSettlement(g, hilight, playerNumber, true);
+                drawSettlement(g, hilight, playerNumber, true, false);
             }
             break;
 
@@ -3553,7 +3557,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             if (hilight > 0)
             {
-                drawSettlement(g, hilight, otherPlayer.getPlayerNumber(), true);
+                drawSettlement(g, hilight, otherPlayer.getPlayerNumber(), true, false);
             }
             break;
 
@@ -3714,14 +3718,26 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
             }
 
-            // For scenario _SC_PIRI, check for the Pirate Path
+            // For scenario _SC_PIRI, check for the Pirate Path and Lone Settlement locations.
             // Draw path only if the pirate fleet is still on the board
-            final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
-            if ((ppath != null) && (0 != ((SOCBoardLarge) board).getPirateHex()))
-                drawBoardEmpty_drawPiratePath(g, ppath);
+            {
+                final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
+                if ((ppath != null) && (0 != ((SOCBoardLarge) board).getPirateHex()))
+                    drawBoardEmpty_drawPiratePath(g, ppath);
 
+                final int[] ls = ((SOCBoardLarge) board).getAddedLayoutPart("LS");
+                if (ls != null)
+                {
+                    for (int pn = 0; pn < ls.length; ++pn)
+                        if (ls[pn] != 0)
+                            drawSettlement(g, ls[pn], pn, false, true);
+                }
+            }
+
+            // All ports
             drawPorts_LargeBoard(g);
 
+            // For scenario _SC_CLVI, draw the cloth villages
             HashMap<Integer, SOCVillage> villages = ((SOCBoardLarge) board).getVillages();
             if (villages != null)
             {
@@ -6200,7 +6216,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                 }
                 if (hoverSettlementID != 0)
                 {
-                    drawSettlement(g, hoverSettlementID, playerNumber, true);
+                    drawSettlement(g, hoverSettlementID, playerNumber, true, false);
                 }
                 if (hoverCityID != 0)
                 {
