@@ -6445,16 +6445,43 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
                     // Initial Placement on large board: Check for
                     // a restricted starting land area.
-                    if (playerIsCurrent && game.hasSeaBoard && (! hoverTextSet)
-                        && game.isInitialPlacement()
-                        && player.isLegalSettlement(id)
-                        && ! player.isPotentialSettlement(id))
+                    // For _SC_PIRI, check for hovering at "LS" lone settlement node.
+                    if (playerIsCurrent && game.hasSeaBoard && ! hoverTextSet)
                     {
-                        setHoverText("Initial placement not allowed here");
-                        hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
-                        hoverID = id;
-                        hoverIsPort = false;
-                        hoverTextSet = true;
+                        String htext = null;
+
+                        final int[] ls = ((SOCBoardLarge) board).getAddedLayoutPart("LS");
+                        if (ls != null)
+                        {
+                            for (int i = ls.length - 1; i >= 0; --i)
+                            {
+                                if (id == ls[i])
+                                {
+                                    if (game.isInitialPlacement())
+                                        htext = /*I*/"Lone Settlement location allowed on pirate island after initial placement"/*18N*/;
+                                    else
+                                        htext = /*I*/"Lone Settlement location allowed on pirate island"/*18N*/;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if ((htext == null)
+                            && game.isInitialPlacement()
+                            && player.isLegalSettlement(id)
+                            && ! player.isPotentialSettlement(id))
+                        {
+                            htext = /*I*/"Initial placement not allowed here"/*18N*/;
+                        }
+
+                        if (htext != null)
+                        {
+                            setHoverText(htext);
+                            hoverMode = PLACE_ROBBER;  // const used for hovering-at-node
+                            hoverID = id;
+                            hoverIsPort = false;
+                            hoverTextSet = true;
+                        }
                     }
 
                     // Port check.  At most one adjacent will be a port.
