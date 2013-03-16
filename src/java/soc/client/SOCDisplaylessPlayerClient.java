@@ -1708,6 +1708,7 @@ public class SOCDisplaylessPlayerClient implements Runnable
 
         final Vector<Integer> vset = mes.getPotentialSettlements();
         final HashSet<Integer>[] las = mes.landAreasLegalNodes;
+        final int[] loneSettles;  // must set for players after pl.setPotentialAndLegalSettlements, if not null
         int pn = mes.getPlayerNumber();
         if (ga.hasSeaBoard)
         {
@@ -1715,14 +1716,25 @@ public class SOCDisplaylessPlayerClient implements Runnable
             if ((pn == -1) || bl.getLegalAndPotentialSettlements().isEmpty())
                 bl.setLegalAndPotentialSettlements
                   (vset, mes.startingLandArea, las);
+            loneSettles = bl.getAddedLayoutPart("LS");  // usually null, except in _SC_PIRI
+        } else {
+            loneSettles = null;
         }
+
         if (pn != -1)
         {
             SOCPlayer player = ga.getPlayer(pn);
             player.setPotentialAndLegalSettlements(vset, true, las);
+            if (loneSettles != null)
+                player.addLegalSettlement(loneSettles[pn]);
         } else {
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
-                ga.getPlayer(pn).setPotentialAndLegalSettlements(vset, true, las);
+            {
+                SOCPlayer pl = ga.getPlayer(pn);
+                pl.setPotentialAndLegalSettlements(vset, true, las);
+                if (loneSettles != null)
+                    pl.addLegalSettlement(loneSettles[pn]);
+            }
         }
     }
 

@@ -3198,6 +3198,7 @@ public class SOCGame implements Serializable, Cloneable
      * do the things involved in starting a game:
      * shuffle the tiles and cards,
      * make a board,
+     * set players' legal and potential piece locations,
      * choose first player.
      * gameState becomes {@link #START1A}.
      *<P>

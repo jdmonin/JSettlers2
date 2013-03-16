@@ -41,6 +41,10 @@ import java.util.Vector;
  *   can be designated; can also require the player to start
  *   the game in a certain land area ({@link #startingLandArea}).
  *</UL>
+ *<P>
+ * In scenario {@code _SC_PIRI}, after initial placement, each player can place
+ * not only at these potential locations, but also at their "lone settlement"
+ * node previously sent in {@link SOCBoardLayout2} as layout part {@code "LS"}.
  *
  * @author Robert S Thomas
  */

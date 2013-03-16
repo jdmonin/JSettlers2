@@ -3540,13 +3540,15 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * Used in some scenarios when {@link SOCGame#hasSeaBoard} to add a location
      * after calling {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}.
      * This would be a lone location beyond the usual starting/legal LandAreas on the scenario's board.
-     * @param node  A node coordinate to add
+     * @param node  A node coordinate to add, or 0 to do nothing
      * @since 2.0.00
      * @see #isLegalSettlement(int)
      * @see #getAddedLegalSettlement()
      */
     public void addLegalSettlement(final int node)
     {
+        if (node == 0)
+            return;
         legalSettlements.add(Integer.valueOf(node));
         addedLegalSettlement = node;
     }
