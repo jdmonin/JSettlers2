@@ -1856,6 +1856,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * This is a server-side equivalent to the client-side {@link ChangeListener}s.
      * For example, if <tt>"PL"</tt> (number of players) > 4, but <tt>"PLB"</tt> (use 6-player board)
      * is not set, <tt>doServerPreadjust</tt> wil set the <tt>"PLB"</tt> option.
+     * {@code doServerPreadjust} will also remove any game-internal options the client has sent.
      *<P>
      * Before any other adjustments when <tt>doServerPreadjust</tt>, will check for
      * the game scenario option <tt>"SC"</tt>. If that option is set, call
@@ -1892,6 +1893,17 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
         if (doServerPreadjust)
         {
+            // Remove any game-internal options, before adding scenario opts
+            {
+                Iterator<String> ki = newOpts.keySet().iterator();  // keySet lets us remove without disrupting iterator
+                while (ki.hasNext())
+                {
+                    SOCGameOption op = newOpts.get(ki.next());
+                    if (0 != (op.optFlags & SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
+                        ki.remove();
+                }
+            }
+
             // Apply scenario options, if any
             SOCGameOption opt = newOpts.get("SC");
             if (opt != null)
