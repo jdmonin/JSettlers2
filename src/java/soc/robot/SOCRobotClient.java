@@ -743,6 +743,14 @@ public class SOCRobotClient extends SOCDisplaylessPlayerClient
                 break;
 
             /**
+             * move a previous piece (a ship) somewhere else on the board.
+             * Added 2013-03-16 for v2.0.00.
+             */
+            case SOCMessage.MOVEPIECE:
+                handlePutBrainQ((SOCMovePiece) mes);  // will update game data and player trackers
+                break;
+
+            /**
              * remove a piece (a ship) from the board in certain scenarios.
              * Added 2013-02-19 for v2.0.00.
              */
