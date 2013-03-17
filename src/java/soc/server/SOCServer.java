@@ -8654,7 +8654,7 @@ public class SOCServer extends Server
                         opt = new SOCGameOption(opt.optKey);  // OTYPE_UNKNOWN
                 } else {
                     final String okey = okeys.elementAt(i);
-                    opt = SOCGameOption.getOption(okey);
+                    opt = SOCGameOption.getOption(okey, false);
                     if ((opt == null) || (opt.minVersion > cliVers))  // Don't use opt.getMinVersion() here
                         opt = new SOCGameOption(okey);  // OTYPE_UNKNOWN
                 }

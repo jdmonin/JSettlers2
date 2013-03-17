@@ -1356,11 +1356,33 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     }
 
     /**
+     * Get information about a known option.
+     * @param key  Option key
+     * @param clone  True if a copy of the option is needed; set this true
+     *               unless you're sure you won't be changing any fields of
+     *               its original object, which is a shared copy in a static hash.
      * @return information about a known option, or null if none with that key
+     * @throws IllegalStateException  if {@code clone} but the object couldn't be cloned; this isn't expected to ever happen
      */
-    public static SOCGameOption getOption(String key)
+    public static SOCGameOption getOption(final String key, final boolean clone)
+        throws IllegalStateException
     {
-        return allOptions.get(key);  // null is ok
+        SOCGameOption op = allOptions.get(key);  // null is ok
+        if (op == null)
+            return null;
+
+        if (clone)
+        {
+            try
+            {
+                op = (SOCGameOption) op.clone();
+            } catch (CloneNotSupportedException ce) {
+                // required, but not expected to happen
+                throw new IllegalStateException("Clone failed!", ce);
+            }
+        }
+
+        return op;
     }
 
     /**
@@ -1559,6 +1581,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @return hashtable of SOCGameOptions, or null if ostr==null or empty ("-")
      *         or if ostr is malformed.  Any unrecognized options
      *         will be in the hashtable as type {@link #OTYPE_UNKNOWN}.
+     *         The actual returned SGOs are clones from the set of all known options.
      * @see #parseOptionNameValue(String, boolean)
      */
     public static Hashtable<String,SOCGameOption> parseOptionsToHash(String ostr)
@@ -1594,6 +1617,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
+     *         the actual returned object is a clone of the SGO from the set of all known options.
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @see #parseOptionsToHash(String)
      * @see #packValue(StringBuffer)

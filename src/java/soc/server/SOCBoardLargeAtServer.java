@@ -3245,7 +3245,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                         && (bhw != boardHeightWidth))
                     {
                         if (bhwOpt == null)
-                            bhwOpt = SOCGameOption.getOption("_BHW");
+                            bhwOpt = SOCGameOption.getOption("_BHW", true);
                         if (bhwOpt != null)
                         {
                             bhwOpt.setIntValue(boardHeightWidth);
