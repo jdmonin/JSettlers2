@@ -642,6 +642,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
 
     /**
      * Sum of all of option's flags, if any, such as {@link #FLAG_DROP_IF_UNUSED}.
+     * @see #hasFlag(int)
      * @since 2.0.00
      */
     public final int optFlags;

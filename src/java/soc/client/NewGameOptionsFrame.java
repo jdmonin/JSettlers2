@@ -416,7 +416,7 @@ public class NewGameOptionsFrame extends Frame
                 continue;  // <-- Removed, Go to next entry --
             }
 
-            if (0 != (op.optFlags & SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
+            if (op.hasFlag(SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
             {
                 if (! readOnly)
                     opts.remove(op.optKey);  // ignore internal-property options when requesting new game from client
