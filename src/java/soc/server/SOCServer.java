@@ -11368,6 +11368,10 @@ public class SOCServer extends Server
         {
             String okey = e.nextElement();
             SOCGameOption opt = allopts.get(okey);
+
+            if (opt.hasFlag(SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
+                continue;
+
             boolean quotes = (opt.optType == SOCGameOption.OTYPE_STR) || (opt.optType == SOCGameOption.OTYPE_STRHIDE);
             // OTYPE_* - consider any type-specific output in this method.
 
