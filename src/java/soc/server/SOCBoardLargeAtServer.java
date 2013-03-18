@@ -2888,7 +2888,32 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     }};
 
     /**
-     * Pirate Islands: Initial piece coordinates for each player.
+     * Pirate Islands: Sea edges legal/valid for each player to build ships directly to their Fortress.
+     * Each player has 1 array, in same player order as {@link #PIR_ISL_INIT_PIECES}
+     * (given out to non-vacant players, not strictly matching player number).
+     * Ranges are designated by a pair of positive,negative numbers: 0xC04, -0xC0D
+     * is a range of the valid edges from C04 through C0D inclusive.
+     *<P>
+     * This is package-access, not private, so that the server can easily send a message in the same format.
+     */
+    static final int PIR_ISL_SEA_EDGES[][][] =
+    {{
+        // 4 players
+        { 0xC07, -0xC0B, 0xD07, -0xD0B, 0xE04, -0xE0A },
+        { 0x207, -0x20B, 0x107, -0x10B, 0x004, -0x00A },
+        { 0x803, -0x80A, 0x903, 0x905, 0xA03, 0xA04 },
+        { 0x603, -0x60A, 0x503, 0x505, 0x403, 0x404 }
+    }, {
+        // 6 players
+        { 0xC04, -0xC0D }, { 0x204, -0x20D },
+        { 0x803, -0x80C }, { 0x603, -0x60C },
+        { 0x003, -0x00C }, { 0xE03, -0xE0C }
+    }};
+
+    /**
+     * Pirate Islands: Initial piece coordinates for each player,
+     * in same player order as {@link #PIR_ISL_SEA_EDGES}
+     * (given out to non-vacant players, not strictly matching player number).
      * Each player has 4 elements, starting at index <tt>4 * playerNumber</tt>:
      * Initial settlement node, initial ship edge, pirate fortress node,
      * and the node on the pirate island where they are allowed to build
