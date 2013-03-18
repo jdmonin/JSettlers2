@@ -120,6 +120,12 @@ To have all games' results stored in the database, use this option:
 
 To see a list of all jsettlers options (use them with -D), run:
   java -jar JSettlersServer.jar --help
+This will print all server options, and all Game Option default values.
+
+To change a Game Option from its default, for example to activate the house rule
+"Robber can't return to the desert", use the "-o" switch with the game option's name and value:
+   -o RD=t
+All command-line switches and options go before the port number if specified.
 
 
 CLIENT CONNECT:
