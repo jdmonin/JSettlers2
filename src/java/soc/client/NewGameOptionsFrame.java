@@ -353,6 +353,7 @@ public class NewGameOptionsFrame extends Frame
      * during a game, these options are shown and not hidden.
      *<P>
      * Options which have {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} are always hidden.
+     * If not {@link #readOnly}, they're removed from opts.  Unknown opts are always removed.
      *<P>
      * This is called from constructor, so this is a new NGOF being shown.
      * If not read-only, clear {@link SOCGameOption#userChanged} flag for
@@ -402,7 +403,7 @@ public class NewGameOptionsFrame extends Frame
             }
         }
 
-        // Sort and lay out options; remove unknowns from opts.
+        // Sort and lay out options; remove unknowns and internal-onlys from opts.
         // TreeSet sorts game options by description, using gameopt.compareTo.
         // The array lets us remove from opts without disrupting an iterator.
         SOCGameOption[] optArr = new TreeSet<SOCGameOption>(opts.values()).toArray(new SOCGameOption[0]);
@@ -416,7 +417,11 @@ public class NewGameOptionsFrame extends Frame
             }
 
             if (0 != (op.optFlags & SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))
+            {
+                if (! readOnly)
+                    opts.remove(op.optKey);  // ignore internal-property options when requesting new game from client
                 continue;  // <-- Don't show internal-property options
+            }
 
             if (hideUnderscoreOpts && (op.optKey.charAt(0) == '_'))
                 continue;  // <-- Don't show options starting with '_'

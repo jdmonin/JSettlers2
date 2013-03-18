@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * This file Copyright (C) 2009 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2013 Jeremy D Monin <jeremy@nand.net>
  * Portions of this file Copyright (C) 2012 Paul Bilnoski <paul@bilnoski.net>
  *
  * This program is free software; you can redistribute it and/or
@@ -28,9 +28,15 @@ import soc.game.SOCGameOption;
 /**
  * This message means that client wants to create a new game, with options;
  * needs same username/password options as {@link SOCJoinGame JOINGAME}.
+ * Server's reply, if it can create the game, is a broadcast {@link SOCNewGameWithOptions}.
  *<P>
  * Introduced in 1.1.07; check server version against {@link SOCNewGameWithOptions#VERSION_FOR_NEWGAMEWITHOPTIONS}
  * before sending this message.  Older servers should be given {@link SOCJoinGame JOINGAME} instead.
+ *<P>
+ * Some game options have the {@link SOCGameOption#FLAG_INTERNAL_GAME_PROPERTY} flag.
+ * The client should not send these as part of a new-game request message,
+ * and the server should ignore them if it does.  The server may send out
+ * such options, as part of a game it has created, in a {@link SOCNewGameWithOptions} message.
  *<P>
  * Robot clients don't need to know about or handle this message type,
  * because they don't create games.
