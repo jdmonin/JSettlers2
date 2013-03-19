@@ -2891,10 +2891,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Pirate Islands: Sea edges legal/valid for each player to build ships directly to their Fortress.
      * Each player has 1 array, in same player order as {@link #PIR_ISL_INIT_PIECES}
      * (given out to non-vacant players, not strictly matching player number).
+     * Each player's list is their individual edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers: 0xC04, -0xC0D
      * is a range of the valid edges from C04 through C0D inclusive.
      *<P>
-     * This is package-access, not private, so that the server can easily send a message in the same format.
+     * This is package-access, not private, so that the server can easily send a list in the same format
+     * as part of {@code SOCPotentialSettlements}.
      */
     static final int PIR_ISL_SEA_EDGES[][][] =
     {{
