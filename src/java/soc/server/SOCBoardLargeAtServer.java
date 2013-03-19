@@ -1868,12 +1868,58 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
 
     /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
+     * get the list of Legal Sea Edges arranged for the players not vacant.
+     * Arranged in same order as the Lone Settlement locations in Added Layout Part {@code "LS"}.
+     *
+     * @param ga  Game data, for {@link SOCGame#maxPlayers} and {@link SOCGame#isSeatVacant(int)}
+     * @param forPN  -1 for all players, or a specific player number
+     * @return  Edge data from {@link #PIR_ISL_SEA_EDGES}, containing either
+     *          one array when {@code forPN} != -1, or an array for each
+     *          player from 0 to {@code ga.maxPlayers}, where vacant players
+     *          get empty subarrays of length 0.
+     *          <P>
+     *          If game doesn't have {@link SOCGameOption#K_SC_PIRI}, returns {@code null}.
+     * @see #startGame_putInitPieces(SOCGame)
+     */
+    public static final int[][] getLegalSeaEdges(final SOCGame ga, final int forPN)
+    {
+        if (! ga.hasSeaBoard && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            return null;
+
+        final int[][] LEGAL_SEA_EDGES = PIR_ISL_SEA_EDGES[(ga.maxPlayers > 4) ? 1 : 0];
+        if (forPN != -1)
+        {
+            final int[][] lse = { LEGAL_SEA_EDGES[forPN] };
+            return lse;
+        }
+
+        final int[][] lseArranged = new int[ga.maxPlayers][];
+
+        int i = 0;  // iterate i only when player present, to avoid spacing gaps from vacant players
+        for (int pn = 0; pn < ga.maxPlayers; ++pn)
+        {
+            if (ga.isSeatVacant(pn))
+            {
+                lseArranged[pn] = new int[0];
+            } else {
+                lseArranged[pn] = LEGAL_SEA_EDGES[i];
+                ++i;
+            }
+        }
+
+        return lseArranged;
+    }
+
+    /**
+     * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * place each player's initial pieces.  Otherwise do nothing.
      * Also calls each player's {@link SOCPlayer#addLegalSettlement(int)}
      * for their Lone Settlement location (adds layout part "LS").
+     * Vacant player numbers get 0 for their {@code "LS"} element.
      *<P>
      * This is called before {@link SOCServer#getBoardLayoutMessage}.  So,
      * if needed, it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
+     * @see #getLegalSeaEdges(SOCGame, int)
      */
     public static void startGame_putInitPieces(SOCGame ga)
     {
@@ -1883,12 +1929,12 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         final int gstate = ga.getGameState();
         ga.setGameState(SOCGame.READY);  // prevent ga.putPiece from advancing turn
 
-        final int[] inits = (ga.maxPlayers > 4) ? PIR_ISL_INIT_PIECES[1] : PIR_ISL_INIT_PIECES[0];
+        final int[] inits = PIR_ISL_INIT_PIECES[(ga.maxPlayers > 4) ? 1 : 0];
         int[] possiLoneSettles = new int[ga.maxPlayers];  // lone possible-settlement node on the way to the island.
             // vacant players will get 0 here, will not get free settlement, ship, or pirate fortress.
         SOCBoardLarge board = (SOCBoardLarge) ga.getBoard();
 
-        int i = 0;  // iterate out here, to avoid spacing gaps from vacant players
+        int i = 0;  // iterate i only when player present, to avoid spacing gaps from vacant players
         for (int pn = 0; pn < ga.maxPlayers; ++pn)
         {
             if (ga.isSeatVacant(pn))
@@ -2895,10 +2941,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Ranges are designated by a pair of positive,negative numbers: 0xC04, -0xC0D
      * is a range of the valid edges from C04 through C0D inclusive.
      *<P>
-     * This is package-access, not private, so that the server can easily send a list in the same format
-     * as part of {@code SOCPotentialSettlements}.
+     * See {@link #getLegalSeaEdges(SOCGame, int)} for how this is rearranged to be sent to
+     * active player clients as part of a {@code SOCPotentialSettlements} message.
      */
-    static final int PIR_ISL_SEA_EDGES[][][] =
+    private static final int PIR_ISL_SEA_EDGES[][][] =
     {{
         // 4 players
         { 0xC07, -0xC0B, 0xD07, -0xD0B, 0xE04, -0xE0A },

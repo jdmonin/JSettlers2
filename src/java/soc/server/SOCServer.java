@@ -9010,15 +9010,8 @@ public class SOCServer extends Server
             {
                 c.put(SOCPotentialSettlements.toCmd(gameName, -1, new Vector<Integer>(psList)));
             } else {
-                final int[][] lse;
-                if (! gameData.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                {
-                    lse = null;
-                } else {
-                    lse = SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES[(gameData.maxPlayers == 4) ? 0 : 1];
-                }
-
-                c.put(SOCPotentialSettlements.toCmd(gameName, -1, pan, lan, lse));
+                c.put(SOCPotentialSettlements.toCmd
+                    (gameName, -1, pan, lan, SOCBoardLargeAtServer.getLegalSeaEdges(gameData, -1)));
             }
 
             if (addedPsList)
@@ -9149,16 +9142,8 @@ public class SOCServer extends Server
                 {
                     c.put(SOCPotentialSettlements.toCmd(gameName, i, new Vector<Integer>(psList)));
                 } else {
-                    final int[][] lse;
-                    if (! gameData.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                    {
-                        lse = null;
-                    } else {
-                        lse = new int[1][];
-                        lse[0] = SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES[(gameData.maxPlayers == 4) ? 0 : 1][i];
-                    }
-
-                    c.put(SOCPotentialSettlements.toCmd(gameName, i, pan, lan, lse));
+                    c.put(SOCPotentialSettlements.toCmd
+                        (gameName, i, pan, lan, SOCBoardLargeAtServer.getLegalSeaEdges(gameData, i)));
                     lan[0] = null;  // Undo change to game's copy of landAreasLegalNodes
                 }
             }
@@ -10354,7 +10339,7 @@ public class SOCServer extends Server
             // Some boards may have multiple land areas.
             final HashSet<Integer>[] lan;
             final int pan;
-            int[][] legalSeaEdges = null;  // if null, all are legal
+            final int[][] legalSeaEdges;  // if null, all are legal
             boolean addedPsList = false;
             if (ga.hasSeaBoard)
             {
@@ -10369,12 +10354,12 @@ public class SOCServer extends Server
                     addedPsList = true;
                 }
 
-                if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                    legalSeaEdges = SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES[(ga.maxPlayers == 4) ? 0 : 1];
+                legalSeaEdges = SOCBoardLargeAtServer.getLegalSeaEdges(ga, -1);
 
             } else {
                 lan = null;
                 pan = 0;
+                legalSeaEdges = null;
             }
 
             if (lan == null)

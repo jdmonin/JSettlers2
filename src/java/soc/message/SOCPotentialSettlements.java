@@ -116,6 +116,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * A list of individual sea edge coordinates and/or ranges.
      * Ranges are designated by a pair of positive,negative numbers:
      * 0xC04, -0xC0D is a range of the valid edges from C04 through C0D inclusive.
+     * If a player position is vacant, their subarray may be empty (length 0).
      *
      * @since 2.0.00
      */
@@ -279,7 +280,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * POTENTIALSETTLEMENTS sep game sep2 playerNumber sep2 psList
      *    sep2 NA sep2 <i>(number of areas)</i> sep2 PAN sep2 <i>(pan)</i>
      *    { sep2 LA<i>#</i> sep2 legalNodesList }+
-     *    { sep2 SE sep2 legalSeaEdgesList }*
+     *    { sep2 SE sep2 (legalSeaEdgesList | 0) }*
      *</tt>
      * LA# is the land area number "LA1" or "LA2".
      * None of the LA#s will be PAN's <i>(pan)</i> number.
@@ -351,7 +352,14 @@ public class SOCPotentialSettlements extends SOCMessage
                 cmd.append("SE");
 
                 final int[] lse_i = lse[i];
-                for (int j = 0; j < lse_i.length; ++j)
+                if ((lse_i.length == 0) && (i == (lse.length - 1)))
+                {
+                    cmd.append(sep2);
+                    cmd.append(0);
+                    // 0 is used for padding the last SE list if empty;
+                    // otherwise, at the end of the message, an empty list will have no tokens.
+                }
+                else for (int j = 0; j < lse_i.length; ++j)
                 {
                     cmd.append(sep2);
                     int k = lse_i[j];
@@ -469,7 +477,11 @@ public class SOCPotentialSettlements extends SOCMessage
                             tok = st.nextToken();
                             if (tok.equals("SE"))
                                 break;
-                            lse.add(new Integer(Integer.parseInt(tok, 16)));
+                            final int edge = Integer.parseInt(tok, 16);
+                            if (edge != 0)
+                                // 0 is used for padding the last SE list if empty;
+                                // otherwise, at the end of the message, an empty list will have no tokens.
+                                lse.add(new Integer(edge));
                         }
 
                         final int L = lse.size();
