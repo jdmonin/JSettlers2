@@ -280,7 +280,7 @@ public class SOCPotentialSettlements extends SOCMessage
      * POTENTIALSETTLEMENTS sep game sep2 playerNumber sep2 psList
      *    sep2 NA sep2 <i>(number of areas)</i> sep2 PAN sep2 <i>(pan)</i>
      *    { sep2 LA<i>#</i> sep2 legalNodesList }+
-     *    { sep2 SE sep2 (legalSeaEdgesList | 0) }*
+     *    { sep2 SE { sep2 (legalSeaEdgesList | 0) } }*
      *</tt>
      * LA# is the land area number "LA1" or "LA2".
      * None of the LA#s will be PAN's <i>(pan)</i> number.
@@ -358,17 +358,18 @@ public class SOCPotentialSettlements extends SOCMessage
                     cmd.append(0);
                     // 0 is used for padding the last SE list if empty;
                     // otherwise, at the end of the message, an empty list will have no tokens.
-                }
-                else for (int j = 0; j < lse_i.length; ++j)
-                {
-                    cmd.append(sep2);
-                    int k = lse_i[j];
-                    if (k < 0)
+                } else {
+                    for (int j = 0; j < lse_i.length; ++j)
                     {
-                        cmd.append('-');
-                        k = -k;
+                        cmd.append(sep2);
+                        int k = lse_i[j];
+                        if (k < 0)
+                        {
+                            cmd.append('-');
+                            k = -k;
+                        }
+                        cmd.append(Integer.toHexString(k));
                     }
-                    cmd.append(Integer.toHexString(k));
                 }
             }
         }
