@@ -38,6 +38,7 @@ new features, until 2.0.00 is ready.
 - 6-player board: Chat ease of use: Focus cursor on text input field when the game chat is made larger by mouse movement
 - Chat text field: Wrap long lines on word boundary if possible
 - In-game "Game Info" button: If an info window's already visible, show it instead of making another one
+- Don't limit the number of simultaneous practice games
 - If saving completed games to db, save if any human players, even if not original players
 
     > 1.1.17 (build OV20121212)
