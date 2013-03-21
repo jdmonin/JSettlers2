@@ -1869,7 +1869,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
     /**
      * For scenario game option {@link SOCGameOption#K_SC_PIRI _SC_PIRI},
      * get the list of Legal Sea Edges arranged for the players not vacant.
-     * Arranged in same order as the Lone Settlement locations in Added Layout Part {@code "LS"}.
+     * Arranged in same player order as the Lone Settlement locations in Added Layout Part {@code "LS"}.
      *
      * @param ga  Game data, for {@link SOCGame#maxPlayers} and {@link SOCGame#isSeatVacant(int)}
      * @param forPN  -1 for all players, or a specific player number
@@ -1878,12 +1878,16 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *          player from 0 to {@code ga.maxPlayers}, where vacant players
      *          get empty subarrays of length 0.
      *          <P>
+     *          Each player's list is their individual edge coordinates and/or ranges.
+     *          Ranges are designated by a pair of positive,negative numbers: 0xC04, -0xC0D
+     *          is a range of the valid edges from C04 through C0D inclusive.
+     *          <P>
      *          If game doesn't have {@link SOCGameOption#K_SC_PIRI}, returns {@code null}.
      * @see #startGame_putInitPieces(SOCGame)
      */
     public static final int[][] getLegalSeaEdges(final SOCGame ga, final int forPN)
     {
-        if (! ga.hasSeaBoard && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+        if (! (ga.hasSeaBoard && ga.isGameOptionSet(SOCGameOption.K_SC_PIRI)))
             return null;
 
         final int[][] LEGAL_SEA_EDGES = PIR_ISL_SEA_EDGES[(ga.maxPlayers > 4) ? 1 : 0];
@@ -2937,12 +2941,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Pirate Islands: Sea edges legal/valid for each player to build ships directly to their Fortress.
      * Each player has 1 array, in same player order as {@link #PIR_ISL_INIT_PIECES}
      * (given out to non-vacant players, not strictly matching player number).
-     * Each player's list is their individual edge coordinates and/or ranges.
-     * Ranges are designated by a pair of positive,negative numbers: 0xC04, -0xC0D
-     * is a range of the valid edges from C04 through C0D inclusive.
      *<P>
      * See {@link #getLegalSeaEdges(SOCGame, int)} for how this is rearranged to be sent to
-     * active player clients as part of a {@code SOCPotentialSettlements} message.
+     * active player clients as part of a {@code SOCPotentialSettlements} message,
+     * and the format of each player's array.
      */
     private static final int PIR_ISL_SEA_EDGES[][][] =
     {{

@@ -335,9 +335,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * this set is empty but non-null.
      *<P>
      * May be updated during game play by {@link #updateLegalShipsAddHex(int)}.
+     * @see #legalShipsRestricted
      * @since 2.0.00
      */
     private HashSet<Integer> legalShips;
+
+    /**
+     * A list of edges if the legal sea edges for ships are restricted
+     * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}),
+     * or {@code null} if all sea edges are legal for ships.
+     * If the player has no legal ship edges, this list is empty (not null).
+     *<P>
+     * This list, separate from {@link #legalShips}, is necessary because some methods
+     * change {@code legalShips} by removing or adding edges.
+     *
+     * @since 2.0.00
+     */
+    private HashSet<Integer> legalShipsRestricted;
 
     /**
      * a set of edges where a road could be placed
@@ -3793,6 +3807,68 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         if (edge < 0)
             return false;
         return legalShips.contains(Integer.valueOf(edge));
+    }
+
+    /**
+     * A list of edges if the legal sea edges for ships are restricted
+     * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}),
+     * or {@code null} if all sea edges are legal for ships.
+     * If the player has no legal ship edges, this list is empty (not null).
+     *<P>
+     * Please treat the returned HashSet as read-only.
+     *
+     * @return  Legal sea edges if they're restricted, or {@code null}
+     * @since 2.0.00
+     */
+    public HashSet<Integer> getRestrictedLegalShips()
+    {
+        return legalShipsRestricted;
+    }
+
+    /**
+     * Set the list of edges, when the legal sea edges for ships are restricted
+     * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
+     * @param edgeList  List of edges, same format as one player's array from
+     *   {@link soc.server.SOCBoardLargeAtServer#getLegalSeaEdges(SOCGame, int) SOCBoardLargeAtServer.getLegalSeaEdges(SOCGame, int)};
+     *   or an empty array (length 0) for vacant players with no legal ship edges;
+     *   or {@code null} for unrestricted ship placement.
+     * @since 2.0.00
+     */
+    public void setRestrictedLegalShips(final int[] edgeList)
+    {
+        if (legalShipsRestricted != null)
+            legalShipsRestricted.clear();
+
+        if (edgeList == null)
+        {
+            legalShipsRestricted = null;
+            return;
+        }
+
+        HashSet<Integer> lse = legalShipsRestricted;  // local reference for brevity
+        if (lse == null)
+        {
+            lse = new HashSet<Integer>();
+            legalShipsRestricted = lse;
+        }
+
+        for (int i = 0; i < edgeList.length; ++i)
+        {
+            int edge = edgeList[i];
+            if (edge > 0)
+            {
+                lse.add(Integer.valueOf(edge));
+            } else {
+                // Represents a range from previous element to current.
+                // Previous was added in the previous iteration.
+                edge = -edge;
+                final int incr  // even rows get +1 (along top/bottom of hexes); odd rows get +2 (left/right sides)
+                  = (0 == (edge & 0x100)) ? 1 : 2;
+
+                for (int ed = edgeList[i-1] + incr; ed <= edge; ed += incr)
+                    lse.add(Integer.valueOf(ed));
+            }
+        }
     }
 
     /**
