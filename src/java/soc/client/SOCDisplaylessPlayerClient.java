@@ -1709,6 +1709,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
         final Vector<Integer> vset = mes.getPotentialSettlements();
         final HashSet<Integer>[] las = mes.landAreasLegalNodes;
         final int[] loneSettles;  // must set for players after pl.setPotentialAndLegalSettlements, if not null
+        final int[][] legalSeaEdges = mes.legalSeaEdges;  // usually null, except in _SC_PIRI
+
         int pn = mes.getPlayerNumber();
         if (ga.hasSeaBoard)
         {
@@ -1727,6 +1729,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
             player.setPotentialAndLegalSettlements(vset, true, las);
             if (loneSettles != null)
                 player.addLegalSettlement(loneSettles[pn]);
+            if (legalSeaEdges != null)
+                player.setRestrictedLegalShips(legalSeaEdges[0]);
         } else {
             for (pn = ga.maxPlayers - 1; pn >= 0; --pn)
             {
@@ -1734,6 +1738,8 @@ public class SOCDisplaylessPlayerClient implements Runnable
                 pl.setPotentialAndLegalSettlements(vset, true, las);
                 if (loneSettles != null)
                     pl.addLegalSettlement(loneSettles[pn]);
+                if (legalSeaEdges != null)
+                    pl.setRestrictedLegalShips(legalSeaEdges[pn]);
             }
         }
     }

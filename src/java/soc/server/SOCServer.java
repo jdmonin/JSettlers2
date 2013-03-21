@@ -10358,6 +10358,9 @@ public class SOCServer extends Server
                 }
 
                 legalSeaEdges = SOCBoardLargeAtServer.getLegalSeaEdges(ga, -1);
+                if (legalSeaEdges != null)
+                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                        ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
 
             } else {
                 lan = null;
