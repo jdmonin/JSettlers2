@@ -57,6 +57,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Timer;
@@ -2930,6 +2931,24 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
     }
 
     /**
+     * For drawing the player's permitted sea edges for ships, draw
+     * a line covering the middle 60% of this edge on the board (leaves out 20% on each end).
+     * For efficiency, the player color and line stroke should be set before calling this method.
+     * @param edge  Edge coordinate
+     * @since 2.0.00
+     */
+    private final void drawSeaEdgeLine(Graphics g, final int edge)
+    {
+        final int[] enodes = board.getAdjacentNodesToEdge_arr(edge);
+        final int[][] nodexy = { nodeToXY(enodes[0]), nodeToXY(enodes[1]) };
+
+        // keep 60% of line length by removing 20% (1/5) from each end
+        final int dx = (nodexy[1][0] - nodexy[0][0]) / 5, dy = (nodexy[1][1] - nodexy[0][1]) / 5;
+
+        g.drawLine(nodexy[0][0] + dx, nodexy[0][1] + dy, nodexy[1][0] - dx, nodexy[1][1] - dy);
+    }
+
+    /**
      * Draw a pirate fortress, for scenario <tt>SC_PIRI</tt>.
      * @param fo  Fortress
      * @param pn  Player number, for fortress color
@@ -3601,6 +3620,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
 
             // For scenario _SC_PIRI, check for the Pirate Path and Lone Settlement locations.
             // Draw path only if the pirate fleet is still on the board
+            // Draw our player's permitted sea edges for ships, if restricted
             {
                 final int[] ppath = ((SOCBoardLarge) board).getAddedLayoutPart("PP");
                 if ((ppath != null) && (0 != ((SOCBoardLarge) board).getPirateHex()))
@@ -3612,6 +3632,33 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     for (int pn = 0; pn < ls.length; ++pn)
                         if (ls[pn] != 0)
                             drawSettlement(g, ls[pn], pn, false, true);
+                }
+
+                final HashSet<Integer> lse = (player != null) ? player.getRestrictedLegalShips() : null;
+                if ((lse != null) && ! lse.isEmpty())
+                {
+                    final Stroke prevStroke;
+                    if (g instanceof Graphics2D)
+                    {
+                        // Draw as a dotted line with some thickness
+                        prevStroke = ((Graphics2D) g).getStroke();
+                        final int hexPartWidth = scaleToActualX(halfdeltaX);
+                        final float[] dash = { hexPartWidth * 0.15f, hexPartWidth * 0.12f };  // length of dash/break
+                        ((Graphics2D) g).setStroke
+                            (new BasicStroke
+                                ((1.5f * scaledPanelX) / panelMinBW, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+                                 1.5f, dash, hexPartWidth * 0.1f));
+                        g.setColor(playerInterface.getPlayerColor(playerNumber));
+                    } else {
+                        prevStroke = null;
+                        g.setColor(playerInterface.getPlayerColor(playerNumber, true));
+                    }
+
+                    for (Integer edge : lse)
+                        drawSeaEdgeLine(g, edge);
+
+                    if (g instanceof Graphics2D)
+                        ((Graphics2D) g).setStroke(prevStroke);
                 }
             }
 
