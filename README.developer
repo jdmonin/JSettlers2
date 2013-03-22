@@ -225,6 +225,8 @@ Current TODO list
 	- Property for read-only database use without errors
 	- Game "owner" with extra powers (kick out player, etc)
 		What happens if owner loses connection?
+	- Customize bot names (txt file or startup property) in srv.setupLocalRobots
+	- Server-side storage of options between runs (config file, sqlite db, etc)
 	- "Hot seat" mode (multiple human players sharing a screen on 1 client)
 	- Per-game thread/message queue at server (use SOCMessageForGame.getGame)
 	- Cities & Knights support
