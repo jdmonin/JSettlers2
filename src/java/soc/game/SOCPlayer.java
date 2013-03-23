@@ -63,6 +63,7 @@ import java.util.Vector;
  *<UL>
  * <LI> {@link #getPlayerNumber()}.{@link SOCPlayerNumbers#setLandHexCoordinates(int[]) setLandHexCoordinates(int[])}
  * <LI> {@link #setPotentialAndLegalSettlements(Collection, boolean, HashSet[])}
+ * <LI> Optionally, {@link #setRestrictedLegalShips(int[])}
  *</UL>
  *<P>
  * On the {@link SOCLargeBoard large sea board}, our list of the player's roads also
@@ -586,6 +587,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         potentialCities = new HashSet<Integer>(player.potentialCities);
         potentialShips = new HashSet<Integer>(player.potentialShips);
         addedLegalSettlement = player.addedLegalSettlement;
+        if (player.legalShipsRestricted != null)
+            legalShipsRestricted = new HashSet<Integer>(player.legalShipsRestricted);
 
         if (player.currentOffer != null)
         {
@@ -2595,10 +2598,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                 if (piece.getType() == SOCPlayingPiece.ROAD)
                 {
                     legalRoads.add(pieceCoordInt);
-                    if (isCoastline)
+                    if (isCoastline &&
+                        ((legalShipsRestricted == null) || legalShipsRestricted.contains(pieceCoordInt)))
                         legalShips.add(pieceCoordInt);
                 } else {
-                    legalShips.add(pieceCoordInt);
+                    if ((legalShipsRestricted == null) || legalShipsRestricted.contains(pieceCoordInt))
+                        legalShips.add(pieceCoordInt);
                     if (isCoastline)
                         legalRoads.add(pieceCoordInt);
                 }
@@ -3021,7 +3026,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     {
                         potentialRoads.add(pieceCoordInt);
                         legalRoads.add(pieceCoordInt);
-                        if (isCoastlineTransition)
+                        if (isCoastlineTransition &&
+                            ((legalShipsRestricted == null) || legalShipsRestricted.contains(pieceCoordInt)))
                         {
                             potentialShips.add(pieceCoordInt);
                             legalShips.add(pieceCoordInt);
@@ -3034,6 +3040,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                             potentialRoads.add(pieceCoordInt);
                             legalRoads.add(pieceCoordInt);
                         }
+                        // (Since we're removing a ship, skip checking legalShipsRestricted.)
                     }
 
                     /**
@@ -3185,7 +3192,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         {
             final int edge = sides[i];
             if ((htype == SOCBoard.WATER_HEX) || board.isEdgeCoastline(edge))
-                legalShips.add(new Integer(edge));
+            {
+                final Integer edgeInt = Integer.valueOf(edge);
+                if ((legalShipsRestricted == null) || legalShipsRestricted.contains(edgeInt))
+                    legalShips.add(edgeInt);
+            }
         }
     }
 
@@ -3512,6 +3523,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * {@link SOCBoardLarge#setLegalAndPotentialSettlements(Collection, int, HashSet[])},
      * or the road sets won't be complete.
      *<P>
+     * Call this method before, not after, calling {@link #setRestrictedLegalShips(int[])}.
+     * However, if the player already has a restricted legal ship edge list, this method won't clear it.
+     *<P>
      * This method is called at the server only when <tt>game.hasSeaBoard</tt>,
      * just after makeNewBoard in {@link SOCGame#startGame()}.
      *<P>
@@ -3522,6 +3536,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *     {@link Integer} node coordinates
      * @param setLegalsToo  If true, also update legal settlements/roads/ships
      *     if we're using the large board layout.  [Parameter added in v2.0.00]
+     *     <P>
+     *     In scenario {@code _SC_PIRI}, for efficiency, the legal ships list will remain
+     *     empty until {@link #setRestrictedLegalShips(int[])} is called.
      * @param legalLandAreaNodes If non-null and <tt>setLegalsToo</tt>,
      *     all Land Areas' legal (but not currently potential) node coordinates.
      *     Index 0 is ignored; land area numbers start at 1.
@@ -3545,7 +3562,10 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             }
 
             legalRoads = game.getBoard().initPlayerLegalRoads();
-            legalShips = ((SOCBoardLarge) game.getBoard()).initPlayerLegalShips();
+            if (! game.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                legalShips = ((SOCBoardLarge) game.getBoard()).initPlayerLegalShips();
+            else
+                legalShips.clear();  // caller must soon call setRestrictedLegalShips
         }
     }
 
@@ -3810,7 +3830,8 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * A list of edges if the legal sea edges for ships are restricted
+     * A list of edges where the player can build ships,
+     * if the legal sea edges for ships are restricted
      * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}),
      * or {@code null} if all sea edges are legal for ships.
      * If the player has no legal ship edges, this list is empty (not null).
@@ -3826,12 +3847,18 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Set the list of edges, when the legal sea edges for ships are restricted
+     * Set the list of edges where the player can build ships,
+     * when the legal sea edges for ships are restricted
      * by the game's scenario ({@link SOCGameOption#K_SC_PIRI _SC_PIRI}).
      * @param edgeList  List of edges, same format as one player's array from
      *   {@link soc.server.SOCBoardLargeAtServer#getLegalSeaEdges(SOCGame, int) SOCBoardLargeAtServer.getLegalSeaEdges(SOCGame, int)};
      *   or an empty array (length 0) for vacant players with no legal ship edges;
      *   or {@code null} for unrestricted ship placement.
+     *   <P>
+     *   If {@code edgeList} is {@code null} and the player previously had a restricted
+     *   ship edge list, will call {@code SOCBoardLarge.initPlayerLegalShips()} to
+     *   unrestrict the player's legal ship positions.  If the game is already in progress,
+     *   this naive call will include any no-longer-legal ships due to placed pieces.
      * @since 2.0.00
      */
     public void setRestrictedLegalShips(final int[] edgeList)
@@ -3841,7 +3868,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
 
         if (edgeList == null)
         {
-            legalShipsRestricted = null;
+            if (legalShipsRestricted != null)
+            {
+                legalShipsRestricted = null;
+                legalShips.addAll(((SOCBoardLarge) game.getBoard()).initPlayerLegalShips());
+            }
             return;
         }
 
@@ -3869,6 +3900,9 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                     lse.add(Integer.valueOf(ed));
             }
         }
+
+        legalShips.clear();
+        legalShips.addAll(lse);
     }
 
     /**
@@ -4244,6 +4278,11 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             legalSettlements = null;
             legalShips.clear();
             legalShips = null;
+            if (legalShipsRestricted != null)
+            {
+                legalShipsRestricted.clear();
+                legalShipsRestricted = null;
+            }
             potentialRoads.clear();
             potentialRoads = null;
             potentialSettlements.clear();

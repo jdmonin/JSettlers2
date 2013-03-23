@@ -437,6 +437,7 @@ public class SOCBoardLarge extends SOCBoard
      * after {@link #nodesOnLand} is filled by
      * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      * Used by {@link #initPlayerLegalRoads()}.
+     * @see #legalShipEdges
      */
     protected HashSet<Integer> legalRoadEdges;
 
@@ -448,6 +449,12 @@ public class SOCBoardLarge extends SOCBoard
      * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      * Used by {@link #initPlayerLegalShips()}.
      * Updated in {@link #revealFogHiddenHex(int, int, int)} for {@link SOCBoard#WATER_HEX WATER_HEX}.
+     *<P>
+     * With scenario option {@link SOCGameOption#K_SC_PIRI _SC_PIRI}, the legal edges vary per player
+     * and are based on {@code SOCBoardLargeAtServer.PIR_ISL_SEA_EDGES}, so {@code legalShipEdges}
+     * is empty.
+     *
+     * @see #legalRoadEdges
      */
     protected HashSet<Integer> legalShipEdges;
 
@@ -707,6 +714,7 @@ public class SOCBoardLarge extends SOCBoard
      * <tt>SOCBoardLargeAtServer.makeNewBoard_fillNodesOnLandFromHexes(int[], int, int, int)</tt>.
      *<P>
      * Called at server and at client.
+     * @see #initPlayerLegalShips()
      */
     protected void initLegalShipEdges()
     {
@@ -1771,6 +1779,10 @@ public class SOCBoardLarge extends SOCBoard
      *<P>
      * If this method hasn't yet been called, {@link #getLegalAndPotentialSettlements()}
      * returns an empty set.
+     *<P>
+     * In some scenarios ({@code _SC_PIRI}), not all sea edges are legal for ships.
+     * See {@link SOCPlayer#setRestrictedLegalShips(int[])}
+     * and {@code SOCBoardLargeAtServer.getLegalSeaEdges(SOCGame, int)}.
      *
      * @param psNodes  The set of potential settlement node coordinates as {@link Integer}s;
      *    either a {@link HashSet} or {@link Vector}.

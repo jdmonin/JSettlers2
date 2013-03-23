@@ -1923,6 +1923,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *<P>
      * This is called before {@link SOCServer#getBoardLayoutMessage}.  So,
      * if needed, it can call {@link SOCBoardLarge#setAddedLayoutPart(String, int[])}.
+     *<P>
+     * If ship placement is restricted by the scenario, please call each player's
+     * {@link SOCPlayer#setRestrictedLegalShips(int[])} before calling this method,
+     * so the legal and potential arrays will be initialized.
      * @see #getLegalSeaEdges(SOCGame, int)
      */
     public static void startGame_putInitPieces(SOCGame ga)

@@ -3203,9 +3203,14 @@ public class SOCGame implements Serializable, Cloneable
      * gameState becomes {@link #START1A}.
      *<P>
      * Called only at server, not client.
-     * If appropriate for a scenario, server should call
-     * <tt>SOCBoardLargeAtServer.startGame_putInitPieces(SOCGame)</tt>
-     * right after calling this method.
+     *<P>
+     * Some scenarios require other methods to finish setting up the game;
+     * call them in this order before any other board or game methods:
+     *<UL>
+     * <LI> This method {@code startGame()}
+     * <LI> If appropriate, each player's {@link SOCPlayer#setRestrictedLegalShips(int[])}
+     * <LI> If appropriate, {@code SOCBoardLargeAtServer.startGame_putInitPieces(SOCGame)}
+     *</UL>
      */
     public void startGame()
     {

@@ -10308,11 +10308,8 @@ public class SOCServer extends Server
         numberOfGamesStarted++;
 
         ga.startGame();
-        if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-        {
-            // scenario has initial pieces
-            SOCBoardLargeAtServer.startGame_putInitPieces(ga);
-        }
+        // _SC_PIRI soon will call each player's setRestrictedLegalShips and
+        // then SOCBoardLargeAtServer.startGame_putInitPieces(ga), see code below.
 
         gameList.takeMonitorForGame(gaName);
 
@@ -10361,6 +10358,12 @@ public class SOCServer extends Server
                 if (legalSeaEdges != null)
                     for (int pn = 0; pn < ga.maxPlayers; ++pn)
                         ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
+
+                if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+                {
+                    // scenario has initial pieces
+                    SOCBoardLargeAtServer.startGame_putInitPieces(ga);
+                }
 
             } else {
                 lan = null;
