@@ -10341,34 +10341,27 @@ public class SOCServer extends Server
             final int pan;
             final int[][] legalSeaEdges;  // if null, all are legal
             boolean addedPsList = false;
-            if (ga.hasSeaBoard)
+
+            final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
+            lan = bl.getLandAreasLegalNodes();
+            pan = bl.getStartingLandArea();
+
+            if ((lan != null) && (pan != 0) && ! lan[pan].equals(psList))
             {
-                final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
-                lan = bl.getLandAreasLegalNodes();
-                pan = bl.getStartingLandArea();
+                // If potentials != legals[startingLandArea], send as legals[0]
+                lan[0] = psList;
+                addedPsList = true;
+            }
 
-                if ((lan != null) && (pan != 0) && ! lan[pan].equals(psList))
-                {
-                    // If potentials != legals[startingLandArea], send as legals[0]
-                    lan[0] = psList;
-                    addedPsList = true;
-                }
+            legalSeaEdges = SOCBoardLargeAtServer.getLegalSeaEdges(ga, -1);
+            if (legalSeaEdges != null)
+                for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                    ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
 
-                legalSeaEdges = SOCBoardLargeAtServer.getLegalSeaEdges(ga, -1);
-                if (legalSeaEdges != null)
-                    for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                        ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
-
-                if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-                {
-                    // scenario has initial pieces
-                    SOCBoardLargeAtServer.startGame_putInitPieces(ga);
-                }
-
-            } else {
-                lan = null;
-                pan = 0;
-                legalSeaEdges = null;
+            if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            {
+                // scenario has initial pieces
+                SOCBoardLargeAtServer.startGame_putInitPieces(ga);
             }
 
             if (lan == null)
