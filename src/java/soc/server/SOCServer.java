@@ -10307,9 +10307,28 @@ public class SOCServer extends Server
 
         numberOfGamesStarted++;
 
+        /**
+         * start the game, place any initial places
+         */
+
         ga.startGame();
-        // _SC_PIRI soon will call each player's setRestrictedLegalShips and
-        // then SOCBoardLargeAtServer.startGame_putInitPieces(ga), see code below.
+
+        final int[][] legalSeaEdges;  // used on sea board; if null, all are legal
+        if (ga.hasSeaBoard)
+        {
+            legalSeaEdges = SOCBoardLargeAtServer.getLegalSeaEdges(ga, -1);
+            if (legalSeaEdges != null)
+                for (int pn = 0; pn < ga.maxPlayers; ++pn)
+                    ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
+
+            if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
+            {
+                // scenario has initial pieces
+                SOCBoardLargeAtServer.startGame_putInitPieces(ga);
+            }
+        } else {
+            legalSeaEdges = null;
+        }
 
         gameList.takeMonitorForGame(gaName);
 
@@ -10339,7 +10358,6 @@ public class SOCServer extends Server
             // Some boards may have multiple land areas.
             final HashSet<Integer>[] lan;
             final int pan;
-            final int[][] legalSeaEdges;  // if null, all are legal
             boolean addedPsList = false;
 
             final SOCBoardLarge bl = (SOCBoardLarge) ga.getBoard();
@@ -10351,17 +10369,6 @@ public class SOCServer extends Server
                 // If potentials != legals[startingLandArea], send as legals[0]
                 lan[0] = psList;
                 addedPsList = true;
-            }
-
-            legalSeaEdges = SOCBoardLargeAtServer.getLegalSeaEdges(ga, -1);
-            if (legalSeaEdges != null)
-                for (int pn = 0; pn < ga.maxPlayers; ++pn)
-                    ga.getPlayer(pn).setRestrictedLegalShips(legalSeaEdges[pn]);
-
-            if (ga.isGameOptionSet(SOCGameOption.K_SC_PIRI))
-            {
-                // scenario has initial pieces
-                SOCBoardLargeAtServer.startGame_putInitPieces(ga);
             }
 
             if (lan == null)
