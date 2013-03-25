@@ -3017,7 +3017,7 @@ public class SOCGame implements Serializable, Cloneable
      *<P>
      * The new location <tt>toEdge</tt> must also be a potential ship location,
      * even if <tt>fromEdge</tt> was unoccupied; calls
-     * {@link SOCPlayer#isPotentialShip(int, int) pn.isPotentialShip(toEdge, fromEdge)}
+     * {@link SOCPlayer#isPotentialShipMoveTo(int, int) pn.isPotentialShipMoveTo(toEdge, fromEdge)}
      * to check that.
      *<P>
      * You cannot move a ship to or from an edge of the pirate ship's hex.
@@ -3039,7 +3039,7 @@ public class SOCGame implements Serializable, Cloneable
         if (fromEdge == toEdge)
             return null;
         final SOCPlayer pl = players[pn];
-        if (! pl.isPotentialShip(toEdge, fromEdge))
+        if (! pl.isPotentialShipMoveTo(toEdge, fromEdge))
             return null;
 
         // check toEdge vs. pirate hex

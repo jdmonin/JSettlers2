@@ -4717,7 +4717,7 @@ public class SOCBoardPanel extends Canvas implements MouseListener, MouseMotionL
                     if (mode == MOVE_SHIP)
                     {
                         isShip = true;
-                        if (! player.isPotentialShip(edgeNum, moveShip_fromEdge))
+                        if (! player.isPotentialShipMoveTo(edgeNum, moveShip_fromEdge))
                             edgeNum = 0;
 
                         // Check edgeNum vs pirate hex:

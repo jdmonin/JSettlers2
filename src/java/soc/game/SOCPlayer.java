@@ -1174,7 +1174,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * player's piece conditions.
      *<P>
      * Once the player picks the ship's requested new location,
-     * that edge will be checked with {@link #isPotentialShip(int, int)}.
+     * that edge will be checked with {@link #isPotentialShipMoveTo(int, int)}.
      *<P>
      * @param sh  One of our ships
      * @since 2.0.00
@@ -3742,12 +3742,12 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * edge was not?  Used by {@link SOCGame#canMoveShip(int, int, int)}
      * to check the ship's requested new location.
      *<P>
-     * First, <tt>edge</tt> must be a potential ship<B>*</B> now.
-     * Then, we check to see if even without the ship at {@code moveShip_fromEdge},
-     * edge is still potential:
-     * If either end node of <tt>edge</tt> has a settlement/city of ours,
+     * First, {@code toEdge} must be a potential ship<B>*</B> now.
+     * Then, we check to see if even without the ship at {@code fromEdge},
+     * toEdge is still potential:
+     * If either end node of {@code toEdge} has a settlement/city of ours,
      * or has an adjacent edge with a ship of ours
-     * (except {@code moveShip_fromEdge}), then <tt>edge</tt> is potential.
+     * (except {@code fromEdge}), then {@code toEdge} is potential.
      *<P>
      * <B>*</B>In scenario {@code _SC_PIRI}, we check more carefully because
      * after ship placement, nearby potential ships are removed to prevent
@@ -3756,23 +3756,23 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * the previous node.
      *
      * @return true if this edge is still a potential ship
-     * @param edge  the coordinates of an edge on the board;
-     *       {@link #isPotentialShip(int) isPotentialShip(edge)}
+     * @param toEdge  the coordinates of an edge on the board;
+     *       {@link #isPotentialShip(int) isPotentialShip(toEdge)}
      *       must currently be true.
-     * @param moveShip_fromEdge  the ship's current edge coordinate, to
-     *   ignore when determining if <tt>edge</tt> is still potential.
+     * @param fromEdge  the ship's current edge coordinate, to
+     *   ignore when determining if {@code toEdge} is still potential.
      * @see #isPotentialShip(int)
      * @since 2.0.00
      */
-    public boolean isPotentialShip(final int edge, final int moveShip_fromEdge)
+    public boolean isPotentialShipMoveTo(final int toEdge, final int fromEdge)
     {
-        if (! potentialShips.contains(Integer.valueOf(edge)))
+        if (! potentialShips.contains(Integer.valueOf(toEdge)))
         {
             if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI)
                 && (null != legalShipsRestricted))
             {
-                if ((getRoadOrShip(edge) != null)
-                    || ! legalShipsRestricted.contains(Integer.valueOf(edge)))
+                if ((getRoadOrShip(toEdge) != null)
+                    || ! legalShipsRestricted.contains(Integer.valueOf(toEdge)))
                     return false;
 
                 // Continue checks below. New edge must be adjacent to a current ship or settlement/city
@@ -3784,14 +3784,14 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         }
 
         final SOCBoard board = game.getBoard();
-        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
+        final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(toEdge);
 
         SOCPlayingPiece pp = board.settlementAtNode(edgeNodes[0]);
         if ((pp != null) && (pp.getPlayerNumber() != playerNumber))
             pp = null;
         if ((pp != null)
             || doesTradeRouteContinuePastNode
-                 (board, true, edge, moveShip_fromEdge, edgeNodes[0]))
+                 (board, true, toEdge, fromEdge, edgeNodes[0]))
             return true;
 
         pp = board.settlementAtNode(edgeNodes[1]);
@@ -3799,7 +3799,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             pp = null;
         if ((pp != null)
             || doesTradeRouteContinuePastNode
-                 (board, true, edge, moveShip_fromEdge, edgeNodes[1]))
+                 (board, true, toEdge, fromEdge, edgeNodes[1]))
             return true;
 
         return false;
@@ -3815,7 +3815,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *   if not {@link SOCGame#hasSeaBoard}, always returns false
      *   because the player has no potential ship locations.
      * @param edge  the coordinates of an edge on the board
-     * @see #isPotentialShip(int, int)
+     * @see #isPotentialShipMoveTo(int, int)
      * @see SOCGame#canPlaceShip(SOCPlayer, int)
      * @since 2.0.00
      */
