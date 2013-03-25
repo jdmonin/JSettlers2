@@ -2303,6 +2303,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      * For {@link #putPiece(SOCPlayingPiece, boolean) putPiece}, update road/ship-related info,
      * {@link #roadNodes}, {@link #roadNodeGraph} and {@link #lastRoadCoord}.
      * Call only when the piece is ours.
+     * Does not update {@link #potentialRoads}/{@link #potentialShips}; see {@link #updatePotentials(SOCPlayingPiece)}.
      * @param piece  The road or ship
      * @param board  The board
      * @since 2.0.00
@@ -3737,30 +3738,50 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
     }
 
     /**
-     * Is this edge coordinate a potential ship, even if another ship
+     * Is this edge coordinate a potential place to move a ship, even if another ship
      * edge was not?  Used by {@link SOCGame#canMoveShip(int, int, int)}
      * to check the ship's requested new location.
      *<P>
-     * First, <tt>edge</tt> must be a potential ship now.
-     * Then, we check to see if even without the ship at <tt>ignoreEdge</tt>,
+     * First, <tt>edge</tt> must be a potential ship<B>*</B> now.
+     * Then, we check to see if even without the ship at {@code moveShip_fromEdge},
      * edge is still potential:
      * If either end node of <tt>edge</tt> has a settlement/city of ours,
      * or has an adjacent edge with a ship of ours
-     * (except <tt>ignoreEdge</tt>), then <tt>edge</tt> is potential.
+     * (except {@code moveShip_fromEdge}), then <tt>edge</tt> is potential.
+     *<P>
+     * <B>*</B>In scenario {@code _SC_PIRI}, we check more carefully because
+     * after ship placement, nearby potential ships are removed to prevent
+     * any branching of the ship route.  This would make it impossible to
+     * move the route's newest ship to its other potential direction from
+     * the previous node.
      *
      * @return true if this edge is still a potential ship
      * @param edge  the coordinates of an edge on the board;
      *       {@link #isPotentialShip(int) isPotentialShip(edge)}
      *       must currently be true.
-     * @param ignoreShipEdge  the coordinates of another ship edge, to
+     * @param moveShip_fromEdge  the ship's current edge coordinate, to
      *   ignore when determining if <tt>edge</tt> is still potential.
      * @see #isPotentialShip(int)
      * @since 2.0.00
      */
-    public boolean isPotentialShip(final int edge, final int ignoreShipEdge)
+    public boolean isPotentialShip(final int edge, final int moveShip_fromEdge)
     {
         if (! potentialShips.contains(Integer.valueOf(edge)))
-            return false;
+        {
+            if (game.isGameOptionSet(SOCGameOption.K_SC_PIRI)
+                && (null != legalShipsRestricted))
+            {
+                if ((getRoadOrShip(edge) != null)
+                    || ! legalShipsRestricted.contains(Integer.valueOf(edge)))
+                    return false;
+
+                // Continue checks below. New edge must be adjacent to a current ship or settlement/city
+                // (potentialShips would normally check that); and can't be a branch of a trade route
+                // (new edge's node must have just 1 road or ship, not 2 already).
+            } else {
+                return false;
+            }
+        }
 
         final SOCBoard board = game.getBoard();
         final int[] edgeNodes = board.getAdjacentNodesToEdge_arr(edge);
@@ -3770,7 +3791,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             pp = null;
         if ((pp != null)
             || doesTradeRouteContinuePastNode
-                 (board, true, edge, ignoreShipEdge, edgeNodes[0]))
+                 (board, true, edge, moveShip_fromEdge, edgeNodes[0]))
             return true;
 
         pp = board.settlementAtNode(edgeNodes[1]);
@@ -3778,7 +3799,7 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
             pp = null;
         if ((pp != null)
             || doesTradeRouteContinuePastNode
-                 (board, true, edge, ignoreShipEdge, edgeNodes[1]))
+                 (board, true, edge, moveShip_fromEdge, edgeNodes[1]))
             return true;
 
         return false;
