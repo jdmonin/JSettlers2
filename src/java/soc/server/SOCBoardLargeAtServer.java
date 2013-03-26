@@ -601,9 +601,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *                    There should be no {@link #FOG_HEX} in here; land hexes are hidden by fog later.
      *                    For the Fog Island (scenario option {@link SOCGameOption#K_SC_FOG _SC_FOG}),
      *                    one land area contains some water.  So, <tt>landHexType[]</tt> may contain {@link #WATER_HEX}.
-     * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each land hex;
-     *                    same array length as <tt>landHexType[]</tt>.
-     *                    <BR> <tt>landAreaPathRanges[]</tt> tells how to split this array of land hex coordindates
+     * @param numPath  Coordinates within {@link #hexLayoutLg} (also within {@link #numberLayoutLg}) for each hex to place;
+     *                    same array length as {@code landHexType[]}.  May contain {@code WATER_HEX}.
+     *                    <BR> {@code landAreaPathRanges[]} tells how to split this array of hex coordinates
      *                    into multiple Land Areas.
      * @param number   Numbers to place into {@link #numberLayoutLg} for each land hex;
      *                    array length is <tt>landHexType[].length</tt> minus 1 for each desert or water in <tt>landHexType[]</tt>
@@ -767,7 +767,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             {
                 // Check the newly placed land area(s) for clumps;
                 // ones placed in previous method calls are ignored
-                Vector<Integer> unvisited = new Vector<Integer>();  // contains each land hex's coordinate
+                Vector<Integer> unvisited = new Vector<Integer>();  // contains each hex's coordinate
                 for (int i = 0; i < landHexType.length; ++i)
                     unvisited.addElement(new Integer(numPath[i]));
 
@@ -824,7 +824,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *      is placed in land area 2, the small strip of land past the desert.
      *</UL>
      *
-     * @param landHexCoords All land hex coordinates being shuffled, includes gold hexes and non-gold hexes
+     * @param hexCoords  All hex coordinates being shuffled; includes gold hexes and non-gold hexes, may include water
      * @param landAreaPathRanges  <tt>numPath[]</tt>'s Land Area Numbers, and the size of each land area;
      *           see this parameter's javadoc at
      *           {@link #makeNewBoard_placeHexes(int[], int[], int[], boolean, boolean, int[], SOCGameOption, String)}.
@@ -832,14 +832,14 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      *                 some scenarios might want special distribution of certain hex types.
      */
     private final void makeNewBoard_placeHexes_arrangeGolds
-        (final int[] landHexCoords, final int[] landAreaPathRanges, final String scen)
+        (final int[] hexCoords, final int[] landAreaPathRanges, final String scen)
     {
         // map of gold hex coords to all their adjacent land hexes, if any;
         // golds with no adjacent land are left out of the map.
         HashMap<Integer, Vector<Integer>> goldAdjac = new HashMap<Integer, Vector<Integer>>();
 
-        // Find each gold hex's adjacent hexes:
-        for (int hex : landHexCoords)
+        // Find each gold hex's adjacent land hexes:
+        for (int hex : hexCoords)
         {
             if (GOLD_HEX != getHexTypeFromCoord(hex))
                 continue;
@@ -865,9 +865,9 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
             boolean foundInLA2 = false;
             // Search landarea 2 within landHexCoords[] for gold hex coord;
             // landAreaPathRanges[1] == size of LA1 == index of first hex of LA2 within landHexCoords[]
-            for (int i = landAreaPathRanges[1]; i < landHexCoords.length; ++i)
+            for (int i = landAreaPathRanges[1]; i < hexCoords.length; ++i)
             {
-                if (landHexCoords[i] == goldHex)
+                if (hexCoords[i] == goldHex)
                 {
                     foundInLA2 = true;
                     break;
@@ -879,7 +879,7 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
                 // The gold is in landarea 1. Pick a random non-gold hex in landarea 2, and swap hexLayoutLg values.
 
                 final int i = landAreaPathRanges[1] + rand.nextInt(landAreaPathRanges[3]);  // ranges[3] == size of LA2
-                final int nonGoldHex = landHexCoords[i];
+                final int nonGoldHex = hexCoords[i];
 
                 final int gr = goldHex >> 8,
                           gc = goldHex & 0xFF,
@@ -936,10 +936,13 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
         // was the middle one and no other golds are adjacent.
 
         HashSet<Integer> nonAdjac = new HashSet<Integer>();
-        for (int hex : landHexCoords)
+        for (int hex : hexCoords)
         {
-            if (GOLD_HEX == getHexTypeFromCoord(hex))
-                continue;
+            {
+                final int htype = getHexTypeFromCoord(hex);
+                if ((htype == GOLD_HEX) || (htype == WATER_HEX))
+                    continue;
+            }
 
             final Integer hexInt = Integer.valueOf(hex);
             boolean adjac = false;
@@ -1003,7 +1006,8 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Updates <tt>nonAdjac</tt> and <tt>goldAdjacGold</tt>.
      * Used by makeNewBoard_placeHexes_arrangeGolds.
      * @param goldHex  Coordinate of gold hex to swap
-     * @param nonAdjac  All land hexes not currently adjacent to a gold hex
+     * @param nonAdjac  All land hexes not currently adjacent to a gold hex;
+     *                  should not include coordinates of any {@code WATER_HEX}
      * @param goldAdjacGold  Map of golds adjacent to each other
      * @throws IllegalArgumentException  if goldHex coordinates in hexLayoutLg aren't GOLD_HEX
      */
