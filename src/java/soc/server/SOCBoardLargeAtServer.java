@@ -2950,6 +2950,10 @@ public class SOCBoardLargeAtServer extends SOCBoardLarge
      * Each player has 1 array, in same player order as {@link #PIR_ISL_INIT_PIECES}
      * (given out to non-vacant players, not strictly matching player number).
      *<P>
+     * Note {@link SOCPlayer#doesTradeRouteContinuePastNode(SOCBoard, boolean, int, int, int)}
+     * assumes there is just 1 legal sea edge, not 2, next to each player's free initial settlement,
+     * so it won't need to check if the ship route would branch in 2 directions there.
+     *<P>
      * See {@link #getLegalSeaEdges(SOCGame, int)} for how this is rearranged to be sent to
      * active player clients as part of a {@code SOCPotentialSettlements} message,
      * and the format of each player's array.

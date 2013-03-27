@@ -1248,9 +1248,16 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
      *
      * @param board  game board
      * @param wantShip   True to look for ships only, false for roads only
-     * @param rsEdge  Edge with a road/ship on the trade route
+     * @param rsEdge  Edge adjacent to {@code node} with a road/ship on the trade route
      * @param ignoreEdge  Edge to ignore our pieces on, or -9; used
-     *                    during the check before moving one of our ships.
+     *                    during the check before moving one of our ships
+     *                    to ignore the ship's current position (its {@code fromEdge}).
+     *                    Not necessarily adjacent to {@code node} or {@code rsEdge}.
+     *                    <P>
+     *                    In scenario {@code _SC_PIRI}, moving a ship must not create a new
+     *                    branch in the existing ship route. When not -9 in that scenario,
+     *                    this method checks that by counting our ships/roads adjacent to {@code node}
+     *                    besides {@code rsEdge} and {@code ignoreEdge}.
      * @param node  Node at one end of {@code rsEdge},
      *              which does not have a settlement or city;
      *              check this node's other 2 edges for roads/ships
@@ -1263,6 +1270,17 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
         (final SOCBoard board, final boolean wantShip, final int rsEdge, final int ignoreEdge, final int node)
     {
         boolean routeContinues = false;
+
+        // openEdgesCount: for _SC_PIRI when moving ship, number of non-ship edges around node;
+        //   otherwise 0.  Starts at 3, and the loop has a break below 2, so it will never reach 0.
+        //   Track this count because we can't create a branch in the ship route by moving one.
+        //   Decrement openEdgesCount when a ship is seen.  Ignore roads.
+        //   Assumes that it's OK to place 2 ships next to a coastal settlement
+        //   (the road to the settlement is ignored) because the player's free initial coastal settlement
+        //   has just 1 legal sea edge next to it, not 2, so the route can't branch there,
+        //   so any other coastal settlement is "on the way" along the non-branching route.
+        int openEdgesCount =
+            ((ignoreEdge != -9) && game.isGameOptionSet(SOCGameOption.K_SC_PIRI)) ? 3 : 0;
 
         int[] adjEdges = board.getAdjacentEdgesToNode_arr(node);
         for (int i = 0; i < 3; ++i)
@@ -1281,15 +1299,21 @@ public class SOCPlayer implements SOCDevCardConstants, Serializable, Cloneable
                         continue;  // interested in ships only, or roads only, not both types
 
                     routeContinues = true;
+                    if (openEdgesCount != 0)
+                        --openEdgesCount;
+
                     break;
                 }
             }
 
-            if (routeContinues)
+            if (routeContinues && (openEdgesCount < 2))
                 break;  // no need to keep looking at roads
         }
 
-        return routeContinues;
+        if (openEdgesCount == 0)
+            return routeContinues;
+        else
+            return (openEdgesCount == 2);  // If 3, nothing beyond. If 1, already 2 ships beyond, route would branch.
     }
 
     /**
