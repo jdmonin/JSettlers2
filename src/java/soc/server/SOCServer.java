@@ -47,6 +47,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -11381,11 +11382,14 @@ public class SOCServer extends Server
      */
     public static void printGameOptions()
     {
-        Hashtable<String, SOCGameOption> allopts = SOCGameOption.getAllKnownOptions();
+        final Hashtable<String, SOCGameOption> allopts = SOCGameOption.getAllKnownOptions();
+
         System.err.println("-- Current default game options: --");
-        for (Enumeration<String> e = allopts.keys(); e.hasMoreElements(); )
+
+        ArrayList<String> okeys = new ArrayList<String>(allopts.keySet());
+        Collections.sort(okeys);
+        for (final String okey : okeys )
         {
-            String okey = e.nextElement();
             SOCGameOption opt = allopts.get(okey);
 
             if (opt.hasFlag(SOCGameOption.FLAG_INTERNAL_GAME_PROPERTY))

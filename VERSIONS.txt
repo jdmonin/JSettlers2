@@ -40,6 +40,7 @@ new features, until 2.0.00 is ready.
 - In-game "Game Info" button: If an info window's already visible, show it instead of making another one
 - Don't limit the number of simultaneous practice games
 - If saving completed games to db, save if any human players, even if not original players
+- Server --help message: Sort game option keynames alphabetically
 
     > 1.1.17 (build OV20121212)
 - Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece
