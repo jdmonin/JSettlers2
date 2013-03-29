@@ -1,6 +1,6 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
- * This file Copyright (C) 2009,2011,2012 Jeremy D Monin <jeremy@nand.net>
+ * This file Copyright (C) 2009,2011-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -75,7 +75,7 @@ import soc.message.SOCMessage;
  * JSettlers version number to the server's, and asks for any changes to options if
  * their versions differ.
  *<P>
- * @author Jeremy D. Monin <jeremy@nand.net>
+ * @author Jeremy D. Monin &lt;jeremy@nand.net&gt;
  * @since 1.1.07
  */
 public class SOCGameOption implements Cloneable, Comparable
@@ -1103,11 +1103,34 @@ public class SOCGameOption implements Cloneable, Comparable
     }
 
     /**
+     * Get information about a known option.
+     * @param key  Option key
+     * @param clone  True if a copy of the option is needed; set this true
+     *               unless you're sure you won't be changing any fields of
+     *               its original object, which is a shared copy in a static hash.
      * @return information about a known option, or null if none with that key
+     * @throws IllegalStateException  if {@code clone} but the object couldn't be cloned; this isn't expected to ever happen
      */
-    public static SOCGameOption getOption(String key)
+    public static SOCGameOption getOption(final String key, final boolean clone)
     {
-	return (SOCGameOption) allOptions.get(key);  // null is ok
+        SOCGameOption op = (SOCGameOption) allOptions.get(key);
+        if (op == null)
+            return null;
+
+        if (clone)
+        {
+            try
+            {
+                op = (SOCGameOption) op.clone();
+            } catch (CloneNotSupportedException ce) {
+                // required, but not expected to happen
+                IllegalStateException ise = new IllegalStateException("Clone failed!");
+                ise.initCause(ce);
+                throw ise;
+            }
+        }
+
+        return op;
     }
 
     /**
@@ -1299,6 +1322,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @return hashtable of SOCGameOptions, or null if ostr==null or empty ("-")
      *         or if ostr is malformed.  Any unrecognized options
      *         will be in the hashtable as type {@link #OTYPE_UNKNOWN}.
+     *         The returned known SGOs are clones from the set of all known options.
      * @see #parseOptionNameValue(String, boolean)
      */
     public static Hashtable parseOptionsToHash(String ostr)
@@ -1334,6 +1358,7 @@ public class SOCGameOption implements Cloneable, Comparable
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
+     *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @see #parseOptionsToHash(String)
      * @see #packValue(StringBuffer)
