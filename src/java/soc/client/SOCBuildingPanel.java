@@ -33,6 +33,8 @@ import java.awt.Label;
 import java.awt.Panel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 
 /**
@@ -40,7 +42,8 @@ import java.awt.event.ActionListener;
  * to build things, and it allows the player to build.
  * Sits within a game's {@link SOCPlayerInterface} frame.
  */
-public class SOCBuildingPanel extends Panel implements ActionListener
+public class SOCBuildingPanel extends Panel
+    implements ActionListener, WindowListener
 {
     static final String ROAD = "road";
     static final String STLMT = "stlmt";
@@ -393,10 +396,13 @@ public class SOCBuildingPanel extends Panel implements ActionListener
         if (e.getSource() == optsBut)
         {
             if ((ngof != null) && ngof.isVisible())
-                ngof.show();
-            else
+            {
+                ngof.show();  // method override also requests topmost/focus
+            } else {
                 ngof = NewGameOptionsFrame.createAndShow
                     (pi.getClient(), game.getName(), game.getGameOptions(), false, true);
+                ngof.addWindowListener(this);  // drop ngof reference when window is closed
+            }
 
             return;
         }
@@ -631,5 +637,34 @@ public class SOCBuildingPanel extends Panel implements ActionListener
 
         player = game.getPlayer(pi.getClient().getNickname());
     }
+
+    /**
+     * If our "Game Options" window ({@link NewGameOptionsFrame}) is closed,
+     * drop our reference to it so it can be gc'd.
+     * @since 1.1.18
+     */
+    public void windowClosed(WindowEvent e)
+    {
+        if (e.getWindow() == ngof)
+            ngof = null;
+    }
+
+    /** Required stub for {@link WindowListener} */
+    public void windowClosing(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowOpened(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowIconified(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowDeiconified(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowActivated(WindowEvent e) {}
+
+    /** Required stub for {@link WindowListener} */
+    public void windowDeactivated(WindowEvent e) {}
 
 }
