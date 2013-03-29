@@ -641,7 +641,7 @@ public class NewGameOptionsFrame extends Frame
 
     /**
      * Show the window, and request focus on game name textfield.
-     * To make this window topmost, call {@code show()} instead of {@link #requestFocus()}.
+     * To make this window topmost, call <tt>show()</tt> instead of {@link #requestFocus()}.
      */
     public void show()
     {

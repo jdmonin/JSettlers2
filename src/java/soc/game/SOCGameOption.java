@@ -1109,7 +1109,7 @@ public class SOCGameOption implements Cloneable, Comparable
      *               unless you're sure you won't be changing any fields of
      *               its original object, which is a shared copy in a static hash.
      * @return information about a known option, or null if none with that key
-     * @throws IllegalStateException  if {@code clone} but the object couldn't be cloned; this isn't expected to ever happen
+     * @throws IllegalStateException  if <tt>clone</tt> but the object couldn't be cloned; this isn't expected to ever happen
      */
     public static SOCGameOption getOption(final String key, final boolean clone)
     {

@@ -30,10 +30,10 @@ import java.util.StringTokenizer;
  * set of details attached.  If {@link SOCRollDiceRequest} or the Ask-Special-Build message types
  * were implemented today, they would add request types to this message type.
  *<UL>
- * <LI> Client sends to server: (pn, typecode, value1, value2). {@code pn} must be their own player number.
+ * <LI> Client sends to server: (pn, typecode, value1, value2). <tt>pn</tt> must be their own player number.
  * <LI> If client can't do this request now, server responds to client only with: (pn = -1, typecode, value1b, value2b).
- *      The meaning of the response's optional {@code value1b} and {@code value2b} are typecode-specific and
- *      might not be the same as {@code value1} or {@code value2}.
+ *      The meaning of the response's optional <tt>value1b</tt> and <tt>value2b</tt> are typecode-specific and
+ *      might not be the same as <tt>value1</tt> or <tt>value2</tt>.
  *      If the server is too old to understand this request type, it will respond with (pn = -1, typecode, 0, 0).
  * <LI> If client is permitted to do the request, server's response would depend on the request type.
  *      One option would be to announce the client's request to all players in game,
@@ -53,9 +53,9 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      * <h5>Example request type from v2.0.00:</h5>
      * The current player wants to attack their pirate fortress (scenario _SC_PIRI).
      * Value1 and value2 are unused.  If client can attack, server responds with
-     * {@code SOCPirateFortressAttackResult} and related messages (see that class' javadoc).
+     * <tt>SOCPirateFortressAttackResult</tt> and related messages (see that class' javadoc).
      * Otherwise, server responds with the standard SOCSimpleRequest denial:
-     * (pn = -1, typecode {@code SC_PIRI_FORT_ATTACK}, 0, 0).
+     * (pn = -1, typecode <tt>SC_PIRI_FORT_ATTACK</tt>, 0, 0).
      *<P>
      * Unused and unrecognized in 1.1.18, but this field is declared as an example and to reserve its number. 
      * @since 1.1.18
@@ -118,7 +118,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the optional {@code value1} detail field
+     * @return the optional <tt>value1</tt> detail field
      */
     public int getValue1()
     {
@@ -126,7 +126,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
     }
 
     /**
-     * @return the optional {@code value2} detail field
+     * @return the optional <tt>value2</tt> detail field
      */
     public int getValue2()
     {
@@ -153,7 +153,7 @@ public class SOCSimpleRequest extends SOCMessageTemplate4i
      *
      * @param s   the String to parse: {@link SOCMessage#SIMPLEREQUEST SIMPLEREQUEST}
      *            sep game sep2 playernumber sep2 reqtype sep2 value1 sep2 value2
-     * @return    a SOCSimpleRequest message, or {@code null} if the data is garbled
+     * @return    a SOCSimpleRequest message, or <tt>null</tt> if the data is garbled
      */
     public static SOCSimpleRequest parseDataStr(final String s)
     {
