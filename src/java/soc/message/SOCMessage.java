@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2011 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2011,2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -58,6 +58,7 @@ import java.util.StringTokenizer;
  *      can be played eventually within this server framework.
  * <LI> Add it to the switch in {@link #toMsg(String)}.  Again, note the version.
  *      Do not add if (TODO what instead??) extends SOCMessageTemplateMs or SOCMessageTemplateMi
+ * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
  * <LI> Extend the SOCMessage class, including the required parseDataStr method.
  *      ({@link SOCDiceResult} and {@link SOCSetTurn} are good example subclasses.)
  *      Template parent-classes can help; the example subclasses extend them.
@@ -65,7 +66,6 @@ import java.util.StringTokenizer;
  *      Set <tt>serialVersionUID</tt> to the version it's added in.
  *      for example, if adding for version 1.1.09:
  *      <code> private static final long serialVersionUID = 1109L;</code>
- * <LI> If the message contains a game name, your new class must implement {@link SOCMessageForGame}.
  * <LI> Add to the switch in SOCPlayerClient.treat and/or SOCServer.processCommand.
  *      Note the JSettlers version with a comment.
  *      <P>
@@ -203,6 +203,10 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
     /** @since 1.1.13 */
     public static final int TIMINGPING = 1088;  // robot timing ping, 20111011, v1.1.13
+
+    /** {@link SOCSimpleRequest} - Generic message type for simple requests by players.
+     *  @since 1.1.18 */
+    public static final int SIMPLEREQUEST = 1089;  // simple player requests, 20130217, v1.1.18
 
 
     /////////////////////////////////////////
@@ -737,6 +741,9 @@ public abstract class SOCMessage implements Serializable, Cloneable
 
             case TIMINGPING:        // robot timing ping, 20111011, v1.1.13
                 return SOCTimingPing.parseDataStr(data);
+
+            case SIMPLEREQUEST:     // simple player requests, 20130217, v1.1.18
+                return SOCSimpleRequest.parseDataStr(data);
 
             default:
                 System.err.println("Unhandled message type in SOCMessage.toMsg: " + msgId);
