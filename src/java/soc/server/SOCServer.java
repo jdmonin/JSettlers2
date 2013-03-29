@@ -43,9 +43,12 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -9602,11 +9605,15 @@ public class SOCServer extends Server
      */
     public static void printGameOptions()
     {
-        Hashtable allopts = SOCGameOption.getAllKnownOptions();
+        final Hashtable allopts = SOCGameOption.getAllKnownOptions();
+
         System.err.println("-- Current default game options: --");
-        for (Enumeration e = allopts.keys(); e.hasMoreElements(); )
+
+        ArrayList okeys = new ArrayList(allopts.keySet());
+        Collections.sort(okeys);
+        for (Iterator it = okeys.iterator(); it.hasNext(); )
         {
-            String okey = (String) e.nextElement();
+            final String okey = (String) it.next();
             SOCGameOption opt = (SOCGameOption) allopts.get(okey);
             boolean quotes = (opt.optType == SOCGameOption.OTYPE_STR) || (opt.optType == SOCGameOption.OTYPE_STRHIDE);
             // OTYPE_* - consider any type-specific output in this method.
