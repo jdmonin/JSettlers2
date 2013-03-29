@@ -1368,7 +1368,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
     public static SOCGameOption getOption(final String key, final boolean clone)
         throws IllegalStateException
     {
-        SOCGameOption op = allOptions.get(key);  // null is ok
+        SOCGameOption op = allOptions.get(key);
         if (op == null)
             return null;
 
@@ -1582,7 +1582,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @return hashtable of SOCGameOptions, or null if ostr==null or empty ("-")
      *         or if ostr is malformed.  Any unrecognized options
      *         will be in the hashtable as type {@link #OTYPE_UNKNOWN}.
-     *         The actual returned SGOs are clones from the set of all known options.
+     *         The returned known SGOs are clones from the set of all known options.
      * @see #parseOptionNameValue(String, boolean)
      */
     public static Hashtable<String,SOCGameOption> parseOptionsToHash(String ostr)
@@ -1618,7 +1618,7 @@ public class SOCGameOption implements Cloneable, Comparable<Object>
      * @param forceNameUpcase Call {@link String#toUpperCase()} on keyname within nvpair?
      *               For friendlier parsing of manually entered (command-line) nvpair strings.
      * @return Parsed option, or null if parse error;
-     *         the actual returned object is a clone of the SGO from the set of all known options.
+     *         if known, the returned object is a clone of the SGO from the set of all known options.
      *         if nvpair's option keyname is not a known option, returned optType will be {@link #OTYPE_UNKNOWN}.
      * @see #parseOptionsToHash(String)
      * @see #packValue(StringBuffer)
