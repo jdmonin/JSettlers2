@@ -119,6 +119,12 @@ To have all games' results stored in the database, use this option:
 
 To see a list of all jsettlers options (use them with -D), run:
   java -jar JSettlersServer.jar --help
+This will print all server options, and all Game Option default values.
+
+To change a Game Option from its default, for example to activate the house rule
+"Robber can't return to the desert", use the "-o" switch with the game option's name and value:
+   -o RD=t
+All command-line switches and options go before the port number if specified.
 
 
 CLIENT CONNECT:
@@ -322,3 +328,7 @@ JSettlers is licensed under the GNU General Public License.  Each source file
 lists contributors by year.  A copyright year range (for example, 2007-2011)
 means the file was contributed to by that person in each year of that range.
 See individual source files for the GPL version and other details.
+
+The hex and port images were created by Jeremy Monin, and are licensed
+Creative Commons Attribution Share Alike (cc-by-sa 3.0 US) or Creative
+Commons Attribution (CC-BY 3.0 US); see each image's gif comments for details.
