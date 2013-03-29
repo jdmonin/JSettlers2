@@ -276,6 +276,7 @@ public class SOCServer extends Server
      * Maximum number of games that a client can create at the same time (default 5).
      * Once this limit is reached, the client must delete a game before creating a new one.
      * Set this to -1 to disable it; 0 will disallow any game creation.
+     * This limit is ignored for practice games.
      * @since 1.1.10
      */
     public static int CLIENT_MAX_CREATE_GAMES = 5;
@@ -4686,8 +4687,10 @@ public class SOCServer extends Server
 
         /**
          * If creating a new game, ensure they are below their max game count.
+         * (Don't limit max games on the practice server.)
          */
         if ((! gameList.isGame(gameName))
+            && ((strSocketName == null) || ! strSocketName.equals(PRACTICE_STRINGPORT))
             && (CLIENT_MAX_CREATE_GAMES >= 0)
             && (CLIENT_MAX_CREATE_GAMES <= ((SOCClientData) c.getAppData()).getCurrentCreatedGames()))
         {
