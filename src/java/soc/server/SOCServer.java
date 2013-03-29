@@ -3464,6 +3464,14 @@ public class SOCServer extends Server
                     handleDEBUGFREEPLACE(c, (SOCDebugFreePlace) mes);
                     break;
 
+                /**
+                 * Generic simple request from a player.
+                 * Added 2013-02-17 for v1.1.18.
+                 */
+                case SOCMessage.SIMPLEREQUEST:
+                    handleSIMPLEREQUEST(c, (SOCSimpleRequest) mes);
+                    break;
+
                 }  // switch (mes.getType)
             }  // if (mes != null)
         }
@@ -7046,6 +7054,37 @@ public class SOCServer extends Server
 
                 ga.releaseMonitor();
             }
+        }
+    }
+
+    /**
+     * Handle the "simple request" message.
+     * @param c  the connection
+     * @param mes  the message
+     * @since 1.1.18
+     */
+    private void handleSIMPLEREQUEST(StringConnection c, SOCSimpleRequest mes)
+    {
+        if (c == null)
+            return;
+
+        final String gaName = mes.getGame();
+        SOCGame ga = gameList.getGameData(gaName);
+        if (ga == null)
+            return;
+        final int pn = mes.getPlayerNumber();
+        final int reqtype = mes.getRequestType();
+
+        switch(reqtype)
+        {
+        // None used in v1.1.18, so no cases
+        //    (case SOCSimpleRequest.SC_PIRI_FORT_ATTACK, etc)
+
+        default:
+            // deny unknown types
+            c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
+            System.err.println
+                ("handleSIMPLEREQUEST: Unknown type " + reqtype + " from " + c.getData() + " in game " + ga);
         }
     }
 

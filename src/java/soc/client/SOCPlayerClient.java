@@ -1,7 +1,7 @@
 /**
  * Java Settlers - An online multiplayer version of the game Settlers of Catan
  * Copyright (C) 2003  Robert S. Thomas <thomas@infolab.northwestern.edu>
- * Portions of this file Copyright (C) 2007-2012 Jeremy D Monin <jeremy@nand.net>
+ * Portions of this file Copyright (C) 2007-2013 Jeremy D Monin <jeremy@nand.net>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2207,6 +2207,14 @@ public class SOCPlayerClient extends Applet
                 handleDEBUGFREEPLACE((SOCDebugFreePlace) mes);
                 break;
 
+            /**
+             * generic 'simple request' response from the server.
+             * Added 2013-02-19 for v1.1.18.
+             */
+            case SOCMessage.SIMPLEREQUEST:
+                handleSIMPLEREQUEST((SOCSimpleRequest) mes);
+                break;
+
             }  // switch (mes.getType())            
         }
         catch (Exception e)
@@ -3901,6 +3909,29 @@ public class SOCPlayerClient extends Applet
             return;  // Not one of our games
 
         pi.setDebugFreePlacementMode(mes.getCoordinates() == 1);
+    }
+
+    /**
+     * Handle server responses from the "simple request" handler.
+     * @since 1.1.18
+     */
+    private final void handleSIMPLEREQUEST(SOCSimpleRequest mes)
+    {
+        final String gaName = mes.getGame();
+        SOCPlayerInterface pi = (SOCPlayerInterface) playerInterfaces.get(mes.getGame());
+        if (pi == null)
+            return;  // Not one of our games
+
+        switch (mes.getRequestType())
+        {
+        // None used in v1.1.18, so no cases
+        //    (case SOCSimpleRequest.SC_PIRI_FORT_ATTACK, etc)
+
+        default:
+            // unknown type
+            System.err.println
+                ("handleSIMPLEREQUEST: Unknown type " + mes.getRequestType() + " in game " + gaName);
+        }
     }
 
     /**
