@@ -753,6 +753,7 @@ public class SOCGame implements Serializable, Cloneable
             vp_winner = VP_WINNER_STANDARD;
         }
         board = SOCBoard.createBoard(op, maxPlayers);
+        opts = op;
         players = new SOCPlayer[maxPlayers];
         seats = new int[maxPlayers];
         seatLocks = new boolean[maxPlayers];
@@ -781,7 +782,6 @@ public class SOCGame implements Serializable, Cloneable
         oldPlayerWithLongestRoad = new Stack();
         lastActionWasBankTrade = false;
 
-        opts = op;
         if (op == null)
         {
             clientVersionMinRequired = -1;
