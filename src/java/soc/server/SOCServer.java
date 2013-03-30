@@ -8255,7 +8255,7 @@ public class SOCServer extends Server
                 final int cpn = ga.getCurrentPlayerNumber();
 
                 final SOCShip adjac = ga.canAttackPirateFortress();
-                if ((adjac == null) || (adjac.getPlayerNumber() != cpn))
+                if ((pn != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
                 {
                     c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
                     return;  // <--- early return: deny ---
