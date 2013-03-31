@@ -8245,17 +8245,22 @@ public class SOCServer extends Server
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
+        SOCPlayer player = ga.getPlayer((String) c.getData());
+        if (player == null)
+            return;
+
         final int pn = mes.getPlayerNumber();
+        final boolean clientIsPN = (pn == player.getPlayerNumber());  // probably required for most request types
         final int reqtype = mes.getRequestType();
 
-        switch(reqtype)
+        switch (reqtype)
         {
         case SOCSimpleRequest.SC_PIRI_FORT_ATTACK:
             {
                 final int cpn = ga.getCurrentPlayerNumber();
 
                 final SOCShip adjac = ga.canAttackPirateFortress();
-                if ((pn != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
+                if ((! clientIsPN) || (pn != cpn) || (adjac == null) || (adjac.getPlayerNumber() != cpn))
                 {
                     c.put(SOCSimpleRequest.toCmd(gaName, -1, reqtype, 0, 0));
                     return;  // <--- early return: deny ---
