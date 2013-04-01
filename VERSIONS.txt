@@ -41,6 +41,7 @@ new features, until 2.0.00 is ready.
 - Don't limit the number of simultaneous practice games
 - If saving completed games to db, save if any human players, even if not original players
 - Server --help message: Sort game option keynames alphabetically
+- Bugfix: Client creating a game on a server newer than itself might show a second New Game Options window
 
     > 1.1.17 (build OV20121212)
 - Road Building: Player may skip (cancel) placing second free road, if they want to use just one road piece

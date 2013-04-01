@@ -1837,8 +1837,8 @@ public class SOCPlayerClient
         
         public void optionsReceived(GameOptionServerSet opts, boolean isPractice, boolean isDash, boolean hasAllNow)
         {
-            boolean newGameWaiting;
-            String gameInfoWaiting;
+            final boolean newGameWaiting;
+            final String gameInfoWaiting;
             synchronized(opts)
             {
                 newGameWaiting = opts.newGameWaitingForOpts;
@@ -1852,12 +1852,20 @@ public class SOCPlayerClient
             {
                 if (gameInfoWaiting != null)
                 {
+                    synchronized(opts)
+                    {
+                        opts.gameInfoWaitingForOpts = null;
+                    }
                     Hashtable<String,SOCGameOption> gameOpts = client.serverGames.parseGameOptions(gameInfoWaiting);
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
                         (GameAwtDisplay.this, gameInfoWaiting, gameOpts, isPractice, true);
                 }
                 else if (newGameWaiting)
                 {
+                    synchronized(opts)
+                    {
+                        opts.newGameWaitingForOpts = false;
+                    }
                     newGameOptsFrame = NewGameOptionsFrame.createAndShow
                         (GameAwtDisplay.this, (String) null, opts.optionSet, isPractice, false);
                 }
