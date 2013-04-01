@@ -3786,8 +3786,8 @@ public class SOCPlayerClient extends Applet
         else
             opts = tcpServGameOpts;
 
-        boolean hasAllNow, newGameWaiting;
-        String gameInfoWaiting;
+        final boolean hasAllNow, newGameWaiting;
+        final String gameInfoWaiting;
         synchronized(opts)
         {
             hasAllNow = opts.receiveInfo(mes);
@@ -3802,11 +3802,19 @@ public class SOCPlayerClient extends Applet
         {
             if (gameInfoWaiting != null)
             {
+                synchronized(opts)
+                {
+                    opts.gameInfoWaitingForOpts = null;
+                }
                 Hashtable gameOpts = serverGames.parseGameOptions(gameInfoWaiting);
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
                     (this, gameInfoWaiting, gameOpts, isPractice, true);
             } else if (newGameWaiting)
             {
+                synchronized(opts)
+                {
+                    opts.newGameWaitingForOpts = false;
+                }
                 newGameOptsFrame = NewGameOptionsFrame.createAndShow
                     (this, (String) null, opts.optionSet, isPractice, false);
             }
