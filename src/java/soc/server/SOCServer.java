@@ -7078,10 +7078,15 @@ public class SOCServer extends Server
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
+        SOCPlayer clientPl = ga.getPlayer((String) c.getData());
+        if (clientPl == null)
+            return;
+
         final int pn = mes.getPlayerNumber();
+        final boolean clientIsPN = (pn == clientPl.getPlayerNumber());  // probably required for most request types
         final int reqtype = mes.getRequestType();
 
-        switch(reqtype)
+        switch (reqtype)
         {
         // None used in v1.1.18, so no cases
         //    (case SOCSimpleRequest.SC_PIRI_FORT_ATTACK, etc)
