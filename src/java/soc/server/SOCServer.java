@@ -630,7 +630,7 @@ public class SOCServer extends Server
     private void initSocServer(String databaseUserName, String databasePassword, Properties props)
         throws SocketException, EOFException, SQLException
     {
-        printVersionText();
+        Version.printVersionText(System.err, "Java Settlers Server ");
 
         /* Check for problems during super setup (such as port already in use).
          * Ignore net errors if we're running a DB setup script and then exiting.
@@ -822,17 +822,6 @@ public class SOCServer extends Server
         catch (NumberFormatException e) { }
 
         return pDefault;
-    }
-
-    /**
-     * Print the version and attribution text. Formerly inside constructors.
-     * @since 1.1.07
-     */
-    public static void printVersionText()
-    {
-        System.err.println("Java Settlers Server " + Version.version() +
-                ", build " + Version.buildnum() + ", " + Version.copyright());
-        System.err.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
     }
 
     /**
@@ -11209,7 +11198,7 @@ public class SOCServer extends Server
 
             if (arg.equals("-V") || arg.equalsIgnoreCase("--version"))
             {
-                printVersionText();
+                Version.printVersionText(System.err, "Java Settlers Server ");
                 hasStartupPrintAndExit = true;
             }
             else if (arg.equalsIgnoreCase("-h") || arg.equals("?") || arg.equalsIgnoreCase("--help"))
@@ -11344,7 +11333,7 @@ public class SOCServer extends Server
     /**
      * Print command line parameter information, including options ("--" / "-").
      * @param longFormat short or long?
-     * Long format gives details and also calls {@link #printVersionText()} beforehand.
+     * Long format gives details and also calls {@link Version#printVersionText(java.io.PrintStream, String)} beforehand.
      * Short format is printed at most once, after checking {@link #printedUsageAlready}.
      * @since 1.1.07
      */
@@ -11356,7 +11345,7 @@ public class SOCServer extends Server
 
         if (longFormat)
         {
-            printVersionText();
+            Version.printVersionText(System.err, "Java Settlers Server ");
         }
         System.err.println("usage: java soc.server.SOCServer [option...] port_number max_connections dbUser dbPass");
         if (longFormat)
