@@ -195,8 +195,8 @@ public class Version {
   public static void printVersionText(PrintStream out, final String progname)
   {
       out.println(progname + version() +
-          ", build " + buildnum() + ", " + copyright());
-      out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+          ", build " + buildnum() + ", (C) " + copyright());
+      out.println("Network layer based on code by Cristian Bogdan; Practice Net by Jeremy Monin.");
   }
 
 }
