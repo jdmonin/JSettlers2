@@ -2579,6 +2579,16 @@ public class SOCPlayerInterface extends Frame
             textDisplay.setBounds(i.left + hw + 8, i.top + 4, bw, tdh);
             chatDisplay.setBounds(i.left + hw + 8, i.top + 4 + tdh, bw, cdh);
             textInput.setBounds(i.left + hw + 8, i.top + 4 + tah, bw, tfh);
+
+            // scroll to bottom of textDisplay, chatDisplay after resize from expanded
+            EventQueue.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    chatDisplay.setCaretPosition(chatDisplay.getText().length());
+                    textDisplay.setCaretPosition(textDisplay.getText().length());
+                }
+            });
         }
         textDisplaysLargerTemp_needsLayout = false;
 
