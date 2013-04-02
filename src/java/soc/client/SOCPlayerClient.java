@@ -764,9 +764,7 @@ public class SOCPlayerClient extends Applet
      */
     public synchronized void init()
     {
-        System.out.println("Java Settlers Client " + Version.version() +
-                           ", build " + Version.buildnum() + ", " + Version.copyright());
-        System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+        Version.printVersionText(System.out, "Java Settlers Client ");
 
         String param = null;
         int intValue;
@@ -5195,9 +5193,7 @@ public class SOCPlayerClient extends Applet
             }
         }
 
-        System.out.println("Java Settlers Client " + Version.version() +
-                ", build " + Version.buildnum() + ", " + Version.copyright());
-        System.out.println("Network layer based on code by Cristian Bogdan; local network by Jeremy Monin.");
+        Version.printVersionText(System.out, "Java Settlers Client ");
 
         Frame frame = new Frame("JSettlers client " + Version.version());
         frame.setBackground(new Color(Integer.parseInt("61AF71",16)));
