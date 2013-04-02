@@ -8234,12 +8234,12 @@ public class SOCServer extends Server
         SOCGame ga = gameList.getGameData(gaName);
         if (ga == null)
             return;
-        SOCPlayer player = ga.getPlayer((String) c.getData());
-        if (player == null)
+        SOCPlayer clientPl = ga.getPlayer((String) c.getData());
+        if (clientPl == null)
             return;
 
         final int pn = mes.getPlayerNumber();
-        final boolean clientIsPN = (pn == player.getPlayerNumber());  // probably required for most request types
+        final boolean clientIsPN = (pn == clientPl.getPlayerNumber());  // probably required for most request types
         final int reqtype = mes.getRequestType();
 
         switch (reqtype)
