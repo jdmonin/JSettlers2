@@ -239,8 +239,6 @@ Current TODO list
 		current SOCResourceConstants.CLAY vs SOCPlayerElement.CLAY
 	- refactor: name of dev-cards consolidate
 
-The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
-
 
 Coding Style
 ------------
@@ -357,6 +355,8 @@ This will trim it from the entire file when the key is pressed.
 To manually clean up trailing whitespace:
 Eclipse preferences -> general -> editors -> text editors -> [x] Show whitespace characters
 Find/Replace: Regular expressions: Find [\t ]+$
+
+The rotated 3:1 port hexes' font is Optima Bold, 21 pt.
 
 
 github
