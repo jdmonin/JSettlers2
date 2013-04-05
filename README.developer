@@ -1,11 +1,11 @@
-README.developer - Notes and current status of 2012 JSettlers development
+README.developer - Notes and current status of 2013 JSettlers development
 	(version 1.1.xx, running at nand.net)
 	http://nand.net/jsettlers/devel/
 	http://sourceforge.net/projects/jsettlers2/
 	https://github.com/jdmonin/JSettlers2
 
-At this point (after 1.1.13), the 1.1.xx series is for stable bugfixes.
-New JSettlers development is version 2.0.xx.
+At this point (after 1.1.13), the 1.1.xx series is for stable bugfixes and
+backports of minor new features.  New JSettlers development is version 2.0.xx.
 
 Scroll down a bit for the current TODO list.
 See VERSIONS.txt for recent changes.
@@ -32,7 +32,7 @@ Robots talk with the server like normal human clients.
 Most robot messages are per-game; instead of being handled in SOCRobotClient,
 these are handled in a loop in SOCRobotBrain.run().
 
-Coding is done in Java 1.4 for now, but should compile cleanly in newer JDKs.
+Coding for version 1.1.xx is done in Java 1.4 (jsettlers 2.0 uses Java 5), but should compile cleanly in newer JDKs.
 The build system is Ant, which is natively understood by Eclipse.  Use any IDE you want, including vi.
 Use spaces, not tabs.  Please try to keep the other conventions of the code already there.
 (See "Coding Style" below for more details.)
@@ -43,7 +43,7 @@ and the one-sentence summary (even though some old methods don't have that summa
 When submitting patches, please use unified diff (-ur) format.
 
 For more information about the AI, please see Robert S Thomas' dissertation.
-For more informaiton about the board coordinates, see the dissertation appendix A,
+For more information about the board coordinates, see the dissertation appendix A,
 or javadocs in soc.game.SOCBoard, and src/docs/hexcoord.gif and hexcoord-6player.gif.
 
 
@@ -126,7 +126,7 @@ If you want to configure a sqlite database for testing
 	this is an eclipse Run Configuration for a jsettlers server which
 	includes the sqlite database you're about to configure.
 
-  - Download the driver from http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC
+  - Download the driver from https://bitbucket.org/xerial/sqlite-jdbc
 
   - Eclipse menu -> prefs -> data mgmt -> connectivity -> driver definitions -> add
 	  [this menu path will be available only under eclipse j2ee, not the basic eclipse]
@@ -135,7 +135,7 @@ If you want to configure a sqlite database for testing
 
   - Project build path: libraries: include sqlite-jdbc-3.7.2.jar here too
 
-  - Build the project (from build.xml; creates target\classes\resources\version.info)
+  - Build the project (from build.xml; creates target/classes/resources/version.info)
 
   - Run socserver once to create the db file and exit cleanly:
 	run configurations
@@ -347,7 +347,7 @@ The project code lives at https://github.com/jdmonin/JSettlers2 .
 Patches can be sent by email or by pull request.
 Please make sure your patch follows the project coding style.
 
-The master branch recieves new features and enhancements for next 'minor'
+The master branch receives new features and enhancements for next 'minor'
 release.  As soon as a bug is fixed or a feature's design is fairly stable, it
 should be committed to master.
 
@@ -369,7 +369,7 @@ Then: git tag -a release-1.1.14 -m 'Version 1.1.14 is build OV20120930'
 You can also see an overview of commit comments in the git log
 histories of src/java/resources/version.info.in and VERSIONS.txt.
 
-The github repo contains the full JSettlers2 CVS history formerly hosted at
+The github repo includes the full JSettlers2 CVS history formerly hosted at
 http://sourceforge.net/projects/jsettlers2/develop through 2012-09-28.
 The old old source history from Robert S Thomas (2004-2005) can be found at
 http://sourceforge.net/projects/jsettlers/develop .
